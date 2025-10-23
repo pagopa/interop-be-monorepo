@@ -25,6 +25,7 @@ message PurposeTemplateV2 {
   bool purposeIsFreeOfCharge = 11;
   optional string purposeFreeOfChargeReason = 12;
   optional int32 purposeDailyCalls = 13;
+  bool handlesPersonalData = 14;
 }
 
 message RiskAnalysisFormTemplateV2 {
