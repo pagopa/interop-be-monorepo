@@ -52,7 +52,7 @@ export async function handlePurposeVersionActivated(
     readModelService,
     userService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
