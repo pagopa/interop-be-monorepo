@@ -36,7 +36,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
 
   const mockResponse: m2mGatewayApi.EServiceTemplateVersionVerifiedAttributesGroup =
     {
-      results: [
+      attributes: [
         {
           groupIndex: 1,
           attribute: toM2MGatewayApiVerifiedAttribute({

@@ -37,7 +37,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/certifiedAttribu
 
   const mockResponse: m2mGatewayApi.EServiceDescriptorCertifiedAttributesGroup =
     {
-      results: [
+      attributes: [
         {
           groupIndex: 0,
           attribute: toM2MGatewayApiCertifiedAttribute({

@@ -149,7 +149,7 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
   } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
 
   const response: m2mGatewayApi.EServiceDescriptorCertifiedAttributesGroup = {
-    results: [
+    attributes: [
       {
         groupIndex: 1,
         attribute: toM2MGatewayApiCertifiedAttribute({

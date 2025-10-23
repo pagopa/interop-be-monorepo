@@ -157,7 +157,7 @@ describe("createEServiceTemplateVersionVerifiedAttributesGroup", () => {
 
   const response: m2mGatewayApi.EServiceTemplateVersionVerifiedAttributesGroup =
     {
-      results: [
+      attributes: [
         {
           groupIndex: 1,
           attribute: toM2MGatewayApiVerifiedAttribute({
