@@ -38,6 +38,7 @@ import { config } from "../config/config.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
@@ -116,6 +117,7 @@ export function purposeServiceBuilder(
     delegationProcessClient,
     authorizationClient,
     selfcareV2UserClient,
+    inAppNotificationManagerClient,
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
@@ -127,7 +129,8 @@ export function purposeServiceBuilder(
     consumers: tenantApi.Tenant[],
     purposeTemplate: purposeTemplateApi.PurposeTemplate | undefined,
     headers: Headers,
-    correlationId: CorrelationId
+    correlationId: CorrelationId,
+    notifications: string[]
     // eslint-disable-next-line max-params
   ): Promise<bffApi.Purpose> => {
     const eservice = eservices.find((e) => e.id === purpose.eserviceId);
@@ -198,10 +201,13 @@ export function purposeServiceBuilder(
       headers
     );
 
+    const hasNotifications = notifications.includes(purpose.id);
+
     return {
       id: purpose.id,
       title: purpose.title,
       description: purpose.description,
+      hasUnreadNotifications: hasNotifications,
       consumer: {
         id: consumer.id,
         name: consumer.name,
@@ -269,9 +275,9 @@ export function purposeServiceBuilder(
       offset: number;
       limit: number;
     },
-    headers: Headers,
-    correlationId: CorrelationId
+    ctx: WithLogger<BffAppContext>
   ): Promise<bffApi.Purposes> => {
+    const { headers, correlationId } = ctx;
     const queries = {
       ...filters,
       eservicesIds:
@@ -299,6 +305,11 @@ export function purposeServiceBuilder(
           })
       )
     );
+    const notificationPromise = filterUnreadNotifications(
+      inAppNotificationManagerClient,
+      purposes.results.map((a) => a.id),
+      ctx
+    );
 
     const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
       tenantProcessClient.tenant.getTenant({
@@ -314,6 +325,7 @@ export function purposeServiceBuilder(
       removeDuplicates(eservices.map((e) => e.producerId)).map(getTenant)
     );
 
+    const notifications = await notificationPromise;
     const purposeTemplatesById = new Map<
       string,
       purposeTemplateApi.PurposeTemplate
@@ -344,7 +356,8 @@ export function purposeServiceBuilder(
           consumers,
           purposeTemplate,
           headers,
-          correlationId
+          correlationId,
+          notifications
         );
       })
     );
@@ -431,8 +444,9 @@ export function purposeServiceBuilder(
       },
       offset: number,
       limit: number,
-      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
+      const { authData, logger } = ctx;
       logger.info(
         `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds} offset ${offset}, limit ${limit}`
       );
@@ -445,8 +459,7 @@ export function purposeServiceBuilder(
           offset,
           limit,
         },
-        headers,
-        correlationId
+        ctx
       );
     },
     async getConsumerPurposes(
@@ -458,8 +471,9 @@ export function purposeServiceBuilder(
       },
       offset: number,
       limit: number,
-      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
+      const { authData, logger } = ctx;
       logger.info(
         `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds} offset ${offset}, limit ${limit}`
       );
@@ -472,9 +486,7 @@ export function purposeServiceBuilder(
           offset,
           limit,
         },
-
-        headers,
-        correlationId
+        ctx
       );
     },
     async clonePurpose(
@@ -692,7 +704,13 @@ export function purposeServiceBuilder(
       { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purpose> {
       logger.info(`Retrieving Purpose ${id}`);
-
+      const notificationPromise =
+        inAppNotificationManagerClient.filterUnreadNotifications({
+          queries: {
+            entityIds: [id],
+          },
+          headers,
+        });
       const purpose = await purposeProcessClient.getPurpose({
         params: {
           id,
@@ -733,6 +751,8 @@ export function purposeServiceBuilder(
         }),
       ]);
 
+      const notification = await notificationPromise;
+
       const purposeTemplate = purpose.purposeTemplateId
         ? await purposeTemplateProcessClient.getPurposeTemplate({
             params: {
@@ -750,7 +770,8 @@ export function purposeServiceBuilder(
         [consumer],
         purposeTemplate,
         headers,
-        correlationId
+        correlationId,
+        notification
       );
     },
     async retrieveLatestRiskAnalysisConfiguration(
