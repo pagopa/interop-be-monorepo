@@ -891,9 +891,9 @@ const eserviceTemplateRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          await eserviceTemplateService.assignEServiceDescriptorCertifiedAttributesGroup(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
+          await eserviceTemplateService.assignEServiceTemplateVersionCertifiedAttributesToGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
             req.params.groupIndex,
             req.body,
             ctx
@@ -916,9 +916,9 @@ const eserviceTemplateRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          await eserviceTemplateService.assignEServiceDescriptorDeclaredAttributesGroup(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
+          await eserviceTemplateService.assignEServiceTemplateVersionDeclaredAttributesToGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
             req.params.groupIndex,
             req.body,
             ctx
@@ -942,9 +942,9 @@ const eserviceTemplateRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await eserviceTemplateService.assignEServiceDescriptorVerifiedAttributesGroup(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
+          await eserviceTemplateService.assignEServiceTemplateVersionVerifiedAttributesToGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
             req.params.groupIndex,
             req.body,
             ctx

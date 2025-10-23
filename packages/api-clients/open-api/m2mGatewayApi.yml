@@ -11986,10 +11986,8 @@ paths:
         required: true
         content:
           application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
+            schema:
+              $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "204":
           description: E-Service Template Version Declared Attribute assigned to the Attribute Group

@@ -336,6 +336,10 @@ export function eserviceServiceBuilder(
       updateAttributeGroup,
       ...kindAttributeGroups.slice(groupIndex + 1),
     ];
+    const configOptions = {
+      params: { eServiceId: eserviceId, descriptorId },
+      headers,
+    };
     const response = await (descriptor.state ===
     catalogApi.EServiceDescriptorState.Values.DRAFT
       ? clients.catalogProcessClient.patchUpdateDraftDescriptor(
@@ -345,20 +349,14 @@ export function eserviceServiceBuilder(
               [attributeKind]: updatedGroups,
             },
           },
-          {
-            params: { eServiceId: eserviceId, descriptorId },
-            headers,
-          }
+          configOptions
         )
       : clients.catalogProcessClient.updateDescriptorAttributes(
           {
             ...descriptor.attributes,
             [attributeKind]: updatedGroups,
           },
-          {
-            params: { eServiceId: eserviceId, descriptorId },
-            headers,
-          }
+          configOptions
         ));
     await pollEService(response, headers);
   }
@@ -1273,7 +1271,7 @@ export function eserviceServiceBuilder(
         descriptorId,
         groupIndex,
         seed,
-        "certified",
+        "declared",
         headers
       );
     },

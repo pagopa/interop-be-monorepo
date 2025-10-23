@@ -323,21 +323,21 @@ export function eserviceTemplateServiceBuilder(
   }
   // eslint-disable-next-line max-params
   async function assignEServiceTemplateVersionAttributesToGroup(
-    eserviceId: EServiceId,
-    descriptorId: DescriptorId,
+    templateId: EServiceTemplateId,
+    versionId: EServiceTemplateVersionId,
     groupIndex: number,
-    seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
-    attributeKind: keyof catalogApi.Attributes,
+    seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed,
+    attributeKind: keyof eserviceTemplateApi.Attributes,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> {
-    const eservice = await retrieveEServiceById(headers, eserviceId);
-    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
-    const kindAttributeGroups = descriptor.attributes[attributeKind];
+    const eservice = await retrieveEServiceTemplateById(headers, templateId);
+    const version = retrieveEServiceTemplateVersionById(eservice, versionId);
+    const kindAttributeGroups = version.attributes[attributeKind];
     if (kindAttributeGroups.length <= groupIndex) {
-      throw eserviceDescriptorAttributeGroupNotFound(
+      throw eserviceTemplateVersionAttributeGroupNotFound(
         attributeKind,
-        eserviceId,
-        descriptorId,
+        templateId,
+        versionId,
         groupIndex
       );
     }
@@ -350,7 +350,7 @@ export function eserviceTemplateServiceBuilder(
     ];
     const updateAttributesSeed = {
       attributes: {
-        ...descriptor.attributes,
+        ...version.attributes,
         [attributeKind]: [
           ...kindAttributeGroups.slice(0, groupIndex),
           updateAttributeGroups,
@@ -358,23 +358,21 @@ export function eserviceTemplateServiceBuilder(
         ],
       },
     };
-    const response = await (descriptor.state ===
-    catalogApi.EServiceDescriptorState.Values.DRAFT
-      ? clients.catalogProcessClient.patchUpdateDraftDescriptor(
+    const configOptions = {
+      params: { templateId, templateVersionId: versionId },
+      headers,
+    };
+    const response = await (version.state ===
+    eserviceTemplateApi.EServiceTemplateVersionState.Values.DRAFT
+      ? clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
           updateAttributesSeed,
-          {
-            params: { eServiceId: eserviceId, descriptorId },
-            headers,
-          }
+          configOptions
         )
-      : clients.catalogProcessClient.updateDescriptorAttributes(
+      : clients.eserviceTemplateProcessClient.updateTemplateVersionAttributes(
           updateAttributesSeed.attributes,
-          {
-            params: { eServiceId: eserviceId, descriptorId },
-            headers,
-          }
+          configOptions
         ));
-    await pollEService(response, headers);
+    await pollEServiceTemplate(response, headers);
   }
 
   return {
@@ -1214,6 +1212,63 @@ export function eserviceTemplateServiceBuilder(
           totalCount: eserviceTemplateVersionAttributes.totalCount,
         },
       };
+    },
+    async assignEServiceTemplateVersionCertifiedAttributesToGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Assigning Certified Attributes to Group ${groupIndex} for E-Service template ${templateId} Version ${versionId}`
+      );
+      await assignEServiceTemplateVersionAttributesToGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        seed,
+        "certified",
+        headers
+      );
+    },
+    async assignEServiceTemplateVersionDeclaredAttributesToGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Assigning Declared Attributes to Group ${groupIndex} for E-Service template ${templateId} Version ${versionId}`
+      );
+      await assignEServiceTemplateVersionAttributesToGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        seed,
+        "declared",
+        headers
+      );
+    },
+    async assignEServiceTemplateVersionVerifiedAttributesToGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Assigning Verified Attributes to Group ${groupIndex} for E-Service template ${templateId} Version ${versionId}`
+      );
+      await assignEServiceTemplateVersionAttributesToGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        seed,
+        "verified",
+        headers
+      );
     },
     async deleteEServiceTemplateVersionCertifiedAttributeFromGroup(
       templateId: EServiceTemplateId,
