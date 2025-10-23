@@ -4,17 +4,18 @@ import { EServiceTemplateId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, clients } from "../../vitest.api.setup.js";
+import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCreatedResource } from "../../mockUtils.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions", () => {
-  const mockCreatedResource = getMockBffApiCreatedResource();
+  const mockEServiceId = generateId<EServiceTemplateId>();
+  const mockApiCreatedResource = getMockBffApiCreatedResource(mockEServiceId);
 
   beforeEach(() => {
-    clients.eserviceTemplateProcessClient.createEServiceTemplateVersion = vi
+    services.eServiceTemplateService.createEServiceTemplateVersion = vi
       .fn()
-      .mockResolvedValue(mockCreatedResource);
+      .mockResolvedValue(mockApiCreatedResource);
   });
 
   const makeRequest = async (
@@ -24,13 +25,14 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions", () => {
     request(api)
       .post(`${appBasePath}/eservices/templates/${eServiceTemplateId}/versions`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockCreatedResource);
+    expect(res.body).toEqual(mockApiCreatedResource);
   });
 
   it("Should return 400 if passed invalid eServiceTemplateId", async () => {

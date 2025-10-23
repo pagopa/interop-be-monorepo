@@ -143,7 +143,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorInterfaceAdded",
           "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate"
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
         ),
       },
       () => {

@@ -496,6 +496,7 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   dailyCallsPerConsumer: generateMock(z.number().int().min(1).max(1000000000)),
   dailyCallsTotal: generateMock(z.number().int().min(1).max(1000000000)),
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+  hasUnreadNotifications: generateMock(z.boolean()),
   purposeTemplate: generateMock(bffApi.CompactPurposeTemplate.optional()),
 });
 
@@ -796,6 +797,7 @@ export const getMockBffApiProducerEServiceTemplate =
     draftVersion: generateMock(
       bffApi.CompactEServiceTemplateVersion.optional()
     ),
+    hasUnreadNotifications: generateMock(z.boolean()),
   });
 
 export const getMockBffApiEServiceTemplateVersionQuotasUpdateSeed =
@@ -971,6 +973,7 @@ export const getMockBffApiAgreementListEntry =
     suspendedByProducer: generateMock(z.boolean().optional()),
     descriptor: generateMock(bffApi.CompactDescriptor),
     delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+    hasUnreadNotifications: generateMock(z.boolean()),
   });
 
 export const getMockBffApiAgreement = (): bffApi.Agreement & {
