@@ -1059,6 +1059,13 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      if (purpose.data.purposeTemplateId) {
+        await retrieveActivePurposeTemplate(
+          purpose.data.purposeTemplateId,
+          readModelService
+        );
+      }
+
       if (purposeVersion.state === purposeVersionState.draft) {
         const riskAnalysisForm = purpose.data.riskAnalysisForm;
 
