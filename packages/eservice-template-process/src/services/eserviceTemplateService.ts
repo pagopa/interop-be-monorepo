@@ -1476,7 +1476,6 @@ export function eserviceTemplateServiceBuilder(
                 docs: [...currentEserviceTemplateVersion.docs, newDocument],
               }
             );
-
           const metadataVersion = eserviceTemplateMetadataVersion + index + 1;
 
           const documentEvent =
