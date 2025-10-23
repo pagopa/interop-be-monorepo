@@ -52,6 +52,7 @@ function toOutboundPurposeV2(
     ...purpose,
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
+    purposeTemplateId: undefined,
   };
 }
 
