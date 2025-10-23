@@ -912,7 +912,6 @@ const eserviceRouter = (
         }
       }
     )
-
     .post(
       "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes",
       async (req, res) => {
