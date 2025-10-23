@@ -1476,7 +1476,7 @@ export function eserviceTemplateServiceBuilder(
                 docs: [...currentEserviceTemplateVersion.docs, newDocument],
               }
             );
-          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+
           const metadataVersion = eserviceTemplateMetadataVersion + index + 1;
 
           const documentEvent =

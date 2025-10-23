@@ -15736,6 +15736,7 @@ components:
       properties:
         attributes:
           type: array
+          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
       required:
@@ -15744,12 +15745,13 @@ components:
       type: object
       additionalProperties: false
       properties:
-        results:
+        attributes:
           type: array
+          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
       required:
-        - results
+        - attributes
     EServiceDescriptorDeclaredAttributes:
       type: object
       additionalProperties: false
@@ -15782,6 +15784,7 @@ components:
       properties:
         attributes:
           type: array
+          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
       required:
@@ -15790,12 +15793,13 @@ components:
       type: object
       additionalProperties: false
       properties:
-        results:
+        attributes:
           type: array
+          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionDeclaredAttribute"
       required:
-        - results
+        - attributes
     EServiceDescriptorVerifiedAttributes:
       type: object
       additionalProperties: false
@@ -15828,6 +15832,7 @@ components:
       properties:
         attributes:
           type: array
+          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
       required:
@@ -15836,12 +15841,13 @@ components:
       type: object
       additionalProperties: false
       properties:
-        results:
+        attributes:
           type: array
+          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionVerifiedAttribute"
       required:
-        - results
+        - attributes
     EServiceTemplateVersionAttributesGroupSeed:
       type: object
       additionalProperties: false

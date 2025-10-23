@@ -165,7 +165,7 @@ export function eserviceServiceBuilder(
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
     groupIndex: number;
-    attributes: attributeRegistryApi.Attributes;
+    attributes: attributeRegistryApi.Attribute[];
   }> {
     const eservice = await retrieveEServiceById(headers, eserviceId);
 
@@ -214,14 +214,9 @@ export function eserviceServiceBuilder(
         return attributeDetailed;
       });
 
-    const attributesToReturn: attributeRegistryApi.Attributes = {
-      results: newlyCreatedGroupAttributes,
-      totalCount: newlyCreatedGroupAttributes.length,
-    };
-
     return {
       groupIndex: newGroupIndex,
-      attributes: attributesToReturn,
+      attributes: newlyCreatedGroupAttributes,
     };
   }
   // eslint-disable-next-line max-params
@@ -1209,14 +1204,15 @@ export function eserviceServiceBuilder(
           ctx
         );
 
-      const results = attributes.results.map((attr) => ({
-        groupIndex,
-        attribute: toM2MGatewayApiCertifiedAttribute({
-          attribute: attr,
-          logger: ctx.logger,
-        }),
-      }));
-      return { attributes: results };
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
     },
 
     async createEServiceDescriptorDeclaredAttributesGroup(
@@ -1237,14 +1233,15 @@ export function eserviceServiceBuilder(
           ctx
         );
 
-      const results = attributes.results.map((attr) => ({
-        groupIndex,
-        attribute: toM2MGatewayApiDeclaredAttribute({
-          attribute: attr,
-          logger: ctx.logger,
-        }),
-      }));
-      return { attributes: results };
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiDeclaredAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
     },
 
     async createEServiceDescriptorVerifiedAttributesGroup(
@@ -1265,14 +1262,15 @@ export function eserviceServiceBuilder(
           ctx
         );
 
-      const results = attributes.results.map((attr) => ({
-        groupIndex,
-        attribute: toM2MGatewayApiVerifiedAttribute({
-          attribute: attr,
-          logger: ctx.logger,
-        }),
-      }));
-      return { attributes: results };
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiVerifiedAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
     },
     async deleteEServiceDescriptorVerifiedAttributeFromGroup(
       eserviceId: EServiceId,
