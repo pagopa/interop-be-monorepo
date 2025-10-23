@@ -16,6 +16,7 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
@@ -208,6 +209,8 @@ describe("getCatalogEServiceDescriptor", () => {
   const mockEServiceTemplateProcessClient =
     {} as unknown as EServiceTemplateProcessClient;
 
+  const mockInAppNotificationManagerClient =
+    {} as unknown as InAppNotificationManagerClient;
   vi.spyOn(attributeService, "getAllBulkAttributes").mockResolvedValue([
     {
       id: certifiedAttributeId,
@@ -266,6 +269,7 @@ describe("getCatalogEServiceDescriptor", () => {
     mockAttributeProcessClient,
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
+    mockInAppNotificationManagerClient,
     fileManager,
     config
   );
