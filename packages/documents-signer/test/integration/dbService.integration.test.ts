@@ -37,6 +37,10 @@ describe("dbServiceBuilder integration with DynamoDB", () => {
       subObjectId: "sub-789",
       fileName: "document.pdf",
       version: 1,
+      contentType: "application/pdf",
+      path: "test/test/test.pdf",
+      prettyname: "prettyname",
+      createdAt: BigInt(0),
     };
 
     await signatureService.saveDocumentSignatureReference(doc);

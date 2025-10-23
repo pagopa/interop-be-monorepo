@@ -28,7 +28,7 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
 
   it("should handle AgreementContractAdded with contract", async () => {
     const event = {
-      type: "AgreementContractAdded",
+      type: "AgreementContractGenerated",
       data: {
         agreement: { id: "agreement-id", contract: { path: "contract.pdf" } },
       },

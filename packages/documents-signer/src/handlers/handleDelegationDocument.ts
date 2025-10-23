@@ -61,8 +61,12 @@ export async function handleDelegationDocument(
             fileKind: "DELEGATION_CONTRACT",
             streamId: event.data.delegation.id,
             subObjectId: "",
+            contentType: "application/pdf",
+            path: event.data.delegation.activationContract.path,
+            prettyname: event.data.delegation.activationContract.prettyName,
             fileName,
             version: event.event_version,
+            createdAt: event.data.delegation.createdAt,
           });
         }
       }

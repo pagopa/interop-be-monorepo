@@ -15,7 +15,7 @@ export async function handleAgreementDocument(
   decodedMessage:
     | AgreementEventEnvelopeV2
     | {
-        type: "AgreementContractAdded";
+        type: "AgreementContractGenerated";
         data: { agreement: AgreementV2 };
         event_version: number;
         version: number;
@@ -27,7 +27,7 @@ export async function handleAgreementDocument(
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
-    .with({ type: "AgreementContractAdded" }, async (event) => {
+    .with({ type: "AgreementContractGenerated" }, async (event) => {
       if (event.data.agreement.contract) {
         const s3Key = event.data.agreement.contract?.path;
         const file: Uint8Array = await fileManager.get(
@@ -63,8 +63,12 @@ export async function handleAgreementDocument(
           fileKind: "AGREEMENT_CONTRACT",
           streamId: event.data.agreement.id,
           subObjectId: "",
+          contentType: "application/pdf",
+          path: event.data.agreement.contract.path,
+          prettyname: event.data.agreement.contract.prettyName,
           fileName,
           version: event.event_version,
+          createdAt: event.data.agreement.createdAt,
         });
       }
     })

@@ -34,7 +34,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
   it("should handle RiskAnalysisDocumentAdded with valid version", async () => {
     const event = {
-      type: "RiskAnalysisDocumentAdded",
+      type: "RiskAnalysisDocumentGenerated",
       data: {
         purpose: {
           id: "purpose-id",
@@ -44,6 +44,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
               riskAnalysis: { path: "risk-analysis/file.pdf" },
             },
           ],
+          createdAt: BigInt(120323424),
         },
         versionId: "version-123",
       },
@@ -81,7 +82,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
   it("should throw if versionId does not match any version", async () => {
     const event = {
-      type: "RiskAnalysisDocumentAdded",
+      type: "RiskAnalysisDocumentGenerated",
       data: {
         purpose: {
           id: "purpose-id",
@@ -91,6 +92,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
               riskAnalysis: { path: "risk-analysis/file.pdf" },
             },
           ],
+          createdAt: BigInt(120323424),
         },
         versionId: "version-123",
       },
@@ -141,7 +143,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
   it("should throw if versionId does not match any version", async () => {
     const event = {
-      type: "RiskAnalysisDocumentAdded",
+      type: "RiskAnalysisDocumentGenerated",
       data: {
         purpose: {
           id: "purpose-id",
@@ -151,6 +153,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
               riskAnalysis: { path: "risk-analysis/file.pdf" },
             },
           ],
+          createdAt: BigInt(120323424),
         },
         versionId: "version-123",
       },

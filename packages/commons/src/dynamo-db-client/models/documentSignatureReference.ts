@@ -3,6 +3,11 @@ export interface DocumentSignatureReference {
   fileKind: string;
   streamId: string;
   subObjectId: string;
+  contentType: string;
+  path: string;
+  prettyname: string;
   fileName: string;
   version: number;
+  createdAt: bigint;
+  creationTimestamp?: number;
 }

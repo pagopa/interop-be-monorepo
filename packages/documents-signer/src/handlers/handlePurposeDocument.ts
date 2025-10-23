@@ -19,7 +19,7 @@ export async function handlePurposeDocument(
   decodedMessage:
     | PurposeEventEnvelopeV2
     | {
-        type: "RiskAnalysisDocumentAdded";
+        type: "RiskAnalysisDocumentGenerated";
         data: { purpose: PurposeV2; versionId: string };
         event_version: number;
         version: number;
@@ -31,7 +31,7 @@ export async function handlePurposeDocument(
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
-    .with({ type: "RiskAnalysisDocumentAdded" }, async (event) => {
+    .with({ type: "RiskAnalysisDocumentGenerated" }, async (event) => {
       if (event.data.purpose.versions) {
         const purposeVersion = event.data.purpose.versions.find(
           (v) => v.id === event.data.versionId
@@ -84,8 +84,12 @@ export async function handlePurposeDocument(
           fileKind: "RISK_ANALYSIS_DOCUMENT",
           streamId: event.data.purpose.id,
           subObjectId: event.data.versionId,
+          contentType: "application/gzip",
+          path: s3Key,
+          prettyname: "",
           fileName,
           version: event.event_version,
+          createdAt: event.data.purpose.createdAt,
         });
       }
     })

@@ -13,6 +13,7 @@ import { formatError } from "../utils/errorFormatter.js";
 import { SignatureReference } from "../models/signatureReference.js";
 import { assertValidSignatureReferenceItem } from "../utils/assertSignatureIsValid.js";
 import { DocumentSignatureReference } from "../models/documentSignatureReference.js";
+import { assertValidDocumentSignatureReferenceItem } from "../utils/assertDocumentSignatureIsValid.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function signatureServiceBuilder(
@@ -57,8 +58,12 @@ export function signatureServiceBuilder(
           fileKind: { S: item.fileKind },
           streamId: { S: item.streamId },
           subObjectId: { S: item.subObjectId },
+          contentType: { S: item.contentType },
+          path: { S: item.path },
+          prettyname: { S: item.prettyname },
           fileName: { S: item.fileName },
           version: { N: String(item.version) },
+          createdAt: { N: String(item.createdAt) },
         },
         ReturnValues: "NONE",
       };
@@ -145,6 +150,56 @@ export function signatureServiceBuilder(
       } catch (error) {
         throw genericInternalError(
           `Error deleting record with id='${id}' from table '${
+            config.signatureReferencesTableName
+          }': ${formatError(error)}`
+        );
+      }
+    },
+
+    readDocumentSignatureReference: async (
+      id: string
+    ): Promise<DocumentSignatureReference | undefined> => {
+      const input: GetItemInput = {
+        Key: {
+          safeStorageId: { S: id },
+        },
+        TableName: config.signatureReferencesTableName,
+        ConsistentRead: true,
+      };
+
+      const command = new GetItemCommand(input);
+
+      try {
+        const data = await dynamoDBClient.send(command);
+
+        if (!data.Item) {
+          return undefined;
+        }
+
+        assertValidDocumentSignatureReferenceItem(
+          data.Item,
+          config.signatureReferencesTableName,
+          id
+        );
+
+        const reference: DocumentSignatureReference = {
+          safeStorageId: data.Item.safeStorageId.S,
+          fileKind: data.Item.fileKind.S,
+          streamId: data.Item.streamId.S,
+          subObjectId: data.Item.subObjectId.S,
+          contentType: data.Item.contentType.S,
+          path: data.Item.contentType.S,
+          prettyname: data.Item.prettyname.S,
+          fileName: data.Item.fileName.S,
+          version: Number(data.Item.version.N),
+          createdAt: BigInt(data.Item.createdAt.N),
+          creationTimestamp: Number(data.Item.creationTimestamp.N),
+        };
+
+        return reference;
+      } catch (error) {
+        throw genericInternalError(
+          `Error reading document signature reference with id='${id}' from table '${
             config.signatureReferencesTableName
           }': ${formatError(error)}`
         );
