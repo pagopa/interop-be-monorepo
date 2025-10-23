@@ -8,6 +8,8 @@ import {
   ilike,
   inArray,
   isNull,
+  like,
+  or,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -33,8 +35,38 @@ export function inAppNotificationServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
+    // eslint-disable-next-line max-params
+    hasUnreadNotifications: async (
+      entityIds: string[],
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<string[]> => {
+      logger.info("Checking for unread notifications");
+
+      if (entityIds.length === 0) {
+        return [];
+      }
+
+      const idList = await db
+        .selectDistinct({ entityId: notification.entityId })
+        .from(notification)
+        .where(
+          and(
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId),
+            isNull(notification.readAt),
+            or(...entityIds.map((id) => like(notification.entityId, `${id}%`)))
+          )
+        );
+
+      return idList.map((e) => e.entityId.split("/")[0]);
+    },
+    // eslint-disable-next-line max-params
     getNotifications: async (
       q: string | undefined,
+      unread: boolean | undefined,
       notificationTypes: NotificationType[],
       limit: number,
       offset: number,
@@ -52,6 +84,7 @@ export function inAppNotificationServiceBuilder(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
             q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined,
+            unread ? isNull(notification.readAt) : undefined,
             notificationTypes.length > 0
               ? inArray(notification.notificationType, notificationTypes)
               : undefined
