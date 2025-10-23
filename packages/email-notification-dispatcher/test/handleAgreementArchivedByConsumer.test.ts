@@ -15,14 +15,16 @@ import {
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  NotificationType,
   Tenant,
   TenantId,
   toAgreementV2,
+  unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleAgreementSuspendedByPlatformToConsumer } from "../src/handlers/agreements/handleAgreementSuspendedByPlatformToConsumer.js";
+import { handleAgreementArchivedByConsumer } from "../src/handlers/agreements/handleAgreementArchivedByConsumer.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -34,7 +36,7 @@ import {
   userService,
 } from "./utils.js";
 
-describe("handleAgreementSuspendedByPlatform", async () => {
+describe("handleAgreementArchivedByConsumer", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -48,14 +50,12 @@ describe("handleAgreementSuspendedByPlatform", async () => {
   };
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
-    name: "Producer Tenant",
-  };
-  const consumerTenant: Tenant = {
-    ...getMockTenant(consumerId),
-    name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
+  const consumerTenant = getMockTenant(consumerId);
   const users = [
+    getMockUser(producerTenant.id),
+    getMockUser(producerTenant.id),
     getMockUser(consumerTenant.id),
     getMockUser(consumerTenant.id),
   ];
@@ -71,14 +71,18 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+      .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
+        users
+          .filter((user) =>
+            tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
+          )
+          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
   });
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
-      handleAgreementSuspendedByPlatformToConsumer({
+      handleAgreementArchivedByConsumer({
         agreementV2Msg: undefined,
         logger,
         templateService,
@@ -87,8 +91,33 @@ describe("handleAgreementSuspendedByPlatform", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("agreement", "AgreementSuspendedByPlatform")
+      missingKafkaMessageDataError("agreement", "AgreementArchivedByConsumer")
     );
+  });
+
+  it("should throw tenantNotFound when producer is not found", async () => {
+    const unknownProducerId = generateId<TenantId>();
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: unknownProducerId,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleAgreementArchivedByConsumer({
+        agreementV2Msg: toAgreementV2(agreement),
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw tenantNotFound when consumer is not found", async () => {
@@ -96,7 +125,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
 
     const agreement: Agreement = {
       ...getMockAgreement(),
-      stamps: {},
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
@@ -105,7 +134,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementSuspendedByPlatformToConsumer({
+      handleAgreementArchivedByConsumer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -118,7 +147,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {},
       producerId: producerTenant.id,
@@ -129,7 +158,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementSuspendedByPlatformToConsumer({
+      handleAgreementArchivedByConsumer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -140,12 +169,10 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
   });
 
-  it("should generate one message per user of the tenant that consumed the eservice", async () => {
+  it("should generate one message per user of the tenant that produced the eservice", async () => {
     const agreement: Agreement = {
       ...getMockAgreement(),
-      stamps: {
-        suspensionByProducer: { when: new Date(), who: generateId<UserId>() },
-      },
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
@@ -153,7 +180,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementSuspendedByPlatformToConsumer({
+    const messages = await handleAgreementArchivedByConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -184,7 +211,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
 
     const agreement: Agreement = {
       ...getMockAgreement(),
-      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
@@ -192,7 +219,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementSuspendedByPlatformToConsumer({
+    const messages = await handleAgreementArchivedByConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -219,10 +246,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
-        suspensionByProducer: {
-          when: activationDate,
-          who: generateId<UserId>(),
-        },
+        activation: { when: activationDate, who: generateId<UserId>() },
       },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
@@ -231,7 +255,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementSuspendedByPlatformToConsumer({
+    const messages = await handleAgreementArchivedByConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -239,15 +263,17 @@ describe("handleAgreementSuspendedByPlatform", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
+
     expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Sospensione richiesta di fruizione da parte della Piattaforma`
+        `Richiesta di fruizione archiviata dal fruitore`
       );
+      expect(message.email.body).toContain(producerTenant.name);
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain("Visualizza richiesta");
+      expect(message.email.body).toContain(`Visualizza richiesta`);
     });
   });
 });

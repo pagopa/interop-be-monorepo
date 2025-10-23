@@ -41,21 +41,20 @@ export const eventMailTemplateType = {
     "producer-keychain-eservice-added-mail",
   agreementSuspendedByConsumerMailTemplate:
     "agreement-suspended-by-consumer-mail",
-  agreementSuspendedByPlatformToConsumerMailTemplate:
-    "agreement-suspended-by-platform-to-consumer-mail",
+  agreementSuspendedByPlatformToProducerMailTemplate:
+    "agreement-suspended-by-platform-to-producer-mail",
   agreementUnsuspendedByConsumerMailTemplate:
     "agreement-unsuspended-by-consumer-mail",
+  agreementUnsuspendedByPlatformToProducerMailTemplate:
+    "agreement-unsuspended-by-platform-to-producer-mail",
+  agreementSuspendedByPlatformToConsumerMailTemplate:
+    "agreement-suspended-by-platform-to-consumer-mail",
   agreementUnsuspendedByPlatformToConsumerMailTemplate:
     "agreement-unsuspended-by-platform-to-consumer-mail",
   agreementSuspendedByProducerMailTemplate:
     "agreement-suspended-by-producer-mail",
-  agreementSuspendedByPlatformMailTemplate:
-    "agreement-suspended-by-platform-mail",
   agreementUnsuspendedByProducerMailTemplate:
     "agreement-unsuspended-by-producer-mail",
-  agreementUnsuspendedByPlatform: "agreement-unsuspended-by-platform-mail",
-  agreementUnsuspendedByPlatformMailTemplate:
-    "agreement-unsuspended-by-platform-mail",
   agreementArchivedByConsumerMailTemplate:
     "agreement-archived-by-consumer-mail",
   clientPurposeAddedMailTemplate: "client-purpose-added-mail",
