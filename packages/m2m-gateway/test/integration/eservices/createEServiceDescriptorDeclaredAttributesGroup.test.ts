@@ -198,7 +198,7 @@ describe("createEServiceDescriptorDeclaredAttributesGroup", () => {
     expect(mockGetBulkedAttributes).toHaveBeenCalledWith(
       [attribute1.id, attribute2.id, attribute3.id],
       expect.objectContaining({
-        queries: { limit: 3, offset: 0 },
+        queries: { limit: 50, offset: 0 },
       })
     );
 
