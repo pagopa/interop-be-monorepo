@@ -1717,6 +1717,7 @@ export function purposeServiceBuilder(
           },
         ],
         createdAt,
+        purposeTemplateId,
       };
 
       const event = await repository.createEvent(

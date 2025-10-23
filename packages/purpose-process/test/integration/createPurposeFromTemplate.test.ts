@@ -224,6 +224,7 @@ describe("createPurposeFromTemplate", () => {
       freeOfChargeReason:
         mockPurposeTemplateWithValidRiskAnalysis.purposeFreeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
     };
 
     expect(writtenPayload).toEqual({
@@ -344,6 +345,7 @@ describe("createPurposeFromTemplate", () => {
       freeOfChargeReason:
         mockPurposeTemplateNotFreeOfCharge.purposeFreeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateNotFreeOfCharge.id,
     };
 
     expect(writtenPayload).toEqual({
@@ -462,6 +464,7 @@ describe("createPurposeFromTemplate", () => {
       freeOfChargeReason:
         mockPurposeTemplateWithValidRiskAnalysis.purposeFreeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
     };
 
     expect(writtenPayload).toEqual({
@@ -637,6 +640,7 @@ describe("createPurposeFromTemplate", () => {
       freeOfChargeReason:
         mockPurposeTemplateWithValidRiskAnalysis.purposeFreeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
     };
 
     expect(writtenPayload).toEqual({
