@@ -17,7 +17,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
-describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttributes/groups router test", () => {
+describe("POST /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttributes/groups/{groupIndex}/attributes router test", () => {
   const mockTemplate: eserviceTemplateApi.EServiceTemplate =
     getMockedApiEServiceTemplate();
   const mockVersion = mockTemplate.versions[0]!;
@@ -60,11 +60,12 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
     token: string,
     templateId: string,
     versionId: string,
+    groupIndex: number,
     body: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed
   ) =>
     request(api)
       .post(
-        `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/certifiedAttributes/groups`
+        `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/certifiedAttributes/groups/${groupIndex}/attributes`
       )
       .set("Authorization", `Bearer ${token}`)
       .send(body);
@@ -72,9 +73,9 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 201 and create certified attributes group for user with role %s",
+    "Should return 204 and assign certified attributes to group for user with role %s",
     async (role) => {
-      mockEServiceTemplateService.createEServiceTemplateVersionCertifiedAttributesGroup =
+      mockEServiceTemplateService.assignEServiceTemplateVersionCertifiedAttributesToGroup =
         vi.fn().mockResolvedValue(mockResponse);
 
       const token = generateToken(role);
@@ -82,16 +83,17 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
         token,
         mockTemplate.id,
         mockVersion.id,
+        0,
         mockAttributeSeed
       );
 
-      expect(res.status).toBe(201);
-      expect(res.body).toEqual(mockResponse);
+      expect(res.status).toBe(204);
       expect(
-        mockEServiceTemplateService.createEServiceTemplateVersionCertifiedAttributesGroup
+        mockEServiceTemplateService.assignEServiceTemplateVersionCertifiedAttributesToGroup
       ).toHaveBeenCalledWith(
         unsafeBrandId(mockTemplate.id),
         unsafeBrandId(mockVersion.id),
+        0,
         mockAttributeSeed,
         expect.anything()
       );
@@ -106,6 +108,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
       token,
       mockTemplate.id,
       mockVersion.id,
+      0,
       mockAttributeSeed
     );
     expect(res.status).toBe(403);
@@ -118,6 +121,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
       token,
       mockTemplate.id,
       mockVersion.id,
+      0,
       invalidBody
     );
 
@@ -126,7 +130,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
 
   it("Should return 404 if version not found", async () => {
     const nonExistentVersionId = generateId();
-    mockEServiceTemplateService.createEServiceTemplateVersionCertifiedAttributesGroup =
+    mockEServiceTemplateService.assignEServiceTemplateVersionCertifiedAttributesToGroup =
       vi
         .fn()
         .mockRejectedValue(
@@ -141,6 +145,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
       token,
       mockTemplate.id,
       nonExistentVersionId,
+      0,
       mockAttributeSeed
     );
 

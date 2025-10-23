@@ -8122,6 +8122,7 @@ paths:
         schema:
           type: integer
           format: int32
+          minimum: 0
     post:
       tags:
         - eservices
@@ -8245,6 +8246,7 @@ paths:
         schema:
           type: integer
           format: int32
+          minimum: 0
     post:
       tags:
         - eservices
@@ -8368,6 +8370,7 @@ paths:
         schema:
           type: integer
           format: int32
+          minimum: 0
     post:
       tags:
         - eservices
@@ -11853,6 +11856,7 @@ paths:
         schema:
           type: integer
           format: int32
+          minimum: 0
     post:
       tags:
         - eserviceTemplates
@@ -11976,6 +11980,7 @@ paths:
         schema:
           type: integer
           format: int32
+          minimum: 0
     post:
       tags:
         - eserviceTemplates
@@ -12099,6 +12104,7 @@ paths:
         schema:
           type: integer
           format: int32
+          minimum: 0
     post:
       tags:
         - eserviceTemplates
