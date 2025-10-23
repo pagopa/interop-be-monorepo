@@ -7,6 +7,7 @@ import {
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
+  EServiceTemplateVersionId,
   RiskAnalysisId,
   TenantId,
   TenantKind,
@@ -57,6 +58,7 @@ export const errorCodes = {
   attributeDuplicatedInGroup: "0041",
   eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
   missingPersonalDataFlag: "0043",
+  eServiceTemplateWithoutPersonalDataFlag: "0044",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -496,5 +498,17 @@ export function missingPersonalDataFlag(
     detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because personalData flag must be set for the eservice`,
     code: "missingPersonalDataFlag",
     title: "EService personalData flag must be set before publication",
+  });
+}
+
+export function eServiceTemplateWithoutPersonalDataFlag(
+  eServiceTemplateId: EServiceTemplateId,
+  eServiceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template version ${eServiceTemplateVersionId} in eService Template ${eServiceTemplateId} cannot be instantiated because the personalData flag is not set`,
+    code: "eServiceTemplateWithoutPersonalDataFlag",
+    title:
+      "EService Template personalData flag must be set before instantiation",
   });
 }

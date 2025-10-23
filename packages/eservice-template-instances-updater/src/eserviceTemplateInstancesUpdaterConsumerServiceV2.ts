@@ -329,6 +329,43 @@ export async function handleMessageV2({
       );
     })
     .with(
+      {
+        type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+      },
+      async (msg) => {
+        const personalData = getTemplateFromEvent(msg).personalData;
+
+        if (personalData === undefined) {
+          throw missingKafkaMessageDataError(
+            "eserviceTemplate.personalData",
+            "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
+          );
+        }
+        const updateTemplateInstancePersonalData = async (
+          instance: EService,
+          headers: InteropHeaders
+        ): Promise<void> => {
+          await catalogProcess.client.setTemplateInstancePersonalDataFlag(
+            { personalData },
+            {
+              params: {
+                eServiceId: instance.id,
+              },
+              headers,
+            }
+          );
+        };
+
+        await commitUpdateToTemplateInstances(
+          msg,
+          refreshableToken,
+          correlationId,
+          readModelService,
+          updateTemplateInstancePersonalData
+        );
+      }
+    )
+    .with(
       { type: "EServiceTemplateAdded" },
       { type: "EServiceTemplateIntendedTargetUpdated" },
       { type: "EServiceTemplateDeleted" },
@@ -345,7 +382,6 @@ export async function handleMessageV2({
       { type: "EServiceTemplateVersionInterfaceUpdated" },
       { type: "EServiceTemplateVersionPublished" },
       { type: "EServiceTemplateVersionSuspended" },
-      { type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication" },
       () => Promise.resolve
     )
     .exhaustive();

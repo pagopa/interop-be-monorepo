@@ -54,6 +54,7 @@ export const errorCodes = {
   eserviceTemplateInterfaceDataNotValid: "0046",
   invalidEserviceInterfaceFileDetected: "0047",
   operationForbidden: "0048",
+  noVersionInEServiceTemplate: "0049",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -261,6 +262,15 @@ export function noDescriptorInEservice(
     detail: `No descriptor found in Eservice ${eserviceId}`,
     code: "noDescriptorInEservice",
     title: "No descriptor found in Eservice",
+  });
+}
+export function noVersionInEServiceTemplate(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No version found in Eservice template ${eserviceTemplateId}`,
+    code: "noVersionInEServiceTemplate",
+    title: "No version found in Eservice template",
   });
 }
 
