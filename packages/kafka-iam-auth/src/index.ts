@@ -306,7 +306,8 @@ const initCustomConsumer = async ({
 
 export const initProducer = async (
   config: KafkaProducerConfig,
-  topic: string
+  topic: string,
+  transactionalId?: string
 ): Promise<
   Producer & {
     send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
@@ -326,6 +327,7 @@ export const initProducer = async (
 
     const producer = kafka.producer({
       allowAutoTopicCreation: false,
+      transactionalId: transactionalId ? transactionalId : undefined,
       retry: {
         initialRetryTime: 100,
         maxRetryTime: 3000,
