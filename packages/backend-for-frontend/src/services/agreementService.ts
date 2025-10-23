@@ -43,6 +43,7 @@ import {
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
@@ -656,6 +657,12 @@ async function enrichAgreementListEntry(
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
 
+  const notificationsPromise: Promise<string[]> = filterUnreadNotifications(
+    clients.inAppNotificationManagerClient,
+    agreements.map((agreement) => agreement.id),
+    ctx
+  );
+
   const agreementsResult = [];
   for (const agreement of agreements) {
     const { consumer, producer, eservice, delegation } =
@@ -714,7 +721,11 @@ async function enrichAgreementListEntry(
     });
   }
 
-  return agreementsResult;
+  const notifications = await notificationsPromise;
+  return agreementsResult.map((agreement) => ({
+    ...agreement,
+    hasUnreadNotifications: notifications.includes(agreement.id),
+  }));
 }
 
 export async function enrichAgreement(

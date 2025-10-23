@@ -34,6 +34,7 @@ import {
   AttributeProcessClient,
   CatalogProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
@@ -43,6 +44,7 @@ import {
   tenantNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
@@ -50,6 +52,7 @@ export function eserviceTemplateServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   catalogProcessClient: CatalogProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
@@ -417,8 +420,9 @@ export function eserviceTemplateServiceBuilder(
       name: string | undefined,
       offset: number,
       limit: number,
-      { headers, logger, authData }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceTemplates> => {
+      const { headers, logger, authData } = ctx;
       logger.info(
         `Retrieving EService templates for creator ${authData.organizationId}, for name = ${name}, offset = ${offset}, limit = ${limit}`
       );
@@ -433,9 +437,15 @@ export function eserviceTemplateServiceBuilder(
           },
         });
 
+      const notifications = await filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        eserviceTemplatesResponse.results.map((a) => a.id),
+        ctx
+      );
+
       return {
-        results: eserviceTemplatesResponse.results.map(
-          toBffProducerEServiceTemplate
+        results: eserviceTemplatesResponse.results.map((template) =>
+          toBffProducerEServiceTemplate(template, notifications)
         ),
         pagination: {
           offset,
@@ -531,7 +541,7 @@ export function eserviceTemplateServiceBuilder(
       });
 
       return {
-        results: res.results.map(toBffCompactOrganization),
+        results: res.results.map((r) => toBffCompactOrganization(r)),
         pagination: {
           offset,
           limit,
