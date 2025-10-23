@@ -47,6 +47,7 @@ import {
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
+import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -129,28 +130,10 @@ export function eserviceServiceBuilder(
     const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
       paginatedFlatKindAttributes.map((item) => item.attributeId);
 
-    if (attributeIdsToResolve.length === 0) {
-      return {
-        results: [],
-        totalCount: attributeIdsToResolve.length,
-      };
-    }
-
-    // Resolve the complete details only for the attributes needed on the page.
-    const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
+    const attributeMap = await getResolvedAttributesMap(
       attributeIdsToResolve,
-      {
-        headers,
-        queries: {
-          offset,
-          limit,
-        },
-      }
-    );
-
-    // Convert the result array into a Map for efficient lookup
-    const attributeMap: Map<string, attributeRegistryApi.Attribute> = new Map(
-      bulkResult.data.results.map((attr) => [attr.id, attr])
+      headers,
+      clients
     );
 
     // Recombination: Map the paginated flat list with the resolved complete details
@@ -172,7 +155,66 @@ export function eserviceServiceBuilder(
       totalCount: allFlatKindAttributes.length,
     };
   }
+  async function createEServiceDescriptorAttributesGroup(
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
+    attributeKind: keyof catalogApi.Attributes,
+    { headers }: WithLogger<M2MGatewayAppContext>
+  ): Promise<{
+    groupIndex: number;
+    attributes: attributeRegistryApi.Attribute[];
+  }> {
+    const eservice = await retrieveEServiceById(headers, eserviceId);
 
+    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
+
+    const newGroupIndex = descriptor.attributes[attributeKind].length;
+
+    const newKindAttributeGroups = [
+      ...descriptor.attributes[attributeKind],
+      seed.attributeIds.map((id) => ({
+        id,
+        explicitAttributeVerification: false,
+      })),
+    ];
+
+    const newAttributes = {
+      ...descriptor.attributes,
+      [attributeKind]: newKindAttributeGroups,
+    };
+
+    const response =
+      await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+        { attributes: newAttributes },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+
+    await pollEService(response, headers);
+    const attributeMap = await getResolvedAttributesMap(
+      seed.attributeIds,
+      headers,
+      clients
+    );
+
+    const newlyCreatedGroupAttributes: attributeRegistryApi.Attribute[] =
+      seed.attributeIds.map((attributeId) => {
+        const attributeDetailed = attributeMap.get(attributeId);
+
+        if (!attributeDetailed) {
+          throw eserviceDescriptorAttributeNotFound(descriptorId);
+        }
+        return attributeDetailed;
+      });
+
+    return {
+      groupIndex: newGroupIndex,
+      attributes: newlyCreatedGroupAttributes,
+    };
+  }
   // eslint-disable-next-line max-params
   async function deleteEServiceDescriptorAttributeFromGroup(
     eserviceId: EServiceId,
@@ -1139,6 +1181,93 @@ export function eserviceServiceBuilder(
       };
     },
 
+    async createEServiceDescriptorCertifiedAttributesGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorCertifiedAttributesGroup> {
+      ctx.logger.info(
+        `Creating Certified Attributes Group for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const { attributes, groupIndex } =
+        await createEServiceDescriptorAttributesGroup(
+          eserviceId,
+          descriptorId,
+          seed,
+          "certified",
+          ctx
+        );
+
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
+    },
+
+    async createEServiceDescriptorDeclaredAttributesGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorDeclaredAttributesGroup> {
+      ctx.logger.info(
+        `Creating Declared Attributes Group for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+      const { attributes, groupIndex } =
+        await createEServiceDescriptorAttributesGroup(
+          eserviceId,
+          descriptorId,
+          seed,
+          "declared",
+          ctx
+        );
+
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiDeclaredAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
+    },
+
+    async createEServiceDescriptorVerifiedAttributesGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorVerifiedAttributesGroup> {
+      ctx.logger.info(
+        `Creating Verified Attributes Group for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+      const { attributes, groupIndex } =
+        await createEServiceDescriptorAttributesGroup(
+          eserviceId,
+          descriptorId,
+          seed,
+          "verified",
+          ctx
+        );
+
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiVerifiedAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
+    },
     async deleteEServiceDescriptorVerifiedAttributeFromGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
