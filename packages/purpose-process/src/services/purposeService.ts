@@ -1607,7 +1607,7 @@ export function purposeServiceBuilder(
     async internalAddUnsignedRiskAnalysisDocumentMetadata(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
-      riskAnalysisDocument: RiskAnalysis,
+      riskAnalysisDocument: PurposeVersionDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(
