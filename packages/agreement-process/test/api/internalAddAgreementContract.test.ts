@@ -12,14 +12,9 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { agreementApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, agreementService } from "../vitest.api.setup.js";
-import {
-  agreementNotFound,
-  agreementNotInExpectedState,
-} from "../../src/model/domain/errors.js";
-import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js";
+import { agreementNotFound } from "../../src/model/domain/errors.js";
 
 const mockAgreementContract: AgreementDocument = {
   id: generateId(),
@@ -33,9 +28,6 @@ const mockAgreementContract: AgreementDocument = {
 describe("API POST /internal/agreement/:agreementId/contract test", () => {
   const mockAgreement: Agreement = getMockAgreement();
   const serviceResponse = getMockWithMetadata(mockAgreement);
-  const apiAgreement = agreementApi.Agreement.parse(
-    agreementToApiAgreement(mockAgreement)
-  );
 
   beforeEach(() => {
     agreementService.internalAddAgreementContract = vi
@@ -57,7 +49,7 @@ describe("API POST /internal/agreement/:agreementId/contract test", () => {
   const authorizedRoles: AuthRole[] = [authRole.INTERNAL_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s on successful contract add",
+    "Should return 204 for user with role %s on successful contract add",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
@@ -69,8 +61,8 @@ describe("API POST /internal/agreement/:agreementId/contract test", () => {
         mockAgreementContract,
         expect.anything()
       );
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiAgreement);
+      expect(res.status).toBe(204);
+      expect(res.body).toEqual({});
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
@@ -90,11 +82,6 @@ describe("API POST /internal/agreement/:agreementId/contract test", () => {
       error: agreementNotFound(mockAgreement.id),
       expectedStatus: 404,
       description: "agreementNotFound",
-    },
-    {
-      error: agreementNotInExpectedState(mockAgreement.id, "Suspended"),
-      expectedStatus: 400,
-      description: "agreementNotInExpectedState",
     },
   ])(
     "Should return $expectedStatus for $description error",
