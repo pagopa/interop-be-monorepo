@@ -5,9 +5,10 @@ import {
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
+  RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateSingleAnswer,
   tenantKind,
-  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -16,7 +17,6 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
@@ -25,20 +25,17 @@ import {
   riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
-import { riskAnalysisAnswerToApiRiskAnalysisAnswer } from "../../src/model/domain/apiConverter.js";
 
 describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
   const riskAnalysisTemplate = getMockValidRiskAnalysisFormTemplate(
     tenantKind.PA
   );
-  const serviceResponse: WithMetadata<purposeTemplateApi.RiskAnalysisTemplateAnswer> =
-    getMockWithMetadata(
-      riskAnalysisAnswerToApiRiskAnalysisAnswer({
-        ...riskAnalysisTemplate.singleAnswers[0],
-        annotation: undefined,
-      })
-    );
+  const serviceResponse: WithMetadata<RiskAnalysisTemplateSingleAnswer> =
+    getMockWithMetadata({
+      ...riskAnalysisTemplate.singleAnswers[0],
+      annotation: undefined,
+    });
 
   purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation = vi
     .fn()
@@ -47,7 +44,9 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
   const makeRequest = async (
     token: string,
     id: PurposeTemplateId = purposeTemplateId,
-    answerId: string = serviceResponse.data.id
+    answerId:
+      | RiskAnalysisSingleAnswerId
+      | RiskAnalysisMultiAnswerId = serviceResponse.data.id
   ) =>
     request(api)
       .delete(
@@ -103,7 +102,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
     {
       error: riskAnalysisTemplateAnswerNotFound(
         purposeTemplateId,
-        unsafeBrandId(serviceResponse.data.id)
+        serviceResponse.data.id
       ),
       expectedStatus: 404,
     },
