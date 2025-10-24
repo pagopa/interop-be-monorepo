@@ -581,7 +581,7 @@ const purposeTemplateRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          const answerWithDeletedAnnotation =
+          const { metadata } =
             await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
               {
                 purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
@@ -590,15 +590,9 @@ const purposeTemplateRouter = (
               }
             );
 
-          setMetadataVersionHeader(res, answerWithDeletedAnnotation.metadata);
+          setMetadataVersionHeader(res, metadata);
 
-          return res
-            .status(200)
-            .send(
-              riskAnalysisAnswerToApiRiskAnalysisAnswer(
-                answerWithDeletedAnnotation.data
-              )
-            );
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
