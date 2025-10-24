@@ -448,18 +448,13 @@ const validatePersonalDataFlag = ({
       formRules.PRIVATE_1_0,
       () => []
     )
-    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () =>
-      match(personalDataInPurposeTemplate)
-        .with(P.boolean, () => {
-          if (
-            personalDataInPurposeTemplate !== personalDataInRiskAnalysisTemplate
-          ) {
-            return [incompatiblePurposeTemplatePersonalDataError()];
-          }
-          return [];
-        })
-        .with(undefined, () => [])
-        .exhaustive()
-    )
+    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () => {
+      if (
+        personalDataInPurposeTemplate !== personalDataInRiskAnalysisTemplate
+      ) {
+        return [incompatiblePurposeTemplatePersonalDataError()];
+      }
+      return [];
+    })
     .exhaustive();
 };
