@@ -1599,32 +1599,34 @@ export function purposeServiceBuilder(
       versionId: PurposeVersionId,
       riskAnalysisDocument: RiskAnalysis,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
-    ): Promise<WithMetadata<Purpose>> {
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(
         `Adding risk analysis document for purpose ${purposeId}, version ${versionId}`
       );
-      const { data: purpose, metadata } = await retrievePurpose(
+      const purposeRetrieved = await retrievePurpose(
         purposeId,
         readModelService
       );
 
       const purposeWithContract = {
-        ...purpose,
+        ...purposeRetrieved.data,
         riskAnalysisDocument,
       };
       const event = await repository.createEvent(
         toCreateEventRiskAnalysisDocumentGenerated({
           purpose: purposeWithContract,
-          version: metadata.version,
+          version: purposeRetrieved.metadata.version,
           versionId,
           correlationId,
         })
       );
+      const purposeVersion: PurposeVersion = retrievePurposeVersion(
+        versionId,
+        purposeRetrieved
+      );
       return {
-        data: purpose,
-        metadata: {
-          version: event.newVersion,
-        },
+        data: purposeVersion,
+        metadata: { version: event.newVersion },
       };
     },
   };

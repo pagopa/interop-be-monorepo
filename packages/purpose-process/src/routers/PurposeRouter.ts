@@ -12,6 +12,7 @@ import {
 import {
   DelegationId,
   EServiceId,
+  RiskAnalysis,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -42,9 +43,9 @@ import {
   updateReversePurposeErrorMapper,
   getPurposesErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
+  generateRiskAnalysisDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import { PurposeService } from "../services/purposeService.js";
-import { RiskAnalysisDocument } from "../model/domain/models.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -702,29 +703,31 @@ const purposeRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         const { purposeId, versionId } = req.params;
-        const riskAnalysisDocument = RiskAnalysisDocument.parse(req.body);
+        const riskAnalysisDocument = RiskAnalysis.parse(req.body);
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
-          const { data, metadata } =
-            await purposeService.activatePurposeVersion(
+          const { data: purposeVersion, metadata } =
+            await purposeService.internalAddUnsignedRiskAnalysisDocumentMetadata(
               unsafeBrandId(purposeId),
               unsafeBrandId(versionId),
               riskAnalysisDocument,
               ctx
             );
-
           setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
-            .send(purposeApi.Purposes.parse(purposeToApiPurpose(data)));
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(purposeVersion)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            approveDelegationErrorMapper,
+            generateRiskAnalysisDocumentErrorMapper,
             ctx
           );
-
           return res.status(errorRes.status).send(errorRes);
         }
       }
