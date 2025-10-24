@@ -35,6 +35,7 @@ import {
   getConsumerDelegatorsErrorMapper,
   getConsumerEservicesErrorMapper,
   getConsumerDelegatorsWithAgreementsErrorMapper,
+  generateDelegationContractErrorMapper,
 } from "../utilities/errorMappers.js";
 import { DelegationService } from "../services/delegationService.js";
 
@@ -183,12 +184,12 @@ const delegationRouter = (
     )
     .post("/internal/delegations/:delegationId/contract", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
-      const { delegationId } = req.params;
-      const delegationContract = DelegationContractDocument.parse(req.body);
       try {
         validateAuthorization(ctx, [INTERNAL_ROLE]);
+        const { delegationId } = req.params;
+        const delegationContract = DelegationContractDocument.parse(req.body);
 
-        const { data, metadata } =
+        const { metadata } =
           await delegationService.internalAddDelegationContract(
             unsafeBrandId(delegationId),
             delegationContract,
@@ -196,15 +197,11 @@ const delegationRouter = (
           );
 
         setMetadataVersionHeader(res, metadata);
-        return res
-          .status(200)
-          .send(
-            delegationApi.Delegation.parse(delegationToApiDelegation(data))
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          approveDelegationErrorMapper,
+          generateDelegationContractErrorMapper,
           ctx
         );
 
