@@ -8,7 +8,8 @@ type RiskAnalysisValidationIssueCode =
   | "dependencyNotFoundError"
   | "unexpectedDependencyValueError"
   | "unexpectedFieldFormatError"
-  | "missingExpectedFieldError";
+  | "missingExpectedFieldError"
+  | "incompatiblePersonalDataError";
 
 export class RiskAnalysisValidationIssue extends InternalError<RiskAnalysisValidationIssueCode> {
   constructor({
@@ -99,5 +100,12 @@ export function missingExpectedFieldError(
   return new RiskAnalysisValidationIssue({
     code: "missingExpectedFieldError",
     detail: `Expected field ${fieldName} not found in form`,
+  });
+}
+
+export function incompatiblePersonalDataError(): RiskAnalysisValidationIssue {
+  return new RiskAnalysisValidationIssue({
+    code: "incompatiblePersonalDataError",
+    detail: `The usesPersonalData answer doesn't match the personalData flag of the eservice`,
   });
 }
