@@ -7,8 +7,14 @@ import {
 } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import { format } from "date-fns";
-import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
+import {
+  PurposeId,
+  PurposeVersionDocument,
+  PurposeVersionDocumentId,
+} from "pagopa-interop-models";
+import { SignatureServiceBuilder } from "../services/signatureService.js";
+// import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import {
   SqsSafeStorageBody,
   SqsSafeStorageBodySchema,
@@ -16,6 +22,9 @@ import {
 import { config } from "../config/config.js";
 import { FILE_KIND_CONFIG } from "../utils/fileKind.config.js";
 import { insertSignedBeforeExtension } from "../utils/insertSignedBeforeExtension.js";
+import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnalysis.js";
+import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
+import { addDelegationSignedContract } from "../utils/metadata/delegations.js";
 
 async function processMessage(
   fileManager: FileManager,
@@ -72,25 +81,57 @@ async function processMessage(
     logger.info(`File successfully saved in S3 with key: ${key}`);
 
     if (configForKind.process) {
-      // Se process non è null
-      // richiama l’endpoint del process corrispondente
-      // per aggiungere i metadata del documento firmato all’oggetto
-      const processEndpoint = await match(configForKind.process)
+      const signatureDocument =
+        await signatureService.readDocumentSignatureReference(message.id);
+      if (!signatureDocument) {
+        logger.error(
+          `Cannot find signatureDocument for id: ${message.id} in table ${config.signatureReferencesTableName}`
+        );
+        throw new Error(
+          `Cannot find signatureDocument for id: ${message.id} in table ${config.signatureReferencesTableName}`
+        );
+      }
+      await match(configForKind.process)
         .with("riskAnalysis", async () => {
-          // return processService.getEndpointFor(fileKind);
+          const metadata: PurposeVersionDocument = {
+            id: signatureDocument.subObjectId as PurposeVersionDocumentId,
+            contentType: signatureDocument.contentType,
+            path: signatureDocument.path,
+            createdAt: new Date(Number(signatureDocument.createdAt)),
+          };
+          await addPurposeRiskAnalysisSignedDocument(
+            signatureDocument.streamId as PurposeId,
+            signatureDocument.subObjectId as PurposeVersionDocumentId,
+            metadata
+          );
         })
         .with("agreement", async () => {
-          // return processService.getEndpointFor(fileKind);
+          const metadata = {
+            id: signatureDocument.streamId,
+            name: signatureDocument.fileName,
+            prettyName: signatureDocument.prettyname,
+            contentType: signatureDocument.contentType,
+            path: signatureDocument.path,
+          };
+          await addAgreementSignedContract(
+            signatureDocument.streamId,
+            metadata
+          );
         })
         .with("delegation", async () => {
-          // return processService.getEndpointFor(fileKind);
+          const metadata = {
+            id: signatureDocument.streamId,
+            name: signatureDocument.fileName,
+            prettyName: signatureDocument.prettyname,
+            contentType: signatureDocument.contentType,
+            path: signatureDocument.path,
+          };
+          await addDelegationSignedContract(
+            signatureDocument.streamId,
+            metadata
+          );
         })
-        .otherwise(
-          async () =>
-            // opzionale: caso di default
-            null
-        );
-      logger.info(processEndpoint);
+        .otherwise(async () => Promise.resolve());
     }
 
     await signatureService.deleteSignatureReference(message.id);
