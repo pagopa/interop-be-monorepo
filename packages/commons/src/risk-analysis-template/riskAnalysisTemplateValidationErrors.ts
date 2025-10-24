@@ -153,9 +153,12 @@ export function validTemplateResult<T>(
   };
 }
 
-export function incompatiblePurposeTemplatePersonalDataError(): RiskAnalysisTemplateValidationIssue {
+export function incompatiblePurposeTemplatePersonalDataError(
+  personalDataInRiskAnalysisTemplate: boolean | undefined,
+  personalDataInPurposeTemplate: boolean
+): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "incompatiblePurposeTemplatePersonalDataError",
-    detail: `The usesPersonalData answer doesn't match the personalData flag of the purpose template`,
+    detail: `The usesPersonalData answer (${personalDataInRiskAnalysisTemplate}) doesn't match the handlesPersonalData flag of the purpose template (${personalDataInPurposeTemplate})`,
   });
 }

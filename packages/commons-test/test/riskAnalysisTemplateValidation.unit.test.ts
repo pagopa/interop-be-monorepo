@@ -147,7 +147,12 @@ describe("Risk Analysis Template Validation", () => {
 
     expect(result).toEqual({
       type: "invalid",
-      issues: [incompatiblePurposeTemplatePersonalDataError()],
+      issues: [
+        incompatiblePurposeTemplatePersonalDataError(
+          template.answers.usesPersonalData?.values[0] === "YES",
+          false
+        ),
+      ],
     });
   });
 

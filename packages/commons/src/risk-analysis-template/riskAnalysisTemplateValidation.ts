@@ -452,7 +452,12 @@ const validatePersonalDataFlag = ({
       if (
         personalDataInPurposeTemplate !== personalDataInRiskAnalysisTemplate
       ) {
-        return [incompatiblePurposeTemplatePersonalDataError()];
+        return [
+          incompatiblePurposeTemplatePersonalDataError(
+            personalDataInRiskAnalysisTemplate,
+            personalDataInPurposeTemplate
+          ),
+        ];
       }
       return [];
     })
