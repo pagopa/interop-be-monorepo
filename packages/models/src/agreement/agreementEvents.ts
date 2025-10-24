@@ -36,6 +36,7 @@ import {
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementArchivedByRevokedDelegationV2,
   AgreementDeletedByRevokedDelegationV2,
+  AgreementContractGeneratedV2,
 } from "../gen/v2/agreement/events.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
@@ -150,6 +151,9 @@ export function agreementEventToBinaryDataV2(
     )
     .with({ type: "AgreementArchivedByRevokedDelegation" }, ({ data }) =>
       AgreementArchivedByRevokedDelegationV2.toBinary(data)
+    )
+    .with({ type: "AgreementContractGenerated" }, ({ data }) =>
+      AgreementContractGeneratedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -313,6 +317,11 @@ export const AgreementEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("AgreementArchivedByRevokedDelegation"),
     data: protobufDecoder(AgreementArchivedByRevokedDelegationV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("AgreementContractGenerated"),
+    data: protobufDecoder(AgreementContractGeneratedV2),
   }),
 ]);
 export type AgreementEventV2 = z.infer<typeof AgreementEventV2>;
