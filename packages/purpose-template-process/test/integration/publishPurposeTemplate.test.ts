@@ -56,7 +56,7 @@ describe("publishPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it.skip("should write on event-store for the publishing of a purpose template in draft state", async () => {
+  it("should write on event-store for the publishing of a purpose template in draft state", async () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const publishResponse = await purposeTemplateService.publishPurposeTemplate(
