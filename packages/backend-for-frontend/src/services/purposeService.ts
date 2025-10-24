@@ -9,7 +9,6 @@ import {
   DelegationId,
   EServiceId,
   PurposeId,
-  PurposeTemplateId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysisId,
@@ -810,33 +809,6 @@ export function purposeServiceBuilder(
           headers,
         }
       );
-    },
-    async patchUpdatePurposeFromTemplate(
-      purposeTemplateId: PurposeTemplateId,
-      purposeId: PurposeId,
-      body: bffApi.PatchPurposeUpdateFromTemplateContent,
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeVersionResource> {
-      logger.info(
-        `Partially update a Purpose ${purposeId} created by Purpose Template ${purposeTemplateId}`
-      );
-
-      const updatedPurpose =
-        await purposeProcessClient.patchUpdatePurposeFromTemplate(body, {
-          headers,
-          params: {
-            purposeTemplateId,
-            purposeId,
-          },
-        });
-
-      const versionId = getCurrentVersion(updatedPurpose.versions)?.id;
-
-      if (versionId === undefined) {
-        throw purposeNotFound(purposeId);
-      }
-
-      return { purposeId, versionId: unsafeBrandId(versionId) };
     },
   };
 }
