@@ -118,6 +118,76 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/purposes/{purposeId}/versions/{versionId}/riskAnalysisDocument:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        description: The purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The purpose version id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an unsigned Risk Analysis document to the purpose version
+      summary: Add unsigned Risk Analysis metadata to purpose version
+      tags:
+        - purpose
+      operationId: addUnsignedRiskAnalysisDocumentMetadata
+      requestBody:
+        description: The unsigned Risk Analysis document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeVersionDocument"
+      responses:
+        "200":
+          description: Risk Analysis metadata added successfully
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeVersion"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose or Purpose Version not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

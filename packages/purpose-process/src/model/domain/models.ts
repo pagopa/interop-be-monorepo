@@ -1,6 +1,7 @@
 import {
   DelegationId,
   EServiceMode,
+  RiskAnalysisId,
   TenantId,
   UserId,
 } from "pagopa-interop-models";
@@ -45,3 +46,14 @@ export type RiskAnalysisDocumentPDFPayload = {
   userId: UserId | undefined;
   consumerId: TenantId;
 };
+
+export const RiskAnalysisDocument = z.object({
+  id: RiskAnalysisId,
+  name: z.string(),
+  prettyName: z.string(),
+  contentType: z.string(),
+  path: z.string(),
+  createdAt: z.coerce.date(),
+});
+
+export type RiskAnalysisDocument = z.infer<typeof RiskAnalysisDocument>;

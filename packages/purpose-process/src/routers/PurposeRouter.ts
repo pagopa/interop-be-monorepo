@@ -44,6 +44,7 @@ import {
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
 } from "../utilities/errorMappers.js";
 import { PurposeService } from "../services/purposeService.js";
+import { RiskAnalysisDocument } from "../model/domain/models.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -692,6 +693,38 @@ const purposeRouter = (
             retrieveRiskAnalysisConfigurationByVersionErrorMapper,
             ctx
           );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const { purposeId, versionId } = req.params;
+        const riskAnalysisDocument = RiskAnalysisDocument.parse(req.body);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { data, metadata } =
+            await purposeService.activatePurposeVersion(
+              unsafeBrandId(purposeId),
+              unsafeBrandId(versionId),
+              riskAnalysisDocument,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(purposeApi.Purposes.parse(purposeToApiPurpose(data)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            approveDelegationErrorMapper,
+            ctx
+          );
+
           return res.status(errorRes.status).send(errorRes);
         }
       }
