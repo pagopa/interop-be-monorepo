@@ -688,6 +688,9 @@ paths:
       responses:
         "200":
           description: Risk Analysis Template Answer added.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -893,6 +896,9 @@ paths:
       responses:
         "200":
           description: Risk Analysis Template Answer Annotation added.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
