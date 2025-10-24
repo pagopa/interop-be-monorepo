@@ -1,11 +1,22 @@
 /* eslint-disable functional/immutable-data */
 import {
+  CorrelationId,
+  Delegation,
+  DelegationContractDocument,
   DelegationEventEnvelopeV2,
   fromDelegationV2,
+  generateId,
   missingKafkaMessageDataError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
+import {
+  FileManager,
+  Logger,
+  PDFGenerator,
+  RefreshableInteropToken,
+  getInteropHeaders,
+} from "pagopa-interop-commons";
 import { contractBuilder } from "../service/delegation/delegationContractBuilder.js";
 import { config } from "../config/config.js";
 import {
@@ -13,12 +24,17 @@ import {
   retrieveEserviceById,
 } from "../service/delegation/delegationService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
+import { getInteropBeClients } from "../clients/clientProvider.js";
 
+const { delegationProcessClient } = getInteropBeClients();
+
+// eslint-disable-next-line max-params
 export async function handleDelegationMessageV2(
   decodedMessage: DelegationEventEnvelopeV2,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
+  refreshableToken: RefreshableInteropToken,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -33,6 +49,10 @@ export async function handleDelegationMessageV2(
         if (!msg.data.delegation) {
           throw missingKafkaMessageDataError("delegation", msg.type);
         }
+        const correlationId = msg.correlation_id
+          ? unsafeBrandId<CorrelationId>(msg.correlation_id)
+          : generateId<CorrelationId>();
+
         const delegation = fromDelegationV2(msg.data.delegation);
 
         const [delegator, delegate, eservice] = await Promise.all([
@@ -44,7 +64,8 @@ export async function handleDelegationMessageV2(
         if (!delegator || !delegate || !eservice) {
           throw new Error("Missing data to create activation contract.");
         }
-        await contractBuilder.createActivationContract({
+
+        const contract = await contractBuilder.createActivationContract({
           delegation,
           delegator,
           delegate,
@@ -54,6 +75,12 @@ export async function handleDelegationMessageV2(
           config,
           logger,
         });
+        await sendContractMetadataToProcess(
+          contract,
+          refreshableToken,
+          delegation,
+          correlationId
+        );
 
         logger.info(`Delegation event ${msg.type} handled successfully`);
       }
@@ -66,6 +93,11 @@ export async function handleDelegationMessageV2(
         if (!msg.data.delegation) {
           throw missingKafkaMessageDataError("delegation", msg.type);
         }
+
+        const correlationId = msg.correlation_id
+          ? unsafeBrandId<CorrelationId>(msg.correlation_id)
+          : generateId<CorrelationId>();
+
         const delegation = fromDelegationV2(msg.data.delegation);
         const [delegator, delegate, eservice] = await Promise.all([
           retrieveTenantById(readModelService, delegation.delegatorId),
@@ -76,7 +108,7 @@ export async function handleDelegationMessageV2(
         if (!delegator || !delegate || !eservice) {
           throw new Error("Missing data to create revocation contract.");
         }
-        await contractBuilder.createRevocationContract({
+        const contract = await contractBuilder.createRevocationContract({
           delegation,
           delegator,
           delegate,
@@ -86,6 +118,13 @@ export async function handleDelegationMessageV2(
           config,
           logger,
         });
+
+        await sendContractMetadataToProcess(
+          contract,
+          refreshableToken,
+          delegation,
+          correlationId
+        );
         logger.info(`Delegation event ${msg.type} handled successfully`);
       }
     )
@@ -95,10 +134,35 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationRejected",
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
-          "ProducerDelegationSubmitted"
+          "ProducerDelegationSubmitted",
+          "DelegationContractGenerated"
         ),
       },
       () => Promise.resolve()
     )
     .exhaustive();
+}
+
+async function sendContractMetadataToProcess(
+  contract: DelegationContractDocument,
+  refreshableToken: RefreshableInteropToken,
+  delegation: Delegation,
+  correlationId: CorrelationId
+): Promise<void> {
+  const contractWithIsoString = {
+    ...contract,
+    createdAt: contract.createdAt.toISOString(),
+  };
+  const token = (await refreshableToken.get()).serialized;
+
+  await delegationProcessClient.delegation.addUnsignedDelegationContractMetadata(
+    contractWithIsoString,
+    {
+      params: { delegationId: delegation.id },
+      headers: getInteropHeaders({
+        token,
+        correlationId,
+      }),
+    }
+  );
 }

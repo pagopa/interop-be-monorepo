@@ -75,6 +75,7 @@ export async function exportInterfaceV2(
       { type: "EServiceSignalHubEnabled" },
       { type: "EServiceSignalHubDisabled" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
+      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       () => undefined
     )
     .exhaustive();

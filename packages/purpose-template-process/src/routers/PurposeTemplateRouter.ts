@@ -82,6 +82,7 @@ const purposeTemplateRouter = (
           states,
           targetTenantKind,
           excludeExpiredRiskAnalysis,
+          handlesPersonalData,
           offset,
           limit,
         } = req.query;
@@ -97,6 +98,7 @@ const purposeTemplateRouter = (
                 apiPurposeTemplateStateToPurposeTemplateState
               ),
               excludeExpiredRiskAnalysis,
+              handlesPersonalData,
             },
             { offset, limit },
             ctx

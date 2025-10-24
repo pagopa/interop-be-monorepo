@@ -105,7 +105,7 @@ export const multiAnswersToApiMultiAnswers = (
   responseValue: purposeTemplateApi.RiskAnalysisTemplateAnswer;
 }> =>
   multiAnswers.map((answer: RiskAnalysisTemplateMultiAnswer) => ({
-    responseKey: answer.id,
+    responseKey: answer.key,
     responseValue: {
       id: answer.id,
       values: answer.values,
@@ -125,7 +125,7 @@ export const singleAnswersToApiSingleAnswers = (
   responseValue: purposeTemplateApi.RiskAnalysisTemplateAnswer;
 }> =>
   singleAnswers.map((answer: RiskAnalysisTemplateSingleAnswer) => ({
-    responseKey: answer.id,
+    responseKey: answer.key,
     responseValue: {
       id: answer.id,
       values: answer.value ? [answer.value] : [],

@@ -47,6 +47,7 @@ RUN pnpm build && \
     packages/readmodel/ \
     packages/readmodel-models/ \
     packages/kafka-iam-auth \
+    packages/api-clients \
     packages/documents-generator/dist && \
     find /out -exec touch -h --date=@0 {} \;  
 
@@ -60,12 +61,10 @@ RUN apt-get update && \
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-RUN groupadd -r app && useradd -rm -g app -G audio,video app
-
 COPY --from=build /out /app
 
-RUN chown -R app:app /app
-RUN chmod -R 700 /app
+RUN groupadd -r app && useradd -rm -g app -G audio,video app
+RUN chown -R app:app /app && chmod -R 700 /app
 USER app
 
 WORKDIR /app/packages/documents-generator

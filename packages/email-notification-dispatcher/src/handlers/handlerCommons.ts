@@ -9,6 +9,7 @@ import {
   NotificationConfig,
   NotificationType,
   PurposeV2,
+  ProducerKeychainV2,
   Purpose,
   PurposeId,
   Tenant,
@@ -16,6 +17,8 @@ import {
   tenantMailKind,
   TenantV2,
   UserId,
+  ClientV2,
+  EServiceId,
 } from "pagopa-interop-models";
 import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
@@ -37,6 +40,11 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
+export type EServiceNameUpdatedHandlerParams = HandlerCommonParams & {
+  eserviceV2Msg?: EServiceV2;
+  oldName?: string;
+};
+
 export type ClientPurposeHandlerParams = HandlerCommonParams & {
   purposeId: PurposeId;
 };
@@ -54,13 +62,38 @@ export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
 };
 
-type TenantEmailNotificationRecipient = {
+export type ProducerKeychainKeyHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  kid: string;
+};
+
+export type ProducerKeychainUserHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  userId: UserId;
+};
+
+export type ClientKeyHandlerParams = HandlerCommonParams & {
+  clientV2Msg?: ClientV2;
+  kid: string;
+};
+
+export type ClientUserHandlerParams = HandlerCommonParams & {
+  clientV2Msg?: ClientV2;
+  userId: UserId;
+};
+
+export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  eserviceId: EServiceId;
+};
+
+export type TenantEmailNotificationRecipient = {
   type: "Tenant";
   tenantId: TenantId;
   address: string;
 };
 
-type UserEmailNotificationRecipient = {
+export type UserEmailNotificationRecipient = {
   type: "User";
   userId: UserId;
   tenantId: TenantId;
