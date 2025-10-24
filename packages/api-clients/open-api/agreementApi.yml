@@ -904,15 +904,8 @@ paths:
             schema:
               $ref: "#/components/schemas/Document"
       responses:
-        "200":
+        "204":
           description: Contract metadata added successfully
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
           content:
@@ -933,12 +926,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
           content:
             application/problem+json:
               schema:

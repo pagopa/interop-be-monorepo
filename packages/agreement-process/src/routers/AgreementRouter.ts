@@ -44,6 +44,7 @@ import {
   computeAgreementsStateErrorMapper,
   verifyTenantCertifiedAttributesErrorMapper,
   getAgreementConsumerDocumentsErrorMapper,
+  generateAgreementDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -567,12 +568,13 @@ const agreementRouter = (
     )
     .post("/internal/agreement/:agreementId/contract", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
-      const { agreementId } = req.params;
-      const agreementContract = AgreementDocument.parse(req.body);
+
       try {
         validateAuthorization(ctx, [INTERNAL_ROLE]);
 
-        const { data, metadata } =
+        const { agreementId } = req.params;
+        const agreementContract = AgreementDocument.parse(req.body);
+        const { metadata } =
           await agreementService.internalAddAgreementContract(
             unsafeBrandId(agreementId),
             agreementContract,
@@ -580,13 +582,11 @@ const agreementRouter = (
           );
         setMetadataVersionHeader(res, metadata);
 
-        return res
-          .status(200)
-          .send(agreementApi.Agreement.parse(agreementToApiAgreement(data)));
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          archiveAgreementErrorMapper,
+          generateAgreementDocumentsErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
