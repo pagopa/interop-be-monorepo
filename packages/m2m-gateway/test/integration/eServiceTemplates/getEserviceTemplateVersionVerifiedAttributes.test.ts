@@ -163,7 +163,7 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
     expect(mockGetBulkedAttributes).toHaveBeenCalledWith(
       [attribute1.id, attribute2.id, attribute3.id],
       expect.objectContaining({
-        queries: { limit: 10, offset: 0 },
+        queries: { limit: 50, offset: 0 },
       })
     );
   });
