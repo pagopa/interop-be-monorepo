@@ -550,6 +550,7 @@ export function catalogServiceBuilder(
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
         isClientAccessDelegable: eservice.isClientAccessDelegable,
+        personalData: eservice.personalData,
       };
     },
     updateEServiceDescription: async (
