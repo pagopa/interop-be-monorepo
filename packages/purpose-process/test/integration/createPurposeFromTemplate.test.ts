@@ -75,6 +75,7 @@ import {
   getMockEServiceForPurposeFromTemplate,
   getMockPurposeFromTemplateSeed,
   getMockValidRiskAnalysisFormFromTemplate,
+  toMockPurposeForPurposeV2,
 } from "../mockUtils.js";
 
 describe("createPurposeFromTemplate", () => {
@@ -228,11 +229,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2({
-        ...expectedPurpose,
-        // TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
-        purposeTemplateId: undefined,
-      }),
+      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -353,11 +350,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2({
-        ...expectedPurpose,
-        // TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
-        purposeTemplateId: undefined,
-      }),
+      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -476,11 +469,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2({
-        ...expectedPurpose,
-        // TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
-        purposeTemplateId: undefined,
-      }),
+      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -656,11 +645,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2({
-        ...expectedPurpose,
-        // TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
-        purposeTemplateId: undefined,
-      }),
+      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
     });
     expect(createPurposeResponse).toEqual({
       data: {

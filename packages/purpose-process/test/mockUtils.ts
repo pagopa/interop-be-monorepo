@@ -202,3 +202,9 @@ export const getMockValidRiskAnalysisFormFromTemplate = (
       )
     )
     .exhaustive();
+
+// TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
+export const toMockPurposeForPurposeV2 = (purpose: Purpose): Purpose => ({
+  ...purpose,
+  purposeTemplateId: undefined,
+});
