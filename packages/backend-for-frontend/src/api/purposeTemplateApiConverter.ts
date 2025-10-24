@@ -83,6 +83,7 @@ export function toBffPurposeTemplateWithCompactCreator(
     purposeFreeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason,
     purposeDailyCalls: purposeTemplate.purposeDailyCalls,
     creator: toBffCompactOrganization(creator),
+    handlesPersonalData: purposeTemplate.handlesPersonalData,
     annotationDocuments,
   };
 }

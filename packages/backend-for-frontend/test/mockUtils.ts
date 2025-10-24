@@ -496,6 +496,7 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   dailyCallsPerConsumer: generateMock(z.number().int().min(1).max(1000000000)),
   dailyCallsTotal: generateMock(z.number().int().min(1).max(1000000000)),
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+  hasUnreadNotifications: generateMock(z.boolean()),
   purposeTemplate: generateMock(bffApi.CompactPurposeTemplate.optional()),
 });
 
@@ -546,6 +547,7 @@ export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   purposeIsFreeOfCharge: false,
   purposeFreeOfChargeReason: undefined,
   purposeDailyCalls: 1000,
+  handlesPersonalData: false,
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
@@ -781,6 +783,7 @@ export const getMockBffApiProducerEServiceTemplate =
     draftVersion: generateMock(
       bffApi.CompactEServiceTemplateVersion.optional()
     ),
+    hasUnreadNotifications: generateMock(z.boolean()),
   });
 
 export const getMockBffApiEServiceTemplateVersionQuotasUpdateSeed =
@@ -956,6 +959,7 @@ export const getMockBffApiAgreementListEntry =
     suspendedByProducer: generateMock(z.boolean().optional()),
     descriptor: generateMock(bffApi.CompactDescriptor),
     delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+    hasUnreadNotifications: generateMock(z.boolean()),
   });
 
 export const getMockBffApiAgreement = (): bffApi.Agreement & {
@@ -1192,6 +1196,7 @@ export const getMockBffApiPurposeTemplateWithCompactCreator =
     annotationDocuments: generateMock(
       z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
     ),
+    handlesPersonalData: false,
   });
 
 export const getMockBffApiPurposeTemplate = (
@@ -1211,4 +1216,5 @@ export const getMockBffApiPurposeTemplate = (
     "This is a valid purpose description that meets the minimum length requirement",
   purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
   purposeIsFreeOfCharge: false,
+  handlesPersonalData: false,
 });
