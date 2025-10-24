@@ -43,10 +43,10 @@ import {
   deleteDocumentErrorMapper,
   getEServiceTemplatesErrorMapper,
   updateEServiceTemplatePersonalDataFlagErrorMapper,
+  deleteEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
-  eserviceTemplateVersionToApiEServiceTemplateVersion,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   documentToApiDocument,
 } from "../model/domain/apiConverter.js";
@@ -186,6 +186,26 @@ const eserviceTemplatesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete("/templates/:templateId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+        await eserviceTemplateService.deleteEServiceTemplate(
+          unsafeBrandId(req.params.templateId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          deleteEServiceTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .patch(
       "/templates/:templateId/versions/:templateVersionId",
       async (req, res) => {
@@ -282,22 +302,24 @@ const eserviceTemplatesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE, ADMIN_ROLE, API_ROLE]);
 
-        const eserviceTemplateVersion =
-          await eserviceTemplateService.createEServiceTemplateVersion(
-            unsafeBrandId(req.params.templateId),
-            ctx
-          );
-        return res
-          .status(200)
-          .send(
-            eserviceTemplateApi.EServiceTemplateVersion.parse(
-              eserviceTemplateVersionToApiEServiceTemplateVersion(
-                eserviceTemplateVersion
-              )
-            )
-          );
+        const {
+          data: { eserviceTemplate, createdEServiceTemplateVersionId },
+          metadata,
+        } = await eserviceTemplateService.createEServiceTemplateVersion(
+          unsafeBrandId(req.params.templateId),
+          req.body,
+          ctx
+        );
+        setMetadataVersionHeader(res, metadata);
+        return res.status(200).send(
+          eserviceTemplateApi.CreatedEServiceTemplateVersion.parse({
+            eserviceTemplate:
+              eserviceTemplateToApiEServiceTemplate(eserviceTemplate),
+            createdEServiceTemplateVersionId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

@@ -16,6 +16,9 @@ type EmailNotificationDispatcherErrorCode =
   | "activeProducerDelegationNotFound"
   | "eserviceAgreementsNotFound"
   | "descriptorPublishedNotFound"
+  | "certifierTenantNotFound"
+  | "clientKeyNotFound"
+  | "producerKeychainKeyNotFound"
   | "purposeNotFound"
   | "certifierTenantNotFound";
 
@@ -120,6 +123,26 @@ export function attributeNotFound(
   return new InternalError({
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
+  });
+}
+
+export function clientKeyNotFound(
+  clientId: string,
+  kid: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Client key ${kid} not found in client ${clientId}`,
+    code: "clientKeyNotFound",
+  });
+}
+
+export function producerKeychainKeyNotFound(
+  producerKeychainId: string,
+  kid: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Producer keychain key ${kid} not found in producer keychain ${producerKeychainId}`,
+    code: "producerKeychainKeyNotFound",
   });
 }
 

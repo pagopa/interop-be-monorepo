@@ -362,7 +362,7 @@ export const getMockPurposeTemplate = (
   purposeTitle: "Purpose template title",
   purposeDescription: "Purpose template description",
   purposeIsFreeOfCharge: false,
-  handlesPersonalData: true,
+  handlesPersonalData: false,
 });
 
 export const getMockPurposeVersion = (

@@ -639,7 +639,7 @@ export function purposeTemplateServiceBuilder(
 
       const validationResult = await validateEservicesAssociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate.data,
         readModelService
       );
 
@@ -713,7 +713,7 @@ export function purposeTemplateServiceBuilder(
 
       const validationResult = await validateEservicesDisassociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate.data,
         readModelService
       );
 

@@ -47,6 +47,7 @@ import {
   invalidDescriptorStateError,
   missingDescriptorError,
   eserviceAlreadyAssociatedError,
+  purposeTemplateEServicePersonalDataFlagMismatch,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("linkEservicesToPurposeTemplate", () => {
@@ -69,12 +70,14 @@ describe("linkEservicesToPurposeTemplate", () => {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor1],
+    personalData: false,
   };
 
   const eService2: EService = {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor2],
+    personalData: false,
   };
 
   const purposeTemplate: PurposeTemplate = {
@@ -256,6 +259,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [],
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -284,6 +288,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [getMockDescriptor(descriptorState.deprecated)],
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -307,6 +312,38 @@ describe("linkEservicesToPurposeTemplate", () => {
           ]),
         ],
         [eserviceWithDeprecatedDescriptor.id],
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("should throw associationEServicesForPurposeTemplateFailed if the e-service has a different personal data flag than the purpose template", async () => {
+    const eserviceWithDifferentPersonalDataFlag: EService = {
+      ...eService1,
+      personalData: true,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEService(eserviceWithDifferentPersonalDataFlag);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [eserviceWithDifferentPersonalDataFlag.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      associationEServicesForPurposeTemplateFailed(
+        [
+          purposeTemplateEServicePersonalDataFlagMismatch(
+            eserviceWithDifferentPersonalDataFlag,
+            purposeTemplate
+          ),
+        ],
+        [eserviceWithDifferentPersonalDataFlag.id],
         purposeTemplate.id
       )
     );

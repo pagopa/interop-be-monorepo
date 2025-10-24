@@ -72,3 +72,21 @@ export function toM2MGatewayApiDocument(
     contentType: document.contentType,
   };
 }
+
+export function toEServiceTemplateApiEServiceTemplateVersionSeed(
+  version: m2mGatewayApi.EServiceTemplateVersionSeed
+): eserviceTemplateApi.EServiceTemplateVersionSeed {
+  return {
+    description: version.description,
+    voucherLifespan: version.voucherLifespan,
+    dailyCallsPerConsumer: version.dailyCallsPerConsumer,
+    dailyCallsTotal: version.dailyCallsTotal,
+    agreementApprovalPolicy: version.agreementApprovalPolicy,
+    attributes: {
+      declared: [],
+      verified: [],
+      certified: [],
+    },
+    docs: [],
+  };
+}

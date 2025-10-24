@@ -85,6 +85,7 @@ const purposeTemplateRouter = (
             creatorIds: req.query.creatorIds,
             eserviceIds: req.query.eserviceIds,
             excludeExpiredRiskAnalysis: req.query.excludeExpiredRiskAnalysis,
+            handlesPersonalData: req.query.handlesPersonalData,
             offset: req.query.offset,
             limit: req.query.limit,
             ctx,
