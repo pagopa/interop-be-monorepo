@@ -1,51 +1,47 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   generateToken,
-  getMockDelegation,
+  getMockAgreement,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  Delegation,
-  DelegationId,
-  delegationKind,
+  Agreement,
+  AgreementId,
+  AgreementDocument,
   generateId,
-  DelegationContractDocument,
-  DelegationContractId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, delegationService } from "../vitest.api.setup.js";
-import { delegationNotFound } from "../../src/model/domain/errors.js";
+import { api, agreementService } from "../vitest.api.setup.js";
+import { agreementNotFound } from "../../src/model/domain/errors.js";
 
-const mockDelegationContract: DelegationContractDocument = {
-  id: generateId<DelegationContractId>(),
-  path: "some/path/to/contract.pdf",
+const mockAgreementContract: AgreementDocument = {
+  id: generateId(),
+  path: "some/path/to/agreement-contract.pdf",
   contentType: "application/pdf",
   name: "name",
-  prettyName: "contract.pdf",
+  prettyName: "agreement-contract.pdf",
   createdAt: new Date(),
 };
 
-describe("API POST /internal/delegations/:delegationId/contract test", () => {
-  const mockDelegation: Delegation = getMockDelegation({
-    kind: delegationKind.delegatedProducer,
-  });
-  const serviceResponse = getMockWithMetadata(mockDelegation);
+describe("API POST /internal/agreement/:agreementId/contract test", () => {
+  const mockAgreement: Agreement = getMockAgreement();
+  const serviceResponse = getMockWithMetadata(mockAgreement);
 
   beforeEach(() => {
-    delegationService.internalAddDelegationContract = vi
+    agreementService.internalAddAgreementContract = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
     token: string,
-    delegationId: DelegationId = mockDelegation.id,
-    payload: DelegationContractDocument = mockDelegationContract
+    agreementId: AgreementId = mockAgreement.id,
+    payload: AgreementDocument = mockAgreementContract
   ) =>
     request(api)
-      .post(`/internal/delegations/${delegationId}/contract`)
+      .post(`/internal/agreement/${agreementId}/contract`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(payload);
@@ -59,10 +55,10 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
       const res = await makeRequest(token);
 
       expect(
-        delegationService.internalAddDelegationContract
+        agreementService.internalAddAgreementContract
       ).toHaveBeenCalledWith(
-        mockDelegation.id,
-        mockDelegationContract,
+        mockAgreement.id,
+        mockAgreementContract,
         expect.anything()
       );
       expect(res.status).toBe(204);
@@ -83,14 +79,14 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
 
   it.each([
     {
-      error: delegationNotFound(mockDelegation.id),
+      error: agreementNotFound(mockAgreement.id),
       expectedStatus: 404,
-      description: "delegationNotFound",
+      description: "agreementNotFound",
     },
   ])(
     "Should return $expectedStatus for $description error",
     async ({ error, expectedStatus }) => {
-      delegationService.internalAddDelegationContract = vi
+      agreementService.internalAddAgreementContract = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.INTERNAL_ROLE);
@@ -99,9 +95,9 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid delegation id", async () => {
+  it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, "invalid" as DelegationId);
+    const res = await makeRequest(token, "invalid" as AgreementId);
     expect(res.status).toBe(400);
   });
 
@@ -110,11 +106,11 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
     const invalidPayload = {
       id: generateId(),
       contentType: "application/pdf",
-      fileName: "contract.pdf",
-      uploadDate: new Date(),
-    } as unknown as DelegationContractDocument;
+      name: "name",
+      createdAt: new Date(),
+    } as unknown as AgreementDocument;
 
-    const res = await makeRequest(token, mockDelegation.id, invalidPayload);
+    const res = await makeRequest(token, mockAgreement.id, invalidPayload);
     expect(res.status).toBe(400);
   });
 });
