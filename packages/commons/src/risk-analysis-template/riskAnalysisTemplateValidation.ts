@@ -437,7 +437,7 @@ const validatePersonalDataFlag = ({
   tenantKind: TenantKind;
   version: string;
   personalDataInRiskAnalysisTemplate: boolean | undefined;
-  personalDataInPurposeTemplate: boolean | undefined;
+  personalDataInPurposeTemplate: boolean;
 }): RiskAnalysisTemplateValidationIssue[] => {
   const label = buildLabel(tenantKind, version);
   return match(label)
