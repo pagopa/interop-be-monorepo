@@ -320,10 +320,9 @@ describe("createEServiceDescriptorVerifiedAttributesGroup", () => {
 
     const mockGetEServiceById = vi.fn();
 
-    mockGetEServiceById.mockImplementation(mockPollingResponse(
-      mockEserviceResponse,
-      3
-    ));
+    mockGetEServiceById.mockImplementation(
+      mockPollingResponse(mockEserviceResponse, 3)
+    );
 
     const mockPatchUpdateDescriptor = vi
       .fn()
