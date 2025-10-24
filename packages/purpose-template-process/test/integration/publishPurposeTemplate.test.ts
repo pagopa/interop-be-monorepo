@@ -14,9 +14,11 @@ import {
   purposeTemplateState,
   PurposeTemplatePublishedV2,
   toPurposeTemplateV2,
+  tenantKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  getLatestVersionFormRules,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -133,7 +135,7 @@ describe("publishPurposeTemplate", () => {
       ...purposeTemplate,
       purposeRiskAnalysisForm: {
         id: generateId(),
-        version: "3.0",
+        version: getLatestVersionFormRules(tenantKind.PA)!.version,
         singleAnswers: [
           {
             id: generateId(),
@@ -152,7 +154,8 @@ describe("publishPurposeTemplate", () => {
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
         purposeTemplateWithInvalidRiskAnalysis.purposeRiskAnalysisForm!
       ),
-      purposeTemplateWithInvalidRiskAnalysis.targetTenantKind
+      purposeTemplateWithInvalidRiskAnalysis.targetTenantKind,
+      purposeTemplateWithInvalidRiskAnalysis.handlesPersonalData
     );
 
     await expect(async () => {

@@ -55,6 +55,7 @@ describe("getPurposeTemplates", async () => {
     state: purposeTemplateState.draft,
     creatorId: creatorId1,
     targetTenantKind: tenantKind.PRIVATE,
+    handlesPersonalData: false,
   };
   const suspendedPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -62,6 +63,7 @@ describe("getPurposeTemplates", async () => {
     state: purposeTemplateState.suspended,
     creatorId: creatorId1,
     targetTenantKind: tenantKind.GSP,
+    handlesPersonalData: false,
   };
   const archivedPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -69,6 +71,7 @@ describe("getPurposeTemplates", async () => {
     state: purposeTemplateState.archived,
     creatorId: creatorId1,
     targetTenantKind: tenantKind.SCP,
+    handlesPersonalData: false,
   };
 
   const activePurposeTemplateByCreator2: PurposeTemplate = {
@@ -77,6 +80,7 @@ describe("getPurposeTemplates", async () => {
     state: purposeTemplateState.active,
     creatorId: creatorId2,
     targetTenantKind: tenantKind.PA,
+    handlesPersonalData: false,
   };
   const draftPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -84,6 +88,7 @@ describe("getPurposeTemplates", async () => {
     state: purposeTemplateState.draft,
     creatorId: creatorId2,
     targetTenantKind: tenantKind.PRIVATE,
+    handlesPersonalData: false,
   };
   const suspendedPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -99,6 +104,7 @@ describe("getPurposeTemplates", async () => {
     state: purposeTemplateState.archived,
     creatorId: creatorId2,
     targetTenantKind: tenantKind.SCP,
+    handlesPersonalData: false,
   };
 
   const purposeTemplateEServiceDescriptor1: EServiceDescriptorPurposeTemplate =

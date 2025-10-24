@@ -547,7 +547,7 @@ export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   purposeIsFreeOfCharge: false,
   purposeFreeOfChargeReason: undefined,
   purposeDailyCalls: 1000,
-  handlesPersonalData: false,
+  handlesPersonalData: true,
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
