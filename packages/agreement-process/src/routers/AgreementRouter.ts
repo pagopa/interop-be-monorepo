@@ -16,6 +16,7 @@ import {
   unsafeBrandId,
   DelegationId,
   emptyErrorMapper,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -43,6 +44,7 @@ import {
   computeAgreementsStateErrorMapper,
   verifyTenantCertifiedAttributesErrorMapper,
   getAgreementConsumerDocumentsErrorMapper,
+  generateAgreementDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -564,6 +566,32 @@ const agreementRouter = (
         }
       }
     )
+    .post("/internal/agreement/:agreementId/contract", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const { agreementId } = req.params;
+        const agreementContract = AgreementDocument.parse(req.body);
+        const { metadata } =
+          await agreementService.internalAddAgreementContract(
+            unsafeBrandId(agreementId),
+            agreementContract,
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          generateAgreementDocumentsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
 
     .post("/agreements/:agreementId/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
