@@ -1,9 +1,4 @@
-import {
-  DelegationId,
-  PurposeTemplateId,
-  RiskAnalysisId,
-  unsafeBrandId,
-} from "../brandedIds.js";
+import { DelegationId, RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
 import {
   PurposeStateV2,
   PurposeVersionDocumentV2,
@@ -116,8 +111,5 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
     : undefined,
   delegationId: input.delegationId
     ? unsafeBrandId<DelegationId>(input.delegationId)
-    : undefined,
-  purposeTemplateId: input.purposeTemplateId
-    ? unsafeBrandId<PurposeTemplateId>(input.purposeTemplateId)
     : undefined,
 });

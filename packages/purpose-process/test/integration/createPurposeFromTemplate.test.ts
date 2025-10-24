@@ -228,7 +228,11 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
+      purpose: toPurposeV2({
+        ...expectedPurpose,
+        // TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
+        purposeTemplateId: undefined,
+      }),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -349,7 +353,11 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
+      purpose: toPurposeV2({
+        ...expectedPurpose,
+        // TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
+        purposeTemplateId: undefined,
+      }),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -468,7 +476,11 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
+      purpose: toPurposeV2({
+        ...expectedPurpose,
+        // TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
+        purposeTemplateId: undefined,
+      }),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -644,7 +656,11 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
+      purpose: toPurposeV2({
+        ...expectedPurpose,
+        // TODO: remove after purposeTemplateId is added to outbound models (PIN-7973)
+        purposeTemplateId: undefined,
+      }),
     });
     expect(createPurposeResponse).toEqual({
       data: {

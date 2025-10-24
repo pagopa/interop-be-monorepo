@@ -20,7 +20,6 @@ message PurposeV2 {
   bool isFreeOfCharge = 13;
   optional string freeOfChargeReason = 14;
   optional string delegationId = 15;
-  optional string purposeTemplateId = 16;
 }
 
 message PurposeVersionV2 {
