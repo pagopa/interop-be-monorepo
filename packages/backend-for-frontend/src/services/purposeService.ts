@@ -720,27 +720,32 @@ export function purposeServiceBuilder(
       };
     },
     async patchUpdatePurposeFromTemplate(
-      templateId: PurposeTemplateId,
-      id: PurposeId,
-      seed: bffApi.PatchPurposeUpdateFromTemplateContent,
+      purposeTemplateId: PurposeTemplateId,
+      purposeId: PurposeId,
+      body: bffApi.PatchPurposeUpdateFromTemplateContent,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-      logger.info(`Updating Purpose ${id} created from template ${templateId}`);
+      logger.info(
+        `Partially update a Purpose ${purposeId} created by Purpose Template ${purposeTemplateId}`
+      );
 
       const updatedPurpose =
-        await purposeProcessClient.patchUpdatePurposeFromTemplate(seed, {
-          params: {
-            purposeTemplateId: templateId,
-            purposeId: id,
-          },
+        await purposeProcessClient.patchUpdatePurposeFromTemplate(body, {
           headers,
+          params: {
+            purposeTemplateId,
+            purposeId,
+          },
         });
 
-      return {
-        purposeId: id,
-        versionId: updatedPurpose.versions[0].id,
-      };
+      const versionId = getCurrentVersion(updatedPurpose.versions)?.id;
+
+      if (versionId === undefined) {
+        throw purposeNotFound(purposeId);
+      }
+
+      return { purposeId, versionId: unsafeBrandId(versionId) };
     },
     async getPurpose(
       id: PurposeId,
