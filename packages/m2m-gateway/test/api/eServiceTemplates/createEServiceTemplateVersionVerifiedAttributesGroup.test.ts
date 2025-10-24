@@ -58,7 +58,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
     token: string,
     templateId: string,
     versionId: string,
-    body: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed
+    body: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed
   ) =>
     request(api)
       .post(
