@@ -28,11 +28,11 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/unsuspend", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  it("Should return 200 for user with role Admin", async () => {
+  it("Should return 204 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, mockActivePurposeTemplate.id);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockActivePurposeTemplate);
+    expect(res.status).toBe(204);
+    expect(res.body).toEqual({});
   });
 
   it("Should return 400 for invalid purpose template id", async () => {
