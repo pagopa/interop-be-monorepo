@@ -500,7 +500,7 @@ export function purposeTemplateServiceBuilder(
         body.doc,
         documentId,
         config.purposeTemplateDocumentsContainer,
-        config.riskAnalysisDocumentsPath,
+        config.purposeTemplateDocumentsPath,
         body.prettyName,
         async (
           documentId: string,
