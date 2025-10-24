@@ -249,12 +249,20 @@ const purposeTemplateRouter = (
             { offset, limit },
             ctx
           );
+
+        if (purposeTemplateEServicesDescriptors.results.length !== 0) {
+          setMetadataVersionHeader(
+            res,
+            purposeTemplateEServicesDescriptors.results[0].metadata
+          );
+        }
+
         return res.status(200).send(
           purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
             results: purposeTemplateEServicesDescriptors.results.map(
               (purposeTemplateEServiceDescriptor) =>
                 eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-                  purposeTemplateEServiceDescriptor
+                  purposeTemplateEServiceDescriptor.data
                 )
             ),
             totalCount: purposeTemplateEServicesDescriptors.totalCount,

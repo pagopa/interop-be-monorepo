@@ -465,6 +465,9 @@ paths:
       responses:
         "200":
           description: Purpose Template E-Services retrieved
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:

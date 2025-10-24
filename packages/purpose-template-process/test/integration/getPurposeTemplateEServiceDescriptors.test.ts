@@ -14,6 +14,7 @@ import {
   PurposeTemplateId,
   purposeTemplateState,
   TenantId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -57,26 +58,35 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     creatorId,
   };
 
-  const purposeTemplateEServiceDescriptor1: EServiceDescriptorPurposeTemplate =
+  const purposeTemplateEServiceDescriptor1: WithMetadata<EServiceDescriptorPurposeTemplate> =
     {
-      purposeTemplateId: purposeTemplate1.id,
-      eserviceId: eservice1.id,
-      descriptorId: eservice1.descriptors[0].id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate1.id,
+        eserviceId: eservice1.id,
+        descriptorId: eservice1.descriptors[0].id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 0 },
     };
-  const purposeTemplateEServiceDescriptor2: EServiceDescriptorPurposeTemplate =
+  const purposeTemplateEServiceDescriptor2: WithMetadata<EServiceDescriptorPurposeTemplate> =
     {
-      purposeTemplateId: purposeTemplate1.id,
-      eserviceId: eservice2.id,
-      descriptorId: eservice2.descriptors[0].id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate1.id,
+        eserviceId: eservice2.id,
+        descriptorId: eservice2.descriptors[0].id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 0 },
     };
-  const purposeTemplateEServiceDescriptor3: EServiceDescriptorPurposeTemplate =
+  const purposeTemplateEServiceDescriptor3: WithMetadata<EServiceDescriptorPurposeTemplate> =
     {
-      purposeTemplateId: purposeTemplate2.id,
-      eserviceId: eservice1.id,
-      descriptorId: eservice1.descriptors[0].id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate2.id,
+        eserviceId: eservice1.id,
+        descriptorId: eservice1.descriptors[0].id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 0 },
     };
 
   beforeEach(async () => {
@@ -88,13 +98,13 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     await addOnePurposeTemplate(purposeTemplate3);
 
     await addOnePurposeTemplateEServiceDescriptor(
-      purposeTemplateEServiceDescriptor1
+      purposeTemplateEServiceDescriptor1.data
     );
     await addOnePurposeTemplateEServiceDescriptor(
-      purposeTemplateEServiceDescriptor2
+      purposeTemplateEServiceDescriptor2.data
     );
     await addOnePurposeTemplateEServiceDescriptor(
-      purposeTemplateEServiceDescriptor3
+      purposeTemplateEServiceDescriptor3.data
     );
   });
 
