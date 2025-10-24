@@ -106,13 +106,34 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     });
 
     const eserviceIds = [eService1.id, eService2.id];
-    await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
-      purposeTemplate.id,
-      eserviceIds,
-      getMockContext({
-        authData: getMockAuthData(tenant.id),
-      })
-    );
+    const unlinkResponse =
+      await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+        purposeTemplate.id,
+        eserviceIds,
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      );
+
+    expect(unlinkResponse).toHaveLength(2);
+    expect(unlinkResponse[0]).toMatchObject({
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
+    });
+    expect(unlinkResponse[1]).toMatchObject({
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService2.id,
+        descriptorId: descriptor2.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
+    });
 
     const writtenEvent1 = await readLastPurposeTemplateEvent(
       purposeTemplate.id

@@ -281,13 +281,20 @@ const purposeTemplateRouter = (
             ctx
           );
 
+        if (eserviceDescriptorPurposeTemplates.length !== 0) {
+          setMetadataVersionHeader(
+            res,
+            eserviceDescriptorPurposeTemplates[0].metadata
+          );
+        }
+
         return res
           .status(200)
           .send(
             eserviceDescriptorPurposeTemplates.map(
               (eserviceDescriptorPurposeTemplate) =>
                 eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-                  eserviceDescriptorPurposeTemplate
+                  eserviceDescriptorPurposeTemplate.data
                 )
             )
           );
@@ -305,11 +312,20 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
-          unsafeBrandId(req.params.id),
-          req.body.eserviceIds.map(unsafeBrandId<EServiceId>),
-          ctx
-        );
+        const eserviceDescriptorPurposeTemplates =
+          await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            req.body.eserviceIds.map(unsafeBrandId<EServiceId>),
+            ctx
+          );
+
+        if (eserviceDescriptorPurposeTemplates.length !== 0) {
+          setMetadataVersionHeader(
+            res,
+            eserviceDescriptorPurposeTemplates[0].metadata
+          );
+        }
+
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(

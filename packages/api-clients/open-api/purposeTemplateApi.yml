@@ -319,6 +319,9 @@ paths:
       responses:
         "200":
           description: E-Services linked to purpose template
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -382,6 +385,9 @@ paths:
       responses:
         "204":
           description: E-Services unlinked from purpose template
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Bad Request
           content:

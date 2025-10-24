@@ -21,6 +21,8 @@ import {
   RiskAnalysisTemplateAnswerAnnotationId,
   TenantKind,
   unsafeBrandId,
+  EService,
+  DescriptorId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -416,6 +418,31 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
   };
 };
 
+function linkOrUnlinkValidationResultsToEServiceDescriptorPurposeTemplate(
+  purposeTemplateValidationResults: Array<{
+    eservice: EService;
+    descriptorId: DescriptorId;
+  }>,
+  purposeTemplateId: PurposeTemplateId,
+  creationTimestamp: Date,
+  // TODO: add correct type
+  createdEvents: Array<{ newVersion: number }>
+): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> {
+  return purposeTemplateValidationResults.map(
+    (purposeTemplateValidationResult) => ({
+      data: {
+        purposeTemplateId,
+        eserviceId: purposeTemplateValidationResult.eservice.id,
+        descriptorId: purposeTemplateValidationResult.descriptorId,
+        createdAt: creationTimestamp,
+      },
+      metadata: {
+        version: createdEvents[createdEvents.length - 1].newVersion,
+      },
+    })
+  );
+}
+
 function findAnswerAndAnnotation(
   riskAnalysisForm: RiskAnalysisFormTemplate,
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
@@ -590,7 +617,7 @@ export function purposeTemplateServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+    ): Promise<ListResult<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
       const { purposeTemplateId } = filters;
 
       logger.info(
@@ -617,7 +644,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
       logger.info(
         `Linking e-services ${eserviceIds} to purpose template ${purposeTemplateId}`
       );
@@ -674,14 +701,14 @@ export function purposeTemplateServiceBuilder(
         }
       );
 
-      await repository.createEvents(createEvents);
+      const createdEvents = await repository.createEvents(createEvents);
 
-      return validationResult.value.map((purposeTemplateValidationResult) => ({
+      return linkOrUnlinkValidationResultsToEServiceDescriptorPurposeTemplate(
+        validationResult.value,
         purposeTemplateId,
-        eserviceId: purposeTemplateValidationResult.eservice.id,
-        descriptorId: purposeTemplateValidationResult.descriptorId,
-        createdAt: creationTimestamp,
-      }));
+        creationTimestamp,
+        createdEvents
+      );
     },
     async unlinkEservicesFromPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -691,7 +718,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<void> {
+    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
       logger.info(
         `Unlinking e-services ${eserviceIds} from purpose template ${purposeTemplateId}`
       );
@@ -748,7 +775,14 @@ export function purposeTemplateServiceBuilder(
         }
       );
 
-      await repository.createEvents(createEvents);
+      const createdEvents = await repository.createEvents(createEvents);
+
+      return linkOrUnlinkValidationResultsToEServiceDescriptorPurposeTemplate(
+        validationResult.value,
+        purposeTemplateId,
+        creationTimestamp,
+        createdEvents
+      );
     },
     async updatePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,

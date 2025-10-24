@@ -107,16 +107,22 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(linkResponse).toHaveLength(2);
     expect(linkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
     });
     expect(linkResponse[1]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService2.id,
-      descriptorId: descriptor2.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService2.id,
+        descriptorId: descriptor2.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
     });
 
     const lastWrittenEvent = await readLastPurposeTemplateEvent(
@@ -168,10 +174,13 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(linkResponse).toHaveLength(1);
     expect(linkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 1 },
     });
 
     vi.useRealTimers();
@@ -466,16 +475,19 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(firstLinkResponse).toHaveLength(1);
     expect(firstLinkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+      },
+      metadata: { version: 1 },
     });
 
     await addOnePurposeTemplateEServiceDescriptor({
       purposeTemplateId: purposeTemplate.id,
       eserviceId: eService1.id,
       descriptorId: descriptor1.id,
-      createdAt: firstLinkResponse[0].createdAt,
+      createdAt: firstLinkResponse[0].data.createdAt,
     });
 
     await expect(
