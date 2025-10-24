@@ -17041,6 +17041,7 @@ components:
           type: boolean
         personalData:
           type: boolean
+          nullable: true
     EServiceDescriptor:
       type: object
       additionalProperties: false
@@ -17504,6 +17505,9 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
+          nullable: true
     EServiceTemplateVersionSeed:
       type: object
       additionalProperties: false
