@@ -1,13 +1,14 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
+  authRole,
   ExpressContext,
+  fromAppContext,
+  setMetadataVersionHeader,
+  validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
-  authRole,
-  validateAuthorization,
-  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   DelegationId,
@@ -17,7 +18,6 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
@@ -26,29 +26,29 @@ import {
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { PurposeService } from "../services/purposeService.js";
 import {
   activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
-  createPurposeVersionErrorMapper,
   clonePurposeErrorMapper,
   createPurposeErrorMapper,
+  createPurposeFromTemplateErrorMapper,
+  createPurposeVersionErrorMapper,
   createReversePurposeErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
+  getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
+  retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
   suspendPurposeVersionErrorMapper,
+  updatePurposeByTemplateErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
-  getPurposesErrorMapper,
-  retrieveLatestRiskAnalysisConfigurationErrorMapper,
-  createPurposeFromTemplateErrorMapper,
   generateRiskAnalysisDocumentErrorMapper,
-  updatePurposeByTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
-import { PurposeService } from "../services/purposeService.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -771,7 +771,7 @@ const purposeRouter = (
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const updatedPurpose =
-            await purposeService.updateDraftPurposeCreatedByTemplate(
+            await purposeService.updateDraftPurposeCreatedFromTemplate(
               unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
               unsafeBrandId(req.params.purposeId),
               req.body,

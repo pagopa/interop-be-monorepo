@@ -1,22 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { constants } from "http2";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  Purpose,
-  PurposeTemplateId,
-  generateId,
-  tenantKind,
-} from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurpose,
   getMockWithMetadata,
   mockAvailableDailysCalls,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  Purpose,
+  PurposeTemplateId,
+  generateId,
+  tenantKind,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,
@@ -33,6 +32,7 @@ import {
   tenantIsNotTheDelegatedConsumer,
   tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 const {
   HTTP_STATUS_NOT_FOUND,
@@ -56,7 +56,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
   );
 
   beforeEach(() => {
-    purposeService.updateDraftPurposeCreatedByTemplate = vi
+    purposeService.updateDraftPurposeCreatedFromTemplate = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
@@ -155,7 +155,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeService.updateDraftPurposeCreatedByTemplate = vi
+      purposeService.updateDraftPurposeCreatedFromTemplate = vi
         .fn()
         .mockRejectedValueOnce(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

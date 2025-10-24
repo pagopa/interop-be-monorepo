@@ -43,19 +43,19 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  PurposeVersionStamps,
   RiskAnalysis,
   RiskAnalysisId,
   Tenant,
   TenantId,
   TenantKind,
+  UserId,
   WithMetadata,
   eserviceMode,
   generateId,
   purposeEventToBinaryData,
   purposeVersionState,
   unsafeBrandId,
-  UserId,
-  PurposeVersionStamps,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -1768,7 +1768,7 @@ export function purposeServiceBuilder(
         metadata: { version: event.newVersion },
       };
     },
-    async updateDraftPurposeCreatedByTemplate(
+    async updateDraftPurposeCreatedFromTemplate(
       purposeTemplateId: PurposeTemplateId,
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PatchPurposeUpdateFromTemplateContent,
@@ -1818,8 +1818,7 @@ export function purposeServiceBuilder(
       );
 
       const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
-        ? // TODO https://pagopa.atlassian.net/browse/PIN-7928: add handle personalDataInEService
-          validateRiskAnalysisAgainstTemplateOrThrow(
+        ? validateRiskAnalysisAgainstTemplateOrThrow(
             purposeTemplate,
             purposeUpdateContent.riskAnalysisForm,
             tenantKind,
