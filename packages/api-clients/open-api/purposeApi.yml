@@ -149,15 +149,8 @@ paths:
             schema:
               $ref: "#/components/schemas/PurposeVersionDocument"
       responses:
-        "200":
+        "204":
           description: Risk Analysis metadata added successfully
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
           content:
@@ -178,12 +171,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose or Purpose Version not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
           content:
             application/problem+json:
               schema:
