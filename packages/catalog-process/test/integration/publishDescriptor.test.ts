@@ -136,7 +136,7 @@ describe("publish descriptor", () => {
       mode: eserviceMode.receive,
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
-      personalData: false,
+      personalData: true,
     };
 
     await addOneTenant(producer);
@@ -202,7 +202,7 @@ describe("publish descriptor", () => {
       mode: eserviceMode.receive,
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
-      personalData: false,
+      personalData: true,
     };
 
     const delegate = {

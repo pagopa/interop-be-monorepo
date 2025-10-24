@@ -578,6 +578,7 @@ describe("createPurpose", () => {
     ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
   });
   it("should throw tenantNotFound if the tenant doesn't exists", async () => {
+    await addOneEService(eService1);
     expect(
       purposeService.createPurpose(
         purposeSeed,

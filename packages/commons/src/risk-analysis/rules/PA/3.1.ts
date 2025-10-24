@@ -1,6 +1,5 @@
-export const pa3 = {
-  version: "3.0",
-  expiration: new Date("2026-02-15"),
+export const pa31 = {
+  version: "3.1",
   questions: [
     {
       id: "purpose",
@@ -75,15 +74,109 @@ export const pa3 = {
       ],
     },
     {
+      id: "usesPersonalData",
+      type: "radio",
+      dataType: "single",
+      label: {
+        it: "Indicare se si accede a dati personali",
+        en: "",
+      },
+      infoLabel: {
+        it: "NB: si ricorda che ai sensi dell’art. 4, paragrafo 1, n. 1,  del GDPR  per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente, con particolare riferimento a un identificativo come il nome, un numero di identificazione, dati relativi all'ubicazione, un identificativo online o a uno o più elementi caratteristici della sua identità fisica, fisiologica, genetica, psichica, economica, culturale o sociale”. Pertanto devono essere considerati dati personali non solo dati che identificano direttamente un individuo (es. nome e cognome, codice fiscale, indirizzo e-mail) ma anche dati che possono essere ricondotti a un individuo solo indirettamente, tramite terzi rispetto al Fruitore (es. la targa di un veicolo, numero di matricola o altro codice alfanumerico attribuito a un individuo da un soggetto terzo).",
+        en: "",
+      },
+      options: [
+        {
+          label: {
+            it: "Sì",
+            en: "",
+          },
+          value: "YES",
+        },
+        {
+          label: {
+            it: "No",
+            en: "",
+          },
+          value: "NO",
+        },
+      ],
+      defaultValue: ["NO"],
+      required: true,
+      dependencies: [],
+    },
+    {
+      id: "usesThirdPartyPersonalData",
+      type: "radio",
+      dataType: "single",
+      label: {
+        it: "Indicare se si accede a dati non personali di terzi (quindi a dati non personali che non sono riferibili al Fruitore stesso)",
+        en: "",
+      },
+      options: [
+        {
+          label: {
+            it: "Sì",
+            en: "",
+          },
+          value: "YES",
+        },
+        {
+          label: {
+            it: "No",
+            en: "",
+          },
+          value: "NO",
+        },
+      ],
+      defaultValue: ["NO"],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "NO",
+        },
+      ],
+    },
+    {
+      id: "usesThirdPartyConfidentialData",
+      type: "radio",
+      dataType: "single",
+      label: {
+        it: "Indicare se si accede a dati non personali ma comunque confidenziali o strettamente riservati",
+        en: "",
+      },
+      options: [
+        {
+          label: {
+            it: "Sì",
+            en: "",
+          },
+          value: "YES",
+        },
+        {
+          label: {
+            it: "No",
+            en: "",
+          },
+          value: "NO",
+        },
+      ],
+      defaultValue: ["NO"],
+      required: true,
+      dependencies: [
+        {
+          id: "usesThirdPartyPersonalData",
+          value: "YES",
+        },
+      ],
+    },
+    {
       id: "personalDataTypes",
       type: "checkbox",
       dataType: "multi",
       label: {
         it: "Indicare la tipologia di dati personali cui si avrà accesso attraverso la fruizione del presente E-service, tenuto conto delle definizioni contenute nell’art. 4, nn. 1, 13, 14 e 15 del GDPR",
-        en: "",
-      },
-      infoLabel: {
-        it: "NB: si ricorda che ai sensi dell’art. 4, paragrafo 1, n. 1,  del GDPR  per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente, con particolare riferimento a un identificativo come il nome, un numero di identificazione, dati relativi all'ubicazione, un identificativo online o a uno o più elementi caratteristici della sua identità fisica, fisiologica, genetica, psichica, economica, culturale o sociale”. Pertanto devono essere considerati dati personali non solo dati che identificano direttamente un individuo (es. nome e cognome, codice fiscale, indirizzo e-mail) ma anche dati che possono essere ricondotti a un individuo solo indirettamente, tramite terzi rispetto al Fruitore (es. la targa di un veicolo, numero di matricola o altro codice alfanumerico attribuito a un individuo da un soggetto terzo)",
         en: "",
       },
       options: [
@@ -117,7 +210,7 @@ export const pa3 = {
         },
         {
           label: {
-            it: "Dati giudiziari ex art. 10 del GDPR (es. provvedimenti penali di condanna definitivi, liberazione condizionale, divieto od obbligo di soggiorno, misure alternative alla detenzione)",
+            it: "Dati giudiziari ex art. 10 del GDPR",
             en: "",
           },
           value: "GDPR_ART_10",
@@ -132,7 +225,12 @@ export const pa3 = {
       ],
       defaultValue: [],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "otherPersonalDataTypes",
@@ -149,6 +247,10 @@ export const pa3 = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "personalDataTypes",
           value: "OTHER",
         },
@@ -159,7 +261,7 @@ export const pa3 = {
       type: "checkbox",
       dataType: "multi",
       label: {
-        it: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-Service",
+        it: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-service",
         en: "",
       },
       options: [
@@ -201,7 +303,12 @@ export const pa3 = {
       ],
       defaultValue: [],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "legalObligationReference",
@@ -221,6 +328,10 @@ export const pa3 = {
       defaultValue: [],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "legalBasis",
           value: "LEGAL_OBLIGATION",
@@ -262,6 +373,10 @@ export const pa3 = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "legalBasis",
           value: "PUBLIC_INTEREST",
         },
@@ -294,6 +409,10 @@ export const pa3 = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "legalBasisPublicInterest",
           value: "RULE_OF_LAW",
         },
@@ -321,6 +440,10 @@ export const pa3 = {
       defaultValue: [],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "legalBasisPublicInterest",
           value: "ADMINISTRATIVE_ACT",
@@ -360,22 +483,33 @@ export const pa3 = {
       type: "radio",
       dataType: "single",
       label: {
-        it: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-Service",
+        it: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-service",
         en: "",
       },
       options: [
         {
-          label: { it: "Sì", en: "" },
+          label: {
+            it: "Sì",
+            en: "",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "" },
+          label: {
+            it: "No",
+            en: "",
+          },
           value: "NO",
         },
       ],
       defaultValue: ["NO"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "dataQuantity",
@@ -386,34 +520,53 @@ export const pa3 = {
         en: "",
       },
       infoLabel: {
-        it: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-Service",
+        it: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-service",
         en: "",
       },
       options: [
         {
-          label: { it: "0-100", en: "" },
+          label: {
+            it: "0-100",
+            en: "",
+          },
           value: "QUANTITY_0_TO_100",
         },
         {
-          label: { it: "101-500", en: "" },
+          label: {
+            it: "101-500",
+            en: "",
+          },
           value: "QUANTITY_101_TO_500",
         },
         {
-          label: { it: "501-1000", en: "" },
+          label: {
+            it: "501-1000",
+            en: "",
+          },
           value: "QUANTITY_500_TO_1000",
         },
         {
-          label: { it: "1001-5000", en: "" },
+          label: {
+            it: "1001-5000",
+            en: "",
+          },
           value: "QUANTITY_1001_TO_5000",
         },
         {
-          label: { it: "da 5001 in su", en: "" },
+          label: {
+            it: "da 5001 in su",
+            en: "",
+          },
           value: "QUANTITY_5001_OVER",
         },
       ],
       defaultValue: ["QUANTITY_0_TO_100"],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "knowsDataQuantity",
           value: "YES",
@@ -464,7 +617,12 @@ export const pa3 = {
       ],
       defaultValue: ["CLEARTEXT"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "policyProvided",
@@ -476,17 +634,28 @@ export const pa3 = {
       },
       options: [
         {
-          label: { it: "Sì", en: "" },
+          label: {
+            it: "Sì",
+            en: "",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "" },
+          label: {
+            it: "No",
+            en: "",
+          },
           value: "NO",
         },
       ],
       defaultValue: ["YES"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "reasonPolicyNotProvided",
@@ -507,8 +676,77 @@ export const pa3 = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "policyProvided",
           value: "NO",
+        },
+      ],
+    },
+    {
+      id: "policyProvidedMedium",
+      type: "radio",
+      dataType: "single",
+      label: {
+        it: "Indicare la modalità attraverso la quale è stata fornita l'informativa",
+        en: "",
+      },
+      options: [
+        {
+          label: {
+            it: "Cartacea",
+            en: "",
+          },
+          value: "PRINT",
+        },
+        {
+          label: {
+            it: "Online",
+            en: "",
+          },
+          value: "ONLINE",
+        },
+      ],
+      defaultValue: ["PRINT"],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
+          id: "policyProvided",
+          value: "YES",
+        },
+      ],
+    },
+    {
+      id: "policyProvidedOnlineLink",
+      type: "text",
+      dataType: "freeText",
+      label: {
+        it: "Inserire il link all'informativa",
+        en: "",
+      },
+      validation: {
+        maxLength: 2000,
+      },
+      defaultValue: [],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
+          id: "policyProvided",
+          value: "YES",
+        },
+        {
+          id: "policyProvidedMedium",
+          value: "ONLINE",
         },
       ],
     },
@@ -522,13 +760,53 @@ export const pa3 = {
       },
       options: [
         {
-          label: { it: "Confermo", en: "" },
+          label: {
+            it: "Confermo",
+            en: "",
+          },
           value: "true",
         },
       ],
       defaultValue: ["false"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
+    },
+    {
+      id: "dataProtectionMeasures",
+      type: "text",
+      dataType: "freeText",
+      label: {
+        it: "Indicare le misure tecniche e organizzative adottate necessarie a garantire un’adeguata sicurezza dei dati personali ai sensi degli articoli 25 e 32 del GDPR",
+        en: "",
+      },
+      infoLabel: {
+        it: "",
+        en: "",
+      },
+      validation: {
+        maxLength: 2000,
+      },
+      defaultValue: [],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
+          id: "personalDataTypes",
+          value: "GDPR_ART_10",
+        },
+        {
+          id: "confirmPricipleIntegrityAndDiscretion",
+          value: "true",
+        },
+      ],
     },
     {
       id: "doneDpia",
@@ -544,17 +822,28 @@ export const pa3 = {
       },
       options: [
         {
-          label: { it: "Sì", en: "" },
+          label: {
+            it: "Sì",
+            en: "",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "" },
+          label: {
+            it: "No",
+            en: "",
+          },
           value: "NO",
         },
       ],
       defaultValue: ["NO"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "confirmedDoneDpia",
@@ -570,17 +859,27 @@ export const pa3 = {
       },
       options: [
         {
-          label: { it: "Sì", en: "" },
+          label: {
+            it: "Sì",
+            en: "",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "" },
+          label: {
+            it: "No",
+            en: "",
+          },
           value: "NO",
         },
       ],
       defaultValue: ["NO"],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "doneDpia",
           value: "YES",
@@ -617,29 +916,35 @@ export const pa3 = {
       ],
       defaultValue: ["NO"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
-      id: "confirmDataRetentionPeriod",
-      type: "switch",
-      dataType: "single",
+      id: "dataRetentionPeriod",
+      type: "text",
+      dataType: "freeText",
       label: {
-        it: "Confermare di aver individuato il periodo di conservazione dei dati in download ai quali si avrà accesso attraverso il presente E-service",
+        it: "Indicare il periodo di conservazione dei dati individuato",
         en: "",
       },
       infoLabel: {
-        it: "",
+        it: "La cifra seguita da ora, giorno, mese, anno. Ad es. 1 ora oppure 10 giorni oppure 3 mesi oppure 2 anni",
         en: "",
       },
-      options: [
-        {
-          label: { it: "Confermo", en: "" },
-          value: "true",
-        },
-      ],
-      defaultValue: ["false"],
+      validation: {
+        maxLength: 2000,
+      },
+      defaultValue: [],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "dataDownload",
           value: "YES",
@@ -672,7 +977,12 @@ export const pa3 = {
       ],
       defaultValue: ["MERE_CORRECTNESS"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "checkedExistenceMereCorrectnessInteropCatalogue",
@@ -688,13 +998,20 @@ export const pa3 = {
       },
       options: [
         {
-          label: { it: "Confermo", en: "" },
+          label: {
+            it: "Confermo",
+            en: "",
+          },
           value: "true",
         },
       ],
       defaultValue: ["false"],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "purposePursuit",
           value: "MERE_CORRECTNESS",
@@ -715,7 +1032,10 @@ export const pa3 = {
       },
       options: [
         {
-          label: { it: "Sì", en: "" },
+          label: {
+            it: "Sì",
+            en: "",
+          },
           value: "true",
         },
       ],
@@ -723,26 +1043,36 @@ export const pa3 = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "purposePursuit",
           value: "NEW_PERSONAL_DATA",
         },
       ],
     },
     {
-      id: "usesThirdPartyData",
+      id: "isRequestOnBehalfOfThirdParties",
       type: "radio",
       dataType: "single",
       label: {
-        it: "Indicare se si accede a dati su richiesta/per conto di terzi soggetti",
+        it: "Indicare se si intende fruire dell’E-service, anche o esclusivamente, per accedere a dati su richiesta/per conto di terzi soggetti",
         en: "",
       },
       options: [
         {
-          label: { it: "Sì", en: "" },
+          label: {
+            it: "Sì",
+            en: "",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "" },
+          label: {
+            it: "No",
+            en: "",
+          },
           value: "NO",
         },
       ],
@@ -751,28 +1081,41 @@ export const pa3 = {
       dependencies: [],
     },
     {
-      id: "doesUseThirdPartyData",
+      id: "thirdPartiesRequestDataUsage",
       type: "radio",
       dataType: "single",
       label: {
-        it: "Indicare se si accede a dati per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
+        it: "Indicare se si intende fruire dell’e-service per accedere a dati",
         en: "",
       },
       options: [
         {
-          label: { it: "Sì", en: "" },
-          value: "YES",
+          label: {
+            it: "Esclusivamente per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
+            en: "",
+          },
+          value: "PA_ONLY",
         },
         {
-          label: { it: "No", en: "" },
-          value: "NO",
+          label: {
+            it: "Anche per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
+            en: "",
+          },
+          value: "PA_ALSO",
+        },
+        {
+          label: {
+            it: "Nessuna delle precedenti",
+            en: "",
+          },
+          value: "NONE",
         },
       ],
-      defaultValue: ["NO"],
+      defaultValue: [],
       required: true,
       dependencies: [
         {
-          id: "usesThirdPartyData",
+          id: "isRequestOnBehalfOfThirdParties",
           value: "YES",
         },
       ],
@@ -782,18 +1125,26 @@ export const pa3 = {
       type: "switch",
       dataType: "single",
       label: {
-        it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
+        it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
         en: "",
       },
       options: [
         {
-          label: { it: "Confermo", en: "" },
+          label: {
+            it: "Confermo",
+            en: "",
+          },
           value: "true",
         },
       ],
       defaultValue: ["false"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
   ],
 };
