@@ -418,31 +418,6 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
   };
 };
 
-function linkOrUnlinkValidationResultsToEServiceDescriptorPurposeTemplate(
-  purposeTemplateValidationResults: Array<{
-    eservice: EService;
-    descriptorId: DescriptorId;
-  }>,
-  purposeTemplateId: PurposeTemplateId,
-  creationTimestamp: Date,
-  // TODO: add correct type
-  createdEvents: Array<{ newVersion: number }>
-): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> {
-  return purposeTemplateValidationResults.map(
-    (purposeTemplateValidationResult) => ({
-      data: {
-        purposeTemplateId,
-        eserviceId: purposeTemplateValidationResult.eservice.id,
-        descriptorId: purposeTemplateValidationResult.descriptorId,
-        createdAt: creationTimestamp,
-      },
-      metadata: {
-        version: createdEvents[createdEvents.length - 1].newVersion,
-      },
-    })
-  );
-}
-
 function findAnswerAndAnnotation(
   riskAnalysisForm: RiskAnalysisFormTemplate,
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
@@ -481,6 +456,30 @@ export function purposeTemplateServiceBuilder(
     dbInstance,
     purposeTemplateEventToBinaryDataV2
   );
+
+  function linkOrUnlinkValidationResultsToEServiceDescriptorPurposeTemplate(
+    purposeTemplateValidationResults: Array<{
+      eservice: EService;
+      descriptorId: DescriptorId;
+    }>,
+    purposeTemplateId: PurposeTemplateId,
+    creationTimestamp: Date,
+    createdEvents: Awaited<ReturnType<typeof repository.createEvents>>
+  ): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> {
+    return purposeTemplateValidationResults.map(
+      (purposeTemplateValidationResult) => ({
+        data: {
+          purposeTemplateId,
+          eserviceId: purposeTemplateValidationResult.eservice.id,
+          descriptorId: purposeTemplateValidationResult.descriptorId,
+          createdAt: creationTimestamp,
+        },
+        metadata: {
+          version: createdEvents[createdEvents.length - 1].newVersion,
+        },
+      })
+    );
+  }
 
   return {
     async createPurposeTemplate(
