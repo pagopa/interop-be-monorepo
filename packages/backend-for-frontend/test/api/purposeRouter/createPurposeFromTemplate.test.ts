@@ -11,8 +11,9 @@ import { getMockPurposeFromTemplateSeed } from "../../mockUtils.js";
 
 describe("API POST /purposeTemplates/{purposeTemplateId}/purposes", () => {
   const mockPurposeFromTemplateSeed = getMockPurposeFromTemplateSeed();
+  const purposeTemplateId = generateId<PurposeTemplateId>();
   const mockCreatedResource = {
-    id: generateId(),
+    id: purposeTemplateId,
   };
 
   beforeEach(() => {
@@ -23,11 +24,11 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes", () => {
 
   const makeRequest = async (
     token: string,
-    purposeTemplateId: PurposeTemplateId = generateId(),
+    id: PurposeTemplateId = purposeTemplateId,
     body: bffApi.PurposeFromTemplateSeed = mockPurposeFromTemplateSeed
   ) =>
     request(api)
-      .post(`${appBasePath}/purposeTemplates/${purposeTemplateId}/purposes`)
+      .post(`${appBasePath}/purposeTemplates/${id}/purposes`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -40,23 +41,32 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes", () => {
   });
 
   it.each([
-    { purposeTemplateId: "invalid" as PurposeTemplateId },
-    { body: {} },
-    { body: { title: "Mock purpose title" } },
-    { body: { ...mockPurposeFromTemplateSeed, dailyCalls: "invalid" } },
     {
+      purposeTemplateId: "invalid" as PurposeTemplateId,
+      mockPurposeFromTemplateSeed,
+    },
+    { purposeTemplateId, body: {} },
+    { purposeTemplateId, body: { title: "Mock purpose title" } },
+    {
+      purposeTemplateId,
+      body: { ...mockPurposeFromTemplateSeed, dailyCalls: "invalid" },
+    },
+    {
+      purposeTemplateId,
       body: {
         ...mockPurposeFromTemplateSeed,
         consumerId: "invalid",
       },
     },
     {
+      purposeTemplateId,
       body: {
         ...mockPurposeFromTemplateSeed,
         eserviceId: "invalid",
       },
     },
     {
+      purposeTemplateId,
       body: {
         ...mockPurposeFromTemplateSeed,
         extraField: 1,

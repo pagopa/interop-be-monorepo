@@ -27,6 +27,8 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes/{purposeId} te
   const mockPurpose = getMockPurpose([
     { ...getMockPurposeVersion(), id: mockPurposeVersionResource.versionId },
   ]);
+  const purposeTemplateId = generateId<PurposeTemplateId>();
+  const purposeId = mockPurposeVersionResource.purposeId;
 
   beforeEach(() => {
     clients.purposeProcessClient.patchUpdatePurposeFromTemplate = vi
@@ -36,14 +38,12 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes/{purposeId} te
 
   const makeRequest = async (
     token: string,
-    purposeTemplateId: string = generateId(),
-    purposeId: PurposeId = mockPurposeVersionResource.purposeId,
+    templateId: string = purposeTemplateId,
+    id: PurposeId = purposeId,
     body: bffApi.PatchPurposeUpdateFromTemplateContent = mockPurposeUpdateContent
   ) =>
     request(api)
-      .patch(
-        `${appBasePath}/purposeTemplates/${purposeTemplateId}/purposes/${purposeId}`
-      )
+      .patch(`${appBasePath}/purposeTemplates/${templateId}/purposes/${id}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -56,16 +56,32 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes/{purposeId} te
   });
 
   it.each([
-    { purposeId: "invalid" as PurposeId },
-    { purposeTemplateId: "invalid" as PurposeTemplateId },
-    { body: { ...mockPurposeUpdateContent, dailyCalls: "invalid" } },
     {
+      purposeId: "invalid" as PurposeId,
+      purposeTemplateId,
+      mockPurposeUpdateContent,
+    },
+    {
+      purposeId,
+      purposeTemplateId: "invalid" as PurposeTemplateId,
+      mockPurposeUpdateContent,
+    },
+    {
+      purposeId,
+      purposeTemplateId,
+      body: { ...mockPurposeUpdateContent, dailyCalls: "invalid" },
+    },
+    {
+      purposeId,
+      purposeTemplateId,
       body: {
         ...mockPurposeUpdateContent,
         riskAnalysisForm: {},
       },
     },
     {
+      purposeId,
+      purposeTemplateId,
       body: {
         ...mockPurposeUpdateContent,
         extraField: 1,
