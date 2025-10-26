@@ -7,7 +7,10 @@ import {
   FileCreationRequest,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { DelegationEventV2 } from "pagopa-interop-models";
+import {
+  DelegationEventV2,
+  missingKafkaMessageDataError,
+} from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
@@ -21,14 +24,14 @@ export async function handleDelegationDocument(
   await match(decodedMessage)
     .with(
       {
-        type: P.union(
-          "ProducerDelegationApproved",
-          "ConsumerDelegationApproved"
-        ),
+        type: "DelegationContractGenerated",
       },
-      async (event) => {
-        if (event.data.delegation?.activationContract?.path) {
-          const s3Key = event.data.delegation.activationContract.path;
+      async (msg) => {
+        if (!msg.data.delegation) {
+          throw missingKafkaMessageDataError("delegation", msg.type);
+        }
+        if (msg.data.delegation?.activationContract?.path) {
+          const s3Key = msg.data.delegation.activationContract.path;
           const file: Uint8Array = await fileManager.get(
             config.s3Bucket,
             s3Key,
@@ -56,17 +59,17 @@ export async function handleDelegationDocument(
             checksum
           );
 
-          await signatureService.saveDocumentSignatureReference({
+          await signatureService.saveSignatureReference({
             safeStorageId: key,
             fileKind: "DELEGATION_CONTRACT",
-            streamId: event.data.delegation.id,
+            streamId: msg.data.delegation.id,
             subObjectId: "",
             contentType: "application/pdf",
-            path: event.data.delegation.activationContract.path,
-            prettyname: event.data.delegation.activationContract.prettyName,
+            path: msg.data.delegation.activationContract.path,
+            prettyname: msg.data.delegation.activationContract.prettyName,
             fileName,
-            version: event.event_version,
-            createdAt: event.data.delegation.createdAt,
+            version: msg.event_version,
+            createdAt: msg.data.delegation.createdAt,
           });
         }
       }
@@ -80,7 +83,8 @@ export async function handleDelegationDocument(
           "ConsumerDelegationSubmitted",
           "ConsumerDelegationRejected",
           "ConsumerDelegationRevoked",
-          "DelegationContractGenerated"
+          "ProducerDelegationApproved",
+          "ConsumerDelegationApproved"
         ),
       },
       () => Promise.resolve()

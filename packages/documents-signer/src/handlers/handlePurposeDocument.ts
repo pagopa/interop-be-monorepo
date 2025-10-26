@@ -1,8 +1,8 @@
 import path from "path";
 import {
   genericInternalError,
+  missingKafkaMessageDataError,
   PurposeEventEnvelopeV2,
-  PurposeV2,
 } from "pagopa-interop-models";
 import {
   FileManager,
@@ -16,25 +16,20 @@ import { calculateSha256Base64 } from "../utils/checksum.js";
 import { config } from "../config/config.js";
 
 export async function handlePurposeDocument(
-  decodedMessage:
-    | PurposeEventEnvelopeV2
-    | {
-        type: "RiskAnalysisDocumentGenerated";
-        data: { purpose: PurposeV2; versionId: string };
-        event_version: number;
-        version: number;
-        stream_id: string;
-      }, // TO DO: Remove once implemented the type
+  decodedMessage: PurposeEventEnvelopeV2,
   signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService,
   fileManager: FileManager,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
-    .with({ type: "RiskAnalysisDocumentGenerated" }, async (event) => {
-      if (event.data.purpose.versions) {
-        const purposeVersion = event.data.purpose.versions.find(
-          (v) => v.id === event.data.versionId
+    .with({ type: "RiskAnalysisDocumentGenerated" }, async (msg) => {
+      if (!msg.data.purpose) {
+        throw missingKafkaMessageDataError("purpose", msg.type);
+      }
+      if (msg.data.purpose.versions) {
+        const purposeVersion = msg.data.purpose.versions.find(
+          (v) => v.id === msg.data.versionId
         );
 
         if (!purposeVersion) {
@@ -79,17 +74,17 @@ export async function handlePurposeDocument(
           checksum
         );
 
-        await signatureService.saveDocumentSignatureReference({
+        await signatureService.saveSignatureReference({
           safeStorageId: key,
           fileKind: "RISK_ANALYSIS_DOCUMENT",
-          streamId: event.data.purpose.id,
-          subObjectId: event.data.versionId,
+          streamId: msg.data.purpose.id,
+          subObjectId: msg.data.versionId,
           contentType: "application/gzip",
           path: s3Key,
           prettyname: "",
           fileName,
-          version: event.event_version,
-          createdAt: event.data.purpose.createdAt,
+          version: msg.event_version,
+          createdAt: msg.data.purpose.createdAt,
         });
       }
     })

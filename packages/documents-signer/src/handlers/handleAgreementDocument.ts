@@ -1,5 +1,8 @@
 import path from "path";
-import { AgreementEventEnvelopeV2, AgreementV2 } from "pagopa-interop-models";
+import {
+  AgreementEventEnvelopeV2,
+  missingKafkaMessageDataError,
+} from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
   FileManager,
@@ -12,24 +15,19 @@ import { config } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export async function handleAgreementDocument(
-  decodedMessage:
-    | AgreementEventEnvelopeV2
-    | {
-        type: "AgreementContractGenerated";
-        data: { agreement: AgreementV2 };
-        event_version: number;
-        version: number;
-        stream_id: string;
-      }, // TO DO: Remove once implemented the type
+  decodedMessage: AgreementEventEnvelopeV2,
   signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService,
   fileManager: FileManager,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
-    .with({ type: "AgreementContractGenerated" }, async (event) => {
-      if (event.data.agreement.contract) {
-        const s3Key = event.data.agreement.contract?.path;
+    .with({ type: "AgreementContractGenerated" }, async (msg) => {
+      if (!msg.data.agreement) {
+        throw missingKafkaMessageDataError("agreement", msg.type);
+      }
+      if (msg.data.agreement.contract) {
+        const s3Key = msg.data.agreement.contract.path;
         const file: Uint8Array = await fileManager.get(
           config.s3Bucket,
           s3Key,
@@ -58,17 +56,17 @@ export async function handleAgreementDocument(
           checksum
         );
 
-        await signatureService.saveDocumentSignatureReference({
+        await signatureService.saveSignatureReference({
           safeStorageId: key,
           fileKind: "AGREEMENT_CONTRACT",
-          streamId: event.data.agreement.id,
+          streamId: msg.data.agreement.id,
           subObjectId: "",
           contentType: "application/pdf",
-          path: event.data.agreement.contract.path,
-          prettyname: event.data.agreement.contract.prettyName,
+          path: msg.data.agreement.contract.path,
+          prettyname: msg.data.agreement.contract.prettyName,
           fileName,
-          version: event.event_version,
-          createdAt: event.data.agreement.createdAt,
+          version: msg.event_version,
+          createdAt: msg.data.agreement.createdAt,
         });
       }
     })
