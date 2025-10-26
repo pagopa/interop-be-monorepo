@@ -2,7 +2,7 @@ import {
   getFormRulesByVersion,
   getLatestVersionFormRules,
   pa1,
-  pa3,
+  pa31,
   private1,
   private2,
 } from "pagopa-interop-commons";
@@ -28,7 +28,7 @@ describe("Form rules retrieve", () => {
     it.each(Object.values(tenantKind))(
       "should retrieve latest form rules for kind %s",
       (kind) => {
-        const riskAnalysisFormConfig = kind === tenantKind.PA ? pa3 : private2; // TO BE UPDATED with latest versions
+        const riskAnalysisFormConfig = kind === tenantKind.PA ? pa31 : private2; // TO BE UPDATED with latest versions
         expect(getLatestVersionFormRules(kind)).toEqual(riskAnalysisFormConfig);
       }
     );
