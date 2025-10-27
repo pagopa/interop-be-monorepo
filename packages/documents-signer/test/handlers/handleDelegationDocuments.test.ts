@@ -8,7 +8,7 @@ vi.mock("../../src/utils/checksum.js", () => ({
   calculateSha256Base64: vi.fn().mockResolvedValue("fake-checksum"),
 }));
 
-describe("handleDelegationDocument (integration with testcontainers)", () => {
+describe("handleDelegationDocument", () => {
   const fileContent = new Uint8Array([1, 2, 3]);
   const uploadUrl = "http://fake-upload-url";
   const secret = "fake-secret";
@@ -37,20 +37,13 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
       data: {
         delegation: {
           id: "delegation-id",
-          activationContract: { path: "contracts/delegation.pdf" },
-          state: "APPROVED",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          producerId: "producer-id",
-          consumerId: "consumer-id",
-          delegatorId: "delegator-id",
-          delegateId: "delegate-id",
-          eserviceId: "eservice-id",
-          kind: "DELEGATION",
+          activationContract: {
+            path: "contracts/delegation.pdf",
+          },
+          createdAt: BigInt(123432),
         },
       },
-      event_version: 2,
-    } as undefined as Parameters<typeof handleDelegationDocument>[0];
+    } as Parameters<typeof handleDelegationDocument>[0];
 
     await handleDelegationDocument(
       event,
@@ -89,7 +82,12 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
         fileKind: "DELEGATION_CONTRACT",
         streamId: "delegation-id",
         fileName: "delegation.pdf",
-        version: 2,
+        version: undefined,
+        subObjectId: "",
+        path: "contracts/delegation.pdf",
+        createdAt: BigInt(123432),
+        prettyname: undefined,
+        contentType: "application/pdf",
       })
     );
   });
