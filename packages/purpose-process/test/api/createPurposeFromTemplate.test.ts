@@ -45,6 +45,7 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
     mockEService.id
   );
   const mockPurpose: Purpose = getMockPurpose();
+  const purposeTemplateId = generateId<PurposeTemplateId>();
 
   const isRiskAnalysisValid = true;
   const serviceResponse = getMockWithMetadata({
@@ -64,11 +65,11 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
 
   const makeRequest = async (
     token: string,
-    purposeTemplateId: PurposeTemplateId = generateId(),
+    templateId: PurposeTemplateId = purposeTemplateId,
     body: purposeApi.PurposeFromTemplateSeed = mockPurposeFromTemplateSeed
   ) =>
     request(api)
-      .post(`/templates/${purposeTemplateId}/purposes`)
+      .post(`/templates/${templateId}/purposes`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -174,39 +175,64 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
   );
 
   it.each([
-    { purposeTemplateId: "invalid" as PurposeTemplateId },
-    { body: {} },
-    { body: { ...mockPurposeFromTemplateSeed, eserviceId: undefined } },
-    { body: { ...mockPurposeFromTemplateSeed, eserviceId: "invalid" } },
-    { body: { ...mockPurposeFromTemplateSeed, consumerId: undefined } },
-    { body: { ...mockPurposeFromTemplateSeed, consumerId: "invalid" } },
-    { body: { ...mockPurposeFromTemplateSeed, title: undefined } },
-    { body: { ...mockPurposeFromTemplateSeed, title: "a" } },
     {
+      purposeTemplateId: "invalid" as PurposeTemplateId,
+      body: mockPurposeFromTemplateSeed,
+    },
+    { purposeTemplateId, body: {} },
+    {
+      purposeTemplateId,
+      body: { ...mockPurposeFromTemplateSeed, eserviceId: undefined },
+    },
+    {
+      purposeTemplateId,
+      body: { ...mockPurposeFromTemplateSeed, eserviceId: "invalid" },
+    },
+    {
+      purposeTemplateId,
+      body: { ...mockPurposeFromTemplateSeed, consumerId: undefined },
+    },
+    {
+      purposeTemplateId,
+      body: { ...mockPurposeFromTemplateSeed, consumerId: "invalid" },
+    },
+    {
+      purposeTemplateId,
+      body: { ...mockPurposeFromTemplateSeed, title: undefined },
+    },
+    { purposeTemplateId, body: { ...mockPurposeFromTemplateSeed, title: "a" } },
+    {
+      purposeTemplateId,
       body: {
         ...mockPurposeFromTemplateSeed,
         title: new Array(61).fill("a").join,
       },
     },
     {
+      purposeTemplateId,
       body: {
         ...mockPurposeFromTemplateSeed,
         dailyCalls: undefined,
       },
     },
     {
+      purposeTemplateId,
       body: {
         ...mockPurposeFromTemplateSeed,
         dailyCalls: -1,
       },
     },
     {
+      purposeTemplateId,
       body: {
         ...mockPurposeFromTemplateSeed,
         dailyCalls: 1000000001,
       },
     },
-    { body: { ...mockPurposeFromTemplateSeed, extraField: 1 } },
+    {
+      purposeTemplateId,
+      body: { ...mockPurposeFromTemplateSeed, extraField: 1 },
+    },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ purposeTemplateId, body }) => {
