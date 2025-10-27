@@ -201,7 +201,6 @@ export const createPurposeFromTemplateErrorMapper = (
       "tenantNotFound",
       "tenantKindNotFound",
       "agreementNotFound",
-      "eserviceNotLinkedToPurposeTemplate",
       "riskAnalysisValidationFailed",
       "invalidPurposeTenantKind",
       "riskAnalysisMissingExpectedFieldError",
@@ -273,4 +272,11 @@ export const activatePurposeVersionErrorMapper = (
       "purposeTemplateNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const generateRiskAnalysisDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

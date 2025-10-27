@@ -23,7 +23,6 @@ import {
   DelegationId,
   PurposeTemplateId,
   PurposeTemplate,
-  EServiceDescriptorPurposeTemplate,
   purposeTemplateState,
 } from "pagopa-interop-models";
 import {
@@ -457,15 +456,6 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
-    },
-    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
-      purposeTemplateId: PurposeTemplateId,
-      eserviceId: EServiceId
-    ): Promise<EServiceDescriptorPurposeTemplate | undefined> {
-      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
-        purposeTemplateId,
-        eserviceId
-      );
     },
   };
 }

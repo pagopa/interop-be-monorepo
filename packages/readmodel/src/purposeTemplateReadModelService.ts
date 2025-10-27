@@ -1,7 +1,6 @@
-import { and, eq, getTableColumns, SQL } from "drizzle-orm";
+import { eq, SQL } from "drizzle-orm";
 import {
   EServiceDescriptorPurposeTemplate,
-  EServiceId,
   genericInternalError,
   PurposeTemplate,
   PurposeTemplateId,
@@ -21,7 +20,6 @@ import {
 import {
   aggregatePurposeTemplate,
   aggregatePurposeTemplateArray,
-  aggregatePurposeTemplateEServiceDescriptor,
   toPurposeTemplateAggregator,
   toPurposeTemplateAggregatorArray,
 } from "./purpose-template/aggregators.js";
@@ -184,40 +182,6 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         },
         metadata: { version: row.metadataVersion },
       }));
-    },
-    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
-      purposeTemplateId: PurposeTemplateId,
-      eserviceId: EServiceId
-    ): Promise<EServiceDescriptorPurposeTemplate | undefined> {
-      const queryResult = await db
-        .select(
-          getTableColumns(
-            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
-          )
-        )
-        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-        .where(
-          and(
-            eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
-              purposeTemplateId
-            ),
-            eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-              eserviceId
-            )
-          )
-        )
-        .limit(1);
-
-      if (queryResult.length === 0) {
-        return undefined;
-      }
-
-      const purposeTemplateEServiceDescriptor =
-        aggregatePurposeTemplateEServiceDescriptor(queryResult[0]);
-
-      return purposeTemplateEServiceDescriptor.data;
     },
   };
 }

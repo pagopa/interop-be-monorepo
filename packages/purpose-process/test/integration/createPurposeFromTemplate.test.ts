@@ -53,7 +53,6 @@ import {
   eServiceModeNotAllowed,
   invalidPurposeTenantKind,
   purposeTemplateNotFound,
-  eserviceNotLinkedToPurposeTemplate,
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisAnswerNotInSuggestValues,
@@ -75,6 +74,7 @@ import {
   getMockEServiceForPurposeFromTemplate,
   getMockPurposeFromTemplateSeed,
   getMockValidRiskAnalysisFormFromTemplate,
+  toMockPurposeForPurposeV2,
 } from "../mockUtils.js";
 
 describe("createPurposeFromTemplate", () => {
@@ -224,10 +224,11 @@ describe("createPurposeFromTemplate", () => {
       freeOfChargeReason:
         mockPurposeTemplateWithValidRiskAnalysis.purposeFreeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
+      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -344,10 +345,11 @@ describe("createPurposeFromTemplate", () => {
       freeOfChargeReason:
         mockPurposeTemplateNotFreeOfCharge.purposeFreeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateNotFreeOfCharge.id,
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
+      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -462,10 +464,11 @@ describe("createPurposeFromTemplate", () => {
       freeOfChargeReason:
         mockPurposeTemplateWithValidRiskAnalysis.purposeFreeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
+      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -637,10 +640,11 @@ describe("createPurposeFromTemplate", () => {
       freeOfChargeReason:
         mockPurposeTemplateWithValidRiskAnalysis.purposeFreeOfChargeReason,
       riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
+      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -688,43 +692,6 @@ describe("createPurposeFromTemplate", () => {
       )
     ).rejects.toThrowError(
       purposeTemplateNotFound(mockDraftPurposeTemplate.id)
-    );
-  });
-  it("should throw eserviceNotLinkedToPurposeTemplate if eservice is not linked to purpose template", async () => {
-    const eService: EService = {
-      ...eService1,
-      id: generateId(),
-    };
-
-    const seed = {
-      ...purposeFromTemplateSeed,
-      eserviceId: eService.id,
-    };
-
-    const agreementEservice = getMockAgreement(
-      eService.id,
-      tenant.id,
-      agreementState.active
-    );
-
-    await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice);
-    await addOneEService(eService);
-    await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
-
-    expect(
-      purposeService.createPurposeFromTemplate(
-        mockPurposeTemplateWithValidRiskAnalysis.id,
-        seed,
-        getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(tenant.id)),
-        })
-      )
-    ).rejects.toThrowError(
-      eserviceNotLinkedToPurposeTemplate(
-        eService.id,
-        mockPurposeTemplateWithValidRiskAnalysis.id
-      )
     );
   });
   it("should throw tenantKindNotFound if the kind doesn't exists", async () => {
