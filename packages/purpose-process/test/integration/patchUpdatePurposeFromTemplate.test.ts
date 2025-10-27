@@ -22,6 +22,7 @@ import {
   delegationState,
   DraftPurposeUpdatedV2,
   EService,
+  EServiceId,
   eserviceMode,
   generateId,
   Purpose,
@@ -39,6 +40,7 @@ import { match } from "ts-pattern";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   duplicatedPurposeTitle,
+  eserviceNotFound,
   purposeNotFound,
   purposeNotInDraftState,
   purposeTemplateNotFound,
@@ -118,12 +120,13 @@ describe("patchUpdatePurposeFromTemplate", () => {
   const eservice: EService = {
     ...getMockEService(),
     mode: eserviceMode.deliver,
+    personalData: true,
   };
 
   const mockValidRiskAnalysis = getMockValidRiskAnalysis(testTenantKind);
   const validRiskAnalysis = {
     ...mockValidRiskAnalysis,
-    version: "3.0",
+    version: "3.1",
     // remove legalObligationReference from DRAFT purpose risk analysis form, added in test
     singleAnswers: {
       ...mockValidRiskAnalysis.riskAnalysisForm.singleAnswers,
@@ -143,7 +146,6 @@ describe("patchUpdatePurposeFromTemplate", () => {
 
   const updatedSingleAnswersWithFreeText = {
     publicInterestTaskText: ["Public interest something"],
-    ruleOfLawText: ["TheLaw"],
   };
 
   const updatedSingleAnswerFreeTextWithSuggestValue = {
@@ -163,25 +165,27 @@ describe("patchUpdatePurposeFromTemplate", () => {
 
   const validRiskAnalysisFormTemplate = {
     ...mockPurposeRiskAnalysisForm,
-    singleAnswers: mockPurposeRiskAnalysisForm.singleAnswers.map((a) =>
-      match(a.key)
-        .with("legalBasisPublicInterest", () => ({
-          ...a,
-          editable: false,
-          value: legalBasisPublicInterest.legalBasisPublicInterest[0],
-        }))
-        .with("legalObligationReference", () => ({
-          ...a,
-          editable: false,
-          value: undefined,
-          suggestedValues: [
-            "Decreto Legislativo n. 196/2003, art. 15",
-            "Regolamento UE 2016/679, art. 6",
-            "Legge n. 241/1990, art. 22",
-          ],
-        }))
-        .otherwise(() => a)
-    ),
+    singleAnswers: mockPurposeRiskAnalysisForm.singleAnswers
+      .filter((a) => a.key !== "ruleOfLawText")
+      .map((a) =>
+        match(a.key)
+          .with("legalBasisPublicInterest", () => ({
+            ...a,
+            editable: false,
+            value: legalBasisPublicInterest.legalBasisPublicInterest[0],
+          }))
+          .with("legalObligationReference", () => ({
+            ...a,
+            editable: false,
+            value: undefined,
+            suggestedValues: [
+              "Decreto Legislativo n. 196/2003, art. 15",
+              "Regolamento UE 2016/679, art. 6",
+              "Legge n. 241/1990, art. 22",
+            ],
+          }))
+          .otherwise(() => a)
+      ),
   };
 
   const purposeTemplate: PurposeTemplate = {
@@ -196,10 +200,10 @@ describe("patchUpdatePurposeFromTemplate", () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
-      title: "updated title",
+      title: "Updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.0",
+        version: "3.1",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
@@ -309,7 +313,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.0",
+        version: "3.1",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
@@ -497,7 +501,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.0",
+        version: "3.1",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
@@ -525,7 +529,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.0",
+        version: "3.1",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
@@ -585,6 +589,31 @@ describe("patchUpdatePurposeFromTemplate", () => {
     ).rejects.toThrowError(tenantIsNotTheConsumer(invalidTenantId));
   });
 
+  it("Should throw eserviceNotFound if the eService does not exist", async () => {
+    const invalidEServiceId = generateId<EServiceId>();
+    await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOnePurpose({
+      ...draftPurpose,
+      eserviceId: invalidEServiceId,
+    });
+
+    const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
+      title: "New Title",
+    };
+    expect(
+      purposeService.updateDraftPurposeCreatedFromTemplate(
+        purposeTemplate.id,
+        draftPurpose.id,
+        updateContent,
+        getMockContextM2MAdmin({
+          organizationId: consumer.id,
+        })
+      )
+    ).rejects.toThrowError(eserviceNotFound(invalidEServiceId));
+  });
+
   it("should throw riskAnalysisVersionMismatch if provided version of risk analysis is different", async () => {
     await addOnePurpose(draftPurpose);
     await addOneEService(eservice);
@@ -612,7 +641,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
           organizationId: consumer.id,
         })
       )
-    ).rejects.toThrowError(riskAnalysisVersionMismatch("2.0", "3.0"));
+    ).rejects.toThrowError(riskAnalysisVersionMismatch("2.0", "3.1"));
   });
 
   it("Should throw riskAnalysisMissingExpectedFieldError if a required field is missing", async () => {
@@ -625,7 +654,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.0",
+        version: "3.1",
         answers: {
           ...updatedSingleAnswersWithFreeText,
         },
@@ -655,7 +684,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.0",
+        version: "3.1",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
@@ -686,7 +715,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.0",
+        version: "3.1",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           legalObligationReference: ["invalid suggested value"],

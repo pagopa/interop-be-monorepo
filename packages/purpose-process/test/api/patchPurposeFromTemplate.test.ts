@@ -19,6 +19,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,
+  eserviceNotFound,
   invalidPurposeTenantKind,
   purposeNotFound,
   purposeNotInDraftState,
@@ -151,6 +152,10 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
     {
       error: duplicatedPurposeTitle("Any"),
       expectedStatus: HTTP_STATUS_CONFLICT,
+    },
+    {
+      error: eserviceNotFound(generateId()),
+      expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
   ])(
     "Should return $expectedStatus for $error.code",
