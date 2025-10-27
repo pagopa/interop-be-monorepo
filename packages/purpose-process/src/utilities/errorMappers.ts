@@ -201,7 +201,6 @@ export const createPurposeFromTemplateErrorMapper = (
       "tenantNotFound",
       "tenantKindNotFound",
       "agreementNotFound",
-      "eserviceNotLinkedToPurposeTemplate",
       "riskAnalysisValidationFailed",
       "invalidPurposeTenantKind",
       "riskAnalysisMissingExpectedFieldError",

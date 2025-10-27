@@ -26,7 +26,6 @@ import {
   tenantIsNotTheDelegatedConsumer,
   riskAnalysisValidationFailed,
   purposeTemplateNotFound,
-  eserviceNotLinkedToPurposeTemplate,
   invalidPurposeTenantKind,
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisVersionMismatch,
@@ -123,10 +122,6 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
     },
     {
       error: agreementNotFound(generateId(), generateId()),
-      expectedStatus: 400,
-    },
-    {
-      error: eserviceNotLinkedToPurposeTemplate(generateId(), generateId()),
       expectedStatus: 400,
     },
     {

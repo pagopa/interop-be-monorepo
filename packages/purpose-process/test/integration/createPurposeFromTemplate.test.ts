@@ -53,7 +53,6 @@ import {
   eServiceModeNotAllowed,
   invalidPurposeTenantKind,
   purposeTemplateNotFound,
-  eserviceNotLinkedToPurposeTemplate,
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisAnswerNotInSuggestValues,
@@ -693,43 +692,6 @@ describe("createPurposeFromTemplate", () => {
       )
     ).rejects.toThrowError(
       purposeTemplateNotFound(mockDraftPurposeTemplate.id)
-    );
-  });
-  it("should throw eserviceNotLinkedToPurposeTemplate if eservice is not linked to purpose template", async () => {
-    const eService: EService = {
-      ...eService1,
-      id: generateId(),
-    };
-
-    const seed = {
-      ...purposeFromTemplateSeed,
-      eserviceId: eService.id,
-    };
-
-    const agreementEservice = getMockAgreement(
-      eService.id,
-      tenant.id,
-      agreementState.active
-    );
-
-    await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice);
-    await addOneEService(eService);
-    await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
-
-    expect(
-      purposeService.createPurposeFromTemplate(
-        mockPurposeTemplateWithValidRiskAnalysis.id,
-        seed,
-        getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(tenant.id)),
-        })
-      )
-    ).rejects.toThrowError(
-      eserviceNotLinkedToPurposeTemplate(
-        eService.id,
-        mockPurposeTemplateWithValidRiskAnalysis.id
-      )
     );
   });
   it("should throw tenantKindNotFound if the kind doesn't exists", async () => {

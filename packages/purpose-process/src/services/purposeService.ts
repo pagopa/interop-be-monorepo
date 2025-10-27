@@ -29,7 +29,6 @@ import {
   Delegation,
   DelegationId,
   EService,
-  EServiceDescriptorPurposeTemplate,
   EServiceId,
   ListResult,
   Purpose,
@@ -61,7 +60,6 @@ import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceNotFound,
-  eserviceNotLinkedToPurposeTemplate,
   eserviceRiskAnalysisNotFound,
   missingRiskAnalysis,
   notValidVersionState,
@@ -272,24 +270,6 @@ async function retrieveActivePurposeTemplate(
     throw purposeTemplateNotFound(templateId);
   }
   return purposeTemplate;
-}
-
-async function retrieveEserviceDescriptorFromPurposeTemplate(
-  purposeTemplateId: PurposeTemplateId,
-  eserviceId: EServiceId,
-  readModelService: ReadModelServiceSQL
-): Promise<EServiceDescriptorPurposeTemplate> {
-  const eserviceDescriptorPurposeTemplate =
-    await readModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
-      purposeTemplateId,
-      eserviceId
-    );
-
-  if (!eserviceDescriptorPurposeTemplate) {
-    throw eserviceNotLinkedToPurposeTemplate(eserviceId, purposeTemplateId);
-  }
-
-  return eserviceDescriptorPurposeTemplate;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1674,12 +1654,6 @@ export function purposeServiceBuilder(
       assertValidPersonalData(
         purposeTemplate.handlesPersonalData,
         eservice.personalData
-      );
-
-      await retrieveEserviceDescriptorFromPurposeTemplate(
-        purposeTemplateId,
-        eserviceId,
-        readModelService
       );
 
       await assertPurposeTitleIsNotDuplicated({

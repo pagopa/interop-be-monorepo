@@ -50,12 +50,11 @@ export const errorCodes = {
   tenantIsNotTheDelegate: "0031",
   purposeTemplateNotFound: "0032",
   invalidPurposeTenantKind: "0033",
-  eserviceNotLinkedToPurposeTemplate: "0034",
-  riskAnalysisContainsNotEditableAnswers: "0035",
-  riskAnalysisAnswerNotInSuggestValues: "0036",
-  riskAnalysisMissingExpectedFieldError: "0037",
-  riskAnalysisVersionMismatch: "0038",
-  invalidPersonalData: "0039",
+  riskAnalysisContainsNotEditableAnswers: "0034",
+  riskAnalysisAnswerNotInSuggestValues: "0035",
+  riskAnalysisMissingExpectedFieldError: "0036",
+  riskAnalysisVersionMismatch: "0037",
+  invalidPersonalData: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -405,17 +404,6 @@ export function invalidPurposeTenantKind(
     detail: `Purpose Tenant Kind ${purposeTenantKind} does not match template Tenant Kind ${templateTenantKind}`,
     code: "invalidPurposeTenantKind",
     title: "Invalid Purpose tenant kind",
-  });
-}
-
-export function eserviceNotLinkedToPurposeTemplate(
-  eserviceId: EServiceId,
-  purposeTemplateId: PurposeTemplateId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} is not linked to Purpose template ${purposeTemplateId}`,
-    code: "eserviceNotLinkedToPurposeTemplate",
-    title: "EService not linked to Purpose template",
   });
 }
 
