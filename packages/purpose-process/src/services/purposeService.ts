@@ -1,6 +1,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -87,6 +88,7 @@ import {
   toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
   toCreateEventPurposeCloned,
+  toCreateEventRiskAnalysisDocumentGenerated,
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
@@ -1601,6 +1603,41 @@ export function purposeServiceBuilder(
       }
 
       return riskAnalysisFormConfig;
+    },
+    async internalAddUnsignedRiskAnalysisDocumentMetadata(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      riskAnalysisDocument: PurposeVersionDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
+      logger.info(
+        `Adding risk analysis document for purpose ${purposeId}, version ${versionId}`
+      );
+      const purposeRetrieved = await retrievePurpose(
+        purposeId,
+        readModelService
+      );
+
+      const purposeWithContract = {
+        ...purposeRetrieved.data,
+        riskAnalysisDocument,
+      };
+      const event = await repository.createEvent(
+        toCreateEventRiskAnalysisDocumentGenerated({
+          purpose: purposeWithContract,
+          version: purposeRetrieved.metadata.version,
+          versionId,
+          correlationId,
+        })
+      );
+      const purposeVersion: PurposeVersion = retrievePurposeVersion(
+        versionId,
+        purposeRetrieved
+      );
+      return {
+        data: purposeVersion,
+        metadata: { version: event.newVersion },
+      };
     },
   };
 }
