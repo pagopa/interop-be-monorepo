@@ -272,6 +272,109 @@ describe("update eService", () => {
     });
   });
 
+  it("should write on event-store for the update of an eService (mode change: risk analysis has to be deleted)", async () => {
+    config.featureFlagSignalhubWhitelist = true;
+    config.signalhubWhitelistProducer = [mockEService.producerId];
+
+    const eservice: EService = {
+      ...mockEService,
+      riskAnalysis: [getMockValidRiskAnalysis("PA")],
+      technology: "Rest",
+      mode: eserviceMode.receive,
+      descriptors: [],
+    };
+    await addOneEService(eservice);
+
+    const updateEServiceReturn = await catalogService.updateEService(
+      eservice.id,
+      {
+        name: eservice.name,
+        description: eservice.description,
+        technology: "REST",
+        mode: "DELIVER",
+      },
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const expectedEService: EService = {
+      ...eservice,
+      mode: eserviceMode.deliver,
+      riskAnalysis: [],
+    };
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "DraftEServiceUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+
+    expect(updateEServiceReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
+  });
+
+  it("should write on event-store for the update of an eService (personalData flag change: risk analysis has to be deleted)", async () => {
+    config.featureFlagSignalhubWhitelist = true;
+    config.signalhubWhitelistProducer = [mockEService.producerId];
+
+    const eservice: EService = {
+      ...mockEService,
+      mode: eserviceMode.receive,
+      technology: "Rest",
+      personalData: true,
+      riskAnalysis: [getMockValidRiskAnalysis("PA")],
+    };
+    await addOneEService(eservice);
+
+    const updateEServiceReturn = await catalogService.updateEService(
+      eservice.id,
+      {
+        name: eservice.name,
+        description: eservice.description,
+        technology: "REST",
+        mode: "RECEIVE",
+        personalData: false,
+      },
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const expectedEService: EService = {
+      ...eservice,
+      personalData: false,
+      riskAnalysis: [],
+    };
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "DraftEServiceUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+
+    expect(updateEServiceReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
+  });
+
   it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
     const descriptor: Descriptor = {
