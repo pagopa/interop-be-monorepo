@@ -304,6 +304,9 @@ const initCustomConsumer = async ({
   return consumer;
 };
 
+// This function is used to initialize a Kafka consumer with specific configurations.
+// Transactions are currently supported only for single-replica producers,
+// if scaling up/down is required, ensure proper handling of transactional IDs
 export const initProducer = async (
   config: KafkaProducerConfig,
   topic: string,
