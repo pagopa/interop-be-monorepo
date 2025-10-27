@@ -41,10 +41,10 @@ describe("getPurposeTemplates", async () => {
     descriptors: [getMockDescriptor(descriptorState.archived)],
   };
 
-  const activePurposeTemplateByCreator1: PurposeTemplate = {
+  const publishedPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 1 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 1 - test",
+    state: purposeTemplateState.published,
     creatorId: creatorId1,
     targetTenantKind: tenantKind.PA,
     handlesPersonalData: true,
@@ -71,10 +71,10 @@ describe("getPurposeTemplates", async () => {
     targetTenantKind: tenantKind.SCP,
   };
 
-  const activePurposeTemplateByCreator2: PurposeTemplate = {
+  const publishedPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 2",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 2",
+    state: purposeTemplateState.published,
     creatorId: creatorId2,
     targetTenantKind: tenantKind.PA,
   };
@@ -103,14 +103,14 @@ describe("getPurposeTemplates", async () => {
 
   const purposeTemplateEServiceDescriptor1: EServiceDescriptorPurposeTemplate =
     {
-      purposeTemplateId: activePurposeTemplateByCreator1.id,
+      purposeTemplateId: publishedPurposeTemplateByCreator1.id,
       eserviceId: eservice1.id,
       descriptorId: eservice1.descriptors[0].id,
       createdAt: new Date(),
     };
   const purposeTemplateEServiceDescriptor2: EServiceDescriptorPurposeTemplate =
     {
-      purposeTemplateId: activePurposeTemplateByCreator1.id,
+      purposeTemplateId: publishedPurposeTemplateByCreator1.id,
       eserviceId: eservice2.id,
       descriptorId: eservice2.descriptors[0].id,
       createdAt: new Date(),
@@ -124,11 +124,11 @@ describe("getPurposeTemplates", async () => {
     };
 
   beforeEach(async () => {
-    await addOnePurposeTemplate(activePurposeTemplateByCreator1);
+    await addOnePurposeTemplate(publishedPurposeTemplateByCreator1);
     await addOnePurposeTemplate(draftPurposeTemplateByCreator1);
     await addOnePurposeTemplate(suspendedPurposeTemplateByCreator1);
     await addOnePurposeTemplate(archivedPurposeTemplateByCreator1);
-    await addOnePurposeTemplate(activePurposeTemplateByCreator2);
+    await addOnePurposeTemplate(publishedPurposeTemplateByCreator2);
     await addOnePurposeTemplate(draftPurposeTemplateByCreator2);
     await addOnePurposeTemplate(suspendedPurposeTemplateByCreator2);
     await addOnePurposeTemplate(archivedPurposeTemplateByCreator2);
@@ -158,12 +158,12 @@ describe("getPurposeTemplates", async () => {
       );
 
     expectSinglePageListResult(allPurposeTemplates, [
-      activePurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
       draftPurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
@@ -182,7 +182,7 @@ describe("getPurposeTemplates", async () => {
     );
 
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
   });
@@ -200,8 +200,8 @@ describe("getPurposeTemplates", async () => {
     );
 
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator2,
     ]);
   });
 
@@ -217,7 +217,7 @@ describe("getPurposeTemplates", async () => {
     );
 
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
   });
@@ -235,9 +235,9 @@ describe("getPurposeTemplates", async () => {
     expect(result.totalCount).toBe(4);
 
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator1,
       draftPurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator1,
     ]);
   });
@@ -253,7 +253,7 @@ describe("getPurposeTemplates", async () => {
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
 
-    expectSinglePageListResult(result, [activePurposeTemplateByCreator1]);
+    expectSinglePageListResult(result, [publishedPurposeTemplateByCreator1]);
   });
 
   it("should get purpose templates with filters: states", async () => {
@@ -261,16 +261,16 @@ describe("getPurposeTemplates", async () => {
       {
         eserviceIds: [],
         creatorIds: [],
-        states: [purposeTemplateState.draft, purposeTemplateState.active],
+        states: [purposeTemplateState.draft, purposeTemplateState.published],
       },
       { offset: 0, limit: 50 },
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
       draftPurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator2,
     ]);
 
     const result2 = await purposeTemplateService.getPurposeTemplates(
@@ -279,7 +279,7 @@ describe("getPurposeTemplates", async () => {
         creatorIds: [],
         states: [
           purposeTemplateState.archived,
-          purposeTemplateState.active,
+          purposeTemplateState.published,
           purposeTemplateState.suspended,
         ],
       },
@@ -287,10 +287,10 @@ describe("getPurposeTemplates", async () => {
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result2, [
-      activePurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
@@ -328,12 +328,12 @@ describe("getPurposeTemplates", async () => {
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
       draftPurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator2,
       purposeTemplateWithExpiredRiskAnalysis1,
       purposeTemplateWithExpiredRiskAnalysis2,
       suspendedPurposeTemplateByCreator1,
@@ -374,12 +374,12 @@ describe("getPurposeTemplates", async () => {
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
       draftPurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
@@ -397,7 +397,7 @@ describe("getPurposeTemplates", async () => {
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
   });
@@ -414,11 +414,11 @@ describe("getPurposeTemplates", async () => {
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
       draftPurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
     ]);
   });
@@ -440,10 +440,10 @@ describe("getPurposeTemplates", async () => {
     }).toEqual({
       totalCount: 8,
       results: [
-        archivedPurposeTemplateByCreator1,
-        archivedPurposeTemplateByCreator2,
         draftPurposeTemplateByCreator1,
         draftPurposeTemplateByCreator2,
+        publishedPurposeTemplateByCreator1,
+        publishedPurposeTemplateByCreator2,
         suspendedPurposeTemplateByCreator1,
         suspendedPurposeTemplateByCreator2,
       ].map(sortPurposeTemplate),
@@ -467,8 +467,8 @@ describe("getPurposeTemplates", async () => {
     }).toEqual({
       totalCount: 8,
       results: [
-        activePurposeTemplateByCreator1,
-        activePurposeTemplateByCreator2,
+        archivedPurposeTemplateByCreator1,
+        archivedPurposeTemplateByCreator2,
       ].map(sortPurposeTemplate),
     });
   });

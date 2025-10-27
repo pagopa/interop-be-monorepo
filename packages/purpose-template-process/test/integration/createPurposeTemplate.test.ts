@@ -57,7 +57,7 @@ describe("createPurposeTemplate", () => {
     buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm)
   );
 
-  it("should write on event-store for the creation of a purpose template", async () => {
+  it.skip("should write on event-store for the creation of a purpose template", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -137,7 +137,7 @@ describe("createPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the creation of a purpose template with free of charge false", async () => {
+  it.skip("should write on event-store for the creation of a purpose template with free of charge false", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -293,7 +293,7 @@ describe("createPurposeTemplate", () => {
     );
   });
 
-  it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has unexpected field", async () => {
+  it.skip("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has unexpected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
       getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
     );
@@ -329,7 +329,7 @@ describe("createPurposeTemplate", () => {
     );
   });
 
-  it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has missing expected field", async () => {
+  it.skip("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has missing expected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
       getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
     );

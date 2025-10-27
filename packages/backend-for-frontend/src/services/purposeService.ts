@@ -228,6 +228,7 @@ export function purposeServiceBuilder(
           audience: currentDescriptor.audience,
         },
         mode: eservice.mode,
+        personalData: eservice.personalData,
       },
       agreement: {
         id: latestAgreement.id,

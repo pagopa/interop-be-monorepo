@@ -1,11 +1,11 @@
 meta {
-  name: Delete User Notification Config
+  name: Remove User Notification Config Role
   type: http
   seq: 2
 }
 
 delete {
-  url: {{host-notification-config}}/internal/userNotificationConfigs/tenantId/:tenantId/userId/:userId
+  url: {{host-notification-config}}/internal/userNotificationConfigs/tenantId/:tenantId/userId/:userId/userRole/:userRole
   body: json
   auth: none
 }
@@ -13,6 +13,7 @@ delete {
 params:path {
   userId: {{userId}}
   tenantId: {{tenantId}}
+  userRole: {{userRole}}
 }
 
 headers {
