@@ -1040,7 +1040,7 @@ export function purposeServiceBuilder(
             riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
           schemaOnlyValidation: false,
           tenantKind,
-          dateForExpirationValidation: new Date(), // beware: if the purpose version was waiting for approval, a new RA might have been published
+          dateForExpirationValidation: new Date(),
           personalDataInEService: eservice.personalData,
         });
       }
