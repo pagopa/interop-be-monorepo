@@ -56,7 +56,7 @@ export async function handleAgreementDocument(
           checksum
         );
 
-        await signatureService.saveSignatureReference({
+        await signatureService.saveDocumentSignatureReference({
           safeStorageId: key,
           fileKind: "AGREEMENT_CONTRACT",
           streamId: msg.data.agreement.id,
@@ -66,6 +66,7 @@ export async function handleAgreementDocument(
           prettyname: msg.data.agreement.contract.prettyName,
           fileName,
           version: msg.event_version,
+          correlationId: msg.correlation_id ?? "",
           createdAt: msg.data.agreement.createdAt,
         });
       }

@@ -59,7 +59,7 @@ export async function handleDelegationDocument(
             checksum
           );
 
-          await signatureService.saveSignatureReference({
+          await signatureService.saveDocumentSignatureReference({
             safeStorageId: key,
             fileKind: "DELEGATION_CONTRACT",
             streamId: msg.data.delegation.id,
@@ -70,6 +70,7 @@ export async function handleDelegationDocument(
             fileName,
             version: msg.event_version,
             createdAt: msg.data.delegation.createdAt,
+            correlationId: "",
           });
         }
       }

@@ -33,15 +33,24 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
 
   it("should handle ProducerDelegationApproved with activationContract", async () => {
     const event = {
-      type: "ProducerDelegationApproved",
+      type: "DelegationContractGenerated",
       data: {
         delegation: {
           id: "delegation-id",
           activationContract: { path: "contracts/delegation.pdf" },
+          state: "APPROVED",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          producerId: "producer-id",
+          consumerId: "consumer-id",
+          delegatorId: "delegator-id",
+          delegateId: "delegate-id",
+          eserviceId: "eservice-id",
+          kind: "DELEGATION",
         },
       },
       event_version: 2,
-    } as Parameters<typeof handleDelegationDocument>[0];
+    } as undefined as Parameters<typeof handleDelegationDocument>[0];
 
     await handleDelegationDocument(
       event,
@@ -87,7 +96,7 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
 
   it("should not log info for irrelevant events", async () => {
     const event = {
-      type: "ProducerDelegationSubmitted",
+      type: "DelegationContractGenerated",
       data: { delegation: { id: "delegation-id" } },
     } as Parameters<typeof handleDelegationDocument>[0];
 

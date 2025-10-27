@@ -34,6 +34,11 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
   it("should handle RiskAnalysisDocumentAdded with valid version", async () => {
     const event = {
+      sequence_num: 1,
+      stream_id: "purpose-id",
+      version: 1,
+      log_date: new Date(),
+      correlation_id: "test-correlation-id",
       type: "RiskAnalysisDocumentGenerated",
       data: {
         purpose: {
@@ -48,7 +53,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
         },
         versionId: "version-123",
       },
-      event_version: 1,
+      event_version: 2,
     } as Parameters<typeof handlePurposeDocument>[0];
 
     await handlePurposeDocument(
@@ -82,13 +87,18 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
   it("should throw if versionId does not match any version", async () => {
     const event = {
+      sequence_num: 1,
+      stream_id: "purpose-id",
+      version: 1,
+      log_date: new Date(),
+      correlation_id: "test-correlation-id",
       type: "RiskAnalysisDocumentGenerated",
       data: {
         purpose: {
           id: "purpose-id",
           versions: [
             {
-              id: "other-version",
+              id: "version-456",
               riskAnalysis: { path: "risk-analysis/file.pdf" },
             },
           ],
@@ -96,7 +106,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
         },
         versionId: "version-123",
       },
-      event_version: 1,
+      event_version: 2,
     } as Parameters<typeof handlePurposeDocument>[0];
 
     await expect(
@@ -133,45 +143,6 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
       fileManagerMock,
       loggerMock
     );
-
-    expect(fileManagerMock.get).not.toHaveBeenCalled();
-    expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
-    expect(
-      signatureServiceMock.saveDocumentSignatureReference
-    ).not.toHaveBeenCalled();
-  });
-
-  it("should throw if versionId does not match any version", async () => {
-    const event = {
-      type: "RiskAnalysisDocumentGenerated",
-      data: {
-        purpose: {
-          id: "purpose-id",
-          versions: [
-            {
-              id: "other-version",
-              riskAnalysis: { path: "risk-analysis/file.pdf" },
-            },
-          ],
-          createdAt: BigInt(120323424),
-        },
-        versionId: "version-123",
-      },
-      event_version: 1,
-    } as Parameters<typeof handlePurposeDocument>[0];
-
-    await expect(
-      handlePurposeDocument(
-        event,
-        signatureServiceMock,
-        safeStorageServiceMock,
-        fileManagerMock,
-        loggerMock
-      )
-    ).rejects.toMatchObject({
-      code: "genericError",
-      detail: "Handle Purpose Document - version not found for id: version-123",
-    });
 
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();

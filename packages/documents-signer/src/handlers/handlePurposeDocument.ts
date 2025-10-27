@@ -34,7 +34,7 @@ export async function handlePurposeDocument(
 
         if (!purposeVersion) {
           throw genericInternalError(
-            `Handle Purpose Document - version not found for id: ${event.data.versionId}`
+            `Handle Purpose Document - version not found for id: ${msg.data.versionId}`
           );
         }
 
@@ -42,7 +42,7 @@ export async function handlePurposeDocument(
 
         if (!s3Key) {
           throw genericInternalError(
-            `Handle Purpose Document - riskAnalysis path not found for id: ${event.data.versionId}`
+            `Handle Purpose Document - riskAnalysis path not found for id: ${msg.data.versionId}`
           );
         }
 
@@ -74,7 +74,7 @@ export async function handlePurposeDocument(
           checksum
         );
 
-        await signatureService.saveSignatureReference({
+        await signatureService.saveDocumentSignatureReference({
           safeStorageId: key,
           fileKind: "RISK_ANALYSIS_DOCUMENT",
           streamId: msg.data.purpose.id,
@@ -85,6 +85,7 @@ export async function handlePurposeDocument(
           fileName,
           version: msg.event_version,
           createdAt: msg.data.purpose.createdAt,
+          correlationId: msg.correlation_id ?? "",
         });
       }
     })

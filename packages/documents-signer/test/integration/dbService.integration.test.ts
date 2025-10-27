@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-commons";
 import { config } from "../../src/config/config.js";
 import { dynamoDBClient } from "../utils.js";
+import { generateId } from "pagopa-interop-models";
 
 describe("dbServiceBuilder integration with DynamoDB", () => {
   beforeEach(async () => {
@@ -41,6 +42,7 @@ describe("dbServiceBuilder integration with DynamoDB", () => {
       path: "test/test/test.pdf",
       prettyname: "prettyname",
       createdAt: BigInt(0),
+      correlationId: generateId()
     };
 
     await signatureService.saveDocumentSignatureReference(doc);

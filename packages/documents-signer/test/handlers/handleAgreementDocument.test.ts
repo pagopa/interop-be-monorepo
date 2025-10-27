@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/no-let */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateId } from "pagopa-interop-models";
 import { handleAgreementDocument } from "../../src/handlers/handleAgreementDocument.js";
 
-describe("handleAgreementDocument (integration with testcontainers)", () => {
+describe("handleAgreementDocument", () => {
   const fileContent = new Uint8Array([1, 2, 3]);
   const uploadUrl = "http://fake-upload-url";
   const secret = "fake-secret";
@@ -26,16 +27,29 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
     loggerMock = { info: vi.fn() };
   });
 
-  it("should handle AgreementContractAdded with contract", async () => {
+  it("should handle AgreementContractGenerated with contract", async () => {
     const event = {
+      sequence_num: 1,
+      stream_id: "stream-1",
+      version: 1,
+      log_date: new Date(),
+      correlation_id: generateId(),
       type: "AgreementContractGenerated",
       data: {
-        agreement: { id: "agreement-id", contract: { path: "contract.pdf" } },
+        agreement: {
+          id: "agreement-id",
+          eserviceId: "eservice-id",
+          descriptorId: "descriptor-id",
+          producerId: "producer-id",
+          consumerId: "consumer-id",
+          state: "ACTIVE",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          contract: { path: "contract.pdf", prettyname: "prettyname" },
+        },
       },
-      event_version: 1,
-      version: 1,
-      stream_id: "stream-1",
-    } as Parameters<typeof handleAgreementDocument>[0];
+      event_version: 2,
+    } as unknown as Parameters<typeof handleAgreementDocument>[0];
 
     await handleAgreementDocument(
       event,
@@ -60,7 +74,11 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
         fileKind: "AGREEMENT_CONTRACT",
         streamId: "agreement-id",
         fileName: "contract.pdf",
-        version: 1,
+        version: 2,
+        createdAt: expect.any(Date),
+        prettyname: undefined,
+        subObjectId: "",
+        path: "contract.pdf",
       })
     );
   });
