@@ -56,7 +56,6 @@ export async function handleDelegationApprovedRejectedToDelegator(
     eservice.name,
     delegate.name,
     eventType,
-    delegation.rejectionReason
   );
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({

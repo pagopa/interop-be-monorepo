@@ -284,7 +284,8 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
         eservice.name,
-        producerTenant.name
+        producerTenant.name,
+        eservice.descriptors[0].version,
       ),
     },
     {
@@ -298,7 +299,8 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorActivatedToConsumer(
         eservice.name,
-        producerTenant.name
+        producerTenant.name,
+        eservice.descriptors[0].version,
       ),
     },
     {
@@ -334,37 +336,6 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     {
       msg: {
         event_version: 2,
-        type: "EServiceDescriptorAgreementApprovalPolicyUpdated",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-        },
-      },
-      expectedBody:
-        inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
-          eservice.name,
-          producerTenant.name
-        ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorInterfaceAdded",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-          documentId: eservice.descriptors[0].interface.id,
-        },
-      },
-      expectedBody: inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
-        eservice.name,
-        eservice.descriptors[0].interface.prettyName,
-        producerTenant.name
-      ),
-    },
-    {
-      msg: {
-        event_version: 2,
         type: "EServiceDescriptorDocumentAdded",
         data: {
           eservice: toEServiceV2(eservice),
@@ -391,54 +362,6 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       expectedBody: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
         eservice.name,
         "1",
-        producerTenant.name
-      ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorDocumentDeleted",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-          documentId: eservice.descriptors[0].docs[0].id,
-        },
-      },
-      expectedBody: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
-        eservice.name,
-        eservice.descriptors[0].docs[0].prettyName,
-        producerTenant.name
-      ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-          documentId: eservice.descriptors[0].docs[0].id,
-        },
-      },
-      expectedBody: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
-        eservice.name,
-        eservice.descriptors[0].docs[0].prettyName,
-        producerTenant.name
-      ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorInterfaceUpdated",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-          documentId: eservice.descriptors[0].interface.id,
-        },
-      },
-      expectedBody: inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
-        eservice.name,
-        eservice.descriptors[0].interface.prettyName,
         producerTenant.name
       ),
     },

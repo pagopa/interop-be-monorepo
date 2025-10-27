@@ -8,7 +8,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveLatestPublishedEServiceTemplateVersion } from "../handlerCommons.js";
+import { retrieveLatestPublishedEServiceTemplateVersion, retrieveTenant } from "../handlerCommons.js";
 
 export async function handleTemplateStatusChangedToProducer(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -33,9 +33,13 @@ export async function handleTemplateStatusChangedToProducer(
       [eserviceTemplate.creatorId],
       "templateStatusChangedToProducer"
     );
-
+  const creator = await retrieveTenant(
+    eserviceTemplate.creatorId,
+    readModelService
+  );
   const body = inAppTemplates.templateStatusChangedToProducer(
-    eserviceTemplate.name
+    eserviceTemplate.name,
+    creator.name
   );
   const entityId = EServiceTemplateIdEServiceTemplateVersionId.parse(
     `${eserviceTemplate.id}/${

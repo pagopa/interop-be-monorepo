@@ -61,7 +61,6 @@ export async function handleClientKeyAddedDeletedToClientUsers(
           body: inAppTemplates.clientKeyDeletedToClientUsers(
             client.name,
             key.userId,
-            key.kid
           ),
           notificationType: "clientKeyAddedDeletedToClientUsers" as const,
           entityId: client.id,

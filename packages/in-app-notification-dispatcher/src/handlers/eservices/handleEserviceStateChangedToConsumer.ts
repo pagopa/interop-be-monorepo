@@ -25,18 +25,13 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorSuspended"
   | "EServiceDescriptorActivated"
   | "EServiceDescriptorQuotasUpdated"
-  | "EServiceDescriptorAgreementApprovalPolicyUpdated"
-  | "EServiceDescriptorInterfaceAdded"
   | "EServiceDescriptorDocumentAdded"
-  | "EServiceDescriptorDocumentDeleted"
-  | "EServiceDescriptorInterfaceUpdated"
   | "EServiceDescriptorDocumentUpdated"
   | "EServiceNameUpdatedByTemplateUpdate"
   | "EServiceDescriptionUpdatedByTemplateUpdate"
   | "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAddedByTemplateUpdate"
-  | "EServiceDescriptorDocumentDeletedByTemplateUpdate"
   | "EServiceDescriptorDocumentUpdatedByTemplateUpdate";
 
 type EServiceStateChangedEvent = Extract<
@@ -100,14 +95,6 @@ export async function handleEserviceStateChangedToConsumer(
     notificationType: "eserviceStateChangedToConsumer",
     entityId,
   }));
-}
-
-function getInterfaceName(
-  eservice: EService,
-  descriptorId: string
-): string | undefined {
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  return descriptor?.interface?.prettyName;
 }
 
 function getDocumentName(
@@ -188,7 +175,8 @@ function getBodyAndDescriptorId(
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
           eservice.name,
-          producerName
+          producerName,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version
         ),
         descriptorId,
       })
@@ -198,7 +186,8 @@ function getBodyAndDescriptorId(
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorActivatedToConsumer(
           eservice.name,
-          producerName
+          producerName,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version
         ),
         descriptorId,
       })
@@ -220,30 +209,6 @@ function getBodyAndDescriptorId(
       })
     )
     .with(
-      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
-      ({ data: { descriptorId } }) => ({
-        body: inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
-          eservice.name,
-          producerName
-        ),
-        descriptorId,
-      })
-    )
-    .with(
-      { type: "EServiceDescriptorInterfaceAdded" },
-      ({ data: { descriptorId } }) => {
-        const interfaceName = getInterfaceName(eservice, descriptorId);
-        return {
-          body: inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
-            eservice.name,
-            interfaceName,
-            producerName
-          ),
-          descriptorId,
-        };
-      }
-    )
-    .with(
       {
         type: P.union(
           "EServiceDescriptorDocumentAdded",
@@ -258,43 +223,6 @@ function getBodyAndDescriptorId(
         ),
         descriptorId,
       })
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate"
-        ),
-      },
-      ({ data: { descriptorId, documentId } }) => {
-        const documentName = getDocumentName(
-          eservice,
-          descriptorId,
-          documentId
-        );
-        return {
-          body: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
-            eservice.name,
-            documentName,
-            producerName
-          ),
-          descriptorId,
-        };
-      }
-    )
-    .with(
-      { type: "EServiceDescriptorInterfaceUpdated" },
-      ({ data: { descriptorId } }) => {
-        const interfaceName = getInterfaceName(eservice, descriptorId);
-        return {
-          body: inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
-            eservice.name,
-            interfaceName,
-            producerName
-          ),
-          descriptorId,
-        };
-      }
     )
     .with(
       {

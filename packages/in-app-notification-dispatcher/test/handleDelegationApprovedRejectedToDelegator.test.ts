@@ -115,36 +115,31 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
       | "ProducerDelegationRejected"
       | "ConsumerDelegationRejected";
     kind: DelegationKind;
-    rejectionReason?: string;
     expectedBody: string;
   }>([
     {
       eventType: "ProducerDelegationApproved",
       kind: delegationKind.delegatedProducer,
-      rejectionReason: undefined,
       expectedBody: `Ti informiamo che l'ente ${delegate.name} ha approvato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>. La delega è ora attiva.`,
     },
     {
       eventType: "ConsumerDelegationApproved",
       kind: delegationKind.delegatedConsumer,
-      rejectionReason: undefined,
       expectedBody: `Ti informiamo che l'ente ${delegate.name} ha approvato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>. La delega è ora attiva.`,
     },
     {
       eventType: "ProducerDelegationRejected",
       kind: delegationKind.delegatedProducer,
-      rejectionReason: "mock reason",
-      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>.  Motivo: mock reason.`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>.`,
     },
     {
       eventType: "ConsumerDelegationRejected",
       kind: delegationKind.delegatedConsumer,
-      rejectionReason: "mock reason",
-      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>.  Motivo: mock reason.`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>.`,
     },
   ])(
     "should handle $eventType event correctly",
-    async ({ eventType, kind, rejectionReason, expectedBody }) => {
+    async ({ eventType, kind, expectedBody }) => {
       const delegatorUsers = [
         { userId: generateId(), tenantId: delegator.id },
         { userId: generateId(), tenantId: delegator.id },
@@ -156,7 +151,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
         .mockResolvedValue(delegatorUsers);
 
       const notifications = await handleDelegationApprovedRejectedToDelegator(
-        toDelegationV2({ ...delegation, kind, rejectionReason }),
+        toDelegationV2({ ...delegation, kind }),
         logger,
         readModelService,
         eventType

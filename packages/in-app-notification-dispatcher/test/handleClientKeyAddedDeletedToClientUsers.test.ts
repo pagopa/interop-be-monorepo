@@ -251,7 +251,6 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
       const expectedBody = inAppTemplates.clientKeyDeletedToClientUsers(
         client.name,
         key1.userId,
-        key1.kid
       );
 
       const expectedNotifications = [
@@ -521,7 +520,6 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         inAppTemplates.clientKeyDeletedToClientUsers(
           client.name,
           key1.userId,
-          key1.kid
         )
       );
     });
