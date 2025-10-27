@@ -51,7 +51,7 @@ export async function handleEServiceTemplateVersionPublished(
 
   if (!eserviceTemplateVersion) {
     logger.error(
-      `No version find in eservice template ${eserviceTemplate.id} with id ${eserviceTemplateVersionId}`
+      `No version found in eservice template ${eserviceTemplate.id} with id ${eserviceTemplateVersionId}`
     );
     return [];
   }
