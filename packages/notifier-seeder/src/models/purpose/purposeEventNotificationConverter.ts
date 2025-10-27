@@ -42,6 +42,7 @@ export const toPurposeEventNotification = (
       { type: "NewPurposeVersionWaitingForApproval" },
       { type: "PurposeVersionOverQuotaUnsuspended" },
       { type: "PurposeVersionArchivedByRevokedDelegation" },
+      { type: "RiskAnalysisDocumentGenerated" },
       (event): PurposeNotification => ({
         purpose: getPurpose(event),
       })
