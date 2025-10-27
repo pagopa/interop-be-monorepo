@@ -3,15 +3,22 @@ import {
   formatError,
   logger,
   Logger,
+  RefreshableInteropToken,
   SafeStorageService,
 } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import { format } from "date-fns";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import {
+  AgreementDocument,
+  AgreementDocumentId,
+  CorrelationId,
+  DelegationContractDocument,
+  DelegationContractId,
   PurposeId,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { SignatureServiceBuilder } from "../services/signatureService.js";
 // import { SignatureServiceBuilder } from "pagopa-interop-commons";
@@ -26,17 +33,21 @@ import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnal
 import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
 import { addDelegationSignedContract } from "../utils/metadata/delegations.js";
 
+// eslint-disable-next-line max-params
 async function processMessage(
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
   message: SqsSafeStorageBody,
   safeStorageService: SafeStorageService,
-  logger: Logger
+  logger: Logger,
+  refreshableToken: RefreshableInteropToken
 ): Promise<void> {
   try {
     const fileKey = message.detail.key;
 
-    const signature = await signatureService.readSignatureReference(message.id);
+    const signature = await signatureService.readDocumentSignatureReference(
+      message.id
+    );
     if (!signature) {
       throw new Error(`Missing signature reference for message ${message.id}`);
     }
@@ -81,57 +92,61 @@ async function processMessage(
     logger.info(`File successfully saved in S3 with key: ${key}`);
 
     if (configForKind.process) {
-      const signatureDocument =
-        await signatureService.readDocumentSignatureReference(message.id);
-      if (!signatureDocument) {
-        logger.error(
-          `Cannot find signatureDocument for id: ${message.id} in table ${config.signatureReferencesTableName}`
-        );
-        throw new Error(
-          `Cannot find signatureDocument for id: ${message.id} in table ${config.signatureReferencesTableName}`
-        );
-      }
+      const correlationId = unsafeBrandId<CorrelationId>(
+        signature.correlationId
+      );
       await match(configForKind.process)
         .with("riskAnalysis", async () => {
           const metadata: PurposeVersionDocument = {
-            id: signatureDocument.subObjectId as PurposeVersionDocumentId,
-            contentType: signatureDocument.contentType,
-            path: signatureDocument.path,
-            createdAt: new Date(Number(signatureDocument.createdAt)),
+            id: unsafeBrandId<PurposeVersionDocumentId>(signature.subObjectId),
+            contentType: signature.contentType,
+            path: key,
+            createdAt: new Date(Number(signature.createdAt)),
           };
           await addPurposeRiskAnalysisSignedDocument(
-            signatureDocument.streamId as PurposeId,
-            signatureDocument.subObjectId as PurposeVersionDocumentId,
+            signature.streamId as PurposeId,
+            signature.subObjectId as PurposeVersionDocumentId,
             metadata
           );
         })
         .with("agreement", async () => {
-          const metadata = {
-            id: signatureDocument.streamId,
-            name: signatureDocument.fileName,
-            prettyName: signatureDocument.prettyname,
-            contentType: signatureDocument.contentType,
-            path: signatureDocument.path,
+          const metadata: AgreementDocument = {
+            path: key,
+            name: signature.fileName,
+            id: unsafeBrandId<AgreementDocumentId>(signature.streamId),
+            prettyName: signature.prettyname,
+            contentType: signature.contentType,
+            createdAt: new Date(Number(signature.createdAt)),
           };
           await addAgreementSignedContract(
-            signatureDocument.streamId,
-            metadata
+            metadata,
+            refreshableToken,
+            signature.streamId,
+            correlationId
           );
         })
         .with("delegation", async () => {
-          const metadata = {
-            id: signatureDocument.streamId,
-            name: signatureDocument.fileName,
-            prettyName: signatureDocument.prettyname,
-            contentType: signatureDocument.contentType,
-            path: signatureDocument.path,
+          const metadata: DelegationContractDocument = {
+            id: unsafeBrandId<DelegationContractId>(signature.streamId),
+            name: signature.fileName,
+            prettyName: signature.prettyname,
+            contentType: signature.contentType,
+            path: key,
+            createdAt: new Date(Number(signature.createdAt)),
           };
           await addDelegationSignedContract(
-            signatureDocument.streamId,
-            metadata
+            metadata,
+            refreshableToken,
+            signature.streamId,
+            correlationId
           );
         })
-        .otherwise(async () => Promise.resolve());
+        .with(P._, () => {
+          logger.warn(
+            `Found unexpected configForKind.process ${configForKind.process} `
+          );
+        })
+        .exhaustive();
     }
 
     await signatureService.deleteSignatureReference(message.id);
@@ -146,7 +161,8 @@ export const sqsMessageHandler = async (
   messagePayload: Message,
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
-  safeStorageService: SafeStorageService
+  safeStorageService: SafeStorageService,
+  refreshableToken: RefreshableInteropToken
 ): Promise<void> => {
   const logInstance: Logger = logger({ serviceName: config.serviceName });
 
@@ -172,7 +188,8 @@ export const sqsMessageHandler = async (
       signatureService,
       validatedMessage,
       safeStorageService,
-      logInstance
+      logInstance,
+      refreshableToken
     );
   } catch (err) {
     logInstance.error(`Error handling SQS message: ${String(err)}`);

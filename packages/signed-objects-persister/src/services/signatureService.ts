@@ -67,6 +67,7 @@ export function signatureServiceBuilder(
           fileName: { S: item.fileName },
           version: { N: String(item.version) },
           createdAt: { N: String(item.createdAt) },
+          correlationId: { S: item.correlationId },
         },
         ReturnValues: "NONE",
       };
@@ -196,6 +197,7 @@ export function signatureServiceBuilder(
           fileName: data.Item.fileName.S,
           version: Number(data.Item.version.N),
           createdAt: BigInt(data.Item.createdAt.N),
+          correlationId: data.Item.correlationId.S,
           creationTimestamp: Number(data.Item.creationTimestamp.N),
         };
 

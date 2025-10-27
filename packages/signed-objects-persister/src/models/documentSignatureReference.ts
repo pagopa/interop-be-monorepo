@@ -10,5 +10,6 @@ export interface DocumentSignatureReference {
   fileName: string;
   version: number;
   createdAt: bigint;
+  correlationId: string;
   creationTimestamp?: number;
 }

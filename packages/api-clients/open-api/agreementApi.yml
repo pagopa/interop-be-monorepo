@@ -930,6 +930,56 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  "/internal/agreement/{agreementId}/signedContract":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: agreementId
+        in: path
+        description: The agreement id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an signed contract document to the agreement
+      summary: Add unsigned contract metadata to agreement
+      tags:
+        - agreement
+      operationId: addSignedAgreementContractMetadata
+      requestBody:
+        description: The signed contract document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Document"
+      responses:
+        "204":
+          description: Contract metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/internal/compute/agreementsState":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

@@ -1,37 +1,29 @@
-/* eslint-disable no-console */
 import { agreementApi } from "pagopa-interop-api-clients";
-
-// export const addAgreementSignedContract = async (
-//   agreementId: string,
-//   document: agreementApi.DocumentSeed
-// ): ReturnType<
-//   typeof agreementApi.agreementApi.api.postAgreementSignedContract
-// > =>
-//   agreementApi.agreementApi.api.postAgreementSignedContract({
-//     agreementId,
-//     body: document,
-//   });
-
-type AgreementSignedContractResponse = {
-  agreementId: string;
-  document: agreementApi.DocumentSeed;
-  event: "AgreementSignedContractAdded";
-  timestamp: string;
-};
+import {
+  getInteropHeaders,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
+import { CorrelationId, AgreementDocument } from "pagopa-interop-models";
 
 export const addAgreementSignedContract = async (
+  contract: AgreementDocument,
+  refreshableToken: RefreshableInteropToken,
   agreementId: string,
-  document: agreementApi.DocumentSeed
-): Promise<AgreementSignedContractResponse> => {
-  console.log(`Mock: aggiungo signed contract all'agreement ${agreementId}`);
-  console.log("Documento:", document);
-
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  return {
-    agreementId,
-    document,
-    event: "AgreementSignedContractAdded",
-    timestamp: new Date().toISOString(),
+  correlationId: CorrelationId
+): Promise<void> => {
+  const contractWithIsoString = {
+    ...contract,
+    createdAt: contract.createdAt.toISOString(),
   };
+  const token = (await refreshableToken.get()).serialized;
+  await agreementApi.agreementApi.addSignedAgreementContractMetadata(
+    contractWithIsoString,
+    {
+      params: { agreementId },
+      headers: getInteropHeaders({
+        token,
+        correlationId,
+      }),
+    }
+  );
 };

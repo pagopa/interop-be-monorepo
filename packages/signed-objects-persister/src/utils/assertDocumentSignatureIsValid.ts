@@ -17,6 +17,7 @@ export function assertValidDocumentSignatureReferenceItem(
   fileName: { S: string };
   version: { N: string };
   createdAt: { N: string };
+  correlationId: { S: string };
   creationTimestamp: { N: string };
 } {
   if (
@@ -30,6 +31,7 @@ export function assertValidDocumentSignatureReferenceItem(
     !item.fileName?.S ||
     !item.version?.N ||
     !item.createdAt?.N ||
+    !item.correlationId?.S ||
     !item.creationTimestamp?.N
   ) {
     throw genericInternalError(
