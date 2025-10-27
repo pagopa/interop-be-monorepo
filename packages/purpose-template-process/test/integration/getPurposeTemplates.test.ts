@@ -161,7 +161,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
-      // draftPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
@@ -332,7 +331,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
-      // draftPurposeTemplateByCreator2,
       purposeTemplateWithExpiredRiskAnalysis1,
       purposeTemplateWithExpiredRiskAnalysis2,
       suspendedPurposeTemplateByCreator1,
@@ -378,7 +376,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
-      // draftPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
@@ -404,7 +401,6 @@ describe("getPurposeTemplates", async () => {
         archivedPurposeTemplateByCreator1,
         archivedPurposeTemplateByCreator2,
         draftPurposeTemplateByCreator1,
-        // draftPurposeTemplateByCreator2,
         suspendedPurposeTemplateByCreator1,
         suspendedPurposeTemplateByCreator2,
       ].map(sortPurposeTemplate),
