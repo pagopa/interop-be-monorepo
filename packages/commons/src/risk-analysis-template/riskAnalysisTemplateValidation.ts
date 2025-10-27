@@ -275,34 +275,13 @@ function validateAnswerValue(
   answer: RiskAnalysisTemplateAnswerToValidate,
   rule: ValidationRule
 ): RiskAnalysisTemplateValidationIssue[] {
-  const hasSuggestions = answer.suggestedValues.length > 0;
-  const hasValues = answer.values.length > 0;
-
-  if (answer.editable) {
-    const hasAnyContent = hasValues || hasSuggestions;
-    return hasAnyContent
-      ? [
-          malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
-            rule.fieldName
-          ),
-        ]
-      : [];
-  }
-
   return match(rule)
-    .with(P.nullish, () => [])
-
     .with({ dataType: "freeText" }, (freeTextRule) =>
-      validateFreeTextAnswer(freeTextRule, hasValues, hasSuggestions)
+      validateFreeTextAnswer(freeTextRule, answer)
     )
 
     .with({ dataType: P.not("freeText") }, (nonFreeTextRule) =>
-      validateNonFreeTextAnswer(
-        nonFreeTextRule,
-        answer,
-        hasValues,
-        hasSuggestions
-      )
+      validateNonFreeTextAnswer(nonFreeTextRule, answer)
     )
 
     .exhaustive();
@@ -310,16 +289,24 @@ function validateAnswerValue(
 
 function validateFreeTextAnswer(
   rule: ValidationRule,
-  hasValues: boolean,
-  hasSuggestions: boolean
+  answer: RiskAnalysisTemplateAnswerToValidate
 ): RiskAnalysisTemplateValidationIssue[] {
-  if (!hasValues && !hasSuggestions) {
+  const hasSuggestion = answer.suggestedValues.length > 0;
+  const hasValues = answer.values.length > 0;
+
+  if (answer.editable) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
   }
 
-  if (hasValues && hasSuggestions) {
+  if (hasValues) {
+    return [
+      malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
+  }
+
+  if (!hasSuggestion) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
@@ -330,23 +317,40 @@ function validateFreeTextAnswer(
 
 function validateNonFreeTextAnswer(
   rule: ValidationRule,
-  answer: RiskAnalysisTemplateAnswerToValidate,
-  hasValues: boolean,
-  hasSuggestions: boolean
+  answer: RiskAnalysisTemplateAnswerToValidate
 ): RiskAnalysisTemplateValidationIssue[] {
-  if (
-    rule.allowedValues &&
-    answer.values.some((e) => !rule.allowedValues?.has(e))
-  ) {
+  const hasSuggestion = answer.suggestedValues.length > 0;
+  const hasValues = answer.values.length > 0;
+
+  if (answer.editable && hasValues) {
     return [
-      unexpectedRiskAnalysisTemplateFieldValueError(
-        rule.fieldName,
-        rule.allowedValues
-      ),
+      malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
   }
 
-  if (hasSuggestions || !hasValues) {
+  if (!answer.editable) {
+    if (
+      rule.allowedValues &&
+      answer.values.some((e) => !rule.allowedValues?.has(e))
+    ) {
+      return [
+        unexpectedRiskAnalysisTemplateFieldValueError(
+          rule.fieldName,
+          rule.allowedValues
+        ),
+      ];
+    }
+
+    if (!hasValues) {
+      return [
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          rule.fieldName
+        ),
+      ];
+    }
+  }
+
+  if (hasSuggestion) {
     return [
       unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];

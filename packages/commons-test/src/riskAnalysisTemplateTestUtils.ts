@@ -157,9 +157,9 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "institutionalPurpose",
-        value: "MyPurpose",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Purpose1", "Purpose2"],
       },
       {
         key: "usesPersonalData",
@@ -169,15 +169,15 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["PersonalDataType1", "PersonalDataType2"],
       },
       {
         key: "legalObligationReference",
-        value: "somethingLegal",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
       },
       {
         key: "knowsDataQuantity",
@@ -205,9 +205,9 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "reasonPolicyNotProvided",
-        value: "Because",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Because1", "Because2"],
       },
       {
         key: "doneDpia",
@@ -223,9 +223,9 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "dataRetentionPeriod",
-        value: "true",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["DataRetentionPeriod1", "DataRetentionPeriod2"],
       },
       {
         key: "isRequestOnBehalfOfThirdParties",
@@ -254,8 +254,8 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       {
         key: "publicInterestTaskText",
         value: undefined,
-        editable: true,
-        suggestedValues: [],
+        editable: false,
+        suggestedValues: ["PublicInterestTaskText1", "PublicInterestTaskText2"],
       },
       {
         key: "legalBasisPublicInterest",
@@ -286,9 +286,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "institutionalPurpose",
-        value: "MyPurpose",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Purpose1", "Purpose2"],
       },
       {
         key: "usesPersonalData",
@@ -298,15 +298,15 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["PersonalDataType1", "PersonalDataType2"],
       },
       {
         key: "legalObligationReference",
-        value: "YES",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
       },
       {
         key: "legalBasisPublicInterest",
@@ -316,9 +316,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "ruleOfLawText",
-        value: "TheLaw",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["RuleOfLawText1", "RuleOfLawText2"],
       },
       {
         key: "knowsDataQuantity",
@@ -364,9 +364,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "dataRetentionPeriod",
-        value: "10",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["DataRetentionPeriod1", "DataRetentionPeriod2"],
       },
       {
         key: "purposePursuit",
