@@ -60,6 +60,7 @@ export type GetPurposeTemplatesFilters = {
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
   excludeExpiredRiskAnalysis?: boolean;
+  handlesPersonalData?: boolean;
 };
 
 export type GetPurposeTemplateEServiceDescriptorsFilters = {
@@ -79,6 +80,7 @@ const getPurposeTemplatesFilters = (
     states,
     targetTenantKind,
     excludeExpiredRiskAnalysis,
+    handlesPersonalData,
   } = filters;
 
   const purposeTitleFilter = purposeTitle
@@ -147,13 +149,22 @@ const getPurposeTemplatesFilters = (
       )
     : undefined;
 
+  const handlesPersonalDataFilter =
+    handlesPersonalData !== undefined
+      ? eq(
+          purposeTemplateInReadmodelPurposeTemplate.handlesPersonalData,
+          handlesPersonalData
+        )
+      : undefined;
+
   return and(
     purposeTitleFilter,
     creatorIdsFilter,
     eserviceIdsFilter,
     statesFilter,
     targetTenantKindFilter,
-    excludeExpiredRiskAnalysisFilters
+    excludeExpiredRiskAnalysisFilters,
+    handlesPersonalDataFilter
   );
 };
 

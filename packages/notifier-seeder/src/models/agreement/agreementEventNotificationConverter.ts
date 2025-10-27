@@ -62,6 +62,7 @@ export const toAgreementEventNotification = (
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementArchivedByConsumer" },
       { type: "AgreementArchivedByRevokedDelegation" },
+      { type: "AgreementContractGenerated" },
       (event): AgreementNotification => ({
         agreement: getAgreement(event),
       })

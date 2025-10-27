@@ -496,6 +496,7 @@ export function purposeTemplateServiceBuilder(
         purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
         purposeDailyCalls: seed.purposeDailyCalls,
+        handlesPersonalData: seed.handlesPersonalData,
       };
 
       const event = await repository.createEvent(
@@ -637,7 +638,7 @@ export function purposeTemplateServiceBuilder(
 
       const validationResult = await validateEservicesAssociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate.data,
         readModelService
       );
 
@@ -711,7 +712,7 @@ export function purposeTemplateServiceBuilder(
 
       const validationResult = await validateEservicesDisassociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate.data,
         readModelService
       );
 

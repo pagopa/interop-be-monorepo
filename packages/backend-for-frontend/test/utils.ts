@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach, expect } from "vitest";
 import {
@@ -29,6 +30,7 @@ import {
   AttributeProcessClient,
   CatalogProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { BffAppContext } from "../src/utilities/context.js";
@@ -46,6 +48,7 @@ export const createEServiceTeamplateService = (
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   catalogProcessClient: CatalogProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager
 ): EServiceTemplateService =>
   eserviceTemplateServiceBuilder(
@@ -53,6 +56,7 @@ export const createEServiceTeamplateService = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
+    inAppNotificationManagerClient,
     fileManager
   );
 
@@ -182,7 +186,7 @@ export const expectedUserIdAndOrganizationId = (
   });
 
 export const getMockNotification = (
-  notificationType: string,
+  notificationType: inAppNotificationApi.NotificationType,
   entityId: string = "test-entity-id"
 ): inAppNotificationApi.Notification => ({
   id: "notification-id",

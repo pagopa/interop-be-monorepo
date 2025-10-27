@@ -25,6 +25,7 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -85,6 +86,9 @@ describe("importEService", () => {
   const mockEServiceTemplateProcessClient =
     createDummyStub<EServiceTemplateProcessClient>();
 
+  const mockInAppNotificationManagerClient =
+    createDummyStub<InAppNotificationManagerClient>();
+
   const mockPollingFunction = vi.fn(() => Promise.resolve());
   vi.spyOn(apiUtils, "createPollingByCondition").mockImplementation(
     () => mockPollingFunction
@@ -97,6 +101,7 @@ describe("importEService", () => {
     mockAttributeProcessClient,
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
+    mockInAppNotificationManagerClient,
     fileManager,
     config
   );
