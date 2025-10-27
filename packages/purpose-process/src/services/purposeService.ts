@@ -20,6 +20,7 @@ import {
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
+  isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -1043,7 +1044,10 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (purpose.data.purposeTemplateId) {
+      if (
+        isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
+        purpose.data.purposeTemplateId
+      ) {
         await retrieveActivePurposeTemplate(
           purpose.data.purposeTemplateId,
           readModelService
