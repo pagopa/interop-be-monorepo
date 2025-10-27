@@ -4,6 +4,7 @@ import {
   getMockTenant,
   getMockDelegation,
   randomArrayItem,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -28,17 +29,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
   const delegate = getMockTenant();
   const eserviceId: EServiceId = generateId();
 
-  const eservice = {
-    id: eserviceId,
-    name: "Test EService",
-    producerId: delegator.id,
-    createdAt: new Date(),
-    description: "Test EService description",
-    technology: "Rest" as const,
-    descriptors: [],
-    riskAnalysis: [],
-    mode: "Deliver" as const,
-  };
+  const eservice = { ...getMockEService(eserviceId, delegator.id), name: "Test EService" }
   const delegation = getMockDelegation({
     kind: randomArrayItem(Object.values(delegationKind)),
     delegatorId: delegator.id,

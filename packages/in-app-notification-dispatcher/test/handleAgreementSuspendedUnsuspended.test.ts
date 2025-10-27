@@ -27,7 +27,7 @@ import {
   addOneTenant,
   readModelService,
 } from "./utils.js";
-
+import { match } from "ts-pattern";
 // Helper function to get expected body based on event type and audience
 function getExpectedBodyForEvent(
   eventType: AgreementSuspendedUnsuspendedEventType,
@@ -36,40 +36,47 @@ function getExpectedBodyForEvent(
   consumerName: string,
   producerName: string
 ): string {
-  if (eventType === "AgreementSuspendedByPlatform") {
-    return isProducerUser
-      ? inAppTemplates.agreementSuspendedByPlatformToProducer(
-          consumerName,
-          eserviceName
-        )
-      : inAppTemplates.agreementSuspendedByPlatformToConsumer(eserviceName);
-  }
-  if (eventType === "AgreementUnsuspendedByPlatform") {
-    return isProducerUser
-      ? inAppTemplates.agreementUnsuspendedByPlatformToProducer(
-          consumerName,
-          eserviceName
-        )
-      : inAppTemplates.agreementUnsuspendedByPlatformToConsumer(eserviceName);
-  }
-  // For non-platform events
-  const templateMap: Record<
-    string,
-    (subject: string, eserviceName: string) => string
-  > = {
-    AgreementSuspendedByConsumer:
-      inAppTemplates.agreementSuspendedByConsumerToProducer,
-    AgreementUnsuspendedByConsumer:
-      inAppTemplates.agreementUnsuspendedByConsumerToProducer,
-    AgreementSuspendedByProducer:
-      inAppTemplates.agreementSuspendedByProducerToConsumer,
-    AgreementUnsuspendedByProducer:
-      inAppTemplates.agreementUnsuspendedByProducerToConsumer,
-    AgreementArchivedByConsumer:
-      inAppTemplates.agreementArchivedByConsumerToProducer,
-  };
   const subjectName = isProducerUser ? consumerName : producerName;
-  return templateMap[eventType](subjectName, eserviceName);
+  return match(eventType)
+    .with("AgreementSuspendedByPlatform", () =>
+      isProducerUser
+        ? inAppTemplates.agreementSuspendedByPlatformToProducer(subjectName, eserviceName)
+        : inAppTemplates.agreementSuspendedByPlatformToConsumer(eserviceName)
+    ).with("AgreementUnsuspendedByPlatform", () =>
+      isProducerUser
+        ? inAppTemplates.agreementUnsuspendedByPlatformToProducer(subjectName, eserviceName)
+        : inAppTemplates.agreementUnsuspendedByPlatformToConsumer(eserviceName)
+    ).with("AgreementSuspendedByConsumer", () =>
+      inAppTemplates.agreementSuspendedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementUnsuspendedByConsumer", () =>
+      inAppTemplates.agreementUnsuspendedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementSuspendedByProducer", () =>
+      inAppTemplates.agreementSuspendedByProducerToConsumer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementUnsuspendedByProducer", () =>
+      inAppTemplates.agreementUnsuspendedByProducerToConsumer(
+        subjectName,
+        eserviceName
+      )
+  )
+    .with("AgreementArchivedByConsumer", () =>
+      inAppTemplates.agreementArchivedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+  )
+    .exhaustive();
 }
 
 describe("handleAgreementSuspendedUnsuspended", () => {
@@ -226,10 +233,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         expectedAudience === "producer"
           ? producerUsers
           : expectedAudience === "consumer"
-          ? consumerUsers
-          : expectedAudience === "both"
-          ? [...producerUsers, ...consumerUsers]
-          : [];
+            ? consumerUsers
+            : expectedAudience === "both"
+              ? [...producerUsers, ...consumerUsers]
+              : [];
 
       expect(notifications).toHaveLength(expectedUsers.length);
 
