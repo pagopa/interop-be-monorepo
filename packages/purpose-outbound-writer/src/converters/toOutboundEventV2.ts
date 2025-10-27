@@ -92,6 +92,7 @@ export function toOutboundEventV2(
       { type: "PurposeArchived" },
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeVersionRejected" },
+      { type: "RiskAnalysisDocumentGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

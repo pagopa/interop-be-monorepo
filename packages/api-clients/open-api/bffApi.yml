@@ -26048,7 +26048,7 @@ components:
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
         hasUnreadNotifications:
-          type: boolean 
+          type: boolean
           description: Indicates if there are unread notifications for this purpose
         purposeTemplate:
           $ref: "#/components/schemas/CompactPurposeTemplate"
@@ -28098,6 +28098,8 @@ components:
         isAlreadyInstantiated:
           type: boolean
         hasRequesterRiskAnalysis:
+          type: boolean
+        personalData:
           type: boolean
     EServiceTemplateVersionQuotasUpdateSeed:
       type: object

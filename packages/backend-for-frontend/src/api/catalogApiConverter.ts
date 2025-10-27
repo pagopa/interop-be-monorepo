@@ -281,6 +281,7 @@ export function toBffCatalogApiProducerDescriptorEService(
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    personalData: eservice.personalData,
   };
 }
 
