@@ -47,6 +47,7 @@ export async function handleMessageV2(
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
       { type: "AgreementArchivedByRevokedDelegation" },
+      { type: "AgreementContractGenerated" },
       async (message) => {
         await agreementWriterService.upsertAgreement(
           agreement,

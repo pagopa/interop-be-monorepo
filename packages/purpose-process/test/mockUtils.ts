@@ -108,7 +108,8 @@ export const createUpdatedPurpose = (
       purposeUpdateContent.riskAnalysisForm,
       false,
       tenantKind,
-      new Date()
+      new Date(),
+      undefined
     )!,
     writtenRiskAnalysisForm
   ),
