@@ -62,6 +62,7 @@ import {
   agreementNotFound,
   eserviceNotFound,
   eserviceRiskAnalysisNotFound,
+  invalidPersonalData,
   missingRiskAnalysis,
   notValidVersionState,
   purposeCannotBeCloned,
@@ -118,7 +119,6 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
-  assertValidPersonalData,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -1663,10 +1663,6 @@ export function purposeServiceBuilder(
         tenantKind,
         purposeTemplate.targetTenantKind
       );
-      assertValidPersonalData(
-        purposeTemplate.handlesPersonalData,
-        eservice.personalData
-      );
 
       await assertPurposeTitleIsNotDuplicated({
         readModelService,
@@ -1675,11 +1671,20 @@ export function purposeServiceBuilder(
         title: body.title,
       });
 
+      const eservicePersonalData = eservice.personalData;
+      if (
+        eservicePersonalData === undefined ||
+        eservicePersonalData !== purposeTemplate.handlesPersonalData
+      ) {
+        throw invalidPersonalData(eservicePersonalData);
+      }
+
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,
         body.riskAnalysisForm,
         tenantKind,
-        createdAt
+        createdAt,
+        eservicePersonalData
       );
 
       const purpose: Purpose = {

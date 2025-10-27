@@ -35,7 +35,6 @@ import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
-  invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
   purposeNotInDraftState,
@@ -521,19 +520,6 @@ export function assertValidPurposeTenantKind(
   }
 }
 
-export function assertValidPersonalData(
-  templateHandlesPersonalData: boolean,
-  eservicePersonalData: boolean | undefined
-): void {
-  const valid =
-    eservicePersonalData !== undefined &&
-    templateHandlesPersonalData === eservicePersonalData;
-
-  if (!valid) {
-    throw invalidPersonalData(eservicePersonalData);
-  }
-}
-
 function buildSingleOrMultiAnswerValue(
   templateId: PurposeTemplateId,
   { answer: templateAnswer, type }: RiskAnalysisTemplateAnswer,
@@ -635,7 +621,8 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   purposeTemplate: PurposeTemplate,
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   tenantKind: TenantKind,
-  createdAt: Date
+  createdAt: Date,
+  eservicePersonalData: boolean
 ): PurposeRiskAnalysisForm | undefined {
   if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
     return undefined;
@@ -665,6 +652,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     formToValidate,
     false,
     tenantKind,
-    createdAt
+    createdAt,
+    eservicePersonalData
   );
 }
