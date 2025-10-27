@@ -302,6 +302,7 @@ export const updatePurposeByTemplateErrorMapper = (
     .with(
       "purposeTemplateNotFound",
       "purposeNotFound",
+      "eserviceNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(

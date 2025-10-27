@@ -1817,12 +1817,18 @@ export function purposeServiceBuilder(
         purposeTemplate.targetTenantKind
       );
 
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
       const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
         ? validateRiskAnalysisAgainstTemplateOrThrow(
             purposeTemplate,
             purposeUpdateContent.riskAnalysisForm,
             tenantKind,
-            purpose.data.createdAt
+            purpose.data.createdAt,
+            eservice.personalData
           )
         : undefined;
 

@@ -622,7 +622,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
-  eservicePersonalData: boolean
+  eservicePersonalData: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
     return undefined;
