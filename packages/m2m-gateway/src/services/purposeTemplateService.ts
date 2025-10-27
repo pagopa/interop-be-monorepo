@@ -1,19 +1,43 @@
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeTemplateServiceBuilder(
-  _clients: PagoPAInteropBeClients
-) {
+export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async getPurposeTemplateById(): Promise<void> {
       return Promise.resolve();
     },
-    async getPurposeTemplates(): Promise<void> {
-      return Promise.resolve();
+    async getPurposeTemplates(
+      queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplates> {
+      const { limit, offset } = queryParams;
+
+      logger.info(
+        `Getting purpose templates with filters: ${JSON.stringify(queryParams)}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.purposeTemplateProcessClient.getPurposeTemplates({
+        queries: queryParams,
+        headers,
+      });
+
+      return {
+        results,
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
     },
     async createPurposeTemplate(): Promise<void> {
       return Promise.resolve();

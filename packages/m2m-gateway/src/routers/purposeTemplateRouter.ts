@@ -3,17 +3,23 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
+  authRole,
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  validateAuthorization,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 
 const purposeTemplateRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  purposeTemplateService: PurposeTemplateService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
+
   const purposeTemplateRouter = ctx.router(
     m2mGatewayApi.purposeTemplatesApi.api,
     {
@@ -24,14 +30,24 @@ const purposeTemplateRouter = (
   purposeTemplateRouter
     .get("/purposeTemplates", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const response = await purposeTemplateService.getPurposeTemplates(
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeTemplates.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving purposetemplates`
+          `Error retrieving purpose templates`
         );
         return res.status(errorRes.status).send(errorRes);
       }
