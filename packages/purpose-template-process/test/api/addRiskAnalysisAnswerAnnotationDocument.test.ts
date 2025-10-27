@@ -153,7 +153,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
     {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
         [purposeTemplateState.draft]
       ),
       expectedStatus: HTTP_STATUS_BAD_REQUEST,

@@ -55,7 +55,7 @@ describe("getPurposeTemplateById", () => {
 
   const creatorOnlyPurposeTemplateStates = Object.values(
     purposeTemplateState
-  ).filter((s) => s !== purposeTemplateState.active);
+  ).filter((s) => s !== purposeTemplateState.published);
   it.each(creatorOnlyPurposeTemplateStates)(
     "should throw tenantNotAllowed if the requester is not the creator and the purpose template is in state %s",
     async (purposeTemplateState) => {
