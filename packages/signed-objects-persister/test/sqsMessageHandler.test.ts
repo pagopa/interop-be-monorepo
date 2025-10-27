@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { FileManager, SafeStorageService } from "pagopa-interop-commons";
+import {
+  FileManager,
+  RefreshableInteropToken,
+  SafeStorageService,
+} from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
@@ -19,6 +23,11 @@ const mockFileManager: Partial<FileManager> = {
   ),
 };
 
+const testToken = "mockToken";
+const mockRefreshableToken: RefreshableInteropToken = {
+  get: () => Promise.resolve({ serialized: testToken }),
+} as unknown as RefreshableInteropToken;
+
 const mockDbService: SignatureServiceBuilder = {
   saveSignatureReference: vi.fn(),
   readSignatureReference: vi.fn(() =>
@@ -30,7 +39,9 @@ const mockDbService: SignatureServiceBuilder = {
       creationTimestamp: expect.any(Number),
     })
   ),
+  saveDocumentSignatureReference: vi.fn(),
   deleteSignatureReference: vi.fn(),
+  readDocumentSignatureReference: vi.fn(),
 };
 
 const mockSafeStorageService: SafeStorageService = {
@@ -95,7 +106,8 @@ describe("sqsMessageHandler", () => {
       sqsMessagePayload,
       mockFileManager as FileManager,
       mockDbService,
-      mockSafeStorageService
+      mockSafeStorageService,
+      mockRefreshableToken
     );
 
     expect(mockSafeStorageService.getFile).toHaveBeenCalledWith(
@@ -127,7 +139,8 @@ describe("sqsMessageHandler", () => {
         invalidSqsMessagePayload,
         mockFileManager as FileManager,
         mockDbService,
-        mockSafeStorageService
+        mockSafeStorageService,
+        mockRefreshableToken
       )
     ).rejects.toThrow("Invalid SQS payload");
 
