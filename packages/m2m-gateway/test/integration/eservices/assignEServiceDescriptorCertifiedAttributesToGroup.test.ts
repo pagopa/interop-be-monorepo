@@ -69,105 +69,61 @@ describe("assignEServiceDescriptorCertifiedAttributesToGroup", () => {
     mockGetEService.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
-    mockGetEService.mockImplementation(
-      mockPollingResponse(mockGetEServiceResponse, 2)
-    );
+  it.each([0, 1, 2])(
+    "Should succeed and perform API clients calls",
+    async (groupIndex) => {
+      mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
+      mockGetEService.mockImplementation(
+        mockPollingResponse(mockGetEServiceResponse, 2)
+      );
 
-    const groupIndex = 1;
-    const seed = {
-      attributeIds: [mockNewAttribute1.id, mockNewAttribute2.id],
-    };
+      const seed = {
+        attributeIds: [mockNewAttribute1.id, mockNewAttribute2.id],
+      };
 
-    await eserviceService.assignEServiceDescriptorCertifiedAttributesToGroup(
-      unsafeBrandId(mockEService.id),
-      unsafeBrandId(mockDescriptor.id),
-      groupIndex,
-      seed,
-      getMockM2MAdminAppContext()
-    );
+      await eserviceService.assignEServiceDescriptorCertifiedAttributesToGroup(
+        unsafeBrandId(mockEService.id),
+        unsafeBrandId(mockDescriptor.id),
+        groupIndex,
+        seed,
+        getMockM2MAdminAppContext()
+      );
 
-    expectApiClientPostToHaveBeenCalledWith({
-      mockPost:
-        mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
-      params: {
-        eServiceId: mockEService.id,
-        descriptorId: mockDescriptor.id,
-      },
-      body: {
-        attributes: {
-          certified: mockCertifiedAttributes.map((group, index) => {
-            if (index === groupIndex) {
-              return [
-                ...group,
-                ...seed.attributeIds.map((id) => ({
-                  id,
-                  explicitAttributeVerification: false,
-                })),
-              ];
-            }
-            return group;
-          }),
-          declared: [],
-          verified: [],
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost:
+          mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
+        params: {
+          eServiceId: mockEService.id,
+          descriptorId: mockDescriptor.id,
         },
-      },
-    });
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
-      params: { eServiceId: mockEService.id },
-    });
-    expect(
-      mockInteropBeClients.catalogProcessClient.getEServiceById
-    ).toHaveBeenCalledTimes(3);
-  });
-
-  it("Should add attributes to the specified group", async () => {
-    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
-    mockGetEService.mockImplementation(
-      mockPollingResponse(mockGetEServiceResponse, 2)
-    );
-
-    const groupIndex = 0;
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
-
-    await eserviceService.assignEServiceDescriptorCertifiedAttributesToGroup(
-      unsafeBrandId(mockEService.id),
-      unsafeBrandId(mockDescriptor.id),
-      groupIndex,
-      seed,
-      getMockM2MAdminAppContext()
-    );
-
-    expectApiClientPostToHaveBeenCalledWith({
-      mockPost:
-        mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
-      params: {
-        eServiceId: mockEService.id,
-        descriptorId: mockDescriptor.id,
-      },
-      body: {
-        attributes: {
-          certified: [
-            [
-              ...mockCertifiedAttributes[0],
-              {
-                id: mockNewAttribute1.id,
-                explicitAttributeVerification: false,
-              },
-            ],
-            mockCertifiedAttributes[1],
-            mockCertifiedAttributes[2],
-          ],
-          declared: [],
-          verified: [],
+        body: {
+          attributes: {
+            certified: mockCertifiedAttributes.map((group, index) => {
+              if (index === groupIndex) {
+                return [
+                  ...group,
+                  ...seed.attributeIds.map((id) => ({
+                    id,
+                    explicitAttributeVerification: false,
+                  })),
+                ];
+              }
+              return group;
+            }),
+            declared: [],
+            verified: [],
+          },
         },
-      },
-    });
-  });
+      });
+      expectApiClientGetToHaveBeenCalledWith({
+        mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
+        params: { eServiceId: mockEService.id },
+      });
+      expect(
+        mockInteropBeClients.catalogProcessClient.getEServiceById
+      ).toHaveBeenCalledTimes(3);
+    }
+  );
 
   it("Should throw missingMetadata in case the eservice returned by the update PATCH call has no metadata", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
