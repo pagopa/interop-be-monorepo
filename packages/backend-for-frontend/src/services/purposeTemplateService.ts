@@ -499,8 +499,8 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateId,
         body.doc,
         documentId,
-        config.riskAnalysisDocumentsContainer,
-        config.riskAnalysisDocumentsPath,
+        config.purposeTemplateDocumentsContainer,
+        config.purposeTemplateDocumentsPath,
         body.prettyName,
         async (
           documentId: string,

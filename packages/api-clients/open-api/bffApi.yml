@@ -7054,6 +7054,11 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: personalData
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -25627,6 +25632,8 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        personalData:
+          type: boolean
     CompactPurposeTemplateEService:
       type: object
       additionalProperties: false
@@ -26041,7 +26048,7 @@ components:
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
         hasUnreadNotifications:
-          type: boolean 
+          type: boolean
           description: Indicates if there are unread notifications for this purpose
         purposeTemplate:
           $ref: "#/components/schemas/CompactPurposeTemplate"
@@ -28091,6 +28098,8 @@ components:
         isAlreadyInstantiated:
           type: boolean
         hasRequesterRiskAnalysis:
+          type: boolean
+        personalData:
           type: boolean
     EServiceTemplateVersionQuotasUpdateSeed:
       type: object

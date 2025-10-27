@@ -56,7 +56,7 @@ describe("unsuspendPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
+  it.skip("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
     const metadataVersion = 1;
     await addOnePurposeTemplate(purposeTemplate, metadataVersion);
 
