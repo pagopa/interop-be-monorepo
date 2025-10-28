@@ -496,6 +496,7 @@ export function purposeTemplateServiceBuilder(
         purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
         purposeDailyCalls: seed.purposeDailyCalls,
+        handlesPersonalData: seed.handlesPersonalData,
       };
 
       const event = await repository.createEvent(
@@ -630,14 +631,14 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
       ]);
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
 
       const validationResult = await validateEservicesAssociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate.data,
         readModelService
       );
 
@@ -704,14 +705,14 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
       ]);
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
 
       const validationResult = await validateEservicesDisassociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate.data,
         readModelService
       );
 
@@ -1403,7 +1404,7 @@ async function activatePurposeTemplate({
   return {
     data: {
       ...purposeTemplate.data,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
       updatedAt: new Date(),
     },
     metadata: purposeTemplate.metadata,

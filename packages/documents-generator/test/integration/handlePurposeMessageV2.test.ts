@@ -1,6 +1,13 @@
+/* eslint-disable functional/no-let */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import path from "path";
 import { fileURLToPath } from "url";
-import { genericLogger, getIpaCode } from "pagopa-interop-commons";
+import {
+  RefreshableInteropToken,
+  genericLogger,
+  getIpaCode,
+} from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockDescriptorPublished,
@@ -11,6 +18,7 @@ import {
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test/index.js";
 import {
+  CorrelationId,
   EServiceId,
   PurposeEventEnvelopeV2,
   Tenant,
@@ -20,8 +28,17 @@ import {
   generateId,
   purposeVersionState,
   toPurposeV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+} from "vitest";
 import {
   cleanup,
   pdfGenerator,
@@ -38,14 +55,46 @@ import {
   eServiceNotFound,
   tenantKindNotFound,
 } from "../../src/model/errors.js";
-
+export const mockAddUnsignedRiskAnalysysContractMetadataFn = vi.fn();
+vi.mock("pagopa-interop-api-clients", () => ({
+  delegationApi: {
+    createDelegationApiClient: vi.fn(),
+  },
+  agreementApi: {
+    createAgreementApiClient: vi.fn(),
+  },
+  purposeApi: {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    createPurposeApiClient: () => ({
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      get addUnsignedRiskAnalysisDocumentMetadata() {
+        return mockAddUnsignedRiskAnalysysContractMetadataFn;
+      },
+    }),
+  },
+}));
 describe("handleDelegationMessageV2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
+  const testToken = "mockToken";
+
+  const testHeaders = {
+    "X-Correlation-Id": generateId(),
+    Authorization: `Bearer ${testToken}`,
+  };
+
+  let mockRefreshableToken: RefreshableInteropToken;
+
+  beforeAll(() => {
+    mockRefreshableToken = {
+      get: () => Promise.resolve({ serialized: testToken }),
+    } as unknown as RefreshableInteropToken;
+  });
   afterEach(cleanup);
 
-  it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
+  it("should write on event-store for the activation of a purpose version in the waiting for approval state and call purpose-process", async () => {
     vi.spyOn(pdfGenerator, "generate");
     const mockUserId = generateId<UserId>();
     const mockConsumer: Tenant = {
@@ -109,13 +158,19 @@ describe("handleDelegationMessageV2", () => {
       type: "PurposeActivated",
       data: { purpose: toPurposeV2(mockPurpose) },
       log_date: new Date(),
+      correlation_id: generateId(),
     };
+
+    testHeaders["X-Correlation-Id"] = unsafeBrandId<CorrelationId>(
+      mockEvent.correlation_id!
+    );
 
     await handlePurposeMessageV2(
       mockEvent,
       pdfGenerator,
       fileManager,
       readModelService,
+      mockRefreshableToken,
       genericLogger
     );
     const expectedPdfPayload = {
@@ -149,6 +204,22 @@ describe("handleDelegationMessageV2", () => {
       ),
       expectedPdfPayload
     );
+    expect(mockAddUnsignedRiskAnalysysContractMetadataFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contentType: "application/pdf",
+        createdAt: expect.any(String),
+        id: expect.any(String),
+        path: expect.any(String),
+      }),
+
+      expect.objectContaining({
+        params: {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+        },
+        headers: testHeaders,
+      })
+    );
   });
   it("should not process events that don't require contract generation and only log an info message", async () => {
     const mockPurpose = {
@@ -178,6 +249,7 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).resolves.toBeUndefined();
@@ -210,6 +282,7 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).rejects.toThrow(eServiceNotFound(mockPurpose.eserviceId).message);
@@ -257,6 +330,7 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).rejects.toThrow(tenantKindNotFound(mockConsumer.id).message);

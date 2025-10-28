@@ -26,6 +26,7 @@ import {
   documentPrettyNameDuplicate,
   eServiceNameDuplicateForProducer,
   eServiceTemplateNotFound,
+  eServiceTemplateWithoutPersonalDataFlag,
   eServiceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
@@ -141,6 +142,13 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
         eServiceTemplate.id,
         generateId(),
         tenantKind.PA
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: eServiceTemplateWithoutPersonalDataFlag(
+        eServiceTemplate.id,
+        publishedVersion.id
       ),
       expectedStatus: 400,
     },

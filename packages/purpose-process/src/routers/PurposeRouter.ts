@@ -12,6 +12,7 @@ import {
 import {
   DelegationId,
   EServiceId,
+  PurposeVersionDocument,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -42,6 +43,7 @@ import {
   updateReversePurposeErrorMapper,
   getPurposesErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
+  generateRiskAnalysisDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import { PurposeService } from "../services/purposeService.js";
 
@@ -690,6 +692,34 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             retrieveRiskAnalysisConfigurationByVersionErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const { purposeId, versionId } = req.params;
+          const riskAnalysisDocument = PurposeVersionDocument.parse(req.body);
+
+          const { metadata } =
+            await purposeService.internalAddUnsignedRiskAnalysisDocumentMetadata(
+              unsafeBrandId(purposeId),
+              unsafeBrandId(versionId),
+              riskAnalysisDocument,
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateRiskAnalysisDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

@@ -45,7 +45,8 @@ export async function handleEServiceEvent(
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServicePersonalDataFlagUpdatedAfterPublication"
+          "EServicePersonalDataFlagUpdatedAfterPublication",
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
         ),
       },
       async (event) => {
