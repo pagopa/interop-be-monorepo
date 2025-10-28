@@ -27,6 +27,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
 import { getMockDelegation } from "pagopa-interop-commons-test";
+import { match } from "ts-pattern";
 import {
   addOneEService,
   addOneTenant,
@@ -37,7 +38,6 @@ import {
 } from "../integrationUtils.js";
 import { getContextsAllowedToSeeInactiveDescriptors } from "../mockUtils.js";
 import { PersonalDataFilter } from "../../src/model/domain/models.js";
-import { match } from "ts-pattern";
 
 describe("get eservices", () => {
   const organizationId1: TenantId = generateId();
