@@ -53,6 +53,10 @@ export const activateEServiceTemplateVersionErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidEServiceTemplateVersionStatePublished",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

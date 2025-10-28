@@ -38,6 +38,7 @@ export const errorCodes = {
   tenantNotFound: "0028",
   missingPersonalDataFlag: "0029",
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
+  notValidEServiceTemplateVersionStatePublished: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -73,6 +74,16 @@ export function notValidEServiceTemplateVersionState(
     detail: `EService template version ${eserviceTemplateVersionId} is in an invalid state  ${eserviceTemplateVersionState} for this operation`,
     code: "notValidEServiceTemplateVersionState",
     title: "Not valid eservice template version state",
+  });
+}
+
+export function notValidEServiceTemplateVersionStatePublished(
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template version ${eserviceTemplateVersionId} is in an invalid state  Published for this operation`,
+    code: "notValidEServiceTemplateVersionStatePublished",
+    title: "Not valid eservice template version state published",
   });
 }
 

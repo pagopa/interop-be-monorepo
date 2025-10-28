@@ -57,6 +57,7 @@ import {
   tenantNotFound,
   missingPersonalDataFlag,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
+  notValidEServiceTemplateVersionStatePublished,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -590,6 +591,14 @@ export function eserviceTemplateServiceBuilder(
         eserviceTemplateVersionId,
         eserviceTemplate.data
       );
+
+      if (
+        eserviceTemplateVersion.state === eserviceTemplateVersionState.published
+      ) {
+        throw notValidEServiceTemplateVersionStatePublished(
+          eserviceTemplateVersionId
+        );
+      }
 
       if (
         eserviceTemplateVersion.state !== eserviceTemplateVersionState.suspended
