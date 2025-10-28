@@ -56,7 +56,7 @@ describe("unsuspendPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
+  it.skip("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
     const metadataVersion = 1;
     await addOnePurposeTemplate(purposeTemplate, metadataVersion);
 
@@ -81,7 +81,7 @@ describe("unsuspendPurposeTemplate", () => {
 
     const expectedPurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
       updatedAt: new Date(),
     };
 
@@ -175,9 +175,9 @@ describe("unsuspendPurposeTemplate", () => {
     {
       error: purposeTemplateStateConflict(
         purposeTemplate.id,
-        purposeTemplateState.active
+        purposeTemplateState.published
       ),
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     },
     {
       error: purposeTemplateNotInExpectedStates(

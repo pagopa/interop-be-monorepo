@@ -34,7 +34,8 @@ export async function handlePurposeEvent(
           "NewPurposeVersionActivated",
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
+          "RiskAnalysisDocumentGenerated"
         ),
       },
       () => Promise.resolve(void 0)

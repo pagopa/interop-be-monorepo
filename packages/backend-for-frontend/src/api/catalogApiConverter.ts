@@ -49,6 +49,7 @@ export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
+  hasNotifications: boolean,
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
 ): bffApi.CatalogEService {
@@ -84,6 +85,7 @@ export function toBffCatalogApiEService(
           },
         }
       : {}),
+    hasUnreadNotifications: hasNotifications,
   };
 }
 
@@ -128,6 +130,7 @@ export function toBffCatalogDescriptorEService(
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    personalData: eservice.personalData,
   };
 }
 
@@ -279,6 +282,7 @@ export function toBffCatalogApiProducerDescriptorEService(
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    personalData: eservice.personalData,
   };
 }
 

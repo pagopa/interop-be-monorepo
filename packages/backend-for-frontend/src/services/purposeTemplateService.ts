@@ -173,6 +173,7 @@ export function purposeTemplateServiceBuilder(
       creatorIds,
       eserviceIds,
       excludeExpiredRiskAnalysis,
+      handlesPersonalData,
       offset,
       limit,
       ctx,
@@ -182,6 +183,7 @@ export function purposeTemplateServiceBuilder(
       creatorIds: string[];
       eserviceIds: string[];
       excludeExpiredRiskAnalysis: boolean;
+      handlesPersonalData: boolean | undefined;
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
@@ -201,8 +203,9 @@ export function purposeTemplateServiceBuilder(
             targetTenantKind,
             creatorIds,
             eserviceIds,
-            states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
+            states: [purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED],
             excludeExpiredRiskAnalysis,
+            handlesPersonalData,
             limit,
             offset,
           },
@@ -496,8 +499,8 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateId,
         body.doc,
         documentId,
-        config.riskAnalysisDocumentsContainer,
-        config.riskAnalysisDocumentsPath,
+        config.purposeTemplateDocumentsContainer,
+        config.purposeTemplateDocumentsPath,
         body.prettyName,
         async (
           documentId: string,
