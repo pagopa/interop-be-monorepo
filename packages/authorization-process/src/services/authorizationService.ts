@@ -583,7 +583,7 @@ export function authorizationServiceBuilder(
         ...client.data,
       };
 
-      await repository.createEvents(
+      await repository.createEventsV2(
         uniqueUserIds.map((userId, index) => {
           // eslint-disable-next-line functional/immutable-data
           updatedClient.users.push(userId);
@@ -1101,7 +1101,7 @@ export function authorizationServiceBuilder(
         ...producerKeychain.data,
       };
 
-      await repository.createEvents(
+      await repository.createEventsV2(
         uniqueUserIds.map((userId, index) => {
           // eslint-disable-next-line functional/immutable-data
           updatedProducerKeychain.users.push(userId);

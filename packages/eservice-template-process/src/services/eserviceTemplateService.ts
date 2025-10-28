@@ -1503,18 +1503,14 @@ export function eserviceTemplateServiceBuilder(
         }
       );
 
-      const createdEvents = await repository.createEvents(events);
+      const createdEvents = await repository.createEventsV2(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
       return {
         data: {
           eserviceTemplate: updatedEServiceTemplateWithDocs,
           createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
         },
-        metadata: { version: newVersion },
+        metadata: { version: createdEvents.latestVersion },
       };
     },
     async getEServiceTemplates(
@@ -1991,7 +1987,7 @@ export function eserviceTemplateServiceBuilder(
             eserviceTemplateWithoutVersions,
             correlationId
           );
-        await repository.createEvents([
+        await repository.createEventsV2([
           versionDeletionEvent,
           eserviceTemplateDeletionEvent,
         ]);

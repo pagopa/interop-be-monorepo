@@ -21,6 +21,11 @@ type CreatedEvent = {
   newVersion: number;
 };
 
+type CreatedEvents = {
+  events: CreatedEvent[];
+  latestVersion: number;
+};
+
 async function internalCreateEvents<T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array,
@@ -85,6 +90,22 @@ async function internalCreateEvents<T extends Event>(
   }
 }
 
+async function internalCreateEventsV2<T extends Event>(
+  db: DB,
+  toBinaryData: (event: T) => Uint8Array,
+  createEvents: Array<CreateEvent<T>>
+): Promise<CreatedEvents> {
+  try {
+    const events = await internalCreateEvents(db, toBinaryData, createEvents);
+    return {
+      events,
+      latestVersion: Math.max(0, ...events.map((e) => e.newVersion)),
+    };
+  } catch (error) {
+    throw genericInternalError(`Error creating event: ${error}`);
+  }
+}
+
 export const eventRepository = <T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array
@@ -93,6 +114,9 @@ export const eventRepository = <T extends Event>(
   createEvents: (
     createEvents: Array<CreateEvent<T>>
   ) => Promise<CreatedEvent[]>;
+  createEventsV2: (
+    createEvents: Array<CreateEvent<T>>
+  ) => Promise<CreatedEvents>;
 } => ({
   async createEvent(createEvent: CreateEvent<T>): Promise<CreatedEvent> {
     return (await internalCreateEvents(db, toBinaryData, [createEvent]))[0];
@@ -101,6 +125,11 @@ export const eventRepository = <T extends Event>(
     createEvents: Array<CreateEvent<T>>
   ): Promise<CreatedEvent[]> {
     return await internalCreateEvents(db, toBinaryData, createEvents);
+  },
+  async createEventsV2(
+    createEvents: Array<CreateEvent<T>>
+  ): Promise<CreatedEvents> {
+    return await internalCreateEventsV2(db, toBinaryData, createEvents);
   },
 });
 

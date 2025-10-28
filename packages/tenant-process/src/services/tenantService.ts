@@ -559,19 +559,14 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const createdEvents = await repository.createEventsV2([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedTenant,
-          metadata: { version: newVersion },
+          metadata: { version: createdEvents.latestVersion },
         };
       }
       const { newVersion } = await repository.createEvent(
@@ -766,19 +761,14 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const createdEvents = await repository.createEventsV2([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedTenant,
-          metadata: { version: newVersion },
+          metadata: { version: createdEvents.latestVersion },
         };
       }
 
@@ -1076,7 +1066,7 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        await repository.createEventsV2([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
@@ -1159,7 +1149,7 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        await repository.createEventsV2([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
@@ -1534,11 +1524,10 @@ export function tenantServiceBuilder(
           tenantWithUpdatedKind,
           correlationId
         );
-
-        await repository.createEvents([...events, tenantKindUpdatedEvent]);
-      } else {
-        await repository.createEvents([...events]);
+        // eslint-disable-next-line functional/immutable-data
+        events.push(tenantKindUpdatedEvent);
       }
+      await repository.createEventsV2([...events]);
 
       return tenantWithUpdatedKind;
     },
@@ -1640,11 +1629,10 @@ export function tenantServiceBuilder(
           tenantWithUpdatedKind,
           correlationId
         );
-
-        await repository.createEvents([...events, tenantKindUpdatedEvent]);
-      } else {
-        await repository.createEvents([...events]);
+        // eslint-disable-next-line functional/immutable-data
+        events.push(tenantKindUpdatedEvent);
       }
+      await repository.createEventsV2([...events]);
 
       return tenantWithUpdatedKind;
     },
@@ -1790,7 +1778,7 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        await repository.createEventsV2([
           attributeAssignmentEvent,
           tenantKindUpdatedEvent,
         ]);
@@ -1868,7 +1856,7 @@ export function tenantServiceBuilder(
         .with(
           [P.nonNullable, P.nonNullable],
           async ([delegatedConsumerEvent, delegatedProducerEvent]) =>
-            repository.createEvents([
+            repository.createEventsV2([
               delegatedConsumerEvent.event,
               {
                 ...delegatedProducerEvent.event,

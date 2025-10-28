@@ -674,7 +674,7 @@ export function purposeTemplateServiceBuilder(
         }
       );
 
-      await repository.createEvents(createEvents);
+      await repository.createEventsV2(createEvents);
 
       return validationResult.value.map((purposeTemplateValidationResult) => ({
         purposeTemplateId,
@@ -748,7 +748,7 @@ export function purposeTemplateServiceBuilder(
         }
       );
 
-      await repository.createEvents(createEvents);
+      await repository.createEventsV2(createEvents);
     },
     async updatePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,

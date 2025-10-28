@@ -80,14 +80,17 @@ describe("EventRepository tests", async () => {
     );
 
     expect(
-      await repository.createEvents([
+      await repository.createEventsV2([
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual([
-      { streamId: eservice.id, newVersion: 1 },
-      { streamId: eservice.id, newVersion: 2 },
-    ]);
+    ).toStrictEqual({
+      events: [
+        { streamId: eservice.id, newVersion: 1 },
+        { streamId: eservice.id, newVersion: 2 },
+      ],
+      latestVersion: 2,
+    });
   });
 
   it("should not save event for the same streamId with the same version number", async () => {
@@ -121,7 +124,7 @@ describe("EventRepository tests", async () => {
     );
 
     await expect(
-      repository.createEvents([
+      repository.createEventsV2([
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
@@ -158,15 +161,18 @@ describe("EventRepository tests", async () => {
     );
 
     expect(
-      await repository.createEvents([
+      await repository.createEventsV2([
         eserviceCreationEvent,
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual([
-      { streamId: eservice.id, newVersion: 0 },
-      { streamId: eservice.id, newVersion: 1 },
-      { streamId: eservice.id, newVersion: 2 },
-    ]);
+    ).toStrictEqual({
+      events: [
+        { streamId: eservice.id, newVersion: 0 },
+        { streamId: eservice.id, newVersion: 1 },
+        { streamId: eservice.id, newVersion: 2 },
+      ],
+      latestVersion: 2,
+    });
   });
 });
