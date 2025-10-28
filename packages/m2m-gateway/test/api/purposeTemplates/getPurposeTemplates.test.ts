@@ -65,7 +65,6 @@ describe("API GET /purposeTemplates", () => {
 
       const token = generateToken(role);
       const res = await makeRequest(token);
-      // console.log("🚀 ~ res:", res);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MPurposeTemplatesResponse);
