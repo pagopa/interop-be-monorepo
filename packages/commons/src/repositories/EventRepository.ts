@@ -1,6 +1,7 @@
 import { CorrelationId, genericInternalError } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
+import { ITask } from "pg-promise";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
@@ -26,60 +27,65 @@ type CreatedEvents = {
   latestNewVersion: number;
 };
 
+async function insertEventInTransaction<T extends Event>(
+  t: ITask<unknown>,
+  toBinaryData: (event: T) => Uint8Array,
+  createEvent: CreateEvent<T>
+): Promise<CreatedEvent> {
+  const dbRecord = await t.oneOrNone(sql.checkEventVersionExists, {
+    stream_id: createEvent.streamId,
+    version: createEvent.version,
+  });
+  const decodedDBRecord = z
+    .object({ version: z.coerce.number() })
+    .nullish()
+    .safeParse(dbRecord);
+
+  if (!decodedDBRecord.success) {
+    throw genericInternalError(
+      `Error checking version for stream ${createEvent.streamId}: ${decodedDBRecord.error.message}`
+    );
+  }
+
+  const newVersion = match([decodedDBRecord.data?.version, createEvent.version])
+    .with([P.nullish, P.nullish], () => 0)
+    .with([P.number, P.number], ([_, version]) => version + 1)
+    .with([P.nullish, P.number], () => {
+      throw genericInternalError(
+        `Cannot specify a version number for a new streamId ${createEvent.streamId}`
+      );
+    })
+    .with([P.number, P.nullish], () => {
+      throw genericInternalError(
+        `A version number should be specified for an existing streamId ${createEvent.streamId}`
+      );
+    })
+    .exhaustive();
+
+  await t.none(sql.insertEvent, {
+    stream_id: createEvent.streamId,
+    version: newVersion,
+    correlation_id: createEvent.correlationId,
+    type: createEvent.event.type,
+    event_version: createEvent.event.event_version,
+    data: Buffer.from(toBinaryData(createEvent.event)),
+  });
+
+  return {
+    streamId: createEvent.streamId,
+    newVersion,
+  };
+}
+
 async function internalCreateEvent<T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array,
   createEvent: CreateEvent<T>
 ): Promise<CreatedEvent> {
   try {
-    return await db.tx(async (t) => {
-      const dbRecord = await t.oneOrNone(sql.checkEventVersionExists, {
-        stream_id: createEvent.streamId,
-        version: createEvent.version,
-      });
-      const decodedDBRecord = z
-        .object({ version: z.coerce.number() })
-        .nullish()
-        .safeParse(dbRecord);
-
-      if (!decodedDBRecord.success) {
-        throw genericInternalError(
-          `Error checking version for stream ${createEvent.streamId}: ${decodedDBRecord.error.message}`
-        );
-      }
-
-      const newVersion = match([
-        decodedDBRecord.data?.version,
-        createEvent.version,
-      ])
-        .with([P.nullish, P.nullish], () => 0)
-        .with([P.number, P.number], ([_, version]) => version + 1)
-        .with([P.nullish, P.number], () => {
-          throw genericInternalError(
-            `Cannot specify a version number for a new streamId ${createEvent.streamId}`
-          );
-        })
-        .with([P.number, P.nullish], () => {
-          throw genericInternalError(
-            `A version number should be specified for an existing streamId ${createEvent.streamId}`
-          );
-        })
-        .exhaustive();
-
-      await t.none(sql.insertEvent, {
-        stream_id: createEvent.streamId,
-        version: newVersion,
-        correlation_id: createEvent.correlationId,
-        type: createEvent.event.type,
-        event_version: createEvent.event.event_version,
-        data: Buffer.from(toBinaryData(createEvent.event)),
-      });
-
-      return {
-        streamId: createEvent.streamId,
-        newVersion,
-      };
-    });
+    return await db.tx(
+      async (t) => await insertEventInTransaction(t, toBinaryData, createEvent)
+    );
   } catch (error) {
     throw genericInternalError(`Error creating event: ${error}`);
   }
@@ -90,20 +96,26 @@ async function internalCreateEvents<T extends Event>(
   toBinaryData: (event: T) => Uint8Array,
   createEvents: Array<CreateEvent<T>>
 ): Promise<CreatedEvents> {
-  const createdEvents = [];
-  for (const createEvent of createEvents) {
-    const createdEvent = await internalCreateEvent(
-      db,
-      toBinaryData,
-      createEvent
-    );
-    // eslint-disable-next-line functional/immutable-data
-    createdEvents.push(createdEvent);
+  const createdEvents: CreatedEvent[] = [];
+  try {
+    await db.tx(async (t) => {
+      for (const createEvent of createEvents) {
+        const createdEvent = await insertEventInTransaction(
+          t,
+          toBinaryData,
+          createEvent
+        );
+        // eslint-disable-next-line functional/immutable-data
+        createdEvents.push(createdEvent);
+      }
+    });
+    return {
+      events: createdEvents,
+      latestNewVersion: Math.max(0, ...createdEvents.map((e) => e.newVersion)),
+    };
+  } catch (error) {
+    throw genericInternalError(`Error creating multiple events: ${error}`);
   }
-  return {
-    events: createdEvents,
-    latestNewVersion: Math.max(0, ...createdEvents.map((e) => e.newVersion)),
-  };
 }
 
 export const eventRepository = <T extends Event>(

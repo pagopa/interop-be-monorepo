@@ -798,10 +798,14 @@ export function agreementServiceBuilder(
       });
 
       const createdEvents = await repository.createEvents(events);
+
       const newVersion = Math.max(
         0,
-        ...createdEvents.events.map((event) => event.newVersion)
+        ...createdEvents.events
+          .filter((e) => e.streamId === agreement.id)
+          .map((event) => event.newVersion)
       );
+
       return {
         data: agreement,
         metadata: {
