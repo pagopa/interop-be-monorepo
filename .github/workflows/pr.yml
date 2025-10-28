@@ -44,43 +44,113 @@ jobs:
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
+  # packages_sharding:
+  #   name: Create packages sharding
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #   outputs:
+  #     matrix: ${{ steps.sharded_packages.outputs.matrix }}
+  #   steps:
+  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+  #     - name: Find packages with test directories
+  #       id: get_packages
+  #       run: |
+  #         PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
+  #           PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
+  #           echo "$PACKAGE_NAME"
+  #         done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
+
+  #         echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+  #     - name: Create shards matrix
+  #       id: sharded_packages
+  #       run: |
+  #         SHARD_NUM=10
+  #         PACKAGES_JSON='${{ steps.get_packages.outputs.packages }}'
+  #         PACK_NUM=$(echo "$PACKAGES_JSON" | jq -r length)
+
+  #         matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
+  #           [range(0; $shardNum) as $i |
+  #           {
+  #             "shardIndex": ($i + 1),
+  #             "packages": ($packs[
+  #             ($i * $len / $shardNum | floor):
+  #             (($i + 1) * $len / $shardNum | floor)
+  #             ])
+  #           }
+  #           ]')
+
+  #         echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
   packages_sharding:
     name: Create packages sharding
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
-      matrix: ${{ steps.sharded_packages.outputs.matrix }}
+      test_matrix: ${{ steps.sharded_packages.outputs.test_matrix }}
+      lint_matrix: ${{ steps.sharded_packages.outputs.lint_matrix }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        with:
+          run_install: false
+
       - name: Find packages with test directories
-        id: get_packages
+        id: get_test_packages
         run: |
           PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
             echo "$PACKAGE_NAME"
           done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
 
-          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
-      - name: Create shards matrix
+          echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+      - name: Find ALL packages
+        id: get_all_packages
+        run: |
+          PACKAGES=$(npx turbo ls --json | jq -r '.[] | .name' | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
+
+          echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+      - name: Create shards matrices
         id: sharded_packages
         run: |
           SHARD_NUM=10  
-          PACKAGES_JSON='${{ steps.get_packages.outputs.packages }}'
-          PACK_NUM=$(echo "$PACKAGES_JSON" | jq -r length)
 
-          matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
-            [range(0; $shardNum) as $i |
-            {
-              "shardIndex": ($i + 1),
-              "packages": ($packs[
-              ($i * $len / $shardNum | floor):
-              (($i + 1) * $len / $shardNum | floor)
-              ])
-            }
-            ]')
+          create_shard_matrix() {
+            local PACKAGES_JSON=$1
+            local PACK_NUM=$2
+            local OUTPUT_VAR=$3
 
-          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+            matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
+              [range(0; $shardNum) as $i |
+              {
+                "shardIndex": ($i + 1),
+                "packages": ($packs[
+                ($i * $len / $shardNum | floor):
+                (($i + 1) * $len / $shardNum | floor)
+                ])
+              }
+              ]')
+
+            echo "$OUTPUT_VAR=$matrix" >> $GITHUB_OUTPUT
+          }
+
+          # TEST
+          TEST_PACKAGES_JSON='${{ steps.get_test_packages.outputs.test_packages }}'
+          TEST_PACK_NUM=$(echo "$TEST_PACKAGES_JSON" | jq -r length)
+          create_shard_matrix "$TEST_PACKAGES_JSON" "$TEST_PACK_NUM" "test_matrix"
+
+          # LINT
+          ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
+          ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
+          create_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "lint_matrix"
+
   build:
     name: Full project build
     runs-on: ubuntu-latest
@@ -121,7 +191,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: ${{ fromJson(needs.packages_sharding.outputs.matrix) }}
+        shard: ${{ fromJson(needs.packages_sharding.outputs.lint_matrix) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
@@ -154,7 +224,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: ${{ fromJson(needs.packages_sharding.outputs.matrix) }}
+        shard: ${{ fromJson(needs.packages_sharding.outputs.test_matrix) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
