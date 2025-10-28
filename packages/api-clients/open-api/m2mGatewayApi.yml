@@ -20268,12 +20268,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PurposeTemplate"
-        totalCount:
-          type: integer
-          format: int32
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - totalCount
+        - pagination
     PurposeTemplate:
       type: object
       description: Business representation of a purpose template

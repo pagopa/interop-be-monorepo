@@ -145,7 +145,7 @@ describe("getPurposeTemplates", async () => {
     );
   });
 
-  it("should get all purpose templates if no filters are provided", async () => {
+  it("should get all the active, archived, suspended purpose templates and all the draft purpose templates created by the requester if no filters are provided", async () => {
     const allPurposeTemplates =
       await purposeTemplateService.getPurposeTemplates(
         {
@@ -161,7 +161,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
-      draftPurposeTemplateByCreator2,
       publishedPurposeTemplateByCreator1,
       publishedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
@@ -268,7 +267,6 @@ describe("getPurposeTemplates", async () => {
     );
     expectSinglePageListResult(result, [
       draftPurposeTemplateByCreator1,
-      draftPurposeTemplateByCreator2,
       publishedPurposeTemplateByCreator1,
       publishedPurposeTemplateByCreator2,
     ]);
@@ -304,6 +302,7 @@ describe("getPurposeTemplates", async () => {
         ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA),
         version: "1.0",
       },
+      state: purposeTemplateState.published,
     };
     const purposeTemplateWithExpiredRiskAnalysis2: PurposeTemplate = {
       ...getMockPurposeTemplate(),
@@ -313,6 +312,7 @@ describe("getPurposeTemplates", async () => {
         ...getMockValidRiskAnalysisFormTemplate(tenantKind.PRIVATE),
         version: "1.0",
       },
+      state: purposeTemplateState.published,
     };
     await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis1);
     await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis2);
@@ -331,7 +331,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
-      draftPurposeTemplateByCreator2,
       publishedPurposeTemplateByCreator1,
       publishedPurposeTemplateByCreator2,
       purposeTemplateWithExpiredRiskAnalysis1,
@@ -377,7 +376,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
-      draftPurposeTemplateByCreator2,
       publishedPurposeTemplateByCreator1,
       publishedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
@@ -417,7 +415,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
-      draftPurposeTemplateByCreator2,
       publishedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
     ]);
@@ -438,10 +435,9 @@ describe("getPurposeTemplates", async () => {
       ...result,
       results: result.results.map(sortPurposeTemplate),
     }).toEqual({
-      totalCount: 8,
+      totalCount: 7,
       results: [
         draftPurposeTemplateByCreator1,
-        draftPurposeTemplateByCreator2,
         publishedPurposeTemplateByCreator1,
         publishedPurposeTemplateByCreator2,
         suspendedPurposeTemplateByCreator1,
@@ -465,7 +461,7 @@ describe("getPurposeTemplates", async () => {
       ...result,
       results: result.results.map(sortPurposeTemplate),
     }).toEqual({
-      totalCount: 8,
+      totalCount: 7,
       results: [
         archivedPurposeTemplateByCreator1,
         archivedPurposeTemplateByCreator2,

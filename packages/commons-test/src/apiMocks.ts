@@ -7,6 +7,7 @@ import {
   tenantApi,
   authorizationApi,
   eserviceTemplateApi,
+  purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import {
@@ -52,6 +53,24 @@ export function getMockedApiPurpose({
     isFreeOfCharge: true,
     freeOfChargeReason: generateMock(z.string()),
     purposeTemplateId: generateMock(z.string().uuid().optional()),
+  };
+}
+
+export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplate {
+  return {
+    id: generateId(),
+    targetDescription: generateMock(z.string()),
+    targetTenantKind: generateMock(purposeTemplateApi.TenantKind),
+    creatorId: generateId(),
+    state: generateMock(purposeTemplateApi.PurposeTemplateState),
+    createdAt: new Date().toISOString(),
+    purposeTitle: generateMock(z.string()),
+    purposeDescription: generateMock(z.string()),
+    purposeRiskAnalysisForm: generateMock(
+      purposeTemplateApi.RiskAnalysisFormTemplate
+    ),
+    purposeIsFreeOfCharge: false,
+    handlesPersonalData: true,
   };
 }
 
