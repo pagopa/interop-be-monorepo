@@ -261,13 +261,12 @@ export const retrievePurposeDelegation = async (
   return delegation;
 };
 
-async function retrieveActivePurposeTemplate(
+async function retrievePublishedPurposeTemplate(
   templateId: PurposeTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<PurposeTemplate> {
-  const purposeTemplate = await readModelService.getActivePurposeTemplateById(
-    templateId
-  );
+  const purposeTemplate =
+    await readModelService.getPublishedPurposeTemplateById(templateId);
   if (!purposeTemplate) {
     throw purposeTemplateNotFound(templateId);
   }
@@ -1654,7 +1653,7 @@ export function purposeServiceBuilder(
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
-      const purposeTemplate = await retrieveActivePurposeTemplate(
+      const purposeTemplate = await retrievePublishedPurposeTemplate(
         purposeTemplateId,
         readModelService
       );

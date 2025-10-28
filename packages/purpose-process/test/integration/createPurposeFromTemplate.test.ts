@@ -117,7 +117,7 @@ describe("createPurposeFromTemplate", () => {
 
   const mockPurposeTemplate = getMockPurposeTemplate(
     unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId),
-    purposeTemplateState.active
+    purposeTemplateState.published
   );
   const mockPurposeTemplateWithValidRiskAnalysis: PurposeTemplate = {
     ...mockPurposeTemplate,
@@ -656,7 +656,7 @@ describe("createPurposeFromTemplate", () => {
 
     vi.useRealTimers();
   });
-  it("should throw purposeTemplateNotFound if the purpose template doesn't exists or is not active", async () => {
+  it("should throw purposeTemplateNotFound if the purpose template doesn't exists or is not published", async () => {
     await addOneTenant(tenant);
     await addOneAgreement(agreementEservice1);
     await addOneEService(eService1);

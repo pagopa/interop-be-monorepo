@@ -442,7 +442,7 @@ export function readModelServiceBuilderSQL({
         )
       )?.data;
     },
-    async getActivePurposeTemplateById(
+    async getPublishedPurposeTemplateById(
       purposeTemplateId: PurposeTemplateId
     ): Promise<PurposeTemplate | undefined> {
       return (
@@ -451,7 +451,7 @@ export function readModelServiceBuilderSQL({
             eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplateId),
             eq(
               purposeTemplateInReadmodelPurposeTemplate.state,
-              purposeTemplateState.active
+              purposeTemplateState.published
             )
           )
         )
