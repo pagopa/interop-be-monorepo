@@ -116,7 +116,8 @@ describe("createPurposeFromTemplate", () => {
 
   const mockPurposeTemplate = getMockPurposeTemplate(
     unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId),
-    purposeTemplateState.published
+    purposeTemplateState.published,
+    true
   );
   const mockPurposeTemplateWithValidRiskAnalysis: PurposeTemplate = {
     ...mockPurposeTemplate,
