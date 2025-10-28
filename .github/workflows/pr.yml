@@ -125,8 +125,9 @@ jobs:
       - name: Identify critical packages
         id: critical_packages
         run: |
-          PACKAGES=$(cat greatestFile.json)
-          echo "greatest_packages=$PACKAGES" >> $GITHUB_OUTPUT
+          CRITICAL_PACKAGES_JSON=$(cat greatestFile.json | jq -c 'map(.)')
+
+          echo "$CRITICAL_PACKAGES_JSON" >> $GITHUB_OUTPUT
 
       - name: Find packages with test directories
         id: get_all_test_packages
@@ -138,7 +139,7 @@ jobs:
 
           echo "all_test_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
-      - name: Find ALL packages (for Lint)
+      - name: Find ALL packages
         id: get_all_packages
         run: |
           PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -print | while read -r DIR; do
@@ -157,7 +158,6 @@ jobs:
           CRITICAL_PACKAGES='${{ steps.critical_packages.outputs.greatest_packages }}'
           ALL_TEST_PACKAGES='${{ steps.get_all_test_packages.outputs.all_test_packages }}'
 
-          # Funzione per creare la matrice di sharding (mantenuta invariata)
           create_shard_matrix() {
             local PACKAGES_JSON=$1
             local SHARDS_COUNT=$2
@@ -182,8 +182,7 @@ jobs:
           DYNAMIC_TEST_PACKAGES=$(
             echo "$ALL_TEST_PACKAGES" | jq --argjson critical "$CRITICAL_PACKAGES" '
             . - $critical | 
-            map(select(. != null)) 
-            '
+            map(select(. != null))'
           )
 
           DYNAMIC_SHARDS=$(

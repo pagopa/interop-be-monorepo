@@ -1,4 +1,4 @@
-[
-    "backend-for-frontend",
-    "m2m-gateway"
-]
+{
+    "backend-for-frontend": "pagopa-interop-backend-for-frontend",
+    "m2m-gateway": "pagopa-interop-m2m-gateway"
+}
