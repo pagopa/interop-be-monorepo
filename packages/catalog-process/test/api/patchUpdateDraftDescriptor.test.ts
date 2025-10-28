@@ -207,7 +207,7 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
     },
     {
       error: attributeNotFound(generateId()),
-      expectedStatus: 400,
+      expectedStatus: 404,
     },
     {
       error: templateInstanceNotAllowed(
