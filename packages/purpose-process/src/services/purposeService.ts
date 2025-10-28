@@ -1047,7 +1047,7 @@ export function purposeServiceBuilder(
         isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
         purpose.data.purposeTemplateId
       ) {
-        await retrieveActivePurposeTemplate(
+        await retrievePublishedPurposeTemplate(
           purpose.data.purposeTemplateId,
           readModelService
         );
