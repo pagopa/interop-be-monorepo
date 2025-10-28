@@ -1,6 +1,11 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeTemplateId } from "pagopa-interop-models";
+import {
+  PurposeTemplateId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -61,6 +66,36 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      {
+        purposeTemplateId,
+        answerId,
+        documentId,
+      }: {
+        purposeTemplateId: PurposeTemplateId;
+        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      },
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      const { data } =
+        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnswerAnnotationDocument(
+          {
+            params: {
+              purposeTemplateId,
+              answerId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      return data;
     },
     async createPurposeTemplate(): Promise<void> {
       return Promise.resolve();
