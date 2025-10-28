@@ -275,13 +275,27 @@ function validateAnswerValue(
   answer: RiskAnalysisTemplateAnswerToValidate,
   rule: ValidationRule
 ): RiskAnalysisTemplateValidationIssue[] {
+  const hasSuggestions = answer.suggestedValues.length > 0;
+  const hasValues = answer.values.length > 0;
+
   return match(rule)
     .with({ dataType: "freeText" }, (freeTextRule) =>
-      validateFreeTextAnswer(freeTextRule, answer)
+      validateFreeTextAnswer(
+        freeTextRule,
+        hasValues,
+        hasSuggestions,
+        answer.editable
+      )
     )
 
     .with({ dataType: P.not("freeText") }, (nonFreeTextRule) =>
-      validateNonFreeTextAnswer(nonFreeTextRule, answer)
+      validateNonFreeTextAnswer(
+        nonFreeTextRule,
+        answer,
+        hasValues,
+        hasSuggestions,
+        answer.editable
+      )
     )
 
     .exhaustive();
@@ -289,12 +303,11 @@ function validateAnswerValue(
 
 function validateFreeTextAnswer(
   rule: ValidationRule,
-  answer: RiskAnalysisTemplateAnswerToValidate
+  hasValues: boolean,
+  hasSuggestions: boolean,
+  isEditable: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
-  const hasSuggestion = answer.suggestedValues.length > 0;
-  const hasValues = answer.values.length > 0;
-
-  if (answer.editable) {
+  if (isEditable) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
@@ -306,29 +319,47 @@ function validateFreeTextAnswer(
     ];
   }
 
-  if (!hasSuggestion) {
+  if (!hasSuggestions) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
   }
 
+  // Free text answers must have suggested values, not be editable and not have values
   return [];
 }
 
 function validateNonFreeTextAnswer(
   rule: ValidationRule,
-  answer: RiskAnalysisTemplateAnswerToValidate
+  answer: RiskAnalysisTemplateAnswerToValidate,
+  hasValues: boolean,
+  hasSuggestions: boolean,
+  isEditable: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
-  const hasSuggestion = answer.suggestedValues.length > 0;
-  const hasValues = answer.values.length > 0;
+  // Non free text answers cannot have suggested values
+  if (hasSuggestions) {
+    return [
+      unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
+  }
 
-  if (answer.editable && hasValues) {
+  // If answer is editable, it must NOT have values
+  if (isEditable && hasValues) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
   }
 
-  if (!answer.editable) {
+  if (!isEditable) {
+    // If answer is not editable, it must have values
+    if (!hasValues) {
+      return [
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          rule.fieldName
+        ),
+      ];
+    }
+    // If answer is not editable and has values, those values must be allowed
     if (
       rule.allowedValues &&
       answer.values.some((e) => !rule.allowedValues?.has(e))
@@ -340,20 +371,6 @@ function validateNonFreeTextAnswer(
         ),
       ];
     }
-
-    if (!hasValues) {
-      return [
-        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
-          rule.fieldName
-        ),
-      ];
-    }
-  }
-
-  if (hasSuggestion) {
-    return [
-      unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
-    ];
   }
 
   return [];
