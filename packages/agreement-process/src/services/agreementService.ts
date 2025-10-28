@@ -663,7 +663,7 @@ export function agreementServiceBuilder(
             )
           : [];
 
-      const createdEvents = await repository.createEventsV2([
+      const createdEvents = await repository.createEvents([
         agreementEvent,
         ...archivedAgreementsUpdates,
       ]);
@@ -671,7 +671,7 @@ export function agreementServiceBuilder(
       return {
         data: submittedAgreement,
         metadata: {
-          version: createdEvents.latestVersion,
+          version: createdEvents.latestNewVersion,
         },
       };
     },
@@ -797,7 +797,7 @@ export function agreementServiceBuilder(
         logger,
       });
 
-      const createdEvents = await repository.createEventsV2(events);
+      const createdEvents = await repository.createEvents(events);
       const newVersion = Math.max(
         0,
         ...createdEvents.events.map((event) => event.newVersion)
@@ -1405,14 +1405,14 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      const createdEvents = await repository.createEventsV2([
+      const createdEvents = await repository.createEvents([
         ...activationEvents,
         ...archiveEvents,
       ]);
 
       return {
         data: updatedAgreement,
-        metadata: { version: createdEvents.latestVersion },
+        metadata: { version: createdEvents.latestNewVersion },
       };
     },
     async archiveAgreement(

@@ -919,11 +919,11 @@ export function catalogServiceBuilder(
         ctx
       );
 
-      const createdEvents = await repository.createEventsV2(events);
+      const createdEvents = await repository.createEvents(events);
 
       return {
         data: eService,
-        metadata: { version: createdEvents.latestVersion },
+        metadata: { version: createdEvents.latestNewVersion },
       };
     },
 
@@ -1053,7 +1053,7 @@ export function catalogServiceBuilder(
           eserviceWithoutDescriptors,
           correlationId
         );
-        await repository.createEventsV2([
+        await repository.createEvents([
           descriptorDeletionEvent,
           eserviceDeletionEvent,
         ]);
@@ -1399,14 +1399,14 @@ export function catalogServiceBuilder(
           }
         );
 
-      const createdEvents = await repository.createEventsV2(events);
+      const createdEvents = await repository.createEvents(events);
 
       return {
         data: {
           eservice: updatedEServiceWithDocs,
           createdDescriptorId: newDescriptor.id,
         },
-        metadata: { version: createdEvents.latestVersion },
+        metadata: { version: createdEvents.latestNewVersion },
       };
     },
 
@@ -1460,7 +1460,7 @@ export function catalogServiceBuilder(
           eserviceAfterDescriptorDeletion,
           correlationId
         );
-        await repository.createEventsV2([
+        await repository.createEvents([
           descriptorDeletionEvent,
           eserviceDeletionEvent,
         ]);
@@ -2552,11 +2552,11 @@ export function catalogServiceBuilder(
         .exhaustive();
 
       if (events) {
-        const createdEvents = await repository.createEventsV2(events);
+        const createdEvents = await repository.createEvents(events);
 
         return {
           data: updatedEservice,
-          metadata: { version: createdEvents.latestVersion },
+          metadata: { version: createdEvents.latestNewVersion },
         };
       }
       return eservice;
@@ -3393,7 +3393,7 @@ export function catalogServiceBuilder(
         lastEService = eService;
       }
 
-      await repository.createEventsV2([...events, ...docEvents]);
+      await repository.createEvents([...events, ...docEvents]);
 
       return lastEService;
     },
@@ -3592,7 +3592,7 @@ export function catalogServiceBuilder(
         })
       );
 
-      await repository.createEventsV2(events);
+      await repository.createEvents(events);
 
       return updatedDescriptor;
     },

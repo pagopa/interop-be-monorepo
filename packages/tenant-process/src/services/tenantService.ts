@@ -559,14 +559,14 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        const createdEvents = await repository.createEventsV2([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
 
         return {
           data: updatedTenant,
-          metadata: { version: createdEvents.latestVersion },
+          metadata: { version: createdEvents.latestNewVersion },
         };
       }
       const { newVersion } = await repository.createEvent(
@@ -761,14 +761,14 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        const createdEvents = await repository.createEventsV2([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
 
         return {
           data: updatedTenant,
-          metadata: { version: createdEvents.latestVersion },
+          metadata: { version: createdEvents.latestNewVersion },
         };
       }
 
@@ -1066,7 +1066,7 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEventsV2([
+        await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
@@ -1149,7 +1149,7 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEventsV2([
+        await repository.createEvents([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
@@ -1527,7 +1527,7 @@ export function tenantServiceBuilder(
         // eslint-disable-next-line functional/immutable-data
         events.push(tenantKindUpdatedEvent);
       }
-      await repository.createEventsV2([...events]);
+      await repository.createEvents([...events]);
 
       return tenantWithUpdatedKind;
     },
@@ -1632,7 +1632,7 @@ export function tenantServiceBuilder(
         // eslint-disable-next-line functional/immutable-data
         events.push(tenantKindUpdatedEvent);
       }
-      await repository.createEventsV2([...events]);
+      await repository.createEvents([...events]);
 
       return tenantWithUpdatedKind;
     },
@@ -1778,7 +1778,7 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEventsV2([
+        await repository.createEvents([
           attributeAssignmentEvent,
           tenantKindUpdatedEvent,
         ]);
@@ -1856,7 +1856,7 @@ export function tenantServiceBuilder(
         .with(
           [P.nonNullable, P.nonNullable],
           async ([delegatedConsumerEvent, delegatedProducerEvent]) =>
-            repository.createEventsV2([
+            repository.createEvents([
               delegatedConsumerEvent.event,
               {
                 ...delegatedProducerEvent.event,

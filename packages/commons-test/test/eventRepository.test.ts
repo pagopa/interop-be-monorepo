@@ -80,7 +80,7 @@ describe("EventRepository tests", async () => {
     );
 
     expect(
-      await repository.createEventsV2([
+      await repository.createEvents([
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
@@ -124,7 +124,7 @@ describe("EventRepository tests", async () => {
     );
 
     await expect(
-      repository.createEventsV2([
+      repository.createEvents([
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
@@ -161,7 +161,7 @@ describe("EventRepository tests", async () => {
     );
 
     expect(
-      await repository.createEventsV2([
+      await repository.createEvents([
         eserviceCreationEvent,
         descriptorCreationEvent1,
         descriptorCreationEvent2,

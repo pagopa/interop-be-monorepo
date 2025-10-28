@@ -1503,14 +1503,14 @@ export function eserviceTemplateServiceBuilder(
         }
       );
 
-      const createdEvents = await repository.createEventsV2(events);
+      const createdEvents = await repository.createEvents(events);
 
       return {
         data: {
           eserviceTemplate: updatedEServiceTemplateWithDocs,
           createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
         },
-        metadata: { version: createdEvents.latestVersion },
+        metadata: { version: createdEvents.latestNewVersion },
       };
     },
     async getEServiceTemplates(
@@ -1987,7 +1987,7 @@ export function eserviceTemplateServiceBuilder(
             eserviceTemplateWithoutVersions,
             correlationId
           );
-        await repository.createEventsV2([
+        await repository.createEvents([
           versionDeletionEvent,
           eserviceTemplateDeletionEvent,
         ]);
