@@ -118,6 +118,63 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/purposes/{purposeId}/versions/{versionId}/riskAnalysisDocument:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        description: The purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The purpose version id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an unsigned Risk Analysis document to the purpose version
+      summary: Add unsigned Risk Analysis metadata to purpose version
+      tags:
+        - purpose
+      operationId: addUnsignedRiskAnalysisDocumentMetadata
+      requestBody:
+        description: The unsigned Risk Analysis document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeVersionDocument"
+      responses:
+        "204":
+          description: Risk Analysis metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose or Purpose Version not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1024,6 +1081,123 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/{purposeTemplateId}/purposes:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purpose
+      operationId: createPurposeFromTemplate
+      description: Creates the Purpose from a Purpose Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeFromTemplateSeed"
+        required: true
+      responses:
+        "200":
+          description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/{purposeTemplateId}/purposes/{purposeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: purposeId
+        in: path
+        description: the purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags:
+        - purpose
+      operationId: patchUpdatePurposeFromTemplate
+      description: Partially update a Purpose from a Purpose Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPurposeUpdateFromTemplateContent"
+        required: true
+      responses:
+        "200":
+          description: Purpose updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:
@@ -1223,6 +1397,9 @@ components:
         delegationId:
           type: string
           format: uuid
+        purposeTemplateId:
+          type: string
+          format: uuid
       required:
         - id
         - eserviceId
@@ -1296,6 +1473,26 @@ components:
         freeOfChargeReason:
           type: string
           nullable: true
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+          description: |
+            Optional in the purpose model, but a purpose cannot exist without a risk analysis.
+            There is no practical use in letting the user remove it, we don't make it nullable.
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+    PatchPurposeUpdateFromTemplateContent:
+      type: object
+      additionalProperties: false
+      description: Contains the expected payload for purpose update from template
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
           description: |
@@ -1476,6 +1673,37 @@ components:
         - riskAnalysisId
         - description
         - isFreeOfCharge
+        - dailyCalls
+    PurposeFromTemplateSeed:
+      type: object
+      additionalProperties: false
+      description: contains the expected payload for purpose creation from a purpose template
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+        consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        dailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - eserviceId
+        - consumerId
+        - title
         - dailyCalls
     PurposeSeed:
       type: object

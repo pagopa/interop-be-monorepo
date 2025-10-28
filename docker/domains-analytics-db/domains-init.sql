@@ -632,6 +632,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template (
   purpose_is_free_of_charge BOOLEAN NOT NULL,
   purpose_free_of_charge_reason VARCHAR(2048),
   purpose_daily_calls INTEGER,
+  handles_personal_data BOOLEAN NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

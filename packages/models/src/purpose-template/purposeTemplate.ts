@@ -10,7 +10,7 @@ import { TenantKind } from "../tenant/tenant.js";
 
 export const purposeTemplateState = {
   draft: "Draft",
-  active: "Active",
+  published: "Published",
   suspended: "Suspended",
   archived: "Archived",
 } as const;
@@ -44,5 +44,6 @@ export const PurposeTemplate = z.object({
   purposeIsFreeOfCharge: z.boolean(),
   purposeFreeOfChargeReason: z.string().optional(),
   purposeDailyCalls: z.number().optional(),
+  handlesPersonalData: z.boolean(),
 });
 export type PurposeTemplate = z.infer<typeof PurposeTemplate>;
