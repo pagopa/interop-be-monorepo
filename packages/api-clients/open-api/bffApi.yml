@@ -2578,6 +2578,14 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog":
+    parameters:
+      - name: personalData
+        description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned, if defined all e-services with a defined personal data flag will be returned
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/PersonalDataFilter"
+
     get:
       tags:
         - eservices
@@ -2638,12 +2646,6 @@ paths:
           description: EService isConsumerDelegable filter
           schema:
             type: boolean
-        - in: query
-          name: personalData
-          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned, if defined all e-services with a defined personal data flag will be returned
-          required: false
-          schema:
-            $ref: "#/components/schemas/PersonalDataFilter"
         - in: query
           name: offset
           required: true
@@ -7027,6 +7029,13 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers/eservices":
+    parameters:
+      - name: personalData
+        description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned, if defined all e-services with a defined personal data flag will be returned
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/PersonalDataFilter"
     get:
       tags:
         - eservices
@@ -7054,12 +7063,6 @@ paths:
           description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
           schema:
             type: boolean
-        - in: query
-          name: personalData
-          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned, if defined all e-services with a defined personal data flag will be returned
-          required: false
-          schema:
-            $ref: "#/components/schemas/PersonalDataFilter"
         - in: query
           name: offset
           required: true
