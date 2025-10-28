@@ -1938,7 +1938,7 @@ describe("get eservices", () => {
     );
   });
 
-  it.each(["true", "false", "defined", undefined] as PersonalDataFilter[])(
+  it.each(["true", "false", "defined"] as PersonalDataFilter[])(
     "should get the eServices if they exist (parameters: personalData = %s)",
     async (personalData) => {
       const result = await catalogService.getEServices(
@@ -1962,14 +1962,6 @@ describe("get eservices", () => {
         .with("true", () => [eservice1, eservice2])
         .with("false", () => [eservice3, eservice4])
         .with("defined", () => [eservice1, eservice2, eservice3, eservice4])
-        .with(undefined, () => [
-          eservice1,
-          eservice2,
-          eservice3,
-          eservice4,
-          eservice5,
-          eservice6,
-        ])
         .exhaustive();
 
       expect(result.totalCount).toBe(expectedEServices.length);
