@@ -17,6 +17,7 @@ import {
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
+  notValidEServiceTemplateVersionStatePublished,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/activate", () => {
@@ -88,6 +89,12 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/activate",
         eserviceTemplateVersionState.draft
       ),
       expectedStatus: 400,
+    },
+    {
+      error: notValidEServiceTemplateVersionStatePublished(
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
