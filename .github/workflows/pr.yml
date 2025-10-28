@@ -44,73 +44,6 @@ jobs:
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
-  # packages_sharding:
-  #   name: Create packages sharding
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #   outputs:
-  #     test_matrix: ${{ steps.sharded_packages.outputs.test_matrix }}
-  #     lint_matrix: ${{ steps.sharded_packages.outputs.lint_matrix }}
-  #   steps:
-  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
-  #     - name: Find packages with test directories
-  #       id: get_test_packages
-  #       run: |
-  #         PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
-  #           PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
-  #           echo "$PACKAGE_NAME"
-  #         done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
-
-  #         echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
-
-  #     - name: Find ALL packages
-  #       id: get_all_packages
-  #       run: |
-  #         PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -print | while read -r DIR; do
-  #           PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json" 2>/dev/null)
-  #           if [ -n "$PACKAGE_NAME" ]; then
-  #             echo "$PACKAGE_NAME"
-  #           fi
-  #         done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
-
-  #         echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
-
-  #     - name: Create shards matrices
-  #       id: sharded_packages
-  #       run: |
-  #         SHARD_NUM=10
-
-  #         create_shard_matrix() {
-  #           local PACKAGES_JSON=$1
-  #           local PACK_NUM=$2
-  #           local OUTPUT_VAR=$3
-
-  #           matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
-  #             [range(0; $shardNum) as $i |
-  #             {
-  #               "shardIndex": ($i + 1),
-  #               "packages": ($packs[
-  #               ($i * $len / $shardNum | floor):
-  #               (($i + 1) * $len / $shardNum | floor)
-  #               ])
-  #             }
-  #             ]')
-
-  #           echo "$OUTPUT_VAR=$matrix" >> $GITHUB_OUTPUT
-  #         }
-
-  #         # TEST
-  #         TEST_PACKAGES_JSON='${{ steps.get_test_packages.outputs.test_packages }}'
-  #         TEST_PACK_NUM=$(echo "$TEST_PACKAGES_JSON" | jq -r length)
-  #         create_shard_matrix "$TEST_PACKAGES_JSON" "$TEST_PACK_NUM" "test_matrix"
-
-  #         # LINT
-  #         ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
-  #         ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
-  #         create_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "lint_matrix"
-
   packages_sharding:
     name: Create packages sharding
     runs-on: ubuntu-latest
@@ -122,22 +55,15 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Identify critical packages
-        id: critical_packages
-        run: |
-          CRITICAL_PACKAGES_JSON=$(cat greatestFile.json | jq -c 'map(.)')
-
-          echo "$CRITICAL_PACKAGES_JSON" >> $GITHUB_OUTPUT
-
       - name: Find packages with test directories
-        id: get_all_test_packages
+        id: get_test_packages
         run: |
           PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
             echo "$PACKAGE_NAME"
           done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
 
-          echo "all_test_packages=$PACKAGES" >> $GITHUB_OUTPUT
+          echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Find ALL packages
         id: get_all_packages
@@ -151,21 +77,17 @@ jobs:
 
           echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
-      - name: Create shards matrices (Dynamic + Static)
+      - name: Create shards matrices
         id: sharded_packages
         run: |
-          SHARD_NUM=10  
-          CRITICAL_PACKAGES='${{ steps.critical_packages.outputs.greatest_packages }}'
-          ALL_TEST_PACKAGES='${{ steps.get_all_test_packages.outputs.all_test_packages }}'
+          SHARD_NUM=10
 
           create_shard_matrix() {
             local PACKAGES_JSON=$1
-            local SHARDS_COUNT=$2
+            local PACK_NUM=$2
             local OUTPUT_VAR=$3
 
-            PACK_NUM=$(echo "$PACKAGES_JSON" | jq -r length)
-            
-            matrix=$(jq --argjson shardNum "$SHARDS_COUNT" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
+            matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
               [range(0; $shardNum) as $i |
               {
                 "shardIndex": ($i + 1),
@@ -174,48 +96,20 @@ jobs:
                 (($i + 1) * $len / $shardNum | floor)
                 ])
               }
-              ]'
-            )
+              ]')
+
             echo "$OUTPUT_VAR=$matrix" >> $GITHUB_OUTPUT
           }
 
-          DYNAMIC_TEST_PACKAGES=$(
-            echo "$ALL_TEST_PACKAGES" | jq --argjson critical "$CRITICAL_PACKAGES" '
-            . - $critical | 
-            map(select(. != null))'
-          )
+          # TEST
+          TEST_PACKAGES_JSON='${{ steps.get_test_packages.outputs.test_packages }}'
+          TEST_PACK_NUM=$(echo "$TEST_PACKAGES_JSON" | jq -r length)
+          create_shard_matrix "$TEST_PACKAGES_JSON" "$TEST_PACK_NUM" "test_matrix"
 
-          DYNAMIC_SHARDS=$(
-            jq --argjson shardNum "$SHARD_NUM" --argjson packs "$DYNAMIC_TEST_PACKAGES" --argjson len "$(echo "$DYNAMIC_TEST_PACKAGES" | jq -r length)" -n -c '
-              [range(0; $shardNum) as $i |
-              {
-                "shardIndex": ($i + 1),
-                "packages": ($packs[
-                ($i * $len / $shardNum | floor):
-                (($i + 1) * $len / $shardNum | floor)
-                ])
-              }
-              ]'
-          )
-
-          STATIC_SHARDS=$(
-            echo "$CRITICAL_PACKAGES" | jq --argjson start_index "$SHARD_NUM" '
-            [
-              .[_n] as $package | 
-              {
-                "shardIndex": ($start_index + _n + 1),
-                "packages": [$package]
-              }
-            ]'
-          )
-
-          FINAL_TEST_MATRIX=$(echo "$DYNAMIC_SHARDS" "$STATIC_SHARDS" | jq -s '.[0] + .[1]')
-
-          echo "test_matrix=$FINAL_TEST_MATRIX" >> $GITHUB_OUTPUT
-
+          # LINT
           ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
           ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
-          create_shard_matrix "$ALL_PACKAGES_JSON" "$SHARD_NUM" "lint_matrix"
+          create_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "lint_matrix"
 
   build:
     name: Full project build
