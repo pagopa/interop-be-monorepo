@@ -17,13 +17,59 @@ import { expectedUserIdAndOrganizationId } from "../../utils.js";
 describe("API GET /userNotificationConfigs", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
-  const clientResponse: notificationConfigApi.UserNotificationConfig =
-    generateMock(notificationConfigApi.UserNotificationConfig);
+  const {
+    inAppNotificationPreference,
+    emailNotificationPreference,
+    inAppConfig: {
+      clientKeyAddedDeletedToClientUsers:
+        inAppClientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        inAppProducerKeychainKeyAddedDeletedToClientUsers,
+      ...inAppConfig
+    },
+    emailConfig: {
+      clientKeyAddedDeletedToClientUsers:
+        emailClientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        emailProducerKeychainKeyAddedDeletedToClientUsers,
+      ...emailConfig
+    },
+  }: notificationConfigApi.UserNotificationConfig = generateMock(
+    notificationConfigApi.UserNotificationConfig
+  );
+  const clientResponse = {
+    inAppNotificationPreference,
+    emailNotificationPreference,
+    inAppConfig: {
+      ...inAppConfig,
+      clientKeyAddedDeletedToClientUsers:
+        inAppClientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        inAppProducerKeychainKeyAddedDeletedToClientUsers,
+    },
+    emailConfig: {
+      ...emailConfig,
+      clientKeyAddedDeletedToClientUsers:
+        emailClientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        emailProducerKeychainKeyAddedDeletedToClientUsers,
+    },
+  };
   const apiResponse: bffApi.UserNotificationConfig = {
-    inAppNotificationPreference: clientResponse.inAppNotificationPreference,
-    emailNotificationPreference: clientResponse.emailNotificationPreference,
-    inAppConfig: clientResponse.inAppConfig,
-    emailConfig: clientResponse.emailConfig,
+    inAppNotificationPreference,
+    emailNotificationPreference,
+    inAppConfig: {
+      ...inAppConfig,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        inAppClientKeyAddedDeletedToClientUsers ||
+        inAppProducerKeychainKeyAddedDeletedToClientUsers,
+    },
+    emailConfig: {
+      ...emailConfig,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        emailClientKeyAddedDeletedToClientUsers ||
+        emailProducerKeychainKeyAddedDeletedToClientUsers,
+    },
   };
 
   beforeEach(() => {

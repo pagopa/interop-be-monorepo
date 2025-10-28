@@ -36,6 +36,10 @@ import {
   TenantDbTableReadModel,
   TenantDbPartialTableReadModel,
 } from "./tenant.js";
+import {
+  PurposeTemplateDbTableConfig,
+  PurposeTemplateDbTableReadModel,
+} from "./purposeTemplate.js";
 
 export const PartialDbTable = {
   ...TenantDbPartialTableConfig,
@@ -55,6 +59,7 @@ export const DomainDbTable = {
   ...ClientDbTableConfig,
   ...ProducerKeychainDbTableConfig,
   ...EserviceTemplateDbTableConfig,
+  ...PurposeTemplateDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
 export type DomainDbTable = keyof DomainDbTableSchemas;
@@ -77,6 +82,7 @@ export const DomainDbTableReadModels = {
   ...ClientDbTableReadModel,
   ...ProducerKeychainDbTableReadModel,
   ...EserviceTemplateDbTableReadModel,
+  ...PurposeTemplateDbTableReadModel,
 } as const;
 export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
 
@@ -103,3 +109,4 @@ export * from "./delegation.js";
 export * from "./tenant.js";
 export * from "./deleting.js";
 export * from "./eserviceTemplate.js";
+export * from "./purposeTemplate.js";

@@ -6,21 +6,26 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
-  Tenant,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
   TenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeTemplateEServiceDescriptor,
+  aggregatePurposeTemplateEServiceDescriptorArray,
   CatalogReadModelService,
-  TenantReadModelService,
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
-  aggregatePurposeTemplateEServiceDescriptor,
+  toRiskAnalysisTemplateAnswerAnnotationDocument,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  eserviceInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
@@ -55,6 +60,13 @@ export type GetPurposeTemplatesFilters = {
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
   excludeExpiredRiskAnalysis?: boolean;
+  handlesPersonalData?: boolean;
+};
+
+export type GetPurposeTemplateEServiceDescriptorsFilters = {
+  purposeTemplateId: PurposeTemplateId;
+  producerIds: TenantId[];
+  eserviceIds: EServiceId[];
 };
 
 const getPurposeTemplatesFilters = (
@@ -68,6 +80,7 @@ const getPurposeTemplatesFilters = (
     states,
     targetTenantKind,
     excludeExpiredRiskAnalysis,
+    handlesPersonalData,
   } = filters;
 
   const purposeTitleFilter = purposeTitle
@@ -136,13 +149,22 @@ const getPurposeTemplatesFilters = (
       )
     : undefined;
 
+  const handlesPersonalDataFilter =
+    handlesPersonalData !== undefined
+      ? eq(
+          purposeTemplateInReadmodelPurposeTemplate.handlesPersonalData,
+          handlesPersonalData
+        )
+      : undefined;
+
   return and(
     purposeTitleFilter,
     creatorIdsFilter,
     eserviceIdsFilter,
     statesFilter,
     targetTenantKindFilter,
-    excludeExpiredRiskAnalysisFilters
+    excludeExpiredRiskAnalysisFilters,
+    handlesPersonalDataFilter
   );
 };
 
@@ -150,12 +172,10 @@ const getPurposeTemplatesFilters = (
 export function readModelServiceBuilderSQL({
   readModelDB,
   catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   catalogReadModelServiceSQL: CatalogReadModelService;
-  tenantReadModelServiceSQL: TenantReadModelService;
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
@@ -270,12 +290,62 @@ export function readModelServiceBuilderSQL({
     async getPurposeTemplateById(
       purposeTemplateId: PurposeTemplateId
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      return purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
         purposeTemplateId
       );
     },
-    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
-      return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+    ): Promise<
+      WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
+    > {
+      const queryResult = await readModelDB
+        .select({
+          riskAnalysisAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+        })
+        .from(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .innerJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
+              documentId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+              answerId
+            )
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      const { riskAnalysisAnswerAnnotationDocument } = queryResult[0];
+      return {
+        data: toRiskAnalysisTemplateAnswerAnnotationDocument(
+          riskAnalysisAnswerAnnotationDocument
+        ),
+        metadata: {
+          version: riskAnalysisAnswerAnnotationDocument.metadataVersion,
+        },
+      };
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,
@@ -310,6 +380,61 @@ export function readModelServiceBuilderSQL({
         aggregatePurposeTemplateEServiceDescriptor(queryResult[0]);
 
       return purposeTemplateEServiceDescriptor.data;
+    },
+    async getPurposeTemplateEServiceDescriptors(
+      filters: GetPurposeTemplateEServiceDescriptorsFilters,
+      { limit, offset }: { limit: number; offset: number }
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const { purposeTemplateId, producerIds, eserviceIds } = filters;
+
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+            )
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            producerIds.length > 0
+              ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
+              : undefined,
+            eserviceIds.length > 0
+              ? inArray(
+                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                  eserviceIds
+                )
+              : undefined
+          )
+        )
+        .orderBy(
+          purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.createdAt
+        )
+        .limit(limit)
+        .offset(offset);
+
+      const purposeTemplateEServiceDescriptors =
+        aggregatePurposeTemplateEServiceDescriptorArray(queryResult);
+
+      return createListResult(
+        purposeTemplateEServiceDescriptors.map(
+          (eserviceDescriptor) => eserviceDescriptor.data
+        ),
+        queryResult[0]?.totalCount
+      );
     },
   };
 }

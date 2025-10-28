@@ -9,4 +9,5 @@ export type GetEServiceTemplatesFilters = {
   eserviceTemplatesIds: EServiceTemplateId[];
   creatorsIds: TenantId[];
   states: EServiceTemplateVersionState[];
+  personalData?: boolean;
 };

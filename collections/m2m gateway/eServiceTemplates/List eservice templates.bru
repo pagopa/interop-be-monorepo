@@ -1,0 +1,24 @@
+meta {
+  name: List eservice templates
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-m2m-gw}}/eserviceTemplates?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+vars:post-response {
+  templateId: res.body.results.at(-1).id
+}

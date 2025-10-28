@@ -67,7 +67,7 @@ describe("update descriptor", () => {
           dailyCallsTotal: descriptor.dailyCallsTotal + 10,
         };
 
-      const updatedEService: EService = {
+      const expectedEService: EService = {
         ...eservice,
         descriptors: [
           {
@@ -78,7 +78,7 @@ describe("update descriptor", () => {
           },
         ],
       };
-      const returnedEService = await catalogService.updateDescriptor(
+      const updateDescriptorReturn = await catalogService.updateDescriptor(
         eservice.id,
         descriptor.id,
         expectedDescriptorQuotasSeed,
@@ -95,8 +95,14 @@ describe("update descriptor", () => {
         messageType: EServiceDescriptorQuotasUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        eservice: toEServiceV2(expectedEService),
+        descriptorId: descriptor.id,
+      });
+      expect(updateDescriptorReturn).toEqual({
+        data: expectedEService,
+        metadata: { version: 1 },
+      });
     }
   );
 
@@ -133,7 +139,7 @@ describe("update descriptor", () => {
           dailyCallsTotal: descriptor.dailyCallsTotal + 10,
         };
 
-      const updatedEService: EService = {
+      const expectedEService: EService = {
         ...eservice,
         descriptors: [
           {
@@ -144,7 +150,7 @@ describe("update descriptor", () => {
           },
         ],
       };
-      const returnedEService = await catalogService.updateDescriptor(
+      const updateDescriptorReturn = await catalogService.updateDescriptor(
         eservice.id,
         descriptor.id,
         expectedDescriptorQuotasSeed,
@@ -161,8 +167,14 @@ describe("update descriptor", () => {
         messageType: EServiceDescriptorQuotasUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        eservice: toEServiceV2(expectedEService),
+        descriptorId: descriptor.id,
+      });
+      expect(updateDescriptorReturn).toEqual({
+        data: expectedEService,
+        metadata: { version: 1 },
+      });
     }
   );
 

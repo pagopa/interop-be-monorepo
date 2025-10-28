@@ -44,7 +44,9 @@ export async function handleEServiceEvent(
           "EServiceSignalHubDisabled",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
-          "EServiceRiskAnalysisDeleted"
+          "EServiceRiskAnalysisDeleted",
+          "EServicePersonalDataFlagUpdatedAfterPublication",
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
         ),
       },
       async (event) => {

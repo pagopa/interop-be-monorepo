@@ -68,7 +68,7 @@ describe("updateEServiceTemplateIntendedTarget", () => {
       toEServiceTemplateV2(updatedEServiceTemplate)
     );
     expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate)
+      toEServiceTemplateV2(returnedEServiceTemplate.data)
     );
   });
 

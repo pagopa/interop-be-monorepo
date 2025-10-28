@@ -12,7 +12,10 @@ import {
   Agreement,
   EService,
   EServiceId,
+  EServiceTemplateId,
   NotificationConfig,
+  Purpose,
+  PurposeId,
   Tenant,
   TenantId,
   UserId,
@@ -24,12 +27,14 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   NotificationConfigReadModelService,
+  PurposeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -41,6 +46,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   agreementReadModelServiceSQL: AgreementReadModelService;
@@ -49,6 +55,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: DelegationReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
+  purposeReadModelServiceSQL: PurposeReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -107,6 +114,9 @@ export function readModelServiceBuilderSQL({
 
       return notificationConfig?.data;
     },
+    async getPurposeById(purposeId: PurposeId): Promise<Purpose | undefined> {
+      return (await purposeReadModelServiceSQL.getPurposeById(purposeId))?.data;
+    },
     async getActiveProducerDelegation(
       eserviceId: EServiceId,
       producerId: TenantId
@@ -135,6 +145,13 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
       return attributeWithMetadata.data;
+    },
+    async getEServicesByTemplateId(
+      templateId: EServiceTemplateId
+    ): Promise<EService[]> {
+      return await catalogReadModelServiceSQL.getEServicesByFilter(
+        eq(eserviceInReadmodelCatalog.templateId, templateId)
+      );
     },
   };
 }

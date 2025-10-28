@@ -14,6 +14,7 @@ import {
 import {
   DelegationHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -65,7 +66,7 @@ export async function handleConsumerDelegationApproved(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `La tua richiesta di delega è stata accettata`,
@@ -73,11 +74,12 @@ export async function handleConsumerDelegationApproved(
         title: `La tua richiesta di delega è stata accettata`,
         notificationType,
         entityId: delegation.id,
-        delegatorName: delegator.name,
+        ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

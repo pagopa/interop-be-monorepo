@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/eservices?offset=0&limit=50&name=2&isSignalHubEnabled=true
+  url: {{host-m2m-gw}}/eservices?offset=0&limit=50
   body: none
   auth: none
 }
@@ -13,8 +13,8 @@ get {
 params:query {
   offset: 0
   limit: 50
-  name: 2
-  isSignalHubEnabled: true
+  ~name: 2
+  ~isSignalHubEnabled: true
   ~producerIds: 
   ~templateIds: 
   ~technology: SOAP

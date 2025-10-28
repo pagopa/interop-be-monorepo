@@ -13,6 +13,7 @@ import {
 import {
   AgreementHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -49,7 +50,7 @@ export async function handleAgreementSubmitted(
     readModelService,
     userService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
@@ -59,7 +60,7 @@ export async function handleAgreementSubmitted(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Nuova richiesta di fruizione per un tuo e-service`,
@@ -67,12 +68,13 @@ export async function handleAgreementSubmitted(
         title: `Nuova richiesta di fruizione per un tuo e-service`,
         notificationType,
         entityId: agreement.id,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         consumerName: consumer.name,
-        producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

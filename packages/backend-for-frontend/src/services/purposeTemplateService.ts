@@ -1,11 +1,25 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable max-params */
+import { randomUUID } from "crypto";
 import {
   bffApi,
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
-import { PurposeTemplateId, TenantKind } from "pagopa-interop-models";
 import {
+  assertFeatureFlagEnabled,
+  FileManager,
+  validateAndStorePDFDocument,
+  WithLogger,
+} from "pagopa-interop-commons";
+import {
+  PurposeTemplateId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  TenantKind,
+} from "pagopa-interop-models";
+import {
+  CatalogProcessClient,
   PurposeTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -14,13 +28,18 @@ import { config } from "../config/config.js";
 import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
+  toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
+  toBffPurposeTemplateWithCompactCreator,
+  toCompactPurposeTemplateEService,
 } from "../api/purposeTemplateApiConverter.js";
-import { tenantNotFound } from "../model/errors.js";
+import { eserviceDescriptorNotFound, tenantNotFound } from "../model/errors.js";
+import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: PurposeTemplateProcessClient,
-  tenantProcessClient: TenantProcessClient
+  tenantProcessClient: TenantProcessClient,
+  catalogProcessClient: CatalogProcessClient,
+  fileManager: FileManager
 ) {
   async function getTenantsFromPurposeTemplates(
     tenantClient: TenantProcessClient,
@@ -154,6 +173,7 @@ export function purposeTemplateServiceBuilder(
       creatorIds,
       eserviceIds,
       excludeExpiredRiskAnalysis,
+      handlesPersonalData,
       offset,
       limit,
       ctx,
@@ -163,6 +183,7 @@ export function purposeTemplateServiceBuilder(
       creatorIds: string[];
       eserviceIds: string[];
       excludeExpiredRiskAnalysis: boolean;
+      handlesPersonalData: boolean | undefined;
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
@@ -182,8 +203,9 @@ export function purposeTemplateServiceBuilder(
             targetTenantKind,
             creatorIds,
             eserviceIds,
-            states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
+            states: [purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED],
             excludeExpiredRiskAnalysis,
+            handlesPersonalData,
             limit,
             offset,
           },
@@ -196,14 +218,14 @@ export function purposeTemplateServiceBuilder(
       );
 
       const results = catalogPurposeTemplatesResponse.results.map(
-        (template) => {
-          const creator = creatorTenantsMap.get(template.creatorId);
+        (purposeTemplate) => {
+          const creator = creatorTenantsMap.get(purposeTemplate.creatorId);
 
           if (!creator) {
-            throw tenantNotFound(template.creatorId);
+            throw tenantNotFound(purposeTemplate.creatorId);
           }
 
-          return toBffCatalogPurposeTemplate(template, creator);
+          return toBffCatalogPurposeTemplate(purposeTemplate, creator);
         }
       );
 
@@ -216,17 +238,411 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
+    async getPurposeTemplateEServiceDescriptors({
+      purposeTemplateId,
+      producerIds,
+      eserviceIds,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      producerIds: string[];
+      eserviceIds: string[];
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with eserviceIds ${eserviceIds.toString()}, producerIds ${producerIds.toString()}, offset ${offset}, limit ${limit}`
+      );
+
+      const purposeTemplateEServiceDescriptorsResponse =
+        await purposeTemplateClient.getPurposeTemplateEServices({
+          headers,
+          params: {
+            id: purposeTemplateId,
+          },
+          queries: {
+            producerIds,
+            eserviceIds,
+            limit,
+            offset,
+          },
+        });
+
+      const producersById = new Map<string, tenantApi.Tenant>();
+      const results = await Promise.all(
+        purposeTemplateEServiceDescriptorsResponse.results.map(
+          async (eserviceDescriptor) => {
+            const { eserviceId, descriptorId } = eserviceDescriptor;
+
+            const eservice = await catalogProcessClient.getEServiceById({
+              headers,
+              params: { eServiceId: eserviceId },
+            });
+
+            const descriptor = eservice.descriptors.find(
+              (d) => d.id === descriptorId
+            );
+            if (!descriptor) {
+              throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+            }
+
+            const producer =
+              producersById.get(eservice.producerId) ||
+              (await tenantProcessClient.tenant.getTenant({
+                headers,
+                params: { id: eservice.producerId },
+              }));
+            producersById.set(eservice.producerId, producer);
+
+            return toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
+              eserviceDescriptor,
+              toCompactPurposeTemplateEService(eservice, producer),
+              toCompactDescriptor(descriptor)
+            );
+          }
+        )
+      );
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: purposeTemplateEServiceDescriptorsResponse.totalCount,
+        },
+      };
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      answerId: string;
+      documentId: string;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<Buffer> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      const riskAnalysisTemplateAnswerAnnotationDocument =
+        await purposeTemplateClient.getRiskAnalysisTemplateAnswerAnnotationDocument(
+          {
+            params: { purposeTemplateId, answerId, documentId },
+            headers,
+          }
+        );
+
+      const documentBytes = await fileManager.get(
+        config.purposeTemplateDocumentsContainer,
+        riskAnalysisTemplateAnswerAnnotationDocument.path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
+    async getPurposeTemplate(
+      id: PurposeTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplateWithCompactCreator> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Retrieving Purpose Template ${id}`);
+
+      const result = await purposeTemplateClient.getPurposeTemplate({
+        params: {
+          id,
+        },
+        headers,
+      });
+
+      const creator = await tenantProcessClient.tenant.getTenant({
+        params: {
+          id: result.creatorId,
+        },
+        headers,
+      });
+      if (!creator) {
+        throw tenantNotFound(result.creatorId);
+      }
+
+      const riskAnalysisFormTemplateAnswers =
+        result.purposeRiskAnalysisForm?.answers;
+      const annotationDocuments = riskAnalysisFormTemplateAnswers
+        ? Object.values(riskAnalysisFormTemplateAnswers).flatMap(
+            (answer) => answer.annotation?.docs ?? []
+          )
+        : [];
+
+      return toBffPurposeTemplateWithCompactCreator(
+        result,
+        creator,
+        annotationDocuments
+      );
+    },
+    async publishPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Publishing purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.publishPurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
+    async unsuspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.unsuspendPurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
+    async suspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Suspending purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.suspendPurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
+    async archivePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Archiving purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.archivePurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
       seed: bffApi.PurposeTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplateSeed> {
+    ): Promise<bffApi.PurposeTemplate> {
       logger.info(`Updating purpose template ${id}`);
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       return await purposeTemplateClient.updatePurposeTemplate(seed, {
         headers,
         params: { id },
       });
+    },
+    async addRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: string,
+      body: bffApi.addRiskAnalysisTemplateAnswerAnnotationDocument_Body,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
+      logger.info(
+        `Adding annotation document to purpose template with id ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const documentId = randomUUID();
+
+      return await validateAndStorePDFDocument(
+        fileManager,
+        purposeTemplateId,
+        body.doc,
+        documentId,
+        config.purposeTemplateDocumentsContainer,
+        config.purposeTemplateDocumentsPath,
+        body.prettyName,
+        async (
+          documentId: string,
+          fileName: string,
+          filePath: string,
+          prettyName: string,
+          contentType: string,
+          checksum: string
+        ): Promise<purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument> =>
+          await purposeTemplateClient.addRiskAnalysisTemplateAnswerAnnotationDocument(
+            {
+              documentId,
+              name: fileName,
+              path: filePath,
+              prettyName,
+              contentType,
+              checksum,
+            },
+            {
+              headers,
+              params: {
+                id: purposeTemplateId,
+                answerId,
+              },
+            }
+          ),
+        logger
+      );
+    },
+    async createRiskAnalysisAnswer(
+      purposeTemplateId: PurposeTemplateId,
+      seed: bffApi.RiskAnalysisTemplateAnswerRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerResponse> {
+      logger.info(
+        `Creating risk analysis answer for purpose template ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      return await purposeTemplateClient.addRiskAnalysisAnswerForPurposeTemplate(
+        seed,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    },
+    async addRiskAnalysisAnswerAnnotation(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationText,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotation> {
+      logger.info(
+        `Adding risk analysis answer annotation for purpose template ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      return await purposeTemplateClient.addRiskAnalysisAnswerAnnotationForPurposeTemplate(
+        seed,
+        {
+          params: {
+            purposeTemplateId,
+            answerId,
+          },
+          headers,
+        }
+      );
+    },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Deleting purpose template ${purposeTemplateId}`);
+
+      await purposeTemplateClient.deletePurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotation({
+      purposeTemplateId,
+      answerId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: PurposeTemplateId;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      await purposeTemplateClient.deleteRiskAnalysisTemplateAnswerAnnotation(
+        undefined,
+        {
+          params: {
+            purposeTemplateId,
+            answerId,
+          },
+          headers,
+        }
+      );
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: PurposeTemplateId;
+      documentId: string;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Deleting risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      await purposeTemplateClient.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+        undefined,
+        {
+          params: {
+            purposeTemplateId,
+            answerId,
+            documentId,
+          },
+          headers,
+        }
+      );
     },
   };
 }

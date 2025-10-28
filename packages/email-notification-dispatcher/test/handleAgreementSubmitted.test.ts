@@ -6,6 +6,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -14,11 +15,17 @@ import {
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  NotificationType,
+  Tenant,
   TenantId,
+  TenantMail,
+  TenantNotificationConfigId,
   toAgreementV2,
+  unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleAgreementSubmitted } from "../src/handlers/agreements/handleAgreementSubmitted.js";
 import {
@@ -43,8 +50,15 @@ describe("handleAgreementSubmitted", async () => {
     id: eserviceId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant: Tenant = {
+    ...getMockTenant(producerId),
+    name: "Producer Tenant",
+    mails: [getMockTenantMail()],
+  };
+  const consumerTenant: Tenant = {
+    ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
+  };
   const users = [
     getMockUser(producerTenant.id),
     getMockUser(producerTenant.id),
@@ -59,10 +73,22 @@ describe("handleAgreementSubmitted", async () => {
     for (const user of users) {
       await addOneUser(user);
     }
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: consumerTenant.id,
+        enabled: true,
+        createAt: new Date(),
+      });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+      .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
+        users
+          .filter((user) =>
+            tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
+          )
+          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
   });
 
@@ -176,13 +202,17 @@ describe("handleAgreementSubmitted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(messages.length).toEqual(3);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -211,13 +241,126 @@ describe("handleAgreementSubmitted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
+    expect(messages.length).toEqual(2);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
+  });
+
+  it("should generate one message to the producer of the eservice for the agreement", async () => {
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementSubmitted({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(3);
+    expect(
+      messages.some(
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === producerTenant.mails[0].address
+      )
+    ).toBe(true);
+  });
+
+  it("should generate a message using the latest producer mail that was registered", async () => {
+    const oldMail: TenantMail = {
+      ...getMockTenantMail(),
+      createdAt: new Date(1999),
+    };
+    const newMail = getMockTenantMail();
+    const producerTenantWithMultipleMails: Tenant = {
+      ...getMockTenant(),
+      mails: [oldMail, newMail],
+    };
+    await addOneTenant(producerTenantWithMultipleMails);
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenantWithMultipleMails.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementSubmitted({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) =>
+          message.type === "Tenant" && message.address === newMail.address
+      )
+    ).toBe(true);
+  });
+
+  it("should not generate a message to the producer if they disabled email notification", async () => {
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: producerTenant.id,
+        enabled: false,
+        createAt: new Date(),
+      });
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementSubmitted({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(2);
+    expect(
+      messages.some(
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenant.mails[0].address
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -243,15 +386,25 @@ describe("handleAgreementSubmitted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toBe(2);
+    expect(messages.length).toBe(3);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
         `Nuova richiesta di fruizione per un tuo e-service`
       );
-      expect(message.email.body).toContain(producerTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(consumerTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(producerTenant.name);
+          expect(message.email.body).toContain(consumerTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
       expect(message.email.body).toContain(`Visualizza richiesta`);
     });
   });

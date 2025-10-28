@@ -31,6 +31,8 @@ export const EServiceM2MEventType = z.enum([
   "EServiceRiskAnalysisAdded",
   "EServiceRiskAnalysisUpdated",
   "EServiceRiskAnalysisDeleted",
+  "EServicePersonalDataFlagUpdatedAfterPublication",
+  "EServicePersonalDataFlagUpdatedByTemplateUpdate",
 
   // EService Descriptor events
   "EServiceDescriptorPublished",

@@ -7,6 +7,7 @@ import {
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
+  EServiceTemplateVersionId,
   RiskAnalysisId,
   TenantId,
   TenantKind,
@@ -55,6 +56,9 @@ export const errorCodes = {
   eserviceTemplateNameConflict: "0039",
   checksumDuplicate: "0040",
   attributeDuplicatedInGroup: "0041",
+  eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
+  missingPersonalDataFlag: "0043",
+  eServiceTemplateWithoutPersonalDataFlag: "0044",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -473,5 +477,38 @@ export function attributeDuplicatedInGroup(
     detail: `Attribute ${attributeId} is duplicated in attribute group`,
     code: "attributeDuplicatedInGroup",
     title: "Duplicated attribute in group",
+  });
+}
+
+export function eservicePersonalDataFlagCanOnlyBeSetOnce(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PersonalData flag has already been set for eService ${eserviceId}`,
+    code: "eservicePersonalDataFlagCanOnlyBeSetOnce",
+    title: "EService personalData flag can only be set once",
+  });
+}
+
+export function missingPersonalDataFlag(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because personalData flag must be set for the eservice`,
+    code: "missingPersonalDataFlag",
+    title: "EService personalData flag must be set before publication",
+  });
+}
+
+export function eServiceTemplateWithoutPersonalDataFlag(
+  eServiceTemplateId: EServiceTemplateId,
+  eServiceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template version ${eServiceTemplateVersionId} in eService Template ${eServiceTemplateId} cannot be instantiated because the personalData flag is not set`,
+    code: "eServiceTemplateWithoutPersonalDataFlag",
+    title:
+      "EService Template personalData flag must be set before instantiation",
   });
 }

@@ -45,6 +45,7 @@ export const eventV2TypeMapper = (
       () => "purpose_version_deleted"
     )
     .with("PurposeVersionRejected", () => "purpose_version_rejected")
+    .with("RiskAnalysisDocumentGenerated", () => "purpose_contract_generated")
     .exhaustive();
 
 export const buildPurposeMessage = (

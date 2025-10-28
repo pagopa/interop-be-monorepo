@@ -15,7 +15,10 @@ describe("GET /purposes/:purposeId/agreement router test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
 
-  const mockM2MAgreement = toM2MGatewayApiAgreement(getMockedApiAgreement());
+  const mockM2MAgreement = toM2MGatewayApiAgreement(
+    getMockedApiAgreement(),
+    generateId()
+  );
 
   const mockPurposeId: PurposeId = generateId();
 

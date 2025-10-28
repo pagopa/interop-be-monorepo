@@ -249,7 +249,7 @@ export function makeApiProblemBuilder<T extends string>(
         }
       )
       .with(P.instanceOf(ZodError), (error) => {
-        // Zod errors shall always be catched and handled throwing
+        // Zod errors shall always be caught and handled throwing
         // an ApiError. If a ZodError arrives here we log it and
         // return a generic problem
         const zodError = fromZodError(error);
@@ -306,6 +306,7 @@ export const commonErrorCodes = {
   decodeSQSMessageError: "10024",
   pollingMaxRetriesExceeded: "10025",
   invalidServerUrl: "10026",
+  hyperlinkDetectionError: "10027",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -401,6 +402,15 @@ export function tokenGenerationError(
   return new InternalError({
     code: "tokenGenerationError",
     detail: `Error during token generation: ${parseErrorMessage(error)}`,
+  });
+}
+
+export function hyperlinkDetectionError(
+  text: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "hyperlinkDetectionError",
+    detail: `Hyperlink detection error for text ${text}`,
   });
 }
 
@@ -777,5 +787,15 @@ export function invalidServerUrl(resource: {
     } with ID ${resource.id} has invalid server URL`,
     code: "invalidServerUrl",
     title: "Invalid server URL",
+  });
+}
+
+export function invalidDocumentDetected(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The document for Purpose template with ID ${resourceId} is invalid`,
+    code: "invalidContentTypeDetected",
+    title: "Invalid document detected",
   });
 }

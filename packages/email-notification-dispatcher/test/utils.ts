@@ -8,6 +8,7 @@ import {
   Delegation,
   Attribute,
   EService,
+  EServiceTemplate,
   generateId,
   Purpose,
   Tenant,
@@ -23,6 +24,7 @@ import {
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
@@ -30,6 +32,7 @@ import {
   upsertAttribute,
   upsertDelegation,
   upsertEService,
+  upsertEServiceTemplate,
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
@@ -66,6 +69,7 @@ const delegationReadModelServiceSQL =
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -75,6 +79,7 @@ export const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 });
 
 export const userService = userServiceBuilderSQL(userDB);
@@ -110,6 +115,12 @@ export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
+};
+
+export const addOneEServiceTemplate = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {

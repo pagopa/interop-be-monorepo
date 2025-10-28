@@ -20,7 +20,10 @@ describe("DELETE /purpose/:purposeId router test", () => {
       .send();
 
   const mockApiAgreement = getMockedApiAgreement();
-  const mockM2MAgreementResponse = toM2MGatewayApiAgreement(mockApiAgreement);
+  const mockM2MAgreementResponse = toM2MGatewayApiAgreement(
+    mockApiAgreement,
+    generateId()
+  );
 
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",

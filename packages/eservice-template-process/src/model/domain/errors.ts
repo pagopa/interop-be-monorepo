@@ -6,6 +6,7 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   makeApiProblemBuilder,
+  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -34,6 +35,9 @@ export const errorCodes = {
   eserviceTemplateDocumentNotFound: "0025",
   riskAnalysisNotFound: "0026",
   attributeDuplicatedInGroup: "0027",
+  tenantNotFound: "0028",
+  missingPersonalDataFlag: "0029",
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -296,5 +300,34 @@ export function attributeDuplicatedInGroup(
     detail: `Attribute ${attributeId} is duplicated in attribute group`,
     code: "attributeDuplicatedInGroup",
     title: "Duplicated attribute in group",
+  });
+}
+
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function missingPersonalDataFlag(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template version ${eserviceTemplateVersionId} in eserviceTemplate ${eserviceTemplateId} can't be published because personalData flag must be set`,
+    code: "missingPersonalDataFlag",
+    title: "EService Template personalData flag must be set before publication",
+  });
+}
+
+export function eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PersonalData flag has already been set for eService Template ${eserviceTemplateId}`,
+    code: "eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce",
+    title: "EService Template personalData can only be set once",
   });
 }

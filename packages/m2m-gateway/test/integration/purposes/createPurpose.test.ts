@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  delegationApi,
+  m2mGatewayApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   getMockedApiDelegation,
   getMockedApiPurpose,
@@ -18,15 +26,18 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
+  delegationEServiceMismatch,
   missingMetadata,
-  notAnActiveConsumerDelegation,
+  requesterIsNotTheDelegateConsumer,
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createPurpose", () => {
-  const mockPurposeProcessGetResponse = getMockWithMetadata(
-    getMockedApiPurpose()
-  );
+  const mockPurposeProcessGetResponse: WithMetadata<purposeApi.Purpose> =
+    getMockWithMetadata({
+      ...getMockedApiPurpose(),
+      purposeTemplateId: undefined,
+    });
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
@@ -180,6 +191,29 @@ describe("createPurpose", () => {
     });
   });
 
+  it(`Should throw delegationEServiceMismatch if the specified delegation
+    is not a delegation for the purpose e-service`, async () => {
+    const mockDelegation = {
+      ...mockConsumerDelegation,
+      eserviceId: generateId(),
+    };
+    mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
+
+    const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeSeed = {
+      ...mockPurposeSeed,
+      delegationId: mockDelegation.id,
+    };
+
+    await expect(
+      purposeService.createPurpose(
+        mockPurposeSeedWithDelegation,
+        mockAppContext
+      )
+    ).rejects.toThrowError(
+      delegationEServiceMismatch(mockPurposeSeed.eserviceId, mockDelegation)
+    );
+  });
+
   it.each([
     {
       ...mockConsumerDelegation,
@@ -199,15 +233,11 @@ describe("createPurpose", () => {
     },
     {
       ...mockConsumerDelegation,
-      eserviceId: generateId(),
-    },
-    {
-      ...mockConsumerDelegation,
       delegateId: generateId(),
     },
   ] satisfies delegationApi.Delegation[])(
-    `Should throw notAnActiveConsumerDelegation if the specified delegation
-    is not an active consumer delegation for requester tenant and e-service`,
+    `Should throw requesterIsNotTheDelegateConsumer if the specified delegation
+    is not an active consumer delegation for requester tenant`,
     async (mockDelegation) => {
       mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
@@ -221,13 +251,7 @@ describe("createPurpose", () => {
           mockPurposeSeedWithDelegation,
           mockAppContext
         )
-      ).rejects.toThrowError(
-        notAnActiveConsumerDelegation(
-          mockAppContext.authData.organizationId,
-          mockPurposeSeed.eserviceId,
-          mockDelegation
-        )
-      );
+      ).rejects.toThrowError(requesterIsNotTheDelegateConsumer(mockDelegation));
     }
   );
 

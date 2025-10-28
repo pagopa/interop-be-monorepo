@@ -12,6 +12,7 @@ import {
   EServiceTemplateTopicConfig,
   AnalyticsSQLDbConfig,
   ReadModelSQLDbConfig,
+  PurposeTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -28,6 +29,7 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
   .and(AuthorizationTopicConfig)
   .and(DelegationTopicConfig)
   .and(EServiceTemplateTopicConfig)
+  .and(PurposeTemplateTopicConfig)
   .and(AnalyticsSQLDbConfig)
   .and(
     z
