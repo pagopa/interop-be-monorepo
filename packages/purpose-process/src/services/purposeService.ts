@@ -1649,7 +1649,6 @@ export function purposeServiceBuilder(
       assertEserviceMode(eservice, eserviceMode.deliver);
 
       const tenantKind = await retrieveTenantKind(consumerId, readModelService);
-      const createdAt = new Date();
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
@@ -1677,6 +1676,8 @@ export function purposeServiceBuilder(
       ) {
         throw invalidPersonalData(eservicePersonalData);
       }
+
+      const createdAt = new Date();
 
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,

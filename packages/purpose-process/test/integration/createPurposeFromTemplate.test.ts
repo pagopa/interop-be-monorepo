@@ -28,7 +28,7 @@ import {
   PurposeTemplateId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -82,20 +82,20 @@ describe("createPurposeFromTemplate", () => {
     kind: tenantKind.PA,
   };
 
-  const descriptor1: Descriptor = {
+  const publishedDescriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
     version: "",
   };
 
-  const eService1: EService = {
+  const publishedEservice: EService = {
     ...getMockEServiceForPurposeFromTemplate(),
     producerId: tenant.id,
-    descriptors: [descriptor1],
+    descriptors: [publishedDescriptor],
   };
 
-  const agreementEservice1 = getMockAgreement(
-    eService1.id,
+  const activeAgreement = getMockAgreement(
+    publishedEservice.id,
     tenant.id,
     agreementState.active
   );
@@ -109,8 +109,8 @@ describe("createPurposeFromTemplate", () => {
 
   const purposeFromTemplateSeed: purposeApi.PurposeFromTemplateSeed =
     getMockPurposeFromTemplateSeed(
-      eService1.id,
-      agreementEservice1.consumerId,
+      publishedEservice.id,
+      activeAgreement.consumerId,
       buildRiskAnalysisFormSeed(mockValidRiskAnalysisForm)
     );
 
@@ -126,17 +126,24 @@ describe("createPurposeFromTemplate", () => {
   const purposeTemplateEServiceDescriptor1: EServiceDescriptorPurposeTemplate =
     {
       purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
-      eserviceId: eService1.id,
-      descriptorId: eService1.descriptors[0].id,
+      eserviceId: publishedEservice.id,
+      descriptorId: publishedEservice.descriptors[0].id,
       createdAt: new Date(),
     };
 
-  it("should write on event-store for the creation of a purpose", async () => {
+  beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  it("should write on event-store for the creation of a purpose", async () => {
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
     await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
     await addOnePurposeTemplateEServiceDescriptor(
       purposeTemplateEServiceDescriptor1
@@ -236,16 +243,12 @@ describe("createPurposeFromTemplate", () => {
       },
       metadata: { version: 0 },
     });
-
-    vi.useRealTimers();
   });
 
   it("should write on event-store for the creation of a purpose with template with isFreeOfCharge false", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
 
     const mockPurposeTemplateNotFreeOfCharge: PurposeTemplate = {
       ...mockPurposeTemplateWithValidRiskAnalysis,
@@ -357,19 +360,14 @@ describe("createPurposeFromTemplate", () => {
       },
       metadata: { version: 0 },
     });
-
-    vi.useRealTimers();
   });
 
   it("should succeed when requester is Consumer Delegate and the Purpose was created successfully", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
     const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
-      eserviceId: eService1.id,
+      eserviceId: publishedEservice.id,
       delegatorId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId),
       delegateId: delegateTenant.id,
       state: delegationState.active,
@@ -377,8 +375,8 @@ describe("createPurposeFromTemplate", () => {
 
     await addOneTenant(tenant);
     await addOneTenant(delegateTenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
     await addOneDelegation(delegation);
     await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
     await addOnePurposeTemplateEServiceDescriptor(
@@ -476,13 +474,8 @@ describe("createPurposeFromTemplate", () => {
       },
       metadata: { version: 0 },
     });
-
-    vi.useRealTimers();
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose was created successfully", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
     const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
@@ -498,7 +491,7 @@ describe("createPurposeFromTemplate", () => {
     const eservice: EService = {
       ...getMockEServiceForPurposeFromTemplate(),
       producerId: producerDelegate.id,
-      descriptors: [descriptor1],
+      descriptors: [publishedDescriptor],
     };
 
     const purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate =
@@ -652,13 +645,11 @@ describe("createPurposeFromTemplate", () => {
       },
       metadata: { version: 0 },
     });
-
-    vi.useRealTimers();
   });
   it("should throw purposeTemplateNotFound if the purpose template doesn't exists or is not published", async () => {
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
 
     const nonExistingId = generateId<PurposeTemplateId>();
     expect(
@@ -700,7 +691,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     const eService: EService = {
-      ...eService1,
+      ...publishedEservice,
       producerId: tenantWithoutKind.id,
     };
 
@@ -736,7 +727,7 @@ describe("createPurposeFromTemplate", () => {
     ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
   });
   it("should throw tenantNotFound if the tenant doesn't exists", async () => {
-    await addOneEService(eService1);
+    await addOneEService(publishedEservice);
 
     expect(
       purposeService.createPurposeFromTemplate(
@@ -752,19 +743,19 @@ describe("createPurposeFromTemplate", () => {
   });
   it("should throw agreementNotFound if the agreement doesn't exists ", async () => {
     const descriptor: Descriptor = {
-      ...descriptor1,
+      ...publishedDescriptor,
       id: generateId(),
     };
 
     const eService: EService = {
-      ...eService1,
+      ...publishedEservice,
       producerId: tenant.id,
       id: generateId(),
       descriptors: [descriptor],
     };
 
     const agreement: Agreement = {
-      ...agreementEservice1,
+      ...activeAgreement,
       id: generateId(),
       eserviceId: eService.id,
       descriptorId: descriptor.id,
@@ -799,7 +790,7 @@ describe("createPurposeFromTemplate", () => {
   });
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
+    await addOneAgreement(activeAgreement);
     await addOneEService(getMockEServiceForPurposeFromTemplate());
     await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
     await addOnePurposeTemplateEServiceDescriptor(
@@ -833,8 +824,8 @@ describe("createPurposeFromTemplate", () => {
     };
 
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
     await addOnePurposeTemplate(mockPurposeTemplateWithInvalidRiskAnalysis);
     await addOnePurposeTemplateEServiceDescriptor(
       purposeTemplateEServiceDescriptor1
@@ -869,8 +860,8 @@ describe("createPurposeFromTemplate", () => {
   });
   it("should throw riskAnalysisVersionMismatch if the purpose has a risk analysis with a different version", async () => {
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
     await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
     await addOnePurposeTemplateEServiceDescriptor(
       purposeTemplateEServiceDescriptor1
@@ -912,8 +903,8 @@ describe("createPurposeFromTemplate", () => {
 
     await addOnePurpose(existingPurpose);
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
     await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
     await addOnePurposeTemplateEServiceDescriptor(
       purposeTemplateEServiceDescriptor1
@@ -935,7 +926,7 @@ describe("createPurposeFromTemplate", () => {
   });
   it("should throw eServiceModeNotAllowed if chosen eservice is in receive mode", async () => {
     const eservice = {
-      ...eService1,
+      ...publishedEservice,
       mode: eserviceMode.receive,
     };
 
@@ -963,7 +954,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     const eService: EService = {
-      ...eService1,
+      ...publishedEservice,
       producerId: privateTenant.id,
     };
 
@@ -1032,8 +1023,8 @@ describe("createPurposeFromTemplate", () => {
       purposeTemplateId: validPurposeTemplate.id,
     };
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
     await addOnePurposeTemplate(validPurposeTemplate);
     await addOnePurposeTemplateEServiceDescriptor(purposeTemplateDescriptor);
 
@@ -1120,8 +1111,8 @@ describe("createPurposeFromTemplate", () => {
       purposeTemplateId: validPurposeTemplate.id,
     };
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
     await addOnePurposeTemplate(validPurposeTemplate);
     await addOnePurposeTemplateEServiceDescriptor(purposeTemplateDescriptor);
 
@@ -1204,8 +1195,8 @@ describe("createPurposeFromTemplate", () => {
       purposeTemplateId: validPurposeTemplate.id,
     };
     await addOneTenant(tenant);
-    await addOneAgreement(agreementEservice1);
-    await addOneEService(eService1);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
     await addOnePurposeTemplate(validPurposeTemplate);
     await addOnePurposeTemplateEServiceDescriptor(purposeTemplateDescriptor);
 
@@ -1242,7 +1233,7 @@ describe("createPurposeFromTemplate", () => {
     await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
 
     const eserviceNoPersonalData: EService = {
-      ...eService1,
+      ...publishedEservice,
       personalData: undefined,
     };
     const purposeTemplateEServiceDescriptorNoPersonalData: EServiceDescriptorPurposeTemplate =
@@ -1282,7 +1273,7 @@ describe("createPurposeFromTemplate", () => {
     await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
 
     const eserviceOtherPersonalData: EService = {
-      ...eService1,
+      ...publishedEservice,
       personalData:
         !mockPurposeTemplateWithValidRiskAnalysis.handlesPersonalData,
     };
