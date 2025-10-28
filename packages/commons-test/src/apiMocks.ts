@@ -74,6 +74,15 @@ export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplat
   };
 }
 
+export function getMockedApiEServiceDescriptorPurposeTemplate(): purposeTemplateApi.EServiceDescriptorPurposeTemplate {
+  return {
+    purposeTemplateId: generateId(),
+    eserviceId: generateId(),
+    descriptorId: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+}
+
 export function getMockedApiDelegation({
   kind,
   eserviceId,

@@ -9,7 +9,7 @@ import {
   zodiosValidationErrorToApiProblem,
   validateAuthorization,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
@@ -146,8 +146,24 @@ const purposeTemplateRouter = (
     )
     .get("/purposeTemplates/:purposeTemplateId/eservices", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const purposeTemplateEServiceDescriptors =
+          await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+            unsafeBrandId(req.params.purposeTemplateId),
+            req.query,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            m2mGatewayApi.EServiceDescriptorsPurposeTemplate.parse(
+              purposeTemplateEServiceDescriptors
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

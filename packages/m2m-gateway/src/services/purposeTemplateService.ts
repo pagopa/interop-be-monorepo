@@ -1,5 +1,6 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 
@@ -39,6 +40,40 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         queries: queryParams,
         headers,
       });
+
+      return {
+        results,
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
+    },
+    async getPurposeTemplateEServiceDescriptors(
+      purposeTemplateId: PurposeTemplateId,
+      queryParams: m2mGatewayApi.GetPurposeTemplateEServiceDescriptorsQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorsPurposeTemplate> {
+      const { producerIds, eserviceName, limit, offset } = queryParams;
+
+      logger.info(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with filters: producerIds ${producerIds.toString()}, eserviceName ${eserviceName}, limit ${limit}, offset ${offset}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.purposeTemplateProcessClient.getPurposeTemplateEServices({
+          params: { id: purposeTemplateId },
+          queries: {
+            producerIds,
+            eserviceName,
+            limit,
+            offset,
+          },
+          headers,
+        });
 
       return {
         results,

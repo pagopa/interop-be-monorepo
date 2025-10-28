@@ -20559,12 +20559,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
-        totalCount:
-          type: integer
-          format: int32
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - totalCount
+        - pagination
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
