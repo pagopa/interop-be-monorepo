@@ -1,7 +1,9 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -9,9 +11,30 @@ export type PurposeTemplateService = ReturnType<
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
+  const retrievePurposeTemplateById = async (
+    purposeTemplateId: PurposeTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+    await clients.purposeTemplateProcessClient.getPurposeTemplate({
+      params: {
+        id: purposeTemplateId,
+      },
+      headers,
+    });
+
   return {
-    async getPurposeTemplateById(): Promise<void> {
-      return Promise.resolve();
+    async getPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Retrieving purpose template with id ${purposeTemplateId}`);
+
+      const { data } = await retrievePurposeTemplateById(
+        purposeTemplateId,
+        headers
+      );
+
+      return data;
     },
     async getPurposeTemplates(
       queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
