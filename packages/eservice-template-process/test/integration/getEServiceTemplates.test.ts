@@ -564,7 +564,7 @@ describe("get eservice templates", () => {
     }
   );
 
-  it.only.each([undefined, true, false])(
+  it.each([true, false])(
     "should get the eService templates if they exist (parameters: personalData = %s)",
     async (personalData) => {
       const result = await eserviceTemplateService.getEServiceTemplates(
