@@ -66,6 +66,7 @@ export type GetPurposeTemplatesFilters = {
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
   excludeExpiredRiskAnalysis?: boolean;
+  handlesPersonalData?: boolean;
 };
 
 export type GetPurposeTemplateEServiceDescriptorsFilters = {
@@ -86,6 +87,7 @@ const getPurposeTemplatesFilters = (
     states,
     targetTenantKind,
     excludeExpiredRiskAnalysis,
+    handlesPersonalData,
   } = filters;
 
   const purposeTitleFilter = purposeTitle
@@ -154,6 +156,14 @@ const getPurposeTemplatesFilters = (
       )
     : undefined;
 
+  const handlesPersonalDataFilter =
+    handlesPersonalData !== undefined
+      ? eq(
+          purposeTemplateInReadmodelPurposeTemplate.handlesPersonalData,
+          handlesPersonalData
+        )
+      : undefined;
+
   const visibilityFilter = hasRoleToAccessDraftPurposeTemplates(authData)
     ? or(
         eq(
@@ -177,6 +187,7 @@ const getPurposeTemplatesFilters = (
     statesFilter,
     targetTenantKindFilter,
     excludeExpiredRiskAnalysisFilters,
+    handlesPersonalDataFilter,
     visibilityFilter
   );
 };

@@ -25,8 +25,8 @@ describe("API GET /eservices/templates/filter/creators", () => {
       totalCount: 3,
     };
   const mockCompactOrganizations: bffApi.CompactOrganizations = {
-    results: mockTemplateApiCompactOrganizations.results.map(
-      toBffCompactOrganization
+    results: mockTemplateApiCompactOrganizations.results.map((o) =>
+      toBffCompactOrganization(o)
     ),
     pagination: {
       offset: defaultQuery.offset,

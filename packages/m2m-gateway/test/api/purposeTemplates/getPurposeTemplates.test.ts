@@ -49,7 +49,7 @@ describe("API GET /purposeTemplates router test", () => {
     eserviceIds: [generateId()],
     creatorIds: [generateId(), generateId()],
     states: [
-      m2mGatewayApi.PurposeTemplateState.Enum.ACTIVE,
+      m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED,
       m2mGatewayApi.PurposeTemplateState.Enum.DRAFT,
     ],
     excludeExpiredRiskAnalysis: false,
@@ -101,7 +101,7 @@ describe("API GET /purposeTemplates router test", () => {
     {
       query: {
         ...mockQueryParams,
-        states: [m2mGatewayApi.PurposeTemplateState.Enum.ACTIVE, "invalid"],
+        states: [m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED, "invalid"],
       },
     },
     { query: { ...mockQueryParams, targetTenantKind: "invalid" } },

@@ -17,7 +17,7 @@ describe("getPurposeTemplates", () => {
     eserviceIds: [],
     creatorIds: [],
     states: [
-      m2mGatewayApi.PurposeTemplateState.Enum.ACTIVE,
+      m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED,
       m2mGatewayApi.PurposeTemplateState.Enum.DRAFT,
     ],
     excludeExpiredRiskAnalysis: false,
@@ -77,7 +77,7 @@ describe("getPurposeTemplates", () => {
         eserviceIds: mockParams.eserviceIds,
         creatorIds: [],
         states: [
-          m2mGatewayApi.PurposeTemplateState.Enum.ACTIVE,
+          m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED,
           m2mGatewayApi.PurposeTemplateState.Enum.DRAFT,
         ],
         excludeExpiredRiskAnalysis: false,

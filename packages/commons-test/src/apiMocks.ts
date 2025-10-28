@@ -52,6 +52,7 @@ export function getMockedApiPurpose({
     isRiskAnalysisValid: true,
     isFreeOfCharge: true,
     freeOfChargeReason: generateMock(z.string()),
+    purposeTemplateId: generateMock(z.string().uuid().optional()),
   };
 }
 
@@ -69,6 +70,7 @@ export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplat
       purposeTemplateApi.RiskAnalysisFormTemplate
     ),
     purposeIsFreeOfCharge: false,
+    handlesPersonalData: true,
   };
 }
 
@@ -326,9 +328,11 @@ export function getMockedApiEservice({
 export function getMockedApiEserviceDescriptor({
   state,
   interfaceDoc,
+  attributes,
 }: {
   state?: catalogApi.EServiceDescriptorState;
   interfaceDoc?: catalogApi.EServiceDoc;
+  attributes?: catalogApi.Attributes;
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
@@ -349,7 +353,7 @@ export function getMockedApiEserviceDescriptor({
     suspendedAt: new Date().toISOString(),
     deprecatedAt: new Date().toISOString(),
     archivedAt: new Date().toISOString(),
-    attributes: generateMock(catalogApi.Attributes),
+    attributes: attributes ?? generateMock(catalogApi.Attributes),
     rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
     templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
   };
@@ -408,8 +412,10 @@ export function getMockedApiRiskAnalysis(): catalogApi.EServiceRiskAnalysis {
 
 export function getMockedApiEserviceTemplateVersion({
   state,
+  attributes,
 }: {
   state?: eserviceTemplateApi.EServiceTemplateVersionState;
+  attributes?: eserviceTemplateApi.Attributes;
 } = {}): eserviceTemplateApi.EServiceTemplateVersion {
   return {
     id: generateId(),
@@ -417,7 +423,7 @@ export function getMockedApiEserviceTemplateVersion({
       state ?? generateMock(eserviceTemplateApi.EServiceTemplateVersionState),
     voucherLifespan: generateMock(z.number().positive()),
     version: 0,
-    attributes: {
+    attributes: attributes ?? {
       certified: [[getMockedApiEServiceAttribute()]],
       declared: [[getMockedApiEServiceAttribute()]],
       verified: [[getMockedApiEServiceAttribute()]],

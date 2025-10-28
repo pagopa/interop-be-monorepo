@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template (
   purpose_is_free_of_charge BOOLEAN NOT NULL,
   purpose_free_of_charge_reason VARCHAR,
   purpose_daily_calls INTEGER,
+  handles_personal_data BOOLEAN NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (id, metadata_version)
 );
