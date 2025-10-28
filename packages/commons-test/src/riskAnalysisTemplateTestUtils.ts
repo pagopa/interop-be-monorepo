@@ -34,21 +34,21 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "institutionalPurpose",
-        value: "MyPurpose",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Purpose1", "Purpose2"],
       },
       {
         key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["PersonalDataType1", "PersonalDataType2"],
       },
       {
         key: "legalObligationReference",
-        value: "somethingLegal",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
       },
       {
         key: "knowsDataQuantity",
@@ -76,9 +76,9 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "reasonPolicyNotProvided",
-        value: "Because",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Because1", "Because2"],
       },
       {
         key: "doneDpia",
@@ -413,31 +413,31 @@ export const getMockValidRiskAnalysisFormTemplate = (
     )
     .exhaustive();
 
+const toMockCompleteRiskAnalysisTemplateAnswer = <
+  T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+>(
+  answer: T
+): T => ({
+  ...answer,
+  annotation: {
+    ...getMockRiskAnalysisTemplateAnswerAnnotation(),
+    docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
+  },
+});
+
 export const getMockCompleteRiskAnalysisFormTemplate = (
   producerTenantKind: TenantKind = tenantKind.PA
 ): RiskAnalysisFormTemplate => {
   const incompleteRiskAnalysisFormTemplate =
     getMockValidRiskAnalysisFormTemplate(producerTenantKind);
+
   return {
     ...incompleteRiskAnalysisFormTemplate,
     singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: [],
-      })
+      toMockCompleteRiskAnalysisTemplateAnswer
     ),
     multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
+      toMockCompleteRiskAnalysisTemplateAnswer
     ),
   };
 };
