@@ -189,7 +189,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
   };
 
   const purposeTemplate: PurposeTemplate = {
-    ...getMockPurposeTemplate(consumer.id, "Active"),
+    ...getMockPurposeTemplate(consumer.id, "Published"),
     purposeRiskAnalysisForm: validRiskAnalysisFormTemplate,
   };
 

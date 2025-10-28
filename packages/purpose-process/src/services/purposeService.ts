@@ -1793,7 +1793,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const purposeTemplate = await retrieveActivePurposeTemplate(
+      const purposeTemplate = await retrievePublishedPurposeTemplate(
         purposeTemplateId,
         readModelService
       );
