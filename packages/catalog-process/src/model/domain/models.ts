@@ -15,6 +15,8 @@ import {
   Technology,
 } from "pagopa-interop-models";
 
+export type PersonalDataFilter = "true" | "false" | "defined" | undefined;
+
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
   producersIds: TenantId[];
@@ -29,7 +31,7 @@ export type ApiGetEServicesFilters = {
   isClientAccessDelegable?: boolean;
   delegated?: boolean;
   templatesIds: EServiceTemplateId[];
-  personalData?: boolean;
+  personalData?: PersonalDataFilter;
 };
 
 export type EServiceDocument = {
