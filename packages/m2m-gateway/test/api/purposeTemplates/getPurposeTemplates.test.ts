@@ -54,6 +54,7 @@ describe("API GET /purposeTemplates router test", () => {
     ],
     excludeExpiredRiskAnalysis: false,
     targetTenantKind: tenantKind.PA,
+    handlesPersonalData: false,
   };
 
   it.each(authorizedRoles)(
@@ -65,7 +66,6 @@ describe("API GET /purposeTemplates router test", () => {
 
       const token = generateToken(role);
       const res = await makeRequest(token);
-      // console.log("🚀 ~ res:", res);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MPurposeTemplatesResponse);
