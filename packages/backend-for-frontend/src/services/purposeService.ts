@@ -701,16 +701,15 @@ export function purposeServiceBuilder(
     },
     async getPurpose(
       id: PurposeId,
-      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purpose> {
+      const { headers, authData, logger, correlationId } = ctx;
       logger.info(`Retrieving Purpose ${id}`);
-      const notificationPromise =
-        inAppNotificationManagerClient.filterUnreadNotifications({
-          queries: {
-            entityIds: [id],
-          },
-          headers,
-        });
+      const notificationsPromise = filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        [id],
+        ctx
+      );
       const purpose = await purposeProcessClient.getPurpose({
         params: {
           id,
@@ -751,7 +750,7 @@ export function purposeServiceBuilder(
         }),
       ]);
 
-      const notification = await notificationPromise;
+      const notification = await notificationsPromise;
 
       const purposeTemplate = purpose.purposeTemplateId
         ? await purposeTemplateProcessClient.getPurposeTemplate({
