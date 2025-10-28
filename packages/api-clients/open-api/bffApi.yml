@@ -2640,9 +2640,10 @@ paths:
             type: boolean
         - in: query
           name: personalData
-          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned, if defined all e-services with a defined personal data flag will be returned
+          required: false
           schema:
-            type: boolean
+            $ref: "#/components/schemas/PersonalDataFilter"
         - in: query
           name: offset
           required: true
@@ -7055,9 +7056,10 @@ paths:
             type: boolean
         - in: query
           name: personalData
-          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned, if defined all e-services with a defined personal data flag will be returned
+          required: false
           schema:
-            type: boolean
+            $ref: "#/components/schemas/PersonalDataFilter"
         - in: query
           name: offset
           required: true
@@ -28780,6 +28782,13 @@ components:
         totalCount:
           type: integer
           format: int32
+    PersonalDataFilter:
+      type: string
+      description: Filter e-services by personal data
+      enum:
+        - "true"
+        - "false"
+        - "defined"
     ProblemError:
       properties:
         code:
