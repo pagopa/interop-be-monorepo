@@ -79,7 +79,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, purposeTemplateId);
+    const res = await makeRequest(token);
 
     expect(res.status).toBe(403);
   });
@@ -128,33 +128,33 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
 
   it.each([
     {
-      name: "purpose template id",
-      run: (token: string) =>
-        makeRequest(token, "invalid" as PurposeTemplateId),
+      purposeTemplateId: "invalid-id" as PurposeTemplateId,
+      answerId: generateId<RiskAnalysisSingleAnswerId>(),
+      documentId: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
     },
     {
-      name: "answer id",
-      run: (token: string) =>
-        makeRequest(
-          token,
-          purposeTemplateId,
-          "invalid" as RiskAnalysisSingleAnswerId
-        ),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+      answerId: "invalid-id" as RiskAnalysisSingleAnswerId,
+      documentId: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
     },
     {
-      name: "document id",
-      run: (token: string) =>
-        makeRequest(
-          token,
-          purposeTemplateId,
-          answer.id,
-          "invalid" as RiskAnalysisTemplateAnswerAnnotationDocumentId
-        ),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+      answerId: generateId<RiskAnalysisSingleAnswerId>(),
+      documentId:
+        "invalid-id" as RiskAnalysisTemplateAnswerAnnotationDocumentId,
     },
-  ])("Should return 400 if invalid $name is passed", async ({ run }) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await run(token);
+  ])(
+    "Should return 400 if invalid $name is passed",
+    async ({ purposeTemplateId, answerId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        purposeTemplateId,
+        answerId,
+        documentId
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });
