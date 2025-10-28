@@ -70,6 +70,7 @@ export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplat
       purposeTemplateApi.RiskAnalysisFormTemplate
     ),
     purposeIsFreeOfCharge: false,
+    handlesPersonalData: true,
   };
 }
 
