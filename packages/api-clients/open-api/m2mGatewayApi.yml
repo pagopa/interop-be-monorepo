@@ -16235,7 +16235,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
           description: Bad Request
           content:
@@ -16261,7 +16261,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                     
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -16287,7 +16287,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                          
+              $ref: "#/components/headers/RateLimitIntervalHeader"
     post:
       tags:
         - purposeTemplates
@@ -16703,7 +16703,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                  
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
           description: Bad Request
           content:
@@ -16718,18 +16718,18 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
-            description: Unauthorized
-            content:
-              application/problem+json:
-                schema:
-                  $ref: "#/components/schemas/Problem"
-            headers:
-              X-Rate-Limit-Limit:
-                $ref: "#/components/headers/RateLimitLimitHeader"
-              X-Rate-Limit-Remaining:
-                $ref: "#/components/headers/RateLimitRemainingHeader"
-              X-Rate-Limit-Interval:
-                $ref: "#/components/headers/RateLimitIntervalHeader" 
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -16742,7 +16742,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"              
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Purpose Template Not Found
           content:
@@ -16755,7 +16755,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "409":
           description: Conflict
           content:
@@ -16768,7 +16768,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /purposeTemplates/{purposeTemplateId}/unlinkEservices:
     parameters:
       - name: purposeTemplateId
@@ -16815,18 +16815,18 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
-            description: Unauthorized
-            content:
-              application/problem+json:
-                schema:
-                  $ref: "#/components/schemas/Problem"
-            headers:
-              X-Rate-Limit-Limit:
-                $ref: "#/components/headers/RateLimitLimitHeader"
-              X-Rate-Limit-Remaining:
-                $ref: "#/components/headers/RateLimitRemainingHeader"
-              X-Rate-Limit-Interval:
-                $ref: "#/components/headers/RateLimitIntervalHeader" 
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -16839,7 +16839,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"              
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Purpose Template Not Found
           content:
@@ -16852,7 +16852,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "409":
           description: Conflict
           content:
@@ -17313,7 +17313,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"              
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "429":
           description: Too Many Requests
           content:
@@ -17360,7 +17360,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
           description: Bad Request
           content:
@@ -17373,7 +17373,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -17386,7 +17386,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Purpose Template Not Found
           content:
@@ -17399,7 +17399,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents:
     parameters:
       - name: purposeTemplateId
@@ -17459,7 +17459,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                        
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -17472,7 +17472,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"          
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
           content:
@@ -17485,7 +17485,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "409":
           description: Conflict
           content:
@@ -17498,7 +17498,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
     parameters:
       - name: purposeTemplateId
@@ -17538,7 +17538,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
           description: Bad Request
           content:
@@ -17551,7 +17551,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
           content:
@@ -17564,7 +17564,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -17590,7 +17590,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
     delete:
       tags:
         - purposeTemplates
@@ -17606,7 +17606,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"          
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
           description: Bad Request
           content:
@@ -17632,7 +17632,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"              
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -17645,7 +17645,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Risk analysis form template answer annotation document not found
           content:
@@ -17658,7 +17658,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "409":
           description: Conflict
           content:
@@ -17671,7 +17671,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation:
     parameters:
       - name: purposeTemplateId
@@ -17711,7 +17711,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
           description: Bad Request
           content:
@@ -17737,7 +17737,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                          
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -17750,7 +17750,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Purpose Template or Answer Not Found
           content:
@@ -17763,7 +17763,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                
+              $ref: "#/components/headers/RateLimitIntervalHeader"
     delete:
       tags:
         - purposeTemplates
@@ -17779,7 +17779,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"           
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
           description: Bad Request
           content:
@@ -17805,7 +17805,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                         
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
@@ -17818,7 +17818,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                 
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Risk analysis form template answer annotation not found
           content:
@@ -17831,7 +17831,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                 
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "409":
           description: Conflict
           content:
@@ -17844,7 +17844,7 @@ paths:
             X-Rate-Limit-Remaining:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"                 
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /status:
     get:
       tags:
@@ -20273,55 +20273,55 @@ components:
           format: int32
       required:
         - results
-        - totalCount          
+        - totalCount
     PurposeTemplate:
-          type: object
-          description: Business representation of a purpose template
-          additionalProperties: false
-          properties:
-            id:
-              type: string
-              format: uuid
-            targetDescription:
-              type: string
-            targetTenantKind:
-              $ref: "#/components/schemas/TenantKind"
-            creatorId:
-              type: string
-              format: uuid
-            state:
-              $ref: "#/components/schemas/PurposeTemplateState"
-            createdAt:
-              type: string
-              format: date-time
-            updatedAt:
-              type: string
-              format: date-time
-            purposeTitle:
-              type: string
-            purposeDescription:
-              type: string
-            purposeRiskAnalysisForm:
-              $ref: "#/components/schemas/RiskAnalysisFormTemplate"
-            purposeIsFreeOfCharge:
-              type: boolean
-            purposeFreeOfChargeReason:
-              type: string
-            purposeDailyCalls:
-              type: integer
-              format: int32
-              minimum: 1
-              maximum: 1000000000
-          required:
-            - id
-            - targetDescription
-            - targetTenantKind
-            - creatorId
-            - state
-            - createdAt
-            - purposeTitle
-            - purposeDescription
-            - purposeIsFreeOfCharge          
+      type: object
+      description: Business representation of a purpose template
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        targetDescription:
+          type: string
+        targetTenantKind:
+          $ref: "#/components/schemas/TenantKind"
+        creatorId:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/PurposeTemplateState"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        purposeTitle:
+          type: string
+        purposeDescription:
+          type: string
+        purposeRiskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - targetDescription
+        - targetTenantKind
+        - creatorId
+        - state
+        - createdAt
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
@@ -20468,33 +20468,33 @@ components:
         - id
         - docs
     RiskAnalysisTemplateAnswerAnnotationDocument:
-          type: object
-          additionalProperties: false
-          properties:
-            id:
-              type: string
-              format: uuid
-            name:
-              type: string
-            contentType:
-              type: string
-            prettyName:
-              type: string
-            path:
-              type: string
-            checksum:
-              type: string
-            createdAt:
-              type: string
-              format: date-time
-          required:
-            - id
-            - name
-            - contentType
-            - prettyName
-            - path
-            - checksum
-            - createdAt        
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        contentType:
+          type: string
+        prettyName:
+          type: string
+        path:
+          type: string
+        checksum:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - contentType
+        - prettyName
+        - path
+        - checksum
+        - createdAt
     RiskAnalysisTemplateAnswerAnnotationText:
       type: object
       additionalProperties: false
@@ -20585,10 +20585,10 @@ components:
       type: string
       description: Purpose Template State
       enum:
-        - ACTIVE
+        - PUBLISHED
         - DRAFT
         - SUSPENDED
-        - ARCHIVED        
+        - ARCHIVED
     Problem:
       properties:
         type:
