@@ -169,7 +169,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     });
   });
 
-  it.only("should get the linked purpose template e-service descriptors (filter: eserviceName)", async () => {
+  it("should get the linked purpose template e-service descriptors (filter: eserviceName)", async () => {
     const result =
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
