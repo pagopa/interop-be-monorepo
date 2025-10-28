@@ -18,6 +18,7 @@ import {
   delegationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
+import { AgreementState } from "pagopa-interop-models";
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
@@ -42,6 +43,7 @@ import {
   toBffAttribute,
   toBffCompactOrganization,
   toCompactEserviceLight,
+  toApiAgreementState,
 } from "../api/agreementApiConverter.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
@@ -458,6 +460,13 @@ export function agreementServiceBuilder(
           limit,
           eServiceName,
           producersIds: [requesterId],
+          agreementStates: [
+            AgreementState.Values.Active,
+            AgreementState.Values.Archived,
+            AgreementState.Values.Pending,
+            AgreementState.Values.Suspended,
+            AgreementState.Values.Rejected,
+          ].map(toApiAgreementState),
         },
         headers,
       });
