@@ -130,6 +130,7 @@ export function toBffCatalogDescriptorEService(
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    personalData: eservice.personalData,
   };
 }
 

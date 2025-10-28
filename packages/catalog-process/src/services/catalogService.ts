@@ -4059,7 +4059,10 @@ async function updateDraftEService(
     : eservice.data.mode;
 
   const checkedRiskAnalysis =
-    updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
+    updatedMode === eserviceMode.receive &&
+    eservice.data.personalData === typeAndSeed.seed.personalData
+      ? eservice.data.riskAnalysis
+      : [];
 
   const updatedIsSignalHubEnabled = match(typeAndSeed.type)
     .with("put", () => isSignalHubEnabled)
