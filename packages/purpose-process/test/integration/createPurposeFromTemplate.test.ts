@@ -74,7 +74,6 @@ import {
   getMockEServiceForPurposeFromTemplate,
   getMockPurposeFromTemplateSeed,
   getMockValidRiskAnalysisFormFromTemplate,
-  toMockPurposeForPurposeV2,
 } from "../mockUtils.js";
 
 describe("createPurposeFromTemplate", () => {
@@ -228,7 +227,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
+      purpose: toPurposeV2(expectedPurpose),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -349,7 +348,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
+      purpose: toPurposeV2(expectedPurpose),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -468,7 +467,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
+      purpose: toPurposeV2(expectedPurpose),
     });
     expect(createPurposeResponse).toEqual({
       data: {
@@ -644,7 +643,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(toMockPurposeForPurposeV2(expectedPurpose)),
+      purpose: toPurposeV2(expectedPurpose),
     });
     expect(createPurposeResponse).toEqual({
       data: {
