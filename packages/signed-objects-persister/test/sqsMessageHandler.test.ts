@@ -98,9 +98,26 @@ describe("sqsMessageHandler", () => {
     (mockFileManager.resumeOrStoreBytes as Mock).mockResolvedValueOnce(
       mockS3Key
     );
+    (
+      mockDbService.readDocumentSignatureReference as Mock
+    ).mockResolvedValueOnce({
+      id: sqsMessageBody.id,
+      key: sqsMessageBody.detail.key,
+      fileKind: sqsMessageBody.detail.documentType,
+      createdAt: BigInt(123456),
+      contentType: "application/pdf",
+      subObjectId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      streamId: "6e902b1c-7f55-4074-a036-749e75551f33",
+    });
     (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(
       void 0
     );
+
+    vi.mock("../src/utils/metadata/riskAnalysis.js", () => ({
+      addPurposeRiskAnalysisSignedDocument: vi
+        .fn()
+        .mockResolvedValue(undefined),
+    }));
 
     await sqsMessageHandler(
       sqsMessagePayload,

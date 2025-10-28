@@ -5,17 +5,13 @@ import {
   logger,
   createSafeStorageApiClient,
   SafeStorageService,
-  // SignatureServiceBuilder,
-  // signatureServiceBuilder,
+  SignatureServiceBuilder,
+  signatureServiceBuilder,
   RefreshableInteropToken,
   InteropTokenGenerator,
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Message } from "@aws-sdk/client-sqs";
-import {
-  SignatureServiceBuilder,
-  signatureServiceBuilder,
-} from "./services/signatureService.js";
 import { config } from "./config/config.js";
 import { sqsMessageHandler } from "./handlers/sqsMessageHandler.js";
 

@@ -175,6 +175,63 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/purposes/{purposeId}/versions/{versionId}/riskAnalysisDocument/signed:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        description: The purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The purpose version id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an signed Risk Analysis document to the purpose version
+      summary: Add signed Risk Analysis metadata to purpose version
+      tags:
+        - purpose
+      operationId: addSignedRiskAnalysisDocumentMetadata
+      requestBody:
+        description: The signed Risk Analysis document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeVersionDocument"
+      responses:
+        "204":
+          description: Risk Analysis metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose or Purpose Version not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

@@ -20,8 +20,7 @@ import {
   PurposeVersionDocumentId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { SignatureServiceBuilder } from "../services/signatureService.js";
-// import { SignatureServiceBuilder } from "pagopa-interop-commons";
+import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import {
   SqsSafeStorageBody,
   SqsSafeStorageBodySchema,
@@ -106,7 +105,9 @@ async function processMessage(
           await addPurposeRiskAnalysisSignedDocument(
             signature.streamId as PurposeId,
             signature.subObjectId as PurposeVersionDocumentId,
-            metadata
+            metadata,
+            refreshableToken,
+            correlationId
           );
         })
         .with("agreement", async () => {

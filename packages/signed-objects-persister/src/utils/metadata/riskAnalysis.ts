@@ -1,44 +1,36 @@
 /* eslint-disable no-console */
-// import { purposeApi } from "pagopa-interop-api-clients";
-import { PurposeId, PurposeVersionDocument } from "pagopa-interop-models";
-import { BRAND } from "zod";
-
-// export const addPurposeRiskAnalysisSignedDocument = async (
-//   purposeId: PurposeId,
-//   versionId: string,
-//   document: PurposeVersionDocument
-// ): Promise<unknown> =>
-//   purposeApi.purposeApi.api.postRiskAnalysisSignedDocument({
-//     purposeId,
-//     versionId,
-//     body: document,
-//   });
-
-type PurposeRiskAnalysisSignedDocumentResponse = {
-  purposeId: PurposeId;
-  versionId: string & BRAND<"PurposeVersionDocumentId">;
-  document: PurposeVersionDocument;
-  event: "RiskAnalysisSignedDocumentAdded";
-  timestamp: number;
-};
+import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  getInteropHeaders,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
+import {
+  CorrelationId,
+  PurposeId,
+  PurposeVersionDocument,
+  PurposeVersionDocumentId,
+} from "pagopa-interop-models";
 
 export const addPurposeRiskAnalysisSignedDocument = async (
   purposeId: PurposeId,
-  versionId: string & BRAND<"PurposeVersionDocumentId">,
-  document: PurposeVersionDocument
-): Promise<PurposeRiskAnalysisSignedDocumentResponse> => {
-  console.log(
-    `Mock: aggiungo documento firmato di risk analysis alla finalità ${purposeId}, versione ${versionId}`
-  );
-  console.log("Documento:", document);
-
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  return {
-    purposeId,
-    versionId,
-    document,
-    event: "RiskAnalysisSignedDocumentAdded",
-    timestamp: new Date().getMilliseconds(),
+  versionId: PurposeVersionDocumentId,
+  document: PurposeVersionDocument,
+  refreshableToken: RefreshableInteropToken,
+  correlationId: CorrelationId
+): Promise<void> => {
+  const token = (await refreshableToken.get()).serialized;
+  const documentWithIsoString = {
+    ...document,
+    createdAt: document.createdAt.toISOString(),
   };
+  await purposeApi.purposeApi.addSignedRiskAnalysisDocumentMetadata(
+    documentWithIsoString,
+    {
+      params: { purposeId, versionId },
+      headers: getInteropHeaders({
+        token,
+        correlationId,
+      }),
+    }
+  );
 };
