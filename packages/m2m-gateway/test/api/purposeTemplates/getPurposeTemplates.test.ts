@@ -54,6 +54,7 @@ describe("API GET /purposeTemplates", () => {
     ],
     excludeExpiredRiskAnalysis: false,
     targetTenantKind: tenantKind.PA,
+    handlesPersonalData: false,
   };
 
   it.each(authorizedRoles)(

@@ -81,7 +81,6 @@ describe("getPurposeTemplates", () => {
           m2mGatewayApi.PurposeTemplateState.Enum.DRAFT,
         ],
         excludeExpiredRiskAnalysis: false,
-        purposeTitle: undefined,
       } satisfies m2mGatewayApi.GetPurposeTemplatesQueryParams,
     });
   });
