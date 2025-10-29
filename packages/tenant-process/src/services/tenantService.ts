@@ -566,7 +566,11 @@ export function tenantServiceBuilder(
 
         return {
           data: updatedTenant,
-          metadata: { version: createdEvents.latestNewVersion },
+          metadata: {
+            version: createdEvents.latestNewVersion.get(
+              tenantCertifiedAttributeAssignedEvent.streamId
+            ),
+          },
         };
       }
       const { newVersion } = await repository.createEvent(
@@ -768,7 +772,11 @@ export function tenantServiceBuilder(
 
         return {
           data: updatedTenant,
-          metadata: { version: createdEvents.latestNewVersion },
+          metadata: {
+            version: createdEvents.latestNewVersion.get(
+              tenantCertifiedAttributeRevokedEvent.streamId
+            ),
+          },
         };
       }
 

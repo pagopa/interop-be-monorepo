@@ -671,7 +671,7 @@ export function agreementServiceBuilder(
       return {
         data: submittedAgreement,
         metadata: {
-          version: createdEvents.latestNewVersion,
+          version: createdEvents.latestNewVersion.get(agreementEvent.streamId),
         },
       };
     },
@@ -799,17 +799,10 @@ export function agreementServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.events
-          .filter((e) => e.streamId === agreement.id)
-          .map((event) => event.newVersion)
-      );
-
       return {
         data: agreement,
         metadata: {
-          version: newVersion,
+          version: createdEvents.latestNewVersion.get(agreement.id),
         },
       };
     },
@@ -1416,7 +1409,11 @@ export function agreementServiceBuilder(
 
       return {
         data: updatedAgreement,
-        metadata: { version: createdEvents.latestNewVersion },
+        metadata: {
+          version: createdEvents.latestNewVersion.get(
+            activationEvents[0].streamId
+          ),
+        },
       };
     },
     async archiveAgreement(

@@ -923,7 +923,9 @@ export function catalogServiceBuilder(
 
       return {
         data: eService,
-        metadata: { version: createdEvents.latestNewVersion },
+        metadata: {
+          version: createdEvents.latestNewVersion.get(events[0].streamId),
+        },
       };
     },
 
@@ -1406,7 +1408,9 @@ export function catalogServiceBuilder(
           eservice: updatedEServiceWithDocs,
           createdDescriptorId: newDescriptor.id,
         },
-        metadata: { version: createdEvents.latestNewVersion },
+        metadata: {
+          version: createdEvents.latestNewVersion.get(events[0].streamId),
+        },
       };
     },
 
@@ -2556,7 +2560,9 @@ export function catalogServiceBuilder(
 
         return {
           data: updatedEservice,
-          metadata: { version: createdEvents.latestNewVersion },
+          metadata: {
+            version: createdEvents.latestNewVersion.get(events[0].streamId),
+          },
         };
       }
       return eservice;

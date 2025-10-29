@@ -89,7 +89,9 @@ describe("EventRepository tests", async () => {
         { streamId: eservice.id, newVersion: 1 },
         { streamId: eservice.id, newVersion: 2 },
       ],
-      latestVersion: 2,
+      latestVersion: {
+        [eservice.id]: 2,
+      },
     });
   });
 
@@ -172,7 +174,9 @@ describe("EventRepository tests", async () => {
         { streamId: eservice.id, newVersion: 1 },
         { streamId: eservice.id, newVersion: 2 },
       ],
-      latestVersion: 2,
+      latestVersion: {
+        [eservice.id]: 2,
+      },
     });
   });
 });

@@ -5,6 +5,22 @@ import { ITask } from "pg-promise";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
+class MapWithDefault<K, V> extends Map<K, V> {
+  private readonly defaultValue: V;
+
+  constructor(
+    defaultValue: V,
+    entries?: ReadonlyArray<readonly [K, V]> | null
+  ) {
+    super(entries);
+    this.defaultValue = defaultValue;
+  }
+
+  public get(key: K): V {
+    return super.get(key) ?? this.defaultValue;
+  }
+}
+
 export interface Event {
   readonly type: string;
   readonly event_version: number;
@@ -24,7 +40,7 @@ type CreatedEvent = {
 
 type CreatedEvents = {
   events: CreatedEvent[];
-  latestNewVersion: number;
+  latestNewVersion: MapWithDefault<CreatedEvent["streamId"], number>;
 };
 
 async function insertEventInTransaction<T extends Event>(
@@ -97,6 +113,8 @@ async function internalCreateEvents<T extends Event>(
   createEvents: Array<CreateEvent<T>>
 ): Promise<CreatedEvents> {
   const createdEvents: CreatedEvent[] = [];
+  const latestNewVersion = new MapWithDefault<string, number>(0);
+
   try {
     await db.tx(async (t) => {
       for (const createEvent of createEvents) {
@@ -107,11 +125,18 @@ async function internalCreateEvents<T extends Event>(
         );
         // eslint-disable-next-line functional/immutable-data
         createdEvents.push(createdEvent);
+
+        const currentMax = latestNewVersion.get(createdEvent.streamId) ?? -1;
+        latestNewVersion.set(
+          createdEvent.streamId,
+          Math.max(currentMax, createdEvent.newVersion)
+        );
       }
     });
+
     return {
       events: createdEvents,
-      latestNewVersion: Math.max(0, ...createdEvents.map((e) => e.newVersion)),
+      latestNewVersion,
     };
   } catch (error) {
     throw genericInternalError(`Error creating multiple events: ${error}`);
