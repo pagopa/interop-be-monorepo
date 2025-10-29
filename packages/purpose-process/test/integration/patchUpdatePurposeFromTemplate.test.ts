@@ -424,7 +424,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
 
   it("Should throw purposeNotInDraftState if the purpose not in draft state", async () => {
     const nonDraftState: PurposeVersionState = getRandomNonPurposeStateWithout(
-      purposeVersionState.active
+      purposeVersionState.draft
     );
 
     await addOneEService(eservice);
