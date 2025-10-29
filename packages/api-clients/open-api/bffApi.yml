@@ -28788,11 +28788,12 @@ components:
           type: integer
           format: int32
     PersonalDataFilter:
+      type: string
       description: Filter e-services by personal data
       enum:
-        - "TRUE"
-        - "FALSE"
-        - "DEFINED"
+        - TRUE
+        - FALSE
+        - DEFINED
     ProblemError:
       properties:
         code:
