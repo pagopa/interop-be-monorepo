@@ -2580,7 +2580,7 @@ paths:
   "/catalog":
     parameters:
       - name: personalData
-        description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned, if "defined" all e-services with a defined personal data flag will be returned
+        description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
         in: query
         required: false
         schema:
@@ -7031,7 +7031,7 @@ paths:
   "/producers/eservices":
     parameters:
       - name: personalData
-        description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned, if "defined" all e-services with a defined personal data flag will be returned
+        description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
         in: query
         required: false
         schema:
@@ -28789,10 +28789,10 @@ components:
           format: int32
     PersonalDataFilter:
       description: Filter e-services by personal data
-      oneOf:
-        - type: boolean
-        - type: string
-          enum: ["defined"]
+      enum:
+        - "TRUE"
+        - "FALSE"
+        - "DEFINED"
     ProblemError:
       properties:
         code:
