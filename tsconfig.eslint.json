@@ -1,11 +1,14 @@
 // Root tsconfig for typescript-eslint
-// See: https://typescript-eslint.io/getting-started/typed-linting/monorepos#important-note-regarding-large--10-multi-package-monorepos
-// Choosing the root tsconfig approach because of: https://typescript-eslint.io/getting-started/typed-linting/monorepos#important-note-regarding-large--10-multi-package-monorepos
+// Using per-package project loading to avoid loading all packages into a single TypeScript program
+// This prevents memory issues in large monorepos with 80+ packages
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
     // ensure that nobody can accidentally use this config for a build
     "noEmit": true,
+    // Enable incremental compilation for faster subsequent runs
+    "incremental": true,
+    "tsBuildInfoFile": ".eslint-tsbuildinfo"
   },
   "include": ["packages/**/*"]
 }
