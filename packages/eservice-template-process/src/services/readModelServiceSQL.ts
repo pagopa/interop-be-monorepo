@@ -143,19 +143,19 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             match(personalData)
-              .with(true, () =>
+              .with("TRUE", () =>
                 eq(
                   eserviceTemplateInReadmodelEserviceTemplate.personalData,
                   true
                 )
               )
-              .with(false, () =>
+              .with("FALSE", () =>
                 eq(
                   eserviceTemplateInReadmodelEserviceTemplate.personalData,
                   false
                 )
               )
-              .with("defined", () =>
+              .with("DEFINED", () =>
                 isNotNull(
                   eserviceTemplateInReadmodelEserviceTemplate.personalData
                 )

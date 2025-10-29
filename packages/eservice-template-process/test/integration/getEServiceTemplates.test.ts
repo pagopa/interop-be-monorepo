@@ -565,7 +565,7 @@ describe("get eservice templates", () => {
     }
   );
 
-  it.each([true, false, "defined", undefined] as PersonalDataFilter[])(
+  it.each(["TRUE", "FALSE", "DEFINED", undefined] as PersonalDataFilter[])(
     "should get the eService templates if they exist (parameters: personalData = %s)",
     async (personalData) => {
       const result = await eserviceTemplateService.getEServiceTemplates(
@@ -583,9 +583,9 @@ describe("get eservice templates", () => {
       );
 
       const expectedEServiceTemplates = match(personalData)
-        .with(true, () => [eserviceTemplate1, eserviceTemplate2])
-        .with(false, () => [eserviceTemplate3, eserviceTemplate4])
-        .with("defined", () => [
+        .with("TRUE", () => [eserviceTemplate1, eserviceTemplate2])
+        .with("FALSE", () => [eserviceTemplate3, eserviceTemplate4])
+        .with("DEFINED", () => [
           eserviceTemplate1,
           eserviceTemplate2,
           eserviceTemplate3,
