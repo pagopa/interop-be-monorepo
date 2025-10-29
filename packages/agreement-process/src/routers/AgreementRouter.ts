@@ -592,6 +592,35 @@ const agreementRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/internal/agreement/:agreementId/signedContract",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { agreementId } = req.params;
+          const agreementContract = AgreementDocument.parse(req.body);
+          const { metadata } =
+            await agreementService.internalAddAgreementSignedContract(
+              unsafeBrandId(agreementId),
+              agreementContract,
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateAgreementDocumentsErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
 
     .post("/agreements/:agreementId/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);

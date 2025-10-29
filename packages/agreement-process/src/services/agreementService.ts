@@ -86,6 +86,7 @@ import {
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
   toCreateEventAgreementDocumentGenerated,
+  toCreateEventAgreementSignedContract,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -1582,6 +1583,34 @@ export function agreementServiceBuilder(
       };
       const event = await repository.createEvent(
         toCreateEventAgreementDocumentGenerated(
+          { data: agreementWithDocument, metadata },
+          correlationId
+        )
+      );
+      return {
+        data: agreement,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async internalAddAgreementSignedContract(
+      agreementId: AgreementId,
+      agreementDocument: AgreementDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(`Adding agreement contract ${agreementId}`);
+      const { data: agreement, metadata } = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+
+      const agreementWithDocument = {
+        ...agreement,
+        agreementDocument,
+      };
+      const event = await repository.createEvent(
+        toCreateEventAgreementSignedContract(
           { data: agreementWithDocument, metadata },
           correlationId
         )
