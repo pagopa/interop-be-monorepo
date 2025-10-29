@@ -55,16 +55,32 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
+      - name: Load dedicated test packages
+        id: get_dedicated_packages
+        run: |
+          DEDICATED_PACKAGES=$(cat ./dedicated_test_packages.json | jq -c .)
+          echo "Dedicated packages loaded: $(echo "$DEDICATED_PACKAGES" | jq 'length')"
+          echo "dedicated_packages=$DEDICATED_PACKAGES" >> $GITHUB_OUTPUT
+
       - name: Find packages with test directories
         id: get_test_packages
         run: |
-          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
+          ALL_TEST_PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
             echo "$PACKAGE_NAME"
           done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
 
-          echo "Packages with tests found: $(echo "$PACKAGES" | jq 'length')"
-          echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
+          DEDICATED_PACKAGES='${{ steps.get_dedicated_packages.outputs.dedicated_packages }}'
+
+          REMAINING_TEST_PACKAGES=$(echo "$ALL_TEST_PACKAGES" | jq --argjson dedicated "$DEDICATED_PACKAGES" '
+            . - $dedicated
+          ')
+
+          echo "All packages with tests found: $(echo "$ALL_TEST_PACKAGES" | jq 'length')"
+          echo "Remaining packages for sharding: $(echo "$REMAINING_TEST_PACKAGES" | jq 'length')"
+
+          echo "remaining_test_packages=$REMAINING_TEST_PACKAGES" >> $GITHUB_OUTPUT
+          echo "dedicated_test_packages=$DEDICATED_PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Find ALL packages
         id: get_all_packages
@@ -84,34 +100,71 @@ jobs:
         run: |
           SHARD_NUM=10
 
-          create_shard_matrix() {
+          create_fixed_size_shard_matrix() {
+            # Funzione per creare N shard di dimensione fissa
             local PACKAGES_JSON=$1
             local PACK_NUM=$2
-            local OUTPUT_VAR=$3
-
+            
             matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
               [range(0; $shardNum) as $i |
               {
-                "shardIndex": ($i + 1),
+                "shardIndex": ($i + 1), # Indici da 1 a 10
                 "packages": ($packs[
                 ($i * $len / $shardNum | floor):
                 (($i + 1) * $len / $shardNum | floor)
                 ])
               }
-              ]')
-
-            echo "$OUTPUT_VAR=$matrix" >> $GITHUB_OUTPUT
+              ] | .[] | select(.packages|length > 0) # Rimuove shard vuoti se i package sono pochi
+              ')
+            
+            echo "$matrix" # Restituisce gli shard come stringa JSONL
           }
 
-          # TEST
-          TEST_PACKAGES_JSON='${{ steps.get_test_packages.outputs.test_packages }}'
-          TEST_PACK_NUM=$(echo "$TEST_PACKAGES_JSON" | jq -r length)
-          create_shard_matrix "$TEST_PACKAGES_JSON" "$TEST_PACK_NUM" "test_matrix"
+          create_dedicated_shards() {
+            # Funzione per creare uno shard per ogni package
+            local PACKAGES_JSON=$1
+            local START_INDEX=$2
+            
+            matrix=$(jq --argjson packs "$PACKAGES_JSON" --argjson startIndex "$START_INDEX" -n -c '
+              [$packs[] | 
+              {
+                "shardIndex": ($startIndex + (. | index($packs[]))), # Indice progressivo (es. 11, 12, ...)
+                "packages": [.]
+              }
+              ] | .[]
+            ')
+            
+            echo "$matrix" # Restituisce gli shard come stringa JSONL
+          }
 
-          # LINT
+          REMAINING_PACKAGES_JSON='${{ steps.get_test_packages.outputs.remaining_test_packages }}'
+          REMAINING_PACK_NUM=$(echo "$REMAINING_PACKAGES_JSON" | jq -r length)
+
+          DEDICATED_PACKAGES_JSON='${{ steps.get_test_packages.outputs.dedicated_test_packages }}'
+          DEDICATED_PACK_NUM=$(echo "$DEDICATED_PACKAGES_JSON" | jq -r length)
+
+          FIXED_SHARDS=$(create_fixed_size_shard_matrix "$REMAINING_PACKAGES_JSON" "$REMAINING_PACK_NUM")
+
+          DEDICATED_START_INDEX=$((SHARD_NUM + 1)) # Inizia da 11
+          DEDICATED_SHARDS=$(create_dedicated_shards "$DEDICATED_PACKAGES_JSON" "$DEDICATED_START_INDEX")
+
+          TEST_MATRIX=$(
+            (echo "$FIXED_SHARDS"; echo "$DEDICATED_SHARDS") |
+            grep -v -e '^$' | # Rimuove linee vuote
+            jq -s -c . # Trasforma la lista di oggetti in un array
+          )
+
+          echo "Test Matrix Length: $(echo "$TEST_MATRIX" | jq 'length')"
+          echo "test_matrix=$TEST_MATRIX" >> $GITHUB_OUTPUT
+
           ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
           ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
-          create_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "lint_matrix"
+
+          LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM")
+          LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)
+
+          echo "Lint Matrix Length: $(echo "$LINT_MATRIX" | jq 'length')"
+          echo "lint_matrix=$LINT_MATRIX" >> $GITHUB_OUTPUT
 
   build:
     name: Full project build
