@@ -130,7 +130,6 @@ jobs:
             matrix=$(jq --argjson packs "$PACKAGES_JSON" --argjson startIndex "$START_INDEX" -n -c '
               ($packs | to_entries)[] |
               {
-                "name": (.value),
                 "shardIndex": ($startIndex + .key),
                 "packages": [ .value ]
               }
