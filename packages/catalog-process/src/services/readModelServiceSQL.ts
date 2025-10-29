@@ -238,10 +238,10 @@ export function readModelServiceBuilderSQL(
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
                   : undefined,
                 match(personalData)
-                  .with("true", () =>
+                  .with(true, () =>
                     eq(eserviceInReadmodelCatalog.personalData, true)
                   )
-                  .with("false", () =>
+                  .with(false, () =>
                     eq(eserviceInReadmodelCatalog.personalData, false)
                   )
                   .with("defined", () =>
