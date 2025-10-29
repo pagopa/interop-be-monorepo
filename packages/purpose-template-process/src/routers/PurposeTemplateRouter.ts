@@ -487,8 +487,8 @@ const purposeTemplateRouter = (
                 purposeTemplateId: unsafeBrandId(purposeTemplateId),
                 answerId: unsafeBrandId(answerId),
                 documentId: unsafeBrandId(documentId),
-              },
-              ctx
+                ctx,
+              }
             );
 
           setMetadataVersionHeader(res, metadata);

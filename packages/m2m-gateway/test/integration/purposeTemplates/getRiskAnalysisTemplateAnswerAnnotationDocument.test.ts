@@ -52,8 +52,8 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           purposeTemplateId,
           answerId,
           documentId,
-        },
-        getMockM2MAdminAppContext()
+          ctx: getMockM2MAdminAppContext(),
+        }
       );
 
     expect(result).toEqual(

@@ -554,20 +554,18 @@ export function purposeTemplateServiceBuilder(
 
       return purposeTemplate;
     },
-    async getRiskAnalysisTemplateAnswerAnnotationDocument(
-      {
-        purposeTemplateId,
-        answerId,
-        documentId,
-      }: {
-        purposeTemplateId: PurposeTemplateId;
-        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-      },
-      {
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+    async getRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>;
+    }): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+      const { logger } = ctx;
       logger.info(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );

@@ -280,8 +280,8 @@ const purposeTemplateRouter = (
                 purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
                 answerId: unsafeBrandId(req.params.answerId),
                 documentId: unsafeBrandId(req.params.documentId),
-              },
-              ctx
+                ctx,
+              }
             );
 
           return res

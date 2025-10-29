@@ -52,8 +52,10 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           purposeTemplateId: purposeTemplate.id,
           answerId: singleAnswer.id,
           documentId: singleAnswer.annotation!.docs[0].id,
-        },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+          ctx: getMockContext({
+            authData: getMockAuthData(generateId<TenantId>()),
+          }),
+        }
       );
     expect(purposeTemplateResponse).toMatchObject({
       data: singleAnswer.annotation!.docs[0],
@@ -84,14 +86,14 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>();
 
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
-        {
-          purposeTemplateId: purposeTemplate.id,
-          answerId: singleAnswer.id,
-          documentId: notExistingId,
-        },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
-      )
+      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument({
+        purposeTemplateId: purposeTemplate.id,
+        answerId: singleAnswer.id,
+        documentId: notExistingId,
+        ctx: getMockContext({
+          authData: getMockAuthData(generateId<TenantId>()),
+        }),
+      })
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplate.id,

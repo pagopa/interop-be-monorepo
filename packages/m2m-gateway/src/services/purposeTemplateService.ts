@@ -67,18 +67,18 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async getRiskAnalysisTemplateAnswerAnnotationDocument(
-      {
-        purposeTemplateId,
-        answerId,
-        documentId,
-      }: {
-        purposeTemplateId: PurposeTemplateId;
-        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-      },
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
+    async getRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      ctx: WithLogger<M2MGatewayAppContext>;
+    }): Promise<m2mGatewayApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
+      const { headers, logger } = ctx;
       logger.info(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
