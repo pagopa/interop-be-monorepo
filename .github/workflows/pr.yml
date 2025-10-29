@@ -55,18 +55,6 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-
-      - name: Install Turbo CLI
-        run: pnpm add -g turbo
-
       - name: Find packages with test directories
         id: get_test_packages
         run: |
@@ -80,8 +68,14 @@ jobs:
       - name: Find ALL packages
         id: get_all_packages
         run: |
-          PACKAGES=$(turbo ls | awk '{print $1}')
-          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -print | while read -r DIR; do
+            PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json" 2>/dev/null)
+            if [ -n "$PACKAGE_NAME" ]; then
+              echo "$PACKAGE_NAME"
+            fi
+          done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
+
+          echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Create shards matrices
         id: sharded_packages
