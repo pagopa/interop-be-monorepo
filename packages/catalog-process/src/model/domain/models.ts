@@ -16,7 +16,7 @@ import {
 } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 
-export type PersonalDataFilter = bffApi.PersonalDataFilter;
+export type PersonalDataFilter = bffApi.PersonalDataFilter | undefined;
 
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
