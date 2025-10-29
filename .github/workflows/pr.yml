@@ -105,7 +105,6 @@ jobs:
           SHARD_NUM=10
 
           create_fixed_size_shard_matrix() {
-            # Funzione per creare N shard di dimensione fissa
             local PACKAGES_JSON=$1
             local PACK_NUM=$2
             
@@ -118,10 +117,10 @@ jobs:
                 (($i + 1) * $len / $shardNum | floor)
                 ])
               }
-              ] | .[] | select(.packages|length > 0) # Rimuove shard vuoti se i package sono pochi
+              ] | .[] | select(.packages|length > 0)
               ')
             
-            echo "$matrix" # Restituisce gli shard come stringa JSONL
+            echo "$matrix"
           }
 
           create_dedicated_shards() {
@@ -129,16 +128,16 @@ jobs:
             local START_INDEX=$2
             
             matrix=$(jq --argjson packs "$PACKAGES_JSON" --argjson startIndex "$START_INDEX" -n -c '
-              [$packs[] | 
+              ($packs | to_entries)[] |
               {
-                "shardIndex": ($startIndex + (index($packs; .))),
-                "packages": [.]
+                "shardIndex": ($startIndex + .key),
+                "packages": [ .value ]
               }
-              ] | .[]
+              | .[]
             ')
             
-            echo "$matrix" # Restituisce gli shard come stringa JSONL
-          }
+            echo "$matrix"
+           }
 
           REMAINING_PACKAGES_JSON='${{ steps.filter_packages.outputs.remaining_test_packages }}'
           REMAINING_PACK_NUM=$(echo "$REMAINING_PACKAGES_JSON" | jq -r length)
