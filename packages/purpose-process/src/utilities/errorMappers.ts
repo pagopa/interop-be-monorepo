@@ -287,7 +287,6 @@ export const updatePurposeByTemplateErrorMapper = (
     .with(
       "riskAnalysisValidationFailed",
       "tenantKindNotFound",
-      "invalidPurposeTenantKind",
       "riskAnalysisVersionMismatch",
       "riskAnalysisMissingExpectedFieldError",
       "riskAnalysisContainsNotEditableAnswers",

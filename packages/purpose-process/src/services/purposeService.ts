@@ -1785,11 +1785,10 @@ export function purposeServiceBuilder(
       const lastDraftVersion = retrieveDraftPurposeVersion(purpose.data);
       assertPurposeIsDraft(purpose.data);
 
-      await verifyRequesterIsConsumerOrDelegateConsumer(
-        purpose.data.consumerId,
-        purpose.data.eserviceId,
+      assertRequesterCanActAsConsumer(
+        purpose.data,
         authData,
-        readModelService
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const purposeTemplate = await retrievePublishedPurposeTemplate(
@@ -1806,16 +1805,6 @@ export function purposeServiceBuilder(
         });
       }
 
-      const tenantKind = await retrieveTenantKind(
-        purpose.data.consumerId,
-        readModelService
-      );
-
-      assertValidPurposeTenantKind(
-        tenantKind,
-        purposeTemplate.targetTenantKind
-      );
-
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
         readModelService
@@ -1825,7 +1814,7 @@ export function purposeServiceBuilder(
         ? validateRiskAnalysisAgainstTemplateOrThrow(
             purposeTemplate,
             purposeUpdateContent.riskAnalysisForm,
-            tenantKind,
+            purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
             eservice.personalData
           )
