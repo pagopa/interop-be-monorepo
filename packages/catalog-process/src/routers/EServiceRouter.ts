@@ -1148,19 +1148,24 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEService =
+          const { metadata, data: updatedEService } =
             await catalogService.updateDescriptorAttributes(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(
               catalogApi.EService.parse(eServiceToApiEService(updatedEService))
             );
         } catch (error) {
+          console.log(error);
+
           const errorRes = makeApiProblem(
             error,
             updateDescriptorAttributesErrorMapper,

@@ -2839,7 +2839,7 @@ export function catalogServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<EService> {
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -2881,7 +2881,7 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventEServiceDescriptorAttributesUpdated(
           eservice.metadata.version,
           descriptor.id,
@@ -2891,7 +2891,10 @@ export function catalogServiceBuilder(
         )
       );
 
-      return updatedEService;
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async internalUpdateTemplateInstanceName(
       eserviceId: EServiceId,
