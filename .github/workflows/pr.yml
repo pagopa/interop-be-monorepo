@@ -63,10 +63,10 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
-          version: 8
+          run_install: true
 
       - name: Install Turbo CLI
-        run: pnpm add -D turbo
+        run: pnpm add -g turbo
 
       - name: Find packages with test directories
         id: get_test_packages
@@ -81,7 +81,7 @@ jobs:
       - name: Find ALL packages
         id: get_all_packages
         run: |
-          PACKAGES=$(pnpm exec turbo ls | awk '{print $1}')
+          PACKAGES=$(turbo ls | awk '{print $1}')
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Create shards matrices
