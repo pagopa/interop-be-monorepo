@@ -8,19 +8,13 @@ import {
   getMockWithMetadata,
   mockAvailableDailysCalls,
 } from "pagopa-interop-commons-test";
-import {
-  Purpose,
-  PurposeTemplateId,
-  generateId,
-  tenantKind,
-} from "pagopa-interop-models";
+import { Purpose, PurposeTemplateId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,
   eserviceNotFound,
-  invalidPurposeTenantKind,
   purposeNotFound,
   purposeNotInDraftState,
   purposeTemplateNotFound,
@@ -107,10 +101,6 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
     },
     {
       error: tenantKindNotFound(generateId()),
-      expectedStatus: HTTP_STATUS_BAD_REQUEST,
-    },
-    {
-      error: invalidPurposeTenantKind(tenantKind.PA, tenantKind.PRIVATE),
       expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
