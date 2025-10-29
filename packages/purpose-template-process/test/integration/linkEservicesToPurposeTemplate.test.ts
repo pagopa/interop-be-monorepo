@@ -396,7 +396,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       purposeTemplateNotInExpectedStates(
         suspendedPurposeTemplate.id,
         suspendedPurposeTemplate.state,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       )
     );
   });
@@ -424,7 +424,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       purposeTemplateNotInExpectedStates(
         archivedPurposeTemplate.id,
         archivedPurposeTemplate.state,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       )
     );
   });

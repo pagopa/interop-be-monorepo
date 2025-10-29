@@ -631,7 +631,7 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
       ]);
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
@@ -705,7 +705,7 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
       ]);
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
@@ -1404,7 +1404,7 @@ async function activatePurposeTemplate({
   return {
     data: {
       ...purposeTemplate.data,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
       updatedAt: new Date(),
     },
     metadata: purposeTemplate.metadata,
