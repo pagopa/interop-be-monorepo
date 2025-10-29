@@ -28791,8 +28791,8 @@ components:
       type: string
       description: Filter e-services by personal data
       enum:
-        - TRUE
-        - FALSE
+        - "TRUE"
+        - "FALSE"
         - DEFINED
     ProblemError:
       properties:

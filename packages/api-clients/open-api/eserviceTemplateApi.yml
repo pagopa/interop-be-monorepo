@@ -80,8 +80,8 @@ paths:
             type: string
             description: Filter e-service templates by personal data
             enum:
-              - TRUE
-              - FALSE
+              - "TRUE"
+              - "FALSE"
               - DEFINED
         - in: query
           name: offset
