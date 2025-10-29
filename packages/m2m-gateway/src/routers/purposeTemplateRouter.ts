@@ -34,14 +34,12 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const response = await purposeTemplateService.getPurposeTemplates(
-          req.query,
-          ctx
-        );
+        const purposeTemplates =
+          await purposeTemplateService.getPurposeTemplates(req.query, ctx);
 
         return res
           .status(200)
-          .send(m2mGatewayApi.PurposeTemplates.parse(response));
+          .send(m2mGatewayApi.PurposeTemplates.parse(purposeTemplates));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

@@ -45,10 +45,20 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.PurposeTemplates> {
-      const { limit, offset } = queryParams;
+      const {
+        purposeTitle,
+        creatorIds,
+        eserviceIds,
+        states,
+        targetTenantKind,
+        excludeExpiredRiskAnalysis,
+        handlesPersonalData,
+        limit,
+        offset,
+      } = queryParams;
 
       logger.info(
-        `Getting purpose templates with filters: ${JSON.stringify(queryParams)}`
+        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, excludeExpiredRiskAnalysis ${excludeExpiredRiskAnalysis}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
       );
 
       const {
