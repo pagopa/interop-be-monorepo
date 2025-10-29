@@ -111,7 +111,7 @@ jobs:
             matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
               [range(0; $shardNum) as $i |
               {
-                "shardIndex": ($i + 1), # Indici da 1 a 10
+                "shardIndex": ($i + 1),
                 "packages": ($packs[
                 ($i * $len / $shardNum | floor):
                 (($i + 1) * $len / $shardNum | floor)
@@ -130,14 +130,15 @@ jobs:
             matrix=$(jq --argjson packs "$PACKAGES_JSON" --argjson startIndex "$START_INDEX" -n -c '
               ($packs | to_entries)[] |
               {
+                "name": (.value),
                 "shardIndex": ($startIndex + .key),
                 "packages": [ .value ]
               }
-              | .[]
             ')
             
             echo "$matrix"
-           }
+          }
+
 
           REMAINING_PACKAGES_JSON='${{ steps.filter_packages.outputs.remaining_test_packages }}'
           REMAINING_PACK_NUM=$(echo "$REMAINING_PACKAGES_JSON" | jq -r length)
