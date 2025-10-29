@@ -26365,14 +26365,9 @@ components:
       additionalProperties: false
       properties:
         text:
-          type: string
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+          type: string        
       required:
         - text
-        - docs
     RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
       type: object
       additionalProperties: false
