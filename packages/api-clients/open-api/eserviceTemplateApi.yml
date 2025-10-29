@@ -74,9 +74,14 @@ paths:
           explode: false
         - in: query
           name: personalData
-          description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned
+          description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned, if defined all e-services templates with a defined personal data flag will be returned
+          required: false
           schema:
-            type: boolean
+            description: Filter e-services by personal data
+            oneOf:
+              - type: boolean
+              - type: string
+                enum: ["defined"]
         - in: query
           name: offset
           required: true

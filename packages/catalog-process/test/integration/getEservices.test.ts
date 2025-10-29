@@ -1938,7 +1938,7 @@ describe("get eservices", () => {
     );
   });
 
-  it.each([true, false, "defined"] as PersonalDataFilter[])(
+  it.each([true, false, "defined", undefined] as PersonalDataFilter[])(
     "should get the eServices if they exist (parameters: personalData = %s)",
     async (personalData) => {
       const result = await catalogService.getEServices(

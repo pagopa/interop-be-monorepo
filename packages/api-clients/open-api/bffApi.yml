@@ -21652,6 +21652,13 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog/eservices/templates":
+    parameters:
+      - name: personalData
+        description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned, if defined all e-services templates with a defined personal data flag will be returned
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/PersonalDataFilter"
     get:
       tags:
         - eserviceTemplates
@@ -21674,11 +21681,6 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: personalData
-          description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned
-          schema:
-            type: boolean
         - in: query
           name: offset
           required: true
