@@ -33,6 +33,8 @@ tags:
     description: E-Service Templates routes
   - name: producerKeychains
     description: Producer Keychains routes
+  - name: purposeTemplates
+    description: Purpose Templates routes
   - name: health
     description: Verify service status
 paths:
@@ -14833,6 +14835,147 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /purposeTemplates:
+    get:
+      tags:
+        - purposeTemplates
+      summary: List Purpose Templates
+      description: Retrieve a list of Purpose Templates based on filters
+      operationId: getPurposeTemplates
+      parameters:
+        - in: query
+          name: purposeTitle
+          description: Filter Purpose Templates by title
+          schema:
+            type: string
+        - in: query
+          name: creatorIds
+          description: Filter Purpose Templates by creator IDs. If not specified, return Purpose Templates for any creator
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: eserviceIds
+          description: Filter Purpose Templates by E-Service IDs. If not specified, return Purpose Templates for any E-Service
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: states
+          description: Filter Purpose Templates by states. If not specified, return Purpose Templates in any state
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PurposeTemplateState"
+            default: []
+          explode: false
+        - in: query
+          name: targetTenantKind
+          description: Filter Purpose Templates by target tenant kind. If not specified, return Purpose Templates for any target tenant kind
+          schema:
+            $ref: "#/components/schemas/TenantKind"
+        - in: query
+          name: excludeExpiredRiskAnalysis
+          description: Filter Purpose Templates by excluding those with expired risk analysis
+          schema:
+            type: boolean
+            default: true
+        - in: query
+          name: handlesPersonalData
+          description: Filter Purpose Templates that handle personal data
+          schema:
+            type: boolean
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: Maximum number of results to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Purpose Templates retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplates"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /tenants:
     get:
       tags:
@@ -18567,6 +18710,166 @@ components:
         delegationId:
           type: string
           format: uuid
+    PurposeTemplates:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplate"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    PurposeTemplate:
+      type: object
+      description: Business representation of a purpose template
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        targetDescription:
+          type: string
+        targetTenantKind:
+          $ref: "#/components/schemas/TenantKind"
+        creatorId:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/PurposeTemplateState"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        purposeTitle:
+          type: string
+        purposeDescription:
+          type: string
+        purposeRiskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
+      required:
+        - id
+        - targetDescription
+        - targetTenantKind
+        - creatorId
+        - state
+        - createdAt
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
+        - handlesPersonalData
+    PurposeTemplateState:
+      type: string
+      description: Purpose Template State
+      enum:
+        - PUBLISHED
+        - DRAFT
+        - SUSPENDED
+        - ARCHIVED
+    RiskAnalysisFormTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        version:
+          type: string
+          minLength: 1
+          maxLength: 250
+        answers:
+          additionalProperties:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
+      required:
+        - version
+        - answers
+    RiskAnalysisTemplateAnswer:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        values:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2000
+        editable:
+          type: boolean
+        annotation:
+          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
+        suggestedValues:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+      required:
+        - id
+        - values
+        - editable
+        - suggestedValues
+    RiskAnalysisTemplateAnswerAnnotation:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+      required:
+        - text
+        - id
+        - docs
+    RiskAnalysisTemplateAnswerAnnotationDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        contentType:
+          type: string
+        prettyName:
+          type: string
+        path:
+          type: string
+        checksum:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - contentType
+        - prettyName
+        - path
+        - checksum
+        - createdAt
     Problem:
       properties:
         type:
