@@ -4061,11 +4061,16 @@ async function updateDraftEService(
     ? apiEServiceModeToEServiceMode(mode)
     : eservice.data.mode;
 
+  // delete risk analysis in one of these cases:
+  // - mode is changed to "Deliver"
+  // - personalData flag is changed from true to false or vice versa
   const checkedRiskAnalysis =
-    updatedMode === eserviceMode.receive &&
-    eservice.data.personalData === typeAndSeed.seed.personalData
-      ? eservice.data.riskAnalysis
-      : [];
+    updatedMode === eserviceMode.deliver ||
+    (typeAndSeed.seed.personalData != null &&
+      eservice.data.personalData != null &&
+      typeAndSeed.seed.personalData !== eservice.data.personalData)
+      ? []
+      : eservice.data.riskAnalysis;
 
   const updatedIsSignalHubEnabled = match(typeAndSeed.type)
     .with("put", () => isSignalHubEnabled)
