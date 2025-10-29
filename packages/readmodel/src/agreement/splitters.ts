@@ -38,6 +38,7 @@ export const splitAgreementIntoObjectsSQL = (
     stamps,
     rejectionReason,
     suspendedAt,
+    signedContract,
     ...rest
   }: Agreement,
   metadataVersion: number
@@ -59,6 +60,7 @@ export const splitAgreementIntoObjectsSQL = (
     consumerNotes: consumerNotes ?? null, // "??" because empty strings should not become null
     rejectionReason: rejectionReason ?? null,
     suspendedAt: dateToString(suspendedAt),
+    signedContract: signedContract ?? null,
   };
 
   const makeStampSQL = (
@@ -132,11 +134,12 @@ export const agreementDocumentToAgreementDocumentSQL = (
     contentType,
     path,
     createdAt,
+    signedAt,
     ...rest
   }: AgreementDocument,
   agreementId: AgreementId,
   metadataVersion: number
-): AgreementConsumerDocumentSQL | AgreementContractSQL => {
+): AgreementConsumerDocumentSQL & AgreementContractSQL => {
   void (rest satisfies Record<string, never>);
   return {
     id,
@@ -147,5 +150,6 @@ export const agreementDocumentToAgreementDocumentSQL = (
     contentType,
     path,
     createdAt: dateToString(createdAt),
+    signedAt: signedAt ? dateToString(signedAt) : null,
   };
 };

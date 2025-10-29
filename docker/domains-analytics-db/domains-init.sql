@@ -164,6 +164,7 @@ CREATE TABLE domains.agreement (
   consumer_notes VARCHAR(2048),
   rejection_reason VARCHAR(2048),
   suspended_at TIMESTAMP WITH TIME ZONE,
+  signed_contract VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -210,6 +211,7 @@ CREATE TABLE domains.agreement_contract (
   content_type VARCHAR(2048) NOT NULL,
   path VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  signed_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (agreement_id, id)
 );

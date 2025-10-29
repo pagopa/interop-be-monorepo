@@ -48,116 +48,116 @@ export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
 }
 
 export function agreementEventToBinaryDataV1(
-  event: AgreementEventV1,
+  event: AgreementEventV1
 ): Uint8Array {
   return match(event)
     .with({ type: "AgreementDeleted" }, ({ data }) =>
-      AgreementDeletedV1.toBinary(data),
+      AgreementDeletedV1.toBinary(data)
     )
     .with({ type: "AgreementAdded" }, ({ data }) =>
-      AgreementAddedV1.toBinary(data),
+      AgreementAddedV1.toBinary(data)
     )
     .with({ type: "AgreementActivated" }, ({ data }) =>
-      AgreementActivatedV1.toBinary(data),
+      AgreementActivatedV1.toBinary(data)
     )
     .with({ type: "AgreementSuspended" }, ({ data }) =>
-      AgreementSuspendedV1.toBinary(data),
+      AgreementSuspendedV1.toBinary(data)
     )
     .with({ type: "AgreementDeactivated" }, ({ data }) =>
-      AgreementDeactivatedV1.toBinary(data),
+      AgreementDeactivatedV1.toBinary(data)
     )
     .with({ type: "VerifiedAttributeUpdated" }, ({ data }) =>
-      VerifiedAttributeUpdatedV1.toBinary(data),
+      VerifiedAttributeUpdatedV1.toBinary(data)
     )
     .with({ type: "AgreementUpdated" }, ({ data }) =>
-      AgreementUpdatedV1.toBinary(data),
+      AgreementUpdatedV1.toBinary(data)
     )
     .with({ type: "AgreementContractAdded" }, ({ data }) =>
-      AgreementContractAddedV1.toBinary(data),
+      AgreementContractAddedV1.toBinary(data)
     )
     .with({ type: "AgreementConsumerDocumentAdded" }, ({ data }) =>
-      AgreementConsumerDocumentAddedV1.toBinary(data),
+      AgreementConsumerDocumentAddedV1.toBinary(data)
     )
     .with({ type: "AgreementConsumerDocumentRemoved" }, ({ data }) =>
-      AgreementConsumerDocumentRemovedV1.toBinary(data),
+      AgreementConsumerDocumentRemovedV1.toBinary(data)
     )
     .exhaustive();
 }
 
 export function agreementEventToBinaryDataV2(
-  event: AgreementEventV2,
+  event: AgreementEventV2
 ): Uint8Array {
   return match(event)
     .with({ type: "AgreementAdded" }, ({ data }) =>
-      AgreementAddedV2.toBinary(data),
+      AgreementAddedV2.toBinary(data)
     )
     .with({ type: "AgreementDeleted" }, ({ data }) =>
-      AgreementDeletedV2.toBinary(data),
+      AgreementDeletedV2.toBinary(data)
     )
     .with({ type: "DraftAgreementUpdated" }, ({ data }) =>
-      DraftAgreementUpdatedV2.toBinary(data),
+      DraftAgreementUpdatedV2.toBinary(data)
     )
     .with({ type: "AgreementSubmitted" }, ({ data }) =>
-      AgreementSubmittedV2.toBinary(data),
+      AgreementSubmittedV2.toBinary(data)
     )
     .with({ type: "AgreementActivated" }, ({ data }) =>
-      AgreementActivatedV2.toBinary(data),
+      AgreementActivatedV2.toBinary(data)
     )
     .with({ type: "AgreementUnsuspendedByProducer" }, ({ data }) =>
-      AgreementUnsuspendedByProducerV2.toBinary(data),
+      AgreementUnsuspendedByProducerV2.toBinary(data)
     )
     .with({ type: "AgreementUnsuspendedByConsumer" }, ({ data }) =>
-      AgreementUnsuspendedByConsumerV2.toBinary(data),
+      AgreementUnsuspendedByConsumerV2.toBinary(data)
     )
     .with({ type: "AgreementUnsuspendedByPlatform" }, ({ data }) =>
-      AgreementUnsuspendedByPlatformV2.toBinary(data),
+      AgreementUnsuspendedByPlatformV2.toBinary(data)
     )
     .with({ type: "AgreementArchivedByConsumer" }, ({ data }) =>
-      AgreementArchivedByConsumerV2.toBinary(data),
+      AgreementArchivedByConsumerV2.toBinary(data)
     )
     .with({ type: "AgreementArchivedByUpgrade" }, ({ data }) =>
-      AgreementArchivedByUpgradeV2.toBinary(data),
+      AgreementArchivedByUpgradeV2.toBinary(data)
     )
     .with({ type: "AgreementUpgraded" }, ({ data }) =>
-      AgreementUpgradedV2.toBinary(data),
+      AgreementUpgradedV2.toBinary(data)
     )
     .with({ type: "AgreementSuspendedByProducer" }, ({ data }) =>
-      AgreementSuspendedByProducerV2.toBinary(data),
+      AgreementSuspendedByProducerV2.toBinary(data)
     )
     .with({ type: "AgreementSuspendedByConsumer" }, ({ data }) =>
-      AgreementSuspendedByConsumerV2.toBinary(data),
+      AgreementSuspendedByConsumerV2.toBinary(data)
     )
     .with({ type: "AgreementSuspendedByPlatform" }, ({ data }) =>
-      AgreementSuspendedByPlatformV2.toBinary(data),
+      AgreementSuspendedByPlatformV2.toBinary(data)
     )
     .with({ type: "AgreementRejected" }, ({ data }) =>
-      AgreementRejectedV2.toBinary(data),
+      AgreementRejectedV2.toBinary(data)
     )
     .with({ type: "AgreementConsumerDocumentAdded" }, ({ data }) =>
-      AgreementConsumerDocumentAddedV2.toBinary(data),
+      AgreementConsumerDocumentAddedV2.toBinary(data)
     )
     .with({ type: "AgreementConsumerDocumentRemoved" }, ({ data }) =>
-      AgreementConsumerDocumentRemovedV2.toBinary(data),
+      AgreementConsumerDocumentRemovedV2.toBinary(data)
     )
     .with({ type: "AgreementSetDraftByPlatform" }, ({ data }) =>
-      AgreementSetDraftByPlatformV2.toBinary(data),
+      AgreementSetDraftByPlatformV2.toBinary(data)
     )
     .with(
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
       ({ data }) =>
-        AgreementSetMissingCertifiedAttributesByPlatformV2.toBinary(data),
+        AgreementSetMissingCertifiedAttributesByPlatformV2.toBinary(data)
     )
     .with({ type: "AgreementDeletedByRevokedDelegation" }, ({ data }) =>
-      AgreementDeletedByRevokedDelegationV2.toBinary(data),
+      AgreementDeletedByRevokedDelegationV2.toBinary(data)
     )
     .with({ type: "AgreementArchivedByRevokedDelegation" }, ({ data }) =>
-      AgreementArchivedByRevokedDelegationV2.toBinary(data),
+      AgreementArchivedByRevokedDelegationV2.toBinary(data)
     )
     .with({ type: "AgreementContractGenerated" }, ({ data }) =>
-      AgreementContractGeneratedV2.toBinary(data),
+      AgreementContractGeneratedV2.toBinary(data)
     )
     .with({ type: "AgreementSignedContractGenerated" }, ({ data }) =>
-      AgreementSignedContractGeneratedV2.toBinary(data),
+      AgreementSignedContractGeneratedV2.toBinary(data)
     )
     .exhaustive();
 }

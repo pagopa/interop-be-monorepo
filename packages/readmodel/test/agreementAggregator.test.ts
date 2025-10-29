@@ -26,6 +26,7 @@ describe("Agreement Aggregator", () => {
     const mockAgreementStamps = getMockAgreementStamps();
     const agreementStamps: AgreementStamps = {};
     const delegationId = generateId<DelegationId>();
+    const signedContract = generateId();
 
     // eslint-disable-next-line functional/no-let
     let key: keyof AgreementStamps;
@@ -58,10 +59,12 @@ describe("Agreement Aggregator", () => {
         contract: {
           ...getMockAgreementDocument(),
           createdAt: new Date(),
+          signedAt: new Date(),
         },
         stamps: agreementStamps,
         rejectionReason: "some rejection reason",
         suspendedAt: new Date(),
+        signedContract,
       },
       metadata: {
         version: 1,
@@ -121,6 +124,7 @@ describe("Agreement Aggregator", () => {
         declaredAttributes: [getMockAgreementAttribute()],
         consumerDocuments: [getMockAgreementDocument()],
         stamps: agreementStamps,
+        signedContract: generateId(),
       },
       metadata: {
         version: 1,

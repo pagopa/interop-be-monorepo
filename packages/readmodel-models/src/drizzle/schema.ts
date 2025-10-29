@@ -49,6 +49,7 @@ export const agreementInReadmodelAgreement = readmodelAgreement.table(
       withTimezone: true,
       mode: "string",
     }),
+    signedContract: uuid("signed_contract"),
   },
   (table) => [
     unique("agreement_id_metadata_version_unique").on(
@@ -180,6 +181,10 @@ export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
+    signedAt: timestamp("signed_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
   },
   (table) => [
     foreignKey({

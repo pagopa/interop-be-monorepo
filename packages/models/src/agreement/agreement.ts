@@ -35,6 +35,7 @@ export const AgreementDocument = z.object({
   contentType: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
+  signedAt: z.coerce.date().optional(),
 });
 export type AgreementDocument = z.infer<typeof AgreementDocument>;
 
@@ -80,5 +81,6 @@ export const Agreement = z.object({
   stamps: AgreementStamps,
   rejectionReason: z.string().optional(),
   suspendedAt: z.coerce.date().optional(),
+  signedContract: z.string().uuid().optional(),
 });
 export type Agreement = z.infer<typeof Agreement>;

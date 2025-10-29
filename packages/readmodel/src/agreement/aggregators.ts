@@ -63,9 +63,9 @@ const createAgreementSQLPropertyMap = <
     | AgreementStampSQL
     | AgreementConsumerDocumentSQL
     | AgreementContractSQL
-    | AgreementAttributeSQL
+    | AgreementAttributeSQL,
 >(
-  items: T[]
+  items: T[],
 ): Map<AgreementId, T[]> =>
   items.reduce((acc, item) => {
     const agreementId = unsafeBrandId<AgreementId>(item.agreementId);
@@ -92,7 +92,7 @@ export const aggregateAgreement = ({
           certifiedAttributes: AgreementAttribute[];
           declaredAttributes: AgreementAttribute[];
         },
-        a
+        a,
       ) =>
         match(AttributeKind.parse(a.kind))
           .with(attributeKind.verified, () => ({
@@ -121,11 +121,11 @@ export const aggregateAgreement = ({
         verifiedAttributes: [],
         certifiedAttributes: [],
         declaredAttributes: [],
-      }
+      },
     );
 
   const consumerDocuments: AgreementDocument[] = consumerDocumentsSQL.map(
-    documentSQLtoDocument
+    documentSQLtoDocument,
   );
 
   const {
@@ -168,7 +168,7 @@ export const aggregateAgreement = ({
           archiving: stamp,
         }))
         .exhaustive(),
-    {}
+    {},
   );
 
   const agreement: Agreement = {
@@ -242,6 +242,11 @@ export const aggregateAgreement = ({
           suspendedAt: stringToDate(agreementSQL.suspendedAt),
         }
       : {}),
+    ...(agreementSQL.signedContract !== null
+      ? {
+          signedContract: agreementSQL.signedContract,
+        }
+      : {}),
   };
 
   return {
@@ -251,7 +256,7 @@ export const aggregateAgreement = ({
 };
 
 const documentSQLtoDocument = (
-  documentSQL: AgreementContractSQL | AgreementConsumerDocumentSQL
+  documentSQL: AgreementContractSQL | AgreementConsumerDocumentSQL,
 ): AgreementDocument => ({
   id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
@@ -259,6 +264,10 @@ const documentSQLtoDocument = (
   prettyName: documentSQL.prettyName,
   contentType: documentSQL.contentType,
   createdAt: stringToDate(documentSQL.createdAt),
+  signedAt:
+    "signedAt" in documentSQL && documentSQL.signedAt
+      ? stringToDate(documentSQL.signedAt)
+      : undefined,
 });
 
 const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
@@ -278,7 +287,7 @@ export const toAgreementAggregator = (
     attribute: AgreementAttributeSQL | null;
     consumerDocument: AgreementConsumerDocumentSQL | null;
     contract: AgreementContractSQL | null;
-  }>
+  }>,
 ): AgreementItemsSQL => {
   const {
     agreementsSQL,
@@ -306,7 +315,7 @@ export const toAgreementAggregatorArray = (
     attribute: AgreementAttributeSQL | null;
     consumerDocument: AgreementConsumerDocumentSQL | null;
     contract: AgreementContractSQL | null;
-  }>
+  }>,
 ): {
   agreementsSQL: AgreementSQL[];
   stampsSQL: AgreementStampSQL[];
