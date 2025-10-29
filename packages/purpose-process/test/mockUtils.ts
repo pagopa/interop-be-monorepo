@@ -19,8 +19,8 @@ import {
 import {
   getMockValidRiskAnalysisForm,
   validRiskAnalysis2_0_Private,
-  validRiskAnalysis3_0_Pa,
   getMockEService,
+  validatedRiskAnalysisTemplate3_1_Pa,
 } from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -163,19 +163,20 @@ export const getMockEServiceForPurposeFromTemplate = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
   descriptors: Descriptor[] = [],
-  templateId?: EServiceTemplateId | undefined
+  templateId?: EServiceTemplateId | undefined,
+  personalData: boolean = true
 ): EService => ({
   ...getMockEService(eserviceId, producerId, descriptors, templateId),
-  personalData: false,
+  personalData,
 });
 
-export const validatedRiskAnalysisFormFromTemplate3_0_Pa: RiskAnalysisValidatedForm =
+export const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm =
   {
-    version: validRiskAnalysis3_0_Pa.version,
+    version: validatedRiskAnalysisTemplate3_1_Pa.version,
     singleAnswers: [
       {
         key: "publicInterestTaskText",
-        value: "public interest task text test",
+        value: "Public interest something",
       },
     ],
     multiAnswers: [],
@@ -194,7 +195,7 @@ export const getMockValidRiskAnalysisFormFromTemplate = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysisFormFromTemplate3_0_Pa
+        validatedRiskAnalysisFormFromTemplate3_1_Pa
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
