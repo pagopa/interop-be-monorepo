@@ -1535,7 +1535,7 @@ export function tenantServiceBuilder(
         // eslint-disable-next-line functional/immutable-data
         events.push(tenantKindUpdatedEvent);
       }
-      await repository.createEvents([...events]);
+      await repository.createEvents(events);
 
       return tenantWithUpdatedKind;
     },
@@ -1640,7 +1640,7 @@ export function tenantServiceBuilder(
         // eslint-disable-next-line functional/immutable-data
         events.push(tenantKindUpdatedEvent);
       }
-      await repository.createEvents([...events]);
+      await repository.createEvents(events);
 
       return tenantWithUpdatedKind;
     },
