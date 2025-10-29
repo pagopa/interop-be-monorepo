@@ -217,13 +217,13 @@ export const updateDraftDescriptorErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
+      "attributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "notValidDescriptor",
       "inconsistentDailyCalls",
-      "attributeNotFound",
       "templateInstanceNotAllowed",
       "attributeDuplicatedInGroup",
       () => HTTP_STATUS_BAD_REQUEST
