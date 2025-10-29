@@ -1164,7 +1164,6 @@ const eservicesRouter = (
               catalogApi.EService.parse(eServiceToApiEService(updatedEService))
             );
         } catch (error) {
-
           const errorRes = makeApiProblem(
             error,
             updateDescriptorAttributesErrorMapper,
