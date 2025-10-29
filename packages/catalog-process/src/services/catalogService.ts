@@ -4059,7 +4059,7 @@ async function updateDraftEService(
     : eservice.data.mode;
 
   // delete risk analysis in one of these cases:
-  // - mode is changed to deliver
+  // - mode is changed to "Deliver"
   // - personalData flag is changed from true to false or vice versa
   const checkedRiskAnalysis =
     updatedMode === eserviceMode.deliver ||
