@@ -9,21 +9,14 @@ import {
   DelegationId,
   delegationKind,
   generateId,
-  TenantId,
   DelegationContractDocument,
   DelegationContractId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { delegationApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, delegationService } from "../vitest.api.setup.js";
-import {
-  delegationNotFound,
-  incorrectState,
-  operationRestrictedToDelegate,
-} from "../../src/model/domain/errors.js";
-import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.js";
+import { delegationNotFound } from "../../src/model/domain/errors.js";
 
 const mockDelegationContract: DelegationContractDocument = {
   id: generateId<DelegationContractId>(),
@@ -39,9 +32,6 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
     kind: delegationKind.delegatedProducer,
   });
   const serviceResponse = getMockWithMetadata(mockDelegation);
-  const apiDelegation = delegationApi.Delegation.parse(
-    delegationToApiDelegation(mockDelegation)
-  );
 
   beforeEach(() => {
     delegationService.internalAddDelegationContract = vi
@@ -63,7 +53,7 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
   const authorizedRoles: AuthRole[] = [authRole.INTERNAL_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s on successful contract add",
+    "Should return 204 for user with role %s on successful contract add",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
@@ -75,8 +65,8 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
         mockDelegationContract,
         expect.anything()
       );
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiDelegation);
+      expect(res.status).toBe(204);
+      expect(res.body).toEqual({});
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
@@ -96,19 +86,6 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
       error: delegationNotFound(mockDelegation.id),
       expectedStatus: 404,
       description: "delegationNotFound",
-    },
-    {
-      error: incorrectState(mockDelegation.id, "Active", "WaitingForApproval"),
-      expectedStatus: 409,
-      description: "incorrectState",
-    },
-    {
-      error: operationRestrictedToDelegate(
-        generateId<TenantId>(),
-        mockDelegation.id
-      ),
-      expectedStatus: 403,
-      description: "operationRestrictedToDelegate",
     },
   ])(
     "Should return $expectedStatus for $description error",

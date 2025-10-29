@@ -211,7 +211,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   it("should throw purposeTemplateNotInExpectedStates error when purpose template is not in draft state", async () => {
     const publishedPurposeTemplate: PurposeTemplate = {
       ...existentPurposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     };
     await addOnePurposeTemplate(publishedPurposeTemplate);
 

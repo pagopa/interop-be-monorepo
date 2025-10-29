@@ -26142,7 +26142,7 @@ components:
       type: string
       description: Purpose Template State
       enum:
-        - ACTIVE
+        - PUBLISHED
         - DRAFT
         - SUSPENDED
         - ARCHIVED
@@ -28098,6 +28098,8 @@ components:
         isAlreadyInstantiated:
           type: boolean
         hasRequesterRiskAnalysis:
+          type: boolean
+        personalData:
           type: boolean
     EServiceTemplateVersionQuotasUpdateSeed:
       type: object
