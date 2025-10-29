@@ -1,7 +1,13 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import {
+  isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -9,6 +15,28 @@ export type PurposeTemplateService = ReturnType<
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
+  const retrievePurposeTemplateById = async (
+    purposeTemplateId: PurposeTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+    await clients.purposeTemplateProcessClient.getPurposeTemplate({
+      params: {
+        id: purposeTemplateId,
+      },
+      headers,
+    });
+
+  const pollPurposeTemplateById = (
+    purposeTemplateId: PurposeTemplateId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(purposeTemplateId, headers)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+    });
+
   return {
     async getPurposeTemplateById(): Promise<void> {
       return Promise.resolve();
@@ -67,8 +95,28 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
     async unsuspendPurposeTemplate(): Promise<void> {
       return Promise.resolve();
     },
-    async publishPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
+    async publishPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Publishing purpose template ${purposeTemplateId}`);
+
+      const response =
+        await clients.purposeTemplateProcessClient.publishPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        response.metadata,
+        headers
+      );
+
+      return data;
     },
   };
 }

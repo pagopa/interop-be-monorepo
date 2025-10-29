@@ -17258,8 +17258,12 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "204":
+        "200":
           description: Purpose Template Published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
