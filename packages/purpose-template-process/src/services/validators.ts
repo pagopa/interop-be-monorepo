@@ -69,9 +69,9 @@ const isRequesterCreator = (
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
 ): boolean => authData.organizationId === creatorId;
 
-const isPurposeTemplateActive = (
+const isPurposeTemplatePublished = (
   currentPurposeTemplateState: PurposeTemplateState
-): boolean => currentPurposeTemplateState === purposeTemplateState.active;
+): boolean => currentPurposeTemplateState === purposeTemplateState.published;
 
 const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
@@ -144,7 +144,8 @@ export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed
     | undefined,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  personalDataInPurposeTemplate: boolean
 ): RiskAnalysisFormTemplate | undefined {
   if (!riskAnalysisFormTemplate) {
     return undefined;
@@ -153,6 +154,7 @@ export function validateAndTransformRiskAnalysisTemplate(
   const validatedForm = validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate,
     tenantKind,
+    personalDataInPurposeTemplate,
   });
 
   return riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
@@ -169,13 +171,16 @@ export function validateRiskAnalysisAnswerAnnotationOrThrow(
 export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisFormTemplate,
   tenantKind,
+  personalDataInPurposeTemplate,
 }: {
   riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed;
   tenantKind: TenantKind;
+  personalDataInPurposeTemplate: boolean;
 }): RiskAnalysisTemplateValidatedForm {
   const result = validatePurposeTemplateRiskAnalysis(
     riskAnalysisFormTemplate,
-    tenantKind
+    tenantKind,
+    personalDataInPurposeTemplate
   );
 
   return match(result)
@@ -238,7 +243,7 @@ export const assertRequesterCanRetrievePurposeTemplate = async (
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
 ): Promise<void> => {
   if (
-    !isPurposeTemplateActive(purposeTemplate.state) &&
+    !isPurposeTemplatePublished(purposeTemplate.state) &&
     !isRequesterCreator(purposeTemplate.creatorId, authData)
   ) {
     throw tenantNotAllowed(authData.organizationId);
@@ -279,7 +284,7 @@ export const assertActivatableState = (
   assertPurposeTemplateStateIsValid(
     purposeTemplate,
     [expectedInitialState],
-    purposeTemplateState.active
+    purposeTemplateState.published
   );
 };
 
@@ -288,13 +293,13 @@ export const assertSuspendableState = (
 ): void => {
   assertPurposeTemplateStateIsValid(
     purposeTemplate,
-    [purposeTemplateState.active],
+    [purposeTemplateState.published],
     purposeTemplateState.suspended
   );
 };
 
 export const archivableInitialStates: PurposeTemplateState[] = [
-  purposeTemplateState.active,
+  purposeTemplateState.published,
   purposeTemplateState.suspended,
 ];
 export const assertArchivableState = (

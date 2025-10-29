@@ -70,7 +70,7 @@ describe("API /purposeTemplates/{id}", () => {
     {
       error: purposeTemplateNotInExpectedStates(
         serviceResponse.data.id,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
         [purposeTemplateState.draft]
       ),
       expectedStatus: 409,

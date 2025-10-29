@@ -7054,6 +7054,11 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: personalData
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -10610,15 +10615,10 @@ paths:
           default: []
         explode: false
       - in: query
-        name: eserviceIds
-        description: comma separated sequence of e-service IDs
+        name: eserviceName
+        description: filter linked e-services by name
         schema:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        explode: false
+          type: string
       - in: query
         name: offset
         required: true
@@ -25611,6 +25611,8 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        personalData:
+          type: boolean
     CompactPurposeTemplateEService:
       type: object
       additionalProperties: false
@@ -26025,7 +26027,7 @@ components:
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
         hasUnreadNotifications:
-          type: boolean 
+          type: boolean
           description: Indicates if there are unread notifications for this purpose
         purposeTemplate:
           $ref: "#/components/schemas/CompactPurposeTemplate"
@@ -26119,7 +26121,7 @@ components:
       type: string
       description: Purpose Template State
       enum:
-        - ACTIVE
+        - PUBLISHED
         - DRAFT
         - SUSPENDED
         - ARCHIVED
@@ -28075,6 +28077,8 @@ components:
         isAlreadyInstantiated:
           type: boolean
         hasRequesterRiskAnalysis:
+          type: boolean
+        personalData:
           type: boolean
     EServiceTemplateVersionQuotasUpdateSeed:
       type: object

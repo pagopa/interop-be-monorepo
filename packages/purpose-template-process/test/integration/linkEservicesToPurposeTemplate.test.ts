@@ -70,14 +70,14 @@ describe("linkEservicesToPurposeTemplate", () => {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor1],
-    personalData: false,
+    personalData: true,
   };
 
   const eService2: EService = {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor2],
-    personalData: false,
+    personalData: true,
   };
 
   const purposeTemplate: PurposeTemplate = {
@@ -268,7 +268,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [],
-      personalData: false,
+      personalData: true,
     };
 
     await addOneTenant(tenant);
@@ -297,7 +297,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [getMockDescriptor(descriptorState.deprecated)],
-      personalData: false,
+      personalData: true,
     };
 
     await addOneTenant(tenant);
@@ -329,7 +329,7 @@ describe("linkEservicesToPurposeTemplate", () => {
   it("should throw associationEServicesForPurposeTemplateFailed if the e-service has a different personal data flag than the purpose template", async () => {
     const eserviceWithDifferentPersonalDataFlag: EService = {
       ...eService1,
-      personalData: true,
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -405,7 +405,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       purposeTemplateNotInExpectedStates(
         suspendedPurposeTemplate.id,
         suspendedPurposeTemplate.state,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       )
     );
   });
@@ -433,7 +433,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       purposeTemplateNotInExpectedStates(
         archivedPurposeTemplate.id,
         archivedPurposeTemplate.state,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       )
     );
   });

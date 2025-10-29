@@ -89,7 +89,7 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
     {
       error: purposeTemplateStateConflict(
         generateId(),
-        purposeTemplateState.active
+        purposeTemplateState.published
       ),
       expectedStatus: 409,
     },

@@ -135,12 +135,12 @@ const purposeTemplateRouter = (
     .get("/purposeTemplates/:purposeTemplateId/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        const { producerIds, eserviceIds, offset, limit } = req.query;
+        const { producerIds, eserviceName, offset, limit } = req.query;
         const response =
           await purposeTemplateService.getPurposeTemplateEServiceDescriptors({
             purposeTemplateId: req.params.purposeTemplateId,
             producerIds,
-            eserviceIds,
+            eserviceName,
             offset,
             limit,
             ctx,

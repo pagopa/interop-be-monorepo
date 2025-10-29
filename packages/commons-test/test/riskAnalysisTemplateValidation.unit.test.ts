@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TenantKind, tenantKind } from "pagopa-interop-models";
 import {
+  incompatiblePurposeTemplatePersonalDataError,
   malformedRiskAnalysisTemplateFieldValueOrSuggestionError,
   missingExpectedRiskAnalysisTemplateFieldError,
   noRiskAnalysisTemplateRulesVersionFoundError,
@@ -15,7 +16,7 @@ import {
 import {
   getMockValidRiskAnalysisFormTemplate,
   validatedRiskAnalysisTemplate2_0_Private,
-  validatedRiskAnalysisTemplate3_0_Pa,
+  validatedRiskAnalysisTemplate3_1_Pa,
 } from "../src/riskAnalysisTemplateTestUtils.js";
 
 describe("Risk Analysis Template Validation", () => {
@@ -108,13 +109,17 @@ describe("Risk Analysis Template Validation", () => {
     };
   }
 
-  it("should succeed on correct form 3.0 on tenant kind PA", () => {
+  it("should succeed on correct form 3.1 on tenant kind PA", () => {
     const template = createValidTemplate(tenantKind.PA);
-    const result = validatePurposeTemplateRiskAnalysis(template, tenantKind.PA);
+    const result = validatePurposeTemplateRiskAnalysis(
+      template,
+      tenantKind.PA,
+      true
+    );
 
     expect(result).toEqual({
       type: "valid",
-      value: validatedRiskAnalysisTemplate3_0_Pa,
+      value: validatedRiskAnalysisTemplate3_1_Pa,
     });
   });
 
@@ -122,12 +127,32 @@ describe("Risk Analysis Template Validation", () => {
     const template = createValidTemplate(tenantKind.PRIVATE);
     const result = validatePurposeTemplateRiskAnalysis(
       template,
-      tenantKind.PRIVATE
+      tenantKind.PRIVATE,
+      true
     );
 
     expect(result).toEqual({
       type: "valid",
       value: validatedRiskAnalysisTemplate2_0_Private,
+    });
+  });
+
+  it("should throw incompatiblePurposeTemplatePersonalDataError if the purpose template and the risk analysis answer personal data flags do not match", () => {
+    const template = createValidTemplate(tenantKind.PA);
+    const result = validatePurposeTemplateRiskAnalysis(
+      template,
+      tenantKind.PA,
+      false
+    );
+
+    expect(result).toEqual({
+      type: "invalid",
+      issues: [
+        incompatiblePurposeTemplatePersonalDataError(
+          template.answers.usesPersonalData?.values[0] === "YES",
+          false
+        ),
+      ],
     });
   });
 
@@ -137,7 +162,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       emptyTemplate,
-      invalidTenantKind
+      invalidTenantKind,
+      true
     );
 
     expect(result).toEqual({
@@ -151,7 +177,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       emptyTemplate,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -171,7 +198,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithoutField,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -194,7 +222,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithEditableField,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -217,7 +246,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithInvalidFreeText,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -240,7 +270,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithInvalidFreeText,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -263,7 +294,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithInvalidField,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -286,7 +318,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithInvalidField,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -309,7 +342,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithUnexpectedField,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -328,7 +362,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithWrongDependencyValue,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     expect(result).toEqual({
@@ -359,7 +394,8 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithWrongDependencyValue,
-      tenantKind.PA
+      tenantKind.PA,
+      true
     );
 
     // otherPurpose is a missing field that is required if purpose is OTHER

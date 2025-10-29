@@ -182,7 +182,7 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
         purposeTemplateState.suspended,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       ),
       expectedStatus: 400,
     },
@@ -190,7 +190,7 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
         purposeTemplateState.archived,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       ),
       expectedStatus: 400,
     },

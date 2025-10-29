@@ -8,6 +8,7 @@ import {
   Delegation,
   Attribute,
   EService,
+  EServiceTemplate,
   generateId,
   Purpose,
   Tenant,
@@ -31,6 +32,7 @@ import {
   upsertAttribute,
   upsertDelegation,
   upsertEService,
+  upsertEServiceTemplate,
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
@@ -113,6 +115,12 @@ export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
+};
+
+export const addOneEServiceTemplate = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
