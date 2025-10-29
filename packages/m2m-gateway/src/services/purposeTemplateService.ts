@@ -92,8 +92,28 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
     async archivePurposeTemplate(): Promise<void> {
       return Promise.resolve();
     },
-    async unsuspendPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
+    async unsuspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
+
+      const response =
+        await clients.purposeTemplateProcessClient.unsuspendPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        response.metadata,
+        headers
+      );
+
+      return data;
     },
     async publishPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,

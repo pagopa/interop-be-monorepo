@@ -12545,7 +12545,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttributesGroup"
-              headers:
+          headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
             X-Rate-Limit-Remaining:
@@ -17083,8 +17083,12 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "204":
+        "200":
           description: Purpose Template Unsuspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
