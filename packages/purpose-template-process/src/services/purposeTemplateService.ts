@@ -479,7 +479,8 @@ export function purposeTemplateServiceBuilder(
       const validatedPurposeRiskAnalysisFormSeed = seed.purposeRiskAnalysisForm
         ? validateAndTransformRiskAnalysisTemplate(
             seed.purposeRiskAnalysisForm,
-            seed.targetTenantKind
+            seed.targetTenantKind,
+            seed.handlesPersonalData
           )
         : getDefaultRiskAnalysisFormTemplate(seed.targetTenantKind);
 
@@ -789,7 +790,8 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateSeed.purposeRiskAnalysisForm
           ? validateAndTransformRiskAnalysisTemplate(
               purposeTemplateSeed.purposeRiskAnalysisForm,
-              purposeTemplate.data.targetTenantKind
+              purposeTemplate.data.targetTenantKind,
+              purposeTemplateSeed.handlesPersonalData
             )
           : purposeTemplate.data.purposeRiskAnalysisForm;
 
@@ -1401,6 +1403,7 @@ async function activatePurposeTemplate({
         purposeRiskAnalysisForm
       ),
     tenantKind: purposeTemplate.data.targetTenantKind,
+    personalDataInPurposeTemplate: purposeTemplate.data.handlesPersonalData,
   });
 
   return {
