@@ -62,7 +62,6 @@ import {
   agreementNotFound,
   eserviceNotFound,
   eserviceRiskAnalysisNotFound,
-  invalidPersonalData,
   missingRiskAnalysis,
   notValidVersionState,
   purposeCannotBeCloned,
@@ -114,6 +113,7 @@ import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 import {
   assertConsistentFreeOfCharge,
   assertEserviceMode,
+  assertPersonalDataCompliant,
   assertPurposeIsDraft,
   assertPurposeTitleIsNotDuplicated,
   assertRequesterCanActAsConsumer,
@@ -1670,12 +1670,10 @@ export function purposeServiceBuilder(
       });
 
       const eservicePersonalData = eservice.personalData;
-      if (
-        eservicePersonalData === undefined ||
-        eservicePersonalData !== purposeTemplate.handlesPersonalData
-      ) {
-        throw invalidPersonalData(eservicePersonalData);
-      }
+      assertPersonalDataCompliant(
+        eservicePersonalData,
+        purposeTemplate.handlesPersonalData
+      );
 
       const createdAt = new Date();
 

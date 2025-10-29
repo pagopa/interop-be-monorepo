@@ -35,6 +35,7 @@ import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
+  invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
   purposeNotInDraftState,
@@ -216,6 +217,18 @@ export const assertPurposeTitleIsNotDuplicated = async ({
 
   if (purposeWithSameName) {
     throw duplicatedPurposeTitle(title);
+  }
+};
+
+export const assertPersonalDataCompliant = (
+  eservicePersonalData: boolean | undefined,
+  purposeTemplateHandlesPersonalData: boolean
+): void => {
+  if (
+    eservicePersonalData === undefined ||
+    eservicePersonalData !== purposeTemplateHandlesPersonalData
+  ) {
+    throw invalidPersonalData(eservicePersonalData);
   }
 };
 
@@ -651,7 +664,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
-  eservicePersonalData: boolean
+  eservicePersonalData: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
     return undefined;
