@@ -77,7 +77,7 @@ paths:
           description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned, if defined all e-services templates with a defined personal data flag will be returned
           required: false
           schema:
-            description: Filter e-services by personal data
+            description: Filter e-services templates by personal data
             oneOf:
               - type: boolean
               - type: string
