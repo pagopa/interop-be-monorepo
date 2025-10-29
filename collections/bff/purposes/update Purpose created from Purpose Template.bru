@@ -1,0 +1,61 @@
+meta {
+  name: update Purpose created from Purpose Template
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/purposes/:purposeId
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "title": "{{randomLoremWord}} test",
+    "dailyCalls": {{randomInt}},
+    "riskAnalysisForm": {
+      "version": "3.0",
+      "answers": {
+              "institutionalPurpose": ["MyPurpose1"],
+              "legalObligationReference": ["Regolamento UE 2016/679, art. 6"]
+           }
+    }
+  }
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  purposeId: {{purposeId}}
+}
+
+script:pre-request {
+  const randomInt = Math.round(Math.random() * 10000);
+  bru.setVar("randomInt", randomInt);
+  
+  const loremWords = ["example", "random", "data", "sample", "api", "bruno", "mock", "testing", "validation", "service", "response", "request"];
+  const randomLoremWord = loremWords[Math.floor(Math.random() * loremWords.length)];
+  bru.setVar("randomLoremWord", randomLoremWord);
+  
+  let randomLoremWords = "";
+  while (randomLoremWords.length < 10) {
+    randomLoremWords = loremWords
+      .sort(() => 0.5 - Math.random()) // Mescola l'array
+      .slice(0, Math.floor(Math.random() * 5) + 2) // Prendi almeno 2-6 parole
+      .join(" ");
+  }
+  
+  bru.setVar("randomLoremWords", randomLoremWords);
+}
+
+vars:post-response {
+  purposeId: res.body.purposeId
+}
+
+docs {
+  Update a Purpose created from Purpose Template
+}
