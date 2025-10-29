@@ -4063,8 +4063,8 @@ async function updateDraftEService(
   // - personalData flag is changed from true to false or vice versa
   const checkedRiskAnalysis =
     updatedMode === eserviceMode.deliver ||
-    (typeAndSeed.seed.personalData &&
-      eservice.data.personalData &&
+    (typeAndSeed.seed.personalData != null &&
+      eservice.data.personalData != null &&
       typeAndSeed.seed.personalData !== eservice.data.personalData)
       ? []
       : eservice.data.riskAnalysis;
