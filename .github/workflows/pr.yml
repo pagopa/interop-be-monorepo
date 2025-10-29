@@ -63,6 +63,7 @@ jobs:
             echo "$PACKAGE_NAME"
           done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
 
+          echo "Packages with tests found: $(echo "$PACKAGES" | jq 'length')"
           echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Find ALL packages
@@ -75,6 +76,7 @@ jobs:
             fi
           done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
 
+          echo "All valid packages found: $(echo "$PACKAGES" | jq 'length')"
           echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Create shards matrices
