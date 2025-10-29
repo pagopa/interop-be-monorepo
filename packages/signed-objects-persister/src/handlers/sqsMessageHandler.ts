@@ -156,7 +156,9 @@ async function processMessage(
     }
 
     await signatureService.deleteSignatureReference(id);
-    logger.info(`Record ${id} deleted from DynamoDB table ${config.signatureReferencesTableName}`);
+    logger.info(
+      `Record ${id} deleted from DynamoDB table ${config.signatureReferencesTableName}`
+    );
   } catch (error) {
     logger.error(`Error processing message: ${formatError(error)}`);
     throw error;
