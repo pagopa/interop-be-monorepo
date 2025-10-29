@@ -140,10 +140,10 @@ jobs:
             echo "$matrix" # Restituisce gli shard come stringa JSONL
           }
 
-          REMAINING_PACKAGES_JSON='${{ steps.get_test_packages.outputs.remaining_test_packages }}'
+          REMAINING_PACKAGES_JSON='${{ steps.filter_packages.outputs.remaining_test_packages }}'
           REMAINING_PACK_NUM=$(echo "$REMAINING_PACKAGES_JSON" | jq -r length)
 
-          DEDICATED_PACKAGES_JSON='${{ steps.get_test_packages.outputs.dedicated_test_packages }}'
+          DEDICATED_PACKAGES_JSON='${{ steps.filter_packages.outputs.dedicated_test_packages }}'
           DEDICATED_PACK_NUM=$(echo "$DEDICATED_PACKAGES_JSON" | jq -r length)
 
           FIXED_SHARDS=$(create_fixed_size_shard_matrix "$REMAINING_PACKAGES_JSON" "$REMAINING_PACK_NUM")
@@ -191,7 +191,7 @@ jobs:
         with:
           run_install: true
       - name: Build all packages
-        run: pnpm build --force
+        run: pnpm build
       - name: Upload build artifact
         uses: actions/upload-artifact@v4 # v4
         with:
