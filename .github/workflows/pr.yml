@@ -90,7 +90,7 @@ jobs:
           ALL_TEST_PACKAGES='${{ steps.get_test_packages.outputs.test_packages }}'
           DEDICATED_PACKAGES='${{ steps.get_dedicated_packages.outputs.dedicated_packages }}'
 
-          REMAINING_TEST_PACKAGES=$(echo "$ALL_TEST_PACKAGES" | jq --argjson dedicated "$DEDICATED_PACKAGES" '
+          REMAINING_TEST_PACKAGES=$(echo "$ALL_TEST_PACKAGES" | jq -c --argjson dedicated "$DEDICATED_PACKAGES" '
             . - $dedicated
           ')
 
