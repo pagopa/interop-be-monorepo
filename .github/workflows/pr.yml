@@ -131,7 +131,7 @@ jobs:
             matrix=$(jq --argjson packs "$PACKAGES_JSON" --argjson startIndex "$START_INDEX" -n -c '
               [$packs[] | 
               {
-                "shardIndex": ($startIndex + (. | index($packs[]))), # Indice progressivo (es. 11, 12, ...)
+                "shardIndex": ($startIndex + (index($packs; .))),
                 "packages": [.]
               }
               ] | .[]
