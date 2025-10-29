@@ -3,12 +3,14 @@ import {
   FileManager,
   removeDuplicates,
   UIAuthData,
+  assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
   DelegationId,
   EServiceId,
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysisId,
@@ -411,6 +413,25 @@ export function purposeServiceBuilder(
       );
       return { id };
     },
+    async createPurposeFromTemplate(
+      templateId: PurposeTemplateId,
+      seed: bffApi.PurposeFromTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      logger.info(
+        `Creating purpose from template ${templateId} and consumer ${seed.consumerId}`
+      );
+
+      const { id: purposeId } =
+        await purposeProcessClient.createPurposeFromTemplate(seed, {
+          params: {
+            purposeTemplateId: templateId,
+          },
+          headers,
+        });
+      return { id: purposeId };
+    },
     async reversePurposeUpdate(
       id: PurposeId,
       updateSeed: bffApi.ReversePurposeUpdateContent,
@@ -699,18 +720,45 @@ export function purposeServiceBuilder(
         versionId: updatedPurpose.versions[0].id,
       };
     },
+    async patchUpdatePurposeFromTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      purposeId: PurposeId,
+      body: bffApi.PatchPurposeUpdateFromTemplateContent,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      logger.info(
+        `Partially update a Purpose ${purposeId} created by Purpose Template ${purposeTemplateId}`
+      );
+
+      const updatedPurpose =
+        await purposeProcessClient.patchUpdatePurposeFromTemplate(body, {
+          headers,
+          params: {
+            purposeTemplateId,
+            purposeId,
+          },
+        });
+
+      const versionId = getCurrentVersion(updatedPurpose.versions)?.id;
+
+      if (versionId === undefined) {
+        throw purposeNotFound(purposeId);
+      }
+
+      return { purposeId, versionId: unsafeBrandId(versionId) };
+    },
     async getPurpose(
       id: PurposeId,
-      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purpose> {
+      const { headers, authData, logger, correlationId } = ctx;
       logger.info(`Retrieving Purpose ${id}`);
-      const notificationPromise =
-        inAppNotificationManagerClient.filterUnreadNotifications({
-          queries: {
-            entityIds: [id],
-          },
-          headers,
-        });
+      const notificationsPromise = filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        [id],
+        ctx
+      );
       const purpose = await purposeProcessClient.getPurpose({
         params: {
           id,
@@ -751,7 +799,7 @@ export function purposeServiceBuilder(
         }),
       ]);
 
-      const notification = await notificationPromise;
+      const notification = await notificationsPromise;
 
       const purposeTemplate = purpose.purposeTemplateId
         ? await purposeTemplateProcessClient.getPurposeTemplate({

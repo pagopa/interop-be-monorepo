@@ -16890,15 +16890,10 @@ paths:
           default: []
         explode: false
       - in: query
-        name: eserviceIds
-        description: comma separated sequence of e-service IDs
+        name: eserviceName
+        description: filter linked e-services by name
         schema:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        explode: false
+          type: string
       - in: query
         name: offset
         required: true
