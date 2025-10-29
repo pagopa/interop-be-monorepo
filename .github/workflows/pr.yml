@@ -54,7 +54,12 @@ jobs:
       lint_matrix: ${{ steps.sharded_packages.outputs.lint_matrix }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+          cache: "pnpm"
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install Turbo CLI
         run: pnpm add -g turbo
 
