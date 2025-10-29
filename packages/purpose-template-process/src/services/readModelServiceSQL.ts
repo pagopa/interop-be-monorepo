@@ -66,7 +66,7 @@ export type GetPurposeTemplatesFilters = {
 export type GetPurposeTemplateEServiceDescriptorsFilters = {
   purposeTemplateId: PurposeTemplateId;
   producerIds: TenantId[];
-  eserviceName: string;
+  eserviceName: string | undefined;
 };
 
 const getPurposeTemplatesFilters = (

@@ -248,7 +248,7 @@ export function purposeTemplateServiceBuilder(
     }: {
       purposeTemplateId: string;
       producerIds: string[];
-      eserviceName: string;
+      eserviceName: string | undefined;
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
