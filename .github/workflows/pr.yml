@@ -59,24 +59,28 @@ jobs:
         id: get_dedicated_packages
         run: |
           DEDICATED_PACKAGES=$(cat ./dedicated_test_packages.json | jq -c .)
-          echo "Dedicated packages loaded: $(echo "$DEDICATED_PACKAGES" | jq 'length')"
           echo "dedicated_packages=$DEDICATED_PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Find packages with test directories
         id: get_test_packages
         run: |
-          ALL_TEST_PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
+          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
             echo "$PACKAGE_NAME"
           done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
 
+          echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+      - name: Separate remaining and dedicated packages
+        id: filter_packages
+        run: |
+          ALL_TEST_PACKAGES='${{ steps.get_test_packages.outputs.test_packages }}'
           DEDICATED_PACKAGES='${{ steps.get_dedicated_packages.outputs.dedicated_packages }}'
 
           REMAINING_TEST_PACKAGES=$(echo "$ALL_TEST_PACKAGES" | jq --argjson dedicated "$DEDICATED_PACKAGES" '
             . - $dedicated
           ')
 
-          echo "All packages with tests found: $(echo "$ALL_TEST_PACKAGES" | jq 'length')"
           echo "Remaining packages for sharding: $(echo "$REMAINING_TEST_PACKAGES" | jq 'length')"
 
           echo "remaining_test_packages=$REMAINING_TEST_PACKAGES" >> $GITHUB_OUTPUT
@@ -121,7 +125,6 @@ jobs:
           }
 
           create_dedicated_shards() {
-            # Funzione per creare uno shard per ogni package
             local PACKAGES_JSON=$1
             local START_INDEX=$2
             
