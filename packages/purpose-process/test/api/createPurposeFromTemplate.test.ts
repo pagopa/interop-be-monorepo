@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { constants } from "http2";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   DelegationId,
@@ -37,6 +38,13 @@ import {
   invalidPersonalData,
 } from "../../src/model/domain/errors.js";
 import { getMockPurposeFromTemplateSeed } from "../mockUtils.js";
+
+const {
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_BAD_REQUEST,
+} = constants;
 
 describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
   const mockEService = getMockEService();
@@ -96,66 +104,72 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(HTTP_STATUS_FORBIDDEN);
   });
 
   it.each([
-    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: tenantIsNotTheConsumer(generateId()),
+      expectedStatus: HTTP_STATUS_FORBIDDEN,
+    },
     {
       error: tenantIsNotTheDelegatedConsumer(
         generateId(),
         generateId<DelegationId>()
       ),
-      expectedStatus: 403,
+      expectedStatus: HTTP_STATUS_FORBIDDEN,
     },
     {
       error: purposeTemplateNotFound(generateId()),
-      expectedStatus: 404,
+      expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
       error: tenantNotFound(generateId()),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: tenantKindNotFound(generateId()),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: agreementNotFound(generateId(), generateId()),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: invalidPurposeTenantKind(tenantKind.PA, tenantKind.GSP),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: riskAnalysisMissingExpectedFieldError("test-key"),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: riskAnalysisContainsNotEditableAnswers(generateId(), "test-key"),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: riskAnalysisAnswerNotInSuggestValues(generateId(), "test-key"),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: riskAnalysisVersionMismatch("0", "1"),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: eServiceModeNotAllowed(generateId(), eserviceMode.deliver),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
       error: invalidPersonalData(undefined),
-      expectedStatus: 400,
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
-    { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    {
+      error: riskAnalysisValidationFailed([]),
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
+    },
     {
       error: duplicatedPurposeTitle(mockPurposeFromTemplateSeed.title),
-      expectedStatus: 409,
+      expectedStatus: HTTP_STATUS_CONFLICT,
     },
   ])(
     "Should return $expectedStatus for $error.code",
@@ -237,7 +251,7 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
         purposeTemplateId,
         body as purposeApi.PurposeFromTemplateSeed
       );
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(HTTP_STATUS_BAD_REQUEST);
     }
   );
 });

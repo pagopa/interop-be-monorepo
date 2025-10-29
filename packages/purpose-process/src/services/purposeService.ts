@@ -63,7 +63,6 @@ import {
   agreementNotFound,
   eserviceNotFound,
   eserviceRiskAnalysisNotFound,
-  invalidPersonalData,
   missingRiskAnalysis,
   notValidVersionState,
   purposeCannotBeCloned,
@@ -116,6 +115,7 @@ import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 import {
   assertConsistentFreeOfCharge,
   assertEserviceMode,
+  assertPersonalDataCompliant,
   assertPurposeIsDraft,
   assertPurposeTitleIsNotDuplicated,
   assertRequesterCanActAsConsumer,
@@ -1661,7 +1661,6 @@ export function purposeServiceBuilder(
       assertEserviceMode(eservice, eserviceMode.deliver);
 
       const tenantKind = await retrieveTenantKind(consumerId, readModelService);
-      const createdAt = new Date();
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
@@ -1683,12 +1682,12 @@ export function purposeServiceBuilder(
       });
 
       const eservicePersonalData = eservice.personalData;
-      if (
-        eservicePersonalData === undefined ||
-        eservicePersonalData !== purposeTemplate.handlesPersonalData
-      ) {
-        throw invalidPersonalData(eservicePersonalData);
-      }
+      assertPersonalDataCompliant(
+        eservicePersonalData,
+        purposeTemplate.handlesPersonalData
+      );
+
+      const createdAt = new Date();
 
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,

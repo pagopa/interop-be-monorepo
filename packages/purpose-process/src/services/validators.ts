@@ -35,6 +35,7 @@ import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
+  invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
   purposeNotInDraftState,
@@ -216,6 +217,18 @@ export const assertPurposeTitleIsNotDuplicated = async ({
 
   if (purposeWithSameName) {
     throw duplicatedPurposeTitle(title);
+  }
+};
+
+export const assertPersonalDataCompliant = (
+  eservicePersonalData: boolean | undefined,
+  purposeTemplateHandlesPersonalData: boolean
+): void => {
+  if (
+    eservicePersonalData === undefined ||
+    eservicePersonalData !== purposeTemplateHandlesPersonalData
+  ) {
+    throw invalidPersonalData(eservicePersonalData);
   }
 };
 
@@ -520,60 +533,89 @@ export function assertValidPurposeTenantKind(
   }
 }
 
+function buildSingleOrMultiAnswerValueFromTemplate(
+  { answer: answerFromTemplate, type }: RiskAnalysisTemplateAnswer,
+  isEditable: boolean,
+  hasSuggestions: boolean
+): string[] {
+  // Editable Answer or Single Answer with Suggestions must provide answer value in request body
+  if (isEditable || hasSuggestions) {
+    throw riskAnalysisMissingExpectedFieldError(answerFromTemplate.key);
+  }
+
+  // Using answer value from template
+  return type === "single"
+    ? answerFromTemplate.value
+      ? [answerFromTemplate.value]
+      : []
+    : answerFromTemplate.values;
+}
+
+function assertValidSingleOrMultiAnswerValueNonEditableField(
+  templateId: PurposeTemplateId,
+  { answer: answerFromTemplate, type }: RiskAnalysisTemplateAnswer,
+  answerSeed: string[],
+  hasSuggestions: boolean
+): void {
+  // Not Editable Multi Answer must not provide answer value in request body
+  if (type === "multi") {
+    throw riskAnalysisContainsNotEditableAnswers(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+
+  // Not Editable Single Answer without suggested values must not provide answer value in request body
+  if (!hasSuggestions) {
+    throw riskAnalysisContainsNotEditableAnswers(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+
+  // Not Editable Single Answer with suggested values must provide one of those in request body
+  if (
+    answerSeed.some(
+      (v: string) => !answerFromTemplate.suggestedValues.includes(v)
+    )
+  ) {
+    throw riskAnalysisAnswerNotInSuggestValues(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+}
+
 function buildSingleOrMultiAnswerValue(
   templateId: PurposeTemplateId,
-  { answer: templateAnswer, type }: RiskAnalysisTemplateAnswer,
+  templateAnswer: RiskAnalysisTemplateAnswer,
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed
 ): string[] {
-  const answerSeed = riskAnalysisForm.answers[templateAnswer.key];
-  const isSingleAnswer = type === "single";
-  const isEditable = templateAnswer.editable;
+  const answerFromSeed = riskAnalysisForm.answers[templateAnswer.answer.key];
+  const isEditable = templateAnswer.answer.editable;
   const hasSuggestions =
-    isSingleAnswer && templateAnswer.suggestedValues.length > 0;
+    templateAnswer.type === "single" &&
+    templateAnswer.answer.suggestedValues.length > 0;
 
-  if (!answerSeed) {
-    // Editable Answer or Single Answer with Suggestions must provide answer
-    if (isEditable || hasSuggestions) {
-      throw riskAnalysisMissingExpectedFieldError(templateAnswer.key);
-    }
-
-    // Answer is taken from template
-    return isSingleAnswer
-      ? templateAnswer.value
-        ? [templateAnswer.value]
-        : []
-      : templateAnswer.values;
+  if (!answerFromSeed) {
+    return buildSingleOrMultiAnswerValueFromTemplate(
+      templateAnswer,
+      isEditable,
+      hasSuggestions
+    );
   }
 
   if (!isEditable) {
-    if (
-      // Not Editable Multi Answer must not provide answer value
-      !isSingleAnswer ||
-      // Not Editable Single Answer without suggestion must not provide answer value
-      !hasSuggestions
-    ) {
-      throw riskAnalysisContainsNotEditableAnswers(
-        templateId,
-        templateAnswer.key
-      );
-    }
-
-    // Not Editable Single Answer with suggestion must provide one of them
-    if (
-      hasSuggestions &&
-      answerSeed.some(
-        (v: string) => !templateAnswer.suggestedValues.includes(v)
-      )
-    ) {
-      throw riskAnalysisAnswerNotInSuggestValues(
-        templateId,
-        templateAnswer.key
-      );
-    }
+    assertValidSingleOrMultiAnswerValueNonEditableField(
+      templateId,
+      templateAnswer,
+      answerFromSeed,
+      hasSuggestions
+    );
   }
 
-  // Editable Answer or Single Answer with Suggestion is taken from body
-  return answerSeed;
+  // Editable Answer or Single Answer with Suggestion using value from request's body
+  return answerFromSeed;
 }
 
 function buildAnswersSeed(

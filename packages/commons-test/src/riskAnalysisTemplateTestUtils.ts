@@ -181,13 +181,7 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "legalBasisPublicInterest",
-        value: "RULE_OF_LAW",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "ruleOfLawText",
-        value: "TheLaw",
+        value: "PUBLIC_INTEREST_TASK",
         editable: false,
         suggestedValues: [],
       },

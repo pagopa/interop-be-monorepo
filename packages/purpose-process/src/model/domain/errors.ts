@@ -412,7 +412,7 @@ export function riskAnalysisContainsNotEditableAnswers(
   key: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis provided contains not editable answers for key ${key} in purpose template ${purposeTemplateId}`,
+    detail: `Risk analysis contains not editable answers for key ${key} in purpose template ${purposeTemplateId}`,
     code: "riskAnalysisContainsNotEditableAnswers",
     title: "Risk analysis contains not editable answers",
   });
