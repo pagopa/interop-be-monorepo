@@ -17,6 +17,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  TenantId,
   fromPurposeTemplateV2,
   generateId,
   purposeTemplateState,
@@ -37,6 +38,7 @@ import {
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { ANNOTATION_DOCUMENTS_LIMIT } from "../../src/services/validators.js";
 
@@ -510,4 +512,21 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       ).rejects.toThrowError(annotationDocumentLimitExceeded(subjectAnswerId));
     }
   );
+
+  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+    await addOnePurposeTemplate(existentPurposeTemplate);
+
+    const differentCreatorId = generateId<TenantId>();
+
+    await expect(
+      purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
+        existentPurposeTemplate.id,
+        subjectSingleAnswer.id,
+        validAnnotationDocumentSeed,
+        getMockContext({
+          authData: getMockAuthData(differentCreatorId),
+        })
+      )
+    ).rejects.toThrowError(tenantNotAllowed(differentCreatorId));
+  });
 });
