@@ -34,8 +34,10 @@ export const mockFileManager: FileManager = {
 
 export const mockDbService = {
   saveSignatureReference: vi.fn(),
+  saveDocumentSignatureReference: vi.fn(),
   readSignatureReference: vi.fn(),
   deleteSignatureReference: vi.fn(),
+  readDocumentSignatureReference: vi.fn(),
 };
 
 export const mockSafeStorageService = {

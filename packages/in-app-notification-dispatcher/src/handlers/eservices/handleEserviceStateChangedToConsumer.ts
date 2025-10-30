@@ -13,6 +13,7 @@ import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  getNotificationRecipients,
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../handlerCommons.js";
@@ -71,11 +72,12 @@ export async function handleEserviceStateChangedToConsumer(
       retrieveTenant(consumer.consumerId, readModelService)
     )
   );
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      consumers.map((consumer) => consumer.id),
-      "eserviceStateChangedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    consumers.map((consumer) => consumer.id),
+    "eserviceStateChangedToConsumer",
+    readModelService,
+    logger
+  );
 
   const { body, descriptorId: descriptorIdFromEvent } = getBodyAndDescriptorId(
     eserviceV2Msg,
@@ -90,7 +92,7 @@ export async function handleEserviceStateChangedToConsumer(
     `${eservice.id}/${descriptorId}`
   );
 
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,

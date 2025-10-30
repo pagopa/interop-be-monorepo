@@ -173,6 +173,7 @@ export async function handleMessageV2(
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeCloned" },
       { type: "PurposeDeletedByRevokedDelegation" },
+      { type: "RiskAnalysisDocumentGenerated" },
       () => Promise.resolve()
     )
     .exhaustive();

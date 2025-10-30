@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -84,6 +85,7 @@ import {
   toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
+  toCreateEventAgreementDocumentGenerated,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -1563,6 +1565,34 @@ export function agreementServiceBuilder(
           ),
       };
     },
+    async internalAddAgreementContract(
+      agreementId: AgreementId,
+      agreementDocument: AgreementDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(`Adding agreement contract ${agreementId}`);
+      const { data: agreement, metadata } = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+
+      const agreementWithDocument = {
+        ...agreement,
+        agreementDocument,
+      };
+      const event = await repository.createEvent(
+        toCreateEventAgreementDocumentGenerated(
+          { data: agreementWithDocument, metadata },
+          correlationId
+        )
+      );
+      return {
+        data: agreement,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
   };
 }
 
@@ -1738,7 +1768,6 @@ async function getConsumerFromDelegationOrRequester(
 ): Promise<Tenant> {
   const delegations =
     await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
-
   if (delegationId) {
     // If a delegation has been passed, the consumer is the delegator
 
