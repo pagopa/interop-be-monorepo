@@ -28,6 +28,7 @@ describe("Purpose aggregator", () => {
       updatedAt: new Date(),
       firstActivationAt: new Date(),
       riskAnalysis: getMockPurposeVersionDocument(),
+      signedContract: generateId(),
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
@@ -72,7 +73,10 @@ describe("Purpose aggregator", () => {
   });
 
   it("should convert incomplete purpose SQL objects into a business logic purpose (null -> undefined)", () => {
-    const purposeVersion = getMockPurposeVersion();
+    const purposeVersion = {
+      ...getMockPurposeVersion(),
+      signedContract: generateId(),
+    };
 
     const purpose: WithMetadata<Purpose> = {
       data: {

@@ -49,6 +49,7 @@ describe("Delegation splitters", () => {
       delegateId: delegation.delegateId,
       eserviceId: delegation.eserviceId,
       state: delegation.state,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       signedContract: delegation.signedContract!,
     };
 
@@ -66,6 +67,7 @@ describe("Delegation splitters", () => {
       metadataVersion: 1,
       delegationId: delegation.id,
       createdAt: revocationContract.createdAt.toISOString(),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       signedAt: revocationContract.signedAt!.toISOString(),
     };
 
@@ -75,6 +77,7 @@ describe("Delegation splitters", () => {
       metadataVersion: 1,
       delegationId: delegation.id,
       createdAt: activationContract.createdAt.toISOString(),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       signedAt: revocationContract.signedAt!.toISOString(),
     };
 
@@ -84,7 +87,7 @@ describe("Delegation splitters", () => {
       expect.arrayContaining([
         expectedRevocationContractDocument,
         expectedActivationContractDocument,
-      ]),
+      ])
     );
   });
 

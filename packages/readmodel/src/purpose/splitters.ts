@@ -211,6 +211,7 @@ export const splitPurposeVersionIntoObjectsSQL = (
     suspendedAt,
     riskAnalysis,
     stamps,
+    signedContract,
     ...rest
   }: PurposeVersion,
   metadataVersion: number
@@ -232,6 +233,7 @@ export const splitPurposeVersionIntoObjectsSQL = (
     updatedAt: dateToString(updatedAt),
     firstActivationAt: dateToString(firstActivationAt),
     suspendedAt: dateToString(suspendedAt),
+    signedContract: signedContract || null,
   };
 
   const versionDocumentSQL = riskAnalysisToPurposeVersionDocumentSQL(
@@ -287,7 +289,8 @@ const riskAnalysisToPurposeVersionDocumentSQL = (
     return undefined;
   }
 
-  const { id, createdAt, contentType, path, ...rest } = versionDocument;
+  const { id, createdAt, contentType, path, signedAt, ...rest } =
+    versionDocument;
   void (rest satisfies Record<string, never>);
 
   return {
@@ -298,5 +301,6 @@ const riskAnalysisToPurposeVersionDocumentSQL = (
     createdAt: dateToString(createdAt),
     contentType,
     path,
+    signedAt: dateToString(signedAt),
   };
 };

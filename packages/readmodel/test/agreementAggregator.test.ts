@@ -79,7 +79,7 @@ describe("Agreement Aggregator", () => {
       stampsSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
-      agreement.metadata.version,
+      agreement.metadata.version
     );
 
     const aggregatedAgreement = aggregateAgreement({
@@ -139,7 +139,7 @@ describe("Agreement Aggregator", () => {
       stampsSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
-      agreement.metadata.version,
+      agreement.metadata.version
     );
 
     const aggregatedAgreement = aggregateAgreement({

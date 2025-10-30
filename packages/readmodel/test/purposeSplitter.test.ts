@@ -46,7 +46,6 @@ describe("Purpose splitter", () => {
       getMockPurposeVersionDocument();
 
     const purposeVersionStamps = getMockPurposeVersionStamps();
-
     const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(purposeVersionState.draft, purposeVersionStamps),
       rejectionReason,
@@ -54,6 +53,7 @@ describe("Purpose splitter", () => {
       updatedAt,
       firstActivationAt,
       riskAnalysis: purposeVersionRiskAnalysis,
+      signedContract: generateId(),
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
@@ -72,7 +72,6 @@ describe("Purpose splitter", () => {
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
     };
-
     const {
       purposeSQL,
       riskAnalysisFormSQL,
@@ -145,6 +144,7 @@ describe("Purpose splitter", () => {
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
+      signedContract: purposeVersion.signedContract!,
     };
 
     const expectedPurposeVersionDocumentSQL: PurposeVersionDocumentSQL = {
@@ -155,6 +155,8 @@ describe("Purpose splitter", () => {
       createdAt: purposeVersionRiskAnalysis.createdAt.toISOString(),
       contentType: purposeVersionRiskAnalysis.contentType,
       path: purposeVersionRiskAnalysis.path,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+      signedAt: purposeVersionRiskAnalysis.signedAt?.toISOString()!,
     };
 
     const expectedPurposeVersionStampsSQL: PurposeVersionStampSQL[] = [];
@@ -203,6 +205,7 @@ describe("Purpose splitter", () => {
       firstActivationAt: undefined,
       riskAnalysis: purposeVersionRiskAnalysis,
       stamps: undefined,
+      signedContract: undefined,
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
@@ -291,6 +294,7 @@ describe("Purpose splitter", () => {
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
+      signedContract: null,
     };
 
     const expectedPurposeVersionDocumentSQL: PurposeVersionDocumentSQL = {
@@ -301,6 +305,8 @@ describe("Purpose splitter", () => {
       createdAt: purposeVersionRiskAnalysis.createdAt.toISOString(),
       contentType: purposeVersionRiskAnalysis.contentType,
       path: purposeVersionRiskAnalysis.path,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+      signedAt: purposeVersionRiskAnalysis.signedAt?.toISOString()!,
     };
 
     const expectedpurposeVersionStampsSQL: PurposeVersion[] = [];

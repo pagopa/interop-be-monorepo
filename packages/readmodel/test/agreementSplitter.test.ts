@@ -121,6 +121,7 @@ describe("Agreement Splitter", () => {
         agreementId: agreement.id,
         metadataVersion: 1,
         createdAt: contract.createdAt.toISOString(),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
         signedAt: contract.signedAt?.toISOString()!,
       };
 
@@ -170,10 +171,10 @@ describe("Agreement Splitter", () => {
           expectedAgreementVerifiedAttributeSQL,
           expectedAgreementCertifiedAttributeSQL,
           expectedAgreementDeclaredAttributeSQL,
-        ]),
+        ])
       );
       expect(stampsSQL).toStrictEqual(expectedAgreementStampsSQL);
-    },
+    }
   );
 
   it("should convert an Agreement object with undefined values as business model into an Agreement object with null values as data model", () => {
@@ -241,7 +242,7 @@ describe("Agreement Splitter", () => {
       signedContract: agreement.signedContract!,
     };
 
-    const expectedAgreementConsumerDocumentSQL: any = {
+    const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL = {
       ...consumerDocument,
       agreementId: agreement.id,
       metadataVersion: 1,
@@ -286,7 +287,7 @@ describe("Agreement Splitter", () => {
         expectedAgreementVerifiedAttributeSQL,
         expectedAgreementCertifiedAttributeSQL,
         expectedAgreementDeclaredAttributeSQL,
-      ]),
+      ])
     );
     expect(stampsSQL).toStrictEqual(expectedAgreementStampsSQL);
   });

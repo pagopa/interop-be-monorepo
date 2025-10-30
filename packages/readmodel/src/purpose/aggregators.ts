@@ -130,6 +130,7 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
             path: versionDocumentSQL.path,
             contentType: versionDocumentSQL.contentType,
             createdAt: stringToDate(versionDocumentSQL.createdAt),
+            signedAt: stringToDate(versionDocumentSQL.signedAt),
           }
         : undefined;
 
@@ -175,6 +176,11 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
               creation:
                 purposeVersionStampSQLtoPurposeVersionStamp(creationStampSQL),
             },
+          }
+        : {}),
+      ...(versionSQL.signedContract !== null
+        ? {
+            signedContract: versionSQL.signedContract,
           }
         : {}),
     };
