@@ -47,7 +47,8 @@ export async function handlePurposeMessageV2(
             "PurposeCloned",
             "PurposeVersionArchivedByRevokedDelegation",
             "WaitingForApprovalPurposeVersionDeleted",
-            "RiskAnalysisDocumentGenerated"
+            "RiskAnalysisDocumentGenerated",
+            "RiskAnalysisSignedDocumentGenerated"
           ),
         },
         (msg) => {

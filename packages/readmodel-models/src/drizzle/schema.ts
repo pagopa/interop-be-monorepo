@@ -902,6 +902,7 @@ export const purposeVersionInReadmodelPurpose = readmodelPurpose.table(
       withTimezone: true,
       mode: "string",
     }),
+    signedContract: uuid("signed_contract"),
   },
   (table) => [
     foreignKey({
@@ -933,6 +934,10 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
+    signedAt: timestamp("signed_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
   },
   (table) => [
     foreignKey({

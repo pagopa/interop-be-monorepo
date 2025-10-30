@@ -760,6 +760,34 @@ const purposeRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument/signed",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const { purposeId, versionId } = req.params;
+          const riskAnalysisDocument = PurposeVersionDocument.parse(req.body);
+
+          const { metadata } =
+            await purposeService.internalAddSignedRiskAnalysisDocumentMetadata(
+              unsafeBrandId(purposeId),
+              unsafeBrandId(versionId),
+              riskAnalysisDocument,
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateRiskAnalysisDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   return purposeRouter;

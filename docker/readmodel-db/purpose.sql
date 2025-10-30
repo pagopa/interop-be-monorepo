@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version (
   updated_at TIMESTAMP WITH TIME ZONE,
   first_activation_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
+  signed_contract UUID,
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
@@ -65,6 +66,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version_document (
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  signed_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id, purpose_version_id),
   FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

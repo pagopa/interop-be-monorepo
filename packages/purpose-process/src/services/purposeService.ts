@@ -106,6 +106,7 @@ import {
   toCreateEventPurposeWaitingForApproval,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
+  toCreateEventRiskAnalysisSignedDocumentGenerated,
 } from "../model/domain/toEvent.js";
 import { GetPurposesFilters } from "./readModelService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -1734,24 +1735,75 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const purposeWithContract = {
-        ...purposeRetrieved.data,
-        riskAnalysisDocument,
+      const versionRetrieved = retrievePurposeVersion(
+        versionId,
+        purposeRetrieved
+      );
+
+      const updatedVersion: PurposeVersion = {
+        ...versionRetrieved,
+        riskAnalysis: riskAnalysisDocument,
       };
+
+      const updatedPurpose = replacePurposeVersion(
+        purposeRetrieved.data,
+        updatedVersion
+      );
+
       const event = await repository.createEvent(
         toCreateEventRiskAnalysisDocumentGenerated({
-          purpose: purposeWithContract,
+          purpose: updatedPurpose,
           version: purposeRetrieved.metadata.version,
           versionId,
           correlationId,
         })
       );
-      const purposeVersion: PurposeVersion = retrievePurposeVersion(
+
+      return {
+        data: updatedVersion,
+        metadata: { version: event.newVersion },
+      };
+    },
+    async internalAddSignedRiskAnalysisDocumentMetadata(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      riskAnalysisDocument: PurposeVersionDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
+      logger.info(
+        `Adding signed risk analysis document for purpose ${purposeId}, version ${versionId}`
+      );
+      const purposeRetrieved = await retrievePurpose(
+        purposeId,
+        readModelService
+      );
+
+      const versionRetrieved = retrievePurposeVersion(
         versionId,
         purposeRetrieved
       );
+
+      const updatedVersion: PurposeVersion = {
+        ...versionRetrieved,
+        riskAnalysis: riskAnalysisDocument,
+        signedContract: riskAnalysisDocument.id,
+      };
+
+      const updatedPurpose = replacePurposeVersion(
+        purposeRetrieved.data,
+        updatedVersion
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventRiskAnalysisSignedDocumentGenerated({
+          purpose: updatedPurpose,
+          version: purposeRetrieved.metadata.version,
+          versionId,
+          correlationId,
+        })
+      );
       return {
-        data: purposeVersion,
+        data: updatedVersion,
         metadata: { version: event.newVersion },
       };
     },

@@ -30,6 +30,7 @@ export const PurposeVersionDocument = z.object({
   contentType: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
+  signedAt: z.coerce.date().optional(),
 });
 export type PurposeVersionDocument = z.infer<typeof PurposeVersionDocument>;
 
@@ -58,6 +59,7 @@ export const PurposeVersion = z.object({
   firstActivationAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
   stamps: PurposeVersionStamps.optional(),
+  signedContract: z.string().uuid().optional(),
 });
 export type PurposeVersion = z.infer<typeof PurposeVersion>;
 
