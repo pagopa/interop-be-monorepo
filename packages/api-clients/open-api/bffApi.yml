@@ -2578,14 +2578,6 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog":
-    parameters:
-      - name: personalData
-        description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
-        in: query
-        required: false
-        schema:
-          $ref: "#/components/schemas/PersonalDataFilter"
-
     get:
       tags:
         - eservices
@@ -2644,6 +2636,11 @@ paths:
         - in: query
           name: isConsumerDelegable
           description: EService isConsumerDelegable filter
+          schema:
+            type: boolean
+        - in: query
+          name: personalData
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
           schema:
             type: boolean
         - in: query
@@ -7029,13 +7026,6 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers/eservices":
-    parameters:
-      - name: personalData
-        description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
-        in: query
-        required: false
-        schema:
-          $ref: "#/components/schemas/PersonalDataFilter"
     get:
       tags:
         - eservices
@@ -7061,6 +7051,11 @@ paths:
         - in: query
           name: delegated
           description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
+        - in: query
+          name: personalData
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
           schema:
             type: boolean
         - in: query
@@ -21647,13 +21642,6 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog/eservices/templates":
-    parameters:
-      - name: personalData
-        description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned, if "defined" all e-service templates with a defined personal data flag will be returned
-        in: query
-        required: false
-        schema:
-          $ref: "#/components/schemas/PersonalDataFilter"
     get:
       tags:
         - eserviceTemplates
@@ -21676,6 +21664,11 @@ paths:
               format: uuid
             default: []
           explode: false
+        - in: query
+          name: personalData
+          description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned
+          schema:
+            type: boolean
         - in: query
           name: offset
           required: true
@@ -28782,13 +28775,6 @@ components:
         totalCount:
           type: integer
           format: int32
-    PersonalDataFilter:
-      type: string
-      description: Filter e-services by personal data
-      enum:
-        - "TRUE"
-        - "FALSE"
-        - DEFINED
     ProblemError:
       properties:
         code:
