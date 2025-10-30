@@ -71,7 +71,6 @@ import {
   purposeDelegationNotFound,
   purposeDraftVersionNotFound,
   purposeNotFound,
-  purposeNotInDraftState,
   purposeTemplateNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
