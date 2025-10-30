@@ -15,8 +15,8 @@ import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,
   eserviceNotFound,
+  purposeDraftVersionNotFound,
   purposeNotFound,
-  purposeNotInDraftState,
   purposeTemplateNotFound,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
@@ -136,7 +136,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
-      error: purposeNotInDraftState(generateId()),
+      error: purposeDraftVersionNotFound(generateId()),
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {

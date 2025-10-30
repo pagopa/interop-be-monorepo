@@ -69,6 +69,7 @@ import {
   purposeCannotBeDeleted,
   purposeCannotBeUpdated,
   purposeDelegationNotFound,
+  purposeDraftVersionNotFound,
   purposeNotFound,
   purposeNotInDraftState,
   purposeTemplateNotFound,
@@ -170,7 +171,7 @@ const retrieveDraftPurposeVersion = (purpose: Purpose): PurposeVersion => {
     (v) => v.state === purposeVersionState.draft
   );
   if (draftVersion === undefined) {
-    throw purposeNotInDraftState(purpose.id);
+    throw purposeDraftVersionNotFound(purpose.id);
   }
   return draftVersion;
 };
