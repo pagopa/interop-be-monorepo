@@ -126,7 +126,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.PurposeTemplate> {
       logger.info(`Suspending purpose template ${purposeTemplateId}`);
 
-      const response =
+      const { metadata } =
         await clients.purposeTemplateProcessClient.suspendPurposeTemplate(
           undefined,
           {
@@ -137,7 +137,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data } = await pollPurposeTemplateById(
         purposeTemplateId,
-        response.metadata,
+        metadata,
         headers
       );
 
