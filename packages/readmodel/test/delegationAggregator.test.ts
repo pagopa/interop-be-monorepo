@@ -27,6 +27,7 @@ describe("Delegation aggregator", () => {
         rejectionReason: "Rejection reason",
         revocationContract: getMockDelegationDocument(),
         activationContract: getMockDelegationDocument(),
+        signedContract: generateId(),
       },
       metadata: {
         version: 1,
@@ -61,6 +62,7 @@ describe("Delegation aggregator", () => {
             when: new Date(),
           },
         },
+        signedContract: generateId(),
       },
       metadata: {
         version: 1,

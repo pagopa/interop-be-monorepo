@@ -145,6 +145,11 @@ export const aggregateDelegation = ({
     ...(delegationSQL.rejectionReason
       ? { rejectionReason: delegationSQL.rejectionReason }
       : {}),
+    ...(delegationSQL.signedContract !== null
+      ? {
+          signedContract: delegationSQL.signedContract,
+        }
+      : {}),
   };
   return {
     data: delegation,
@@ -191,6 +196,7 @@ const delegationContractDocumentSQLToDelegationContractDocument = (
   prettyName: contractDocumentSQL.prettyName,
   contentType: contractDocumentSQL.contentType,
   createdAt: stringToDate(contractDocumentSQL.createdAt),
+  signedAt: stringToDate(contractDocumentSQL.signedAt),
 });
 
 const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({

@@ -570,6 +570,7 @@ export const getMockDelegation = ({
   rejectionReason,
   updatedAt,
   stamps,
+  signedContract,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -583,6 +584,7 @@ export const getMockDelegation = ({
   rejectionReason?: string;
   updatedAt?: Date;
   stamps?: DelegationStamps;
+  signedContract?: string;
 }): Delegation => {
   const creationTime = new Date();
 
@@ -604,6 +606,7 @@ export const getMockDelegation = ({
         when: creationTime,
       },
     },
+    ...(signedContract ? { signedContract } : {}),
   };
 };
 
@@ -616,6 +619,7 @@ export const getMockDelegationDocument = (
   contentType: "json",
   path: "path",
   createdAt: new Date(),
+  signedAt: new Date(),
 });
 
 export const getMockTokenGenStatesConsumerClient = (

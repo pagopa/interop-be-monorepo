@@ -207,7 +207,37 @@ const delegationRouter = (
 
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/internal/delegations/:delegationId/signedContract",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { delegationId } = req.params;
+          const delegationContract = DelegationContractDocument.parse(req.body);
+
+          const { metadata } =
+            await delegationService.internalAddDelegationSignedContract(
+              unsafeBrandId(delegationId),
+              delegationContract,
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateDelegationContractErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   const delegationProducerRouter = ctx.router(delegationApi.producerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { Agreement, WithMetadata } from "pagopa-interop-models";
+import { Agreement, WithMetadata, generateId } from "pagopa-interop-models";
 import {
-  getMockAgreementDocument,
+  getMockAgreementContract,
   getMockAgreementStamp,
 } from "pagopa-interop-commons-test";
 import {
@@ -25,7 +25,7 @@ describe("Agreement queries", () => {
           suspendedByPlatform: false,
           updatedAt: new Date(),
           consumerNotes: "notes",
-          contract: getMockAgreementDocument(),
+          contract: getMockAgreementContract(),
           rejectionReason: "reason",
           suspendedAt: new Date(),
           stamps: {
@@ -37,6 +37,7 @@ describe("Agreement queries", () => {
             upgrade: getMockAgreementStamp(),
             archiving: getMockAgreementStamp(),
           },
+          signedContract: generateId(),
         },
         metadata: { version: 1 },
       };
@@ -47,16 +48,16 @@ describe("Agreement queries", () => {
         await agreementReadModelService.getAgreementById(agreement.data.id);
 
       const retrievedStamps = await retrieveAgreementStampsSQLByAgreementId(
-        agreement.data.id
+        agreement.data.id,
       );
       const retrievedAttributes =
         await retrieveAgreementAttributesSQLByAgreementId(agreement.data.id);
       const retrievedConsumerDocuments =
         await retrieveAgreementConsumerDocumentSQLByAgreementId(
-          agreement.data.id
+          agreement.data.id,
         );
       const retrievedContract = await retrieveAgreementContractSQLByAgreementId(
-        agreement.data.id
+        agreement.data.id,
       );
 
       expect(retrievedAgreement).toStrictEqual(agreement);
@@ -64,10 +65,10 @@ describe("Agreement queries", () => {
       expect(retrievedAttributes).toHaveLength(
         agreement.data.certifiedAttributes.length +
           agreement.data.declaredAttributes.length +
-          agreement.data.verifiedAttributes.length
+          agreement.data.verifiedAttributes.length,
       );
       expect(retrievedConsumerDocuments).toHaveLength(
-        agreement.data.consumerDocuments.length
+        agreement.data.consumerDocuments.length,
       );
       expect(retrievedContract).toHaveLength(1);
     });
@@ -84,16 +85,16 @@ describe("Agreement queries", () => {
         await agreementReadModelService.getAgreementById(agreement.data.id);
 
       const retrievedStamps = await retrieveAgreementStampsSQLByAgreementId(
-        agreement.data.id
+        agreement.data.id,
       );
       const retrievedAttributes =
         await retrieveAgreementAttributesSQLByAgreementId(agreement.data.id);
       const retrievedConsumerDocuments =
         await retrieveAgreementConsumerDocumentSQLByAgreementId(
-          agreement.data.id
+          agreement.data.id,
         );
       const retrievedContract = await retrieveAgreementContractSQLByAgreementId(
-        agreement.data.id
+        agreement.data.id,
       );
 
       expect(retrievedAgreement).toStrictEqual(agreement);
@@ -101,10 +102,10 @@ describe("Agreement queries", () => {
       expect(retrievedAttributes).toHaveLength(
         agreement.data.certifiedAttributes.length +
           agreement.data.declaredAttributes.length +
-          agreement.data.verifiedAttributes.length
+          agreement.data.verifiedAttributes.length,
       );
       expect(retrievedConsumerDocuments).toHaveLength(
-        agreement.data.consumerDocuments.length
+        agreement.data.consumerDocuments.length,
       );
       expect(retrievedContract).toHaveLength(0);
     });
@@ -118,7 +119,7 @@ describe("Agreement queries", () => {
           suspendedByPlatform: false,
           updatedAt: new Date(),
           consumerNotes: "notes",
-          contract: getMockAgreementDocument(),
+          contract: getMockAgreementContract(),
           rejectionReason: "reason",
           suspendedAt: new Date(),
           stamps: {
@@ -130,6 +131,7 @@ describe("Agreement queries", () => {
             upgrade: getMockAgreementStamp(),
             archiving: getMockAgreementStamp(),
           },
+          signedContract: generateId(),
         },
         metadata: { version: 1 },
       };
@@ -141,32 +143,32 @@ describe("Agreement queries", () => {
 
       await agreementWriterService.upsertAgreement(
         agreement.data,
-        agreement.metadata.version
+        agreement.metadata.version,
       );
 
       await agreementWriterService.upsertAgreement(
         updatedAgreement.data,
-        updatedAgreement.metadata.version
+        updatedAgreement.metadata.version,
       );
 
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(
-          updatedAgreement.data.id
+          updatedAgreement.data.id,
         );
 
       const retrievedStamps = await retrieveAgreementStampsSQLByAgreementId(
-        updatedAgreement.data.id
+        updatedAgreement.data.id,
       );
       const retrievedAttributes =
         await retrieveAgreementAttributesSQLByAgreementId(
-          updatedAgreement.data.id
+          updatedAgreement.data.id,
         );
       const retrievedConsumerDocuments =
         await retrieveAgreementConsumerDocumentSQLByAgreementId(
-          updatedAgreement.data.id
+          updatedAgreement.data.id,
         );
       const retrievedContract = await retrieveAgreementContractSQLByAgreementId(
-        updatedAgreement.data.id
+        updatedAgreement.data.id,
       );
 
       expect(retrievedAgreement).toStrictEqual(updatedAgreement);
@@ -174,10 +176,10 @@ describe("Agreement queries", () => {
       expect(retrievedAttributes).toHaveLength(
         updatedAgreement.data.certifiedAttributes.length +
           updatedAgreement.data.declaredAttributes.length +
-          updatedAgreement.data.verifiedAttributes.length
+          updatedAgreement.data.verifiedAttributes.length,
       );
       expect(retrievedConsumerDocuments).toHaveLength(
-        updatedAgreement.data.consumerDocuments.length
+        updatedAgreement.data.consumerDocuments.length,
       );
       expect(retrievedContract).toHaveLength(1);
     });
@@ -192,26 +194,26 @@ describe("Agreement queries", () => {
 
       await agreementWriterService.upsertAgreement(
         agreement.data,
-        agreement.metadata.version
+        agreement.metadata.version,
       );
 
       await agreementWriterService.deleteAgreementById(
         agreement.data.id,
-        agreement.metadata.version
+        agreement.metadata.version,
       );
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
       const retrievedStamps = await retrieveAgreementStampsSQLByAgreementId(
-        agreement.data.id
+        agreement.data.id,
       );
       const retrievedAttributes =
         await retrieveAgreementAttributesSQLByAgreementId(agreement.data.id);
       const retrievedConsumerDocuments =
         await retrieveAgreementConsumerDocumentSQLByAgreementId(
-          agreement.data.id
+          agreement.data.id,
         );
       const retrievedContract = await retrieveAgreementContractSQLByAgreementId(
-        agreement.data.id
+        agreement.data.id,
       );
 
       expect(retrievedAgreement).toBeUndefined();

@@ -29,6 +29,7 @@ export const splitDelegationIntoObjectsSQL = (
     activationContract,
     revocationContract,
     stamps,
+    signedContract,
     ...rest
   }: Delegation,
   metadataVersion: number
@@ -46,6 +47,7 @@ export const splitDelegationIntoObjectsSQL = (
     rejectionReason: rejectionReason || null,
     state,
     kind,
+    signedContract: signedContract || null,
   };
 
   const contractDocumentsSQL: DelegationContractDocumentSQL[] = [];
@@ -112,6 +114,7 @@ const delegationContractDocumentToDelegationContractDocumentSQL = (
     contentType,
     path,
     createdAt,
+    signedAt,
     ...rest
   }: DelegationContractDocument,
   delegationId: DelegationId,
@@ -130,5 +133,6 @@ const delegationContractDocumentToDelegationContractDocumentSQL = (
     contentType,
     path,
     createdAt: dateToString(createdAt),
+    signedAt: dateToString(signedAt),
   };
 };

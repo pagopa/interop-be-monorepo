@@ -9,6 +9,7 @@ import {
   AgreementAddedV1,
   AgreementConsumerDocumentAddedV1,
   AgreementConsumerDocumentRemovedV1,
+  AgreementContract,
   AgreementContractAddedV1,
   AgreementDeletedV1,
   AgreementDocument,
@@ -61,7 +62,7 @@ describe("events V1", async () => {
     const agreement = await agreementReadModelService.getAgreementById(id);
 
     expect(agreement?.data).toStrictEqual(
-      fromAgreementV1(newAgreement.agreement!)
+      fromAgreementV1(newAgreement.agreement!),
     );
   });
 
@@ -85,7 +86,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
 
     expect(actualAgreement).toBeUndefined();
@@ -123,13 +124,13 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
 
     expect(actualAgreement).not.toBeNull();
 
     expect(actualAgreement?.data).toStrictEqual(
-      fromAgreementV1(agreementUpdated.agreement!)
+      fromAgreementV1(agreementUpdated.agreement!),
     );
   });
 
@@ -156,7 +157,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
 
     expect(actualAgreement).not.toBeNull();
@@ -195,18 +196,18 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
 
     expect(actualAgreement).not.toBeNull();
 
     expect(
-      actualAgreement?.data.consumerDocuments.map((cd) => cd.id)
+      actualAgreement?.data.consumerDocuments.map((cd) => cd.id),
     ).not.toContain(agreementConsumerDocument.id);
   });
 
   it("should add an agreement contract", async () => {
-    const agreementContract = generateMock(AgreementDocument);
+    const agreementContract = generateMock(AgreementContract);
     const agreement: Agreement = {
       ...getMockAgreement(),
       contract: agreementContract,
@@ -230,7 +231,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
     expect(actualAgreement).not.toBeNull();
 
@@ -245,6 +246,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.pending,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const activatedAgreement: Agreement = {
       ...agreement,
@@ -267,7 +269,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
 
     expect(retrievedAgreement).not.toBeNull();
@@ -280,6 +282,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const suspendedAgreement: Agreement = {
       ...agreement,
@@ -302,7 +305,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
 
     expect(retrievedAgreement).not.toBeNull();
@@ -315,6 +318,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const deactivatedAgreement: Agreement = {
       ...agreement,
@@ -337,7 +341,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
 
     expect(retrievedAgreement).not.toBeNull();
@@ -350,6 +354,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const updatedAgreement: Agreement = {
       ...agreement,
@@ -358,7 +363,6 @@ describe("events V1", async () => {
     const payload: AgreementActivatedV1 = {
       agreement: toAgreementV1(updatedAgreement),
     };
-
     const message: AgreementEventEnvelope = {
       event_version: 1,
       sequence_num: 1,
@@ -372,11 +376,10 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id
+      agreement.id,
     );
 
     expect(retrievedAgreement).not.toBeNull();
-
     expect(retrievedAgreement?.data).toStrictEqual(updatedAgreement);
   });
 });

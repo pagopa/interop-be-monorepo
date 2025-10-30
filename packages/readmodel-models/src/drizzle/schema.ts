@@ -346,6 +346,7 @@ export const delegationInReadmodelDelegation = readmodelDelegation.table(
     rejectionReason: varchar("rejection_reason"),
     state: varchar().notNull(),
     kind: varchar().notNull(),
+    signedContract: uuid("signed_contract"),
   },
   (table) => [
     unique("delegation_id_metadata_version_unique").on(
@@ -530,6 +531,10 @@ export const delegationContractDocumentInReadmodelDelegation =
         mode: "string",
       }).notNull(),
       kind: varchar().notNull(),
+      signedAt: timestamp("signed_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
     },
     (table) => [
       foreignKey({

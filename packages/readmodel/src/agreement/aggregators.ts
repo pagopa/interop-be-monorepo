@@ -21,6 +21,7 @@ import {
   AgreementAttribute,
   AttributeKind,
   AgreementId,
+  AgreementContract,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -268,7 +269,7 @@ const documentConsumerSQLtoDocumentConsumer = (
 
 const documentSQLtoDocument = (
   documentSQL: AgreementContractSQL
-): AgreementDocument => ({
+): AgreementContract => ({
   id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,

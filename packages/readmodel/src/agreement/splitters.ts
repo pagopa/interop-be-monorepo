@@ -61,7 +61,7 @@ export const splitAgreementIntoObjectsSQL = (
     consumerNotes: consumerNotes ?? null, // "??" because empty strings should not become null
     rejectionReason: rejectionReason ?? null,
     suspendedAt: dateToString(suspendedAt),
-    signedContract: signedContract ?? null,
+    signedContract: signedContract || null,
   };
 
   const makeStampSQL = (
