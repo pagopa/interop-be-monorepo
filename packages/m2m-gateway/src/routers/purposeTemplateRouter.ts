@@ -97,7 +97,7 @@ const purposeTemplateRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating purpose template ${req.params.purposeTemplateId}`
+            `Error unsuspending purpose template ${req.params.purposeTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
