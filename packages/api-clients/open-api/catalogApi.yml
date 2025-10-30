@@ -2193,6 +2193,9 @@ paths:
       responses:
         "200":
           description: EService descriptor attributes updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
