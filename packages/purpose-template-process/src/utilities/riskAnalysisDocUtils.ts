@@ -3,6 +3,8 @@ import {
   PurposeTemplate,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
@@ -23,12 +25,12 @@ function findRemovedAnswerWithAnnotationDocs(
     return [];
   }
 
-  const incomingAnswersIds = new Set(
+  const incomingAnswersKeys = new Set(
     Object.keys(updatedFormTemplate.purposeRiskAnalysisForm?.answers || {})
   );
 
   return [...formTemplate.singleAnswers, ...formTemplate.multiAnswers]
-    .filter((answer) => !incomingAnswersIds.has(answer.id))
+    .filter((answer) => !incomingAnswersKeys.has(answer.key))
     .flatMap((answer) => answer.annotation?.docs || []);
 }
 
@@ -59,6 +61,83 @@ export async function cleanupAnnotationDocsForRemovedAnswers(
       logger.warn(`Error deleting annotation files: ${result.reason}`);
     }
   });
+}
+
+export function addAnnotationDocumentToUpdatedAnswerIfNeeded(
+  purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
+  existentFormTemplate: RiskAnalysisFormTemplate,
+  newFormTemplate: RiskAnalysisFormTemplate
+): RiskAnalysisFormTemplate {
+  const answerWithAnnotationDocs = retrieveUpdatedAnswerWithAnnotationDocs(
+    purposeTemplateSeed,
+    existentFormTemplate
+  );
+
+  if (answerWithAnnotationDocs.length === 0) {
+    return newFormTemplate;
+  }
+
+  const updatedSingleAnswers: RiskAnalysisTemplateSingleAnswer[] =
+    newFormTemplate.singleAnswers.map((answer) => {
+      const answerWithDocs = answerWithAnnotationDocs.find(
+        (a) => a.answerKey === answer.key
+      );
+
+      return answerWithDocs
+        ? {
+            ...answer,
+            suggestedValues: answer.suggestedValues,
+            annotation: answer.annotation && {
+              ...answer.annotation,
+              docs: answerWithDocs.docs,
+            },
+          }
+        : answer;
+    });
+
+  const updatedMultiAnswer: RiskAnalysisTemplateMultiAnswer[] =
+    newFormTemplate.multiAnswers.map((answer) => {
+      const answerWithDocs = answerWithAnnotationDocs.find(
+        (a) => a.answerKey === answer.key
+      );
+      return answerWithDocs
+        ? {
+            ...answer,
+            annotation: answer.annotation && {
+              ...answer.annotation,
+              docs: answerWithDocs.docs,
+            },
+          }
+        : answer;
+    });
+
+  return {
+    ...newFormTemplate,
+    singleAnswers: updatedSingleAnswers,
+    multiAnswers: updatedMultiAnswer,
+  };
+}
+
+function retrieveUpdatedAnswerWithAnnotationDocs(
+  purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
+  formTemplate: RiskAnalysisFormTemplate
+): Array<{
+  answerKey: string;
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument[];
+}> {
+  const incomingAnswersIds = new Set(
+    Object.keys(purposeTemplateSeed.purposeRiskAnalysisForm?.answers || {})
+  );
+
+  return [...formTemplate.singleAnswers, ...formTemplate.multiAnswers]
+    .filter(
+      (answer) =>
+        incomingAnswersIds.has(answer.key) && answer.annotation?.docs.length
+    )
+    .flatMap((answer) => ({
+      answerKey: answer.key,
+      docs: answer.annotation?.docs || [],
+    }));
 }
 
 export async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({

@@ -199,7 +199,7 @@ export class PurposeTemplateSeedApiBuilder {
 
   public addAnnotationToAnswer(
     answerKey: string,
-    annotation: RiskAnalysisTemplateAnswerAnnotation // accept domain model
+    annotation: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed // accept domain model
   ): PurposeTemplateSeedApiBuilder {
     const answers = this.seed.purposeRiskAnalysisForm?.answers || {};
     const updatedEntries = Object.entries(answers).map(([key, answer]) =>
