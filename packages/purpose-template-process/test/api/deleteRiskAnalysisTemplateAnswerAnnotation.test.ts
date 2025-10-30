@@ -79,7 +79,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
     {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
         [purposeTemplateState.draft]
       ),
       expectedStatus: 409,
