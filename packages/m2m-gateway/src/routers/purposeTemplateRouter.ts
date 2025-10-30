@@ -89,7 +89,7 @@ const purposeTemplateRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving purpose template with id ${req.params.purposeTemplateId}`
+          `Error deleting purpose template with id ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
