@@ -5,6 +5,8 @@ import {
   Attribute,
   AttributeId,
   EService,
+  EServiceTemplateV2,
+  EServiceTemplateVersionId,
   EServiceV2,
   NotificationConfig,
   NotificationType,
@@ -16,7 +18,11 @@ import {
   TenantId,
   tenantMailKind,
   TenantV2,
+  EServiceTemplate,
+  EServiceTemplateVersion,
+  descriptorState,
   UserId,
+  ClientV2,
   EServiceId,
 } from "pagopa-interop-models";
 import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
@@ -27,6 +33,7 @@ import { HandlerCommonParams } from "../models/handlerParams.js";
 import {
   attributeNotFound,
   certifierTenantNotFound,
+  descriptorPublishedNotFound,
   eServiceNotFound,
   purposeNotFound,
 } from "../models/errors.js";
@@ -61,18 +68,48 @@ export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
 };
 
+export type EserviceTemplateHandlerParams = HandlerCommonParams & {
+  eserviceTemplateV2Msg?: EServiceTemplateV2;
+  eserviceTemplateVersionId: EServiceTemplateVersionId;
+};
+
+export type EserviceTemplateNameUpdatedHandlerParams = HandlerCommonParams & {
+  eserviceTemplateV2Msg?: EServiceTemplateV2;
+  oldName?: string;
+};
+
+export type ProducerKeychainKeyHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  kid: string;
+};
+
+export type ProducerKeychainUserHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  userId: UserId;
+};
+
+export type ClientKeyHandlerParams = HandlerCommonParams & {
+  clientV2Msg?: ClientV2;
+  kid: string;
+};
+
+export type ClientUserHandlerParams = HandlerCommonParams & {
+  clientV2Msg?: ClientV2;
+  userId: UserId;
+};
+
 export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
   producerKeychainV2Msg?: ProducerKeychainV2;
   eserviceId: EServiceId;
 };
 
-type TenantEmailNotificationRecipient = {
+export type TenantEmailNotificationRecipient = {
   type: "Tenant";
   tenantId: TenantId;
   address: string;
 };
 
-type UserEmailNotificationRecipient = {
+export type UserEmailNotificationRecipient = {
   type: "User";
   userId: UserId;
   tenantId: TenantId;
@@ -99,6 +136,19 @@ export async function getUserEmailsToNotify(
     tenantUsers.map((config) => config.userId)
   );
   return usersToNotify.map((user) => user.email);
+}
+
+export function retrieveLatestPublishedEServiceTemplateVersion(
+  eserviceTemplate: EServiceTemplate
+): EServiceTemplateVersion {
+  const latestVersion = eserviceTemplate.versions
+    .filter((d) => d.state === descriptorState.published)
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
+  if (!latestVersion) {
+    throw descriptorPublishedNotFound(eserviceTemplate.id);
+  }
+  return latestVersion;
 }
 
 export async function retrieveAgreementEservice(

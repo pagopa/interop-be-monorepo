@@ -3,9 +3,14 @@
 /* eslint-disable max-params */
 import path from "path";
 import AdmZip from "adm-zip";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { DescriptorId, genericError } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceDocumentId,
+  generateId,
+  genericError,
+} from "pagopa-interop-models";
 import { missingInterface } from "../model/errors.js";
 import { verifyExportEligibility } from "../services/validators.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
@@ -204,6 +209,23 @@ export async function createDescriptorDocumentZipFile(
 
   return zip.toBuffer();
 }
+
+export async function cloneEServiceDocument(params: {
+  doc: eserviceTemplateApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed>;
+
+export async function cloneEServiceDocument(params: {
+  doc: catalogApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed>;
+
 export async function cloneEServiceDocument({
   doc,
   documentsContainer,
@@ -211,13 +233,16 @@ export async function cloneEServiceDocument({
   fileManager,
   logger,
 }: {
-  doc: catalogApi.EServiceDoc;
+  doc: eserviceTemplateApi.EServiceDoc | catalogApi.EServiceDoc;
   documentsContainer: string;
   documentsPath: string;
   fileManager: FileManager;
   logger: Logger;
-}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> {
-  const clonedDocumentId = crypto.randomUUID();
+}): Promise<
+  | eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed
+  | catalogApi.CreateEServiceDescriptorDocumentSeed
+> {
+  const clonedDocumentId: EServiceDocumentId = generateId();
 
   const clonedPath = await fileManager.copy(
     documentsContainer,

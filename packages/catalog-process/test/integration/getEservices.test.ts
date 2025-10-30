@@ -27,6 +27,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
 import { getMockDelegation } from "pagopa-interop-commons-test";
+import { match } from "ts-pattern";
 import {
   addOneEService,
   addOneTenant,
@@ -36,6 +37,7 @@ import {
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import { getContextsAllowedToSeeInactiveDescriptors } from "../mockUtils.js";
+import { PersonalDataFilter } from "../../src/model/domain/models.js";
 
 describe("get eservices", () => {
   const organizationId1: TenantId = generateId();
@@ -1936,7 +1938,7 @@ describe("get eservices", () => {
     );
   });
 
-  it.each([true, false])(
+  it.each(["TRUE", "FALSE", "DEFINED", undefined] as PersonalDataFilter[])(
     "should get the eServices if they exist (parameters: personalData = %s)",
     async (personalData) => {
       const result = await catalogService.getEServices(
@@ -1956,11 +1958,21 @@ describe("get eservices", () => {
         })
       );
 
-      const expectedEServices = personalData
-        ? [eservice1, eservice2]
-        : [eservice3, eservice4];
+      const expectedEServices = match(personalData)
+        .with("TRUE", () => [eservice1, eservice2])
+        .with("FALSE", () => [eservice3, eservice4])
+        .with("DEFINED", () => [eservice1, eservice2, eservice3, eservice4])
+        .with(undefined, () => [
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+        ])
+        .exhaustive();
 
-      expect(result.totalCount).toBe(2);
+      expect(result.totalCount).toBe(expectedEServices.length);
       expect(sortEServices(result.results)).toEqual(
         sortEServices(expectedEServices)
       );

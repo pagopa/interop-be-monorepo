@@ -151,7 +151,8 @@ export async function handleCatalogMessage(
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
-          "EServicePersonalDataFlagUpdatedAfterPublication"
+          "EServicePersonalDataFlagUpdatedAfterPublication",
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
         ),
       },
       () => {
@@ -236,7 +237,8 @@ export async function handlePurposeMessage(
           "NewPurposeVersionActivated",
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
+          "RiskAnalysisDocumentGenerated"
         ),
       },
       () => {
@@ -304,7 +306,8 @@ export async function handleAgreementMessage(
           "AgreementSetDraftByPlatform",
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
-          "AgreementArchivedByRevokedDelegation"
+          "AgreementArchivedByRevokedDelegation",
+          "AgreementContractGenerated"
         ),
       },
       () => {

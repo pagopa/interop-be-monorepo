@@ -41,21 +41,20 @@ export const eventMailTemplateType = {
     "producer-keychain-eservice-added-mail",
   agreementSuspendedByConsumerMailTemplate:
     "agreement-suspended-by-consumer-mail",
-  agreementSuspendedByPlatformToConsumerMailTemplate:
-    "agreement-suspended-by-platform-to-consumer-mail",
+  agreementSuspendedByPlatformToProducerMailTemplate:
+    "agreement-suspended-by-platform-to-producer-mail",
   agreementUnsuspendedByConsumerMailTemplate:
     "agreement-unsuspended-by-consumer-mail",
+  agreementUnsuspendedByPlatformToProducerMailTemplate:
+    "agreement-unsuspended-by-platform-to-producer-mail",
+  agreementSuspendedByPlatformToConsumerMailTemplate:
+    "agreement-suspended-by-platform-to-consumer-mail",
   agreementUnsuspendedByPlatformToConsumerMailTemplate:
     "agreement-unsuspended-by-platform-to-consumer-mail",
   agreementSuspendedByProducerMailTemplate:
     "agreement-suspended-by-producer-mail",
-  agreementSuspendedByPlatformMailTemplate:
-    "agreement-suspended-by-platform-mail",
   agreementUnsuspendedByProducerMailTemplate:
     "agreement-unsuspended-by-producer-mail",
-  agreementUnsuspendedByPlatform: "agreement-unsuspended-by-platform-mail",
-  agreementUnsuspendedByPlatformMailTemplate:
-    "agreement-unsuspended-by-platform-mail",
   agreementArchivedByConsumerMailTemplate:
     "agreement-archived-by-consumer-mail",
   clientPurposeAddedMailTemplate: "client-purpose-added-mail",
@@ -73,6 +72,14 @@ export const eventMailTemplateType = {
     "purpose-version-unsuspended-by-producer-mail",
   newPurposeVersionWaitingForApprovalMailTemplate:
     "new-purpose-version-waiting-for-approval-mail",
+  eserviceTemplateVersionSuspendedToCreatorMailTemplate:
+    "eservice-template-version-suspended-to-creator-mail",
+  eserviceTemplateVersionPublishedMailTemplate:
+    "eservice-template-version-published-mail",
+  eserviceTemplateNameUpdatedMailTemplate:
+    "eservice-template-name-updated-mail",
+  eserviceTemplateVersionSuspendedToInstantiatorMailTemplate:
+    "eservice-template-version-suspended-to-instantiator-mail",
   consumerDelegationApprovedMailTemplate: "consumer-delegation-approved-mail",
   consumerDelegationRejectedMailTemplate: "consumer-delegation-rejected-mail",
   consumerDelegationRevokedMailTemplate: "consumer-delegation-revoked-mail",
@@ -96,6 +103,14 @@ export const eventMailTemplateType = {
     "tenant-verified-attribute-assigned-mail",
   tenantVerifiedAttributeRevokedMailTemplate:
     "tenant-verified-attribute-revoked-mail",
+  producerKeychainKeyDeletedMailTemplate: "producer-keychain-key-deleted-mail",
+  producerKeychainDeletedMailTemplate: "producer-keychain-deleted-mail",
+  clientKeyDeletedMailTemplate: "client-key-deleted-mail",
+  clientUserDeletedMailTemplate: "client-user-deleted-mail",
+  producerKeychainUserDeletedMailTemplate:
+    "producer-keychain-user-deleted-mail",
+  clientKeyAddedMailTemplate: "client-key-added-mail",
+  producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([

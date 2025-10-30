@@ -133,9 +133,15 @@ paths:
           explode: false
         - in: query
           name: personalData
-          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
+          description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
+          required: false
           schema:
-            type: boolean
+            type: string
+            description: Filter e-services by personal data
+            enum:
+              - "TRUE"
+              - "FALSE"
+              - DEFINED
         - in: query
           name: offset
           required: true
@@ -2187,6 +2193,9 @@ paths:
       responses:
         "200":
           description: EService descriptor attributes updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -2277,6 +2286,43 @@ paths:
       responses:
         "204":
           description: E-Service description updated
+        "404":
+          description: E-Service Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/personalDataFlag:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing a boolean that describes the personalData flag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      operationId: setTemplateInstancePersonalDataFlag
+      description: Update the personalData flag of a template instance after a template update
+      responses:
+        "204":
+          description: E-Service personalData flag updated
         "404":
           description: E-Service Not Found
           content:
