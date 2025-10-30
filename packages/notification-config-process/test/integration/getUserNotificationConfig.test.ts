@@ -42,6 +42,9 @@ describe("getUserNotificationConfig", () => {
   const configWithAllNotificationTypesEnabled = makeNotificationConfig(
     () => true
   );
+  const configWithAllNotificationTypesDisabled = makeNotificationConfig(
+    () => false
+  );
   const configWithAllAllowedForApi = makeNotificationConfig(
     (notificationType) =>
       notificationAdmittedRoles[notificationType][authRole.API_ROLE]
@@ -128,6 +131,22 @@ describe("getUserNotificationConfig", () => {
       ...userNotificationConfigForRoleOverrideTests,
       inAppConfig: configWithAllAllowedForApiSecurity,
       emailConfig: configWithAllAllowedForApiSecurity,
+    };
+    expect(result).toEqual(expected);
+  });
+
+  it("should return all notification types disabled if the user has the 'support' role", async () => {
+    const result = await notificationConfigService.getUserNotificationConfig(
+      getMockContext({
+        authData: getMockAuthData(tenantId, userIdForRoleOverrideTests, [
+          authRole.SUPPORT_ROLE,
+        ]),
+      })
+    );
+    const expected: UserNotificationConfig = {
+      ...userNotificationConfigForRoleOverrideTests,
+      inAppConfig: configWithAllNotificationTypesDisabled,
+      emailConfig: configWithAllNotificationTypesDisabled,
     };
     expect(result).toEqual(expected);
   });

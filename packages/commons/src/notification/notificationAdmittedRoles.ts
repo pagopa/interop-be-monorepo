@@ -154,85 +154,11 @@ export const overrideNotificationConfigByAdmittedRoles = (
 
 export const mapNotificationConfig =
   (f: (notificationType: NotificationType, currentValue: boolean) => boolean) =>
-  (c: NotificationConfig): NotificationConfig => ({
-    agreementSuspendedUnsuspendedToProducer: f(
-      "agreementSuspendedUnsuspendedToProducer",
-      c.agreementSuspendedUnsuspendedToProducer
-    ),
-    agreementManagementToProducer: f(
-      "agreementManagementToProducer",
-      c.agreementManagementToProducer
-    ),
-    clientAddedRemovedToProducer: f(
-      "clientAddedRemovedToProducer",
-      c.clientAddedRemovedToProducer
-    ),
-    purposeStatusChangedToProducer: f(
-      "purposeStatusChangedToProducer",
-      c.purposeStatusChangedToProducer
-    ),
-    templateStatusChangedToProducer: f(
-      "templateStatusChangedToProducer",
-      c.templateStatusChangedToProducer
-    ),
-    agreementSuspendedUnsuspendedToConsumer: f(
-      "agreementSuspendedUnsuspendedToConsumer",
-      c.agreementSuspendedUnsuspendedToConsumer
-    ),
-    eserviceStateChangedToConsumer: f(
-      "eserviceStateChangedToConsumer",
-      c.eserviceStateChangedToConsumer
-    ),
-    agreementActivatedRejectedToConsumer: f(
-      "agreementActivatedRejectedToConsumer",
-      c.agreementActivatedRejectedToConsumer
-    ),
-    purposeActivatedRejectedToConsumer: f(
-      "purposeActivatedRejectedToConsumer",
-      c.purposeActivatedRejectedToConsumer
-    ),
-    purposeSuspendedUnsuspendedToConsumer: f(
-      "purposeSuspendedUnsuspendedToConsumer",
-      c.purposeSuspendedUnsuspendedToConsumer
-    ),
-    newEserviceTemplateVersionToInstantiator: f(
-      "newEserviceTemplateVersionToInstantiator",
-      c.newEserviceTemplateVersionToInstantiator
-    ),
-    eserviceTemplateNameChangedToInstantiator: f(
-      "eserviceTemplateNameChangedToInstantiator",
-      c.eserviceTemplateNameChangedToInstantiator
-    ),
-    eserviceTemplateStatusChangedToInstantiator: f(
-      "eserviceTemplateStatusChangedToInstantiator",
-      c.eserviceTemplateStatusChangedToInstantiator
-    ),
-    delegationApprovedRejectedToDelegator: f(
-      "delegationApprovedRejectedToDelegator",
-      c.delegationApprovedRejectedToDelegator
-    ),
-    eserviceNewVersionSubmittedToDelegator: f(
-      "eserviceNewVersionSubmittedToDelegator",
-      c.eserviceNewVersionSubmittedToDelegator
-    ),
-    eserviceNewVersionApprovedRejectedToDelegate: f(
-      "eserviceNewVersionApprovedRejectedToDelegate",
-      c.eserviceNewVersionApprovedRejectedToDelegate
-    ),
-    delegationSubmittedRevokedToDelegate: f(
-      "delegationSubmittedRevokedToDelegate",
-      c.delegationSubmittedRevokedToDelegate
-    ),
-    certifiedVerifiedAttributeAssignedRevokedToAssignee: f(
-      "certifiedVerifiedAttributeAssignedRevokedToAssignee",
-      c.certifiedVerifiedAttributeAssignedRevokedToAssignee
-    ),
-    clientKeyAddedDeletedToClientUsers: f(
-      "clientKeyAddedDeletedToClientUsers",
-      c.clientKeyAddedDeletedToClientUsers
-    ),
-    producerKeychainKeyAddedDeletedToClientUsers: f(
-      "producerKeychainKeyAddedDeletedToClientUsers",
-      c.producerKeychainKeyAddedDeletedToClientUsers
-    ),
-  });
+  (c: NotificationConfig): NotificationConfig => {
+    const keys = Object.keys(NotificationConfig.shape) as NotificationType[];
+    const entries: Array<[NotificationType, boolean]> = keys.map((key) => [
+      key,
+      f(key, c[key]),
+    ]);
+    return Object.fromEntries(entries) as NotificationConfig;
+  };

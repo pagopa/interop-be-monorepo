@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   authRole,
   genericLogger,
@@ -51,9 +51,14 @@ describe("getNotificationRecipients", () => {
     },
   ];
 
-  const readModelService = {
-    getTenantUsersWithNotificationEnabled: vi.fn().mockResolvedValue(users),
-  } as unknown as ReadModelServiceSQL;
+  const readModelService = {} as unknown as ReadModelServiceSQL;
+
+  beforeEach(async () => {
+    // eslint-disable-next-line functional/immutable-data
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue(users);
+  });
 
   it("should call ReadModelServiceSQL.getTenantUsersWithNotificationEnabled", async () => {
     await getNotificationRecipients(
@@ -135,5 +140,19 @@ describe("getNotificationRecipients", () => {
     expect(result).toEqual(
       expect.arrayContaining([0, 2, 3, 4].map((i) => users[i]))
     );
+  });
+
+  it("should return an empty array if ReadModelServiceSQL.getTenantUsersWithNotificationEnabled returns an empty array", async () => {
+    // eslint-disable-next-line functional/immutable-data
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([]);
+    const result = await getNotificationRecipients(
+      tenants,
+      "agreementSuspendedUnsuspendedToProducer",
+      readModelService,
+      genericLogger
+    );
+    expect(result).toHaveLength(0);
   });
 });

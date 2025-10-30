@@ -57,7 +57,7 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
     logger
   );
 
-  if (!usersWithNotifications) {
+  if (usersWithNotifications.length === 0) {
     logger.info(
       `No user notification configs found for handleNewEserviceTemplateVersionToInstantiator ${eserviceTemplate.id}`
     );
