@@ -13,6 +13,7 @@ import {
   AttributeKind,
   EServiceTemplate,
   EServiceTemplateId,
+  EServiceTemplateVersionState,
   ListResult,
   Tenant,
   TenantId,
@@ -43,9 +44,15 @@ import {
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
-import { match } from "ts-pattern";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
-import { GetEServiceTemplatesFilters } from "./readModelService.js";
+
+export type GetEServiceTemplatesFilters = {
+  name?: string;
+  eserviceTemplatesIds: EServiceTemplateId[];
+  creatorsIds: TenantId[];
+  states: EServiceTemplateVersionState[];
+  personalData?: boolean;
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -142,26 +149,12 @@ export function readModelServiceBuilderSQL({
                   eserviceTemplatesIds
                 )
               : undefined,
-            match(personalData)
-              .with("TRUE", () =>
-                eq(
+            personalData !== undefined
+              ? eq(
                   eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                  true
+                  personalData
                 )
-              )
-              .with("FALSE", () =>
-                eq(
-                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                  false
-                )
-              )
-              .with("DEFINED", () =>
-                isNotNull(
-                  eserviceTemplateInReadmodelEserviceTemplate.personalData
-                )
-              )
-              .with(undefined, () => undefined)
-              .exhaustive(),
+              : undefined,
             // CREATORS IDS FILTER
             creatorsIds.length > 0
               ? inArray(

@@ -372,7 +372,7 @@ export function eserviceTemplateServiceBuilder(
     getCatalogEServiceTemplates: async (
       name: string | undefined,
       creatorsIds: string[],
-      personalData: bffApi.PersonalDataFilter | undefined,
+      personalData: boolean | undefined,
       offset: number,
       limit: number,
       { headers, logger }: WithLogger<BffAppContext>

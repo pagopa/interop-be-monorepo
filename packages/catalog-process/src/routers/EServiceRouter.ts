@@ -1148,16 +1148,13 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const { metadata, data: updatedEService } =
+          const updatedEService =
             await catalogService.updateDescriptorAttributes(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
-
-          setMetadataVersionHeader(res, metadata);
-
           return res
             .status(200)
             .send(

@@ -81,7 +81,6 @@ import {
   exists,
   ilike,
   inArray,
-  isNotNull,
   isNull,
   notExists,
   or,
@@ -237,18 +236,9 @@ export function readModelServiceBuilderSQL(
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
                   : undefined,
-                match(personalData)
-                  .with("TRUE", () =>
-                    eq(eserviceInReadmodelCatalog.personalData, true)
-                  )
-                  .with("FALSE", () =>
-                    eq(eserviceInReadmodelCatalog.personalData, false)
-                  )
-                  .with("DEFINED", () =>
-                    isNotNull(eserviceInReadmodelCatalog.personalData)
-                  )
-                  .with(undefined, () => undefined)
-                  .exhaustive()
+                personalData !== undefined
+                  ? eq(eserviceInReadmodelCatalog.personalData, personalData)
+                  : undefined
               )
             )
             .as("subqueryWithEserviceFilters");
