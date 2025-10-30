@@ -22,6 +22,7 @@ export const addPurposeRiskAnalysisSignedDocument = async (
   const documentWithIsoString = {
     ...document,
     createdAt: document.createdAt.toISOString(),
+    signedAt: new Date().toISOString(),
   };
   await purposeApi.purposeApi.addSignedRiskAnalysisDocumentMetadata(
     documentWithIsoString,
