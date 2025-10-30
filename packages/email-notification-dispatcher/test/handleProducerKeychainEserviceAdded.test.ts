@@ -7,6 +7,7 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -70,7 +71,12 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       .mockImplementation((tenantIds, _notificationType) =>
         users
           .filter((user) => tenantIds.includes(user.tenantId))
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -210,8 +216,17 @@ describe("handleProducerKeychainEserviceAdded", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
-        { userId: users[2].id, tenantId: users[2].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
+        {
+          userId: users[2].id,
+          tenantId: users[2].tenantId,
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({
