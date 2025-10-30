@@ -16351,7 +16351,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
-          description: Purpose Template Not Found
+          description: Not Found
           content:
             application/problem+json:
               schema:
