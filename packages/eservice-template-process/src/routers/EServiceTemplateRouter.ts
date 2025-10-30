@@ -87,6 +87,7 @@ const eserviceTemplatesRouter = (
           creatorsIds,
           eserviceTemplatesIds,
           states,
+          personalData,
           offset,
           limit,
         } = req.query;
@@ -101,6 +102,7 @@ const eserviceTemplatesRouter = (
                 apiEServiceTemplateVersionStateToEServiceTemplateVersionState
               ),
               name,
+              personalData,
             },
             offset,
             limit,
