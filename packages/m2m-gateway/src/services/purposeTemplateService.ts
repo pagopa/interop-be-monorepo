@@ -10,9 +10,6 @@ export type PurposeTemplateService = ReturnType<
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
-    async getPurposeTemplateById(): Promise<void> {
-      return Promise.resolve();
-    },
     async getPurposeTemplates(
       queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -48,27 +45,6 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
-    },
-    async createPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async updatePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async deletePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async suspendPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async archivePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async unsuspendPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async publishPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
     },
   };
 }
