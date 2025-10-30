@@ -298,6 +298,7 @@ CREATE TABLE IF NOT EXISTS domains.delegation (
   rejection_reason VARCHAR(2048),
   state VARCHAR(2048) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
+  signed_contract VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
