@@ -479,7 +479,8 @@ export function purposeTemplateServiceBuilder(
       const validatedPurposeRiskAnalysisFormSeed = seed.purposeRiskAnalysisForm
         ? validateAndTransformRiskAnalysisTemplate(
             seed.purposeRiskAnalysisForm,
-            seed.targetTenantKind
+            seed.targetTenantKind,
+            seed.handlesPersonalData
           )
         : getDefaultRiskAnalysisFormTemplate(seed.targetTenantKind);
 
@@ -794,7 +795,8 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateSeed.purposeRiskAnalysisForm
           ? validateAndTransformRiskAnalysisTemplate(
               purposeTemplateSeed.purposeRiskAnalysisForm,
-              purposeTemplate.data.targetTenantKind
+              purposeTemplate.data.targetTenantKind,
+              purposeTemplateSeed.handlesPersonalData
             )
           : purposeTemplate.data.purposeRiskAnalysisForm;
 
@@ -916,6 +918,7 @@ export function purposeTemplateServiceBuilder(
       answerId: string,
       body: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocumentSeed,
       {
+        authData,
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
@@ -929,6 +932,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
       assertPurposeTemplateIsDraft(purposeTemplate.data);
 
       const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
@@ -1404,6 +1408,7 @@ async function activatePurposeTemplate({
         purposeRiskAnalysisForm
       ),
     tenantKind: purposeTemplate.data.targetTenantKind,
+    personalDataInPurposeTemplate: purposeTemplate.data.handlesPersonalData,
   });
 
   return {

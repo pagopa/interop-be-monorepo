@@ -72,7 +72,7 @@ export type GetPurposeTemplatesFilters = {
 export type GetPurposeTemplateEServiceDescriptorsFilters = {
   purposeTemplateId: PurposeTemplateId;
   producerIds: TenantId[];
-  eserviceIds: EServiceId[];
+  eserviceName?: string;
 };
 
 const getPurposeTemplatesFilters = (
@@ -410,7 +410,7 @@ export function readModelServiceBuilderSQL({
       filters: GetPurposeTemplateEServiceDescriptorsFilters,
       { limit, offset }: { limit: number; offset: number }
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
-      const { purposeTemplateId, producerIds, eserviceIds } = filters;
+      const { purposeTemplateId, producerIds, eserviceName } = filters;
 
       const queryResult = await readModelDB
         .select(
@@ -437,10 +437,10 @@ export function readModelServiceBuilderSQL({
             producerIds.length > 0
               ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
               : undefined,
-            eserviceIds.length > 0
-              ? inArray(
-                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-                  eserviceIds
+            eserviceName
+              ? ilike(
+                  eserviceInReadmodelCatalog.name,
+                  `%${escapeRegExp(eserviceName)}%`
                 )
               : undefined
           )
