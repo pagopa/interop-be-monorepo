@@ -176,7 +176,27 @@ export const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedF
     singleAnswers: [
       {
         key: "publicInterestTaskText",
-        value: "Public interest something",
+        value: "PublicInterestTaskText1",
+      },
+      {
+        key: "institutionalPurpose",
+        value: "Purpose1",
+      },
+      {
+        key: "otherPersonalDataTypes",
+        value: "PersonalDataType1",
+      },
+      {
+        key: "legalObligationReference",
+        value: "LegalObligation1",
+      },
+      {
+        key: "reasonPolicyNotProvided",
+        value: "Because1",
+      },
+      {
+        key: "dataRetentionPeriod",
+        value: "DataRetentionPeriod1",
       },
     ],
     multiAnswers: [],

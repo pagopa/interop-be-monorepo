@@ -413,31 +413,31 @@ export const getMockValidRiskAnalysisFormTemplate = (
     )
     .exhaustive();
 
-const toMockCompleteRiskAnalysisTemplateAnswer = <
-  T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
->(
-  answer: T
-): T => ({
-  ...answer,
-  annotation: {
-    ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-    docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-  },
-});
-
 export const getMockCompleteRiskAnalysisFormTemplate = (
   producerTenantKind: TenantKind = tenantKind.PA
 ): RiskAnalysisFormTemplate => {
   const incompleteRiskAnalysisFormTemplate =
     getMockValidRiskAnalysisFormTemplate(producerTenantKind);
 
+  const addAnnotationToAnswers = <
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answers: T[]
+  ): T[] =>
+    answers.map(
+      (a): T => ({
+        ...a,
+        annotation: getMockRiskAnalysisTemplateAnswerAnnotation(undefined, 1),
+      })
+    );
+
   return {
     ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      toMockCompleteRiskAnalysisTemplateAnswer
+    singleAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.singleAnswers
     ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      toMockCompleteRiskAnalysisTemplateAnswer
+    multiAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
   };
 };
