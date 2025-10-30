@@ -210,15 +210,14 @@ describe("patchUpdatePurposeFromTemplate", () => {
         },
       },
     };
-    const updatePurpose =
-      await purposeService.updateDraftPurposeCreatedFromTemplate(
-        purposeTemplate.id,
-        draftPurpose.id,
-        updateContent,
-        getMockContextM2MAdmin({
-          organizationId: consumer.id,
-        })
-      );
+    const updatePurpose = await purposeService.patchUpdatePurposeFromTemplate(
+      purposeTemplate.id,
+      draftPurpose.id,
+      updateContent,
+      getMockContextM2MAdmin({
+        organizationId: consumer.id,
+      })
+    );
 
     const writtenPayload = await expectWrittenEventAndGetPayload(
       draftPurpose.id
@@ -320,15 +319,14 @@ describe("patchUpdatePurposeFromTemplate", () => {
         },
       },
     };
-    const updatePurpose =
-      await purposeService.updateDraftPurposeCreatedFromTemplate(
-        purposeTemplate.id,
-        draftPurpose.id,
-        updateContent,
-        getMockContextM2MAdmin({
-          organizationId: consumerDelegation.delegateId,
-        })
-      );
+    const updatePurpose = await purposeService.patchUpdatePurposeFromTemplate(
+      purposeTemplate.id,
+      draftPurpose.id,
+      updateContent,
+      getMockContextM2MAdmin({
+        organizationId: consumerDelegation.delegateId,
+      })
+    );
 
     const writtenPayload = await expectWrittenEventAndGetPayload(
       draftPurpose.id
@@ -411,7 +409,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: draftPurpose.title,
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -445,7 +443,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
     };
 
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -481,7 +479,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
     };
 
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -509,7 +507,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       },
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -537,7 +535,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       },
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -558,7 +556,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: draftPurpose.title,
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -578,7 +576,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: draftPurpose.title,
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -603,7 +601,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "New Title",
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -633,7 +631,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
     };
 
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -661,7 +659,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       },
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -693,7 +691,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       },
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,
@@ -723,7 +721,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       },
     };
     expect(
-      purposeService.updateDraftPurposeCreatedFromTemplate(
+      purposeService.patchUpdatePurposeFromTemplate(
         purposeTemplate.id,
         draftPurpose.id,
         updateContent,

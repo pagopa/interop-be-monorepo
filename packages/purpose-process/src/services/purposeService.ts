@@ -95,7 +95,6 @@ import {
   toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
   toCreateEventPurposeCloned,
-  toCreateEventRiskAnalysisDocumentGenerated,
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
@@ -106,6 +105,7 @@ import {
   toCreateEventPurposeVersionUnsuspenedByConsumer,
   toCreateEventPurposeVersionUnsuspenedByProducer,
   toCreateEventPurposeWaitingForApproval,
+  toCreateEventRiskAnalysisDocumentGenerated,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
@@ -1767,7 +1767,7 @@ export function purposeServiceBuilder(
         metadata: { version: event.newVersion },
       };
     },
-    async updateDraftPurposeCreatedFromTemplate(
+    async patchUpdatePurposeFromTemplate(
       purposeTemplateId: PurposeTemplateId,
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PatchPurposeUpdateFromTemplateContent,

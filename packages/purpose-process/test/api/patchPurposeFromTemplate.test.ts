@@ -51,7 +51,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
   );
 
   beforeEach(() => {
-    purposeService.updateDraftPurposeCreatedFromTemplate = vi
+    purposeService.patchUpdatePurposeFromTemplate = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
@@ -150,7 +150,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeService.updateDraftPurposeCreatedFromTemplate = vi
+      purposeService.patchUpdatePurposeFromTemplate = vi
         .fn()
         .mockRejectedValueOnce(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

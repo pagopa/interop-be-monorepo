@@ -37,6 +37,7 @@ import {
   createReversePurposeErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
+  generateRiskAnalysisDocumentErrorMapper,
   getPurposeErrorMapper,
   getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
@@ -47,7 +48,6 @@ import {
   updatePurposeByTemplateErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
-  generateRiskAnalysisDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeRouter = (
@@ -771,7 +771,7 @@ const purposeRouter = (
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const updatedPurpose =
-            await purposeService.updateDraftPurposeCreatedFromTemplate(
+            await purposeService.patchUpdatePurposeFromTemplate(
               unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
               unsafeBrandId(req.params.purposeId),
               req.body,
