@@ -25,6 +25,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 
+import { S3ServiceException } from "@aws-sdk/client-s3";
 import { config } from "../config/config.js";
 import { FILE_KIND_CONFIG } from "../utils/fileKind.config.js";
 import { insertSignedBeforeExtension } from "../utils/insertSignedBeforeExtension.js";
@@ -65,20 +66,16 @@ async function processMessage(
     if (!signature) {
       throw new Error(`Missing signature reference for message ${id}`);
     }
-
     const { fileKind } = signature;
+
     if (!(fileKind in FILE_KIND_CONFIG)) {
       throw new Error(`Unknown fileKind: ${fileKind}`);
     }
 
     const fileRef = await safeStorageService.getFile(fileKey);
     if (!fileRef.download?.url) {
-      logger.error(
-        `File reference for key "${fileKey}" is missing download URL`
-      );
-      throw new Error("Cannot process file without a download URL");
+      throw new Error(`Missing download URL for fileKey: ${fileKey}`);
     }
-
     const fileContent = await safeStorageService.downloadFileContent(
       fileRef.download.url
     );
@@ -89,68 +86,106 @@ async function processMessage(
     const path = `${clientCode}/${datePath}`;
     const fileName = insertSignedBeforeExtension(fileKey);
 
-    const s3Key = await fileManager.resumeOrStoreBytes(
-      { bucket, path, name: fileName, content: fileContent },
-      logger
-    );
+    // immutabile s3Key con gestione 409 per documentType specifici
+    const s3Key: string = await (async (): Promise<string> => {
+      try {
+        return await fileManager.resumeOrStoreBytes(
+          { bucket, path, name: fileName, content: fileContent },
+          logger
+        );
+      } catch (error) {
+        const isConflict =
+          error instanceof S3ServiceException &&
+          (error.$metadata?.httpStatusCode === 409 ||
+            error.name === "Conflict");
+
+        const isSpecialDocumentType =
+          documentType === "RISK_ANALYSIS_DOCUMENT" ||
+          documentType === "AGREEMENT_CONTRACT";
+
+        if (isConflict && isSpecialDocumentType) {
+          logger.warn(
+            `Conflict (409) uploading s3://${bucket}/${path}/${fileName} — file already exists, continuing`
+          );
+          return `${path}/${fileName}`;
+        }
+        throw error;
+      }
+    })();
+
     logger.info(`File successfully saved in S3 with key: ${s3Key}`);
 
-    if (process) {
+    const buildMetadata = (): {
+      metadataMap: {
+        readonly riskAnalysis: () => PurposeVersionDocument;
+        readonly agreement: () => AgreementDocument;
+        readonly delegation: () => DelegationContractDocument;
+      };
+      correlationId: CorrelationId;
+      docSignature: DocumentSignatureReference;
+    } => {
       const correlationId = unsafeBrandId<CorrelationId>(
         signature.correlationId
       );
       const docSignature = signature as DocumentSignatureReference;
 
+      const metadataMap = {
+        riskAnalysis: (): PurposeVersionDocument => ({
+          id: unsafeBrandId<PurposeVersionDocumentId>(docSignature.subObjectId),
+          contentType: docSignature.contentType,
+          path: s3Key,
+          createdAt: new Date(Number(docSignature.createdAt)),
+        }),
+        agreement: (): AgreementDocument => ({
+          path: s3Key,
+          name: docSignature.fileName,
+          id: unsafeBrandId<AgreementDocumentId>(docSignature.streamId),
+          prettyName: docSignature.prettyname,
+          contentType: docSignature.contentType,
+          createdAt: new Date(Number(docSignature.createdAt)),
+        }),
+        delegation: (): DelegationContractDocument => ({
+          id: unsafeBrandId<DelegationContractId>(docSignature.streamId),
+          name: docSignature.fileName,
+          prettyName: docSignature.prettyname,
+          contentType: docSignature.contentType,
+          path: s3Key,
+          createdAt: new Date(Number(docSignature.createdAt)),
+        }),
+      } as const;
+
+      return { metadataMap, correlationId, docSignature };
+    };
+
+    if (process) {
+      const { metadataMap, correlationId, docSignature } = buildMetadata();
+
       await match(process)
-        .with("riskAnalysis", async () => {
-          const metadata: PurposeVersionDocument = {
-            id: unsafeBrandId<PurposeVersionDocumentId>(
-              docSignature.subObjectId
-            ),
-            contentType: docSignature.contentType,
-            path: s3Key,
-            createdAt: new Date(Number(docSignature.createdAt)),
-          };
-          await addPurposeRiskAnalysisSignedDocument(
+        .with("riskAnalysis", async () =>
+          addPurposeRiskAnalysisSignedDocument(
             docSignature.streamId as PurposeId,
             docSignature.subObjectId as PurposeVersionDocumentId,
-            metadata,
+            metadataMap.riskAnalysis(),
             refreshableToken,
             correlationId
-          );
-        })
-        .with("agreement", async () => {
-          const metadata: AgreementDocument = {
-            path: s3Key,
-            name: docSignature.fileName,
-            id: unsafeBrandId<AgreementDocumentId>(docSignature.streamId),
-            prettyName: docSignature.prettyname,
-            contentType: docSignature.contentType,
-            createdAt: new Date(Number(docSignature.createdAt)),
-          };
-          await addAgreementSignedContract(
-            metadata,
+          )
+        )
+        .with("agreement", async () =>
+          addAgreementSignedContract(
+            metadataMap.agreement(),
             refreshableToken,
             docSignature.streamId,
             correlationId
-          );
-        })
-        .with("delegation", async () => {
-          const metadata: DelegationContractDocument = {
-            id: unsafeBrandId<DelegationContractId>(docSignature.streamId),
-            name: docSignature.fileName,
-            prettyName: docSignature.prettyname,
-            contentType: docSignature.contentType,
-            path: s3Key,
-            createdAt: new Date(Number(docSignature.createdAt)),
-          };
-          await addDelegationSignedContract(
-            metadata,
+          )
+        )
+        .with("delegation", async () =>
+          addDelegationSignedContract(
+            metadataMap.delegation(),
             refreshableToken,
             docSignature.streamId,
             correlationId
-          );
-        })
+          )
+        )
         .with(P._, () => logger.warn(`Unexpected process type: ${process}`))
         .exhaustive();
     }
@@ -179,28 +214,32 @@ export const sqsMessageHandler = async (
       throw new Error("Missing SQS message body");
     }
 
-    logInstance.info(`Message Payload Body: ${messagePayload.Body}`);
+    logInstance.info(`SQS message body: ${messagePayload.Body}`);
 
     const parsed = SqsSafeStorageBodySchema.safeParse(
       JSON.parse(messagePayload.Body)
     );
+
     if (!parsed.success) {
       logInstance.error(`Invalid SQS message: ${parsed.error.message}`);
       throw new Error("Invalid SQS payload");
     }
 
-    logInstance.info(`Parsed message: ${JSON.stringify(parsed.data)}`);
+    const messageData = parsed.data;
+    logInstance.info(`Parsed SQS message: ${JSON.stringify(messageData)}`);
 
     await processMessage(
       fileManager,
       signatureService,
-      parsed.data,
+      messageData,
       safeStorageService,
       logInstance,
       refreshableToken
     );
-  } catch (err) {
-    logInstance.error(`Error handling SQS message: ${String(err)}`);
-    throw err;
+
+    logInstance.info(`Message ${messageData.id} processed successfully`);
+  } catch (error) {
+    logInstance.error(`Error handling SQS message: ${formatError(error)}`);
+    throw error;
   }
 };
