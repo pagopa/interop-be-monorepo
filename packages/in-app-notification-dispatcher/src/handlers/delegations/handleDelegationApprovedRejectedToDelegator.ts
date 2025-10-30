@@ -7,7 +7,10 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveTenant,
+} from "../handlerCommons.js";
 
 export type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"
@@ -30,11 +33,12 @@ export async function handleDelegationApprovedRejectedToDelegator(
 
   const delegation = fromDelegationV2(delegationV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [delegation.delegatorId],
-      "delegationApprovedRejectedToDelegator"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [delegation.delegatorId],
+    "delegationApprovedRejectedToDelegator",
+    readModelService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(

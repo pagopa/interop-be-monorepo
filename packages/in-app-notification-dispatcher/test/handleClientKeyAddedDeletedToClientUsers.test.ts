@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockClient,
@@ -16,6 +16,7 @@ import {
 import { handleClientKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleClientKeyAddedDeletedToClientUsers.js";
 import { clientKeyNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { addOneTenant, readModelService } from "./utils.js";
 
 describe("handleClientKeyAddedDeletedToClientUsers", () => {
@@ -51,7 +52,10 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
 
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneTenant(consumerTenant);
   });
@@ -72,14 +76,11 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         },
       };
 
-      // Mock notification service to return users (so the check doesn't exit early)
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue([
-          { userId: userId1, tenantId: consumerId },
-          { userId: userId2, tenantId: consumerId },
-        ]);
+      // Mock notification recipients so the check doesn't exit early
+      mockGetNotificationRecipients.mockResolvedValue([
+        { userId: userId1, tenantId: consumerId },
+        { userId: userId2, tenantId: consumerId },
+      ]);
 
       await expect(() =>
         handleClientKeyAddedDeletedToClientUsers(
@@ -106,10 +107,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         },
       };
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue([]);
+      mockGetNotificationRecipients.mockResolvedValue([]);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -142,10 +140,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         { userId: userId3, tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(userNotificationConfigs);
+      mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -192,10 +187,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         { userId: userId3, tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(users);
+      mockGetNotificationRecipients.mockResolvedValue(users);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -234,10 +226,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         { userId: userId3, tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(userNotificationConfigs);
+      mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -300,10 +289,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         { userId: userId3, tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(userNotificationConfigs);
+      mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -342,10 +328,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         { userId: userId3, tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(userNotificationConfigs);
+      mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -407,10 +390,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         { userId: userId3, tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(userNotificationConfigs);
+      mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -446,10 +426,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         { userId: deletedUserId, tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(userNotificationConfigs);
+      mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -476,10 +453,9 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         },
       };
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue([{ userId: userId1, tenantId: consumerId }]);
+      mockGetNotificationRecipients.mockResolvedValue([
+        { userId: userId1, tenantId: consumerId },
+      ]);
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -506,10 +482,9 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         },
       };
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue([{ userId: userId2, tenantId: consumerId }]); // Different user than key owner
+      mockGetNotificationRecipients.mockResolvedValue([
+        { userId: userId2, tenantId: consumerId },
+      ]); // Different user than key owner
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -540,10 +515,9 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         },
       };
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue([{ userId: userId2, tenantId: consumerId }]); // Different user than deleted user
+      mockGetNotificationRecipients.mockResolvedValue([
+        { userId: userId2, tenantId: consumerId },
+      ]); // Different user than deleted user
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
