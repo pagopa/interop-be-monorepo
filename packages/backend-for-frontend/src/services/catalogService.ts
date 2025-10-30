@@ -550,6 +550,7 @@ export function catalogServiceBuilder(
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
         isClientAccessDelegable: eservice.isClientAccessDelegable,
+        personalData: eservice.personalData,
       };
     },
     updateEServiceDescription: async (
@@ -779,11 +780,12 @@ export function catalogServiceBuilder(
       eserviceName: string | undefined,
       consumersIds: string[],
       delegated: boolean | undefined,
-      personalData: boolean | undefined,
+      personalData: bffApi.PersonalDataFilter | undefined,
       offset: number,
       limit: number,
-      { headers, authData, logger }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServices> => {
+      const { headers, authData, logger } = ctx;
       logger.info(
         `Retrieving producer EServices with name ${eserviceName}, offset ${offset}, limit ${limit}, consumersIds ${JSON.stringify(
           consumersIds
@@ -843,13 +845,11 @@ export function catalogServiceBuilder(
         res.totalCount = totalCount;
       }
 
-      const notificationsPromise =
-        inAppNotificationManagerClient.filterUnreadNotifications({
-          queries: {
-            entityIds: res.results.map((a) => a.id),
-          },
-          headers,
-        });
+      const notificationsPromise = filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        res.results.map((a) => a.id),
+        ctx
+      );
 
       const delegations = await getAllDelegations(
         delegationProcessClient,

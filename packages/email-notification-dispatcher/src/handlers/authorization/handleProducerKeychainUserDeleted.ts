@@ -57,7 +57,7 @@ export async function handleProducerKeychainUserDeleted(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter((target) => target.type !== "User" || target.userId != userId);
+  ).filter((target) => target.type !== "User" || target.userId !== userId);
 
   if (targets.length === 0) {
     logger.info(
