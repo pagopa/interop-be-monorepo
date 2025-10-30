@@ -79,7 +79,7 @@ describe("publishPurposeTemplate", () => {
 
     const expectedPurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
       updatedAt: new Date(),
     };
 
@@ -174,9 +174,9 @@ describe("publishPurposeTemplate", () => {
     {
       error: purposeTemplateStateConflict(
         purposeTemplate.id,
-        purposeTemplateState.active
+        purposeTemplateState.published
       ),
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     },
     {
       error: purposeTemplateNotInExpectedStates(

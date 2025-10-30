@@ -632,7 +632,7 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
       ]);
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
@@ -706,7 +706,7 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
       ]);
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
@@ -913,6 +913,7 @@ export function purposeTemplateServiceBuilder(
       answerId: string,
       body: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocumentSeed,
       {
+        authData,
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
@@ -926,6 +927,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
       assertPurposeTemplateIsDraft(purposeTemplate.data);
 
       const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
@@ -1407,7 +1409,7 @@ async function activatePurposeTemplate({
   return {
     data: {
       ...purposeTemplate.data,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
       updatedAt: new Date(),
     },
     metadata: purposeTemplate.metadata,

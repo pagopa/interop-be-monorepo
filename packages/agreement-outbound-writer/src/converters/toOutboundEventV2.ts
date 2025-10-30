@@ -92,6 +92,7 @@ export function toOutboundEventV2(
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
+      { type: "AgreementContractGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

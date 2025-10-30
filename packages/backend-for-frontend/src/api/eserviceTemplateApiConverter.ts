@@ -45,6 +45,7 @@ export function toBffEServiceTemplateDetails(
     draftVersion: draftVersion
       ? toBffCompactEServiceTemplateVersion(draftVersion)
       : undefined,
+    personalData: eserviceTemplate.personalData,
   };
 }
 
