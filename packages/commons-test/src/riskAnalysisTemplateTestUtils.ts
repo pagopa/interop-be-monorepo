@@ -463,26 +463,26 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
 ): RiskAnalysisFormTemplate => {
   const incompleteRiskAnalysisFormTemplate =
     getMockValidRiskAnalysisFormTemplate(producerTenantKind);
+
+  const addAnnotationToAnswers = <
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answers: T[]
+  ): T[] =>
+    answers.map(
+      (a): T => ({
+        ...a,
+        annotation: getMockRiskAnalysisTemplateAnswerAnnotation(undefined, 1),
+      })
+    );
+
   return {
     ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: [],
-      })
+    singleAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.singleAnswers
     ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
+    multiAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
   };
 };
