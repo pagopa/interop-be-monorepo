@@ -21,6 +21,7 @@ import {
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
+  isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -1053,6 +1054,16 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
+        purpose.data.purposeTemplateId
+      ) {
+        await retrievePublishedPurposeTemplate(
+          purpose.data.purposeTemplateId,
+          readModelService
+        );
+      }
 
       if (purposeVersion.state === purposeVersionState.draft) {
         const riskAnalysisForm = purpose.data.riskAnalysisForm;

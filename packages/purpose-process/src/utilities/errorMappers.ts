@@ -269,6 +269,7 @@ export const activatePurposeVersionErrorMapper = (
     .with(
       "purposeNotFound",
       "purposeVersionNotFound",
+      "purposeTemplateNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
