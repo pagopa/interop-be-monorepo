@@ -107,26 +107,5 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return data;
     },
-    async createPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async updatePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async deletePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async suspendPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async archivePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async unsuspendPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async publishPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
   };
 }
