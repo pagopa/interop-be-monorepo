@@ -28,11 +28,9 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleProducerKeychainEserviceAdded", async () => {
@@ -63,9 +61,6 @@ describe("handleProducerKeychainEserviceAdded", async () => {
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenants[0]);
     await addOneTenant(consumerTenants[1]);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation((tenantIds, _notificationType) =>
@@ -87,7 +82,6 @@ describe("handleProducerKeychainEserviceAdded", async () => {
         eserviceId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -119,7 +113,6 @@ describe("handleProducerKeychainEserviceAdded", async () => {
         eserviceId: eserviceWithUnknownProducer.id,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -148,7 +141,6 @@ describe("handleProducerKeychainEserviceAdded", async () => {
         eserviceId: eserviceNoDescriptor.id,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -160,7 +152,6 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       eserviceId: eservice.id,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -184,7 +175,6 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       eserviceId: eservice.id,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -245,7 +235,6 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       eserviceId: eservice.id,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -290,7 +279,6 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       eserviceId: eservice.id,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

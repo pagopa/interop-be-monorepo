@@ -29,11 +29,9 @@ import {
   addOneEService,
   addOneEServiceTemplate,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEServiceTemplateVersionSuspendedToInstantiator", async () => {
@@ -65,9 +63,6 @@ describe("handleEServiceTemplateVersionSuspendedToInstantiator", async () => {
     await addOneEService(eservice);
     await addOneTenant(instantiatorTenant);
     await addOneTenant(creatorTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -99,7 +94,6 @@ describe("handleEServiceTemplateVersionSuspendedToInstantiator", async () => {
         eserviceTemplateVersionId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -127,7 +121,6 @@ describe("handleEServiceTemplateVersionSuspendedToInstantiator", async () => {
         eserviceTemplateVersionId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -141,7 +134,6 @@ describe("handleEServiceTemplateVersionSuspendedToInstantiator", async () => {
         eserviceTemplateVersionId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       }
@@ -178,7 +170,6 @@ describe("handleEServiceTemplateVersionSuspendedToInstantiator", async () => {
         eserviceTemplateVersionId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       }
@@ -204,7 +195,6 @@ describe("handleEServiceTemplateVersionSuspendedToInstantiator", async () => {
         eserviceTemplateVersionId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       }

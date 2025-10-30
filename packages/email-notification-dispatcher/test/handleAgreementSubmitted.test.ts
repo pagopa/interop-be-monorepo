@@ -269,7 +269,6 @@ describe("handleAgreementSubmitted", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -310,7 +309,6 @@ describe("handleAgreementSubmitted", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -348,7 +346,6 @@ describe("handleAgreementSubmitted", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

@@ -257,7 +257,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -295,7 +294,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -330,7 +328,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

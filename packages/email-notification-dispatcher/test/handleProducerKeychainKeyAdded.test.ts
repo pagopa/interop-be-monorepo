@@ -29,11 +29,9 @@ import {
 } from "../src/models/errors.js";
 import {
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleProducerKeychainKeyAdded", async () => {
@@ -74,9 +72,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
 
   beforeEach(async () => {
     await addOneTenant(producerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -108,7 +103,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -139,7 +133,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -155,7 +148,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
         kid: unknownKid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -170,7 +162,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -210,7 +201,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -239,7 +229,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

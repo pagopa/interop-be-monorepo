@@ -24,11 +24,9 @@ import { handleClientUserDeleted } from "../src/handlers/authorization/handleCli
 import { tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleClientUserDeleted", async () => {
@@ -58,9 +56,6 @@ describe("handleClientUserDeleted", async () => {
 
   beforeEach(async () => {
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -92,7 +87,6 @@ describe("handleClientUserDeleted", async () => {
         userId: userId1,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -119,7 +113,6 @@ describe("handleClientUserDeleted", async () => {
         userId: userId1,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -132,7 +125,6 @@ describe("handleClientUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -172,7 +164,6 @@ describe("handleClientUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -201,7 +192,6 @@ describe("handleClientUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
