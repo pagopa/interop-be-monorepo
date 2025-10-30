@@ -38,7 +38,7 @@ describe("API GET /purposeTemplates/:id/eservices", () => {
     };
 
   const defaultQuery = {
-    eserviceIds: `${generateId()},${generateId()}`,
+    eserviceName: "Test E-Service",
     producerIds: `${generateId()},${generateId()}`,
     offset: 0,
     limit: 10,
@@ -118,7 +118,7 @@ describe("API GET /purposeTemplates/:id/eservices", () => {
     { query: { offset: 0, limit: 55 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
-    { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, eserviceName: [1, 2, 3] } },
     { query: { ...defaultQuery, producerIds: `${generateId()},invalid` } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);

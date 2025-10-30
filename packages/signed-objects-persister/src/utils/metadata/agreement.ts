@@ -14,6 +14,7 @@ export const addAgreementSignedContract = async (
   const contractWithIsoString = {
     ...contract,
     createdAt: contract.createdAt.toISOString(),
+    signedAt: new Date().toISOString(),
   };
   const token = (await refreshableToken.get()).serialized;
   await agreementApi.agreementApi.addSignedAgreementContractMetadata(

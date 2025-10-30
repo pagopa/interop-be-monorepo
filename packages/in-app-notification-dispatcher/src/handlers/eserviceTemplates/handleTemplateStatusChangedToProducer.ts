@@ -8,7 +8,10 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveLatestPublishedEServiceTemplateVersion } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveLatestPublishedEServiceTemplateVersion,
+} from "../handlerCommons.js";
 
 export async function handleTemplateStatusChangedToProducer(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -28,11 +31,12 @@ export async function handleTemplateStatusChangedToProducer(
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [eserviceTemplate.creatorId],
-      "templateStatusChangedToProducer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [eserviceTemplate.creatorId],
+    "templateStatusChangedToProducer",
+    readModelService,
+    logger
+  );
 
   const body = inAppTemplates.templateStatusChangedToProducer(
     eserviceTemplate.name
@@ -42,7 +46,7 @@ export async function handleTemplateStatusChangedToProducer(
       retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
     }`
   );
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
