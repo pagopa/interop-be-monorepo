@@ -38,7 +38,6 @@ export async function handleEServiceEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -48,7 +47,6 @@ export async function handleEServiceEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -104,7 +102,6 @@ export async function handleEServiceEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })
     )
