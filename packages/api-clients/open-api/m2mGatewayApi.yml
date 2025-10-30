@@ -16159,17 +16159,17 @@ paths:
       tags:
         - purposeTemplates
       summary: List Purpose Templates
+      description: Retrieve Purpose Templates based on filters
       operationId: getPurposeTemplates
-      description: Retrieve Purpose Templates with pagination and filters
       parameters:
         - in: query
           name: purposeTitle
-          description: filter by purpose title
+          description: Filter Purpose Templates by title. If not specified, return Purpose Templates for any title.
           schema:
             type: string
         - in: query
           name: creatorIds
-          description: comma separated sequence of creator IDs
+          description: Filter Purpose Templates by Creator IDs. If not specified, return Purpose Templates for any Creator.
           schema:
             type: array
             items:
@@ -16179,7 +16179,7 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
-          description: comma separated sequence of e-service IDs
+          description: Filter Purpose Templates by E-Service IDs. If not specified, return Purpose Templates for any E-Service.
           schema:
             type: array
             items:
@@ -16189,7 +16189,9 @@ paths:
           explode: false
         - in: query
           name: states
-          description: comma separated sequence of states
+          description: >
+            Filter Purpose Templates by states. If not specified, return Purpose Templates for any state.
+            A Tenant can only see Purpose Templates in "DRAFT" state if they are the Creator.
           schema:
             type: array
             items:
@@ -16198,18 +16200,18 @@ paths:
           explode: false
         - in: query
           name: targetTenantKind
-          description: filter by target tenant kind
+          description: Filter Purpose Templates by target tenant kind. If not specified, return Purpose Templates for any tenant kind.
           schema:
             $ref: "#/components/schemas/TenantKind"
         - in: query
           name: excludeExpiredRiskAnalysis
-          description: exclude purpose templates with expired risk analysis
+          description: Exclude Purpose Templates with expired risk analysis
           schema:
             type: boolean
             default: true
         - in: query
           name: handlesPersonalData
-          description: show purpose templates that handle personal data
+          description: Filter Purpose Templates by whether they handle personal data. If not specified, return Purpose Templates that both handle and do not handle personal data.
           schema:
             type: boolean
         - in: query
