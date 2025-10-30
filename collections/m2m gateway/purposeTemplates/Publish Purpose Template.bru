@@ -1,0 +1,19 @@
+meta {
+  name: Publish Purpose Template
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/publish
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
