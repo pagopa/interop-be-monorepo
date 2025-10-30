@@ -1,9 +1,10 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeTemplateId } from "pagopa-interop-models";
+import { PurposeTemplateId, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { pollResourceUntilDeletion } from "../utils/polling.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -21,6 +22,14 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       },
       headers,
     });
+
+  const pollPurposeTemplateUntilDeletion = (
+    purposeTemplateId: PurposeTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
+    )({});
 
   return {
     async getPurposeTemplate(
@@ -71,6 +80,22 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
+    },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      await clients.purposeTemplateProcessClient.deletePurposeTemplate(
+        undefined,
+        {
+          params: { id: purposeTemplateId },
+          headers,
+        }
+      );
+
+      await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
     },
   };
 }
