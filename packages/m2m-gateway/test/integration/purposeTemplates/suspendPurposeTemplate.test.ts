@@ -1,0 +1,122 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import {
+  getMockedApiPurposeTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  expectApiClientGetToHaveBeenCalledWith,
+  expectApiClientPostToHaveBeenCalledWith,
+  mockInteropBeClients,
+  mockPollingResponse,
+  purposeTemplateService,
+} from "../../integrationUtils.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+
+describe("suspendPurposeTemplate", () => {
+  const mockApiPurposeTemplate = getMockWithMetadata(
+    getMockedApiPurposeTemplate(
+      m2mGatewayApi.PurposeTemplateState.Enum.SUSPENDED
+    )
+  );
+
+  const mockSuspendPurposeTemplate = vi
+    .fn()
+    .mockResolvedValue(mockApiPurposeTemplate);
+  const mockGetPurposeTemplate = vi.fn(
+    mockPollingResponse(mockApiPurposeTemplate, 2)
+  );
+
+  mockInteropBeClients.purposeTemplateProcessClient = {
+    getPurposeTemplate: mockGetPurposeTemplate,
+    suspendPurposeTemplate: mockSuspendPurposeTemplate,
+  } as unknown as PagoPAInteropBeClients["purposeTemplateProcessClient"];
+
+  beforeEach(() => {
+    mockSuspendPurposeTemplate.mockClear();
+    mockGetPurposeTemplate.mockClear();
+  });
+
+  it("Should succeed and perform API clients calls", async () => {
+    const result = await purposeTemplateService.suspendPurposeTemplate(
+      unsafeBrandId(mockApiPurposeTemplate.data.id),
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result).toEqual(mockApiPurposeTemplate.data);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost:
+        mockInteropBeClients.purposeTemplateProcessClient
+          .suspendPurposeTemplate,
+      params: {
+        id: mockApiPurposeTemplate.data.id,
+      },
+    });
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet:
+        mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,
+      params: { id: mockApiPurposeTemplate.data.id },
+    });
+    expect(
+      mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate
+    ).toHaveBeenCalledTimes(2);
+  });
+
+  it("Should throw missingMetadata in case the purpose template returned by the suspend call has no metadata", async () => {
+    mockSuspendPurposeTemplate.mockResolvedValueOnce({
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeTemplateService.suspendPurposeTemplate(
+        unsafeBrandId(mockApiPurposeTemplate.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the purpose template returned by the polling GET call has no metadata", async () => {
+    mockGetPurposeTemplate.mockResolvedValueOnce({
+      data: mockApiPurposeTemplate.data,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeTemplateService.suspendPurposeTemplate(
+        unsafeBrandId(mockApiPurposeTemplate.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
+    mockGetPurposeTemplate.mockImplementation(
+      mockPollingResponse(
+        mockApiPurposeTemplate,
+        config.defaultPollingMaxRetries + 1
+      )
+    );
+
+    await expect(
+      purposeTemplateService.suspendPurposeTemplate(
+        unsafeBrandId(mockApiPurposeTemplate.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
+    );
+    expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(
+      config.defaultPollingMaxRetries
+    );
+  });
+});

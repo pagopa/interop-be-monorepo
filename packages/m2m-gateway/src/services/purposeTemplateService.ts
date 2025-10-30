@@ -120,5 +120,28 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return data;
     },
+    async suspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Suspending purpose template ${purposeTemplateId}`);
+
+      const response =
+        await clients.purposeTemplateProcessClient.suspendPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        response.metadata,
+        headers
+      );
+
+      return data;
+    },
   };
 }

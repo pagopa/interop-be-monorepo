@@ -1,0 +1,19 @@
+meta {
+  name: Suspend Purpose Template
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/suspend
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
