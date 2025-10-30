@@ -38,9 +38,6 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
     });
 
   return {
-    async getPurposeTemplateById(): Promise<void> {
-      return Promise.resolve();
-    },
     async getPurposeTemplates(
       queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -77,29 +74,14 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async createPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async updatePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async deletePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async suspendPurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async archivePurposeTemplate(): Promise<void> {
-      return Promise.resolve();
-    },
-    async unsuspendPurposeTemplate(
+    async publishPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.PurposeTemplate> {
-      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
+      logger.info(`Publishing purpose template ${purposeTemplateId}`);
 
       const response =
-        await clients.purposeTemplateProcessClient.unsuspendPurposeTemplate(
+        await clients.purposeTemplateProcessClient.publishPurposeTemplate(
           undefined,
           {
             params: { id: purposeTemplateId },
@@ -115,14 +97,14 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return data;
     },
-    async publishPurposeTemplate(
+    async unsuspendPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.PurposeTemplate> {
-      logger.info(`Publishing purpose template ${purposeTemplateId}`);
+      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
 
       const response =
-        await clients.purposeTemplateProcessClient.publishPurposeTemplate(
+        await clients.purposeTemplateProcessClient.unsuspendPurposeTemplate(
           undefined,
           {
             params: { id: purposeTemplateId },
