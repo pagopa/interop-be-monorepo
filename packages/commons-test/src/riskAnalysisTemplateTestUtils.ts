@@ -355,7 +355,7 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "legalBasisPublicInterest",
-        value: "PUBLIC_INTEREST_TASK",
+        value: "RULE_OF_LAW",
         editable: false,
         suggestedValues: [],
       },

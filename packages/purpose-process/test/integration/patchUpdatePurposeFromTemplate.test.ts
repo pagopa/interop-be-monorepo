@@ -41,8 +41,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   duplicatedPurposeTitle,
   eserviceNotFound,
+  purposeDraftVersionNotFound,
   purposeNotFound,
-  purposeNotInDraftState,
   purposeTemplateNotFound,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
@@ -451,7 +451,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
           organizationId: consumer.id,
         })
       )
-    ).rejects.toThrowError(purposeNotInDraftState(draftPurpose.id));
+    ).rejects.toThrowError(purposeDraftVersionNotFound(draftPurpose.id));
   });
 
   it("Should throw purposeNotInDraftState if have one purpose version not in draft state", async () => {
@@ -487,7 +487,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
           organizationId: consumer.id,
         })
       )
-    ).rejects.toThrowError(purposeNotInDraftState(draftPurpose.id));
+    ).rejects.toThrowError(purposeDraftVersionNotFound(draftPurpose.id));
   });
 
   it("Should throw tenantIsNotTheConsumer if the tenant is not the consumer and is not delegated", async () => {
