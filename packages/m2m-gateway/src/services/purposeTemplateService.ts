@@ -1,6 +1,11 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeTemplateId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  PurposeTemplateId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -91,6 +96,25 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         undefined,
         {
           params: { id: purposeTemplateId },
+          headers,
+        }
+      );
+
+      await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotation(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      await clients.purposeTemplateProcessClient.deleteRiskAnalysisTemplateAnswerAnnotation(
+        undefined,
+        {
+          params: { purposeTemplateId, answerId },
           headers,
         }
       );

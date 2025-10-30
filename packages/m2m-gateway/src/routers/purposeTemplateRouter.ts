@@ -93,7 +93,32 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .delete(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
+            unsafeBrandId(req.params.purposeTemplateId),
+            unsafeBrandId(req.params.answerId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting risk analysis template answer annotation for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };
