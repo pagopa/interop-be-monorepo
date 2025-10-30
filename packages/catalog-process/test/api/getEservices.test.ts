@@ -69,7 +69,7 @@ describe("API /eservices authorization test", () => {
     isConsumerDelegable: false,
     delegated: false,
     templatesIds: [],
-    personalData: false,
+    personalData: "FALSE",
     offset: 0,
     limit: 50,
   };

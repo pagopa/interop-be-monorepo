@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -20,6 +21,7 @@ import {
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
+  isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -42,19 +44,19 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  PurposeVersionStamps,
   RiskAnalysis,
   RiskAnalysisId,
   Tenant,
   TenantId,
   TenantKind,
+  UserId,
   WithMetadata,
   eserviceMode,
   generateId,
   purposeEventToBinaryData,
   purposeVersionState,
   unsafeBrandId,
-  UserId,
-  PurposeVersionStamps,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -68,6 +70,7 @@ import {
   purposeCannotBeDeleted,
   purposeCannotBeUpdated,
   purposeDelegationNotFound,
+  purposeDraftVersionNotFound,
   purposeNotFound,
   purposeTemplateNotFound,
   purposeVersionCannotBeDeleted,
@@ -93,7 +96,6 @@ import {
   toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
   toCreateEventPurposeCloned,
-  toCreateEventRiskAnalysisDocumentGenerated,
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
@@ -104,6 +106,7 @@ import {
   toCreateEventPurposeVersionUnsuspenedByConsumer,
   toCreateEventPurposeVersionUnsuspenedByProducer,
   toCreateEventPurposeWaitingForApproval,
+  toCreateEventRiskAnalysisDocumentGenerated,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
@@ -161,6 +164,16 @@ const retrievePurposeVersion = (
   }
 
   return version;
+};
+
+const retrieveDraftPurposeVersion = (purpose: Purpose): PurposeVersion => {
+  const draftVersion = purpose.versions.find(
+    (v) => v.state === purposeVersionState.draft
+  );
+  if (draftVersion === undefined) {
+    throw purposeDraftVersionNotFound(purpose.id);
+  }
+  return draftVersion;
 };
 
 const retrievePurposeVersionDocument = (
@@ -1042,6 +1055,16 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      if (
+        isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
+        purpose.data.purposeTemplateId
+      ) {
+        await retrievePublishedPurposeTemplate(
+          purpose.data.purposeTemplateId,
+          readModelService
+        );
+      }
+
       if (purposeVersion.state === purposeVersionState.draft) {
         const riskAnalysisForm = purpose.data.riskAnalysisForm;
 
@@ -1753,6 +1776,89 @@ export function purposeServiceBuilder(
       return {
         data: purposeVersion,
         metadata: { version: event.newVersion },
+      };
+    },
+    async patchUpdatePurposeFromTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      purposeId: PurposeId,
+      purposeUpdateContent: purposeApi.PatchPurposeUpdateFromTemplateContent,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
+      logger.info(
+        `Partial updating draft Purpose ${purposeId} created by Purpose template ${purposeTemplateId}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const lastDraftVersion = retrieveDraftPurposeVersion(purpose.data);
+      assertPurposeIsDraft(purpose.data);
+
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await retrievePurposeDelegation(purpose.data, readModelService)
+      );
+
+      const purposeTemplate = await retrievePublishedPurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      if (purposeUpdateContent.title) {
+        await assertPurposeTitleIsNotDuplicated({
+          readModelService,
+          eserviceId: purpose.data.eserviceId,
+          consumerId: purpose.data.consumerId,
+          title: purposeUpdateContent.title,
+        });
+      }
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
+        ? validateRiskAnalysisAgainstTemplateOrThrow(
+            purposeTemplate,
+            purposeUpdateContent.riskAnalysisForm,
+            purposeTemplate.targetTenantKind,
+            purpose.data.createdAt,
+            eservice.personalData
+          )
+        : undefined;
+
+      const updatedVersions = purposeUpdateContent.dailyCalls
+        ? replacePurposeVersion(purpose.data, {
+            ...lastDraftVersion,
+            dailyCalls: purposeUpdateContent.dailyCalls,
+            updatedAt: new Date(),
+          }).versions
+        : purpose.data.versions;
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        title: purposeUpdateContent.title ?? purpose.data.title,
+        versions: updatedVersions,
+        riskAnalysisForm: updatedRiskAnalysisForm
+          ? updatedRiskAnalysisForm
+          : purpose.data.riskAnalysisForm,
+        updatedAt: new Date(),
+      };
+
+      const event = toCreateEventDraftPurposeUpdated({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedPurpose,
+        metadata: { version: createdEvent.newVersion },
       };
     },
   };

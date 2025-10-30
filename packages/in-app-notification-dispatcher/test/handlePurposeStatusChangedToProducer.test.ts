@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -16,6 +16,7 @@ import {
   toPurposeV2,
   purposeVersionState,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handlePurposeStatusChangedToProducer } from "../src/handlers/purposes/handlePurposeStatusChangedToProducer.js";
 import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -51,7 +52,10 @@ describe("handlePurposeStatusChangedToProducer", () => {
 
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
@@ -82,11 +86,10 @@ describe("handlePurposeStatusChangedToProducer", () => {
       consumerId: unknownTenantId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: producerId },
+    ]);
 
     await expect(() =>
       handlePurposeStatusChangedToProducer(
@@ -105,11 +108,10 @@ describe("handlePurposeStatusChangedToProducer", () => {
       eserviceId: unknownEserviceId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: producerId },
+    ]);
 
     await expect(() =>
       handlePurposeStatusChangedToProducer(
@@ -122,10 +124,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handlePurposeStatusChangedToProducer(
       toPurposeV2(purpose),
@@ -164,10 +163,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
         { userId: generateId(), tenantId: producerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(producerUsers);
+      mockGetNotificationRecipients.mockResolvedValue(producerUsers);
 
       const notifications = await handlePurposeStatusChangedToProducer(
         toPurposeV2(purpose),
@@ -205,10 +201,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
       { userId: generateId(), tenantId: producerId },
       { userId: generateId(), tenantId: producerId },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handlePurposeStatusChangedToProducer(
       toPurposeV2(purpose),

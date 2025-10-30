@@ -490,6 +490,7 @@ export const updateDescriptorAttributesErrorMapper = (
       "inconsistentAttributesSeedGroupsCount",
       "descriptorAttributeGroupSupersetMissingInAttributesSeed",
       "attributeDuplicatedInGroup",
+      "notValidDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
