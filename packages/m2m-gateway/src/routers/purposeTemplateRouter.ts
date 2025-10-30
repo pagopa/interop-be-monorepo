@@ -70,7 +70,7 @@ const purposeTemplateRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error suspending purpose template ${req.params.purposeTemplateId}`
+          `Error publishing purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
