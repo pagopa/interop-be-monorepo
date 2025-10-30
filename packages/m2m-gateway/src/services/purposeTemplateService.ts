@@ -80,7 +80,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.PurposeTemplate> {
       logger.info(`Publishing purpose template ${purposeTemplateId}`);
 
-      const response =
+      const { metadata } =
         await clients.purposeTemplateProcessClient.publishPurposeTemplate(
           undefined,
           {
@@ -91,7 +91,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data } = await pollPurposeTemplateById(
         purposeTemplateId,
-        response.metadata,
+        metadata,
         headers
       );
 
@@ -103,7 +103,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.PurposeTemplate> {
       logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
 
-      const response =
+      const { metadata } =
         await clients.purposeTemplateProcessClient.unsuspendPurposeTemplate(
           undefined,
           {
@@ -114,7 +114,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data } = await pollPurposeTemplateById(
         purposeTemplateId,
-        response.metadata,
+        metadata,
         headers
       );
 
