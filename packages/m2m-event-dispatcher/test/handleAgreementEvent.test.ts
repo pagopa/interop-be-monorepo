@@ -34,12 +34,12 @@ describe("handleAgreementEvent test", async () => {
     await addOneDelegationToReadModel(
       getMockDelegation({
         kind: delegationKind.delegatedProducer,
-      })
+      }),
     );
     await addOneDelegationToReadModel(
       getMockDelegation({
         kind: delegationKind.delegatedConsumer,
-      })
+      }),
     );
   });
 
@@ -99,9 +99,9 @@ describe("handleAgreementEvent test", async () => {
                     "AgreementSetDraftByPlatform",
                     "AgreementSetMissingCertifiedAttributesByPlatform",
                     "AgreementConsumerDocumentAdded",
-                    "AgreementConsumerDocumentRemoved"
+                    "AgreementConsumerDocumentRemoved",
                   ),
-                  async () => m2mEventVisibility.owner
+                  async () => m2mEventVisibility.owner,
                 )
                 .with(
                   P.union(
@@ -119,23 +119,24 @@ describe("handleAgreementEvent test", async () => {
                     "AgreementArchivedByConsumer",
                     "AgreementArchivedByUpgrade",
                     "AgreementArchivedByRevokedDelegation",
-                    "AgreementContractGenerated"
+                    "AgreementContractGenerated",
+                    "AgreementSignedContractGenerated",
                   ),
-                  async () => m2mEventVisibility.restricted
+                  async () => m2mEventVisibility.restricted,
                 )
                 .with(
                   P.union(
                     // Agreement events both for before and after submission,
                     // visibility depends on the state
                     "AgreementDeleted",
-                    "AgreementDeletedByRevokedDelegation"
+                    "AgreementDeletedByRevokedDelegation",
                   ),
                   async () =>
                     match(state)
                       .with(
                         agreementState.draft,
                         agreementState.missingCertifiedAttributes,
-                        () => m2mEventVisibility.owner
+                        () => m2mEventVisibility.owner,
                       )
                       .with(
                         agreementState.pending,
@@ -143,9 +144,9 @@ describe("handleAgreementEvent test", async () => {
                         agreementState.suspended,
                         agreementState.archived,
                         agreementState.rejected,
-                        () => m2mEventVisibility.restricted
+                        () => m2mEventVisibility.restricted,
                       )
-                      .exhaustive()
+                      .exhaustive(),
                 )
                 .exhaustive();
 
@@ -154,10 +155,10 @@ describe("handleAgreementEvent test", async () => {
                 eventTimestamp,
                 genericLogger,
                 testM2mEventWriterService,
-                testReadModelService
+                testReadModelService,
               );
               expect(
-                testM2mEventWriterService.insertAgreementM2MEvent
+                testM2mEventWriterService.insertAgreementM2MEvent,
               ).toHaveBeenCalledTimes(1);
               const actualM2MEvent = await retrieveLastAgreementM2MEvent();
               expect(actualM2MEvent).toEqual({
@@ -173,8 +174,8 @@ describe("handleAgreementEvent test", async () => {
                 producerDelegationId: producerDelegation?.id,
                 visibility: expectedVisibility,
               });
-            }
-          )
-      )
+            },
+          ),
+      ),
   );
 });

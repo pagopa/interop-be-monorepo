@@ -121,6 +121,7 @@ import {
   RiskAnalysisTemplateSingleAnswerV2,
   RiskAnalysisTemplateMultiAnswerV2,
   EmailNotificationPreference,
+  AgreementContract,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -442,6 +443,16 @@ export const getMockAgreementDocument = (): AgreementDocument => ({
   contentType: "json",
   path: "filePath",
   createdAt: new Date(),
+});
+
+export const getMockAgreementContract = (): AgreementContract => ({
+  id: generateId(),
+  name: "fileName",
+  prettyName: "prettyName",
+  contentType: "json",
+  path: "filePath",
+  createdAt: new Date(),
+  signedAt: new Date(),
 });
 
 export const getMockClient = ({

@@ -14,6 +14,7 @@ import {
 import {
   splitAgreementIntoObjectsSQL,
   agreementDocumentToAgreementDocumentSQL,
+  agreementConsumerDocumentToAgreementConsumerDocumentSQL,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
@@ -84,11 +85,12 @@ export async function handleAgreementMessageV1(
           );
         }
 
-        const document = agreementDocumentToAgreementDocumentSQL(
-          fromAgreementDocumentV1(msg.data.document),
-          unsafeBrandId<AgreementId>(msg.data.agreementId),
-          msg.version
-        );
+        const document =
+          agreementConsumerDocumentToAgreementConsumerDocumentSQL(
+            fromAgreementDocumentV1(msg.data.document),
+            unsafeBrandId<AgreementId>(msg.data.agreementId),
+            msg.version
+          );
 
         upsertDocumentBatch.push(
           AgreementConsumerDocumentSchema.parse(

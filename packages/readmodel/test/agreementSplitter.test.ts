@@ -8,7 +8,7 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   Agreement,
-  AgreementDocument,
+  AgreementContract,
   AgreementStamp,
   AgreementStampKind,
   AgreementStamps,
@@ -38,9 +38,10 @@ describe("Agreement Splitter", () => {
       const certifiedAttribute = getMockAgreementAttribute();
       const declaredAttribute = getMockAgreementAttribute();
       const consumerDocument = getMockAgreementDocument();
-      const contract: AgreementDocument = {
+      const contract: AgreementContract = {
         ...getMockAgreementDocument(),
         createdAt: new Date(),
+        signedAt: new Date(),
       };
 
       const mockAgreementStamps = getMockAgreementStamps();
@@ -104,6 +105,7 @@ describe("Agreement Splitter", () => {
         consumerNotes,
         rejectionReason,
         suspendedAt: agreement.suspendedAt!.toISOString(),
+        signedContract: agreement.signedContract!,
       };
 
       const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL =
@@ -119,6 +121,7 @@ describe("Agreement Splitter", () => {
         agreementId: agreement.id,
         metadataVersion: 1,
         createdAt: contract.createdAt.toISOString(),
+        signedAt: contract.signedAt?.toISOString()!,
       };
 
       const expectedAgreementVerifiedAttributeSQL: AgreementAttributeSQL = {
@@ -167,10 +170,10 @@ describe("Agreement Splitter", () => {
           expectedAgreementVerifiedAttributeSQL,
           expectedAgreementCertifiedAttributeSQL,
           expectedAgreementDeclaredAttributeSQL,
-        ])
+        ]),
       );
       expect(stampsSQL).toStrictEqual(expectedAgreementStampsSQL);
-    }
+    },
   );
 
   it("should convert an Agreement object with undefined values as business model into an Agreement object with null values as data model", () => {
@@ -235,9 +238,10 @@ describe("Agreement Splitter", () => {
       consumerNotes: null,
       rejectionReason: null,
       suspendedAt: null,
+      signedContract: agreement.signedContract!,
     };
 
-    const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL = {
+    const expectedAgreementConsumerDocumentSQL: any = {
       ...consumerDocument,
       agreementId: agreement.id,
       metadataVersion: 1,
@@ -282,7 +286,7 @@ describe("Agreement Splitter", () => {
         expectedAgreementVerifiedAttributeSQL,
         expectedAgreementCertifiedAttributeSQL,
         expectedAgreementDeclaredAttributeSQL,
-      ])
+      ]),
     );
     expect(stampsSQL).toStrictEqual(expectedAgreementStampsSQL);
   });

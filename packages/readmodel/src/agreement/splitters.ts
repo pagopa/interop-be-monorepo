@@ -1,5 +1,6 @@
 import {
   Agreement,
+  AgreementContract,
   AgreementDocument,
   AgreementId,
   AgreementStamp,
@@ -93,7 +94,11 @@ export const splitAgreementIntoObjectsSQL = (
     : undefined;
 
   const consumerDocumentsSQL = consumerDocuments.map((doc) =>
-    agreementDocumentToAgreementDocumentSQL(doc, id, metadataVersion)
+    agreementConsumerDocumentToAgreementConsumerDocumentSQL(
+      doc,
+      id,
+      metadataVersion
+    )
   );
 
   const attributesSQL: AgreementAttributeSQL[] = [
@@ -126,7 +131,7 @@ export const splitAgreementIntoObjectsSQL = (
   };
 };
 
-export const agreementDocumentToAgreementDocumentSQL = (
+export const agreementConsumerDocumentToAgreementConsumerDocumentSQL = (
   {
     id,
     name,
@@ -134,12 +139,11 @@ export const agreementDocumentToAgreementDocumentSQL = (
     contentType,
     path,
     createdAt,
-    signedAt,
     ...rest
   }: AgreementDocument,
   agreementId: AgreementId,
   metadataVersion: number
-): AgreementConsumerDocumentSQL & AgreementContractSQL => {
+): AgreementConsumerDocumentSQL => {
   void (rest satisfies Record<string, never>);
   return {
     id,
@@ -150,6 +154,32 @@ export const agreementDocumentToAgreementDocumentSQL = (
     contentType,
     path,
     createdAt: dateToString(createdAt),
-    signedAt: signedAt ? dateToString(signedAt) : null,
+  };
+};
+export const agreementDocumentToAgreementDocumentSQL = (
+  {
+    id,
+    name,
+    prettyName,
+    contentType,
+    path,
+    createdAt,
+    signedAt,
+    ...rest
+  }: AgreementContract,
+  agreementId: AgreementId,
+  metadataVersion: number
+): AgreementContractSQL => {
+  void (rest satisfies Record<string, never>);
+  return {
+    id,
+    agreementId,
+    metadataVersion,
+    name,
+    prettyName,
+    contentType,
+    path,
+    createdAt: dateToString(createdAt),
+    signedAt: dateToString(signedAt),
   };
 };
