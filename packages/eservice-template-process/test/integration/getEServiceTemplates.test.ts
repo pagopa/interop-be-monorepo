@@ -18,12 +18,14 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
+import { match } from "ts-pattern";
 import {
   addOneEServiceTemplate,
   addOneTenant,
   eserviceTemplateService,
 } from "../integrationUtils.js";
 import { getContextsAllowedToSeeDraftVersions } from "../mockUtils.js";
+import { PersonalDataFilter } from "../../src/services/readModelService.js";
 
 describe("get eservice templates", () => {
   const organizationId1: TenantId = generateId();
@@ -104,7 +106,6 @@ describe("get eservice templates", () => {
       name: "eservice template 005",
       creatorId: organizationId2,
       versions: [eserviceTemplateVersion5],
-      personalData: false,
     };
     await addOneEServiceTemplate(eserviceTemplate5);
 
@@ -564,7 +565,7 @@ describe("get eservice templates", () => {
     }
   );
 
-  it.each([true, false])(
+  it.each(["TRUE", "FALSE", "DEFINED", undefined] as PersonalDataFilter[])(
     "should get the eService templates if they exist (parameters: personalData = %s)",
     async (personalData) => {
       const result = await eserviceTemplateService.getEServiceTemplates(
@@ -581,9 +582,23 @@ describe("get eservice templates", () => {
         })
       );
 
-      const expectedEServiceTemplates = personalData
-        ? [eserviceTemplate1, eserviceTemplate2]
-        : [eserviceTemplate3, eserviceTemplate4, eserviceTemplate5];
+      const expectedEServiceTemplates = match(personalData)
+        .with("TRUE", () => [eserviceTemplate1, eserviceTemplate2])
+        .with("FALSE", () => [eserviceTemplate3, eserviceTemplate4])
+        .with("DEFINED", () => [
+          eserviceTemplate1,
+          eserviceTemplate2,
+          eserviceTemplate3,
+          eserviceTemplate4,
+        ])
+        .with(undefined, () => [
+          eserviceTemplate1,
+          eserviceTemplate2,
+          eserviceTemplate3,
+          eserviceTemplate4,
+          eserviceTemplate5,
+        ])
+        .exhaustive();
 
       expect(result.totalCount).toBe(expectedEServiceTemplates.length);
       expect(result.results).toEqual(
