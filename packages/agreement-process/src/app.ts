@@ -22,7 +22,9 @@ export async function createApp(service: AgreementService) {
 
   const router = agreementRouter(zodiosCtx, service);
 
-  const app = zodiosCtx.app(undefined, { enableJsonBodyParser: false });
+  const app = zodiosCtx.app(undefined, {
+    enableJsonBodyParser: false,
+  }) as unknown as express.Express;
   app.use(express.json({ limit: config.jsonBodyLimit }));
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
