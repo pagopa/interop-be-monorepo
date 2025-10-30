@@ -14,6 +14,7 @@ import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
 import { AgreementService } from "./services/agreementService.js";
+import express from "express";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: AgreementService) {
@@ -21,7 +22,8 @@ export async function createApp(service: AgreementService) {
 
   const router = agreementRouter(zodiosCtx, service);
 
-  const app = zodiosCtx.app();
+  const app = zodiosCtx.app(undefined, { enableJsonBodyParser: false });
+  app.use(express.json({ limit: config.jsonBodyLimit }));
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
