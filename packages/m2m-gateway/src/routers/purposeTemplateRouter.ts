@@ -13,6 +13,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
+import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -81,8 +82,8 @@ const purposeTemplateRouter = (
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-          const riskAnalysisTemplateAnnotationDocument =
-            await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+          const file =
+            await purposeTemplateService.downloadRiskAnalysisTemplateAnswerAnnotationDocument(
               {
                 purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
                 answerId: unsafeBrandId(req.params.answerId),
@@ -91,13 +92,7 @@ const purposeTemplateRouter = (
               }
             );
 
-          return res
-            .status(200)
-            .send(
-              m2mGatewayApi.RiskAnalysisTemplateAnswerAnnotationDocument.parse(
-                riskAnalysisTemplateAnnotationDocument
-              )
-            );
+          return sendDownloadedDocumentAsFormData(file, res);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

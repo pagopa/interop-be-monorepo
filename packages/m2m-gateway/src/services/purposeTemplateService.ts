@@ -1,5 +1,5 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,
   RiskAnalysisMultiAnswerId,
@@ -9,13 +9,18 @@ import {
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import { config } from "../config/config.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
+export function purposeTemplateServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
+) {
   const retrievePurposeTemplateById = async (
     purposeTemplateId: PurposeTemplateId,
     headers: M2MGatewayAppContext["headers"]
@@ -77,7 +82,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async getRiskAnalysisTemplateAnswerAnnotationDocument({
+    async downloadRiskAnalysisTemplateAnswerAnnotationDocument({
       purposeTemplateId,
       answerId,
       documentId,
@@ -87,13 +92,13 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
       documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       ctx: WithLogger<M2MGatewayAppContext>;
-    }): Promise<m2mGatewayApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
+    }): Promise<DownloadedDocument> {
       const { headers, logger } = ctx;
       logger.info(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
 
-      const { data } =
+      const { data: document } =
         await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnswerAnnotationDocument(
           {
             params: {
@@ -105,7 +110,12 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
           }
         );
 
-      return data;
+      return downloadDocument(
+        document,
+        fileManager,
+        config.purposeTemplateDocumentsContainer,
+        logger
+      );
     },
   };
 }

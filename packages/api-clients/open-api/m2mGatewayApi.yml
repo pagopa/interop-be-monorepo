@@ -16404,11 +16404,11 @@ paths:
       operationId: getRiskAnalysisTemplateAnswerAnnotationDocument
       responses:
         "200":
-          description: Risk Analysis Form Template Answer Annotation Document retrieved
+          description: Risk Analysis Form Template Answer Annotation Document retrieved, a multipart containing the file and its metadata
           content:
-            application/json:
+            multipart/form-data:
               schema:
-                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+                $ref: "#/components/schemas/FileDownloadMultipart"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
