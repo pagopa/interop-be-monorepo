@@ -180,11 +180,11 @@ export const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedF
       },
       {
         key: "institutionalPurpose",
-        value: "Purpose1",
+        value: "MyPurpose",
       },
       {
         key: "otherPersonalDataTypes",
-        value: "PersonalDataType1",
+        value: "MyDataTypes",
       },
       {
         key: "legalObligationReference",
@@ -192,11 +192,11 @@ export const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedF
       },
       {
         key: "reasonPolicyNotProvided",
-        value: "Because1",
+        value: "Because",
       },
       {
         key: "dataRetentionPeriod",
-        value: "DataRetentionPeriod1",
+        value: "10",
       },
     ],
     multiAnswers: [],

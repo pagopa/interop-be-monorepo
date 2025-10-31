@@ -36,13 +36,13 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
         key: "institutionalPurpose",
         value: undefined,
         editable: false,
-        suggestedValues: ["Purpose1", "Purpose2"],
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
       },
       {
         key: "otherPersonalDataTypes",
         value: undefined,
         editable: false,
-        suggestedValues: ["PersonalDataType1", "PersonalDataType2"],
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
       },
       {
         key: "legalObligationReference",
@@ -78,7 +78,7 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
         key: "reasonPolicyNotProvided",
         value: undefined,
         editable: false,
-        suggestedValues: ["Because1", "Because2"],
+        suggestedValues: ["Because", "Because2"],
       },
       {
         key: "doneDpia",
@@ -159,7 +159,7 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
         key: "institutionalPurpose",
         value: undefined,
         editable: false,
-        suggestedValues: ["Purpose1", "Purpose2"],
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
       },
       {
         key: "usesPersonalData",
@@ -171,7 +171,7 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
         key: "otherPersonalDataTypes",
         value: undefined,
         editable: false,
-        suggestedValues: ["PersonalDataType1", "PersonalDataType2"],
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
       },
       {
         key: "legalObligationReference",
@@ -187,7 +187,7 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "deliveryMethod",
-        value: "ANONYMOUS",
+        value: "CLEARTEXT",
         editable: false,
         suggestedValues: [],
       },
@@ -207,7 +207,7 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
         key: "reasonPolicyNotProvided",
         value: undefined,
         editable: false,
-        suggestedValues: ["Because1", "Because2"],
+        suggestedValues: ["Because", "Because2"],
       },
       {
         key: "doneDpia",
@@ -225,11 +225,17 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
         key: "dataRetentionPeriod",
         value: undefined,
         editable: false,
-        suggestedValues: ["DataRetentionPeriod1", "DataRetentionPeriod2"],
+        suggestedValues: ["10", "20"],
       },
       {
         key: "isRequestOnBehalfOfThirdParties",
-        value: "NO",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "thirdPartiesRequestDataUsage",
+        value: "PA_ONLY",
         editable: false,
         suggestedValues: [],
       },
@@ -288,7 +294,7 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
         key: "institutionalPurpose",
         value: undefined,
         editable: false,
-        suggestedValues: ["Purpose1", "Purpose2"],
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
       },
       {
         key: "usesPersonalData",
@@ -300,7 +306,7 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
         key: "otherPersonalDataTypes",
         value: undefined,
         editable: false,
-        suggestedValues: ["PersonalDataType1", "PersonalDataType2"],
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
       },
       {
         key: "legalObligationReference",
@@ -354,7 +360,7 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
         key: "reasonPolicyNotProvided",
         value: undefined,
         editable: false,
-        suggestedValues: ["Because1", "Because2"],
+        suggestedValues: ["Because", "Because2"],
       },
       {
         key: "doneDpia",
@@ -366,7 +372,7 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
         key: "dataRetentionPeriod",
         value: undefined,
         editable: false,
-        suggestedValues: ["DataRetentionPeriod1", "DataRetentionPeriod2"],
+        suggestedValues: ["10", "20"],
       },
       {
         key: "purposePursuit",
