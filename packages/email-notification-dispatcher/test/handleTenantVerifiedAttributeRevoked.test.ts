@@ -29,11 +29,9 @@ import { attributeNotFound } from "../src/models/errors.js";
 import {
   addOneAttribute,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleTenantVerifiedAttributeRevoked", async () => {
@@ -74,9 +72,6 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
     await addOneTenant(verifierTenant);
     await addOneTenant(targetTenant);
     await addOneAttribute(attribute);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -108,7 +103,6 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
         attributeId: generateId(),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -126,7 +120,6 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
         attributeId: unknownAttributeId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -146,7 +139,6 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -175,7 +167,6 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -189,7 +180,6 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -224,7 +214,6 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -248,7 +237,6 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

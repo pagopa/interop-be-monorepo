@@ -27,7 +27,6 @@ export async function handleEserviceDescriptorSuspended(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -64,7 +63,6 @@ export async function handleEserviceDescriptorSuspended(
     tenants,
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

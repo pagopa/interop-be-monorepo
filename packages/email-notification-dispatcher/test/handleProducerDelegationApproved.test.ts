@@ -30,11 +30,9 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleProducerDelegationApproved", async () => {
@@ -70,9 +68,6 @@ describe("handleProducerDelegationApproved", async () => {
     await addOneEService(eservice);
     await addOneTenant(delegatorTenant);
     await addOneTenant(delegateTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -103,7 +98,6 @@ describe("handleProducerDelegationApproved", async () => {
         delegationV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -128,7 +122,6 @@ describe("handleProducerDelegationApproved", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -151,7 +144,6 @@ describe("handleProducerDelegationApproved", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -173,7 +165,6 @@ describe("handleProducerDelegationApproved", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -193,7 +184,6 @@ describe("handleProducerDelegationApproved", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -235,7 +225,6 @@ describe("handleProducerDelegationApproved", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -266,7 +255,6 @@ describe("handleProducerDelegationApproved", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

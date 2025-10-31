@@ -32,11 +32,9 @@ import {
   addOneEService,
   addOneEServiceTemplate,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
@@ -74,9 +72,6 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
     await addOneEService(eservice);
     await addOneTenant(instantiatorTenant);
     await addOneTenant(creatorTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -108,7 +103,6 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
         eserviceTemplateVersionId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -136,7 +130,6 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
         eserviceTemplateVersionId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -149,7 +142,6 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
       eserviceTemplateVersionId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -184,7 +176,6 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
       eserviceTemplateVersionId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -208,7 +199,6 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
       eserviceTemplateVersionId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

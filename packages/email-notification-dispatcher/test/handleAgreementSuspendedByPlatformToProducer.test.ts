@@ -26,11 +26,9 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
@@ -58,9 +56,6 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
@@ -79,7 +74,6 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
         agreementV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -108,7 +102,6 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -135,7 +128,6 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -161,7 +153,6 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -183,7 +174,6 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -226,7 +216,6 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -259,7 +248,6 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
