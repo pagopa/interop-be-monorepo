@@ -29,7 +29,6 @@ export async function handleProducerKeychainKeyAdded(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -59,7 +58,6 @@ export async function handleProducerKeychainKeyAdded(
       tenants: [producer],
       notificationType,
       readModelService,
-      userService,
       logger,
       includeTenantContactEmails: false,
     })
