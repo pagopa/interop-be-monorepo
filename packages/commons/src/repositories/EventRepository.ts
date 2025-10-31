@@ -6,18 +6,12 @@ import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
 class MapWithDefault<K, V> extends Map<K, V> {
-  private readonly defaultValue: V;
-
-  constructor(
-    defaultValue: V,
-    entries?: ReadonlyArray<readonly [K, V]> | null
-  ) {
+  constructor(entries?: ReadonlyArray<readonly [K, V]> | null) {
     super(entries);
-    this.defaultValue = defaultValue;
   }
 
   public get(key: K): V {
-    return super.get(key) ?? this.defaultValue;
+    return super.get(key) ?? (0 as V);
   }
 }
 
@@ -113,7 +107,7 @@ async function internalCreateEvents<T extends Event>(
   createEvents: Array<CreateEvent<T>>
 ): Promise<CreatedEvents> {
   const createdEvents: CreatedEvent[] = [];
-  const latestNewVersion = new MapWithDefault<string, number>(0);
+  const latestNewVersion = new MapWithDefault<string, number>();
 
   try {
     await db.tx(async (t) => {
