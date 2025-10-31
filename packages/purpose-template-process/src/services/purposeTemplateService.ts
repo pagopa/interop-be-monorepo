@@ -457,7 +457,7 @@ export function purposeTemplateServiceBuilder(
     purposeTemplateEventToBinaryDataV2
   );
 
-  function linkOrUnlinkValidationResultsToEServiceDescriptorPurposeTemplate(
+  function linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
     purposeTemplateValidationResults: Array<{
       eservice: EService;
       descriptorId: DescriptorId;
@@ -703,7 +703,7 @@ export function purposeTemplateServiceBuilder(
 
       const createdEvents = await repository.createEvents(createEvents);
 
-      return linkOrUnlinkValidationResultsToEServiceDescriptorPurposeTemplate(
+      return linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
         validationResult.value,
         purposeTemplateId,
         creationTimestamp,
@@ -777,7 +777,7 @@ export function purposeTemplateServiceBuilder(
 
       const createdEvents = await repository.createEvents(createEvents);
 
-      return linkOrUnlinkValidationResultsToEServiceDescriptorPurposeTemplate(
+      return linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
         validationResult.value,
         purposeTemplateId,
         creationTimestamp,
