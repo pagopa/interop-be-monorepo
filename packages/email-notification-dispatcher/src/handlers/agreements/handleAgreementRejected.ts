@@ -13,6 +13,7 @@ import {
 import {
   AgreementHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -27,7 +28,6 @@ export async function handleAgreementRejected(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -47,7 +47,6 @@ export async function handleAgreementRejected(
     tenants: [consumer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: true,
   });
@@ -59,7 +58,7 @@ export async function handleAgreementRejected(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `La tua richiesta per "${eservice.name}" è stata rifiutata`,
@@ -67,11 +66,12 @@ export async function handleAgreementRejected(
         title: `La tua richiesta per "${eservice.name}" è stata rifiutata`,
         notificationType,
         entityId: agreement.id,
-        consumerName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

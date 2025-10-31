@@ -10,6 +10,7 @@ import {
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
   AuthRole,
@@ -20,6 +21,7 @@ import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   eserviceTemplateNotFound,
+  missingPersonalDataFlag,
   eserviceTemplateVersionNotFound,
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
@@ -28,6 +30,8 @@ import {
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/publish", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
+  const mockEserviceTemplateWithMetadata =
+    getMockWithMetadata(mockEserviceTemplate);
 
   const makeRequest = async (
     token: string,
@@ -44,16 +48,23 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
   beforeEach(() => {
     eserviceTemplateService.publishEServiceTemplateVersion = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(mockEserviceTemplateWithMetadata);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.M2M_ADMIN_ROLE,
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(204);
+      expect(res.headers["x-metadata-version"]).toBe(
+        mockEserviceTemplateWithMetadata.metadata.version.toString()
+      );
     }
   );
 
@@ -95,6 +106,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
       error: notValidEServiceTemplateVersionState(
         mockEserviceTemplate.versions[0].id,
         eserviceTemplateVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: missingPersonalDataFlag(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
       ),
       expectedStatus: 400,
     },

@@ -99,3 +99,8 @@ message PurposeVersionArchivedByRevokedDelegationV2 {
   PurposeV2 purpose = 2;
   string delegationId = 3;
 }
+
+message RiskAnalysisDocumentGeneratedV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}

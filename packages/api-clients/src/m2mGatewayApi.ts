@@ -108,6 +108,22 @@ export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<
   "getEServiceTemplateVersions"
 >;
 
+export type GetEServiceTemplateRiskAnalysesQueryParams = QueryParametersByAlias<
+  EServiceTemplateApi,
+  "getEServiceTemplateRiskAnalyses"
+>;
+
+export type GetEServiceTemplatesQueryParams = QueryParametersByAlias<
+  EServiceTemplateApi,
+  "getEServiceTemplates"
+>;
+
+export type GetEServiceTemplateVersionDocumentsQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionDocuments"
+  >;
+
 export type GetClientsQueryParams = QueryParametersByAlias<
   ClientApi,
   "getClients"
@@ -137,5 +153,28 @@ export type GetProducerKeychainKeysQueryParams = QueryParametersByAlias<
   ProducerKeychainApi,
   "getProducerKeychainKeys"
 >;
+
+export type GetEServiceCertifiedAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getCertifiedAttributes"
+>;
+
+export type GetEServiceTemplateVersionCertifiedAttributesQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionCertifiedAttributes"
+  >;
+
+export type GetEServiceTemplateVersionDeclaredAttributesQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionDeclaredAttributes"
+  >;
+
+export type GetEServiceTemplateVersionVerifiedAttributesQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionVerifiedAttributes"
+  >;
 
 export * from "./generated/m2mGatewayApi.js";

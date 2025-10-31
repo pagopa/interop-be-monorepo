@@ -76,6 +76,7 @@ describe("E-service queries", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
         templateId: generateId<EServiceTemplateId>(),
+        personalData: true,
       };
 
       await catalogWriterService.upsertEService(eservice, 1);
@@ -227,6 +228,7 @@ describe("E-service queries", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
         templateId: generateId<EServiceTemplateId>(),
+        personalData: true,
       };
 
       await catalogWriterService.upsertEService(eservice, 1);

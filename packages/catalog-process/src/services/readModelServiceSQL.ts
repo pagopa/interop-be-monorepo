@@ -81,6 +81,7 @@ import {
   exists,
   ilike,
   inArray,
+  isNotNull,
   isNull,
   notExists,
   or,
@@ -144,6 +145,7 @@ export function readModelServiceBuilderSQL(
         isClientAccessDelegable,
         delegated,
         templatesIds,
+        personalData,
       } = filters;
 
       return await readmodelDB.transaction(async (tx) => {
@@ -234,7 +236,19 @@ export function readModelServiceBuilderSQL(
                 // templateIds filter
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
-                  : undefined
+                  : undefined,
+                match(personalData)
+                  .with("TRUE", () =>
+                    eq(eserviceInReadmodelCatalog.personalData, true)
+                  )
+                  .with("FALSE", () =>
+                    eq(eserviceInReadmodelCatalog.personalData, false)
+                  )
+                  .with("DEFINED", () =>
+                    isNotNull(eserviceInReadmodelCatalog.personalData)
+                  )
+                  .with(undefined, () => undefined)
+                  .exhaustive()
               )
             )
             .as("subqueryWithEserviceFilters");

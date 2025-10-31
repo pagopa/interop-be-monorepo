@@ -4,16 +4,24 @@ import {
   TenantId,
   InternalError,
   AgreementId,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 
 type EmailNotificationDispatcherErrorCode =
   | "htmlTemplateNotFound"
   | "agreementStampDateNotFound"
+  | "attributeNotFound"
   | "eServiceNotFound"
   | "tenantNotFound"
   | "descriptorNotFound"
+  | "activeProducerDelegationNotFound"
   | "eserviceAgreementsNotFound"
-  | "descriptorPublishedNotFound";
+  | "descriptorPublishedNotFound"
+  | "certifierTenantNotFound"
+  | "clientKeyNotFound"
+  | "producerKeychainKeyNotFound"
+  | "purposeNotFound"
+  | "certifierTenantNotFound";
 
 export class EmailNotificationDispatcherError extends InternalError<EmailNotificationDispatcherErrorCode> {
   constructor({
@@ -73,6 +81,15 @@ export function tenantNotFound(
   });
 }
 
+export function certifierTenantNotFound(
+  certifierId: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Certifier tenant ${certifierId} not found`,
+    code: "certifierTenantNotFound",
+  });
+}
+
 export function descriptorNotFound(
   eServiceId: EServiceId,
   descriptorId: DescriptorId
@@ -84,10 +101,57 @@ export function descriptorNotFound(
 }
 
 export function descriptorPublishedNotFound(
-  eServiceId: EServiceId
+  eServiceId: EServiceId | EServiceTemplateId
 ): EmailNotificationDispatcherError {
   return new InternalError({
     detail: `Published descriptor not found in EService ${eServiceId}`,
     code: "descriptorPublishedNotFound",
+  });
+}
+
+export function activeProducerDelegationNotFound(
+  eServiceId: EServiceId
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Active producer delegation not found for EService ${eServiceId}`,
+    code: "activeProducerDelegationNotFound",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+  });
+}
+
+export function clientKeyNotFound(
+  clientId: string,
+  kid: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Client key ${kid} not found in client ${clientId}`,
+    code: "clientKeyNotFound",
+  });
+}
+
+export function producerKeychainKeyNotFound(
+  producerKeychainId: string,
+  kid: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Producer keychain key ${kid} not found in producer keychain ${producerKeychainId}`,
+    code: "producerKeychainKeyNotFound",
+  });
+}
+
+export function purposeNotFound(
+  purposeId: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
   });
 }

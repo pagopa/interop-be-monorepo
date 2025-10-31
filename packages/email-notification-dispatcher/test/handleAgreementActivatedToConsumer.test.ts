@@ -8,6 +8,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   CorrelationId,
@@ -31,11 +32,9 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleAgreementActivated", async () => {
@@ -52,10 +51,12 @@ describe("handleAgreementActivated", async () => {
   };
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
+    name: "Producer Tenant",
     mails: [getMockTenantMail()],
   };
   const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -71,9 +72,6 @@ describe("handleAgreementActivated", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -89,7 +87,12 @@ describe("handleAgreementActivated", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -99,7 +102,6 @@ describe("handleAgreementActivated", async () => {
         agreementV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -126,7 +128,6 @@ describe("handleAgreementActivated", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -150,7 +151,6 @@ describe("handleAgreementActivated", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -172,25 +172,33 @@ describe("handleAgreementActivated", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(3);
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[3].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[3].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[2].id, tenantId: users[2].tenantId },
+        {
+          userId: users[2].id,
+          tenantId: users[2].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const agreement: Agreement = {
@@ -207,18 +215,21 @@ describe("handleAgreementActivated", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[3].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[3].id
+      )
+    ).toBe(false);
   });
 
   it("should generate one message to the consumer of the agreement that was activated", async () => {
@@ -236,7 +247,6 @@ describe("handleAgreementActivated", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -244,7 +254,9 @@ describe("handleAgreementActivated", async () => {
     expect(messages.length).toEqual(3);
     expect(
       messages.some(
-        (message) => message.address === consumerTenant.mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenant.mails[0].address
       )
     ).toBe(true);
   });
@@ -275,14 +287,16 @@ describe("handleAgreementActivated", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(1);
     expect(
-      messages.some((message) => message.address === newMail.address)
+      messages.some(
+        (message) =>
+          message.type === "Tenant" && message.address === newMail.address
+      )
     ).toBe(true);
   });
 
@@ -310,7 +324,6 @@ describe("handleAgreementActivated", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -318,7 +331,9 @@ describe("handleAgreementActivated", async () => {
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
-        (message) => message.address === consumerTenant.mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenant.mails[0].address
       )
     ).toBe(false);
   });
@@ -341,7 +356,6 @@ describe("handleAgreementActivated", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

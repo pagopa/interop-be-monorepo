@@ -22,7 +22,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
   });
 
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement);
+    toM2MGatewayApiAgreement(mockApiAgreement, generateId());
 
   const makeRequest = async (
     token: string,

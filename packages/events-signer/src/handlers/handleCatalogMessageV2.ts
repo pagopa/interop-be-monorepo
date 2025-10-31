@@ -7,11 +7,14 @@ import {
   generateId,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { FileManager, logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { CatalogEventData } from "../models/eventTypes.js";
-import { DbServiceBuilder } from "../services/dbService.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleCatalogMessageV2 = async (
@@ -20,7 +23,7 @@ export const handleCatalogMessageV2 = async (
     timestamp: string;
   }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -102,7 +105,9 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceSignalHubEnabled",
-            "EServiceSignalHubDisabled"
+            "EServiceSignalHubDisabled",
+            "EServicePersonalDataFlagUpdatedAfterPublication",
+            "EServicePersonalDataFlagUpdatedByTemplateUpdate"
           ),
         },
         (event) => {
@@ -119,7 +124,7 @@ export const handleCatalogMessageV2 = async (
       allCatalogDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );

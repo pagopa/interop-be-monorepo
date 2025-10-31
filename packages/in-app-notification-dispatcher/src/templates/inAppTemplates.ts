@@ -202,9 +202,45 @@ export const inAppTemplates = {
     action: "associato" | "disassociato"
   ): string =>
     `L'ente ${consumerName} ha ${action} un proprio client alla finalità ${purposeName} per il tuo e-service ${eserviceName}`,
+  certifiedVerifiedAttributeAssignedToAssignee: (
+    attributeName: string,
+    attributeKind: "certificato" | "verificato",
+    assignerName: string
+  ): string =>
+    `${assignerName} ti ha conferito l'attributo ${attributeKind} "${attributeName}". Puoi ora utilizzarlo nelle richieste di fruizione.`,
+  certifiedVerifiedAttributeRevokedToAssignee: (
+    attributeName: string,
+    attributeKind: "certificato" | "verificato",
+    revokerName: string
+  ): string =>
+    `Ti informiamo che ${revokerName} ti ha revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione che utilizzano tale attributo subiranno una sospensione. Non potrai più utilizzare questo attributo per le future richieste di fruizione`,
   producerKeychainEServiceAddedToConsumer: (
     producerName: string,
     eserviceName: string
   ): string =>
     `Ti informiamo che l'ente erogatore <strong>${producerName}</strong> ha aggiunto un nuovo livello di sicurezza (portachiavi) all'e-service <strong>${eserviceName}</strong>.`,
+  clientKeyDeletedToClientUsers: (
+    clientName: string,
+    userId: string,
+    kid: string
+  ): string =>
+    `L'utente ${userId} ha rimosso la chiave ${kid} dal client ${clientName}. Assicurati che l'operatività non sia compromessa.`,
+  clientKeyAddedToClientUsers: (clientName: string): string =>
+    `Ti informiamo che é stata aggiunta una nuova chiave al client ${clientName}.`,
+  clientUserDeletedToClientUsers: (clientName: string): string =>
+    `Una chiave associata al client ${clientName} non é più considerata sicura, in quanto l'operatore che l'ha caricata non é più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività`,
+  producerKeychainKeyDeletedToClientUsers: (
+    producerKeychainName: string,
+    userId: string,
+    kid: string
+  ): string =>
+    `L'utente ${userId} ha rimosso la chiave ${kid} di e-service dal client ${producerKeychainName}. Assicurati che l'operatività non sia compromessa.`,
+  producerKeychainKeyAddedToClientUsers: (
+    producerKeychainName: string
+  ): string =>
+    `Ti informiamo che é stata aggiunta una nuova chiave e-service al client ${producerKeychainName}.`,
+  producerKeychainUserDeletedToClientUsers: (
+    producerKeychainName: string
+  ): string =>
+    `Una chiave associata al client ${producerKeychainName} non é più considerata sicura, in quanto l'operatore che l'ha caricata non é più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività`,
 };

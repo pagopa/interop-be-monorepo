@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
+  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   TenantId,
   generateId,
@@ -76,6 +77,16 @@ export const buildRiskAnalysisSeed = (
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
   ),
+});
+
+export const buildEserviceTemplateRiskAnalysisSeed = (
+  riskAnalysis: EServiceTemplateRiskAnalysis
+): m2mGatewayApi.EServiceTemplateRiskAnalysisSeed => ({
+  name: riskAnalysis.name,
+  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  ),
+  tenantKind: riskAnalysis.tenantKind,
 });
 
 export function testToM2MEServiceRiskAnalysisAnswers(

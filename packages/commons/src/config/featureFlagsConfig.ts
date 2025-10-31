@@ -93,12 +93,29 @@ export type FeatureFlagPurposeTemplateConfig = z.infer<
   typeof FeatureFlagPurposeTemplateConfig
 >;
 
+export const FeatureFlagEServicePersonalDataConfig = z
+  .object({
+    FEATURE_FLAG_ESERVICE_PERSONAL_DATA: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagEservicePersonalData:
+      c.FEATURE_FLAG_ESERVICE_PERSONAL_DATA ?? false,
+  }));
+export type FeatureFlagEServicePersonalDataConfig = z.infer<
+  typeof FeatureFlagEServicePersonalDataConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
   FeatureFlagNotificationConfig &
-  FeatureFlagPurposeTemplateConfig;
+  FeatureFlagPurposeTemplateConfig &
+  FeatureFlagEServicePersonalDataConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

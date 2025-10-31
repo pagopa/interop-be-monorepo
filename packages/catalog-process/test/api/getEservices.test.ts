@@ -69,6 +69,7 @@ describe("API /eservices authorization test", () => {
     isConsumerDelegable: false,
     delegated: false,
     templatesIds: [],
+    personalData: "FALSE",
     offset: 0,
     limit: 50,
   };
@@ -123,6 +124,7 @@ describe("API /eservices authorization test", () => {
     { ...queryParams, delegated: 1 },
     { ...queryParams, states: ["invalid-state"] },
     { ...queryParams, agreementStates: ["wrong"] },
+    { ...queryParams, personalData: "invalid" },
   ])("Should return 400 if passed invalid params: %s", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof queryParams);

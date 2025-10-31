@@ -19,31 +19,31 @@ import {
   PurposeEventV2,
   unsafeBrandId,
   AuthorizationEventV2,
-  AttributeEvent,
   EmailNotificationMessagePayload,
+  TenantEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  attributeReadModelServiceBuilder,
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
 import { config } from "./config/config.js";
 import { emailNotificationDispatcherServiceBuilder } from "./services/emailNotificationDispatcherService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { userServiceBuilderSQL } from "./services/userServiceSQL.js";
 import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
 import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
-import { handleAttributeEvent } from "./handlers/attributes/handleAttributeEvent.js";
-import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
 import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
 import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 import { HandlerParams } from "./models/handlerParams.js";
+import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
+import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -51,35 +51,32 @@ interface TopicNames {
   purposeTopic: string;
   delegationTopic: string;
   authorizationTopic: string;
-  attributeTopic: string;
+  tenantTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 });
-
-const pool = new pg.Pool({
-  host: config.userSQLDbHost,
-  database: config.userSQLDbName,
-  user: config.userSQLDbUsername,
-  password: config.userSQLDbPassword,
-  port: config.userSQLDbPort,
-  ssl: config.userSQLDbUseSSL,
-});
-const userDB = drizzle(pool);
-const userService = userServiceBuilderSQL(userDB);
 
 const emailNotificationDispatcherService =
   emailNotificationDispatcherServiceBuilder();
@@ -110,7 +107,7 @@ function processMessage(topicHandlers: TopicNames) {
       purposeTopic,
       delegationTopic,
       authorizationTopic,
-      attributeTopic,
+      tenantTopic,
     } = topicHandlers;
 
     const handleWith = <T extends z.ZodType>(
@@ -145,7 +142,6 @@ function processMessage(topicHandlers: TopicNames) {
         logger: loggerInstance,
         readModelService,
         templateService,
-        userService,
       });
     };
 
@@ -165,8 +161,8 @@ function processMessage(topicHandlers: TopicNames) {
       .with(authorizationTopic, async () =>
         handleWith(AuthorizationEventV2, handleAuthorizationEvent)
       )
-      .with(attributeTopic, async () =>
-        handleWith(AttributeEvent, handleAttributeEvent)
+      .with(tenantTopic, async () =>
+        handleWith(TenantEventV2, handleTenantEvent)
       )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
@@ -186,7 +182,7 @@ await runConsumer(
     config.purposeTopic,
     config.delegationTopic,
     config.authorizationTopic,
-    config.attributeTopic,
+    config.tenantTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
@@ -194,6 +190,6 @@ await runConsumer(
     purposeTopic: config.purposeTopic,
     delegationTopic: config.delegationTopic,
     authorizationTopic: config.authorizationTopic,
-    attributeTopic: config.attributeTopic,
+    tenantTopic: config.tenantTopic,
   })
 );

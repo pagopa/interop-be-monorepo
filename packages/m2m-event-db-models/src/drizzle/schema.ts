@@ -1,7 +1,7 @@
 import { timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { m2mEvent } from "../pgSchema.js";
 
-export const eserviceM2MEventInM2MEvent = m2mEvent.table("eservice_m2m_event", {
+export const eserviceInM2MEvent = m2mEvent.table("eservice", {
   id: uuid().primaryKey().notNull(),
   eventType: varchar("event_type").notNull(),
   eventTimestamp: timestamp("event_timestamp", {
@@ -10,49 +10,43 @@ export const eserviceM2MEventInM2MEvent = m2mEvent.table("eservice_m2m_event", {
   }).notNull(),
   eserviceId: uuid("eservice_id").notNull(),
   descriptorId: uuid("descriptor_id"),
-  visibility: varchar().notNull(),
-  producerId: uuid("producer_id"),
+  producerId: uuid("producer_id").notNull(),
   producerDelegateId: uuid("producer_delegate_id"),
   producerDelegationId: uuid("producer_delegation_id"),
+  visibility: varchar().notNull(),
 });
 
-export const eserviceTemplateM2MEventInM2MEvent = m2mEvent.table(
-  "eservice_template_m2m_event",
-  {
-    id: uuid().primaryKey().notNull(),
-    eventType: varchar("event_type").notNull(),
-    eventTimestamp: timestamp("event_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    eserviceTemplateId: uuid("eservice_template_id").notNull(),
-    eserviceTemplateVersionId: uuid("eservice_template_version_id"),
-    visibility: varchar().notNull(),
-    creatorId: uuid("creator_id"),
-  }
-);
+export const eserviceTemplateInM2MEvent = m2mEvent.table("eservice_template", {
+  id: uuid().primaryKey().notNull(),
+  eventType: varchar("event_type").notNull(),
+  eventTimestamp: timestamp("event_timestamp", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  eserviceTemplateId: uuid("eservice_template_id").notNull(),
+  eserviceTemplateVersionId: uuid("eservice_template_version_id"),
+  creatorId: uuid("creator_id").notNull(),
+  visibility: varchar().notNull(),
+});
 
-export const agreementM2MEventInM2MEvent = m2mEvent.table(
-  "agreement_m2m_event",
-  {
-    id: uuid().primaryKey().notNull(),
-    eventType: varchar("event_type").notNull(),
-    eventTimestamp: timestamp("event_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    agreementId: uuid("agreement_id").notNull(),
-    visibility: varchar().notNull(),
-    consumerId: uuid("consumer_id"),
-    producerId: uuid("producer_id"),
-    consumerDelegateId: uuid("consumer_delegate_id"),
-    consumerDelegationId: uuid("consumer_delegation_id"),
-    producerDelegateId: uuid("producer_delegate_id"),
-    producerDelegationId: uuid("producer_delegation_id"),
-  }
-);
+export const agreementInM2MEvent = m2mEvent.table("agreement", {
+  id: uuid().primaryKey().notNull(),
+  eventType: varchar("event_type").notNull(),
+  eventTimestamp: timestamp("event_timestamp", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  agreementId: uuid("agreement_id").notNull(),
+  consumerId: uuid("consumer_id").notNull(),
+  producerId: uuid("producer_id").notNull(),
+  consumerDelegateId: uuid("consumer_delegate_id"),
+  consumerDelegationId: uuid("consumer_delegation_id"),
+  producerDelegateId: uuid("producer_delegate_id"),
+  producerDelegationId: uuid("producer_delegation_id"),
+  visibility: varchar().notNull(),
+});
 
-export const purposeM2MEventInM2MEvent = m2mEvent.table("purpose_m2m_event", {
+export const purposeInM2MEvent = m2mEvent.table("purpose", {
   id: uuid().primaryKey().notNull(),
   eventType: varchar("event_type").notNull(),
   eventTimestamp: timestamp("event_timestamp", {
@@ -61,16 +55,16 @@ export const purposeM2MEventInM2MEvent = m2mEvent.table("purpose_m2m_event", {
   }).notNull(),
   purposeId: uuid("purpose_id").notNull(),
   purposeVersionId: uuid("purpose_version_id"),
-  visibility: varchar().notNull(),
-  consumerId: uuid("consumer_id"),
-  producerId: uuid("producer_id"),
+  consumerId: uuid("consumer_id").notNull(),
+  producerId: uuid("producer_id").notNull(),
   consumerDelegateId: uuid("consumer_delegate_id"),
   consumerDelegationId: uuid("consumer_delegation_id"),
   producerDelegateId: uuid("producer_delegate_id"),
   producerDelegationId: uuid("producer_delegation_id"),
+  visibility: varchar().notNull(),
 });
 
-export const tenantM2MEventInM2MEvent = m2mEvent.table("tenant_m2m_event", {
+export const tenantInM2MEvent = m2mEvent.table("tenant", {
   id: uuid().primaryKey().notNull(),
   eventType: varchar("event_type").notNull(),
   eventTimestamp: timestamp("event_timestamp", {
@@ -80,34 +74,18 @@ export const tenantM2MEventInM2MEvent = m2mEvent.table("tenant_m2m_event", {
   tenantId: uuid("tenant_id").notNull(),
 });
 
-export const attributeM2MEventInM2MEvent = m2mEvent.table(
-  "attribute_m2m_event",
-  {
-    id: uuid().primaryKey().notNull(),
-    eventType: varchar("event_type").notNull(),
-    eventTimestamp: timestamp("event_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    attributeId: uuid("attribute_id").notNull(),
-  }
-);
+export const attributeInM2MEvent = m2mEvent.table("attribute", {
+  id: uuid().primaryKey().notNull(),
+  eventType: varchar("event_type").notNull(),
+  eventTimestamp: timestamp("event_timestamp", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  attributeId: uuid("attribute_id").notNull(),
+});
 
-export const consumerDelegationM2MEventInM2MEvent = m2mEvent.table(
-  "consumer_delegation_m2m_event",
-  {
-    id: uuid().primaryKey().notNull(),
-    eventType: varchar("event_type").notNull(),
-    eventTimestamp: timestamp("event_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    delegationId: uuid("delegation_id").notNull(),
-  }
-);
-
-export const producerDelegationM2MEventInM2MEvent = m2mEvent.table(
-  "producer_delegation_m2m_event",
+export const consumerDelegationInM2MEvent = m2mEvent.table(
+  "consumer_delegation",
   {
     id: uuid().primaryKey().notNull(),
     eventType: varchar("event_type").notNull(),
@@ -119,7 +97,20 @@ export const producerDelegationM2MEventInM2MEvent = m2mEvent.table(
   }
 );
 
-export const clientM2MEventInM2MEvent = m2mEvent.table("client_m2m_event", {
+export const producerDelegationInM2MEvent = m2mEvent.table(
+  "producer_delegation",
+  {
+    id: uuid().primaryKey().notNull(),
+    eventType: varchar("event_type").notNull(),
+    eventTimestamp: timestamp("event_timestamp", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    delegationId: uuid("delegation_id").notNull(),
+  }
+);
+
+export const clientInM2MEvent = m2mEvent.table("client", {
   id: uuid().primaryKey().notNull(),
   eventType: varchar("event_type").notNull(),
   eventTimestamp: timestamp("event_timestamp", {
@@ -127,44 +118,38 @@ export const clientM2MEventInM2MEvent = m2mEvent.table("client_m2m_event", {
     mode: "string",
   }).notNull(),
   clientId: uuid("client_id").notNull(),
+  consumerId: uuid("consumer_id").notNull(),
   visibility: varchar().notNull(),
-  consumerId: uuid("consumer_id"),
 });
 
-export const producerKeychainM2MEventInM2MEvent = m2mEvent.table(
-  "producer_keychain_m2m_event",
-  {
-    id: uuid().primaryKey().notNull(),
-    eventType: varchar("event_type").notNull(),
-    eventTimestamp: timestamp("event_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    producerKeychainId: uuid("producer_keychain_id").notNull(),
-    visibility: varchar().notNull(),
-    producerId: uuid("producer_id"),
-  }
-);
-
-export const keyM2MEventInM2MEvent = m2mEvent.table("key_m2m_event", {
+export const producerKeychainInM2MEvent = m2mEvent.table("producer_keychain", {
   id: uuid().primaryKey().notNull(),
   eventType: varchar("event_type").notNull(),
   eventTimestamp: timestamp("event_timestamp", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  kid: uuid().notNull(),
+  producerKeychainId: uuid("producer_keychain_id").notNull(),
+  producerId: uuid("producer_id").notNull(),
+  visibility: varchar().notNull(),
 });
 
-export const producerKeyM2MEventInM2MEvent = m2mEvent.table(
-  "producer_key_m2m_event",
-  {
-    id: uuid().primaryKey().notNull(),
-    eventType: varchar("event_type").notNull(),
-    eventTimestamp: timestamp("event_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    kid: uuid().notNull(),
-  }
-);
+export const keyInM2MEvent = m2mEvent.table("key", {
+  id: uuid().primaryKey().notNull(),
+  eventType: varchar("event_type").notNull(),
+  eventTimestamp: timestamp("event_timestamp", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  kid: varchar().notNull(),
+});
+
+export const producerKeyInM2MEvent = m2mEvent.table("producer_key", {
+  id: uuid().primaryKey().notNull(),
+  eventType: varchar("event_type").notNull(),
+  eventTimestamp: timestamp("event_timestamp", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  kid: varchar().notNull(),
+});

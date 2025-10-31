@@ -9,7 +9,7 @@ import {
 export type GetClientsFilters = {
   name?: string;
   userIds: UserId[];
-  consumerId: TenantId;
+  consumerId: TenantId | undefined;
   purposeId: PurposeId | undefined;
   kind?: ClientKind;
 };
@@ -17,6 +17,6 @@ export type GetClientsFilters = {
 export type GetProducerKeychainsFilters = {
   name?: string;
   userIds: UserId[];
-  producerId: TenantId;
+  producerId: TenantId | undefined;
   eserviceId: EServiceId | undefined;
 };

@@ -8,7 +8,16 @@ import { handleAgreementActivatedToConsumer } from "./handleAgreementActivatedTo
 import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
+import { handleAgreementSuspendedByConsumer } from "./handleAgreementSuspendedByConsumer.js";
+import { handleAgreementSuspendedByPlatformToProducer } from "./handleAgreementSuspendedByPlatformToProducer.js";
+import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
+import { handleAgreementUnsuspendedByPlatformToProducer } from "./handleAgreementUnsuspendedByPlatformToProducer.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
+import { handleAgreementArchivedByConsumer } from "./handleAgreementArchivedByConsumer.js";
+import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
+import { handleAgreementSuspendedByPlatformToConsumer } from "./handleAgreementSuspendedByPlatformToConsumer.js";
+import { handleAgreementUnsuspendedByPlatformToConsumer } from "./handleAgreementUnsuspendedByPlatformToConsumer.js";
+import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
 
 export async function handleAgreementEvent(
   params: HandlerParams<typeof AgreementEventV2>
@@ -18,7 +27,6 @@ export async function handleAgreementEvent(
     logger,
     readModelService,
     templateService,
-    userService,
     correlationId,
   } = params;
   return match(params.decodedMessage)
@@ -28,7 +36,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })),
       ...(await handleAgreementActivatedToConsumer({
@@ -36,7 +43,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })),
     ])
@@ -46,7 +52,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -56,7 +61,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -66,9 +70,95 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
+    )
+    .with({ type: "AgreementSuspendedByConsumer" }, ({ data: { agreement } }) =>
+      handleAgreementSuspendedByConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with({ type: "AgreementSuspendedByProducer" }, ({ data: { agreement } }) =>
+      handleAgreementSuspendedByProducer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with(
+      { type: "AgreementSuspendedByPlatform" },
+      async ({ data: { agreement } }) => [
+        ...(await handleAgreementSuspendedByPlatformToConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+        ...(await handleAgreementSuspendedByPlatformToProducer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+      ]
+    )
+    .with(
+      { type: "AgreementUnsuspendedByConsumer" },
+      ({ data: { agreement } }) =>
+        handleAgreementUnsuspendedByConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "AgreementUnsuspendedByProducer" },
+      ({ data: { agreement } }) =>
+        handleAgreementUnsuspendedByProducer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with({ type: "AgreementArchivedByConsumer" }, ({ data: { agreement } }) =>
+      handleAgreementArchivedByConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with(
+      { type: "AgreementUnsuspendedByPlatform" },
+      async ({ data: { agreement } }) => [
+        ...(await handleAgreementUnsuspendedByPlatformToProducer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+        ...(await handleAgreementUnsuspendedByPlatformToConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+      ]
     )
     .with(
       {
@@ -76,20 +166,14 @@ export async function handleAgreementEvent(
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementUnsuspendedByProducer",
-          "AgreementUnsuspendedByConsumer",
-          "AgreementUnsuspendedByPlatform",
-          "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
-          "AgreementSuspendedByProducer",
-          "AgreementSuspendedByConsumer",
-          "AgreementSuspendedByPlatform",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
-          "AgreementArchivedByRevokedDelegation"
+          "AgreementArchivedByRevokedDelegation",
+          "AgreementContractGenerated"
         ),
       },
       () => {

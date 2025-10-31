@@ -27,7 +27,7 @@ const services: M2MGatewayServices = {
   clientService: clientServiceBuilder(clients),
   delegationService: delegationServiceBuilder(clients),
   eserviceService: eserviceServiceBuilder(clients, fileManager),
-  eserviceTemplateService: eserviceTemplateServiceBuilder(clients),
+  eserviceTemplateService: eserviceTemplateServiceBuilder(clients, fileManager),
   purposeService: purposeServiceBuilder(clients, fileManager),
   tenantService: tenantServiceBuilder(clients),
   keyService: keyServiceBuilder(clients),

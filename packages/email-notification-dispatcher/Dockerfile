@@ -1,9 +1,9 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5949015883fb3b016b34aca6d0e5b8cc as build 
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS build
 
-RUN npm install -g corepack@0.31.0 && corepack enable
+RUN corepack enable
 
 WORKDIR /app
 COPY package.json /app/
@@ -17,7 +17,6 @@ COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
 COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
-COPY ./packages/selfcare-user-db-models/package.json /app/packages/selfcare-user-db-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -42,13 +41,17 @@ RUN pnpm build && \
   packages/models \
   packages/kafka-iam-auth \
   packages/readmodel/ \
-  packages/readmodel-models/ \    
+  packages/readmodel-models/ \
   packages/email-notification-dispatcher/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5949015883fb3b016b34aca6d0e5b8cc as final
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS final
 
 COPY --from=build /out /app
+
+RUN groupadd -r app && useradd -rm -g app app
+RUN chown -R app:app /app && chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/email-notification-dispatcher
 EXPOSE 3000

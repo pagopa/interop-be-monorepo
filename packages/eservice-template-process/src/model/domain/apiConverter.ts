@@ -61,27 +61,26 @@ export function apiEServiceTemplateVersionStateToEServiceTemplateVersionState(
 }
 
 export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
-  input: AgreementApprovalPolicy | undefined
+  input: AgreementApprovalPolicy
 ): eserviceTemplateApi.AgreementApprovalPolicy {
   return match<
-    AgreementApprovalPolicy | undefined,
+    AgreementApprovalPolicy,
     eserviceTemplateApi.AgreementApprovalPolicy
   >(input)
     .with(agreementApprovalPolicy.automatic, () => "AUTOMATIC")
     .with(agreementApprovalPolicy.manual, () => "MANUAL")
-    .otherwise(() => "AUTOMATIC");
+    .exhaustive();
 }
 
 export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-  input: eserviceTemplateApi.AgreementApprovalPolicy | undefined
+  input: eserviceTemplateApi.AgreementApprovalPolicy
 ): AgreementApprovalPolicy {
   return match<
-    eserviceTemplateApi.AgreementApprovalPolicy | undefined,
+    eserviceTemplateApi.AgreementApprovalPolicy,
     AgreementApprovalPolicy
   >(input)
     .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
     .with("MANUAL", () => agreementApprovalPolicy.manual)
-    .with(undefined, () => agreementApprovalPolicy.automatic)
     .exhaustive();
 }
 
@@ -131,9 +130,11 @@ export const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   state: eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
     eserviceTemplateVersion.state
   ),
-  agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
-    eserviceTemplateVersion.agreementApprovalPolicy
-  ),
+  agreementApprovalPolicy: eserviceTemplateVersion.agreementApprovalPolicy
+    ? agreementApprovalPolicyToApiAgreementApprovalPolicy(
+        eserviceTemplateVersion.agreementApprovalPolicy
+      )
+    : undefined,
   publishedAt: eserviceTemplateVersion.publishedAt?.toJSON(),
   suspendedAt: eserviceTemplateVersion.suspendedAt?.toJSON(),
   deprecatedAt: eserviceTemplateVersion.deprecatedAt?.toJSON(),
@@ -170,4 +171,5 @@ export const eserviceTemplateToApiEServiceTemplate = (
     eserviceTemplateVersionToApiEServiceTemplateVersion
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+  personalData: eserviceTemplate.personalData,
 });

@@ -2,6 +2,7 @@ import {
   DescriptorId,
   EService,
   EServiceEventV2,
+  EServiceIdDescriptorId,
   fromEServiceV2,
   missingKafkaMessageDataError,
   NewNotification,
@@ -12,6 +13,7 @@ import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  getNotificationRecipients,
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../handlerCommons.js";
@@ -70,25 +72,32 @@ export async function handleEserviceStateChangedToConsumer(
       retrieveTenant(consumer.consumerId, readModelService)
     )
   );
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      consumers.map((consumer) => consumer.id),
-      "eserviceStateChangedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    consumers.map((consumer) => consumer.id),
+    "eserviceStateChangedToConsumer",
+    readModelService,
+    logger
+  );
 
-  const { body, descriptorId } = getBodyAndDescriptorId(
+  const { body, descriptorId: descriptorIdFromEvent } = getBodyAndDescriptorId(
     eserviceV2Msg,
     eservice
   );
 
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  const descriptorId = descriptorIdFromEvent
+    ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
+    : retrieveLatestPublishedDescriptor(eservice).id;
+
+  const entityId = EServiceIdDescriptorId.parse(
+    `${eservice.id}/${descriptorId}`
+  );
+
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceStateChangedToConsumer",
-    entityId: descriptorId
-      ? unsafeBrandId<DescriptorId>(descriptorId)
-      : retrieveLatestPublishedDescriptor(eservice).id,
+    entityId,
   }));
 }
 

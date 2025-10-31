@@ -1,4 +1,4 @@
-import { TenantKind } from "pagopa-interop-models";
+import { tenantKind, TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
   RiskAnalysisFormToValidate,
@@ -13,6 +13,7 @@ import {
   RiskAnalysisValidationIssue,
   dependencyNotFoundError,
   expiredRulesVersionError,
+  incompatiblePersonalDataError,
   missingExpectedFieldError,
   rulesVersionNotFoundError,
   unexpectedDependencyValueError,
@@ -20,18 +21,24 @@ import {
   unexpectedFieldFormatError,
   unexpectedFieldValueError,
 } from "./riskAnalysisValidationErrors.js";
+
 import {
   FormQuestionRules,
   RiskAnalysisFormRules,
   dataType,
 } from "./rules/riskAnalysisFormRules.js";
-import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRulesProvider.js";
+import {
+  buildLabel,
+  formRules,
+  riskAnalysisFormRules,
+} from "./rules/riskAnalysisFormRulesProvider.js";
 
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
   const formRulesForValidation = getFormRulesByVersion(
     tenantKind,
@@ -91,7 +98,23 @@ export function validateRiskAnalysis(
         multiAnswers: [],
       }
     );
+    const personalDataInRiskAnalysis = match(
+      singleAnswers.find((a) => a.key === "usesPersonalData")?.value
+    )
+      .with("YES", () => true)
+      .with("NO", () => false)
+      .otherwise(() => undefined);
 
+    const personalDataFlagValidation = validatePersonalDataFlag({
+      tenantKind,
+      version: formRulesForValidation.version,
+      personalDataInRiskAnalysis,
+      personalDataInEService,
+    });
+
+    if (personalDataFlagValidation.length > 0) {
+      return invalidResult(personalDataFlagValidation);
+    }
     return validResult({
       version: formRulesForValidation.version,
       singleAnswers,
@@ -132,6 +155,27 @@ export function getFormRulesByVersion(
   return riskAnalysisFormRules[tenantKind].find(
     (config) => config.version === version
   );
+}
+
+/*
+Get all the not expired risk analysis form rules (without expiration date and within the grace period) for each tenant kind
+*/
+export function getValidFormRulesVersions(): Map<TenantKind, string[]> {
+  const validFormRulesByTenantKind = new Map<TenantKind, string[]>();
+  for (const kind of Object.values(tenantKind)) {
+    validFormRulesByTenantKind.set(
+      kind,
+      riskAnalysisFormRules[kind]
+        .filter(
+          (rule) =>
+            !rule.expiration ||
+            rule.expiration >= new Date(new Date().toDateString())
+        )
+        .map((rule) => rule.version)
+    );
+  }
+
+  return validFormRulesByTenantKind;
 }
 
 function questionRulesDepsToValidationRuleDeps(
@@ -358,3 +402,37 @@ export function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
     value,
   };
 }
+
+const validatePersonalDataFlag = ({
+  tenantKind,
+  version,
+  personalDataInRiskAnalysis,
+  personalDataInEService,
+}: {
+  tenantKind: TenantKind;
+  version: string;
+  personalDataInRiskAnalysis: boolean | undefined;
+  personalDataInEService: boolean | undefined;
+}): RiskAnalysisValidationIssue[] => {
+  const label = buildLabel(tenantKind, version);
+  return match(label)
+    .with(
+      formRules.PA_1_0,
+      formRules.PA_2_0,
+      formRules.PA_3_0,
+      formRules.PRIVATE_1_0,
+      () => []
+    )
+    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () =>
+      match(personalDataInEService)
+        .with(P.boolean, () => {
+          if (personalDataInEService !== personalDataInRiskAnalysis) {
+            return [incompatiblePersonalDataError()];
+          }
+          return [];
+        })
+        .with(undefined, () => [])
+        .exhaustive()
+    )
+    .exhaustive();
+};

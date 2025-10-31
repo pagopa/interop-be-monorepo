@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
@@ -31,6 +30,7 @@ describe("API POST /purposeTemplates", () => {
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,
+    handlesPersonalData: false,
   };
 
   const purposeTemplateResponse = getMockWithMetadata(mockPurposeTemplate, 0);

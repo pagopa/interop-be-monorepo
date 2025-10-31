@@ -2,20 +2,54 @@ import {
   EService,
   Descriptor,
   descriptorState,
+  Attribute,
+  AttributeId,
   Tenant,
   TenantId,
   EServiceId,
   PurposeId,
   Purpose,
+  EServiceTemplate,
+  EServiceTemplateVersion,
+  NotificationType,
+  UserId,
 } from "pagopa-interop-models";
-
+import { Logger, notificationAdmittedRoles } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
+  attributeNotFound,
+  certifierTenantNotFound,
   descriptorPublishedNotFound,
   eserviceNotFound,
   purposeNotFound,
   tenantNotFound,
 } from "../models/errors.js";
+
+export async function getNotificationRecipients(
+  tenantIds: TenantId[],
+  notificationType: NotificationType,
+  readModelService: ReadModelServiceSQL,
+  logger: Logger
+): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+  const usersWithNotifications =
+    await readModelService.getTenantUsersWithNotificationEnabled(
+      tenantIds,
+      notificationType
+    );
+  return usersWithNotifications.filter(({ userId, tenantId, userRoles }) => {
+    const userCanReceiveNotification = userRoles.some(
+      (r) => notificationAdmittedRoles[notificationType][r]
+    );
+    if (!userCanReceiveNotification) {
+      logger.warn(
+        `Discarding notification for user ${userId} in ${tenantId} due to missing roles (notification type: ${notificationType}, user roles: ${userRoles.join(
+          ", "
+        )})`
+      );
+    }
+    return userCanReceiveNotification;
+  });
+}
 
 export async function retrieveTenant(
   tenantId: TenantId,
@@ -41,6 +75,19 @@ export function retrieveLatestPublishedDescriptor(
   return latestDescriptor;
 }
 
+export function retrieveLatestPublishedEServiceTemplateVersion(
+  eserviceTemplate: EServiceTemplate
+): EServiceTemplateVersion {
+  const latestVersion = eserviceTemplate.versions
+    .filter((d) => d.state === descriptorState.published)
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
+  if (!latestVersion) {
+    throw descriptorPublishedNotFound(eserviceTemplate.id);
+  }
+  return latestVersion;
+}
+
 export async function retrieveEservice(
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
@@ -61,4 +108,26 @@ export async function retrievePurpose(
     throw purposeNotFound(purposeId);
   }
   return purpose;
+}
+
+export async function retrieveAttribute(
+  attributeId: AttributeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Attribute> {
+  const attribute = await readModelService.getAttributeById(attributeId);
+  if (!attribute) {
+    throw attributeNotFound(attributeId);
+  }
+  return attribute;
+}
+
+export async function retrieveTenantByCertifierId(
+  certifierId: string,
+  readModelService: ReadModelServiceSQL
+): Promise<Tenant> {
+  const tenant = await readModelService.getTenantByCertifierId(certifierId);
+  if (!tenant) {
+    throw certifierTenantNotFound(certifierId);
+  }
+  return tenant;
 }
