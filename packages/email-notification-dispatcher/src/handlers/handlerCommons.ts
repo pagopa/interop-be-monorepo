@@ -8,7 +8,6 @@ import {
   EServiceTemplateV2,
   EServiceTemplateVersionId,
   EServiceV2,
-  NotificationConfig,
   NotificationType,
   PurposeV2,
   ProducerKeychainV2,
@@ -32,7 +31,6 @@ import {
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
 import {
   attributeNotFound,
@@ -123,24 +121,6 @@ export type UserEmailNotificationRecipient = {
 type EmailNotificationRecipient =
   | TenantEmailNotificationRecipient
   | UserEmailNotificationRecipient;
-
-export async function getUserEmailsToNotify(
-  tenantId: TenantId,
-  notificationName: keyof NotificationConfig,
-  readModelService: ReadModelServiceSQL,
-  userService: UserServiceSQL
-): Promise<string[]> {
-  const tenantUsers =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [tenantId],
-      notificationName
-    );
-
-  const usersToNotify = await userService.readUsers(
-    tenantUsers.map((config) => config.userId)
-  );
-  return usersToNotify.map((user) => user.email);
-}
 
 export function retrieveLatestPublishedEServiceTemplateVersion(
   eserviceTemplate: EServiceTemplate
@@ -237,7 +217,6 @@ export const getRecipientsForTenants = async ({
   notificationType: NotificationType;
   includeTenantContactEmails: boolean;
   readModelService: ReadModelServiceSQL;
-  userService: UserServiceSQL;
   logger: Logger;
 }): Promise<EmailNotificationRecipient[]> => {
   if (config.notificationTypeBlocklist.includes(notificationType)) {

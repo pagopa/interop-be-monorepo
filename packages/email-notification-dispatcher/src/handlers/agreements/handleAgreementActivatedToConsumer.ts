@@ -28,7 +28,6 @@ export async function handleAgreementActivatedToConsumer(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -51,7 +50,6 @@ export async function handleAgreementActivatedToConsumer(
     tenants: [consumer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: true,
   });

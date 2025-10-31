@@ -27,11 +27,9 @@ import { attributeNotFound } from "../src/models/errors.js";
 import {
   addOneAttribute,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleTenantCertifiedAttributeAssigned", async () => {
@@ -68,9 +66,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -102,7 +97,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
         attributeId: generateId(),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -120,7 +114,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
         attributeId: unknownAttributeId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -136,7 +129,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       attributeId: attributeWithNoOrigin.id,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -150,7 +142,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -185,7 +176,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -209,7 +199,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

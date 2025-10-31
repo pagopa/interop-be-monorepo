@@ -8,7 +8,6 @@ import {
   EmailSenderTopicConfig,
   DelegationTopicConfig,
   AuthorizationTopicConfig,
-  UserSQLDbConfig,
   TenantTopicConfig,
   NotificationTypeBlocklistConfig,
 } from "pagopa-interop-commons";
@@ -24,7 +23,6 @@ export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(TenantTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(ReadModelSQLDbConfig)
-  .and(UserSQLDbConfig)
   .and(EmailSenderTopicConfig)
   .and(NotificationTypeBlocklistConfig);
 

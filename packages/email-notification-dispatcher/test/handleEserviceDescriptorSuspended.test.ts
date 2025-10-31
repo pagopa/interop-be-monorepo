@@ -29,11 +29,9 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEserviceDescriptorSuspended", async () => {
@@ -64,9 +62,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenants[0]);
     await addOneTenant(consumerTenants[1]);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation((tenantIds, _notificationType) =>
@@ -87,7 +82,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
         eserviceV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -110,7 +104,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
         eserviceV2Msg: toEServiceV2(eserviceWithUnknownProducer),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -139,7 +132,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
         eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -151,7 +143,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -175,7 +166,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -236,7 +226,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -280,7 +269,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

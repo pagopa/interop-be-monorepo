@@ -29,11 +29,9 @@ import {
   addOneEService,
   addOneEServiceTemplate,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEServiceTemplateNameUpdated", async () => {
@@ -65,9 +63,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
     await addOneEService(eservice);
     await addOneTenant(instantiatorTenant);
     await addOneTenant(creatorTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -99,7 +94,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
         oldName,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -117,7 +111,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
       oldName,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -152,7 +145,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
       oldName,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -176,7 +168,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
       oldName,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

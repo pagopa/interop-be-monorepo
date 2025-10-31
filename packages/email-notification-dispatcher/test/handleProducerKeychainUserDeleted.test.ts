@@ -24,11 +24,9 @@ import { handleProducerKeychainUserDeleted } from "../src/handlers/authorization
 import { tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleProducerKeychainUserDeleted", async () => {
@@ -56,9 +54,6 @@ describe("handleProducerKeychainUserDeleted", async () => {
 
   beforeEach(async () => {
     await addOneTenant(producerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -90,7 +85,6 @@ describe("handleProducerKeychainUserDeleted", async () => {
         userId: userId1,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -120,7 +114,6 @@ describe("handleProducerKeychainUserDeleted", async () => {
         userId: userId1,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -133,7 +126,6 @@ describe("handleProducerKeychainUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -173,7 +165,6 @@ describe("handleProducerKeychainUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -202,7 +193,6 @@ describe("handleProducerKeychainUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
