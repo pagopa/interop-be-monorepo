@@ -32,11 +32,9 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handlePurposeVersionRejected", async () => {
@@ -71,9 +69,6 @@ describe("handlePurposeVersionRejected", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -104,7 +99,6 @@ describe("handlePurposeVersionRejected", async () => {
         purposeV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -128,7 +122,6 @@ describe("handlePurposeVersionRejected", async () => {
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -156,7 +149,6 @@ describe("handlePurposeVersionRejected", async () => {
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -178,7 +170,6 @@ describe("handlePurposeVersionRejected", async () => {
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -197,7 +188,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -238,7 +228,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -268,7 +257,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -306,7 +294,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -341,7 +328,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -368,7 +354,6 @@ describe("handlePurposeVersionRejected", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

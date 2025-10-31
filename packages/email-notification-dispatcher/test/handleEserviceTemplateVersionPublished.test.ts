@@ -30,11 +30,9 @@ import {
   addOneEService,
   addOneEServiceTemplate,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEServiceTemplateVersionPublished", async () => {
@@ -66,9 +64,6 @@ describe("handleEServiceTemplateVersionPublished", async () => {
     await addOneEService(eservice);
     await addOneTenant(instantiatorTenant);
     await addOneTenant(creatorTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -100,7 +95,6 @@ describe("handleEServiceTemplateVersionPublished", async () => {
         eserviceTemplateVersionId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -129,7 +123,6 @@ describe("handleEServiceTemplateVersionPublished", async () => {
           eserviceTemplateUnknownCreator.versions[0].id,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -152,7 +145,6 @@ describe("handleEServiceTemplateVersionPublished", async () => {
       eserviceTemplateVersionId: unknownEServiceTemplateVersionId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -166,7 +158,6 @@ describe("handleEServiceTemplateVersionPublished", async () => {
       eserviceTemplateVersionId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -201,7 +192,6 @@ describe("handleEServiceTemplateVersionPublished", async () => {
       eserviceTemplateVersionId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -225,7 +215,6 @@ describe("handleEServiceTemplateVersionPublished", async () => {
       eserviceTemplateVersionId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

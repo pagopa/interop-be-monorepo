@@ -32,11 +32,9 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEserviceDescriptorRejectedByDelegator", async () => {
@@ -81,9 +79,6 @@ describe("handleEserviceDescriptorRejectedByDelegator", async () => {
     await addOneDelegation(delegation);
     await addOneTenant(delegatorTenant);
     await addOneTenant(delegateTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -114,7 +109,6 @@ describe("handleEserviceDescriptorRejectedByDelegator", async () => {
         eserviceV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -151,7 +145,6 @@ describe("handleEserviceDescriptorRejectedByDelegator", async () => {
         eserviceV2Msg: toEServiceV2(eserviceWithUnknownDelegator),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -183,7 +176,6 @@ describe("handleEserviceDescriptorRejectedByDelegator", async () => {
         eserviceV2Msg: toEServiceV2(eserviceWithUnknownDelegate),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -195,7 +187,6 @@ describe("handleEserviceDescriptorRejectedByDelegator", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -229,7 +220,6 @@ describe("handleEserviceDescriptorRejectedByDelegator", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -252,7 +242,6 @@ describe("handleEserviceDescriptorRejectedByDelegator", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

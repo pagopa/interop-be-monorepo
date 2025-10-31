@@ -26,11 +26,9 @@ import { handleClientKeyDeleted } from "../src/handlers/authorization/handleClie
 import { clientKeyNotFound, tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleClientKeyDeleted", async () => {
@@ -73,9 +71,6 @@ describe("handleClientKeyDeleted", async () => {
 
   beforeEach(async () => {
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -107,7 +102,6 @@ describe("handleClientKeyDeleted", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -135,7 +129,6 @@ describe("handleClientKeyDeleted", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -151,7 +144,6 @@ describe("handleClientKeyDeleted", async () => {
         kid: unknownKid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -164,7 +156,6 @@ describe("handleClientKeyDeleted", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -204,7 +195,6 @@ describe("handleClientKeyDeleted", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -233,7 +223,6 @@ describe("handleClientKeyDeleted", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

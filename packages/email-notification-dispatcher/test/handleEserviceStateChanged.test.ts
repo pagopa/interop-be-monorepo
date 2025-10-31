@@ -27,11 +27,9 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEserviceStateChanged", async () => {
@@ -66,9 +64,6 @@ describe("handleEserviceStateChanged", async () => {
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenants[0]);
     await addOneTenant(consumerTenants[1]);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation((tenantIds, _notificationType) =>
@@ -95,7 +90,6 @@ describe("handleEserviceStateChanged", async () => {
         },
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -115,7 +109,6 @@ describe("handleEserviceStateChanged", async () => {
       },
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -145,7 +138,6 @@ describe("handleEserviceStateChanged", async () => {
       },
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -212,7 +204,6 @@ describe("handleEserviceStateChanged", async () => {
       },
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -397,7 +388,6 @@ describe("handleEserviceStateChanged", async () => {
         payload,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       });

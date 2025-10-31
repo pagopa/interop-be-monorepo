@@ -26,11 +26,9 @@ import { handleClientKeyAdded } from "../src/handlers/authorization/handleClient
 import { clientKeyNotFound, tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleClientKeyAdded", async () => {
@@ -73,9 +71,6 @@ describe("handleClientKeyAdded", async () => {
 
   beforeEach(async () => {
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -107,7 +102,6 @@ describe("handleClientKeyAdded", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -133,7 +127,6 @@ describe("handleClientKeyAdded", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -149,7 +142,6 @@ describe("handleClientKeyAdded", async () => {
         kid: unknownKid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -162,7 +154,6 @@ describe("handleClientKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -202,7 +193,6 @@ describe("handleClientKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -231,7 +221,6 @@ describe("handleClientKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
