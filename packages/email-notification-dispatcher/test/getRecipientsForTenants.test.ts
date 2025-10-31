@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-models";
 import { getRecipientsForTenants } from "../src/handlers/handlerCommons.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
-import { UserServiceSQL } from "../src/services/userServiceSQL.js";
 
 describe("getRecipientsForTenants", () => {
   const tenants: Tenant[] = [
@@ -106,7 +105,6 @@ describe("getRecipientsForTenants", () => {
         };
       }),
   } as unknown as ReadModelServiceSQL;
-  const userService = {} as UserServiceSQL;
 
   it("should call ReadModelServiceSQL.getTenantUsersWithNotificationEnabled", async () => {
     await getRecipientsForTenants({
@@ -114,7 +112,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "agreementActivatedRejectedToConsumer",
       includeTenantContactEmails: false,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(
@@ -131,7 +128,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "agreementActivatedRejectedToConsumer",
       includeTenantContactEmails: false,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(result).not.toContainEqual(userRecipients[5]);
@@ -152,7 +148,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "agreementSuspendedUnsuspendedToProducer",
       includeTenantContactEmails: false,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(result).toHaveLength(2);
@@ -174,7 +169,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "templateStatusChangedToProducer",
       includeTenantContactEmails: false,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(result).toHaveLength(4);
@@ -201,7 +195,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "eserviceStateChangedToConsumer",
       includeTenantContactEmails: false,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(result).toHaveLength(4);
@@ -221,7 +214,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "agreementActivatedRejectedToConsumer",
       includeTenantContactEmails: false,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(result).not.toContainEqual(
@@ -235,7 +227,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "agreementActivatedRejectedToConsumer",
       includeTenantContactEmails: true,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(result).toContainEqual(tenantRecipients[0]);
@@ -247,7 +238,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "agreementActivatedRejectedToConsumer",
       includeTenantContactEmails: false,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(result).not.toContainEqual(tenantRecipients[1]);
@@ -259,7 +249,6 @@ describe("getRecipientsForTenants", () => {
       notificationType: "agreementActivatedRejectedToConsumer",
       includeTenantContactEmails: false,
       readModelService,
-      userService,
       logger: genericLogger,
     });
     expect(result).not.toContainEqual(tenantRecipients[2]);
