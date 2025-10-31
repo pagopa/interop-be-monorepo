@@ -28,7 +28,6 @@ export async function handleConsumerDelegationApproved(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -54,7 +53,6 @@ export async function handleConsumerDelegationApproved(
     tenants: [delegator],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
