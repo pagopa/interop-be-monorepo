@@ -97,8 +97,8 @@ describe("API POST /purposes/{purposeId} test", () => {
     },
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
-    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 403 },
     {
       error: tenantIsNotTheDelegatedConsumer(
         generateId(),
