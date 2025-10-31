@@ -204,7 +204,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PurposeVersionDocument"
+              $ref: "#/components/schemas/PurposeVersionSignedDocument"
       responses:
         "204":
           description: Risk Analysis metadata added successfully
@@ -1644,6 +1644,8 @@ components:
           $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
           type: string
+        signedContract:
+          $ref: "#/components/schemas/PurposeVersionSignedDocument"
       required:
         - id
         - state
@@ -1677,6 +1679,29 @@ components:
         path:
           type: string
         createdAt:
+          type: string
+          format: date-time
+    PurposeVersionSignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - contentType
+        - path
+        - createdAt
+        - signedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
           type: string
           format: date-time
     PurposeCloneSeed:

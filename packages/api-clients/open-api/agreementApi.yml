@@ -952,7 +952,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Document"
+              $ref: "#/components/schemas/SignedDocument"
       responses:
         "204":
           description: Contract metadata added successfully
@@ -1323,6 +1323,8 @@ components:
           format: date-time
         stamps:
           $ref: "#/components/schemas/AgreementStamps"
+        signedContract:
+          $ref: "#/components/schemas/SignedDocument"
       required:
         - id
         - eserviceId
@@ -1663,6 +1665,35 @@ components:
           format: date-time
         path:
           type: string
+    SignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - createdAt
+        - path
+        - signedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        path:
+          type: string
+        signedAt:
+          type: string
+          format: date-time
     CompactEServices:
       type: object
       additionalProperties: false
