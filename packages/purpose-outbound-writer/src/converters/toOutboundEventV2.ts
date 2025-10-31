@@ -42,6 +42,7 @@ function toOutboundPurposeVersionV2(
     stamps:
       purposeVersion.stamps &&
       toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
+    signedContract: undefined,
   };
 }
 

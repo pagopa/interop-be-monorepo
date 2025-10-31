@@ -14,6 +14,7 @@ import {
   AgreementState,
   agreementState,
   Agreement,
+  AgreementContract,
 } from "./agreement.js";
 
 export const fromAgreementDocumentV2 = (
@@ -22,6 +23,14 @@ export const fromAgreementDocumentV2 = (
   ...input,
   id: unsafeBrandId(input.id),
   createdAt: bigIntToDate(input.createdAt),
+});
+export const fromAgreementContractV2 = (
+  input: AgreementDocumentV2
+): AgreementContract => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: bigIntToDate(input.createdAt),
+  signedAt: bigIntToDate(input.signedAt),
 });
 
 export const fromAgreementStampV2 = (
@@ -95,7 +104,7 @@ export const fromAgreementV2 = (input: AgreementV2): Agreement => ({
   suspendedAt: bigIntToDate(input.suspendedAt),
   consumerDocuments: input.consumerDocuments.map(fromAgreementDocumentV2),
   contract: input.contract
-    ? fromAgreementDocumentV2(input.contract)
+    ? fromAgreementContractV2(input.contract)
     : undefined,
   stamps: fromAgreementStampsV2(input.stamps),
 });

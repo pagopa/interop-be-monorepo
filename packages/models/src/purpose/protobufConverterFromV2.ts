@@ -50,6 +50,7 @@ export const fromPurposeVersionDocumentV2 = (
   ...input,
   id: unsafeBrandId(input.id),
   createdAt: bigIntToDate(input.createdAt),
+  signedAt: bigIntToDate(input.signedAt),
 });
 
 export const fromPurposeVersionStampV2 = (

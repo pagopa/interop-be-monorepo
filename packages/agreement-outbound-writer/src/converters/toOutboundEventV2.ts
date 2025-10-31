@@ -53,6 +53,7 @@ function toOutboundAgreementV2(
     contract:
       agreement.contract && toOutboundAgreementDocumentV2(agreement.contract),
     stamps: agreement.stamps && toOutboundStampsV2(agreement.stamps),
+    signedContract: undefined,
   };
 }
 

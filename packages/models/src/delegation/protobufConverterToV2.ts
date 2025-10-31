@@ -49,6 +49,7 @@ export const toDelegationContractDocumentV2 = (
 ): DelegationContractDocumentV2 => ({
   ...contract,
   createdAt: dateToBigInt(contract.createdAt),
+  signedAt: dateToBigInt(contract.signedAt),
 });
 
 export const toDelegationStampV2 = (

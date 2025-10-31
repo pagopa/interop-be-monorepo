@@ -9,6 +9,7 @@ import {
 import { dateToBigInt } from "../utils.js";
 import {
   Agreement,
+  AgreementContract,
   AgreementDocument,
   AgreementStamp,
   AgreementStamps,
@@ -35,6 +36,14 @@ export const toAgreementDocumentV2 = (
 ): AgreementDocumentV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
+});
+
+export const toAgreementContractV2 = (
+  input: AgreementContract
+): AgreementDocumentV2 => ({
+  ...input,
+  createdAt: dateToBigInt(input.createdAt),
+  signedAt: dateToBigInt(input.signedAt),
 });
 
 export const toAgreementStampV2 = (
@@ -71,6 +80,6 @@ export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
   updatedAt: dateToBigInt(input.updatedAt),
   suspendedAt: dateToBigInt(input.suspendedAt),
   consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV2),
-  contract: input.contract ? toAgreementDocumentV2(input.contract) : undefined,
+  contract: input.contract ? toAgreementContractV2(input.contract) : undefined,
   stamps: toAgreementStampsV2(input.stamps),
 });

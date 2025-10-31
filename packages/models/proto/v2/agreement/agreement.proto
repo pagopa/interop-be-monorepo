@@ -23,6 +23,7 @@ message AgreementV2 {
   optional AgreementStampsV2 stamps = 18;
   optional string rejectionReason = 19;
   optional int64 suspendedAt = 20;
+  optional string signedContract = 21;
 }
 
 message VerifiedAttributeV2 {
@@ -46,6 +47,7 @@ message AgreementDocumentV2 {
   string contentType = 4;
   string path = 5;
   int64 createdAt = 6;
+  optional int64 signedAt = 7;
 }
 
 enum AgreementStateV2 {

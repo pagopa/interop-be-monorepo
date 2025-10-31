@@ -21,6 +21,7 @@ function toOuboundDelegationContractDocumentV2(
   return {
     ...document,
     path: undefined,
+    signedAt: undefined,
   };
 }
 
@@ -56,6 +57,7 @@ function toOutboundDelegationV2(
       delegation.revocationContract &&
       toOuboundDelegationContractDocumentV2(delegation.revocationContract),
     stamps: delegation.stamps && toOutboundStampsV2(delegation.stamps),
+    signedContract: undefined,
   };
 }
 

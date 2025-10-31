@@ -38,6 +38,7 @@ export const toPurposeVersionDocumentV2 = (
 ): PurposeVersionDocumentV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
+  signedAt: dateToBigInt(input.signedAt),
 });
 
 export const toPurposeVersionStampV2 = (

@@ -129,7 +129,6 @@ describe("API POST /internal/purposes/:purposeId/versions/:versionId/riskAnalysi
     const token = generateToken(authRole.INTERNAL_ROLE);
     const invalidPayload = {
       id: generateId(),
-      // 'path', 'contentType' e 'createdAt' mancano
     } as unknown as PurposeVersionDocument;
 
     const res = await makeRequest(
