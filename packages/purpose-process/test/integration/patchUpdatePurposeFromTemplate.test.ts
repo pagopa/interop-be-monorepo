@@ -454,9 +454,9 @@ describe("patchUpdatePurposeFromTemplate", () => {
     ).rejects.toThrowError(purposeDraftVersionNotFound(draftPurpose.id));
   });
 
-  it("Should throw purposeNotInDraftState if have one purpose version not in draft state", async () => {
+  it("Should throw purposeDraftVersionNotFound if there's a purpose version not in draft state", async () => {
     const nonDraftState: PurposeVersionState = getRandomNonPurposeStateWithout(
-      purposeVersionState.active
+      purposeVersionState.draft
     );
 
     await addOnePurpose({
