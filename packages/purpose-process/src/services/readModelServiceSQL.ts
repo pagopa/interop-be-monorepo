@@ -21,6 +21,9 @@ import {
   Delegation,
   delegationKind,
   DelegationId,
+  PurposeTemplateId,
+  PurposeTemplate,
+  purposeTemplateState,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -30,6 +33,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
@@ -40,6 +44,7 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   PurposeReadModelService,
+  PurposeTemplateReadModelService,
   TenantReadModelService,
   toPurposeAggregatorArray,
 } from "pagopa-interop-readmodel";
@@ -198,6 +203,7 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   purposeReadModelServiceSQL: PurposeReadModelService;
@@ -205,6 +211,7 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
   agreementReadModelServiceSQL: AgreementReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
+  purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -430,6 +437,21 @@ export function readModelServiceBuilderSQL({
             eq(
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer
+            )
+          )
+        )
+      )?.data;
+    },
+    async getPublishedPurposeTemplateById(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<PurposeTemplate | undefined> {
+      return (
+        await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
+          and(
+            eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplateId),
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.state,
+              purposeTemplateState.published
             )
           )
         )

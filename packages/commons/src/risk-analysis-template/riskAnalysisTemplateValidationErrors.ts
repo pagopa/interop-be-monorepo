@@ -10,7 +10,8 @@ type RiskAnalysisTemplateValidationIssueCode =
   | "noRiskAnalysisTemplateRulesVersionFoundError"
   | "unexpectedRiskAnalysisTemplateRulesVersionError"
   | "unexpectedRiskAnalysisTemplateDependencyValueError"
-  | "missingExpectedRiskAnalysisTemplateFieldError";
+  | "missingExpectedRiskAnalysisTemplateFieldError"
+  | "incompatiblePurposeTemplatePersonalDataError";
 
 export class RiskAnalysisTemplateValidationIssue extends InternalError<RiskAnalysisTemplateValidationIssueCode> {
   constructor({
@@ -150,4 +151,14 @@ export function validTemplateResult<T>(
     type: "valid",
     value,
   };
+}
+
+export function incompatiblePurposeTemplatePersonalDataError(
+  personalDataInRiskAnalysisTemplate: boolean | undefined,
+  personalDataInPurposeTemplate: boolean
+): RiskAnalysisTemplateValidationIssue {
+  return new RiskAnalysisTemplateValidationIssue({
+    code: "incompatiblePurposeTemplatePersonalDataError",
+    detail: `The usesPersonalData answer (${personalDataInRiskAnalysisTemplate}) doesn't match the handlesPersonalData flag of the purpose template (${personalDataInPurposeTemplate})`,
+  });
 }
