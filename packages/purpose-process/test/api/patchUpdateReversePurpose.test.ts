@@ -33,13 +33,13 @@ import {
 
 describe("API PATCH /reverse/purposes/{purposeId} test", () => {
   const mockReversePurposeUpdateContent: purposeApi.PatchReversePurposeUpdateContent =
-    {
-      title: "Mock purpose title",
-      dailyCalls: 10,
-      description: "Mock purpose description",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "Mock free of charge reason",
-    };
+  {
+    title: "Mock purpose title",
+    dailyCalls: 10,
+    description: "Mock purpose description",
+    isFreeOfCharge: true,
+    freeOfChargeReason: "Mock free of charge reason",
+  };
   const mockPurpose: Purpose = getMockPurpose();
   const isRiskAnalysisValid = true;
 
@@ -124,7 +124,7 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
-    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 403 },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
     {
       error: tenantIsNotTheDelegatedConsumer(
         generateId(),
