@@ -5,7 +5,6 @@ import {
   generateId,
   ListResult,
   PurposeTemplateId,
-  WithMetadata,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
@@ -15,37 +14,27 @@ import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 
 describe("API GET /purposeTemplates/:id/eservices", () => {
-  const metadataVersion = 2;
   const purposeTemplateId = generateId<PurposeTemplateId>();
-  const purposeTemplateEServiceDescriptor1: WithMetadata<EServiceDescriptorPurposeTemplate> =
+  const purposeTemplateEServiceDescriptor1: EServiceDescriptorPurposeTemplate =
     {
-      data: {
-        purposeTemplateId,
-        eserviceId: generateId(),
-        descriptorId: generateId(),
-        createdAt: new Date(),
-      },
-      metadata: { version: metadataVersion },
+      purposeTemplateId,
+      eserviceId: generateId(),
+      descriptorId: generateId(),
+      createdAt: new Date(),
     };
-  const purposeTemplateEServiceDescriptor2: WithMetadata<EServiceDescriptorPurposeTemplate> =
+  const purposeTemplateEServiceDescriptor2: EServiceDescriptorPurposeTemplate =
     {
-      data: {
-        purposeTemplateId,
-        eserviceId: generateId(),
-        descriptorId: generateId(),
-        createdAt: new Date(),
-      },
-      metadata: { version: metadataVersion },
+      purposeTemplateId,
+      eserviceId: generateId(),
+      descriptorId: generateId(),
+      createdAt: new Date(),
     };
-  const purposeTemplateEServiceDescriptor3: WithMetadata<EServiceDescriptorPurposeTemplate> =
+  const purposeTemplateEServiceDescriptor3: EServiceDescriptorPurposeTemplate =
     {
-      data: {
-        purposeTemplateId,
-        eserviceId: generateId(),
-        descriptorId: generateId(),
-        createdAt: new Date(),
-      },
-      metadata: { version: metadataVersion },
+      purposeTemplateId,
+      eserviceId: generateId(),
+      descriptorId: generateId(),
+      createdAt: new Date(),
     };
 
   const defaultQuery = {
@@ -55,32 +44,31 @@ describe("API GET /purposeTemplates/:id/eservices", () => {
     limit: 10,
   };
 
-  const serviceResponse: ListResult<
-    WithMetadata<EServiceDescriptorPurposeTemplate>
-  > = {
-    results: [
-      purposeTemplateEServiceDescriptor1,
-      purposeTemplateEServiceDescriptor2,
-      purposeTemplateEServiceDescriptor3,
-    ],
-    totalCount: 3,
-  };
+  const purposeTemplateEServiceDescriptors: ListResult<EServiceDescriptorPurposeTemplate> =
+    {
+      results: [
+        purposeTemplateEServiceDescriptor1,
+        purposeTemplateEServiceDescriptor2,
+        purposeTemplateEServiceDescriptor3,
+      ],
+      totalCount: 3,
+    };
 
   const apiResponse =
     purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
-      results: serviceResponse.results.map(
+      results: purposeTemplateEServiceDescriptors.results.map(
         (purposeTemplateEServiceDescriptor) =>
           eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-            purposeTemplateEServiceDescriptor.data
+            purposeTemplateEServiceDescriptor
           )
       ),
-      totalCount: serviceResponse.totalCount,
+      totalCount: purposeTemplateEServiceDescriptors.totalCount,
     });
 
   beforeEach(() => {
     purposeTemplateService.getPurposeTemplateEServiceDescriptors = vi
       .fn()
-      .mockResolvedValue(serviceResponse);
+      .mockResolvedValue(purposeTemplateEServiceDescriptors);
   });
 
   const makeRequest = async (
@@ -110,9 +98,6 @@ describe("API GET /purposeTemplates/:id/eservices", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
-      expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.results[0].metadata.version.toString()
-      );
     }
   );
 

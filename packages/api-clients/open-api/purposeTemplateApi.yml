@@ -265,9 +265,6 @@ paths:
       responses:
         "204":
           description: Purpose template deleted
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Purpose template is not in Draft state
           content:
@@ -460,9 +457,6 @@ paths:
       responses:
         "200":
           description: Purpose Template E-Services retrieved
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:

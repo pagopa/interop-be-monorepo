@@ -617,7 +617,7 @@ export function purposeTemplateServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ListResult<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
       const { purposeTemplateId } = filters;
 
       logger.info(
@@ -1276,7 +1276,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<PurposeTemplate>> {
+    ): Promise<void> {
       logger.info(`Deleting purpose template ${purposeTemplateId}`);
 
       const purposeTemplate = await retrievePurposeTemplate(
@@ -1302,20 +1302,13 @@ export function purposeTemplateServiceBuilder(
         logger,
       });
 
-      const event = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventPurposeTemplateDraftDeleted(
           purposeTemplate.data,
           correlationId,
           purposeTemplate.metadata.version
         )
       );
-
-      return {
-        data: purposeTemplate.data,
-        metadata: {
-          version: event.newVersion,
-        },
-      };
     },
     async deleteRiskAnalysisTemplateAnswerAnnotation({
       purposeTemplateId,

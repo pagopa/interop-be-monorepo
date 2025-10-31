@@ -209,12 +209,10 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { metadata } = await purposeTemplateService.deletePurposeTemplate(
+        await purposeTemplateService.deletePurposeTemplate(
           unsafeBrandId(req.params.id),
           ctx
         );
-
-        setMetadataVersionHeader(res, metadata);
 
         return res.status(204).send();
       } catch (error) {
@@ -250,19 +248,12 @@ const purposeTemplateRouter = (
             ctx
           );
 
-        if (purposeTemplateEServicesDescriptors.results.length !== 0) {
-          setMetadataVersionHeader(
-            res,
-            purposeTemplateEServicesDescriptors.results[0].metadata
-          );
-        }
-
         return res.status(200).send(
           purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
             results: purposeTemplateEServicesDescriptors.results.map(
               (purposeTemplateEServiceDescriptor) =>
                 eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-                  purposeTemplateEServiceDescriptor.data
+                  purposeTemplateEServiceDescriptor
                 )
             ),
             totalCount: purposeTemplateEServicesDescriptors.totalCount,

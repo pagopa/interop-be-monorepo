@@ -384,7 +384,7 @@ export function readModelServiceBuilderSQL({
     async getPurposeTemplateEServiceDescriptors(
       filters: GetPurposeTemplateEServiceDescriptorsFilters,
       { limit, offset }: { limit: number; offset: number }
-    ): Promise<ListResult<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
       const { purposeTemplateId, producerIds, eserviceName } = filters;
 
       const queryResult = await readModelDB
@@ -431,7 +431,7 @@ export function readModelServiceBuilderSQL({
 
       return createListResult(
         purposeTemplateEServiceDescriptors.map(
-          (eserviceDescriptor) => eserviceDescriptor
+          (eserviceDescriptor) => eserviceDescriptor.data
         ),
         queryResult[0]?.totalCount
       );
