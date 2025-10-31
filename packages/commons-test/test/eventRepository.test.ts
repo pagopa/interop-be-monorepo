@@ -163,13 +163,13 @@ describe("EventRepository tests", async () => {
       descriptor2.id,
       correlationId
     );
-    const test = await repository.createEvents([
-      eserviceCreationEvent,
-      descriptorCreationEvent1,
-      descriptorCreationEvent2,
-    ]);
-    console.log("returned: ", test);
-    expect(test).toStrictEqual({
+    expect(
+      await repository.createEvents([
+        eserviceCreationEvent,
+        descriptorCreationEvent1,
+        descriptorCreationEvent2,
+      ])
+    ).toStrictEqual({
       events: [
         { streamId: eservice.id, newVersion: 0 },
         { streamId: eservice.id, newVersion: 1 },
