@@ -20,6 +20,7 @@ import {
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
+  isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -963,32 +964,36 @@ export function purposeServiceBuilder(
         },
       };
 
-      const riskAnalysisDocument = await generateRiskAnalysisDocument({
-        eservice,
-        purpose: purpose.data,
-        userId: stamps.creation.who,
-        dailyCalls: seed.dailyCalls,
-        readModelService,
-        fileManager,
-        pdfGenerator,
-        logger,
-      });
+      // Conditionally generate the risk analysis document only if feature flag is enabled
+      const riskAnalysisDocument: PurposeVersion["riskAnalysis"] | undefined =
+        isFeatureFlagEnabled(config, "featureFlagPurposesContractBuilder")
+          ? await generateRiskAnalysisDocument({
+              eservice,
+              purpose: purpose.data,
+              userId: stamps.creation.who,
+              dailyCalls: seed.dailyCalls,
+              readModelService,
+              fileManager,
+              pdfGenerator,
+              logger,
+            })
+          : undefined;
 
       const newPurposeVersion: PurposeVersion = {
         id: generateId(),
-        riskAnalysis: riskAnalysisDocument,
         state: purposeVersionState.active,
         dailyCalls: seed.dailyCalls,
         firstActivationAt: new Date(),
         createdAt: new Date(),
         stamps,
+        ...(riskAnalysisDocument ? { riskAnalysis: riskAnalysisDocument } : {}),
       };
 
       const oldVersions = archiveActiveAndSuspendedPurposeVersions(
         purpose.data.versions
       );
 
-      const updatedPurpose = {
+      const updatedPurpose: Purpose = {
         ...purpose.data,
         versions: [...oldVersions, newPurposeVersion],
         updatedAt: new Date(),
@@ -2131,23 +2136,29 @@ async function activatePurposeLogic({
     .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
     .exhaustive();
 
+  const riskAnalysisDocument: PurposeVersion["riskAnalysis"] | undefined =
+    isFeatureFlagEnabled(config, "featureFlagPurposesContractBuilder") && stamps
+      ? await generateRiskAnalysisDocument({
+          eservice,
+          purpose: purpose.data,
+          userId: stamps.creation.who,
+          dailyCalls: purposeVersion.dailyCalls,
+          readModelService,
+          fileManager,
+          pdfGenerator,
+          logger,
+        })
+      : purposeVersion.riskAnalysis;
+
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
     state: purposeVersionState.active,
-    riskAnalysis: await generateRiskAnalysisDocument({
-      eservice,
-      purpose: purpose.data,
-      userId: stamps?.creation.who,
-      dailyCalls: purposeVersion.dailyCalls,
-      readModelService,
-      fileManager,
-      pdfGenerator,
-      logger,
-    }),
+    riskAnalysis: riskAnalysisDocument,
     stamps,
     updatedAt: new Date(),
-    firstActivationAt: new Date(),
+    firstActivationAt: purposeVersion.firstActivationAt ?? new Date(),
   };
+
   const unsuspendedPurpose: Purpose =
     fromState === purposeVersionState.waitingForApproval
       ? {
@@ -2156,6 +2167,7 @@ async function activatePurposeLogic({
           suspendedByProducer: false,
         }
       : purpose.data;
+
   const updatedPurpose: Purpose = replacePurposeVersion(
     {
       ...unsuspendedPurpose,
