@@ -15,7 +15,6 @@ import {
   PurposeTemplate,
   PurposeTemplateEvent,
   PurposeTemplateId,
-  RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   Tenant,
   toPurposeTemplateV2,
