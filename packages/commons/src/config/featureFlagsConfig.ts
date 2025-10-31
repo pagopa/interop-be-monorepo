@@ -178,6 +178,21 @@ export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
   typeof FeatureFlagPurposesProcessContractBuilderConfig
 >;
 
+export const FeatureFlagDocumentsGeneratorConfig = z
+  .object({
+    FEATURE_FLAG_DOCUMENT_GENERATOR: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDocumentGenerator: c.FEATURE_FLAG_DOCUMENT_GENERATOR ?? false,
+  }));
+export type FeatureFlagDocumentsGeneratorConfig = z.infer<
+  typeof FeatureFlagDocumentsGeneratorConfig
+>;
+
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
@@ -188,7 +203,8 @@ type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagEServicePersonalDataConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
-  FeatureFlagPurposesProcessContractBuilderConfig;
+  FeatureFlagPurposesProcessContractBuilderConfig &
+  FeatureFlagDocumentsGeneratorConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
