@@ -13,7 +13,6 @@ import { generateMock } from "@anatine/zod-mock";
 import {
   ClientId,
   ProducerKeychainId,
-  PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   algorithm,
   generateId,
@@ -76,16 +75,19 @@ export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplat
   };
 }
 
-export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument(
-  id: RiskAnalysisTemplateAnswerAnnotationDocumentId = generateId(),
-  purposeTemplateId: PurposeTemplateId = generateId(),
-  basePath: string = "purposeTemplateAnnotationsPath",
-  name: string = generateMock(z.string())
-): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument {
+export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
+  id = generateId(),
+  path = "purposeTemplateAnnotationsPath",
+  name = generateMock(z.string()),
+}: {
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  path: string;
+  name: string;
+}): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument {
   return {
     id,
     name,
-    path: `${basePath}/${purposeTemplateId}/${id}/${name}`,
+    path,
     prettyName: generateMock(z.string()),
     contentType: "application/pdf",
     createdAt: new Date().toISOString(),

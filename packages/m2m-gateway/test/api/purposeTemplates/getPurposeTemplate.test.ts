@@ -39,10 +39,6 @@ describe("GET /purposeTemplates/:purposeTemplateId router test", () => {
   );
 
   it("Should return 400 for invalid purpose template id", async () => {
-    mockPurposeTemplateService.getPurposeTemplate = vi
-      .fn()
-      .mockResolvedValue(mockM2MPurposeTemplateResponse);
-
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token, "INVALID ID");
     expect(res.status).toBe(400);
