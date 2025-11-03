@@ -55,6 +55,7 @@ export const errorCodes = {
   riskAnalysisMissingExpectedFieldError: "0036",
   riskAnalysisVersionMismatch: "0037",
   invalidPersonalData: "0038",
+  purposeDraftVersionNotFound: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -227,6 +228,16 @@ export function purposeNotInDraftState(
     detail: `Purpose ${purposeId} is not in draft state`,
     code: "purposeNotInDraftState",
     title: "Purpose not in draft state",
+  });
+}
+
+export function purposeDraftVersionNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} does not have a draft version`,
+    code: "purposeDraftVersionNotFound",
+    title: "Purpose draft version not found",
   });
 }
 

@@ -3,6 +3,7 @@ import { WithLogger } from "pagopa-interop-commons";
 import { PurposeTemplateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import { toM2MGatewayApiPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -39,7 +40,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return {
-        results,
+        results: results.map(toM2MGatewayApiPurposeTemplate),
         pagination: {
           limit,
           offset,

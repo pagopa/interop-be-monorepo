@@ -87,6 +87,7 @@ const eserviceTemplatesRouter = (
           creatorsIds,
           eserviceTemplatesIds,
           states,
+          personalData,
           offset,
           limit,
         } = req.query;
@@ -101,6 +102,7 @@ const eserviceTemplatesRouter = (
                 apiEServiceTemplateVersionStateToEServiceTemplateVersionState
               ),
               name,
+              personalData,
             },
             offset,
             limit,
@@ -810,7 +812,7 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplateVersionAttributes(
