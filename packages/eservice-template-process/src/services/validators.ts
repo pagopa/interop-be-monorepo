@@ -16,6 +16,7 @@ import {
   operationForbidden,
   TenantId,
   eserviceMode,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -27,6 +28,7 @@ import {
   eserviceTemplateDuplicate,
   missingRiskAnalysis,
   riskAnalysisValidationFailed,
+  riskAnalysisNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -172,4 +174,13 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisValidationFailed(result.issues);
     }
   });
+}
+
+export function assertRiskAnalysisExists(
+  eserviceTemplate: EServiceTemplate,
+  riskAnalysisId: RiskAnalysisId
+): void {
+  if (!eserviceTemplate.riskAnalysis.some((ra) => ra.id === riskAnalysisId)) {
+    throw riskAnalysisNotFound(eserviceTemplate.id, riskAnalysisId);
+  }
 }
