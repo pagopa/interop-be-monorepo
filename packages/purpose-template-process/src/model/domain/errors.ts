@@ -38,7 +38,6 @@ export const errorCodes = {
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
   riskAnalysisAnswerNotFound: "0023",
-  documentPrettyNameDuplicate: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -290,16 +289,5 @@ export function riskAnalysisAnswerNotFound(
     detail: `Risk analysis answer not found for ID ${answerId}`,
     code: "riskAnalysisAnswerNotFound",
     title: "Risk analysis answer not found",
-  });
-}
-
-export function documentPrettyNameDuplicate(
-  prettyName: string,
-  purposeTemplateId: PurposeTemplateId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `An Annotation Document with prettyName ${prettyName} already exists in Purpose Template ${purposeTemplateId}`,
-    code: "documentPrettyNameDuplicate",
-    title: "Annotation Document Duplicated prettyName",
   });
 }
