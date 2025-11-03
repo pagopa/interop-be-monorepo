@@ -20,7 +20,6 @@ describe("getPurposeTemplates", () => {
       m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED,
       m2mGatewayApi.PurposeTemplateState.Enum.DRAFT,
     ],
-    excludeExpiredRiskAnalysis: false,
   };
 
   const mockApiPurposeTemplate1 = getMockedApiPurposeTemplate();
@@ -114,7 +113,6 @@ describe("getPurposeTemplates", () => {
           m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED,
           m2mGatewayApi.PurposeTemplateState.Enum.DRAFT,
         ],
-        excludeExpiredRiskAnalysis: false,
       } satisfies m2mGatewayApi.GetPurposeTemplatesQueryParams,
     });
   });

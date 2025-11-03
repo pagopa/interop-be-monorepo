@@ -18,10 +18,16 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
-import { getMockClientJWKKey, getMockProducerJWKKey } from "./testUtils.js";
+import {
+  getMockClientJWKKey,
+  getMockProducerJWKKey,
+  randomBoolean,
+} from "./testUtils.js";
 
-export const mockAvailableDailysCalls = (): number =>
+export const mockAvailableDailyCalls = (): number =>
   generateMock(z.number().min(1).max(1000000000));
+const mockOptionalDailyCalls = (): number | undefined =>
+  randomBoolean() ? mockAvailableDailyCalls() : undefined;
 
 export function getMockedApiPurposeVersion({
   state,
@@ -33,7 +39,7 @@ export function getMockedApiPurposeVersion({
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
-    dailyCalls: mockAvailableDailysCalls(),
+    dailyCalls: mockAvailableDailyCalls(),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
     riskAnalysis,
   };
@@ -72,8 +78,11 @@ export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplat
     purposeRiskAnalysisForm: generateMock(
       purposeTemplateApi.RiskAnalysisFormTemplate
     ),
-    purposeIsFreeOfCharge: false,
-    handlesPersonalData: true,
+    purposeIsFreeOfCharge: randomBoolean(),
+    handlesPersonalData: randomBoolean(),
+    updatedAt: randomBoolean() ? new Date().toISOString() : undefined,
+    purposeFreeOfChargeReason: generateMock(z.string().optional()),
+    purposeDailyCalls: mockOptionalDailyCalls(),
   };
 }
 
@@ -352,10 +361,8 @@ export function getMockedApiEserviceDescriptor({
     description: generateMock(z.string().length(10)),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
-    dailyCallsPerConsumer: generateMock(
-      z.number().int().gte(1).lte(1000000000)
-    ),
-    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
+    dailyCallsPerConsumer: mockAvailableDailyCalls(),
+    dailyCallsTotal: mockAvailableDailyCalls(),
     interface: interfaceDoc ?? generateMock(catalogApi.EServiceDoc),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: state ?? generateMock(catalogApi.EServiceDescriptorState),
