@@ -30,7 +30,6 @@ export async function handleTenantCertifiedAttributeRevoked(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -61,7 +60,6 @@ export async function handleTenantCertifiedAttributeRevoked(
     tenants: [tenant],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

@@ -19,7 +19,6 @@ export async function handleEServiceTemplateEvent(
     logger,
     readModelService,
     templateService,
-    userService,
     correlationId,
   } = params;
   return match(decodedMessage)
@@ -34,7 +33,6 @@ export async function handleEServiceTemplateEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
         ...(await handleEServiceTemplateVersionSuspendedToInstantiator({
@@ -45,7 +43,6 @@ export async function handleEServiceTemplateEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
       ]
@@ -61,7 +58,6 @@ export async function handleEServiceTemplateEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })
     )
@@ -74,7 +70,6 @@ export async function handleEServiceTemplateEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })
     )
