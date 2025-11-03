@@ -6,6 +6,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -26,11 +27,9 @@ import { attributeNotFound } from "../src/models/errors.js";
 import {
   addOneAttribute,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleTenantCertifiedAttributeAssigned", async () => {
@@ -67,9 +66,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -85,7 +81,12 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -96,7 +97,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
         attributeId: generateId(),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -114,7 +114,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
         attributeId: unknownAttributeId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -130,7 +129,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       attributeId: attributeWithNoOrigin.id,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -144,7 +142,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -166,7 +163,12 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const messages = await handleTenantCertifiedAttributeAssigned({
@@ -174,7 +176,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -198,7 +199,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

@@ -34,12 +34,9 @@ import {
   delegationReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
 import { config } from "./config/config.js";
 import { emailNotificationDispatcherServiceBuilder } from "./services/emailNotificationDispatcherService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { userServiceBuilderSQL } from "./services/userServiceSQL.js";
 import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
 import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
 import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
@@ -80,17 +77,6 @@ const readModelService = readModelServiceBuilderSQL({
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
 });
-
-const pool = new pg.Pool({
-  host: config.userSQLDbHost,
-  database: config.userSQLDbName,
-  user: config.userSQLDbUsername,
-  password: config.userSQLDbPassword,
-  port: config.userSQLDbPort,
-  ssl: config.userSQLDbUseSSL,
-});
-const userDB = drizzle(pool);
-const userService = userServiceBuilderSQL(userDB);
 
 const emailNotificationDispatcherService =
   emailNotificationDispatcherServiceBuilder();
@@ -156,7 +142,6 @@ function processMessage(topicHandlers: TopicNames) {
         logger: loggerInstance,
         readModelService,
         templateService,
-        userService,
       });
     };
 

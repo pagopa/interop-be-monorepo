@@ -3,7 +3,9 @@ import {
   Delegation,
   delegationKind,
   delegationState,
+  NotificationType,
   TenantNotificationConfig,
+  UserRole,
 } from "pagopa-interop-models";
 import { WithMetadata } from "pagopa-interop-models";
 import {
@@ -13,7 +15,6 @@ import {
   EService,
   EServiceId,
   EServiceTemplateId,
-  NotificationConfig,
   Purpose,
   PurposeId,
   Tenant,
@@ -96,8 +97,10 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationName: keyof NotificationConfig
-    ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+      notificationName: NotificationType
+    ): Promise<
+      Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
+    > {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
         notificationName,

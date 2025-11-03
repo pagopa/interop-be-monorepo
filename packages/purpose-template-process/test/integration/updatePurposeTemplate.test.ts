@@ -134,8 +134,8 @@ describe("updatePurposeTemplate", () => {
           {
             editable: false,
             annotation: undefined,
-            values: ["Updated Answer value"],
-            suggestedValues: [],
+            values: [],
+            suggestedValues: ["Updated Answer value", "Updated Answer value 2"],
           },
         ],
       ]);
@@ -207,10 +207,13 @@ describe("updatePurposeTemplate", () => {
             // add new value to answer "otherPurpose"
             .concat({
               id: expect.anything(),
-              value: "Updated Answer value",
+              value: undefined,
               key: "otherPurpose",
               editable: false,
-              suggestedValues: [],
+              suggestedValues: [
+                "Updated Answer value",
+                "Updated Answer value 2",
+              ],
             }),
           multiAnswers: mockValidRiskAnalysisTemplateForm.multiAnswers.map(
             (a) => ({
