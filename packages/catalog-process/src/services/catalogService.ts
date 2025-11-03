@@ -103,6 +103,7 @@ import {
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
   eServiceTemplateWithoutPersonalDataFlag,
+  eServiceDescriptionUpdateConflict,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -2404,6 +2405,10 @@ export function catalogServiceBuilder(
         ...eservice.data,
         description,
       };
+
+      if (description === eservice.data.description) {
+        throw eServiceDescriptionUpdateConflict(eserviceId);
+      }
 
       const event = await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(

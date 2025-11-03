@@ -59,6 +59,7 @@ export const errorCodes = {
   eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
   missingPersonalDataFlag: "0043",
   eServiceTemplateWithoutPersonalDataFlag: "0044",
+  eServiceDescriptionUpdateConflict: "0045",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -510,5 +511,15 @@ export function eServiceTemplateWithoutPersonalDataFlag(
     code: "eServiceTemplateWithoutPersonalDataFlag",
     title:
       "EService Template personalData flag must be set before instantiation",
+  });
+}
+
+export function eServiceDescriptionUpdateConflict(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The description provided is the same as the current one for EService ${eserviceId}`,
+    code: "eServiceDescriptionUpdateConflict",
+    title: "EService description update conflict",
   });
 }

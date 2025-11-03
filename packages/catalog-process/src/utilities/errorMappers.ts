@@ -436,7 +436,11 @@ export const updateEServiceDescriptionErrorMapper = (
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eserviceWithoutValidDescriptors",
+      "eServiceDescriptionUpdateConflict",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceFlagsErrorMapper = (
