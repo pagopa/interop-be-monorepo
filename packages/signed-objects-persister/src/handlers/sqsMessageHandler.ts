@@ -86,7 +86,7 @@ async function processMessage(
     const path = `${clientCode}/${datePath}`;
     const fileName = appendSignedSuffixToFileName(fileKey);
 
-    // immutabile s3Key con gestione 409 per documentType specifici
+    // immutable s3Key with 409 handling for specific documentTypes
     const s3Key: string = await (async (): Promise<string> => {
       try {
         return await fileManager.resumeOrStoreBytes(
