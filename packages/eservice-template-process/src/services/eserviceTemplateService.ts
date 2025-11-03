@@ -1504,7 +1504,6 @@ export function eserviceTemplateServiceBuilder(
         {
           events: [eserviceTemplateVersionCreationEvent],
           updatedEServiceTemplateWithDocs: updatedEServiceTemplate,
-          w,
         }
       );
 
