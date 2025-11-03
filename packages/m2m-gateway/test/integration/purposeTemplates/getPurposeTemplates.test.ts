@@ -53,13 +53,47 @@ describe("getPurposeTemplates", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    const expectedM2MPurposeTemplate1: m2mGatewayApi.PurposeTemplate = {
+      id: mockApiPurposeTemplate1.id,
+      createdAt: mockApiPurposeTemplate1.createdAt,
+      state: mockApiPurposeTemplate1.state,
+      purposeTitle: mockApiPurposeTemplate1.purposeTitle,
+      targetDescription: mockApiPurposeTemplate1.targetDescription,
+      targetTenantKind: mockApiPurposeTemplate1.targetTenantKind,
+      purposeDescription: mockApiPurposeTemplate1.purposeDescription,
+      purposeIsFreeOfCharge: mockApiPurposeTemplate1.purposeIsFreeOfCharge,
+      handlesPersonalData: mockApiPurposeTemplate1.handlesPersonalData,
+      creatorId: mockApiPurposeTemplate1.creatorId,
+      updatedAt: mockApiPurposeTemplate1.updatedAt,
+      purposeFreeOfChargeReason:
+        mockApiPurposeTemplate1.purposeFreeOfChargeReason,
+      purposeDailyCalls: mockApiPurposeTemplate1.purposeDailyCalls,
+    };
+
+    const expectedM2MPurposeTemplate2: m2mGatewayApi.PurposeTemplate = {
+      id: mockApiPurposeTemplate2.id,
+      createdAt: mockApiPurposeTemplate2.createdAt,
+      state: mockApiPurposeTemplate2.state,
+      purposeTitle: mockApiPurposeTemplate2.purposeTitle,
+      targetDescription: mockApiPurposeTemplate2.targetDescription,
+      targetTenantKind: mockApiPurposeTemplate2.targetTenantKind,
+      purposeDescription: mockApiPurposeTemplate2.purposeDescription,
+      purposeIsFreeOfCharge: mockApiPurposeTemplate2.purposeIsFreeOfCharge,
+      handlesPersonalData: mockApiPurposeTemplate2.handlesPersonalData,
+      creatorId: mockApiPurposeTemplate2.creatorId,
+      updatedAt: mockApiPurposeTemplate2.updatedAt,
+      purposeFreeOfChargeReason:
+        mockApiPurposeTemplate2.purposeFreeOfChargeReason,
+      purposeDailyCalls: mockApiPurposeTemplate2.purposeDailyCalls,
+    };
+
     const m2mPurposeTemplatesResponse: m2mGatewayApi.PurposeTemplates = {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
         totalCount: mockPurposeTemplateProcessResponse.data.totalCount,
       },
-      results: [mockApiPurposeTemplate1, mockApiPurposeTemplate2],
+      results: [expectedM2MPurposeTemplate1, expectedM2MPurposeTemplate2],
     };
 
     const result = await purposeTemplateService.getPurposeTemplates(
