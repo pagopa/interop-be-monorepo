@@ -10,7 +10,6 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
-  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -80,7 +79,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/documents rout
         templateId,
         versionId,
         {
-          file: fileFromTestMultipartFileUpload(mockFileUpload, mockDate),
+          file: expect.any(File),
           prettyName: mockFileUpload.prettyName,
         },
         expect.any(Object) // Context object

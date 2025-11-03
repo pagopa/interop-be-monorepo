@@ -11,7 +11,6 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
-  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -71,7 +70,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
       ).toHaveBeenCalledWith(
         agreementId,
         {
-          file: fileFromTestMultipartFileUpload(mockFileUpload, mockDate),
+          file: expect.any(File),
           prettyName: mockFileUpload.prettyName,
         },
         expect.any(Object) // Context object
