@@ -9,6 +9,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { toM2MGatewayApiPurposeTemplate } from "../../../src/api/purposeTemplateApiConverter.js";
 
 describe("getPurposeTemplates", () => {
   const mockParams: m2mGatewayApi.GetPurposeTemplatesQueryParams = {
@@ -59,7 +60,10 @@ describe("getPurposeTemplates", () => {
         offset: mockParams.offset,
         totalCount: mockPurposeTemplateProcessResponse.data.totalCount,
       },
-      results: [mockApiPurposeTemplate1, mockApiPurposeTemplate2],
+      results: [
+        toM2MGatewayApiPurposeTemplate(mockApiPurposeTemplate1),
+        toM2MGatewayApiPurposeTemplate(mockApiPurposeTemplate2),
+      ],
     };
 
     const result = await purposeTemplateService.getPurposeTemplates(
