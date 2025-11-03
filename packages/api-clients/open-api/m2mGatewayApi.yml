@@ -18818,7 +18818,6 @@ components:
         - pagination
     PurposeTemplate:
       type: object
-      description: Business representation of a purpose template
       additionalProperties: false
       properties:
         id:
@@ -18831,6 +18830,7 @@ components:
         creatorId:
           type: string
           format: uuid
+          description: The ID of the tenant that created the purpose template
         state:
           $ref: "#/components/schemas/PurposeTemplateState"
         createdAt:
@@ -18843,8 +18843,6 @@ components:
           type: string
         purposeDescription:
           type: string
-        purposeRiskAnalysisForm:
-          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
         purposeIsFreeOfCharge:
           type: boolean
         purposeFreeOfChargeReason:
@@ -18867,93 +18865,6 @@ components:
         - purposeDescription
         - purposeIsFreeOfCharge
         - handlesPersonalData
-    RiskAnalysisFormTemplate:
-      type: object
-      additionalProperties: false
-      properties:
-        version:
-          type: string
-          minLength: 1
-          maxLength: 250
-        answers:
-          additionalProperties:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
-      required:
-        - version
-        - answers
-    RiskAnalysisTemplateAnswer:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        values:
-          type: array
-          items:
-            type: string
-            minLength: 1
-            maxLength: 2000
-        editable:
-          type: boolean
-        annotation:
-          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
-        suggestedValues:
-          type: array
-          items:
-            type: string
-            minLength: 1
-            maxLength: 250
-      required:
-        - id
-        - values
-        - editable
-        - suggestedValues
-    RiskAnalysisTemplateAnswerAnnotation:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        text:
-          type: string
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
-      required:
-        - text
-        - id
-        - docs
-    RiskAnalysisTemplateAnswerAnnotationDocument:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        contentType:
-          type: string
-        prettyName:
-          type: string
-        path:
-          type: string
-        checksum:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - name
-        - contentType
-        - prettyName
-        - path
-        - checksum
-        - createdAt
     PurposeTemplateState:
       type: string
       description: Purpose Template State

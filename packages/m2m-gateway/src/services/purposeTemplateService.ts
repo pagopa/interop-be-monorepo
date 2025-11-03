@@ -8,6 +8,7 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { toM2MGatewayApiPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -66,7 +67,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return {
-        results,
+        results: results.map(toM2MGatewayApiPurposeTemplate),
         pagination: {
           limit,
           offset,
@@ -95,7 +96,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         headers
       );
 
-      return data;
+      return toM2MGatewayApiPurposeTemplate(data);
     },
   };
 }
