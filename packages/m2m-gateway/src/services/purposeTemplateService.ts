@@ -47,14 +47,13 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         eserviceIds,
         states,
         targetTenantKind,
-        excludeExpiredRiskAnalysis,
         handlesPersonalData,
         limit,
         offset,
       } = queryParams;
 
       logger.info(
-        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, excludeExpiredRiskAnalysis ${excludeExpiredRiskAnalysis}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
+        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
       );
 
       const {
