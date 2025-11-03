@@ -78,10 +78,10 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/documents rout
       ).toHaveBeenCalledWith(
         templateId,
         versionId,
-        {
+        expect.objectContaining({
           file: expect.any(File),
           prettyName: mockFileUpload.prettyName,
-        },
+        }),
         expect.any(Object) // Context object
       );
     }

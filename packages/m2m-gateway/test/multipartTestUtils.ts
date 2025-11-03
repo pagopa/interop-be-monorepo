@@ -89,9 +89,10 @@ export function addMultipartFileToSupertestRequest(
 }
 
 // After PR https://github.com/pagopa/interop-be-monorepo/pull/2586
-// this function it's deprecated, too many flaky test:api occurs with its usages.
-// We adopting direct usage of "expect.any(File)" in place of this function,
-// until we find a properly solution.
+// This function is deprecated, as it causes too many flaky tests:api failures with its usage.
+// We adopt direct usage of "expect.any(File)" in place of this function,
+// until we find a proper solution.
+// Tracked in https://pagopa.atlassian.net/browse/PIN-7956
 export function fileFromTestMultipartFileUpload(
   file: TestMultipartFileUpload,
   date = new Date()

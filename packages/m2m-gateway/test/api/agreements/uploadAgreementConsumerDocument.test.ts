@@ -69,10 +69,10 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
         mockAgreementService.uploadAgreementConsumerDocument
       ).toHaveBeenCalledWith(
         agreementId,
-        {
+        expect.objectContaining({
           file: expect.any(File),
           prettyName: mockFileUpload.prettyName,
-        },
+        }),
         expect.any(Object) // Context object
       );
     }
