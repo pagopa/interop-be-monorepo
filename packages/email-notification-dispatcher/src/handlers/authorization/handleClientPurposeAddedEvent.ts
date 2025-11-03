@@ -26,7 +26,6 @@ export async function handleClientPurposeAdded(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -44,7 +43,6 @@ export async function handleClientPurposeAdded(
     tenants: [producer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

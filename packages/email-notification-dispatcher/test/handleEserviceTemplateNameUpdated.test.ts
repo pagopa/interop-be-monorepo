@@ -7,6 +7,7 @@ import {
   getMockEServiceTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -28,11 +29,9 @@ import {
   addOneEService,
   addOneEServiceTemplate,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEServiceTemplateNameUpdated", async () => {
@@ -64,9 +63,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
     await addOneEService(eservice);
     await addOneTenant(instantiatorTenant);
     await addOneTenant(creatorTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -82,7 +78,12 @@ describe("handleEServiceTemplateNameUpdated", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -93,7 +94,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
         oldName,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -111,7 +111,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
       oldName,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -133,7 +132,12 @@ describe("handleEServiceTemplateNameUpdated", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const messages = await handleEServiceTemplateNameUpdated({
@@ -141,7 +145,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
       oldName,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -165,7 +168,6 @@ describe("handleEServiceTemplateNameUpdated", async () => {
       oldName,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
