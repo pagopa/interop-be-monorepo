@@ -36,7 +36,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/documents rout
     prettyName: mockFileUpload.prettyName,
     name: mockFileUpload.filename,
     contentType: mockFileUpload.contentType,
-    createdAt: new Date().toISOString(),
+    createdAt: mockDate.toISOString(),
   };
 
   const makeRequest = async (

@@ -37,7 +37,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
     prettyName: mockFileUpload.prettyName,
     name: mockFileUpload.filename,
     contentType: mockFileUpload.contentType,
-    createdAt: new Date().toISOString(),
+    createdAt: mockDate.toISOString(),
   };
 
   const makeRequest = async (
