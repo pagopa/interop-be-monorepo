@@ -1,10 +1,12 @@
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { PurposeTemplateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { toM2MGatewayApiPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
+import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
+import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -15,7 +17,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
   const retrievePurposeTemplateById = async (
     purposeTemplateId: PurposeTemplateId,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+  ): Promise<WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>> =>
     await clients.purposeTemplateProcessClient.getPurposeTemplate({
       params: {
         id: purposeTemplateId,
@@ -72,6 +74,27 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
+    },
+    async getPurposeTemplateRiskAnalysis(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisFormTemplate> {
+      logger.info(
+        `Retrieving risk analysis of purpose template with id ${purposeTemplateId}`
+      );
+
+      const { data } = await retrievePurposeTemplateById(
+        purposeTemplateId,
+        headers
+      );
+
+      if (!data.purposeRiskAnalysisForm) {
+        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
+      }
+
+      return toM2MGatewayApiRiskAnalysisFormTemplate(
+        data.purposeRiskAnalysisForm
+      );
     },
   };
 }
