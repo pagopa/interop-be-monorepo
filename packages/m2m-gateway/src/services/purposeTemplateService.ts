@@ -1,4 +1,4 @@
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { PurposeTemplateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -15,7 +15,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
   const retrievePurposeTemplateById = async (
     purposeTemplateId: PurposeTemplateId,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+  ): Promise<WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>> =>
     await clients.purposeTemplateProcessClient.getPurposeTemplate({
       params: {
         id: purposeTemplateId,
