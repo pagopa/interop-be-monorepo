@@ -278,22 +278,14 @@ function validateAnswerValue(
   const hasSuggestions = answer.suggestedValues.length > 0;
   const hasValues = answer.values.length > 0;
 
-  if (answer.editable) {
-    const hasAnyContent = hasValues || hasSuggestions;
-    return hasAnyContent
-      ? [
-          malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
-            rule.fieldName
-          ),
-        ]
-      : [];
-  }
-
   return match(rule)
-    .with(P.nullish, () => [])
-
     .with({ dataType: "freeText" }, (freeTextRule) =>
-      validateFreeTextAnswer(freeTextRule, hasValues, hasSuggestions)
+      validateFreeTextAnswer(
+        freeTextRule,
+        hasValues,
+        hasSuggestions,
+        answer.editable
+      )
     )
 
     .with({ dataType: P.not("freeText") }, (nonFreeTextRule) =>
@@ -301,7 +293,8 @@ function validateAnswerValue(
         nonFreeTextRule,
         answer,
         hasValues,
-        hasSuggestions
+        hasSuggestions,
+        answer.editable
       )
     )
 
@@ -311,20 +304,28 @@ function validateAnswerValue(
 function validateFreeTextAnswer(
   rule: ValidationRule,
   hasValues: boolean,
-  hasSuggestions: boolean
+  hasSuggestions: boolean,
+  isEditable: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
-  if (!hasValues && !hasSuggestions) {
+  if (isEditable) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
   }
 
-  if (hasValues && hasSuggestions) {
+  if (hasValues) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
   }
 
+  if (!hasSuggestions) {
+    return [
+      malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
+  }
+
+  // Free text answers must have suggested values, not be editable and not have values
   return [];
 }
 
@@ -332,24 +333,44 @@ function validateNonFreeTextAnswer(
   rule: ValidationRule,
   answer: RiskAnalysisTemplateAnswerToValidate,
   hasValues: boolean,
-  hasSuggestions: boolean
+  hasSuggestions: boolean,
+  isEditable: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
-  if (
-    rule.allowedValues &&
-    answer.values.some((e) => !rule.allowedValues?.has(e))
-  ) {
-    return [
-      unexpectedRiskAnalysisTemplateFieldValueError(
-        rule.fieldName,
-        rule.allowedValues
-      ),
-    ];
-  }
-
-  if (hasSuggestions || !hasValues) {
+  // Non free text answers cannot have suggested values
+  if (hasSuggestions) {
     return [
       unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
+  }
+
+  // If answer is editable, it must NOT have values
+  if (isEditable && hasValues) {
+    return [
+      malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
+  }
+
+  if (!isEditable) {
+    // If answer is not editable, it must have values
+    if (!hasValues) {
+      return [
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          rule.fieldName
+        ),
+      ];
+    }
+    // If answer is not editable and has values, those values must be allowed
+    if (
+      rule.allowedValues &&
+      answer.values.some((e) => !rule.allowedValues?.has(e))
+    ) {
+      return [
+        unexpectedRiskAnalysisTemplateFieldValueError(
+          rule.fieldName,
+          rule.allowedValues
+        ),
+      ];
+    }
   }
 
   return [];
