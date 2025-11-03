@@ -1,4 +1,4 @@
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,
@@ -25,7 +25,7 @@ export function purposeTemplateServiceBuilder(
   const retrievePurposeTemplateById = async (
     purposeTemplateId: PurposeTemplateId,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+  ): Promise<WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>> =>
     await clients.purposeTemplateProcessClient.getPurposeTemplate({
       params: {
         id: purposeTemplateId,
@@ -57,14 +57,13 @@ export function purposeTemplateServiceBuilder(
         eserviceIds,
         states,
         targetTenantKind,
-        excludeExpiredRiskAnalysis,
         handlesPersonalData,
         limit,
         offset,
       } = queryParams;
 
       logger.info(
-        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, excludeExpiredRiskAnalysis ${excludeExpiredRiskAnalysis}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
+        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
       );
 
       const {

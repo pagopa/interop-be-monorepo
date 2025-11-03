@@ -16159,7 +16159,7 @@ paths:
       tags:
         - purposeTemplates
       summary: List Purpose Templates
-      description: Retrieve Purpose Templates based on filters
+      description: Retrieve a list of Purpose Templates based on filters
       operationId: getPurposeTemplates
       parameters:
         - in: query
@@ -16191,7 +16191,7 @@ paths:
           name: states
           description: >
             Filter Purpose Templates by states. If not specified, return Purpose Templates for any state.
-            A Tenant can only see Purpose Templates in "DRAFT" state if they are the Creator.
+            Purpose Templates in Draft state are visible only to their creator.
           schema:
             type: array
             items:
@@ -16204,18 +16204,13 @@ paths:
           schema:
             $ref: "#/components/schemas/TenantKind"
         - in: query
-          name: excludeExpiredRiskAnalysis
-          description: Exclude Purpose Templates with expired risk analysis
-          schema:
-            type: boolean
-            default: true
-        - in: query
           name: handlesPersonalData
           description: Filter Purpose Templates by whether they handle personal data. If not specified, return Purpose Templates that both handle and do not handle personal data.
           schema:
             type: boolean
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -16223,6 +16218,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -17599,6 +17595,7 @@ components:
         creatorId:
           type: string
           format: uuid
+          description: The ID of the tenant that created the E-Service Template
         name:
           type: string
         intendedTarget:
@@ -18910,7 +18907,7 @@ components:
         creatorId:
           type: string
           format: uuid
-          description: The ID of the tenant that created the purpose template
+          description: The ID of the Tenant that created the Purpose Template
         state:
           $ref: "#/components/schemas/PurposeTemplateState"
         createdAt:
@@ -18928,6 +18925,7 @@ components:
         purposeFreeOfChargeReason:
           type: string
         purposeDailyCalls:
+          description: Maximum number of daily calls that the purpose can perform
           type: integer
           format: int32
           minimum: 1
