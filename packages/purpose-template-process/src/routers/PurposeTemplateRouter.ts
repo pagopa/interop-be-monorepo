@@ -32,6 +32,7 @@ import {
   updatePurposeTemplateErrorMapper,
   addPurposeTemplateAnswerAnnotationErrorMapper,
   createRiskAnalysisAnswerErrorMapper,
+  updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
@@ -617,6 +618,37 @@ const purposeTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId/update",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const { data: updatedDocument, metadata } =
+            await purposeTemplateService.updateRiskAnalysisTemplateAnswerAnnotationDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.answerId),
+              unsafeBrandId(req.params.documentId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(annotationDocumentToApiAnnotationDocument(updatedDocument));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

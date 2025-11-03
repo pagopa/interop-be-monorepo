@@ -125,6 +125,17 @@ export const assertDocumentsLimitsNotReached = (
   }
 };
 
+// TODO: refactor better
+export const assertAnnotationDocumentPrettyNameIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    if (doc.prettyName === newPrettyName) {
+      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
+    }
+  });
+
 export const assertAnnotationDocumentIsUnique = (
   { answer }: RiskAnalysisTemplateAnswer,
   newPrettyName: string,

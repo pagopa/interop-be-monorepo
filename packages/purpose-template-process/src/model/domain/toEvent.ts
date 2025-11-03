@@ -234,3 +234,24 @@ export function toCreateEventPurposeTemplateAnnotationDocumentDeleted({
     },
   };
 }
+
+export function toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated(
+  purposeTemplate: PurposeTemplate,
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplateAnnotationDocumentUpdated",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        documentId,
+      },
+    },
+  };
+}
