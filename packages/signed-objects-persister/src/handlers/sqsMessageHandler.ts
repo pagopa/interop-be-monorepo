@@ -28,7 +28,7 @@ import {
 import { S3ServiceException } from "@aws-sdk/client-s3";
 import { config } from "../config/config.js";
 import { FILE_KIND_CONFIG } from "../utils/fileKind.config.js";
-import { insertSignedBeforeExtension } from "../utils/insertSignedBeforeExtension.js";
+import { appendSignedSuffixToFileName } from "../utils/appendSignedSuffixToFileName.js";
 import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnalysis.js";
 import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
 import { addDelegationSignedContract } from "../utils/metadata/delegations.js";
@@ -84,7 +84,7 @@ async function processMessage(
       FILE_KIND_CONFIG[fileKind as keyof typeof FILE_KIND_CONFIG];
     const datePath = format(new Date(message.time), "yyyy/MM/dd");
     const path = `${clientCode}/${datePath}`;
-    const fileName = insertSignedBeforeExtension(fileKey);
+    const fileName = appendSignedSuffixToFileName(fileKey);
 
     // immutabile s3Key con gestione 409 per documentType specifici
     const s3Key: string = await (async (): Promise<string> => {
@@ -99,11 +99,11 @@ async function processMessage(
           (error.$metadata?.httpStatusCode === 409 ||
             error.name === "Conflict");
 
-        const isSpecialDocumentType =
+        const allowConflictWarning =
           documentType === "RISK_ANALYSIS_DOCUMENT" ||
           documentType === "AGREEMENT_CONTRACT";
 
-        if (isConflict && isSpecialDocumentType) {
+        if (isConflict && allowConflictWarning) {
           logger.warn(
             `Conflict (409) uploading s3://${bucket}/${path}/${fileName} — file already exists, continuing`
           );

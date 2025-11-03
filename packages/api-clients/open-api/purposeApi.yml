@@ -193,7 +193,7 @@ paths:
           type: string
           format: uuid
     post:
-      description: Adds the metadata of an signed Risk Analysis document to the purpose version
+      description: Adds the metadata of a signed Risk Analysis document to the purpose version
       summary: Add signed Risk Analysis metadata to purpose version
       tags:
         - purpose
