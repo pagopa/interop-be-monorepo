@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -15,6 +15,15 @@ import {
 import { config } from "../../../src/config/config.js";
 
 describe("POST /eserviceTemplates/:templateId/versions/:versionId/documents router test", () => {
+  const mockDate = new Date();
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   const mockFileUpload = {
     fileContent: Buffer.from("test content"),
     filename: "test_document.pdf",
@@ -71,7 +80,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/documents rout
         templateId,
         versionId,
         {
-          file: fileFromTestMultipartFileUpload(mockFileUpload),
+          file: fileFromTestMultipartFileUpload(mockFileUpload, mockDate),
           prettyName: mockFileUpload.prettyName,
         },
         expect.any(Object) // Context object
