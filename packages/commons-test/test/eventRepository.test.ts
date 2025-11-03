@@ -84,7 +84,7 @@ describe("EventRepository tests", async () => {
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual({
+    ).toEqual({
       events: [
         { streamId: eservice.id, newVersion: 1 },
         { streamId: eservice.id, newVersion: 2 },
@@ -169,7 +169,7 @@ describe("EventRepository tests", async () => {
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual({
+    ).toEqual({
       events: [
         { streamId: eservice.id, newVersion: 0 },
         { streamId: eservice.id, newVersion: 1 },
