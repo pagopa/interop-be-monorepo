@@ -212,12 +212,132 @@ describe("Risk Analysis Template Validation", () => {
     });
   });
 
-  it("should throw malformedTemplateFieldValueOrSuggestionError if one field is editable and has values or suggestions", () => {
+  it("should throw malformedTemplateFieldValueOrSuggestionError if freeText field has editable: true", () => {
+    const template = createValidTemplate(tenantKind.PA);
+    const templateWithInvalidFreeText = createTemplateWithModifiedField(
+      template,
+      TEST_FIELDS.INSTITUTIONAL_PURPOSE,
+      { editable: true }
+    );
+
+    const result = validatePurposeTemplateRiskAnalysis(
+      templateWithInvalidFreeText,
+      tenantKind.PA,
+      true
+    );
+
+    expect(result).toEqual({
+      type: "invalid",
+      issues: [
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.INSTITUTIONAL_PURPOSE
+        ),
+      ],
+    });
+  });
+
+  it("should throw malformedTemplateFieldValueOrSuggestionError if freeText field does not have suggestions", () => {
+    const template = createValidTemplate(tenantKind.PA);
+    const templateWithInvalidFreeText = createTemplateWithModifiedField(
+      template,
+      TEST_FIELDS.INSTITUTIONAL_PURPOSE,
+      { suggestedValues: [] }
+    );
+
+    const result = validatePurposeTemplateRiskAnalysis(
+      templateWithInvalidFreeText,
+      tenantKind.PA,
+      true
+    );
+
+    expect(result).toEqual({
+      type: "invalid",
+      issues: [
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.INSTITUTIONAL_PURPOSE
+        ),
+      ],
+    });
+  });
+
+  it("should throw malformedTemplateFieldValueOrSuggestionError if freeText field has values", () => {
+    const template = createValidTemplate(tenantKind.PA);
+    const templateWithInvalidFreeText = createTemplateWithModifiedField(
+      template,
+      TEST_FIELDS.INSTITUTIONAL_PURPOSE,
+      { values: ["value"] }
+    );
+
+    const result = validatePurposeTemplateRiskAnalysis(
+      templateWithInvalidFreeText,
+      tenantKind.PA,
+      true
+    );
+
+    expect(result).toEqual({
+      type: "invalid",
+      issues: [
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.INSTITUTIONAL_PURPOSE
+        ),
+      ],
+    });
+  });
+
+  it("should throw unexpectedTemplateFieldValueOrSuggestionError if non-editable not freeText field has suggestions", () => {
+    const template = createValidTemplate(tenantKind.PA);
+    const templateWithInvalidField = createTemplateWithModifiedField(
+      template,
+      TEST_FIELDS.DELIVERY_METHOD,
+      { suggestedValues: ["suggestion"] }
+    );
+
+    const result = validatePurposeTemplateRiskAnalysis(
+      templateWithInvalidField,
+      tenantKind.PA,
+      true
+    );
+
+    expect(result).toEqual({
+      type: "invalid",
+      issues: [
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.DELIVERY_METHOD
+        ),
+      ],
+    });
+  });
+
+  it("should throw unexpectedTemplateFieldValueOrSuggestionError if non-editable not freeText field has no values", () => {
+    const template = createValidTemplate(tenantKind.PA);
+    const templateWithInvalidField = createTemplateWithModifiedField(
+      template,
+      TEST_FIELDS.DELIVERY_METHOD,
+      { values: [] }
+    );
+
+    const result = validatePurposeTemplateRiskAnalysis(
+      templateWithInvalidField,
+      tenantKind.PA,
+      true
+    );
+
+    expect(result).toEqual({
+      type: "invalid",
+      issues: [
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.DELIVERY_METHOD
+        ),
+      ],
+    });
+  });
+
+  it("should throw malformedTemplateFieldValueOrSuggestionError if not freeText field is editable and has values", () => {
     const template = createValidTemplate(tenantKind.PA);
     const templateWithEditableField = createTemplateWithModifiedField(
       template,
       TEST_FIELDS.INSTITUTIONAL_PURPOSE,
-      { editable: true }
+      { editable: true, values: ["value"] }
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
@@ -231,102 +351,6 @@ describe("Risk Analysis Template Validation", () => {
       issues: [
         malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
           TEST_FIELDS.INSTITUTIONAL_PURPOSE
-        ),
-      ],
-    });
-  });
-
-  it("should throw malformedTemplateFieldValueOrSuggestionError if freeText field does not have values and suggestions", () => {
-    const template = createValidTemplate(tenantKind.PA);
-    const templateWithInvalidFreeText = createTemplateWithModifiedField(
-      template,
-      TEST_FIELDS.INSTITUTIONAL_PURPOSE,
-      { values: [], suggestedValues: [] }
-    );
-
-    const result = validatePurposeTemplateRiskAnalysis(
-      templateWithInvalidFreeText,
-      tenantKind.PA,
-      true
-    );
-
-    expect(result).toEqual({
-      type: "invalid",
-      issues: [
-        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.INSTITUTIONAL_PURPOSE
-        ),
-      ],
-    });
-  });
-
-  it("should throw malformedTemplateFieldValueOrSuggestionError if freeText field has values and suggestions", () => {
-    const template = createValidTemplate(tenantKind.PA);
-    const templateWithInvalidFreeText = createTemplateWithModifiedField(
-      template,
-      TEST_FIELDS.INSTITUTIONAL_PURPOSE,
-      { suggestedValues: ["suggestion"] }
-    );
-
-    const result = validatePurposeTemplateRiskAnalysis(
-      templateWithInvalidFreeText,
-      tenantKind.PA,
-      true
-    );
-
-    expect(result).toEqual({
-      type: "invalid",
-      issues: [
-        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.INSTITUTIONAL_PURPOSE
-        ),
-      ],
-    });
-  });
-
-  it("should throw unexpectedTemplateFieldValueOrSuggestionError if not freeText field has suggestions and no values", () => {
-    const template = createValidTemplate(tenantKind.PA);
-    const templateWithInvalidField = createTemplateWithModifiedField(
-      template,
-      TEST_FIELDS.DELIVERY_METHOD,
-      { values: [], suggestedValues: ["suggestion"] }
-    );
-
-    const result = validatePurposeTemplateRiskAnalysis(
-      templateWithInvalidField,
-      tenantKind.PA,
-      true
-    );
-
-    expect(result).toEqual({
-      type: "invalid",
-      issues: [
-        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.DELIVERY_METHOD
-        ),
-      ],
-    });
-  });
-
-  it("should throw unexpectedTemplateFieldValueOrSuggestionError if not freeText field has no suggestions and no values", () => {
-    const template = createValidTemplate(tenantKind.PA);
-    const templateWithInvalidField = createTemplateWithModifiedField(
-      template,
-      TEST_FIELDS.DELIVERY_METHOD,
-      { values: [], suggestedValues: [] }
-    );
-
-    const result = validatePurposeTemplateRiskAnalysis(
-      templateWithInvalidField,
-      tenantKind.PA,
-      true
-    );
-
-    expect(result).toEqual({
-      type: "invalid",
-      issues: [
-        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.DELIVERY_METHOD
         ),
       ],
     });
