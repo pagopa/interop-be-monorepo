@@ -33,6 +33,7 @@ import {
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 const {
+  HTTP_STATUS_OK,
   HTTP_STATUS_CONFLICT,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_FORBIDDEN,
@@ -96,7 +97,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
         documentId,
         validAnnotationDocumentSeed
       );
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(HTTP_STATUS_OK);
       expect(res.body).toEqual(
         annotationDocumentToApiAnnotationDocument(
           annotationDocumentResponse.data

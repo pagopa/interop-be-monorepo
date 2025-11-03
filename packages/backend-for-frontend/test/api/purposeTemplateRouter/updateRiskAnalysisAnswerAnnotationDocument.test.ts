@@ -1,3 +1,4 @@
+import { constants } from "http2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   generateId,
@@ -11,6 +12,8 @@ import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForT
 import { authRole } from "pagopa-interop-commons";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
+
+const { HTTP_STATUS_BAD_REQUEST, HTTP_STATUS_OK } = constants;
 
 describe("API POST /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation/documents/:documentId/update", () => {
   const mockPurposeTemplateId = generateId();
@@ -70,7 +73,7 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotati
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(HTTP_STATUS_OK);
     expect(res.body).toEqual(mockCreatedRiskAnalysisAnswerAnnotation);
   });
 
@@ -106,7 +109,7 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotati
         documentId,
         body as bffApi.UpdateEServiceDescriptorDocumentSeed
       );
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(HTTP_STATUS_BAD_REQUEST);
     }
   );
 });
