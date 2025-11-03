@@ -84,6 +84,7 @@ export const fromPurposeVersionV2 = (
   firstActivationAt: bigIntToDate(input.firstActivationAt),
   suspendedAt: bigIntToDate(input.suspendedAt),
   stamps: input.stamps ? fromPurposeVersionStampsV2(input.stamps) : undefined,
+  signedContract: undefined,
 });
 
 export const fromPurposeRiskAnalysisFormV2 = (

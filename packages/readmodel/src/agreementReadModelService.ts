@@ -10,6 +10,7 @@ import {
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementSignedContractInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
@@ -49,6 +50,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .where(filter)
@@ -83,6 +85,14 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
           )
+        )
+        .leftJoin(
+          // 5
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
+          )
         );
 
       if (queryResult.length === 0) {
@@ -105,6 +115,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .where(filter)
@@ -134,6 +145,13 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         );
 

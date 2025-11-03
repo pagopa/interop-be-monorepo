@@ -8,7 +8,8 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   Agreement,
-  AgreementContract,
+  AgreementDocument,
+  AgreementSignedContract,
   AgreementStamp,
   AgreementStampKind,
   AgreementStamps,
@@ -22,6 +23,7 @@ import {
   AgreementConsumerDocumentSQL,
   AgreementContractSQL,
   AgreementSQL,
+  AgreementSignedContractSQL,
   AgreementStampSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
@@ -38,7 +40,12 @@ describe("Agreement Splitter", () => {
       const certifiedAttribute = getMockAgreementAttribute();
       const declaredAttribute = getMockAgreementAttribute();
       const consumerDocument = getMockAgreementDocument();
-      const contract: AgreementContract = {
+      const contract: AgreementDocument = {
+        ...getMockAgreementDocument(),
+        createdAt: new Date(),
+      };
+
+      const signedContract: AgreementSignedContract = {
         ...getMockAgreementDocument(),
         createdAt: new Date(),
         signedAt: new Date(),
@@ -87,6 +94,7 @@ describe("Agreement Splitter", () => {
         contractSQL,
         attributesSQL,
         stampsSQL,
+        signedContractSQL,
       } = splitAgreementIntoObjectsSQL(agreement, 1);
 
       const expectedAgreementSQL: AgreementSQL = {
@@ -105,7 +113,6 @@ describe("Agreement Splitter", () => {
         consumerNotes,
         rejectionReason,
         suspendedAt: agreement.suspendedAt!.toISOString(),
-        signedContract: agreement.signedContract!,
       };
 
       const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL =
@@ -121,8 +128,14 @@ describe("Agreement Splitter", () => {
         agreementId: agreement.id,
         metadataVersion: 1,
         createdAt: contract.createdAt.toISOString(),
+      };
+      const expectedSignedContractDocumentSQL: AgreementSignedContractSQL = {
+        ...signedContract,
+        agreementId: agreement.id,
+        metadataVersion: 1,
+        createdAt: signedContract.createdAt.toISOString(),
         // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-        signedAt: contract.signedAt?.toISOString()!,
+        signedAt: signedContract.signedAt?.toISOString()!,
       };
 
       const expectedAgreementVerifiedAttributeSQL: AgreementAttributeSQL = {
@@ -166,6 +179,9 @@ describe("Agreement Splitter", () => {
         expectedAgreementConsumerDocumentSQL,
       ]);
       expect(contractSQL).toStrictEqual(expectedContractDocumentSQL);
+      expect(signedContractSQL).toStrictEqual(
+        expectedSignedContractDocumentSQL
+      );
       expect(attributesSQL).toStrictEqual(
         expect.arrayContaining([
           expectedAgreementVerifiedAttributeSQL,
@@ -239,7 +255,6 @@ describe("Agreement Splitter", () => {
       consumerNotes: null,
       rejectionReason: null,
       suspendedAt: null,
-      signedContract: agreement.signedContract!,
     };
 
     const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL = {

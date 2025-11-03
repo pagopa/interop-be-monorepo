@@ -70,7 +70,8 @@ export const Delegation = z.object({
   activationContract: DelegationContractDocument.optional(),
   revocationContract: DelegationContractDocument.optional(),
   stamps: DelegationStamps,
-  signedContract: z.string().uuid().optional(),
+  activationSignedContract: DelegationContractDocument.optional(),
+  revocationSignedContract: DelegationContractDocument.optional(),
 });
 export type Delegation = z.infer<typeof Delegation>;
 

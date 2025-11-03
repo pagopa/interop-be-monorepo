@@ -5,6 +5,7 @@ import {
   AgreementConsumerDocumentSQL,
   AgreementContractSQL,
   AgreementItemsSQL,
+  AgreementSignedContractSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   Agreement,
@@ -21,7 +22,7 @@ import {
   AgreementAttribute,
   AttributeKind,
   AgreementId,
-  AgreementContract,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -32,12 +33,14 @@ export const aggregateAgreementArray = ({
   consumerDocumentsSQL,
   contractsSQL,
   attributesSQL,
+  signedContractsSQL,
 }: {
   agreementsSQL: AgreementSQL[];
   stampsSQL: AgreementStampSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractsSQL: AgreementContractSQL[];
   attributesSQL: AgreementAttributeSQL[];
+  signedContractsSQL: AgreementSignedContractSQL[];
 }): Array<WithMetadata<Agreement>> => {
   const stampsSQLByAgreementId = createAgreementSQLPropertyMap(stampsSQL);
   const consumerDocumentsSQLByAgreementId =
@@ -45,6 +48,8 @@ export const aggregateAgreementArray = ({
   const contractsSQLByAgreementId = createAgreementSQLPropertyMap(contractsSQL);
   const attributesSQLByAgreementId =
     createAgreementSQLPropertyMap(attributesSQL);
+  const signedContractsSQLByAgreementId =
+    createAgreementSQLPropertyMap(signedContractsSQL);
 
   return agreementsSQL.map((agreementSQL) => {
     const agreementId = unsafeBrandId<AgreementId>(agreementSQL.id);
@@ -55,6 +60,7 @@ export const aggregateAgreementArray = ({
         consumerDocumentsSQLByAgreementId.get(agreementId) || [],
       contractSQL: contractsSQLByAgreementId.get(agreementId)?.[0],
       attributesSQL: attributesSQLByAgreementId.get(agreementId) || [],
+      signedContractSQL: signedContractsSQLByAgreementId.get(agreementId)?.[0],
     });
   });
 };
@@ -65,6 +71,7 @@ const createAgreementSQLPropertyMap = <
     | AgreementConsumerDocumentSQL
     | AgreementContractSQL
     | AgreementAttributeSQL
+    | AgreementSignedContractSQL
 >(
   items: T[]
 ): Map<AgreementId, T[]> =>
@@ -84,6 +91,7 @@ export const aggregateAgreement = ({
   consumerDocumentsSQL,
   contractSQL,
   attributesSQL,
+  signedContractSQL,
 }: AgreementItemsSQL): WithMetadata<Agreement> => {
   const { verifiedAttributes, certifiedAttributes, declaredAttributes } =
     attributesSQL.reduce(
@@ -126,7 +134,7 @@ export const aggregateAgreement = ({
     );
 
   const consumerDocuments: AgreementDocument[] = consumerDocumentsSQL.map(
-    documentConsumerSQLtoDocumentConsumer
+    documentSQLtoDocument
   );
 
   const {
@@ -243,10 +251,8 @@ export const aggregateAgreement = ({
           suspendedAt: stringToDate(agreementSQL.suspendedAt),
         }
       : {}),
-    ...(agreementSQL.signedContract !== null
-      ? {
-          signedContract: agreementSQL.signedContract,
-        }
+    ...(signedContractSQL
+      ? { signedContract: signeDocumentSQLtosignedDocument(signedContractSQL) }
       : {}),
   };
 
@@ -256,8 +262,8 @@ export const aggregateAgreement = ({
   };
 };
 
-const documentConsumerSQLtoDocumentConsumer = (
-  documentSQL: AgreementConsumerDocumentSQL
+const documentSQLtoDocument = (
+  documentSQL: AgreementContractSQL
 ): AgreementDocument => ({
   id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
@@ -267,9 +273,9 @@ const documentConsumerSQLtoDocumentConsumer = (
   createdAt: stringToDate(documentSQL.createdAt),
 });
 
-const documentSQLtoDocument = (
-  documentSQL: AgreementContractSQL
-): AgreementContract => ({
+const signeDocumentSQLtosignedDocument = (
+  documentSQL: AgreementSignedContractSQL
+): AgreementSignedContract => ({
   id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
@@ -296,6 +302,7 @@ export const toAgreementAggregator = (
     attribute: AgreementAttributeSQL | null;
     consumerDocument: AgreementConsumerDocumentSQL | null;
     contract: AgreementContractSQL | null;
+    signedContract: AgreementSignedContractSQL | null;
   }>
 ): AgreementItemsSQL => {
   const {
@@ -304,6 +311,7 @@ export const toAgreementAggregator = (
     attributesSQL,
     consumerDocumentsSQL,
     contractsSQL,
+    signedContractsSQL,
   } = toAgreementAggregatorArray(queryRes);
 
   throwIfMultiple(agreementsSQL, "agreement");
@@ -314,6 +322,8 @@ export const toAgreementAggregator = (
     attributesSQL,
     consumerDocumentsSQL,
     contractSQL: contractsSQL.length > 0 ? contractsSQL[0] : undefined,
+    signedContractSQL:
+      signedContractsSQL.length > 0 ? signedContractsSQL[0] : undefined,
   };
 };
 
@@ -324,6 +334,7 @@ export const toAgreementAggregatorArray = (
     attribute: AgreementAttributeSQL | null;
     consumerDocument: AgreementConsumerDocumentSQL | null;
     contract: AgreementContractSQL | null;
+    signedContract: AgreementSignedContractSQL | null;
   }>
 ): {
   agreementsSQL: AgreementSQL[];
@@ -331,6 +342,7 @@ export const toAgreementAggregatorArray = (
   attributesSQL: AgreementAttributeSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractsSQL: AgreementContractSQL[];
+  signedContractsSQL: AgreementSignedContractSQL[];
 } => {
   const agreementIdSet = new Set<string>();
   const agreementsSQL: AgreementSQL[] = [];
@@ -346,6 +358,9 @@ export const toAgreementAggregatorArray = (
 
   const consumerDocumentIdSet = new Set<string>();
   const consumerDocumentsSQL: AgreementConsumerDocumentSQL[] = [];
+
+  const signedContractIdSet = new Set<string>();
+  const signedContractsSQL: AgreementSignedContractSQL[] = [];
 
   queryRes.forEach((row) => {
     const agreementSQL = row.agreement;
@@ -385,6 +400,20 @@ export const toAgreementAggregatorArray = (
       contractsSQL.push(contractSQL);
     }
 
+    const signedContractSQL = row.signedContract;
+    const signedContractPK = signedContractSQL
+      ? makeUniqueKey([signedContractSQL.agreementId, signedContractSQL.id])
+      : undefined;
+    if (
+      signedContractSQL &&
+      signedContractPK &&
+      !signedContractIdSet.has(signedContractPK)
+    ) {
+      signedContractIdSet.add(signedContractPK);
+      // eslint-disable-next-line functional/immutable-data
+      signedContractsSQL.push(signedContractSQL);
+    }
+
     const documentSQL = row.consumerDocument;
     if (documentSQL && !consumerDocumentIdSet.has(documentSQL.id)) {
       consumerDocumentIdSet.add(documentSQL.id);
@@ -399,5 +428,6 @@ export const toAgreementAggregatorArray = (
     attributesSQL,
     consumerDocumentsSQL,
     contractsSQL,
+    signedContractsSQL,
   };
 };

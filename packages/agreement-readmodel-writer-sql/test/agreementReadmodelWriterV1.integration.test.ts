@@ -9,7 +9,7 @@ import {
   AgreementAddedV1,
   AgreementConsumerDocumentAddedV1,
   AgreementConsumerDocumentRemovedV1,
-  AgreementContract,
+  AgreementSignedContract,
   AgreementContractAddedV1,
   AgreementDeletedV1,
   AgreementDocument,
@@ -207,7 +207,7 @@ describe("events V1", async () => {
   });
 
   it("should add an agreement contract", async () => {
-    const agreementContract = generateMock(AgreementContract);
+    const agreementContract = generateMock(AgreementSignedContract);
     const agreement: Agreement = {
       ...getMockAgreement(),
       contract: agreementContract,

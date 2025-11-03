@@ -38,7 +38,7 @@ export const AgreementDocument = z.object({
 });
 export type AgreementDocument = z.infer<typeof AgreementDocument>;
 
-export const AgreementContract = z.object({
+export const AgreementSignedContract = z.object({
   id: AgreementDocumentId,
   name: z.string(),
   prettyName: z.string(),
@@ -47,7 +47,7 @@ export const AgreementContract = z.object({
   createdAt: z.coerce.date(),
   signedAt: z.coerce.date().optional(),
 });
-export type AgreementContract = z.infer<typeof AgreementContract>;
+export type AgreementSignedContract = z.infer<typeof AgreementSignedContract>;
 
 export const AgreementStamp = z.object({
   who: UserId,
@@ -87,10 +87,10 @@ export const Agreement = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
   consumerNotes: z.string().optional(),
-  contract: AgreementContract.optional(),
+  contract: AgreementDocument.optional(),
   stamps: AgreementStamps,
   rejectionReason: z.string().optional(),
   suspendedAt: z.coerce.date().optional(),
-  signedContract: z.string().uuid().optional(),
+  signedContract: AgreementSignedContract.optional(),
 });
 export type Agreement = z.infer<typeof Agreement>;

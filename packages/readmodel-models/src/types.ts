@@ -60,6 +60,7 @@ import {
   userEnabledInAppNotificationInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
   purposeVersionStampInReadmodelPurpose,
+  agreementSignedContractInReadmodelAgreement,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -148,6 +149,9 @@ export type AgreementConsumerDocumentSQL = InferSelectModel<
 export type AgreementContractSQL = InferSelectModel<
   typeof agreementContractInReadmodelAgreement
 >;
+export type AgreementSignedContractSQL = InferSelectModel<
+  typeof agreementSignedContractInReadmodelAgreement
+>;
 export type AgreementStampSQL = InferSelectModel<
   typeof agreementStampInReadmodelAgreement
 >;
@@ -160,6 +164,7 @@ export type AgreementItemsSQL = {
   attributesSQL: AgreementAttributeSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractSQL: AgreementContractSQL | undefined;
+  signedContractSQL: AgreementSignedContractSQL | undefined;
 };
 
 export type TenantSQL = InferSelectModel<typeof tenantInReadmodelTenant>;

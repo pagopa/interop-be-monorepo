@@ -67,6 +67,7 @@ export const toPurposeVersionV2 = (
     ? toPurposeVersionDocumentV2(input.riskAnalysis)
     : undefined,
   stamps: input.stamps ? toPurposeVersionStampsV2(input.stamps) : undefined,
+  signedContract: undefined,
 });
 
 export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
