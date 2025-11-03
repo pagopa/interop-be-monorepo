@@ -77,6 +77,7 @@ describe("clonePurpose", async () => {
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
+    await addOneEService(mockEService);
     await addOnePurpose(mockPurpose);
     await addOneTenant(mockTenant);
     await addOneAgreement(mockAgreement);
@@ -145,6 +146,7 @@ describe("clonePurpose", async () => {
       versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
+    await addOneEService(mockEService);
     await addOnePurpose(mockPurpose);
     await addOneTenant(mockTenant);
     await addOneAgreement(mockAgreement);
@@ -229,6 +231,7 @@ describe("clonePurpose", async () => {
       state: delegationState.active,
     });
 
+    await addOneEService(mockEService);
     await addOnePurpose(purposeCreatedByDelegate);
     await addOneTenant(consumer);
     await addOneTenant(consumerDelegate);

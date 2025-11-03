@@ -82,6 +82,7 @@ const purposeTemplateRouter = (
           states,
           targetTenantKind,
           excludeExpiredRiskAnalysis,
+          handlesPersonalData,
           offset,
           limit,
         } = req.query;
@@ -97,6 +98,7 @@ const purposeTemplateRouter = (
                 apiPurposeTemplateStateToPurposeTemplateState
               ),
               excludeExpiredRiskAnalysis,
+              handlesPersonalData,
             },
             { offset, limit },
             ctx
@@ -233,13 +235,13 @@ const purposeTemplateRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { producerIds, eserviceIds, offset, limit } = req.query;
+        const { producerIds, eserviceName, offset, limit } = req.query;
         const purposeTemplateEServicesDescriptors =
           await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
             {
               purposeTemplateId: unsafeBrandId(req.params.id),
               producerIds: producerIds?.map(unsafeBrandId<TenantId>),
-              eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
+              eserviceName,
             },
             { offset, limit },
             ctx

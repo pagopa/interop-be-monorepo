@@ -120,7 +120,7 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     },
     {
       error: attributeNotFound(descriptorSeed.attributes.declared[0][0].id),
-      expectedStatus: 400,
+      expectedStatus: 404,
     },
     {
       error: templateInstanceNotAllowed(

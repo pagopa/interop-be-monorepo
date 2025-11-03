@@ -18,8 +18,10 @@ const mockFileManager: Partial<FileManager> = {
 
 const mockDbService: SignatureServiceBuilder = {
   saveSignatureReference: vi.fn(),
+  saveDocumentSignatureReference: vi.fn(),
   readSignatureReference: vi.fn(),
   deleteSignatureReference: vi.fn(),
+  readDocumentSignatureReference: vi.fn(),
 };
 
 const mockSafeStorageService: SafeStorageService = {

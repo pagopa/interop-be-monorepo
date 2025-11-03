@@ -123,6 +123,7 @@ describe("createPurposeTemplate", () => {
       purposeIsFreeOfCharge: purposeTemplateSeed.purposeIsFreeOfCharge,
       purposeFreeOfChargeReason: purposeTemplateSeed.purposeFreeOfChargeReason,
       purposeDailyCalls: purposeTemplateSeed.purposeDailyCalls,
+      handlesPersonalData: purposeTemplateSeed.handlesPersonalData,
     };
 
     expect(writtenPayload).toEqual({
@@ -211,6 +212,7 @@ describe("createPurposeTemplate", () => {
       purposeFreeOfChargeReason:
         seedWithFreeOfChargeFalse.purposeFreeOfChargeReason,
       purposeDailyCalls: seedWithFreeOfChargeFalse.purposeDailyCalls,
+      handlesPersonalData: seedWithFreeOfChargeFalse.handlesPersonalData,
     };
 
     expect(writtenPayload).toEqual({

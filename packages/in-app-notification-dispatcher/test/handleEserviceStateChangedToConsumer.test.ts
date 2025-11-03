@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -19,6 +19,7 @@ import {
   EServiceId,
   AttributeId,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -45,7 +46,13 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     ],
   };
   const { logger } = getMockContext({});
+
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
   await addOneEService(eservice);
+
+  beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
+  });
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     const msg: EServiceEventV2 = {
@@ -102,6 +109,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       } satisfies EServiceDescriptorPublishedV2,
     };
 
+    // eslint-disable-next-line sonarjs/no-identical-functions
     await expect(() =>
       handleEserviceStateChangedToConsumer(msg, logger, readModelService)
     ).rejects.toThrow(tenantNotFound(consumerId));
@@ -142,10 +150,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         { userId: generateId(), tenantId: consumerTenant.id },
         { userId: generateId(), tenantId: consumerTenant.id },
       ];
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(users);
+      mockGetNotificationRecipients.mockResolvedValue(users);
 
       const msg: EServiceEventV2 = {
         event_version: 2,
@@ -424,10 +429,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         { userId: generateId(), tenantId: consumerId },
         { userId: generateId(), tenantId: consumerId },
       ];
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(users);
+      mockGetNotificationRecipients.mockResolvedValue(users);
 
       const notifications = await handleEserviceStateChangedToConsumer(
         msg,
@@ -459,10 +461,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     await addOneAgreement(agreement);
     await addOneTenant(consumerTenant);
 
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const msg: EServiceEventV2 = {
       event_version: 2,

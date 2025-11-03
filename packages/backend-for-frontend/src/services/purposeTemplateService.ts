@@ -173,6 +173,7 @@ export function purposeTemplateServiceBuilder(
       creatorIds,
       eserviceIds,
       excludeExpiredRiskAnalysis,
+      handlesPersonalData,
       offset,
       limit,
       ctx,
@@ -182,6 +183,7 @@ export function purposeTemplateServiceBuilder(
       creatorIds: string[];
       eserviceIds: string[];
       excludeExpiredRiskAnalysis: boolean;
+      handlesPersonalData: boolean | undefined;
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
@@ -201,8 +203,9 @@ export function purposeTemplateServiceBuilder(
             targetTenantKind,
             creatorIds,
             eserviceIds,
-            states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
+            states: [purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED],
             excludeExpiredRiskAnalysis,
+            handlesPersonalData,
             limit,
             offset,
           },
@@ -238,14 +241,14 @@ export function purposeTemplateServiceBuilder(
     async getPurposeTemplateEServiceDescriptors({
       purposeTemplateId,
       producerIds,
-      eserviceIds,
+      eserviceName,
       offset,
       limit,
       ctx,
     }: {
       purposeTemplateId: string;
       producerIds: string[];
-      eserviceIds: string[];
+      eserviceName?: string;
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
@@ -255,7 +258,7 @@ export function purposeTemplateServiceBuilder(
       const { headers, logger } = ctx;
 
       logger.info(
-        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with eserviceIds ${eserviceIds.toString()}, producerIds ${producerIds.toString()}, offset ${offset}, limit ${limit}`
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with eserviceName ${eserviceName}, producerIds ${producerIds.toString()}, offset ${offset}, limit ${limit}`
       );
 
       const purposeTemplateEServiceDescriptorsResponse =
@@ -266,7 +269,7 @@ export function purposeTemplateServiceBuilder(
           },
           queries: {
             producerIds,
-            eserviceIds,
+            eserviceName,
             limit,
             offset,
           },
@@ -496,8 +499,8 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateId,
         body.doc,
         documentId,
-        config.riskAnalysisDocumentsContainer,
-        config.riskAnalysisDocumentsPath,
+        config.purposeTemplateDocumentsContainer,
+        config.purposeTemplateDocumentsPath,
         body.prettyName,
         async (
           documentId: string,

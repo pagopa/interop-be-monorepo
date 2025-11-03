@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
@@ -22,6 +22,7 @@ import {
   activeProducerDelegationNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "../src/handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { addOneDelegation, addOneTenant, readModelService } from "./utils.js";
 
@@ -44,7 +45,10 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
 
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneTenant(delegator);
     await addOneTenant(delegate);
@@ -160,11 +164,10 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     };
     await addOneDelegation(delegationWithUnknownDelegator);
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: delegate.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: delegate.id },
+    ]);
 
     await expect(() =>
       handleEserviceNewVersionApprovedRejectedToDelegate(
@@ -178,10 +181,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications =
       await handleEserviceNewVersionApprovedRejectedToDelegate(
@@ -197,8 +197,8 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
 
   it.each<{
     eventType:
-      | "EServiceDescriptorApprovedByDelegator"
-      | "EServiceDescriptorRejectedByDelegator";
+    | "EServiceDescriptorApprovedByDelegator"
+    | "EServiceDescriptorRejectedByDelegator";
     expectedBody: string;
   }>([
     {
@@ -217,10 +217,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         { userId: generateId(), tenantId: delegator.id },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(delegateUsers);
+      mockGetNotificationRecipients.mockResolvedValue(delegateUsers);
 
       const notifications =
         await handleEserviceNewVersionApprovedRejectedToDelegate(
@@ -253,10 +250,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
       { userId: generateId(), tenantId: delegate.id },
       { userId: generateId(), tenantId: delegate.id },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications =
       await handleEserviceNewVersionApprovedRejectedToDelegate(
@@ -279,4 +273,5 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   const latestDate = new Date();
   const olderDate = new Date(latestDate);
   olderDate.setDate(olderDate.getDate() - 1);
+
 });

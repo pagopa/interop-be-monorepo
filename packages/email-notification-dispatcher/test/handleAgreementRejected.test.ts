@@ -15,11 +15,13 @@ import {
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  NotificationType,
   Tenant,
   TenantId,
   TenantMail,
   TenantNotificationConfigId,
   toAgreementV2,
+  unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -81,8 +83,12 @@ describe("handleAgreementRejected", async () => {
       });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+      .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
+        users
+          .filter((user) =>
+            tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
+          )
+          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
   });
 
@@ -258,11 +264,11 @@ describe("handleAgreementRejected", async () => {
       createdAt: new Date(1999),
     };
     const newMail = getMockTenantMail();
-    const consumerTenant: Tenant = {
+    const consumerTenantWithMultipleMails: Tenant = {
       ...getMockTenant(),
       mails: [oldMail, newMail],
     };
-    await addOneTenant(consumerTenant);
+    await addOneTenant(consumerTenantWithMultipleMails);
 
     const agreement: Agreement = {
       ...getMockAgreement(),
@@ -270,7 +276,7 @@ describe("handleAgreementRejected", async () => {
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
+      consumerId: consumerTenantWithMultipleMails.id,
     };
     await addOneAgreement(agreement);
 
@@ -283,7 +289,7 @@ describe("handleAgreementRejected", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(3);
+    expect(messages.length).toEqual(1);
     expect(
       messages.some(
         (message) =>

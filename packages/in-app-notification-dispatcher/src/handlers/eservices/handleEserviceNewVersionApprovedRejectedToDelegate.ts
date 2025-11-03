@@ -9,7 +9,10 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { activeProducerDelegationNotFound } from "../../models/errors.js";
 
 export type EserviceNewVersionApprovedRejectedToDelegateEventType =
@@ -41,11 +44,12 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
     throw activeProducerDelegationNotFound(eservice.id);
   }
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [producerDelegation.delegateId],
-      "eserviceNewVersionApprovedRejectedToDelegate"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [producerDelegation.delegateId],
+    "eserviceNewVersionApprovedRejectedToDelegate",
+    readModelService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -16,6 +16,7 @@ import {
   toPurposeV2,
   purposeVersionState,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { match } from "ts-pattern";
 import { handlePurposeActivatedRejectedToConsumer } from "../src/handlers/purposes/handlePurposeActivatedRejectedToConsumer.js";
 import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
@@ -52,7 +53,10 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
 
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
@@ -91,11 +95,10 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
       producerId: unknownTenantId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: consumerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: consumerId },
+    ]);
 
     await addOneEService(eserviceWithUnknownTenant);
 
@@ -116,11 +119,10 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
       eserviceId: unknownEserviceId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: consumerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: consumerId },
+    ]);
 
     await expect(() =>
       handlePurposeActivatedRejectedToConsumer(
@@ -133,10 +135,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handlePurposeActivatedRejectedToConsumer(
       toPurposeV2(purpose),
@@ -163,10 +162,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
       { userId: generateId(), tenantId: consumerId },
     ];
 
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(consumerUsers);
+    mockGetNotificationRecipients.mockResolvedValue(consumerUsers);
 
     const notifications = await handlePurposeActivatedRejectedToConsumer(
       toPurposeV2(purpose),
@@ -205,6 +201,12 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
     expect(notifications).toEqual(
       expect.arrayContaining(expectedNotifications)
     );
+    expect(mockGetNotificationRecipients).toHaveBeenCalledWith(
+      expect.any(Array),
+      "purposeActivatedRejectedToConsumer",
+      expect.any(Object),
+      expect.any(Object)
+    );
   });
 
   it("should generate notifications for multiple users", async () => {
@@ -213,10 +215,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
       { userId: generateId(), tenantId: consumerId },
       { userId: generateId(), tenantId: consumerId },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handlePurposeActivatedRejectedToConsumer(
       toPurposeV2(purpose),

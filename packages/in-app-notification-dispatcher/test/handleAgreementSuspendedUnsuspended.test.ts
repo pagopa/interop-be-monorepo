@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -15,6 +15,7 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import {
   AgreementSuspendedUnsuspendedEventType,
   handleAgreementSuspendedUnsuspended,
@@ -102,7 +103,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
   };
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
@@ -130,11 +134,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       consumerId: unknownTenantId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: producerId },
+    ]);
 
     await expect(() =>
       handleAgreementSuspendedUnsuspended(
@@ -147,10 +150,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleAgreementSuspendedUnsuspended(
       toAgreementV2(agreement),
@@ -206,10 +206,8 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         { userId: generateId(), tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockImplementation(async (_, notificationConfig) => {
+      mockGetNotificationRecipients.mockImplementation(
+        async (_, notificationConfig) => {
           if (
             notificationConfig === "agreementSuspendedUnsuspendedToProducer"
           ) {
@@ -220,7 +218,8 @@ describe("handleAgreementSuspendedUnsuspended", () => {
             return consumerUsers;
           }
           return [];
-        });
+        }
+      );
 
       const notifications = await handleAgreementSuspendedUnsuspended(
         toAgreementV2(agreement),
@@ -277,10 +276,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       { userId: generateId(), tenantId: consumerId },
       { userId: generateId(), tenantId: consumerId },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleAgreementSuspendedUnsuspended(
       toAgreementV2(agreement),

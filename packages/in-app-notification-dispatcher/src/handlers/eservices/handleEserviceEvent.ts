@@ -89,6 +89,7 @@ export async function handleEServiceEvent(
           "EServiceSignalHubDisabled",
           "EServiceDescriptorInterfaceAdded",
           "EServicePersonalDataFlagUpdatedAfterPublication",
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",

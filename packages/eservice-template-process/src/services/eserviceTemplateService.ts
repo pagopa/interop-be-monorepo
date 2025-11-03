@@ -6,13 +6,13 @@ import {
   WithLogger,
   eventRepository,
   validateRiskAnalysis,
-  Logger,
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  Logger,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -250,13 +250,15 @@ const replaceEServiceTemplateVersion = (
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
     tenantKind,
-    dateForExpirationValidation
+    dateForExpirationValidation,
+    personalDataInEService
   );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
@@ -973,7 +975,8 @@ export function eserviceTemplateServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         createRiskAnalysis.riskAnalysisForm,
         createRiskAnalysis.tenantKind,
-        new Date()
+        new Date(),
+        template.data.personalData
       );
 
       const newRiskAnalysis: EServiceTemplateRiskAnalysis =
@@ -1076,7 +1079,8 @@ export function eserviceTemplateServiceBuilder(
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
         updateRiskAnalysisSeed.riskAnalysisForm,
         updateRiskAnalysisSeed.tenantKind,
-        new Date()
+        new Date(),
+        template.data.personalData
       );
 
       const updatedRiskAnalysisForm: RiskAnalysisForm = {
@@ -1121,7 +1125,11 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.AttributesSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(
         `Updating attributes of eservice template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
@@ -1365,10 +1373,20 @@ export function eserviceTemplateServiceBuilder(
     },
     async createEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplateVersion> {
+      seed: eserviceTemplateApi.EServiceTemplateVersionSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        eserviceTemplate: EServiceTemplate;
+        createdEServiceTemplateVersionId: EServiceTemplateVersionId;
+      }>
+    > {
       logger.info(
-        `Creating new eservice template version for EService template ${eserviceTemplateId}`
+        `Creating version for EService template ${eserviceTemplateId}`
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -1381,38 +1399,49 @@ export function eserviceTemplateServiceBuilder(
         authData
       );
       assertPublishedEServiceTemplate(eserviceTemplate.data);
+
       assertNoDraftEServiceTemplateVersions(eserviceTemplate.data);
 
-      const previousVersion = eserviceTemplate.data.versions.reduce(
-        (latestVersions, curr) =>
-          curr.version > latestVersions.version ? curr : latestVersions,
-        eserviceTemplate.data.versions[0]
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed.attributes,
+        readModelService
       );
+      assertConsistentDailyCalls({
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+      });
+      const eserviceTemplateMetadataVersion = eserviceTemplate.metadata.version;
 
-      const newVersion = previousVersion.version + 1;
-
-      const newEServiceTemplateVersionId: EServiceTemplateVersionId =
-        generateId();
+      const nextTemplateVersion =
+        eserviceTemplate.data.versions.reduce(
+          (latestVersions, curr) =>
+            curr.version > latestVersions.version ? curr : latestVersions,
+          eserviceTemplate.data.versions[0]
+        ).version + 1;
 
       const newEServiceTemplateVersion: EServiceTemplateVersion = {
-        id: newEServiceTemplateVersionId,
-        description: previousVersion.description,
-        version: newVersion,
+        id: generateId(),
+        description: seed.description,
+        version: nextTemplateVersion,
         interface: undefined,
         docs: [],
         state: eserviceTemplateVersionState.draft,
-        voucherLifespan: previousVersion.voucherLifespan,
-        dailyCallsPerConsumer: previousVersion.dailyCallsPerConsumer,
-        dailyCallsTotal: previousVersion.dailyCallsTotal,
-        agreementApprovalPolicy: previousVersion.agreementApprovalPolicy,
+        voucherLifespan: seed.voucherLifespan,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+        agreementApprovalPolicy: seed.agreementApprovalPolicy
+          ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.agreementApprovalPolicy
+            )
+          : undefined,
         publishedAt: undefined,
         suspendedAt: undefined,
         deprecatedAt: undefined,
         createdAt: new Date(),
-        attributes: previousVersion.attributes,
+        attributes: parsedAttributes,
       };
 
-      const newEServiceTemplate: EServiceTemplate = {
+      const updatedEServiceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         versions: [
           ...eserviceTemplate.data.versions,
@@ -1424,52 +1453,73 @@ export function eserviceTemplateServiceBuilder(
         toCreateEventEServiceTemplateVersionAdded(
           eserviceTemplateId,
           eserviceTemplate.metadata.version,
-          newEServiceTemplateVersionId,
-          newEServiceTemplate,
-          correlationId
-        );
-
-      const eserviceTemplateVersion = eserviceTemplate.metadata.version;
-
-      const events = [eserviceTemplateVersionCreationEvent];
-      // eslint-disable-next-line functional/no-let
-      let eserviceTemplateVersionWithDocs: EServiceTemplateVersion =
-        newEServiceTemplateVersion;
-
-      for (const [index, doc] of previousVersion.docs.entries()) {
-        const newDocument = await cloneEServiceTemplateDocument({
-          doc,
-          fileManager,
-          logger,
-        });
-
-        eserviceTemplateVersionWithDocs = {
-          ...eserviceTemplateVersionWithDocs,
-          docs: [...eserviceTemplateVersionWithDocs.docs, newDocument],
-        };
-
-        const updatedEServiceTemplate = replaceEServiceTemplateVersion(
-          newEServiceTemplate,
-          eserviceTemplateVersionWithDocs
-        );
-
-        const version = eserviceTemplateVersion + index + 1;
-        const documentEvent = toCreateEventEServiceTemplateVersionDocumentAdded(
-          eserviceTemplateId,
-          version,
-          newEServiceTemplateVersionId,
-          newDocument.id,
+          newEServiceTemplateVersion.id,
           updatedEServiceTemplate,
           correlationId
         );
 
-        // eslint-disable-next-line functional/immutable-data
-        events.push(documentEvent);
-      }
+      const { events, updatedEServiceTemplateWithDocs } = seed.docs.reduce(
+        (acc, doc, index) => {
+          const newDocument: Document = {
+            id: unsafeBrandId(doc.documentId),
+            name: doc.fileName,
+            contentType: doc.contentType,
+            prettyName: doc.prettyName,
+            path: doc.filePath,
+            checksum: doc.checksum,
+            uploadDate: new Date(),
+          };
 
-      await repository.createEvents(events);
+          const currentEserviceTemplateVersion =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            acc.updatedEServiceTemplateWithDocs.versions.find(
+              (v) => v.id === newEServiceTemplateVersion.id
+            )!;
 
-      return eserviceTemplateVersionWithDocs;
+          const updatedEServiceTemplateWithDocs =
+            replaceEServiceTemplateVersion(
+              acc.updatedEServiceTemplateWithDocs,
+              {
+                ...currentEserviceTemplateVersion,
+                docs: [...currentEserviceTemplateVersion.docs, newDocument],
+              }
+            );
+          const metadataVersion = eserviceTemplateMetadataVersion + index + 1;
+
+          const documentEvent =
+            toCreateEventEServiceTemplateVersionDocumentAdded(
+              eserviceTemplateId,
+              metadataVersion,
+              newEServiceTemplateVersion.id,
+              newDocument.id,
+              updatedEServiceTemplateWithDocs,
+              correlationId
+            );
+
+          return {
+            events: [...acc.events, documentEvent],
+            updatedEServiceTemplateWithDocs,
+          };
+        },
+        {
+          events: [eserviceTemplateVersionCreationEvent],
+          updatedEServiceTemplateWithDocs: updatedEServiceTemplate,
+        }
+      );
+
+      const createdEvents = await repository.createEvents(events);
+
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
+      return {
+        data: {
+          eserviceTemplate: updatedEServiceTemplateWithDocs,
+          createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
+        },
+        metadata: { version: newVersion },
+      };
     },
     async getEServiceTemplates(
       filters: GetEServiceTemplatesFilters,
@@ -1481,7 +1531,7 @@ export function eserviceTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EServiceTemplate>> {
       logger.info(
-        `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
+        `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, personalData = ${filters.personalData}, limit = ${limit}, offset = ${offset}`
       );
 
       const { results, totalCount } =
@@ -1889,6 +1939,68 @@ export function eserviceTemplateServiceBuilder(
 
       return updatedEServiceTemplate;
     },
+
+    async deleteEServiceTemplate(
+      templateId: EServiceTemplateId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<void> {
+      logger.info(`Deleting EService Template ${templateId}`);
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+      assertIsDraftEServiceTemplate(eserviceTemplate.data);
+
+      if (eserviceTemplate.data.versions.length === 0) {
+        const eserviceTemplateDeletionEvent =
+          toCreateEventEServiceTemplateDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplate.data,
+            correlationId
+          );
+        await repository.createEvent(eserviceTemplateDeletionEvent);
+      } else {
+        await deleteVersionInterfaceAndDocs(
+          eserviceTemplate.data.versions[0],
+          fileManager,
+          logger
+        );
+
+        const eserviceTemplateWithoutVersions: EServiceTemplate = {
+          ...eserviceTemplate.data,
+          versions: [],
+        };
+        const versionDeletionEvent =
+          toCreateEventEServiceTemplateDraftVersionDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplate.data.versions[0].id,
+            eserviceTemplateWithoutVersions,
+            correlationId
+          );
+        const eserviceTemplateDeletionEvent =
+          toCreateEventEServiceTemplateDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version + 1,
+            eserviceTemplateWithoutVersions,
+            correlationId
+          );
+        await repository.createEvents([
+          versionDeletionEvent,
+          eserviceTemplateDeletionEvent,
+        ]);
+      }
+    },
   };
 }
 
@@ -1921,37 +2033,6 @@ function applyVisibilityToEServiceTemplate(
   }
 
   throw eserviceTemplateNotFound(eserviceTemplate.id);
-}
-
-export async function cloneEServiceTemplateDocument({
-  doc,
-  fileManager,
-  logger,
-}: {
-  doc: Document;
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<Document> {
-  const clonedDocumentId: EServiceDocumentId = generateId();
-
-  const clonedPath = await fileManager.copy(
-    config.s3Bucket,
-    doc.path,
-    config.eserviceTemplateDocumentsPath,
-    clonedDocumentId,
-    doc.name,
-    logger
-  );
-
-  return {
-    id: clonedDocumentId,
-    contentType: doc.contentType,
-    prettyName: doc.prettyName,
-    name: doc.name,
-    path: clonedPath,
-    checksum: doc.checksum,
-    uploadDate: new Date(),
-  };
 }
 
 // eslint-disable-next-line max-params
@@ -2241,3 +2322,20 @@ async function updateDraftEServiceTemplateVersion(
     metadata: { version: event.newVersion },
   };
 }
+
+const deleteVersionInterfaceAndDocs = async (
+  version: EServiceTemplateVersion,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<void> => {
+  const versionInterface = version.interface;
+  if (versionInterface !== undefined) {
+    await fileManager.delete(config.s3Bucket, versionInterface.path, logger);
+  }
+
+  const deleteVersionDocs = version.docs.map((doc: Document) =>
+    fileManager.delete(config.s3Bucket, doc.path, logger)
+  );
+
+  await Promise.all(deleteVersionDocs);
+};

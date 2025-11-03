@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
@@ -16,6 +16,7 @@ import {
   EServiceId,
 } from "pagopa-interop-models";
 import { tenantNotFound } from "../src/models/errors.js";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleDelegationApprovedRejectedToDelegator } from "../src/handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
 import {
   addOneDelegation,
@@ -39,7 +40,10 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
 
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneTenant(delegator);
     await addOneTenant(delegate);
@@ -67,11 +71,10 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
       delegateId: unknownTenantId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: delegator.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: delegator.id },
+    ]);
 
     await expect(() =>
       handleDelegationApprovedRejectedToDelegator(
@@ -84,10 +87,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleDelegationApprovedRejectedToDelegator(
       toDelegationV2(delegation),
@@ -136,10 +136,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
         { userId: generateId(), tenantId: delegator.id },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(delegatorUsers);
+      mockGetNotificationRecipients.mockResolvedValue(delegatorUsers);
 
       const notifications = await handleDelegationApprovedRejectedToDelegator(
         toDelegationV2({ ...delegation, kind }),
@@ -170,10 +167,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
       { userId: generateId(), tenantId: delegator.id },
       { userId: generateId(), tenantId: delegator.id },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleDelegationApprovedRejectedToDelegator(
       toDelegationV2(delegation),

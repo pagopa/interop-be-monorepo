@@ -1,5 +1,5 @@
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEServiceTemplate,
@@ -13,6 +13,7 @@ import {
   TenantId,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleTemplateStatusChangedToProducer } from "../src/handlers/eserviceTemplates/handleTemplateStatusChangedToProducer.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -29,7 +30,13 @@ describe("handleTemplateStatusChangedToProducer", async () => {
     ),
   ]);
   const { logger } = getMockContext({});
+
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
   await addOneEServiceTemplate(eserviceTemplate);
+
+  beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
+  });
 
   it("should throw missingKafkaMessageDataError when eserviceTemplate is undefined", async () => {
     await expect(() =>
@@ -47,9 +54,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
     const creatorTenant = getMockTenant(creatorId);
     await addOneTenant(creatorTenant);
 
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     eserviceTemplate.creatorId = creatorId;
     const notifications = await handleTemplateStatusChangedToProducer(
@@ -70,9 +75,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
       { userId: generateId(), tenantId: creatorId },
       { userId: generateId(), tenantId: creatorId },
     ];
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     eserviceTemplate.creatorId = creatorId;
     const notifications = await handleTemplateStatusChangedToProducer(

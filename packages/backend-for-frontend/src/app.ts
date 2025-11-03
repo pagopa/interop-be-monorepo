@@ -175,6 +175,7 @@ export async function createServices(
       clients.attributeProcessClient,
       clients.delegationProcessClient,
       clients.eserviceTemplateProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager,
       config
     ),
@@ -183,6 +184,7 @@ export async function createServices(
       clients.delegationProcessClient,
       clients.tenantProcessClient,
       clients.catalogProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager
     ),
     eServiceTemplateService: eserviceTemplateServiceBuilder(
@@ -190,6 +192,7 @@ export async function createServices(
       clients.tenantProcessClient,
       clients.attributeProcessClient,
       clients.catalogProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager
     ),
     notificationConfigService: notificationConfigServiceBuilder(

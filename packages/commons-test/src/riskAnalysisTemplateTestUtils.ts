@@ -19,6 +19,7 @@ import { match } from "ts-pattern";
 import {
   validRiskAnalysis2_0_Private,
   validRiskAnalysis3_0_Pa,
+  validRiskAnalysis3_1_Pa,
 } from "./riskAnalysisTestUtils.js";
 
 export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedForm =
@@ -142,6 +143,180 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
         editable: false,
       },
     ],
+  };
+
+export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedForm =
+  {
+    version: validRiskAnalysis3_1_Pa.version,
+    singleAnswers: [
+      {
+        key: "purpose",
+        value: "INSTITUTIONAL",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "institutionalPurpose",
+        value: "MyPurpose",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "usesPersonalData",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "otherPersonalDataTypes",
+        value: "MyDataTypes",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "legalObligationReference",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "legalBasisPublicInterest",
+        value: "PUBLIC_INTEREST_TASK",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "knowsDataQuantity",
+        value: "NO",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "dataDownload",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "deliveryMethod",
+        value: "CLEARTEXT",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "policyProvided",
+        value: "NO",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "confirmPricipleIntegrityAndDiscretion",
+        value: "true",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "reasonPolicyNotProvided",
+        value: "Because",
+        editable: false,
+        suggestedValues: [],
+      },
+      { key: "doneDpia", value: "NO", editable: false, suggestedValues: [] },
+      {
+        key: "dataRetentionPeriod",
+        value: "10",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "purposePursuit",
+        value: "MERE_CORRECTNESS",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "checkedExistenceMereCorrectnessInteropCatalogue",
+        value: "true",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "isRequestOnBehalfOfThirdParties",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "thirdPartiesRequestDataUsage",
+        value: "PA_ONLY",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "declarationConfirmGDPR",
+        value: "true",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "publicInterestTaskText",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["Public interest something", "Anything else"],
+      },
+    ],
+    multiAnswers: [
+      { key: "personalDataTypes", values: ["OTHER"], editable: false },
+      {
+        key: "legalBasis",
+        values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+        editable: false,
+      },
+    ],
+  };
+
+export const validatedRiskAnalysisTemplate3_1_Pa_no_personal_data: RiskAnalysisTemplateValidatedForm =
+  {
+    version: validRiskAnalysis3_1_Pa.version,
+    singleAnswers: [
+      {
+        key: "purpose",
+        value: "INSTITUTIONAL",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "institutionalPurpose",
+        value: "MyPurpose",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "usesPersonalData",
+        value: "NO",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "usesThirdPartyPersonalData",
+        value: "NO",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "isRequestOnBehalfOfThirdParties",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "thirdPartiesRequestDataUsage",
+        value: "PA_ONLY",
+        editable: false,
+        suggestedValues: [],
+      },
+    ],
+    multiAnswers: [],
   };
 
 export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValidatedForm =
@@ -273,7 +448,7 @@ export const getMockValidRiskAnalysisFormTemplate = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
-        validatedRiskAnalysisTemplate3_0_Pa
+        validatedRiskAnalysisTemplate3_1_Pa
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
@@ -288,26 +463,26 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
 ): RiskAnalysisFormTemplate => {
   const incompleteRiskAnalysisFormTemplate =
     getMockValidRiskAnalysisFormTemplate(producerTenantKind);
+
+  const addAnnotationToAnswers = <
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answers: T[]
+  ): T[] =>
+    answers.map(
+      (a): T => ({
+        ...a,
+        annotation: getMockRiskAnalysisTemplateAnswerAnnotation(undefined, 1),
+      })
+    );
+
   return {
     ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: [],
-      })
+    singleAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.singleAnswers
     ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
+    multiAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
   };
 };

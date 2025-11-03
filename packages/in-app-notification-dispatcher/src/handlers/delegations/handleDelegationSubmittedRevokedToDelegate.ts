@@ -8,7 +8,10 @@ import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveEservice, retrieveTenant,
+} from "../handlerCommons.js";
 
 export type DelegationSubmittedRevokedToDelegateEventType =
   | "ProducerDelegationSubmitted"
@@ -31,11 +34,12 @@ export async function handleDelegationSubmittedRevokedToDelegate(
 
   const delegation = fromDelegationV2(delegationV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [delegation.delegateId],
-      "delegationSubmittedRevokedToDelegate"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [delegation.delegateId],
+    "delegationSubmittedRevokedToDelegate",
+    readModelService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(

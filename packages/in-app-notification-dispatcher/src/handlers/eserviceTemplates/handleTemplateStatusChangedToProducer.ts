@@ -8,7 +8,10 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveLatestPublishedEServiceTemplateVersion, retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveLatestPublishedEServiceTemplateVersion, retrieveTenant,
+} from "../handlerCommons.js";
 
 export async function handleTemplateStatusChangedToProducer(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -28,11 +31,12 @@ export async function handleTemplateStatusChangedToProducer(
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [eserviceTemplate.creatorId],
-      "templateStatusChangedToProducer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [eserviceTemplate.creatorId],
+    "templateStatusChangedToProducer",
+    readModelService,
+    logger
+  );
   const creator = await retrieveTenant(
     eserviceTemplate.creatorId,
     readModelService
@@ -42,11 +46,10 @@ export async function handleTemplateStatusChangedToProducer(
     creator.name
   );
   const entityId = EServiceTemplateIdEServiceTemplateVersionId.parse(
-    `${eserviceTemplate.id}/${
-      retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
+    `${eserviceTemplate.id}/${retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
     }`
   );
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
