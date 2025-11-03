@@ -145,7 +145,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
   };
 
   const updatedSingleAnswersWithFreeText = {
-    publicInterestTaskText: ["Public interest something"],
+    publicInterestTaskText: ["PublicInterestTaskText2"],
   };
 
   const updatedSingleAnswerFreeTextWithSuggestValue = {
@@ -155,6 +155,20 @@ describe("patchUpdatePurposeFromTemplate", () => {
   // This value is used to ensure consistency between the risk analysis in purpose template mock and purpose mock
   const legalBasisPublicInterest = {
     legalBasisPublicInterest: ["PUBLIC_INTEREST_TASK"],
+  };
+
+  const updatePurposeSeed: purposeApi.PatchPurposeUpdateFromTemplateContent = {
+    title: "Updated title",
+    dailyCalls: 666,
+    riskAnalysisForm: {
+      version: "3.1",
+      answers: {
+        institutionalPurpose: ["MyPurpose"],
+        otherPersonalDataTypes: ["MyDataTypes"],
+        reasonPolicyNotProvided: ["Because"],
+        dataRetentionPeriod: ["10"],
+      },
+    },
   };
 
   // ========================
@@ -200,11 +214,11 @@ describe("patchUpdatePurposeFromTemplate", () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
-      title: "Updated title",
-      dailyCalls: 666,
+      ...updatePurposeSeed,
       riskAnalysisForm: {
-        version: "3.1",
+        ...updatePurposeSeed.riskAnalysisForm!,
         answers: {
+          ...updatePurposeSeed.riskAnalysisForm!.answers,
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
         },
@@ -309,11 +323,11 @@ describe("patchUpdatePurposeFromTemplate", () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
-      title: "updated title",
-      dailyCalls: 666,
+      ...updatePurposeSeed,
       riskAnalysisForm: {
-        version: "3.1",
+        ...updatePurposeSeed.riskAnalysisForm!,
         answers: {
+          ...updatePurposeSeed.riskAnalysisForm!.answers,
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
         },
@@ -456,7 +470,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
 
   it("Should throw purposeNotInDraftState if have one purpose version not in draft state", async () => {
     const nonDraftState: PurposeVersionState = getRandomNonPurposeStateWithout(
-      purposeVersionState.active
+      purposeVersionState.draft
     );
 
     await addOnePurpose({
@@ -649,11 +663,11 @@ describe("patchUpdatePurposeFromTemplate", () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
-      title: "updated title",
-      dailyCalls: 666,
+      ...updatePurposeSeed,
       riskAnalysisForm: {
-        version: "3.1",
+        ...updatePurposeSeed.riskAnalysisForm!,
         answers: {
+          ...updatePurposeSeed.riskAnalysisForm!.answers,
           ...updatedSingleAnswersWithFreeText,
         },
       },
@@ -672,7 +686,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
     );
   });
 
-  it("Should throw riskAnalysisContainsNotEditableAnswers if a required field is missing", async () => {
+  it("Should throw riskAnalysisContainsNotEditableAnswers if provided answer is not editable", async () => {
     await addOnePurpose(draftPurpose);
     await addOneEService(eservice);
     await addOneTenant(consumer);
@@ -710,11 +724,11 @@ describe("patchUpdatePurposeFromTemplate", () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
-      title: "updated title",
-      dailyCalls: 666,
+      ...updatePurposeSeed,
       riskAnalysisForm: {
-        version: "3.1",
+        ...updatePurposeSeed.riskAnalysisForm!,
         answers: {
+          ...updatePurposeSeed.riskAnalysisForm!.answers,
           ...updatedSingleAnswersWithFreeText,
           legalObligationReference: ["invalid suggested value"],
         },
