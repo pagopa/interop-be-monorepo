@@ -32,7 +32,6 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = params;
 
@@ -68,7 +67,6 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
     tenants: instantiators,
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

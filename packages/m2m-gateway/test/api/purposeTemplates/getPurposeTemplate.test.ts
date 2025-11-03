@@ -8,6 +8,7 @@ import request from "supertest";
 import { generateId } from "pagopa-interop-models";
 import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { toM2MGatewayApiPurposeTemplate } from "../../../src/api/purposeTemplateApiConverter.js";
 
 describe("GET /purposeTemplates/:purposeTemplateId router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -21,7 +22,9 @@ describe("GET /purposeTemplates/:purposeTemplateId router test", () => {
       .set("Authorization", `Bearer ${token}`)
       .send();
 
-  const mockM2MPurposeTemplateResponse = getMockedApiPurposeTemplate();
+  const mockM2MPurposeTemplateResponse = toM2MGatewayApiPurposeTemplate(
+    getMockedApiPurposeTemplate()
+  );
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",

@@ -21,6 +21,9 @@ import { z } from "zod";
 import { match } from "ts-pattern";
 import { getMockClientJWKKey, getMockProducerJWKKey } from "./testUtils.js";
 
+export const mockAvailableDailysCalls = (): number =>
+  generateMock(z.number().min(1).max(1000000000));
+
 export function getMockedApiPurposeVersion({
   state,
   riskAnalysis,
@@ -31,7 +34,7 @@ export function getMockedApiPurposeVersion({
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
-    dailyCalls: generateMock(z.number().min(1).max(1000000000)),
+    dailyCalls: mockAvailableDailysCalls(),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
     riskAnalysis,
   };

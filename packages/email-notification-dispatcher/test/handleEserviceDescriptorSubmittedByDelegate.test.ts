@@ -8,6 +8,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   Delegation,
@@ -27,11 +28,9 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
@@ -73,9 +72,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     await addOneDelegation(delegation);
     await addOneTenant(delegatorTenant);
     await addOneTenant(delegateTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -87,7 +83,12 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+        users.map((user) => ({
+          userId: user.id,
+          tenantId: user.tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        }))
       );
   });
 
@@ -97,7 +98,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
         eserviceV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -134,7 +134,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
         eserviceV2Msg: toEServiceV2(eserviceWithUnknownDelegator),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -166,7 +165,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
         eserviceV2Msg: toEServiceV2(eserviceWithUnknownDelegate),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -178,7 +176,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -200,14 +197,18 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const messages = await handleEserviceDescriptorSubmittedByDelegate({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -230,7 +231,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -275,7 +275,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       eserviceV2Msg: toEServiceV2(eserviceMultipleMails),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -303,7 +302,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -323,7 +321,6 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

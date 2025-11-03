@@ -27,7 +27,6 @@ export async function handlePurposeVersionActivated(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -50,7 +49,6 @@ export async function handlePurposeVersionActivated(
     tenants: [consumer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: true,
   });

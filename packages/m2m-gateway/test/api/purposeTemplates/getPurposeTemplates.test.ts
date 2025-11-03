@@ -12,6 +12,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { toM2MGatewayApiPurposeTemplate } from "../../../src/api/purposeTemplateApiConverter.js";
 
 describe("API GET /purposeTemplates router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -34,7 +35,11 @@ describe("API GET /purposeTemplates router test", () => {
   const mockPurposeTemplate3 = getMockedApiPurposeTemplate();
 
   const mockM2MPurposeTemplatesResponse: m2mGatewayApi.PurposeTemplates = {
-    results: [mockPurposeTemplate1, mockPurposeTemplate2, mockPurposeTemplate3],
+    results: [
+      toM2MGatewayApiPurposeTemplate(mockPurposeTemplate1),
+      toM2MGatewayApiPurposeTemplate(mockPurposeTemplate2),
+      toM2MGatewayApiPurposeTemplate(mockPurposeTemplate3),
+    ],
     pagination: {
       offset: 0,
       limit: 10,
