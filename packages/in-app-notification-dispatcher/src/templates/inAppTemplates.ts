@@ -145,7 +145,7 @@ export const inAppTemplates = {
   delegationApprovedRejectedToDelegator: (
     eserviceName: string,
     delegateName: string,
-    eventType: DelegationApprovedRejectedToDelegatorEventType,
+    eventType: DelegationApprovedRejectedToDelegatorEventType
   ): string => {
     const { action, delegationKind, additional } = match(eventType)
       .with("ProducerDelegationApproved", () => ({
@@ -169,7 +169,9 @@ export const inAppTemplates = {
         additional: undefined,
       }))
       .exhaustive();
-    return `Ti informiamo che l'ente ${delegateName} ha ${action} la delega ${delegationKind} che il tuo ente gli ha conferito per l'e-service <strong>${eserviceName}</strong>.${additional ? additional : ``}`;
+    return `Ti informiamo che l'ente ${delegateName} ha ${action} la delega ${delegationKind} che il tuo ente gli ha conferito per l'e-service <strong>${eserviceName}</strong>.${
+      additional ? additional : ``
+    }`;
   },
   eserviceNewVersionSubmittedToDelegator: (
     delegateName: string,
@@ -179,7 +181,7 @@ export const inAppTemplates = {
   eserviceNewVersionApprovedRejectedToDelegate: (
     delegatorName: string,
     eserviceName: string,
-    eventType: EserviceNewVersionApprovedRejectedToDelegateEventType,
+    eventType: EserviceNewVersionApprovedRejectedToDelegateEventType
   ): string => {
     const { action } = match(eventType)
       .with("EServiceDescriptorApprovedByDelegator", () => ({
@@ -221,7 +223,10 @@ export const inAppTemplates = {
       .exhaustive();
     return `Ti informiamo che l'ente ${delegatorName} ha revocato la delega ${delegationKind} per l'e-service <strong>${eserviceName}</strong> che ti aveva conferito.`;
   },
-  templateStatusChangedToProducer: (templateName: string, producerName: string): string =>
+  templateStatusChangedToProducer: (
+    templateName: string,
+    producerName: string
+  ): string =>
     `L'ente ${producerName} ha sospeso il template "<strong>${templateName}</strong>", da cui il tuo ente ha generato l'e-service.`,
   newEserviceTemplateVersionToInstantiator: (
     creatorName: string,
@@ -295,7 +300,7 @@ export const inAppTemplates = {
     `Ti informiamo che l'ente erogatore <strong>${producerName}</strong> ha aggiunto un nuovo livello di sicurezza (portachiavi) all'e-service <strong>${eserviceName}</strong>.`,
   clientKeyDeletedToClientUsers: (
     producerKeychainName: string,
-    userId: string,
+    userId: string
   ): string =>
     `L'utente ${userId} ha rimosso una chiave di e-service dal client ${producerKeychainName}. Assicurati che l'operatività non sia compromessa.`,
   clientKeyAddedToClientUsers: (clientName: string): string =>

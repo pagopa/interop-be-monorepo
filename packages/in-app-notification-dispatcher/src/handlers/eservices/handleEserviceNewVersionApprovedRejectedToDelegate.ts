@@ -63,7 +63,7 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
   const body = inAppTemplates.eserviceNewVersionApprovedRejectedToDelegate(
     delegator.name,
     eservice.name,
-    eventType,
+    eventType
   );
 
   const entityId = EServiceIdDescriptorId.parse(
@@ -78,4 +78,3 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
     entityId,
   }));
 }
-

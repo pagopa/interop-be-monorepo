@@ -10,7 +10,8 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
-  retrieveLatestPublishedEServiceTemplateVersion, retrieveTenant,
+  retrieveLatestPublishedEServiceTemplateVersion,
+  retrieveTenant,
 } from "../handlerCommons.js";
 
 export async function handleTemplateStatusChangedToProducer(
@@ -46,7 +47,8 @@ export async function handleTemplateStatusChangedToProducer(
     creator.name
   );
   const entityId = EServiceTemplateIdEServiceTemplateVersionId.parse(
-    `${eserviceTemplate.id}/${retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
+    `${eserviceTemplate.id}/${
+      retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
     }`
   );
   return usersWithNotifications.map(({ userId, tenantId }) => ({

@@ -10,7 +10,8 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
-  retrieveEservice, retrieveTenant,
+  retrieveEservice,
+  retrieveTenant,
 } from "../handlerCommons.js";
 
 export type DelegationSubmittedRevokedToDelegateEventType =
