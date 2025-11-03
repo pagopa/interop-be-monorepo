@@ -48,6 +48,7 @@ const mockM2MTokenPayload: SerializedInteropJwtApiPayload = createPayload(
 );
 
 const expectedM2MAuthData: M2MAuthData = {
+  clientId: mockM2MTokenPayload.client_id,
   systemRole: systemRole.M2M_ROLE,
   organizationId: mockM2MTokenPayload.organizationId,
 };
