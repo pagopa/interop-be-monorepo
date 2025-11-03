@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -15,6 +15,7 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
 import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -48,7 +49,10 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
   };
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneEService(eservice);
     await addOneTenant(consumerTenant);
@@ -89,11 +93,10 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
       producerId: unknownTenantId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: consumerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: consumerId },
+    ]);
 
     await expect(() =>
       handleAgreementActivatedRejectedToConsumer(
@@ -112,11 +115,10 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
       eserviceId: unknownEserviceId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: consumerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: consumerId },
+    ]);
 
     await expect(() =>
       handleAgreementActivatedRejectedToConsumer(
@@ -129,10 +131,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleAgreementActivatedRejectedToConsumer(
       toAgreementV2(agreement),
@@ -164,10 +163,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
         { userId: generateId(), tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(consumerUsers);
+      mockGetNotificationRecipients.mockResolvedValue(consumerUsers);
 
       const notifications = await handleAgreementActivatedRejectedToConsumer(
         toAgreementV2(agreement),
@@ -204,10 +200,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
       { userId: generateId(), tenantId: consumerId },
       { userId: generateId(), tenantId: consumerId },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleAgreementActivatedRejectedToConsumer(
       toAgreementV2(agreement),

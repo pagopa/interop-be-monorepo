@@ -9,6 +9,7 @@ import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { clientKeyNotFound } from "../../models/errors.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
+import { getNotificationRecipients } from "../handlerCommons.js";
 
 type ClientKeyAddedDeletedToClientUsersEventType =
   | "ClientKeyAdded"
@@ -34,12 +35,14 @@ export async function handleClientKeyAddedDeletedToClientUsers(
   );
 
   const client = fromClientV2(decodedMessage.data.client);
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [client.consumerId],
-      "clientKeyAddedDeletedToClientUsers"
-    );
-  if (userNotificationConfigs.length === 0) {
+
+  const usersWithNotifications = await getNotificationRecipients(
+    [client.consumerId],
+    "clientKeyAddedDeletedToClientUsers",
+    readModelService,
+    logger
+  );
+  if (usersWithNotifications.length === 0) {
     logger.info(
       `No users with notifications enabled for clientKeyAddedDeletedToClientUsers message`
     );
@@ -53,7 +56,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
         throw clientKeyNotFound(client.id, kid);
       }
 
-      return userNotificationConfigs
+      return usersWithNotifications
         .filter(({ userId }) => userId !== key.userId) // Send to all other users
         .map(({ userId, tenantId }) => ({
           userId,
@@ -68,7 +71,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
         }));
     })
     .with({ type: "ClientKeyAdded" }, () =>
-      userNotificationConfigs.map(({ userId, tenantId }) => ({
+      usersWithNotifications.map(({ userId, tenantId }) => ({
         userId,
         tenantId,
         body: inAppTemplates.clientKeyAddedToClientUsers(client.name),
@@ -77,7 +80,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
       }))
     )
     .with({ type: "ClientUserDeleted" }, ({ data: { userId } }) =>
-      userNotificationConfigs
+      usersWithNotifications
         .filter(({ userId: uid }) => uid !== userId) // Send to all other users
         .map(({ userId, tenantId }) => ({
           userId,
