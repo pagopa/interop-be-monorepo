@@ -1126,6 +1126,7 @@ export function purposeTemplateServiceBuilder(
         toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated(
           updatedPurposeTemplate,
           newAnnotationDocument.id,
+          answerId,
           correlationId,
           purposeTemplate.metadata.version
         )

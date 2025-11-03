@@ -9,6 +9,8 @@ import {
   toEServiceV2,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   toPurposeTemplateV2,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswerId,
 } from "pagopa-interop-models";
 
 export function toCreateEventPurposeTemplateAdded(
@@ -238,6 +240,7 @@ export function toCreateEventPurposeTemplateAnnotationDocumentDeleted({
 export function toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated(
   purposeTemplate: PurposeTemplate,
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
   correlationId: CorrelationId,
   version: number
 ): CreateEvent<PurposeTemplateEventV2> {
@@ -251,6 +254,7 @@ export function toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated(
       data: {
         purposeTemplate: toPurposeTemplateV2(purposeTemplate),
         documentId,
+        answerId,
       },
     },
   };
