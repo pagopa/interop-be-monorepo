@@ -1504,6 +1504,7 @@ export function eserviceTemplateServiceBuilder(
         {
           events: [eserviceTemplateVersionCreationEvent],
           updatedEServiceTemplateWithDocs: updatedEServiceTemplate,
+          w,
         }
       );
 
@@ -1515,7 +1516,7 @@ export function eserviceTemplateServiceBuilder(
           createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
         },
         metadata: {
-          version: createdEvents.latestNewVersion.get(events[0].streamId),
+          version: createdEvents.latestNewVersion.get(events[0].streamId) ?? 0,
         },
       };
     },

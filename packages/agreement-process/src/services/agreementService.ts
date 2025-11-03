@@ -671,7 +671,8 @@ export function agreementServiceBuilder(
       return {
         data: submittedAgreement,
         metadata: {
-          version: createdEvents.latestNewVersion.get(agreementEvent.streamId),
+          version:
+            createdEvents.latestNewVersion.get(agreementEvent.streamId) ?? 0,
         },
       };
     },
@@ -802,7 +803,7 @@ export function agreementServiceBuilder(
       return {
         data: agreement,
         metadata: {
-          version: createdEvents.latestNewVersion.get(agreement.id),
+          version: createdEvents.latestNewVersion.get(agreement.id) ?? 0,
         },
       };
     },
@@ -1410,9 +1411,9 @@ export function agreementServiceBuilder(
       return {
         data: updatedAgreement,
         metadata: {
-          version: createdEvents.latestNewVersion.get(
-            activationEvents[0].streamId
-          ),
+          version:
+            createdEvents.latestNewVersion.get(activationEvents[0].streamId) ??
+            0,
         },
       };
     },

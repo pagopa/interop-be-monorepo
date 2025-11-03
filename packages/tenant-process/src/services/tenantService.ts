@@ -567,9 +567,10 @@ export function tenantServiceBuilder(
         return {
           data: updatedTenant,
           metadata: {
-            version: createdEvents.latestNewVersion.get(
-              tenantCertifiedAttributeAssignedEvent.streamId
-            ),
+            version:
+              createdEvents.latestNewVersion.get(
+                tenantCertifiedAttributeAssignedEvent.streamId
+              ) ?? 0,
           },
         };
       }
@@ -773,9 +774,10 @@ export function tenantServiceBuilder(
         return {
           data: updatedTenant,
           metadata: {
-            version: createdEvents.latestNewVersion.get(
-              tenantCertifiedAttributeRevokedEvent.streamId
-            ),
+            version:
+              createdEvents.latestNewVersion.get(
+                tenantCertifiedAttributeRevokedEvent.streamId
+              ) ?? 0,
           },
         };
       }

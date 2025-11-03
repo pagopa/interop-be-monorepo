@@ -5,16 +5,6 @@ import { ITask } from "pg-promise";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
-class MapWithDefault<K, V> extends Map<K, V> {
-  constructor(entries?: ReadonlyArray<readonly [K, V]> | null) {
-    super(entries);
-  }
-
-  public get(key: K): V {
-    return super.get(key) ?? (0 as V);
-  }
-}
-
 export interface Event {
   readonly type: string;
   readonly event_version: number;
@@ -34,7 +24,7 @@ type CreatedEvent = {
 
 type CreatedEvents = {
   events: CreatedEvent[];
-  latestNewVersion: MapWithDefault<CreatedEvent["streamId"], number>;
+  latestNewVersion: Map<CreatedEvent["streamId"], number>;
 };
 
 async function insertEventInTransaction<T extends Event>(
@@ -107,7 +97,7 @@ async function internalCreateEvents<T extends Event>(
   createEvents: Array<CreateEvent<T>>
 ): Promise<CreatedEvents> {
   const createdEvents: CreatedEvent[] = [];
-  const latestNewVersion = new MapWithDefault<string, number>();
+  const latestNewVersion = new Map<string, number>();
 
   try {
     await db.tx(async (t) => {
