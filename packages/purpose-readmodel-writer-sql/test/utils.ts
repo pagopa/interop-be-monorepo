@@ -19,6 +19,8 @@ import {
   purposeVersionDocumentInReadmodelPurpose,
   PurposeVersionStampSQL,
   purposeVersionStampInReadmodelPurpose,
+  PurposeVersionSignedDocumentSQL,
+  purposeVersionSignedDocumentInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { purposeWriterServiceBuilder } from "../src/purposeWriterService.js";
 
@@ -28,7 +30,7 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("readModelSQLConfig")
+  inject("readModelSQLConfig"),
 );
 
 afterEach(cleanup);
@@ -38,11 +40,11 @@ export const purposeReadModelService =
 export const purposeWriterService = purposeWriterServiceBuilder(readModelDB);
 
 export const checkCompletePurpose = async (
-  purpose: Purpose
+  purpose: Purpose,
 ): Promise<PurposeItemsSQL> => {
   const retrievedPurposeSQL = await retrievePurposeSQLById(
     purpose.id,
-    readModelDB
+    readModelDB,
   );
   const retrievedRiskAnalysisFormSQL =
     await retrievePurposeRiskAnalysisFormSQLById(purpose.id, readModelDB);
@@ -50,22 +52,24 @@ export const checkCompletePurpose = async (
     await retrievePurposeRiskAnalysisAnswersSQLById(purpose.id, readModelDB);
   const retrievedPurposeVersionsSQL = await retrievePurposeVersionsSQLById(
     purpose.id,
-    readModelDB
+    readModelDB,
   );
   const retrievedPurposeVersionDocumentsSQL =
     await retrievePurposeVersionDocumentsSQLById(purpose.id, readModelDB);
   const retrievedPurposeVersionStampsSQL =
     await retrievePurposeVersionStampsSQLById(purpose.id, readModelDB);
+  const retrievedPurposeVersionSignedDocumentsSQL =
+    await retrievePurposeVersionSignedDocumentsSQLById(purpose.id, readModelDB);
 
   expect(retrievedPurposeSQL).toBeDefined();
   expect(retrievedRiskAnalysisFormSQL).toBeDefined();
   expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(
     purpose.riskAnalysisForm!.multiAnswers.length +
-      purpose.riskAnalysisForm!.singleAnswers.length
+      purpose.riskAnalysisForm!.singleAnswers.length,
   );
   expect(retrievedPurposeVersionsSQL).toHaveLength(purpose.versions.length);
   expect(retrievedPurposeVersionDocumentsSQL).toHaveLength(
-    purpose.versions.length
+    purpose.versions.length,
   );
   expect(retrievedPurposeVersionStampsSQL).toHaveLength(1);
 
@@ -76,12 +80,13 @@ export const checkCompletePurpose = async (
     versionsSQL: retrievedPurposeVersionsSQL,
     versionDocumentsSQL: retrievedPurposeVersionDocumentsSQL,
     versionStampsSQL: retrievedPurposeVersionStampsSQL,
+    versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentsSQL,
   };
 };
 
 export const retrievePurposeSQLById = async (
   purposeId: PurposeId,
-  db: DrizzleReturnType
+  db: DrizzleReturnType,
 ): Promise<PurposeSQL | undefined> => {
   const result = await db
     .select()
@@ -93,7 +98,7 @@ export const retrievePurposeSQLById = async (
 
 export const retrievePurposeRiskAnalysisFormSQLById = async (
   purposeId: PurposeId,
-  db: DrizzleReturnType
+  db: DrizzleReturnType,
 ): Promise<PurposeRiskAnalysisFormSQL | undefined> => {
   const result = await db
     .select()
@@ -105,18 +110,18 @@ export const retrievePurposeRiskAnalysisFormSQLById = async (
 
 export const retrievePurposeRiskAnalysisAnswersSQLById = async (
   purposeId: PurposeId,
-  db: DrizzleReturnType
+  db: DrizzleReturnType,
 ): Promise<PurposeRiskAnalysisAnswerSQL[]> =>
   await db
     .select()
     .from(purposeRiskAnalysisAnswerInReadmodelPurpose)
     .where(
-      eq(purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId, purposeId)
+      eq(purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId, purposeId),
     );
 
 export const retrievePurposeVersionsSQLById = async (
   purposeId: PurposeId,
-  db: DrizzleReturnType
+  db: DrizzleReturnType,
 ): Promise<PurposeVersionSQL[]> =>
   await db
     .select()
@@ -125,7 +130,7 @@ export const retrievePurposeVersionsSQLById = async (
 
 export const retrievePurposeVersionDocumentsSQLById = async (
   purposeId: PurposeId,
-  db: DrizzleReturnType
+  db: DrizzleReturnType,
 ): Promise<PurposeVersionDocumentSQL[]> =>
   await db
     .select()
@@ -134,9 +139,20 @@ export const retrievePurposeVersionDocumentsSQLById = async (
 
 export const retrievePurposeVersionStampsSQLById = async (
   purposeId: PurposeId,
-  db: DrizzleReturnType
+  db: DrizzleReturnType,
 ): Promise<PurposeVersionStampSQL[]> =>
   await db
     .select()
     .from(purposeVersionStampInReadmodelPurpose)
     .where(eq(purposeVersionStampInReadmodelPurpose.purposeId, purposeId));
+
+export const retrievePurposeVersionSignedDocumentsSQLById = async (
+  purposeId: PurposeId,
+  db: DrizzleReturnType,
+): Promise<PurposeVersionSignedDocumentSQL[]> =>
+  await db
+    .select()
+    .from(purposeVersionSignedDocumentInReadmodelPurpose)
+    .where(
+      eq(purposeVersionSignedDocumentInReadmodelPurpose.purposeId, purposeId),
+    );

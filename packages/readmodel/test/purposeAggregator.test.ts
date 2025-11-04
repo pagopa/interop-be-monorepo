@@ -28,7 +28,6 @@ describe("Purpose aggregator", () => {
       updatedAt: new Date(),
       firstActivationAt: new Date(),
       riskAnalysis: getMockPurposeVersionDocument(),
-      signedContract: generateId(),
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
@@ -58,6 +57,7 @@ describe("Purpose aggregator", () => {
       versionsSQL,
       versionDocumentsSQL,
       versionStampsSQL,
+      versionSignedDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
@@ -67,6 +67,7 @@ describe("Purpose aggregator", () => {
       versionsSQL,
       versionDocumentsSQL,
       versionStampsSQL,
+      versionSignedDocumentsSQL,
     });
 
     expect(aggregatedPurpose).toStrictEqual(purpose);
@@ -75,7 +76,6 @@ describe("Purpose aggregator", () => {
   it("should convert incomplete purpose SQL objects into a business logic purpose (null -> undefined)", () => {
     const purposeVersion = {
       ...getMockPurposeVersion(),
-      signedContract: generateId(),
     };
 
     const purpose: WithMetadata<Purpose> = {
@@ -93,6 +93,7 @@ describe("Purpose aggregator", () => {
       versionsSQL,
       versionDocumentsSQL,
       versionStampsSQL,
+      versionSignedDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
@@ -102,6 +103,7 @@ describe("Purpose aggregator", () => {
       versionsSQL,
       versionDocumentsSQL,
       versionStampsSQL,
+      versionSignedDocumentsSQL,
     });
 
     expect(aggregatedPurpose).toStrictEqual(purpose);

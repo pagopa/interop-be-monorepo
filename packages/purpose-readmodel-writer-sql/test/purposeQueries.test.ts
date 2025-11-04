@@ -25,6 +25,7 @@ import {
   retrievePurposeRiskAnalysisFormSQLById,
   retrievePurposeSQLById,
   retrievePurposeVersionDocumentsSQLById,
+  retrievePurposeVersionSignedDocumentsSQLById,
   retrievePurposeVersionsSQLById,
   retrievePurposeVersionStampsSQLById,
 } from "./utils.js";
@@ -51,7 +52,7 @@ describe("Purpose queries", () => {
       const purposeVersion3: PurposeVersion = {
         ...getMockPurposeVersion(
           purposeVersionState.active,
-          getMockPurposeVersionStamps()
+          getMockPurposeVersionStamps(),
         ),
         riskAnalysis: getMockPurposeVersionDocument(),
         rejectionReason: "Test rejection reason",
@@ -81,6 +82,7 @@ describe("Purpose queries", () => {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -90,6 +92,7 @@ describe("Purpose queries", () => {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -105,24 +108,30 @@ describe("Purpose queries", () => {
 
       const retrievedPurposeSQL = await retrievePurposeSQLById(
         purpose.id,
-        readModelDB
+        readModelDB,
       );
       const retrievedRiskAnalysisFormSQL =
         await retrievePurposeRiskAnalysisFormSQLById(purpose.id, readModelDB);
       const retrievedRiskAnalysisAnswersSQL =
         await retrievePurposeRiskAnalysisAnswersSQLById(
           purpose.id,
-          readModelDB
+          readModelDB,
         );
       const retrievedPurposeVersionsSQL = await retrievePurposeVersionsSQLById(
         purpose.id,
-        readModelDB
+        readModelDB,
       );
       const retrievedPurposeVersionDocumentSQL =
         await retrievePurposeVersionDocumentsSQLById(purpose.id, readModelDB);
 
       const retrievedPurposeVersionStampSQL =
         await retrievePurposeVersionStampsSQLById(purpose.id, readModelDB);
+
+      const retrievedPurposeVersionSignedDocumentSQL =
+        await retrievePurposeVersionSignedDocumentsSQLById(
+          purpose.id,
+          readModelDB,
+        );
 
       expect(retrievedPurposeSQL).toBeDefined();
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
@@ -138,6 +147,7 @@ describe("Purpose queries", () => {
         versionsSQL: retrievedPurposeVersionsSQL,
         versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
         versionStampsSQL: retrievedPurposeVersionStampSQL,
+        versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -166,7 +176,7 @@ describe("Purpose queries", () => {
       const purposeVersion3: PurposeVersion = {
         ...getMockPurposeVersion(
           purposeVersionState.active,
-          getMockPurposeVersionStamps()
+          getMockPurposeVersionStamps(),
         ),
         riskAnalysis: getMockPurposeVersionDocument(),
         rejectionReason: "Test rejection reason",
@@ -197,6 +207,7 @@ describe("Purpose queries", () => {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -206,6 +217,7 @@ describe("Purpose queries", () => {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -239,7 +251,7 @@ describe("Purpose queries", () => {
           {
             ...getMockPurposeVersion(
               purposeVersionState.active,
-              getMockPurposeVersionStamps()
+              getMockPurposeVersionStamps(),
             ),
             riskAnalysis: getMockPurposeVersionDocument(),
             rejectionReason: "Test rejection reason",
@@ -281,7 +293,7 @@ describe("Purpose queries", () => {
           {
             ...getMockPurposeVersion(
               purposeVersionState.active,
-              getMockPurposeVersionStamps()
+              getMockPurposeVersionStamps(),
             ),
             riskAnalysis: getMockPurposeVersionDocument(),
             rejectionReason: "Test rejection reason",
@@ -304,25 +316,25 @@ describe("Purpose queries", () => {
       await purposeWriterService.deletePurposeById(purpose1.id, 1);
 
       expect(
-        await retrievePurposeSQLById(purpose1.id, readModelDB)
+        await retrievePurposeSQLById(purpose1.id, readModelDB),
       ).toBeUndefined();
       expect(
-        await retrievePurposeRiskAnalysisFormSQLById(purpose1.id, readModelDB)
+        await retrievePurposeRiskAnalysisFormSQLById(purpose1.id, readModelDB),
       ).toBeUndefined();
       expect(
         await retrievePurposeRiskAnalysisAnswersSQLById(
           purpose1.id,
-          readModelDB
-        )
+          readModelDB,
+        ),
       ).toHaveLength(0);
       expect(
-        await retrievePurposeVersionsSQLById(purpose1.id, readModelDB)
+        await retrievePurposeVersionsSQLById(purpose1.id, readModelDB),
       ).toHaveLength(0);
       expect(
-        await retrievePurposeVersionDocumentsSQLById(purpose1.id, readModelDB)
+        await retrievePurposeVersionDocumentsSQLById(purpose1.id, readModelDB),
       ).toHaveLength(0);
       expect(
-        await retrievePurposeVersionStampsSQLById(purpose1.id, readModelDB)
+        await retrievePurposeVersionStampsSQLById(purpose1.id, readModelDB),
       ).toHaveLength(0);
 
       await checkCompletePurpose(purpose2);

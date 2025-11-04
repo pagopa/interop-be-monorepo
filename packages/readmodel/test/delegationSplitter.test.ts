@@ -8,7 +8,6 @@ import {
   delegationContractKind,
   delegationKind,
   DelegationStampKind,
-  generateId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
@@ -31,7 +30,6 @@ describe("Delegation splitters", () => {
       rejectionReason,
       revocationContract,
       activationContract,
-      signedContract: generateId(),
     };
 
     const { delegationSQL, stampsSQL, contractDocumentsSQL } =
@@ -50,7 +48,6 @@ describe("Delegation splitters", () => {
       eserviceId: delegation.eserviceId,
       state: delegation.state,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      signedContract: delegation.signedContract!,
     };
 
     const expectedDelegationStamps: DelegationStampSQL = {
@@ -68,7 +65,6 @@ describe("Delegation splitters", () => {
       delegationId: delegation.id,
       createdAt: revocationContract.createdAt.toISOString(),
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      signedAt: revocationContract.signedAt!.toISOString(),
     };
 
     const expectedActivationContractDocument: DelegationContractDocumentSQL = {
@@ -78,7 +74,6 @@ describe("Delegation splitters", () => {
       delegationId: delegation.id,
       createdAt: activationContract.createdAt.toISOString(),
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      signedAt: revocationContract.signedAt!.toISOString(),
     };
 
     expect(delegationSQL).toEqual(expectedDelegationSQL);
@@ -87,7 +82,7 @@ describe("Delegation splitters", () => {
       expect.arrayContaining([
         expectedRevocationContractDocument,
         expectedActivationContractDocument,
-      ])
+      ]),
     );
   });
 
@@ -112,7 +107,6 @@ describe("Delegation splitters", () => {
       delegateId: delegation.delegateId,
       eserviceId: delegation.eserviceId,
       state: delegation.state,
-      signedContract: null,
     };
 
     const expectedDelegationStamps: DelegationStampSQL = {

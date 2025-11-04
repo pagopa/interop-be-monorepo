@@ -27,7 +27,6 @@ describe("Agreement Aggregator", () => {
     const mockAgreementStamps = getMockAgreementStamps();
     const agreementStamps: AgreementStamps = {};
     const delegationId = generateId<DelegationId>();
-    const signedContract = generateId();
 
     // eslint-disable-next-line functional/no-let
     let key: keyof AgreementStamps;
@@ -60,12 +59,10 @@ describe("Agreement Aggregator", () => {
         contract: {
           ...getMockAgreementContract(),
           createdAt: new Date(),
-          signedAt: new Date(),
         },
         stamps: agreementStamps,
         rejectionReason: "some rejection reason",
         suspendedAt: new Date(),
-        signedContract,
       },
       metadata: {
         version: 1,
@@ -77,9 +74,10 @@ describe("Agreement Aggregator", () => {
       contractSQL,
       attributesSQL,
       stampsSQL,
+      signedContractSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
-      agreement.metadata.version
+      agreement.metadata.version,
     );
 
     const aggregatedAgreement = aggregateAgreement({
@@ -88,6 +86,7 @@ describe("Agreement Aggregator", () => {
       consumerDocumentsSQL,
       contractSQL,
       attributesSQL,
+      signedContractSQL,
     });
 
     expect(aggregatedAgreement).toStrictEqual(agreement);
@@ -125,7 +124,6 @@ describe("Agreement Aggregator", () => {
         declaredAttributes: [getMockAgreementAttribute()],
         consumerDocuments: [getMockAgreementDocument()],
         stamps: agreementStamps,
-        signedContract: generateId(),
       },
       metadata: {
         version: 1,
@@ -137,9 +135,10 @@ describe("Agreement Aggregator", () => {
       contractSQL,
       attributesSQL,
       stampsSQL,
+      signedContractSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
-      agreement.metadata.version
+      agreement.metadata.version,
     );
 
     const aggregatedAgreement = aggregateAgreement({
@@ -148,6 +147,7 @@ describe("Agreement Aggregator", () => {
       consumerDocumentsSQL,
       contractSQL,
       attributesSQL,
+      signedContractSQL,
     });
 
     expect(aggregatedAgreement).toStrictEqual(agreement);

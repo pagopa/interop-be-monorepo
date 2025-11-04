@@ -44,6 +44,8 @@ describe("Purpose splitter", () => {
 
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
+    const purposeVersionSignedContract: PurposeVersionDocument =
+      getMockPurposeVersionDocument();
 
     const purposeVersionStamps = getMockPurposeVersionStamps();
     const purposeVersion: PurposeVersion = {
@@ -53,7 +55,7 @@ describe("Purpose splitter", () => {
       updatedAt,
       firstActivationAt,
       riskAnalysis: purposeVersionRiskAnalysis,
-      signedContract: generateId(),
+      signedContract: purposeVersionSignedContract,
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
@@ -117,7 +119,7 @@ describe("Purpose splitter", () => {
             value: a.value ? [a.value] : [],
             riskAnalysisFormId: purposeRiskAnalysisForm.id,
             kind: riskAnalysisAnswerKind.single,
-          })
+          }),
         )
         .concat(
           purposeRiskAnalysisForm.multiAnswers.map(
@@ -129,8 +131,8 @@ describe("Purpose splitter", () => {
               value: a.values,
               riskAnalysisFormId: purposeRiskAnalysisForm.id,
               kind: riskAnalysisAnswerKind.multi,
-            })
-          )
+            }),
+          ),
         );
 
     const expectedPurposeVersionSQL: PurposeVersionSQL = {
@@ -144,7 +146,6 @@ describe("Purpose splitter", () => {
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
-      signedContract: purposeVersion.signedContract!,
     };
 
     const expectedPurposeVersionDocumentSQL: PurposeVersionDocumentSQL = {
@@ -156,7 +157,6 @@ describe("Purpose splitter", () => {
       contentType: purposeVersionRiskAnalysis.contentType,
       path: purposeVersionRiskAnalysis.path,
       // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-      signedAt: purposeVersionRiskAnalysis.signedAt?.toISOString()!,
     };
 
     const expectedPurposeVersionStampsSQL: PurposeVersionStampSQL[] = [];
@@ -164,7 +164,7 @@ describe("Purpose splitter", () => {
     for (const [key, stamp] of Object.entries(purposeVersionStamps) as Array<
       [
         keyof PurposeVersionStamps,
-        PurposeVersionStamps[keyof PurposeVersionStamps]
+        PurposeVersionStamps[keyof PurposeVersionStamps],
       ]
     >) {
       if (stamp) {
@@ -181,10 +181,10 @@ describe("Purpose splitter", () => {
 
     expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
     expect(riskAnalysisFormSQL).toStrictEqual(
-      expectedPurposeRiskAnalysisFormSQL
+      expectedPurposeRiskAnalysisFormSQL,
     );
     expect(riskAnalysisAnswersSQL).toStrictEqual(
-      expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL)
+      expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL),
     );
     expect(versionsSQL).toStrictEqual([expectedPurposeVersionSQL]);
     expect(versionDocumentsSQL).toStrictEqual([
@@ -267,7 +267,7 @@ describe("Purpose splitter", () => {
             value: a.value ? [a.value] : [],
             riskAnalysisFormId: purposeRiskAnalysisForm.id,
             kind: riskAnalysisAnswerKind.single,
-          })
+          }),
         )
         .concat(
           purposeRiskAnalysisForm.multiAnswers.map(
@@ -279,8 +279,8 @@ describe("Purpose splitter", () => {
               value: a.values,
               riskAnalysisFormId: purposeRiskAnalysisForm.id,
               kind: riskAnalysisAnswerKind.multi,
-            })
-          )
+            }),
+          ),
         );
 
     const expectedPurposeVersionSQL: PurposeVersionSQL = {
@@ -294,7 +294,6 @@ describe("Purpose splitter", () => {
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
-      signedContract: null,
     };
 
     const expectedPurposeVersionDocumentSQL: PurposeVersionDocumentSQL = {
@@ -306,17 +305,16 @@ describe("Purpose splitter", () => {
       contentType: purposeVersionRiskAnalysis.contentType,
       path: purposeVersionRiskAnalysis.path,
       // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-      signedAt: purposeVersionRiskAnalysis.signedAt?.toISOString()!,
     };
 
     const expectedpurposeVersionStampsSQL: PurposeVersion[] = [];
 
     expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
     expect(riskAnalysisFormSQL).toStrictEqual(
-      expectedPurposeRiskAnalysisFormSQL
+      expectedPurposeRiskAnalysisFormSQL,
     );
     expect(riskAnalysisAnswersSQL).toStrictEqual(
-      expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL)
+      expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL),
     );
     expect(versionsSQL).toStrictEqual([expectedPurposeVersionSQL]);
     expect(versionDocumentsSQL).toStrictEqual([

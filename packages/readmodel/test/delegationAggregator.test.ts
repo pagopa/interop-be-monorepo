@@ -27,20 +27,24 @@ describe("Delegation aggregator", () => {
         rejectionReason: "Rejection reason",
         revocationContract: getMockDelegationDocument(),
         activationContract: getMockDelegationDocument(),
-        signedContract: generateId(),
       },
       metadata: {
         version: 1,
       },
     };
 
-    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-      splitDelegationIntoObjectsSQL(delegation.data, 1);
+    const {
+      delegationSQL,
+      stampsSQL,
+      contractDocumentsSQL,
+      contractSignedDocumentsSQL,
+    } = splitDelegationIntoObjectsSQL(delegation.data, 1);
 
     const aggregatedDelegation = aggregateDelegation({
       delegationSQL,
       stampsSQL,
       contractDocumentsSQL,
+      contractSignedDocumentsSQL,
     });
 
     expect(aggregatedDelegation).toMatchObject(delegation);
@@ -62,20 +66,24 @@ describe("Delegation aggregator", () => {
             when: new Date(),
           },
         },
-        signedContract: generateId(),
       },
       metadata: {
         version: 1,
       },
     };
 
-    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-      splitDelegationIntoObjectsSQL(delegation.data, 1);
+    const {
+      delegationSQL,
+      stampsSQL,
+      contractDocumentsSQL,
+      contractSignedDocumentsSQL,
+    } = splitDelegationIntoObjectsSQL(delegation.data, 1);
 
     const aggregatedDelegation = aggregateDelegation({
       delegationSQL,
       stampsSQL,
       contractDocumentsSQL,
+      contractSignedDocumentsSQL,
     });
 
     expect(aggregatedDelegation).toMatchObject(delegation);
