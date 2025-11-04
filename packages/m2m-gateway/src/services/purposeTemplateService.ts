@@ -141,7 +141,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         headers
       );
 
-      return data;
+      return toM2MGatewayApiPurposeTemplate(data);
     },
   };
 }
