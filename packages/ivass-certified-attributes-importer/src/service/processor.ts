@@ -276,7 +276,7 @@ function getBatch(
     // This callback was added on 5.1.0 (see documentation https://csv.js.org/parse/options/on_skip).
     // It was added to csv-parse types in csv@6.4.0 (see commit https://github.com/adaltas/node-csv/commit/da7a62e3b30fdc1fbd6293cbc9289a8ff6f5f64a).
     on_skip: ({ record, ...error }: parser.CsvError) => {
-      logger.error(
+      logger.warn(
         `Skipped Record. Error parsing row ${
           error.index
         }. Row: ${JSON.stringify(record)}: Error: ${JSON.stringify(error)}`
