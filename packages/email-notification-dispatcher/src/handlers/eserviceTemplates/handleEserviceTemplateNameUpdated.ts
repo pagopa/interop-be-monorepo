@@ -31,7 +31,6 @@ export async function handleEServiceTemplateNameUpdated(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = params;
 
@@ -66,7 +65,6 @@ export async function handleEServiceTemplateNameUpdated(
     tenants: instantiators,
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
