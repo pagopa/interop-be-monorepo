@@ -389,6 +389,7 @@ export function eserviceTemplateServiceBuilder(
               eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED,
             ],
             creatorsIds,
+            personalData,
             limit,
             offset,
           },
