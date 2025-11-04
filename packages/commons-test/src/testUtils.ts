@@ -393,7 +393,6 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   id: generateId(),
   contentType: "json",
   createdAt: new Date(),
-  signedAt: new Date(),
 });
 
 export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
@@ -620,7 +619,6 @@ export const getMockDelegationDocument = (
   contentType: "json",
   path: "path",
   createdAt: new Date(),
-  signedAt: new Date(),
 });
 
 export const getMockTokenGenStatesConsumerClient = (

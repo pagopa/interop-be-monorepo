@@ -1785,8 +1785,7 @@ export function purposeServiceBuilder(
 
       const updatedVersion: PurposeVersion = {
         ...versionRetrieved,
-        riskAnalysis: riskAnalysisDocument,
-        signedContract: riskAnalysisDocument.id,
+        signedContract: riskAnalysisDocument,
       };
 
       const updatedPurpose = replacePurposeVersion(

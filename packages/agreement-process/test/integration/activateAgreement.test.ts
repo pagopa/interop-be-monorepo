@@ -138,8 +138,8 @@ describe("activate agreement", () => {
       eserviceId: agreement.eserviceId,
       state: randomArrayItem(
         Object.values(agreementState).filter(
-          (state) => !agreementArchivableStates.includes(state)
-        )
+          (state) => !agreementArchivableStates.includes(state),
+        ),
       ),
     };
 
@@ -160,13 +160,13 @@ describe("activate agreement", () => {
   }): Promise<void> {
     // Verifying archiviation relating agreements
     const archiveEvent1 = await readLastAgreementEvent(
-      relatedAgreements.archivableRelatedAgreement1.id
+      relatedAgreements.archivableRelatedAgreement1.id,
     );
     const archiveEvent2 = await readLastAgreementEvent(
-      relatedAgreements.archivableRelatedAgreement2.id
+      relatedAgreements.archivableRelatedAgreement2.id,
     );
     const nonArchivedAgreementEvent = await readLastAgreementEvent(
-      relatedAgreements.nonArchivableRelatedAgreement.id
+      relatedAgreements.nonArchivableRelatedAgreement.id,
     );
 
     expect(archiveEvent1).toMatchObject({
@@ -334,7 +334,7 @@ describe("activate agreement", () => {
                   ? producerDelegation?.id
                   : undefined,
             },
-            getMockContext({ authData })
+            getMockContext({ authData }),
           );
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -350,7 +350,7 @@ describe("activate agreement", () => {
           decodeProtobufPayload({
             messageType: AgreementActivatedV2,
             payload: agreementEvent.data,
-          }).agreement!
+          }).agreement!,
         );
 
         const contractDocumentId = actualAgreementActivated.contract!.id;
@@ -358,7 +358,7 @@ describe("activate agreement", () => {
         const contractDocumentName = `${consumer.id}_${
           producer.id
         }_${formatDateyyyyMMddHHmmss(
-          contractCreatedAt
+          contractCreatedAt,
         )}_agreement_contract.pdf`;
 
         const expectedContract = {
@@ -391,7 +391,7 @@ describe("activate agreement", () => {
         };
 
         expect(actualAgreementActivated).toMatchObject(
-          expectedActivatedAgreement
+          expectedActivatedAgreement,
         );
 
         const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
@@ -400,17 +400,17 @@ describe("activate agreement", () => {
           agreementId: expectedActivatedAgreement.id,
           submitterId: expectedActivatedAgreement.stamps.submission!.who,
           submissionDate: dateAtRomeZone(
-            expectedActivatedAgreement.stamps.submission!.when
+            expectedActivatedAgreement.stamps.submission!.when,
           ),
           submissionTime: timeAtRomeZone(
-            expectedActivatedAgreement.stamps.submission!.when
+            expectedActivatedAgreement.stamps.submission!.when,
           ),
           activatorId: expectedActivatedAgreement.stamps.activation!.who,
           activationDate: dateAtRomeZone(
-            expectedActivatedAgreement.stamps.activation!.when
+            expectedActivatedAgreement.stamps.activation!.when,
           ),
           activationTime: timeAtRomeZone(
-            expectedActivatedAgreement.stamps.activation!.when
+            expectedActivatedAgreement.stamps.activation!.when,
           ),
           eserviceId: eservice.id,
           eserviceName: eservice.name,
@@ -424,10 +424,10 @@ describe("activate agreement", () => {
           certifiedAttributes: [
             {
               assignmentDate: dateAtRomeZone(
-                validTenantCertifiedAttribute.assignmentTimestamp
+                validTenantCertifiedAttribute.assignmentTimestamp,
               ),
               assignmentTime: timeAtRomeZone(
-                validTenantCertifiedAttribute.assignmentTimestamp
+                validTenantCertifiedAttribute.assignmentTimestamp,
               ),
               attributeName: certifiedAttribute.name,
               attributeId: validTenantCertifiedAttribute.id,
@@ -436,10 +436,10 @@ describe("activate agreement", () => {
           declaredAttributes: [
             {
               assignmentDate: dateAtRomeZone(
-                validTenantDeclaredAttribute.assignmentTimestamp
+                validTenantDeclaredAttribute.assignmentTimestamp,
               ),
               assignmentTime: timeAtRomeZone(
-                validTenantDeclaredAttribute.assignmentTimestamp
+                validTenantDeclaredAttribute.assignmentTimestamp,
               ),
               attributeName: declaredAttribute.name,
               attributeId: validTenantDeclaredAttribute.id,
@@ -449,15 +449,15 @@ describe("activate agreement", () => {
           verifiedAttributes: [
             {
               assignmentDate: dateAtRomeZone(
-                validTenantVerifiedAttribute.assignmentTimestamp
+                validTenantVerifiedAttribute.assignmentTimestamp,
               ),
               assignmentTime: timeAtRomeZone(
-                validTenantVerifiedAttribute.assignmentTimestamp
+                validTenantVerifiedAttribute.assignmentTimestamp,
               ),
               attributeName: verifiedAttribute.name,
               attributeId: validTenantVerifiedAttribute.id,
               expirationDate: dateAtRomeZone(
-                validTenantVerifiedAttribute.verifiedBy[0].extensionDate!
+                validTenantVerifiedAttribute.verifiedBy[0].extensionDate!,
               ),
               delegationId: producerDelegation?.id,
             },
@@ -476,13 +476,13 @@ describe("activate agreement", () => {
             path.dirname(fileURLToPath(import.meta.url)),
             "../../src",
             "resources/templates/documents/",
-            "agreementContractTemplate.html"
+            "agreementContractTemplate.html",
           ),
-          expectedAgreementPDFPayload
+          expectedAgreementPDFPayload,
         );
 
         expect(
-          await fileManager.listFiles(config.s3Bucket, genericLogger)
+          await fileManager.listFiles(config.s3Bucket, genericLogger),
         ).toContain(expectedContract.path);
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
@@ -490,7 +490,7 @@ describe("activate agreement", () => {
           data: expectedActivatedAgreement,
           metadata: { version: 1 },
         });
-      }
+      },
     );
 
     it("Agreement Pending, Requester === Producer, invalid certified attributes -- error case: throws agreementActivationFailed and sets the agreement to MissingCertifiedAttributes", async () => {
@@ -568,8 +568,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -585,7 +585,7 @@ describe("activate agreement", () => {
         decodeProtobufPayload({
           messageType: AgreementSetMissingCertifiedAttributesByPlatformV2,
           payload: agreementEvent.data,
-        }).agreement!
+        }).agreement!,
       );
 
       const expectedAgreement: Agreement = {
@@ -595,7 +595,7 @@ describe("activate agreement", () => {
       };
 
       expect(sortAgreement(actualAgreement)).toMatchObject(
-        sortAgreement(expectedAgreement)
+        sortAgreement(expectedAgreement),
       );
     });
 
@@ -694,8 +694,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
     });
 
@@ -712,8 +712,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
     });
 
@@ -740,8 +740,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: consumerDelegation.id },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     });
 
@@ -769,13 +769,13 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(
         tenantIsNotTheDelegateProducer(
           authData.organizationId,
-          producerDelegation.id
-        )
+          producerDelegation.id,
+        ),
       );
     });
   });
@@ -915,7 +915,7 @@ describe("activate agreement", () => {
         const activateAgreementReturnValue =
           await agreementService.activateAgreement(
             { agreementId: agreement.id, delegationId },
-            getMockContext({ authData })
+            getMockContext({ authData }),
           );
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -934,7 +934,7 @@ describe("activate agreement", () => {
           decodeProtobufPayload({
             messageType,
             payload: agreementEvent.data,
-          }).agreement!
+          }).agreement!,
         );
 
         const expectedActivatedAgreement: Agreement = {
@@ -952,7 +952,7 @@ describe("activate agreement", () => {
         };
 
         expect(actualAgreementActivated).toMatchObject(
-          expectedActivatedAgreement
+          expectedActivatedAgreement,
         );
 
         expect(activateAgreementReturnValue).toMatchObject({
@@ -961,7 +961,7 @@ describe("activate agreement", () => {
         });
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
-      }
+      },
     );
 
     it("Agreement Suspended, Requester === Consumer === Producer, no matter the attributes -- success case: Suspended >> Activated", async () => {
@@ -1062,7 +1062,7 @@ describe("activate agreement", () => {
       const activateAgreementReturnValue =
         await agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
+          getMockContext({ authData }),
         );
       const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -1079,7 +1079,7 @@ describe("activate agreement", () => {
         decodeProtobufPayload({
           messageType: AgreementUnsuspendedByProducerV2,
           payload: agreementEvent.data,
-        }).agreement!
+        }).agreement!,
       );
 
       const expectedActivatedAgreement: Agreement = {
@@ -1097,7 +1097,7 @@ describe("activate agreement", () => {
       };
 
       expect(actualAgreementActivated).toMatchObject(
-        expectedActivatedAgreement
+        expectedActivatedAgreement,
       );
 
       expect(activateAgreementReturnValue).toMatchObject({
@@ -1169,7 +1169,7 @@ describe("activate agreement", () => {
       const activateAgreementReturnValue =
         await agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: consumerDelegation.id },
-          getMockContext({ authData })
+          getMockContext({ authData }),
         );
       const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -1184,7 +1184,7 @@ describe("activate agreement", () => {
         decodeProtobufPayload({
           messageType: AgreementUnsuspendedByConsumerV2,
           payload: agreementEvent.data,
-        }).agreement!
+        }).agreement!,
       );
 
       const expectedActivatedAgreement: Agreement = {
@@ -1202,7 +1202,7 @@ describe("activate agreement", () => {
       };
 
       expect(actualAgreementActivated).toMatchObject(
-        expectedActivatedAgreement
+        expectedActivatedAgreement,
       );
 
       expect(activateAgreementReturnValue).toMatchObject({
@@ -1327,7 +1327,7 @@ describe("activate agreement", () => {
             .with(
               "Consumer",
               "DelegateConsumer",
-              () => mockAgreement.stamps.suspensionByProducer
+              () => mockAgreement.stamps.suspensionByProducer,
             )
             .exhaustive(),
 
@@ -1335,7 +1335,7 @@ describe("activate agreement", () => {
             .with(
               "Producer",
               "DelegateProducer",
-              () => mockAgreement.stamps.suspensionByConsumer
+              () => mockAgreement.stamps.suspensionByConsumer,
             )
             .with("Consumer", "DelegateConsumer", () => undefined)
             .exhaustive(),
@@ -1393,7 +1393,7 @@ describe("activate agreement", () => {
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(
               { agreementId: agreement.id, delegationId },
-              getMockContext({ authData })
+              getMockContext({ authData }),
             );
 
           const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1410,7 +1410,7 @@ describe("activate agreement", () => {
             decodeProtobufPayload({
               messageType,
               payload: agreementEvent.data,
-            }).agreement!
+            }).agreement!,
           );
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
@@ -1461,12 +1461,12 @@ describe("activate agreement", () => {
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(
               { agreementId: agreement.id, delegationId },
-              getMockContext({ authData })
+              getMockContext({ authData }),
             );
 
           const agreementEvent = await readAgreementEventByVersion(
             agreement.id,
-            1
+            1,
           );
 
           expect(agreementEvent).toMatchObject({
@@ -1480,7 +1480,7 @@ describe("activate agreement", () => {
             decodeProtobufPayload({
               messageType,
               payload: agreementEvent.data,
-            }).agreement!
+            }).agreement!,
           );
 
           expect(actualAgreementUnsuspended).toMatchObject(expected1);
@@ -1499,7 +1499,7 @@ describe("activate agreement", () => {
             decodeProtobufPayload({
               messageType: AgreementUnsuspendedByPlatformV2,
               payload: agreementUnsuspendedByPlatformEvent.data,
-            }).agreement!
+            }).agreement!,
           );
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
@@ -1509,7 +1509,7 @@ describe("activate agreement", () => {
             metadata: { version: 2 },
           });
         });
-      }
+      },
     );
 
     describe.each(Object.values(requesterIs))(
@@ -1647,14 +1647,14 @@ describe("activate agreement", () => {
             .with(
               "Consumer",
               "DelegateConsumer",
-              () => mockAgreement.stamps.suspensionByProducer
+              () => mockAgreement.stamps.suspensionByProducer,
             )
             .exhaustive(),
           suspensionByConsumer: match(requesterIs)
             .with(
               "Producer",
               "DelegateProducer",
-              () => mockAgreement.stamps.suspensionByConsumer
+              () => mockAgreement.stamps.suspensionByConsumer,
             )
             .with("Consumer", "DelegateConsumer", () => undefined)
             .exhaustive(),
@@ -1713,7 +1713,7 @@ describe("activate agreement", () => {
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(
               { agreementId: agreement.id, delegationId },
-              getMockContext({ authData })
+              getMockContext({ authData }),
             );
           const agreementEvent = await readLastAgreementEvent(agreement.id);
           expect(agreementEvent).toMatchObject({
@@ -1726,7 +1726,7 @@ describe("activate agreement", () => {
             decodeProtobufPayload({
               messageType,
               payload: agreementEvent.data,
-            }).agreement!
+            }).agreement!,
           );
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspended).toMatchObject(expected);
@@ -1774,12 +1774,12 @@ describe("activate agreement", () => {
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(
               { agreementId: agreement.id, delegationId },
-              getMockContext({ authData })
+              getMockContext({ authData }),
             );
 
           const agreementEvent = await readAgreementEventByVersion(
             agreement.id,
-            1
+            1,
           );
 
           expect(agreementEvent).toMatchObject({
@@ -1793,7 +1793,7 @@ describe("activate agreement", () => {
             decodeProtobufPayload({
               messageType,
               payload: agreementEvent.data,
-            }).agreement!
+            }).agreement!,
           );
 
           expect(actualAgreementUnsuspended).toMatchObject(expected1);
@@ -1812,7 +1812,7 @@ describe("activate agreement", () => {
             decodeProtobufPayload({
               messageType: AgreementSuspendedByPlatformV2,
               payload: agreementUnsuspendedByPlatformEvent.data,
-            }).agreement!
+            }).agreement!,
           );
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
@@ -1822,7 +1822,7 @@ describe("activate agreement", () => {
             metadata: { version: 2 },
           });
         });
-      }
+      },
     );
 
     it("Agreement Suspended, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegate", async () => {
@@ -1849,8 +1849,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     });
 
@@ -1878,8 +1878,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     });
   });
@@ -1892,8 +1892,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
@@ -1902,7 +1902,7 @@ describe("activate agreement", () => {
       const agreement: Agreement = getMockAgreement(
         generateId<EServiceId>(),
         generateId<TenantId>(),
-        agreementState.suspended
+        agreementState.suspended,
       );
 
       const producerDelegation = getMockDelegation({
@@ -1928,15 +1928,15 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     });
 
     it.each(
       Object.values(agreementState).filter(
-        (state) => !agreementActivableStates.includes(state)
-      )
+        (state) => !agreementActivableStates.includes(state),
+      ),
     )(
       "should throw an agreementNotInExpectedState error when the Agreement is not in an activable state - agreement state: %s",
       async (agreementState) => {
@@ -1952,12 +1952,12 @@ describe("activate agreement", () => {
         await expect(
           agreementService.activateAgreement(
             { agreementId: agreement.id, delegationId: undefined },
-            getMockContext({ authData })
-          )
+            getMockContext({ authData }),
+          ),
         ).rejects.toThrowError(
-          agreementNotInExpectedState(agreement.id, agreement.state)
+          agreementNotInExpectedState(agreement.id, agreement.state),
         );
-      }
+      },
     );
 
     it("should throw an eServiceNotFound error when the EService does not exist", async () => {
@@ -1967,7 +1967,7 @@ describe("activate agreement", () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: randomArrayItem(
-          agreementActivableStates.filter((s) => s !== agreementState.pending)
+          agreementActivableStates.filter((s) => s !== agreementState.pending),
         ),
         consumerId,
       };
@@ -1975,8 +1975,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
 
@@ -2003,17 +2003,17 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(
-        descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
+        descriptorNotFound(agreement.eserviceId, agreement.descriptorId),
       );
     });
 
     it.each(
       Object.values(descriptorState).filter(
-        (state) => !agreementActivationAllowedDescriptorStates.includes(state)
-      )
+        (state) => !agreementActivationAllowedDescriptorStates.includes(state),
+      ),
     )(
       "should throw a descriptorNotInExpectedState error when the Descriptor is not in an expected state - descriptor state: %s",
       async (descriptorState) => {
@@ -2047,16 +2047,16 @@ describe("activate agreement", () => {
         await expect(
           agreementService.activateAgreement(
             { agreementId: agreement.id, delegationId: undefined },
-            getMockContext({ authData })
-          )
+            getMockContext({ authData }),
+          ),
         ).rejects.toThrowError(
           descriptorNotInExpectedState(
             eservice.id,
             descriptor.id,
-            agreementActivationAllowedDescriptorStates
-          )
+            agreementActivationAllowedDescriptorStates,
+          ),
         );
-      }
+      },
     );
 
     it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
@@ -2091,8 +2091,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(tenantNotFound(consumerId));
     });
 
@@ -2128,8 +2128,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(tenantNotFound(producerId));
     });
 
@@ -2171,8 +2171,8 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(agreementStampNotFound("submission"));
     });
 
@@ -2238,10 +2238,10 @@ describe("activate agreement", () => {
       await expect(
         agreementService.activateAgreement(
           { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
+          getMockContext({ authData }),
+        ),
       ).rejects.toThrowError(
-        attributeNotFound(validTenantCertifiedAttribute.id)
+        attributeNotFound(validTenantCertifiedAttribute.id),
       );
     });
   });

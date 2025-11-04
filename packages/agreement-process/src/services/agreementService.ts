@@ -1608,8 +1608,7 @@ export function agreementServiceBuilder(
 
       const agreementWithDocument: Agreement = {
         ...agreement,
-        signedContract: agreementContract.id,
-        contract: agreementContract,
+        signedContract: agreementContract,
       };
       const event = await repository.createEvent(
         toCreateEventAgreementSignedContract(

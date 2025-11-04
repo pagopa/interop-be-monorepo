@@ -82,7 +82,7 @@ describe("clone agreement", () => {
     };
 
     const validCertifiedEserviceAttribute = getMockEServiceAttribute(
-      validCertifiedTenantAttribute.id
+      validCertifiedTenantAttribute.id,
     );
 
     const consumer = getMockTenant(consumerId, [validCertifiedTenantAttribute]);
@@ -92,25 +92,25 @@ describe("clone agreement", () => {
       [[validCertifiedEserviceAttribute]],
       // Declared and verified attributes shall not be validated: we add some random ones to test that
       [[getMockEServiceAttribute()]],
-      [[getMockEServiceAttribute()]]
+      [[getMockEServiceAttribute()]],
     );
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      [descriptor]
+      [descriptor],
     );
 
     const agreementId = generateId<AgreementId>();
 
     const docsNumber = Math.floor(Math.random() * 10) + 1;
     const agreementConsumerDocuments = Array.from({ length: docsNumber }, () =>
-      getMockConsumerDocument(agreementId)
+      getMockConsumerDocument(agreementId),
     );
     const agreementToBeCloned = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementClonableStates)
+        randomArrayItem(agreementClonableStates),
       ),
       id: agreementId,
       producerId: eservice.producerId,
@@ -132,9 +132,9 @@ describe("clone agreement", () => {
         consumerId,
         randomArrayItem(
           Object.values(agreementState).filter(
-            (s) => !agreementCloningConflictingStates.includes(s)
-          )
-        )
+            (s) => !agreementCloningConflictingStates.includes(s),
+          ),
+        ),
       ),
       producerId: eservice.producerId,
     };
@@ -142,14 +142,14 @@ describe("clone agreement", () => {
 
     const { data: returnedAgreement } = await agreementService.cloneAgreement(
       agreementToBeCloned.id,
-      getMockContext({ authData })
+      getMockContext({ authData }),
     );
 
     const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const agreementClonedEvent = await readAgreementEventByVersion(
       newAgreementId,
-      0
+      0,
     );
 
     expect(agreementClonedEvent).toMatchObject({
@@ -182,16 +182,17 @@ describe("clone agreement", () => {
         (doc, i) => ({
           ...doc,
           id: unsafeBrandId(
-            agreementClonedAgreement?.consumerDocuments[i].id as string
+            agreementClonedAgreement?.consumerDocuments[i].id as string,
           ),
           path: agreementClonedAgreement?.consumerDocuments[i].path as string,
-        })
+        }),
       ),
       stamps: {},
     });
     delete expectedAgreementCloned.suspendedAt;
     delete expectedAgreementCloned.updatedAt;
     delete expectedAgreementCloned.contract;
+    delete expectedAgreementCloned.signedContract;
     expectedAgreementCloned.stamps = {};
 
     expect(agreementClonedEventPayload).toMatchObject({
@@ -205,7 +206,7 @@ describe("clone agreement", () => {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
       expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
+        await fileManager.listFiles(config.s3Bucket, genericLogger),
       ).toContainEqual(expectedUploadedDocumentPath);
     }
   });
@@ -220,7 +221,7 @@ describe("clone agreement", () => {
     };
 
     const validCertifiedEserviceAttribute = getMockEServiceAttribute(
-      validCertifiedTenantAttribute.id
+      validCertifiedTenantAttribute.id,
     );
 
     const consumer = getMockTenant(consumerId, [validCertifiedTenantAttribute]);
@@ -230,25 +231,25 @@ describe("clone agreement", () => {
       [[validCertifiedEserviceAttribute]],
       // Declared and verified attributes shall not be validated: we add some random ones to test that
       [[getMockEServiceAttribute()]],
-      [[getMockEServiceAttribute()]]
+      [[getMockEServiceAttribute()]],
     );
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      [descriptor]
+      [descriptor],
     );
 
     const agreementId = generateId<AgreementId>();
 
     const docsNumber = Math.floor(Math.random() * 10) + 1;
     const agreementConsumerDocuments = Array.from({ length: docsNumber }, () =>
-      getMockConsumerDocument(agreementId)
+      getMockConsumerDocument(agreementId),
     );
     const agreementToBeCloned = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementClonableStates)
+        randomArrayItem(agreementClonableStates),
       ),
       id: agreementId,
       producerId: eservice.producerId,
@@ -280,9 +281,9 @@ describe("clone agreement", () => {
         consumerId,
         randomArrayItem(
           Object.values(agreementState).filter(
-            (s) => !agreementCloningConflictingStates.includes(s)
-          )
-        )
+            (s) => !agreementCloningConflictingStates.includes(s),
+          ),
+        ),
       ),
       producerId: eservice.producerId,
     };
@@ -290,14 +291,14 @@ describe("clone agreement", () => {
 
     const { data: returnedAgreement } = await agreementService.cloneAgreement(
       agreementToBeCloned.id,
-      getMockContext({ authData })
+      getMockContext({ authData }),
     );
 
     const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
     const agreementClonedEvent = await readAgreementEventByVersion(
       newAgreementId,
-      0
+      0,
     );
 
     expect(agreementClonedEvent).toMatchObject({
@@ -330,16 +331,17 @@ describe("clone agreement", () => {
         (doc, i) => ({
           ...doc,
           id: unsafeBrandId(
-            agreementClonedAgreement?.consumerDocuments[i].id as string
+            agreementClonedAgreement?.consumerDocuments[i].id as string,
           ),
           path: agreementClonedAgreement?.consumerDocuments[i].path as string,
-        })
+        }),
       ),
       stamps: {},
     });
     delete expectedAgreementCloned.suspendedAt;
     delete expectedAgreementCloned.updatedAt;
     delete expectedAgreementCloned.contract;
+    delete expectedAgreementCloned.signedContract;
     expectedAgreementCloned.stamps = {};
 
     expect(agreementClonedEventPayload).toMatchObject({
@@ -353,7 +355,7 @@ describe("clone agreement", () => {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
       expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
+        await fileManager.listFiles(config.s3Bucket, genericLogger),
       ).toContainEqual(expectedUploadedDocumentPath);
     }
   });
@@ -363,7 +365,10 @@ describe("clone agreement", () => {
     const authData = getMockAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
-      agreementService.cloneAgreement(agreementId, getMockContext({ authData }))
+      agreementService.cloneAgreement(
+        agreementId,
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
@@ -372,14 +377,14 @@ describe("clone agreement", () => {
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      randomArrayItem(agreementClonableStates)
+      randomArrayItem(agreementClonableStates),
     );
     await addOneAgreement(agreement);
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
@@ -389,7 +394,7 @@ describe("clone agreement", () => {
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
       consumerId,
-      randomArrayItem(agreementClonableStates)
+      randomArrayItem(agreementClonableStates),
     );
     await addOneAgreement(agreement);
     const delegation = getMockDelegation({
@@ -404,10 +409,10 @@ describe("clone agreement", () => {
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id),
     );
   });
 
@@ -419,19 +424,19 @@ describe("clone agreement", () => {
       consumerId,
       randomArrayItem(
         Object.values(agreementState).filter(
-          (s) => !agreementClonableStates.includes(s)
-        )
-      )
+          (s) => !agreementClonableStates.includes(s),
+        ),
+      ),
     );
 
     await addOneAgreement(agreement);
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      agreementNotInExpectedState(agreement.id, agreement.state)
+      agreementNotInExpectedState(agreement.id, agreement.state),
     );
   });
 
@@ -441,15 +446,15 @@ describe("clone agreement", () => {
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
       consumerId,
-      randomArrayItem(agreementClonableStates)
+      randomArrayItem(agreementClonableStates),
     );
 
     await addOneAgreement(agreement);
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
@@ -461,7 +466,7 @@ describe("clone agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementClonableStates)
+        randomArrayItem(agreementClonableStates),
       ),
       producerId: eservice.producerId,
     };
@@ -470,7 +475,7 @@ describe("clone agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementCloningConflictingStates)
+        randomArrayItem(agreementCloningConflictingStates),
       ),
       producerId: eservice.producerId,
     };
@@ -481,8 +486,8 @@ describe("clone agreement", () => {
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(agreementAlreadyExists(consumerId, eservice.id));
   });
 
@@ -494,13 +499,13 @@ describe("clone agreement", () => {
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      [descriptor]
+      [descriptor],
     );
     const agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementClonableStates)
+        randomArrayItem(agreementClonableStates),
       ),
       producerId: eservice.producerId,
       descriptorId: descriptor.id,
@@ -512,9 +517,9 @@ describe("clone agreement", () => {
         consumerId,
         randomArrayItem(
           Object.values(agreementState).filter(
-            (s) => !agreementCloningConflictingStates.includes(s)
-          )
-        )
+            (s) => !agreementCloningConflictingStates.includes(s),
+          ),
+        ),
       ),
       producerId: eservice.producerId,
     };
@@ -525,8 +530,8 @@ describe("clone agreement", () => {
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(tenantNotFound(consumerId));
   });
 
@@ -539,7 +544,7 @@ describe("clone agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementClonableStates)
+        randomArrayItem(agreementClonableStates),
       ),
       producerId: eservice.producerId,
     };
@@ -550,10 +555,10 @@ describe("clone agreement", () => {
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      descriptorNotFound(eservice.id, agreement.descriptorId)
+      descriptorNotFound(eservice.id, agreement.descriptorId),
     );
   });
 
@@ -567,7 +572,7 @@ describe("clone agreement", () => {
     };
 
     const invalidCertifiedEserviceAttribute = getMockEServiceAttribute(
-      invalidCertifiedTenantAttribute.id
+      invalidCertifiedTenantAttribute.id,
     );
 
     const consumer = getMockTenant(consumerId, [
@@ -580,7 +585,7 @@ describe("clone agreement", () => {
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      [descriptor]
+      [descriptor],
     );
 
     const agreementId = generateId<AgreementId>();
@@ -589,7 +594,7 @@ describe("clone agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementClonableStates)
+        randomArrayItem(agreementClonableStates),
       ),
       id: agreementId,
       producerId: eservice.producerId,
@@ -603,10 +608,10 @@ describe("clone agreement", () => {
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      missingCertifiedAttributesError(descriptor.id, consumerId)
+      missingCertifiedAttributesError(descriptor.id, consumerId),
     );
   });
 
@@ -620,7 +625,7 @@ describe("clone agreement", () => {
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      [descriptor]
+      [descriptor],
     );
 
     const agreementId = generateId<AgreementId>();
@@ -629,7 +634,7 @@ describe("clone agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementClonableStates)
+        randomArrayItem(agreementClonableStates),
       ),
       id: agreementId,
       producerId: eservice.producerId,
@@ -644,8 +649,8 @@ describe("clone agreement", () => {
     await expect(
       agreementService.cloneAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(FileManagerError);
   });
 });

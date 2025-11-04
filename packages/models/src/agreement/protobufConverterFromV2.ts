@@ -108,7 +108,7 @@ export const fromAgreementV2 = (input: AgreementV2): Agreement => ({
     ? fromAgreementDocumentV2(input.contract)
     : undefined,
   stamps: fromAgreementStampsV2(input.stamps),
-  signedContract: input.contract
-    ? fromAgreementSignedContractV2(input.contract)
+  signedContract: input.signedContract
+    ? fromAgreementSignedContractV2(input.signedContract)
     : undefined,
 });

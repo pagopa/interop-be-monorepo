@@ -5,7 +5,6 @@ import {
   AgreementId,
 } from "pagopa-interop-models";
 import {
-  agreementConsumerDocumentToAgreementConsumerDocumentSQL,
   agreementDocumentToAgreementDocumentSQL,
   checkMetadataVersion,
   splitAgreementIntoObjectsSQL,
@@ -145,12 +144,11 @@ export function agreementWriterServiceBuilder(db: DrizzleReturnType) {
           .delete(agreementConsumerDocumentInReadmodelAgreement)
           .where(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id));
 
-        const consumerDocumentSQL =
-          agreementConsumerDocumentToAgreementConsumerDocumentSQL(
-            doc,
-            agreementId,
-            metadataVersion
-          );
+        const consumerDocumentSQL = agreementDocumentToAgreementDocumentSQL(
+          doc,
+          agreementId,
+          metadataVersion
+        );
 
         await tx
           .insert(agreementConsumerDocumentInReadmodelAgreement)

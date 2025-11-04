@@ -80,6 +80,7 @@ import {
   purposeTemplateChildTables,
   DrizzleTransactionType,
   purposeTemplateTables,
+  agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -163,6 +164,7 @@ export const upsertAgreement = async (
     attributesSQL,
     consumerDocumentsSQL,
     contractSQL,
+    signedContractSQL,
   } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
 
   await readModelDB.transaction(async (tx) => {
@@ -202,6 +204,11 @@ export const upsertAgreement = async (
       await tx
         .insert(agreementContractInReadmodelAgreement)
         .values(contractSQL);
+    }
+    if (signedContractSQL !== undefined) {
+      await tx
+        .insert(agreementSignedContractInReadmodelAgreement)
+        .values(signedContractSQL);
     }
   });
 };
@@ -644,6 +651,7 @@ export const upsertPurpose = async (
       versionsSQL,
       versionDocumentsSQL,
       versionStampsSQL,
+      versionSignedDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
     await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -676,6 +684,11 @@ export const upsertPurpose = async (
       await tx
         .insert(purposeVersionStampInReadmodelPurpose)
         .values(versionStampSQL);
+    }
+    for (const versionSignedDocumentSQL of versionSignedDocumentsSQL) {
+      await tx
+        .insert(purposeVersionDocumentInReadmodelPurpose)
+        .values(versionSignedDocumentSQL);
     }
   });
 };
