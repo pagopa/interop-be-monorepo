@@ -62,6 +62,7 @@ import {
   purposeVersionStampInReadmodelPurpose,
   agreementSignedContractInReadmodelAgreement,
   purposeVersionSignedDocumentInReadmodelPurpose,
+  delegationSignedContractDocumentInReadmodelDelegation,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -283,10 +284,14 @@ export type DelegationStampSQL = InferSelectModel<
 export type DelegationContractDocumentSQL = InferSelectModel<
   typeof delegationContractDocumentInReadmodelDelegation
 >;
+export type DelegationSignedContractDocumentSQL = InferSelectModel<
+  typeof delegationSignedContractDocumentInReadmodelDelegation
+>;
 export type DelegationItemsSQL = {
   delegationSQL: DelegationSQL;
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
+  contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[];
 };
 
 export type TenantNotificationConfigSQL = InferSelectModel<

@@ -511,7 +511,6 @@ export const delegationContractDocumentInReadmodelDelegation =
         mode: "string",
       }).notNull(),
       kind: varchar().notNull(),
-      signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
     },
     (table) => [
       foreignKey({
@@ -531,6 +530,44 @@ export const delegationContractDocumentInReadmodelDelegation =
         table.delegationId,
         table.kind
       ),
+    ]
+  );
+
+export const delegationSignedContractDocumentInReadmodelDelegation =
+  readmodelDelegation.table(
+    "delegation_signed_contract_document",
+    {
+      id: uuid().primaryKey().notNull(),
+      delegationId: uuid("delegation_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      name: varchar().notNull(),
+      contentType: varchar("content_type").notNull(),
+      prettyName: varchar("pretty_name").notNull(),
+      path: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      kind: varchar().notNull(),
+      signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.delegationId],
+        foreignColumns: [delegationInReadmodelDelegation.id],
+        name: "delegation_signed_contract_document_delegation_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.delegationId, table.metadataVersion],
+        foreignColumns: [
+          delegationInReadmodelDelegation.id,
+          delegationInReadmodelDelegation.metadataVersion,
+        ],
+        name: "delegation_signed_contract_do_delegation_id_metadata_versi_fkey",
+      }),
+      unique(
+        "delegation_signed_contract_document_delegation_id_kind_unique"
+      ).on(table.delegationId, table.kind),
     ]
   );
 

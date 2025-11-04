@@ -4,6 +4,7 @@ import {
   delegationContractKind,
   DelegationId,
   DelegationKind,
+  DelegationSignedContractDocument,
   DelegationStamp,
   DelegationStampKind,
   DelegationState,
@@ -17,6 +18,7 @@ import {
   DelegationStampSQL,
   DelegationContractDocumentSQL,
   DelegationItemsSQL,
+  DelegationSignedContractDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -25,14 +27,19 @@ export const aggregateDelegationArray = ({
   delegationsSQL,
   stampsSQL,
   contractDocumentsSQL,
+  contractSignedDocumentsSQL,
 }: {
   delegationsSQL: DelegationSQL[];
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
+  contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[];
 }): Array<WithMetadata<Delegation>> => {
   const stampsSQLByDelegationId = createDelegationSQLPropertyMap(stampsSQL);
   const contractDocumentsByDelegationId =
     createDelegationSQLPropertyMap(contractDocumentsSQL);
+  const contractSignedDocumentsByDelegationId = createDelegationSQLPropertyMap(
+    contractSignedDocumentsSQL
+  );
 
   return delegationsSQL.map((delegationSQL) => {
     const delegationId = unsafeBrandId<DelegationId>(delegationSQL.id);
@@ -41,6 +48,8 @@ export const aggregateDelegationArray = ({
       stampsSQL: stampsSQLByDelegationId.get(delegationId) || [],
       contractDocumentsSQL:
         contractDocumentsByDelegationId.get(delegationId) || [],
+      contractSignedDocumentsSQL:
+        contractSignedDocumentsByDelegationId.get(delegationId) || [],
     });
   });
 };
@@ -64,6 +73,7 @@ export const aggregateDelegation = ({
   delegationSQL,
   stampsSQL,
   contractDocumentsSQL,
+  contractSignedDocumentsSQL,
 }: DelegationItemsSQL): WithMetadata<Delegation> => {
   const activationContractDocumentSQL = contractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.activation
@@ -78,10 +88,34 @@ export const aggregateDelegation = ({
   const revocationContractDocumentSQL = contractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.revocation
   );
+
   const revocationContract: DelegationContractDocument | undefined =
     revocationContractDocumentSQL
       ? delegationContractDocumentSQLToDelegationContractDocument(
           revocationContractDocumentSQL
+        )
+      : undefined;
+
+  const activationSignedContractDocumentSQL = contractSignedDocumentsSQL.find(
+    (contractSignedDoc) =>
+      contractSignedDoc.kind === delegationContractKind.activation
+  );
+  const activationSignedContract: DelegationSignedContractDocument | undefined =
+    activationSignedContractDocumentSQL
+      ? delegationSignedContractDocumentSQLToDelegationSignedContractDocument(
+          activationSignedContractDocumentSQL
+        )
+      : undefined;
+
+  const revocationSignedContractDocumentSQL = contractSignedDocumentsSQL.find(
+    (contractSignedDoc) =>
+      contractSignedDoc.kind === delegationContractKind.revocation
+  );
+
+  const revocationSignedContract: DelegationSignedContractDocument | undefined =
+    revocationSignedContractDocumentSQL
+      ? delegationSignedContractDocumentSQLToDelegationSignedContractDocument(
+          revocationSignedContractDocumentSQL
         )
       : undefined;
 
@@ -145,11 +179,8 @@ export const aggregateDelegation = ({
     ...(delegationSQL.rejectionReason
       ? { rejectionReason: delegationSQL.rejectionReason }
       : {}),
-    ...(delegationSQL.signedContract !== null
-      ? {
-          signedContract: delegationSQL.signedContract,
-        }
-      : {}),
+    ...(activationSignedContract ? { activationSignedContract } : {}),
+    ...(revocationSignedContract ? { revocationSignedContract } : {}),
   };
   return {
     data: delegation,
@@ -163,14 +194,19 @@ export const aggregateDelegationsArray = ({
   delegationsSQL,
   stampsSQL,
   contractDocumentsSQL,
+  contractSignedDocumentsSQL,
 }: {
   delegationsSQL: DelegationSQL[];
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
+  contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[];
 }): Array<WithMetadata<Delegation>> => {
   const stampsSQLByDelegationId = createDelegationSQLPropertyMap(stampsSQL);
   const contractDocumentsByDelegationId =
     createDelegationSQLPropertyMap(contractDocumentsSQL);
+  const contractSignedDocumentsByDelegationId = createDelegationSQLPropertyMap(
+    contractSignedDocumentsSQL
+  );
 
   return delegationsSQL.map((delegationSQL) => {
     const delegationId = unsafeBrandId<DelegationId>(delegationSQL.id);
@@ -180,16 +216,30 @@ export const aggregateDelegationsArray = ({
     const contractDocumentsSQLOfCurrentDelegation =
       contractDocumentsByDelegationId.get(delegationId) || [];
 
+    const contractSignedDocumentsSQLOfCurrentDelegation =
+      contractSignedDocumentsByDelegationId.get(delegationId) || [];
+
     return aggregateDelegation({
       delegationSQL,
       stampsSQL: stampsSQLOfCurrentDelegation,
       contractDocumentsSQL: contractDocumentsSQLOfCurrentDelegation,
+      contractSignedDocumentsSQL: contractSignedDocumentsSQLOfCurrentDelegation,
     });
   });
 };
 const delegationContractDocumentSQLToDelegationContractDocument = (
   contractDocumentSQL: DelegationContractDocumentSQL
 ): DelegationContractDocument => ({
+  id: unsafeBrandId(contractDocumentSQL.id),
+  path: contractDocumentSQL.path,
+  name: contractDocumentSQL.name,
+  prettyName: contractDocumentSQL.prettyName,
+  contentType: contractDocumentSQL.contentType,
+  createdAt: stringToDate(contractDocumentSQL.createdAt),
+});
+const delegationSignedContractDocumentSQLToDelegationSignedContractDocument = (
+  contractDocumentSQL: DelegationSignedContractDocumentSQL
+): DelegationSignedContractDocument => ({
   id: unsafeBrandId(contractDocumentSQL.id),
   path: contractDocumentSQL.path,
   name: contractDocumentSQL.name,
@@ -209,10 +259,15 @@ export const toDelegationAggregator = (
     delegation: DelegationSQL;
     delegationStamp: DelegationStampSQL | null;
     delegationContractDocument: DelegationContractDocumentSQL | null;
+    delegationSignedContractDocument: DelegationSignedContractDocumentSQL | null;
   }>
 ): DelegationItemsSQL => {
-  const { delegationsSQL, stampsSQL, contractDocumentsSQL } =
-    toDelegationAggregatorArray(queryRes);
+  const {
+    delegationsSQL,
+    stampsSQL,
+    contractDocumentsSQL,
+    contractSignedDocumentsSQL,
+  } = toDelegationAggregatorArray(queryRes);
 
   throwIfMultiple(delegationsSQL, "delegation");
 
@@ -220,6 +275,7 @@ export const toDelegationAggregator = (
     delegationSQL: delegationsSQL[0],
     stampsSQL,
     contractDocumentsSQL,
+    contractSignedDocumentsSQL,
   };
 };
 
@@ -228,11 +284,13 @@ export const toDelegationAggregatorArray = (
     delegation: DelegationSQL;
     delegationStamp: DelegationStampSQL | null;
     delegationContractDocument: DelegationContractDocumentSQL | null;
+    delegationSignedContractDocument: DelegationSignedContractDocumentSQL | null;
   }>
 ): {
   delegationsSQL: DelegationSQL[];
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
+  contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[];
 } => {
   const delegationIdSet = new Set<string>();
   const delegationsSQL: DelegationSQL[] = [];
@@ -242,6 +300,9 @@ export const toDelegationAggregatorArray = (
 
   const delegationContractDocumentsIdSet = new Set<string>();
   const contractDocumentsSQL: DelegationContractDocumentSQL[] = [];
+
+  const delegationSignedContractDocumentsIdSet = new Set<string>();
+  const contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[] = [];
 
   queryRes.forEach((row) => {
     const delegationSQL = row.delegation;
@@ -274,11 +335,27 @@ export const toDelegationAggregatorArray = (
       // eslint-disable-next-line functional/immutable-data
       contractDocumentsSQL.push(delegationContractDocumentSQL);
     }
+
+    const delegationSignedContractDocumentSQL =
+      row.delegationSignedContractDocument;
+    if (
+      delegationSignedContractDocumentSQL &&
+      !delegationSignedContractDocumentsIdSet.has(
+        delegationSignedContractDocumentSQL.id
+      )
+    ) {
+      delegationSignedContractDocumentsIdSet.add(
+        delegationSignedContractDocumentSQL.id
+      );
+      // eslint-disable-next-line functional/immutable-data
+      contractSignedDocumentsSQL.push(delegationSignedContractDocumentSQL);
+    }
   });
 
   return {
     delegationsSQL,
     stampsSQL,
     contractDocumentsSQL,
+    contractSignedDocumentsSQL,
   };
 };
