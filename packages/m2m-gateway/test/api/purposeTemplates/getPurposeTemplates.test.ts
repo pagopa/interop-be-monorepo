@@ -57,7 +57,6 @@ describe("API GET /purposeTemplates", () => {
       m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED,
       m2mGatewayApi.PurposeTemplateState.Enum.DRAFT,
     ],
-    excludeExpiredRiskAnalysis: false,
     targetTenantKind: tenantKind.PA,
     handlesPersonalData: false,
   };
@@ -110,7 +109,6 @@ describe("API GET /purposeTemplates", () => {
       },
     },
     { query: { ...mockQueryParams, targetTenantKind: "invalid" } },
-    { query: { ...mockQueryParams, excludeExpiredRiskAnalysis: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
