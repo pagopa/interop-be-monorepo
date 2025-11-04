@@ -73,13 +73,16 @@ export function addAnnotationDocumentToUpdatedAnswerIfNeeded(
     existentFormTemplate
   );
 
-  if (answerWithAnnotationDocs.size === 0) {
+  if (
+    Object.keys(answerWithAnnotationDocs).length === 0 ||
+    !answerWithAnnotationDocs
+  ) {
     return newFormTemplate;
   }
 
-  const updatedSingleAnswers: RiskAnalysisTemplateSingleAnswer[] | undefined =
+  const updatedSingleAnswers: RiskAnalysisTemplateSingleAnswer[] =
     newFormTemplate.singleAnswers.map((answer) => {
-      const docs = answerWithAnnotationDocs.get(answer.key);
+      const docs = answerWithAnnotationDocs[answer.key];
 
       return docs
         ? {
@@ -95,7 +98,7 @@ export function addAnnotationDocumentToUpdatedAnswerIfNeeded(
 
   const updatedMultiAnswer: RiskAnalysisTemplateMultiAnswer[] =
     newFormTemplate.multiAnswers.map((answer) => {
-      const docs = answerWithAnnotationDocs.get(answer.key);
+      const docs = answerWithAnnotationDocs[answer.key];
 
       return docs
         ? {
@@ -118,7 +121,7 @@ export function addAnnotationDocumentToUpdatedAnswerIfNeeded(
 function retrieveUpdatedAnswerWithAnnotationDocs(
   purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
   formTemplate: RiskAnalysisFormTemplate
-): Map<string, RiskAnalysisTemplateAnswerAnnotationDocument[]> {
+): Record<string, RiskAnalysisTemplateAnswerAnnotationDocument[]> {
   const incomingAnswersIds = new Set(
     Object.keys(purposeTemplateSeed.purposeRiskAnalysisForm?.answers || {})
   );
@@ -133,7 +136,7 @@ function retrieveUpdatedAnswerWithAnnotationDocs(
         ...acc,
         [answer.key]: answer.annotation?.docs || [],
       }),
-      new Map<string, RiskAnalysisTemplateAnswerAnnotationDocument[]>()
+      {}
     );
 }
 
