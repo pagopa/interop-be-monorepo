@@ -114,6 +114,7 @@ import {
   hasRoleToAccessDraftTemplateVersions,
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
+  assertEServiceTemplateIsDraftAndRequesterCreator,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -880,8 +881,10 @@ export function eserviceTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterEServiceTemplateCreator(
-        eserviceTemplate.data.creatorId,
+      // if requester != creator AND template is draft -> 404
+      // if requester != creator AND template is not draft -> 403
+      assertEServiceTemplateIsDraftAndRequesterCreator(
+        eserviceTemplate.data,
         authData
       );
       const version = retrieveEServiceTemplateVersion(
@@ -1954,8 +1957,11 @@ export function eserviceTemplateServiceBuilder(
         templateId,
         readModelService
       );
-      assertRequesterEServiceTemplateCreator(
-        eserviceTemplate.data.creatorId,
+
+      // if requester != creator AND template is draft -> 404
+      // if requester != creator AND template is not draft -> 403
+      assertEServiceTemplateIsDraftAndRequesterCreator(
+        eserviceTemplate.data,
         authData
       );
       assertIsDraftEServiceTemplate(eserviceTemplate.data);

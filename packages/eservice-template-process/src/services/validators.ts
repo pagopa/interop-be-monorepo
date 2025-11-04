@@ -27,14 +27,45 @@ import {
   eserviceTemplateDuplicate,
   missingRiskAnalysis,
   riskAnalysisValidationFailed,
+  eserviceTemplateNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+function isNotDraftEServiceTemplate(
+  eserviceTemplate: EServiceTemplate
+): boolean {
+  console.log(eserviceTemplate.versions);
+  return (
+    eserviceTemplate.versions.length > 0 &&
+    eserviceTemplate.versions.some(
+      (v) => v.state !== eserviceTemplateVersionState.draft
+    )
+  );
+}
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
   authData: UIAuthData | M2MAdminAuthData
 ): void {
   if (authData.organizationId !== creatorId) {
+    throw operationForbidden;
+  }
+}
+
+export function assertEServiceTemplateIsDraftAndRequesterCreator(
+  eserviceTemplate: EServiceTemplate,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (
+    authData.organizationId !== eserviceTemplate.creatorId &&
+    !isNotDraftEServiceTemplate(eserviceTemplate)
+  ) {
+    throw eserviceTemplateNotFound(eserviceTemplate.id);
+  }
+  if (
+    authData.organizationId !== eserviceTemplate.creatorId &&
+    isNotDraftEServiceTemplate(eserviceTemplate)
+  ) {
     throw operationForbidden;
   }
 }
@@ -48,12 +79,7 @@ export function assertIsReceiveTemplate(template: EServiceTemplate): void {
 export function assertIsDraftEServiceTemplate(
   eserviceTemplate: EServiceTemplate
 ): void {
-  if (
-    eserviceTemplate.versions.length > 0 &&
-    eserviceTemplate.versions.some(
-      (v) => v.state !== eserviceTemplateVersionState.draft
-    )
-  ) {
+  if (isNotDraftEServiceTemplate(eserviceTemplate)) {
     throw eserviceTemplateNotInDraftState(eserviceTemplate.id);
   }
 }
