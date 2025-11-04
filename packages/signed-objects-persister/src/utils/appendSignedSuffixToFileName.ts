@@ -1,4 +1,4 @@
-export const insertSignedBeforeExtension = (fileKey: string): string => {
+export const appendSignedSuffixToFileName = (fileKey: string): string => {
   const dotIndex = fileKey.lastIndexOf(".");
   if (dotIndex === -1) {
     return `${fileKey}-signed`;
