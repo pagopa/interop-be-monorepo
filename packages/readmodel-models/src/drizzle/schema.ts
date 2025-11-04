@@ -1565,6 +1565,51 @@ export const purposeVersionStampInReadmodelPurpose = readmodelPurpose.table(
   ]
 );
 
+export const purposeVersionSignedDocumentInReadmodelPurpose =
+  readmodelPurpose.table(
+    "purpose_version_signed_document",
+    {
+      purposeId: uuid("purpose_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      purposeVersionId: uuid("purpose_version_id").notNull(),
+      id: uuid().notNull(),
+      contentType: varchar("content_type").notNull(),
+      path: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeId],
+        foreignColumns: [purposeInReadmodelPurpose.id],
+        name: "purpose_version_signed_document_purpose_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeVersionId],
+        foreignColumns: [purposeVersionInReadmodelPurpose.id],
+        name: "purpose_version_signed_document_purpose_version_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeId, table.metadataVersion],
+        foreignColumns: [
+          purposeInReadmodelPurpose.id,
+          purposeInReadmodelPurpose.metadataVersion,
+        ],
+        name: "purpose_version_signed_documen_purpose_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.purposeVersionId, table.id],
+        name: "purpose_version_signed_document_pkey",
+      }),
+      unique("purpose_version_signed_document_purpose_version_id_key").on(
+        table.purposeVersionId
+      ),
+    ]
+  );
+
 export const tenantDeclaredAttributeInReadmodelTenant = readmodelTenant.table(
   "tenant_declared_attribute",
   {
@@ -1931,7 +1976,6 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
-    signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
   },
   (table) => [
     foreignKey({

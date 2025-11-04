@@ -8,6 +8,7 @@ import {
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionId,
+  PurposeVersionSignedDocument,
   PurposeVersionStamp,
   PurposeVersionStampKind,
   PurposeVersionState,
@@ -30,6 +31,7 @@ import {
   PurposeRiskAnalysisFormSQL,
   PurposeItemsSQL,
   PurposeVersionStampSQL,
+  PurposeVersionSignedDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -41,6 +43,7 @@ export const aggregatePurposeArray = ({
   versionsSQL,
   versionDocumentsSQL,
   versionStampsSQL,
+  versionSignedDocumentsSQL,
 }: {
   purposesSQL: PurposeSQL[];
   riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
@@ -48,6 +51,7 @@ export const aggregatePurposeArray = ({
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
+  versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
 }): Array<WithMetadata<Purpose>> => {
   const riskAnalysisFormsSQLByPurposeId =
     createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
@@ -59,6 +63,9 @@ export const aggregatePurposeArray = ({
     createPurposeSQLPropertyMap(versionDocumentsSQL);
   const versionStampsSQLByPurposeId =
     createPurposeSQLPropertyMap(versionStampsSQL);
+  const versionSignedDocumentsSQLByPurposeId = createPurposeSQLPropertyMap(
+    versionSignedDocumentsSQL
+  );
 
   return purposesSQL.map((purposeSQL) => {
     const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
@@ -70,6 +77,8 @@ export const aggregatePurposeArray = ({
       versionsSQL: versionsSQLByPurposeId.get(purposeId) || [],
       versionDocumentsSQL: versionDocumentsSQLByPurposeId.get(purposeId) || [],
       versionStampsSQL: versionStampsSQLByPurposeId.get(purposeId) || [],
+      versionSignedDocumentsSQL:
+        versionSignedDocumentsSQLByPurposeId.get(purposeId) || [],
     });
   });
 };
@@ -101,6 +110,7 @@ export const aggregatePurpose = ({
   versionsSQL,
   versionDocumentsSQL,
   versionStampsSQL,
+  versionSignedDocumentsSQL,
 }: // eslint-disable-next-line sonarjs/cognitive-complexity
 PurposeItemsSQL): WithMetadata<Purpose> => {
   const riskAnalysisForm = purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
@@ -119,8 +129,22 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
     new Map()
   );
 
+  const documentsSignedByPurposeVersionId: Map<
+    PurposeVersionId,
+    PurposeVersionSignedDocumentSQL
+  > = versionSignedDocumentsSQL.reduce(
+    (acc: Map<PurposeVersionId, PurposeVersionSignedDocumentSQL>, docSQL) => {
+      acc.set(unsafeBrandId(docSQL.purposeVersionId), docSQL);
+      return acc;
+    },
+    new Map()
+  );
+
   const versions = versionsSQL.reduce((acc: PurposeVersion[], versionSQL) => {
     const versionDocumentSQL = documentsByPurposeVersionId.get(
+      unsafeBrandId(versionSQL.id)
+    );
+    const versionSignedDocumentSQL = documentsSignedByPurposeVersionId.get(
       unsafeBrandId(versionSQL.id)
     );
     const versionDocument: PurposeVersionDocument | undefined =
@@ -130,7 +154,17 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
             path: versionDocumentSQL.path,
             contentType: versionDocumentSQL.contentType,
             createdAt: stringToDate(versionDocumentSQL.createdAt),
-            signedAt: stringToDate(versionDocumentSQL.signedAt),
+          }
+        : undefined;
+
+    const versionSignedDocument: PurposeVersionSignedDocument | undefined =
+      versionSignedDocumentSQL
+        ? {
+            id: unsafeBrandId(versionSignedDocumentSQL.id),
+            path: versionSignedDocumentSQL.path,
+            contentType: versionSignedDocumentSQL.contentType,
+            createdAt: stringToDate(versionSignedDocumentSQL.createdAt),
+            signedAt: stringToDate(versionSignedDocumentSQL.signedAt),
           }
         : undefined;
 
@@ -178,10 +212,8 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
             },
           }
         : {}),
-      ...(versionSQL.signedContract !== null
-        ? {
-            signedContract: versionSQL.signedContract,
-          }
+      ...(versionSignedDocument
+        ? { signedContract: versionSignedDocument }
         : {}),
     };
 
@@ -318,6 +350,7 @@ export const toPurposeAggregator = (
     purposeVersion: PurposeVersionSQL | null;
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
     purposeVersionStamp: PurposeVersionStampSQL | null;
+    purposeVersionSignedDocument: PurposeVersionSignedDocumentSQL | null;
   }>
 ): PurposeItemsSQL => {
   const {
@@ -327,6 +360,7 @@ export const toPurposeAggregator = (
     versionsSQL,
     versionDocumentsSQL,
     versionStampsSQL,
+    versionSignedDocumentsSQL,
   } = toPurposeAggregatorArray(queryRes);
 
   throwIfMultiple(purposesSQL, "purpose");
@@ -338,6 +372,7 @@ export const toPurposeAggregator = (
     versionsSQL,
     versionDocumentsSQL,
     versionStampsSQL,
+    versionSignedDocumentsSQL,
   };
 };
 
@@ -349,6 +384,7 @@ export const toPurposeAggregatorArray = (
     purposeVersion: PurposeVersionSQL | null;
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
     purposeVersionStamp: PurposeVersionStampSQL | null;
+    purposeVersionSignedDocument: PurposeVersionSignedDocumentSQL | null;
   }>
 ): {
   purposesSQL: PurposeSQL[];
@@ -357,6 +393,7 @@ export const toPurposeAggregatorArray = (
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
+  versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
 } => {
   const purposeIdSet = new Set<string>();
   const purposesSQL: PurposeSQL[] = [];
@@ -375,7 +412,11 @@ export const toPurposeAggregatorArray = (
 
   const purposeVersionStampIdSet = new Set<string>();
   const purposeVersionStampsSQL: PurposeVersionStampSQL[] = [];
-  // eslint-disable-next-line sonarjs/cognitive-complexity
+
+  const purposeVersionSignedDocumentIdSet = new Set<string>();
+  const purposeVersionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[] =
+    [];
+  // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
   queryRes.forEach((row) => {
     const purposeSQL = row.purpose;
     if (!purposeIdSet.has(purposeSQL.id)) {
@@ -457,6 +498,22 @@ export const toPurposeAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         purposeVersionStampsSQL.push(purposeVersionStampSQL);
       }
+      const purposeVersionSignedDocumentSQL = row.purposeVersionSignedDocument;
+      const purposeVersionSignedDocumentPK = purposeVersionSignedDocumentSQL
+        ? makeUniqueKey([
+            purposeVersionSignedDocumentSQL.id,
+            purposeVersionSignedDocumentSQL.purposeVersionId,
+          ])
+        : undefined;
+      if (
+        purposeVersionSignedDocumentSQL &&
+        purposeVersionSignedDocumentPK &&
+        !purposeVersionSignedDocumentIdSet.has(purposeVersionSignedDocumentPK)
+      ) {
+        purposeVersionSignedDocumentIdSet.add(purposeVersionSignedDocumentPK);
+        // eslint-disable-next-line functional/immutable-data
+        purposeVersionSignedDocumentsSQL.push(purposeVersionSignedDocumentSQL);
+      }
     }
   });
 
@@ -467,5 +524,6 @@ export const toPurposeAggregatorArray = (
     versionsSQL: purposeVersionsSQL,
     versionDocumentsSQL: purposeVersionDocumentsSQL,
     versionStampsSQL: purposeVersionStampsSQL,
+    versionSignedDocumentsSQL: purposeVersionSignedDocumentsSQL,
   };
 };

@@ -61,6 +61,7 @@ import {
   userEnabledEmailNotificationInReadmodelNotificationConfig,
   purposeVersionStampInReadmodelPurpose,
   agreementSignedContractInReadmodelAgreement,
+  purposeVersionSignedDocumentInReadmodelPurpose,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -207,6 +208,10 @@ export type PurposeVersionSQL = InferSelectModel<
 export type PurposeVersionDocumentSQL = InferSelectModel<
   typeof purposeVersionDocumentInReadmodelPurpose
 >;
+
+export type PurposeVersionSignedDocumentSQL = InferSelectModel<
+  typeof purposeVersionSignedDocumentInReadmodelPurpose
+>;
 export type PurposeRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeRiskAnalysisFormInReadmodelPurpose
 >;
@@ -223,6 +228,7 @@ export type PurposeItemsSQL = {
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
+  versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
 };
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;

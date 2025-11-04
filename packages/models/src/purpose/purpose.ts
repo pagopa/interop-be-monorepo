@@ -30,9 +30,19 @@ export const PurposeVersionDocument = z.object({
   contentType: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
-  signedAt: z.coerce.date().optional(),
 });
 export type PurposeVersionDocument = z.infer<typeof PurposeVersionDocument>;
+
+export const PurposeVersionSignedDocument = z.object({
+  id: PurposeVersionDocumentId,
+  contentType: z.string(),
+  path: z.string(),
+  createdAt: z.coerce.date(),
+  signedAt: z.coerce.date().optional(),
+});
+export type PurposeVersionSignedDocument = z.infer<
+  typeof PurposeVersionSignedDocument
+>;
 
 export const PurposeVersionStamp = z.object({
   who: UserId,
@@ -59,7 +69,7 @@ export const PurposeVersion = z.object({
   firstActivationAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
   stamps: PurposeVersionStamps.optional(),
-  signedContract: PurposeVersionDocument.optional(),
+  signedContract: PurposeVersionSignedDocument.optional(),
 });
 export type PurposeVersion = z.infer<typeof PurposeVersion>;
 
