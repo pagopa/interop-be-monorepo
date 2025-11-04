@@ -67,7 +67,7 @@ jobs:
           PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
             echo "$PACKAGE_NAME"
-          done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
+          done | sort | jq -R -s -c 'split("\n")[:-1]')
 
           echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
@@ -79,7 +79,7 @@ jobs:
             if [ -n "$PACKAGE_NAME" ]; then
               echo "$PACKAGE_NAME"
             fi
-          done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
+          done | sort | jq -R -s -c 'split("\n")[:-1]')
 
           echo "All valid packages found: $(echo "$PACKAGES" | jq 'length')"
           echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
