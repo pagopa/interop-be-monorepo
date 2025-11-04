@@ -49,15 +49,17 @@ export async function handleAgreementManagementToProducer(
     readModelService
   );
 
-  const body = inAppTemplates.agreementManagementToProducer(
-    consumer.name,
-    eservice.name,
-    match(eventType)
-      .with("AgreementActivated", () => "attivato" as const)
-      .with("AgreementSubmitted", () => "creato" as const)
-      .with("AgreementUpgraded", () => "aggiornato" as const)
-      .exhaustive()
-  );
+  const body = match(eventType)
+    .with("AgreementActivated", () =>
+      inAppTemplates.agreementActivatedToProducer(consumer.name, eservice.name)
+    )
+    .with("AgreementSubmitted", () =>
+      inAppTemplates.agreementSubmittedToProducer(consumer.name, eservice.name)
+    )
+    .with("AgreementUpgraded", () =>
+      inAppTemplates.agreementUpgradedToProducer(consumer.name, eservice.name)
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
