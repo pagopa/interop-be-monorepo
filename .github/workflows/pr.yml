@@ -229,7 +229,7 @@ jobs:
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running lint for package: $PACKAGE"
-            pnpm --filter "$PACKAGE" lint
+            pnpm "$PACKAGE" lint --filter
           done
 
   test:
@@ -262,7 +262,7 @@ jobs:
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running tests for package: $PACKAGE"
-            pnpm --filter "$PACKAGE" test
+            pnpm "$PACKAGE" test --filter
           done
 
   find_dockerfiles:
