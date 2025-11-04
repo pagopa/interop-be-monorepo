@@ -11,15 +11,19 @@ import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
+import { toM2MGatewayApiPurposeTemplate } from "../../../src/api/purposeTemplateApiConverter.js";
 
 describe("POST /purposeTemplates/:purposeTemplateId/suspend router test", () => {
   const mockApiPurposeTemplate = getMockedApiPurposeTemplate(
     m2mGatewayApi.PurposeTemplateState.Enum.SUSPENDED
   );
+  const mockM2MPurposeTemplateSuspendResponse = toM2MGatewayApiPurposeTemplate(
+    mockApiPurposeTemplate
+  );
 
   const makeRequest = async (
     token: string,
-    purposeTemplateId: string = mockApiPurposeTemplate.id
+    purposeTemplateId: string = mockM2MPurposeTemplateSuspendResponse.id
   ) =>
     request(api)
       .post(`${appBasePath}/purposeTemplates/${purposeTemplateId}/suspend`)
@@ -32,13 +36,13 @@ describe("POST /purposeTemplates/:purposeTemplateId/suspend router test", () => 
     async (role) => {
       mockPurposeTemplateService.suspendPurposeTemplate = vi
         .fn()
-        .mockResolvedValue(mockApiPurposeTemplate);
+        .mockResolvedValue(mockM2MPurposeTemplateSuspendResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockApiPurposeTemplate);
+      expect(res.body).toEqual(mockM2MPurposeTemplateSuspendResponse);
     }
   );
 
