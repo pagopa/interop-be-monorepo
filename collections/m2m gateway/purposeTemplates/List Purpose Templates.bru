@@ -1,5 +1,5 @@
 meta {
-  name: Get Purpose Templates
+  name: List Purpose Templates
   type: http
   seq: 1
 }
@@ -13,16 +13,14 @@ get {
 params:query {
   offset: 0
   limit: 10
-  ~states: ["DRAFT", "ACTIVE"]
+  ~states: ["DRAFT", "PUBLISHED"]
   ~eserviceIds: ["{{eserviceId}}"]
   ~creatorIds: ["{{tenantId}}"]
   ~purposeTitle: title
   ~targetTenantKind: PA
-  ~excludeExpiredRiskAnalysis: false
   ~handlesPersonalData: false
 }
 
 headers {
   Authorization: {{JWT-M2M}}
-  X-Correlation-Id: {{correlation-id}}
 }
