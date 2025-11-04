@@ -22,6 +22,7 @@ import {
   EServiceTemplateId,
   unsafeBrandId,
   EServiceDescriptorInterfaceUpdatedV2,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -84,10 +85,14 @@ describe("update Document", () => {
         ],
       });
 
-      expect(writtenEvent.stream_id).toBe(eservice.id);
-      expect(writtenEvent.version).toBe("1");
-      expect(writtenEvent.type).toBe("EServiceDescriptorDocumentUpdated");
-      expect(writtenEvent.event_version).toBe(2);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorDocumentUpdated",
+        event_version: 2,
+      });
+
+
       const writtenPayload = decodeProtobufPayload({
         messageType: EServiceDescriptorDocumentUpdatedV2,
         payload: writtenEvent.data,
@@ -141,10 +146,12 @@ describe("update Document", () => {
       ],
     });
 
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceUpdated");
-    expect(writtenEvent.event_version).toBe(2);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorInterfaceUpdated",
+      event_version: 2,
+    });
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorInterfaceUpdatedV2,
       payload: writtenEvent.data,
@@ -214,11 +221,12 @@ describe("update Document", () => {
           },
         ],
       });
-
-      expect(writtenEvent.stream_id).toBe(eservice.id);
-      expect(writtenEvent.version).toBe("1");
-      expect(writtenEvent.type).toBe("EServiceDescriptorDocumentUpdated");
-      expect(writtenEvent.event_version).toBe(2);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorDocumentUpdated",
+        event_version: 2,
+      });
       const writtenPayload = decodeProtobufPayload({
         messageType: EServiceDescriptorDocumentUpdatedV2,
         payload: writtenEvent.data,
@@ -279,11 +287,12 @@ describe("update Document", () => {
         },
       ],
     });
-
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceUpdated");
-    expect(writtenEvent.event_version).toBe(2);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorInterfaceUpdated",
+      event_version: 2,
+    });
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorInterfaceUpdatedV2,
       payload: writtenEvent.data,
@@ -383,11 +392,18 @@ describe("update Document", () => {
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
   });
+
+  const statesToExclude: DescriptorState[] = [
+    descriptorState.draft,
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+  ];
+
   it.each(
     Object.values(descriptorState).filter(
       (state) =>
-        state === descriptorState.archived ||
-        state === descriptorState.waitingForApproval
+        !statesToExclude.includes(state)
     )
   )(
     "should throw notValidDescriptorState if the descriptor is in s% state for document update",
