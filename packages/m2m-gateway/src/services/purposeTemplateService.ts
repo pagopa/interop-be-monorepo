@@ -8,6 +8,7 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { toM2MGatewayApiPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -48,14 +49,13 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         eserviceIds,
         states,
         targetTenantKind,
-        excludeExpiredRiskAnalysis,
         handlesPersonalData,
         limit,
         offset,
       } = queryParams;
 
       logger.info(
-        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, excludeExpiredRiskAnalysis ${excludeExpiredRiskAnalysis}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
+        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
       );
 
       const {
@@ -66,7 +66,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return {
-        results,
+        results: results.map(toM2MGatewayApiPurposeTemplate),
         pagination: {
           limit,
           offset,
@@ -95,7 +95,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         headers
       );
 
-      return data;
+      return toM2MGatewayApiPurposeTemplate(data);
     },
     async unsuspendPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,

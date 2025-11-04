@@ -11,10 +11,14 @@ import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
+import { toM2MGatewayApiPurposeTemplate } from "../../../src/api/purposeTemplateApiConverter.js";
 
 describe("POST /purposeTemplates/:purposeTemplateId/publish router test", () => {
   const mockApiPurposeTemplate = getMockedApiPurposeTemplate(
     m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED
+  );
+  const mockM2MPurposeTemplatePublishResponse = toM2MGatewayApiPurposeTemplate(
+    mockApiPurposeTemplate
   );
 
   const makeRequest = async (
@@ -32,13 +36,13 @@ describe("POST /purposeTemplates/:purposeTemplateId/publish router test", () => 
     async (role) => {
       mockPurposeTemplateService.publishPurposeTemplate = vi
         .fn()
-        .mockResolvedValue(mockApiPurposeTemplate);
+        .mockResolvedValue(mockM2MPurposeTemplatePublishResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockApiPurposeTemplate);
+      expect(res.body).toEqual(mockM2MPurposeTemplatePublishResponse);
     }
   );
 

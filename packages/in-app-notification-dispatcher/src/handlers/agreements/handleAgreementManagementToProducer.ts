@@ -8,7 +8,11 @@ import {
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
+import {
+  retrieveTenant,
+  retrieveEservice,
+  getNotificationRecipients,
+} from "../handlerCommons.js";
 
 export async function handleAgreementManagementToProducer(
   agreementV2Msg: AgreementV2 | undefined,
@@ -25,11 +29,12 @@ export async function handleAgreementManagementToProducer(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [agreement.producerId],
-      "agreementManagementToProducer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [agreement.producerId],
+    "agreementManagementToProducer",
+    readModelService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(
