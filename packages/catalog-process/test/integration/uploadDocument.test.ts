@@ -4,7 +4,6 @@ import {
   Descriptor,
   descriptorState,
   EService,
-  EServiceDescriptorInterfaceDeletedV2,
   toEServiceV2,
   unsafeBrandId,
   operationForbidden,
@@ -14,6 +13,8 @@ import {
   delegationKind,
   EServiceTemplateId,
   EServiceDescriptorDocumentAddedV2,
+  EServiceDescriptorInterfaceAddedV2,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -73,10 +74,13 @@ describe("upload Document", () => {
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
-      expect(writtenEvent.stream_id).toBe(eservice.id);
-      expect(writtenEvent.version).toBe("1");
-      expect(writtenEvent.type).toBe("EServiceDescriptorDocumentAdded");
-      expect(writtenEvent.event_version).toBe(2);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorDocumentAdded",
+        event_version: 2,
+      });
+
       const writtenPayload = decodeProtobufPayload({
         messageType: EServiceDescriptorDocumentAddedV2,
         payload: writtenEvent.data,
@@ -132,12 +136,15 @@ describe("upload Document", () => {
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
-    expect(writtenEvent.event_version).toBe(2);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorInterfaceAdded",
+      event_version: 2,
+    });
+
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorInterfaceDeletedV2,
+      messageType: EServiceDescriptorInterfaceAddedV2,
       payload: writtenEvent.data,
     });
 
@@ -205,10 +212,13 @@ describe("upload Document", () => {
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
-      expect(writtenEvent.stream_id).toBe(eservice.id);
-      expect(writtenEvent.version).toBe("1");
-      expect(writtenEvent.type).toBe("EServiceDescriptorDocumentAdded");
-      expect(writtenEvent.event_version).toBe(2);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorDocumentAdded",
+        event_version: 2,
+      });
+
       const writtenPayload = decodeProtobufPayload({
         messageType: EServiceDescriptorDocumentAddedV2,
         payload: writtenEvent.data,
@@ -271,12 +281,15 @@ describe("upload Document", () => {
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
-    expect(writtenEvent.event_version).toBe(2);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorInterfaceAdded",
+      event_version: 2,
+    });
+
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorInterfaceDeletedV2,
+      messageType: EServiceDescriptorInterfaceAddedV2,
       payload: writtenEvent.data,
     });
 
@@ -405,14 +418,20 @@ describe("upload Document", () => {
     );
   });
 
+  const statesToExclude: DescriptorState[] = [
+    descriptorState.draft,
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+  ];
+
   it.each(
     Object.values(descriptorState).filter(
       (state) =>
-        state === descriptorState.archived ||
-        state === descriptorState.waitingForApproval
+        !statesToExclude.includes(state)
     )
   )(
-    "should throw notValidDescriptorState if the descriptor is in %s state",
+    "should throw notValidDescriptorState when uploading a document for a Descriptor in in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -437,7 +456,7 @@ describe("upload Document", () => {
       (state) => state !== descriptorState.draft
     )
   )(
-    "should throw notValidDescriptorState if the interface is in %s state",
+    "should throw notValidDescriptorState when uploading an interface for a Descriptor in in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
