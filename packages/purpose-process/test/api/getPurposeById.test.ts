@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Purpose, PurposeId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
@@ -20,17 +20,27 @@ describe("API GET /purposes/{purposeId} test", () => {
   const mockPurpose: Purpose = getMockPurpose();
   const isRiskAnalysisValid = true;
 
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
+  const mockPurposeWithRiskAnalysis = mockPurpose;
+  const mockPurposeWithoutRiskAnalysis = {
+    ...mockPurpose,
+    riskAnalysisForm: undefined,
+  };
+
+  const serviceResponseWithRiskAnalysis = getMockWithMetadata({
+    purpose: mockPurposeWithRiskAnalysis,
     isRiskAnalysisValid,
   });
-  const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
-  );
-
-  beforeEach(() => {
-    purposeService.getPurposeById = vi.fn().mockResolvedValue(serviceResponse);
+  const serviceResponseWithoutRiskAnalysis = getMockWithMetadata({
+    purpose: mockPurposeWithoutRiskAnalysis,
+    isRiskAnalysisValid,
   });
+
+  const apiResponseWithRiskAnalysis = purposeApi.Purpose.parse(
+    purposeToApiPurpose(mockPurposeWithRiskAnalysis, isRiskAnalysisValid)
+  );
+  const apiResponseWithoutRiskAnalysis = purposeApi.Purpose.parse(
+    purposeToApiPurpose(mockPurposeWithoutRiskAnalysis, isRiskAnalysisValid)
+  );
 
   const makeRequest = async (
     token: string,
@@ -50,15 +60,37 @@ describe("API GET /purposes/{purposeId} test", () => {
     authRole.SUPPORT_ROLE,
   ];
 
-  it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+  it("Should return 200 with riskAnalysisForm for ADMIN_ROLE", async () => {
+    purposeService.getPurposeById = vi
+      .fn()
+      .mockResolvedValue(serviceResponseWithRiskAnalysis);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(apiResponseWithRiskAnalysis);
+    expect(res.headers["x-metadata-version"]).toBe(
+      serviceResponseWithRiskAnalysis.metadata.version.toString()
+    );
+  });
+
+  it.each([
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+    authRole.SUPPORT_ROLE,
+  ])(
+    "Should return 200 without riskAnalysisForm for user with role %s",
     async (role) => {
+      purposeService.getPurposeById = vi
+        .fn()
+        .mockResolvedValue(serviceResponseWithoutRiskAnalysis);
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
+      expect(res.body).toEqual(apiResponseWithoutRiskAnalysis);
       expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString()
+        serviceResponseWithoutRiskAnalysis.metadata.version.toString()
       );
     }
   );
