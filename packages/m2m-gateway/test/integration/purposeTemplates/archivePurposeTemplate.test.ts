@@ -45,24 +45,41 @@ describe("archivePurposeTemplate", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    const expectedM2MPurposeTemplate: m2mGatewayApi.PurposeTemplate = {
+      id: mockApiPurposeTemplate.data.id,
+      createdAt: mockApiPurposeTemplate.data.createdAt,
+      state: mockApiPurposeTemplate.data.state,
+      purposeTitle: mockApiPurposeTemplate.data.purposeTitle,
+      targetDescription: mockApiPurposeTemplate.data.targetDescription,
+      targetTenantKind: mockApiPurposeTemplate.data.targetTenantKind,
+      purposeDescription: mockApiPurposeTemplate.data.purposeDescription,
+      purposeIsFreeOfCharge: mockApiPurposeTemplate.data.purposeIsFreeOfCharge,
+      handlesPersonalData: mockApiPurposeTemplate.data.handlesPersonalData,
+      creatorId: mockApiPurposeTemplate.data.creatorId,
+      updatedAt: mockApiPurposeTemplate.data.updatedAt,
+      purposeFreeOfChargeReason:
+        mockApiPurposeTemplate.data.purposeFreeOfChargeReason,
+      purposeDailyCalls: mockApiPurposeTemplate.data.purposeDailyCalls,
+    };
+
     const result = await purposeTemplateService.archivePurposeTemplate(
-      unsafeBrandId(mockApiPurposeTemplate.data.id),
+      unsafeBrandId(expectedM2MPurposeTemplate.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(mockApiPurposeTemplate.data);
+    expect(result).toEqual(expectedM2MPurposeTemplate);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeTemplateProcessClient
           .archivePurposeTemplate,
       params: {
-        id: mockApiPurposeTemplate.data.id,
+        id: expectedM2MPurposeTemplate.id,
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,
-      params: { id: mockApiPurposeTemplate.data.id },
+      params: { id: expectedM2MPurposeTemplate.id },
     });
     expect(
       mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate
