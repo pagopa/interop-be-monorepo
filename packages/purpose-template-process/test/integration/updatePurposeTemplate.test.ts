@@ -3,7 +3,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  getLatestVersionFormRules,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -63,8 +66,12 @@ describe("updatePurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  const riskAnalisysPAVersion = "3.0";
-  const riskAnalisysPrivateVersion = "2.0";
+  const riskAnalysisPAVersion = getLatestVersionFormRules(
+    tenantKind.PA
+  )!.version;
+  const riskAnalysisPrivateVersion = getLatestVersionFormRules(
+    tenantKind.PRIVATE
+  )!.version;
   const creatorId = generateId<TenantId>();
   const creator: Tenant = getMockTenant(creatorId);
 
@@ -81,11 +88,11 @@ describe("updatePurposeTemplate", () => {
     purposeRiskAnalysisForm: mockValidRiskAnalysisTemplateForm,
   };
 
-  it.skip.each([
-    { kind: tenantKind.PA, riskAnalysisVersion: riskAnalisysPAVersion },
+  it.each([
+    { kind: tenantKind.PA, riskAnalysisVersion: riskAnalysisPAVersion },
     {
       kind: tenantKind.PRIVATE,
-      riskAnalysisVersion: riskAnalisysPrivateVersion,
+      riskAnalysisVersion: riskAnalysisPrivateVersion,
     },
   ])(
     "should successfully update a purpose template in draft state with valid data and targetTenantKind %s",
@@ -127,8 +134,8 @@ describe("updatePurposeTemplate", () => {
           {
             editable: false,
             annotation: undefined,
-            values: ["Updated Answer value"],
-            suggestedValues: [],
+            values: [],
+            suggestedValues: ["Updated Answer value", "Updated Answer value 2"],
           },
         ],
       ]);
@@ -200,10 +207,13 @@ describe("updatePurposeTemplate", () => {
             // add new value to answer "otherPurpose"
             .concat({
               id: expect.anything(),
-              value: "Updated Answer value",
+              value: undefined,
               key: "otherPurpose",
               editable: false,
-              suggestedValues: [],
+              suggestedValues: [
+                "Updated Answer value",
+                "Updated Answer value 2",
+              ],
             }),
           multiAnswers: mockValidRiskAnalysisTemplateForm.multiAnswers.map(
             (a) => ({
@@ -250,7 +260,8 @@ describe("updatePurposeTemplate", () => {
           ...riskAnalysisFormTemplateSeed,
           answers: updatedAnswers,
         },
-        tenantKind
+        tenantKind,
+        existingPurposeTemplate.handlesPersonalData
       );
     }
   );
@@ -328,7 +339,7 @@ describe("updatePurposeTemplate", () => {
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
 
-  it.skip("Should not trigger duplicate title check when updating with case-insensitive same title", async () => {
+  it("Should not trigger duplicate title check when updating with case-insensitive same title", async () => {
     const purposeTemplateWithTitle: PurposeTemplate = {
       ...existingPurposeTemplate,
       purposeTitle: "Template Title",
@@ -353,7 +364,7 @@ describe("updatePurposeTemplate", () => {
     expect(updatedPurposeTemplate.data.purposeTitle).toBe("template title");
   });
 
-  it.skip("Should remove annotations documents for each answer deleted in purpose template seed, all annotation documents of answers not affected by update still remains in S3", async () => {
+  it("Should remove annotations documents for each answer deleted in purpose template seed, all annotation documents of answers not affected by update still remains in S3", async () => {
     vi.spyOn(fileManager, "delete");
 
     // Risk Analysis Form must be defined in existing purpose template for this test

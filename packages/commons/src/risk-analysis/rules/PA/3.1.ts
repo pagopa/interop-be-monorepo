@@ -1103,13 +1103,6 @@ export const pa31 = {
           },
           value: "PA_ALSO",
         },
-        {
-          label: {
-            it: "Nessuna delle precedenti",
-            en: "",
-          },
-          value: "NONE",
-        },
       ],
       defaultValue: [],
       required: true,

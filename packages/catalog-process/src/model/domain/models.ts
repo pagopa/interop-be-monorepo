@@ -14,6 +14,9 @@ import {
   EServiceTemplateId,
   Technology,
 } from "pagopa-interop-models";
+import { bffApi } from "pagopa-interop-api-clients";
+
+export type PersonalDataFilter = bffApi.PersonalDataFilter | undefined;
 
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
@@ -29,7 +32,7 @@ export type ApiGetEServicesFilters = {
   isClientAccessDelegable?: boolean;
   delegated?: boolean;
   templatesIds: EServiceTemplateId[];
-  personalData?: boolean;
+  personalData?: PersonalDataFilter;
 };
 
 export type EServiceDocument = {

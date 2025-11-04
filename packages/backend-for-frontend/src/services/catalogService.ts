@@ -780,7 +780,7 @@ export function catalogServiceBuilder(
       eserviceName: string | undefined,
       consumersIds: string[],
       delegated: boolean | undefined,
-      personalData: boolean | undefined,
+      personalData: bffApi.PersonalDataFilter | undefined,
       offset: number,
       limit: number,
       ctx: WithLogger<BffAppContext>

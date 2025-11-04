@@ -34,21 +34,21 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "institutionalPurpose",
-        value: "MyPurpose",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
       },
       {
         key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
       },
       {
         key: "legalObligationReference",
-        value: "somethingLegal",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
       },
       {
         key: "knowsDataQuantity",
@@ -76,9 +76,9 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "reasonPolicyNotProvided",
-        value: "Because",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Because", "Because2"],
       },
       {
         key: "doneDpia",
@@ -157,9 +157,9 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "institutionalPurpose",
-        value: "MyPurpose",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
       },
       {
         key: "usesPersonalData",
@@ -169,31 +169,19 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
       },
       {
         key: "legalObligationReference",
-        value: "YES",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "legalBasisPublicInterest",
-        value: "PUBLIC_INTEREST_TASK",
-        editable: false,
-        suggestedValues: [],
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
       },
       {
         key: "knowsDataQuantity",
         value: "NO",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "dataDownload",
-        value: "YES",
         editable: false,
         suggestedValues: [],
       },
@@ -217,14 +205,37 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "reasonPolicyNotProvided",
-        value: "Because",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["Because", "Because2"],
+      },
+      {
+        key: "doneDpia",
+        value: "NO",
         editable: false,
         suggestedValues: [],
       },
-      { key: "doneDpia", value: "NO", editable: false, suggestedValues: [] },
+      {
+        key: "dataDownload",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
       {
         key: "dataRetentionPeriod",
-        value: "10",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["10", "20"],
+      },
+      {
+        key: "isRequestOnBehalfOfThirdParties",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "thirdPartiesRequestDataUsage",
+        value: "PA_ONLY",
         editable: false,
         suggestedValues: [],
       },
@@ -241,18 +252,6 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
         suggestedValues: [],
       },
       {
-        key: "isRequestOnBehalfOfThirdParties",
-        value: "YES",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "thirdPartiesRequestDataUsage",
-        value: "PA_ONLY",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
         key: "declarationConfirmGDPR",
         value: "true",
         editable: false,
@@ -262,7 +261,13 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
         key: "publicInterestTaskText",
         value: undefined,
         editable: false,
-        suggestedValues: ["Public interest something", "Anything else"],
+        suggestedValues: ["PublicInterestTaskText1", "PublicInterestTaskText2"],
+      },
+      {
+        key: "legalBasisPublicInterest",
+        value: "PUBLIC_INTEREST_TASK",
+        editable: false,
+        suggestedValues: [],
       },
     ],
     multiAnswers: [
@@ -273,50 +278,6 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
         editable: false,
       },
     ],
-  };
-
-export const validatedRiskAnalysisTemplate3_1_Pa_no_personal_data: RiskAnalysisTemplateValidatedForm =
-  {
-    version: validRiskAnalysis3_1_Pa.version,
-    singleAnswers: [
-      {
-        key: "purpose",
-        value: "INSTITUTIONAL",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "institutionalPurpose",
-        value: "MyPurpose",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "usesPersonalData",
-        value: "NO",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "usesThirdPartyPersonalData",
-        value: "NO",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "isRequestOnBehalfOfThirdParties",
-        value: "YES",
-        editable: false,
-        suggestedValues: [],
-      },
-      {
-        key: "thirdPartiesRequestDataUsage",
-        value: "PA_ONLY",
-        editable: false,
-        suggestedValues: [],
-      },
-    ],
-    multiAnswers: [],
   };
 
 export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValidatedForm =
@@ -331,9 +292,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "institutionalPurpose",
-        value: "MyPurpose",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
       },
       {
         key: "usesPersonalData",
@@ -343,15 +304,15 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
       },
       {
         key: "legalObligationReference",
-        value: "YES",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
       },
       {
         key: "legalBasisPublicInterest",
@@ -361,9 +322,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "ruleOfLawText",
-        value: "TheLaw",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["RuleOfLawText1", "RuleOfLawText2"],
       },
       {
         key: "knowsDataQuantity",
@@ -399,7 +360,7 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
         key: "reasonPolicyNotProvided",
         value: undefined,
         editable: false,
-        suggestedValues: ["Because1", "Because2"],
+        suggestedValues: ["Because", "Because2"],
       },
       {
         key: "doneDpia",
@@ -409,9 +370,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "dataRetentionPeriod",
-        value: "10",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["10", "20"],
       },
       {
         key: "purposePursuit",
@@ -463,26 +424,26 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
 ): RiskAnalysisFormTemplate => {
   const incompleteRiskAnalysisFormTemplate =
     getMockValidRiskAnalysisFormTemplate(producerTenantKind);
+
+  const addAnnotationToAnswers = <
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answers: T[]
+  ): T[] =>
+    answers.map(
+      (a): T => ({
+        ...a,
+        annotation: getMockRiskAnalysisTemplateAnswerAnnotation(undefined, 1),
+      })
+    );
+
   return {
     ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: [],
-      })
+    singleAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.singleAnswers
     ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
+    multiAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
   };
 };
