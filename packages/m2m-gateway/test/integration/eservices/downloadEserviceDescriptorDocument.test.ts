@@ -19,6 +19,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
+import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
 describe("downloadEServiceDescriptorDocument", () => {
   const testFileContent =
@@ -82,7 +83,7 @@ describe("downloadEServiceDescriptorDocument", () => {
       }),
       prettyName: mockDocument.prettyName,
     };
-    expect(result).toEqual(expectedServiceResponse);
+    await expectDownloadedDocumentToBeEqual(result, expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.catalogProcessClient.getEServiceDocumentById,
