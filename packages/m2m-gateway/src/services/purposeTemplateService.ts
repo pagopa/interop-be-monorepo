@@ -2,7 +2,10 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { toM2MGatewayApiPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
+import {
+  toGetPurposeTemplatesApiQueryParams,
+  toM2MGatewayApiPurposeTemplate,
+} from "../api/purposeTemplateApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -33,7 +36,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       const {
         data: { results, totalCount },
       } = await clients.purposeTemplateProcessClient.getPurposeTemplates({
-        queries: queryParams,
+        queries: toGetPurposeTemplatesApiQueryParams(queryParams),
         headers,
       });
 
