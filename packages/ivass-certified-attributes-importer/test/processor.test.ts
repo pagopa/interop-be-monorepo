@@ -799,4 +799,51 @@ describe("IVASS Certified Attributes Importer", () => {
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(0);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
+
+  it("should succeed, ignoring invalid records", async () => {
+    const csvFileContent = `CODICE_IVASS;TIPO_ALBO;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE;CLASSIFICAZIONE;INDIRIZZO_SEDE_LEGALE_RAPPRESENTANZA_IN_ITALIA;INDIRIZZO_DIREZIONE_GENERALE;INDIRIZZO_CASA_MADRE;TIPO_LAVORO;PEC
+    XXXXX;Elenco I - imprese di assicurazione con sede legale in un altro Stato membro ammesse ad operare in Italia in regime di stabilimento;2020-12-02;9999-12-31;AZIENDA PSEUDONIMA ALPHA;99999999999;IMPRESA SEE CHE OPERA IN STABILIMENTO;VIA FICTITIA, 123  20100 CITTÀ FITTIZIA (MI);;;DANNI;azienda.pseudonima.alpha@fictamail.it
+    YYYYY;Elenco II - imprese di assicurazione con sede legale in un altro Stato membro ammesse ad operare in Italia in libertà di prestazione di servizi;2008-01-03;9999-12-31;AZIENDA PSEUDONIMA BETA;88888888888;IMPRESA SEE CHE OPERA IN LIBERA PRESTAZIONE DI SERVIZI;;;INDIRIZZO FITTIZIO ;ESTERO 2;VITA;azienda.pseudonima.beta@fictamail.it
+    `;
+
+    const validTenant: Tenant = {
+      ...persistentTenant,
+      externalId: { origin: "IVASS", value: "XXXXX" },
+      attributes: [],
+    };
+
+    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+
+    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
+      validTenant,
+    ]);
+    const getTenantsWithAttributesSpy = vi
+      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
+      .mockImplementation(getTenantsWithAttributesMock);
+    const getIVASSTenantsSpy = vi
+      .spyOn(readModelQueriesMock, "getIVASSTenants")
+      .mockImplementation(getIVASSTenantsMock);
+
+    await importAttributes(
+      localDownloadCSVMock,
+      readModelQueriesMock,
+      tenantProcessMock,
+      refreshableTokenMock,
+      10,
+      "ivass-tenant-id",
+      genericLogger,
+      generateId()
+    );
+
+    expect(localDownloadCSVMock).toBeCalledTimes(1);
+    expect(getTenantByIdSpy).toBeCalledTimes(1);
+    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
+
+    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
+    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
+
+    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
+  });
 });
