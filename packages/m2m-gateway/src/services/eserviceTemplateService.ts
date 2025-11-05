@@ -435,7 +435,212 @@ export function eserviceTemplateServiceBuilder(
         eserviceTemplate,
         versionId
       );
+      return toM2MGatewayEServiceTemplateVersion(version);
+    },
+    async createEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateVersionSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(`Creating Version for E-Service Template ${templateId}`);
 
+      const {
+        data: { eserviceTemplate, createdEServiceTemplateVersionId },
+        metadata,
+      } =
+        await clients.eserviceTemplateProcessClient.createEServiceTemplateVersion(
+          toEServiceTemplateApiEServiceTemplateVersionSeed(seed),
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      await pollEServiceTemplate(
+        {
+          data: eserviceTemplate,
+          metadata,
+        },
+        headers
+      );
+      const createdVersion = retrieveEServiceTemplateVersionById(
+        { data: eserviceTemplate, metadata },
+        unsafeBrandId(createdEServiceTemplateVersionId)
+      );
+      return toM2MGatewayEServiceTemplateVersion(createdVersion);
+    },
+    async createEServiceTemplateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      body: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalysis> {
+      logger.info(
+        `Creating Risk Analysis for E-Service Template ${templateId}`
+      );
+
+      const {
+        data: { eserviceTemplate, createdRiskAnalysisId },
+        metadata,
+      } =
+        await clients.eserviceTemplateProcessClient.createEServiceTemplateRiskAnalysis(
+          body,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+
+      await pollEServiceTemplate(
+        {
+          data: eserviceTemplate,
+          metadata,
+        },
+        headers
+      );
+
+      const createdRiskAnalysis = retrieveEServiceTemplateRiskAnalysisById(
+        { data: eserviceTemplate, metadata },
+        unsafeBrandId(createdRiskAnalysisId)
+      );
+
+      return toM2MGatewayApiEServiceTemplateRiskAnalysis(createdRiskAnalysis);
+    },
+
+    async getEServiceTemplateRiskAnalyses(
+      templateId: EServiceTemplateId,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetEServiceTemplateRiskAnalysesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalyses> {
+      logger.info(
+        `Retrieving Risk Analyses for E-Service Template ${templateId}`
+      );
+
+      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      const paginated = eserviceTemplate.riskAnalysis.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results: paginated.map(toM2MGatewayApiEServiceTemplateRiskAnalysis),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceTemplate.riskAnalysis.length,
+        },
+      };
+    },
+    async getEServiceTemplates(
+      params: m2mGatewayApi.GetEServiceTemplatesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplates> {
+      logger.info(
+        `Retrieving eservice templates with creatorsIds ${params.creatorIds} templatesIds ${params.eserviceTemplateIds} offset ${params.offset} limit ${params.limit}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.eserviceTemplateProcessClient.getEServiceTemplates({
+        queries: toGetEServiceTemplatesQueryParams(params),
+        headers,
+      });
+
+      return {
+        results: results.map(toM2MGatewayEServiceTemplate),
+        pagination: {
+          limit: params.limit,
+          offset: params.offset,
+          totalCount,
+        },
+      };
+    },
+    async createEServiceTemplate(
+      seed: m2mGatewayApi.EServiceTemplateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(`Creating eservice template with name ${seed.name}`);
+
+      const response =
+        await clients.eserviceTemplateProcessClient.createEServiceTemplate(
+          seed,
+          {
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
+    },
+    async updateDraftEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(
+        `Updating draft version ${versionId} of eservice template with id ${templateId}`
+      );
+      const response =
+        await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
+          {
+            ...seed,
+            attributes: undefined,
+          },
+          {
+            params: { templateId, templateVersionId: versionId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+
+      return toM2MGatewayEServiceTemplateVersion(
+        retrieveEServiceTemplateVersionById(
+          polledResource,
+          unsafeBrandId(versionId)
+        )
+      );
+    },
+    async getEServiceTemplateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalysis> {
+      logger.info(
+        `Retrieving Risk Analysis ${riskAnalysisId} for E-Service Template ${templateId}`
+      );
+
+      const riskAnalysis = retrieveEServiceTemplateRiskAnalysisById(
+        await retrieveEServiceTemplateById(headers, templateId),
+        unsafeBrandId(riskAnalysisId)
+      );
+
+      return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
+    },
+
+    async deleteDraftEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting version ${versionId} for eservice template with id ${templateId}`
+      );
+      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      if (
+        eserviceTemplate.versions.length === 1 &&
+        eserviceTemplate.versions[0].id === versionId
+      ) {
+        throw cannotDeleteLastEServiceTemplateVersion(templateId, versionId);
+      }
       const response =
         await clients.eserviceTemplateProcessClient.deleteDraftTemplateVersion(
           undefined,
@@ -791,221 +996,6 @@ export function eserviceTemplateServiceBuilder(
         versionId
       );
       return toM2MGatewayEServiceTemplateVersion(version);
-    },
-    async createEServiceTemplateVersion(
-      templateId: EServiceTemplateId,
-      seed: m2mGatewayApi.EServiceTemplateVersionSeed,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
-      logger.info(`Creating Version for E-Service Template ${templateId}`);
-
-      const {
-        data: { eserviceTemplate, createdEServiceTemplateVersionId },
-        metadata,
-      } =
-        await clients.eserviceTemplateProcessClient.createEServiceTemplateVersion(
-          toEServiceTemplateApiEServiceTemplateVersionSeed(seed),
-          {
-            params: { templateId },
-            headers,
-          }
-        );
-      await pollEServiceTemplate(
-        {
-          data: eserviceTemplate,
-          metadata,
-        },
-        headers
-      );
-      const createdVersion = retrieveEServiceTemplateVersionById(
-        { data: eserviceTemplate, metadata },
-        unsafeBrandId(createdEServiceTemplateVersionId)
-      );
-      return toM2MGatewayEServiceTemplateVersion(createdVersion);
-    },
-    async createEServiceTemplateRiskAnalysis(
-      templateId: EServiceTemplateId,
-      body: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalysis> {
-      logger.info(
-        `Creating Risk Analysis for E-Service Template ${templateId}`
-      );
-
-      const {
-        data: { eserviceTemplate, createdRiskAnalysisId },
-        metadata,
-      } =
-        await clients.eserviceTemplateProcessClient.createEServiceTemplateRiskAnalysis(
-          body,
-          {
-            params: { templateId },
-            headers,
-          }
-        );
-
-      await pollEServiceTemplate(
-        {
-          data: eserviceTemplate,
-          metadata,
-        },
-        headers
-      );
-
-      const createdRiskAnalysis = retrieveEServiceTemplateRiskAnalysisById(
-        { data: eserviceTemplate, metadata },
-        unsafeBrandId(createdRiskAnalysisId)
-      );
-
-      return toM2MGatewayApiEServiceTemplateRiskAnalysis(createdRiskAnalysis);
-    },
-
-    async getEServiceTemplateRiskAnalyses(
-      templateId: EServiceTemplateId,
-      {
-        limit,
-        offset,
-      }: m2mGatewayApi.GetEServiceTemplateRiskAnalysesQueryParams,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalyses> {
-      logger.info(
-        `Retrieving Risk Analyses for E-Service Template ${templateId}`
-      );
-
-      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
-        headers,
-        templateId
-      );
-
-      const paginated = eserviceTemplate.riskAnalysis.slice(
-        offset,
-        offset + limit
-      );
-
-      return {
-        results: paginated.map(toM2MGatewayApiEServiceTemplateRiskAnalysis),
-        pagination: {
-          limit,
-          offset,
-          totalCount: eserviceTemplate.riskAnalysis.length,
-        },
-      };
-    },
-    async getEServiceTemplates(
-      params: m2mGatewayApi.GetEServiceTemplatesQueryParams,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplates> {
-      logger.info(
-        `Retrieving eservice templates with creatorsIds ${params.creatorIds} templatesIds ${params.eserviceTemplateIds} offset ${params.offset} limit ${params.limit}`
-      );
-
-      const {
-        data: { results, totalCount },
-      } = await clients.eserviceTemplateProcessClient.getEServiceTemplates({
-        queries: toGetEServiceTemplatesQueryParams(params),
-        headers,
-      });
-
-      return {
-        results: results.map(toM2MGatewayEServiceTemplate),
-        pagination: {
-          limit: params.limit,
-          offset: params.offset,
-          totalCount,
-        },
-      };
-    },
-    async createEServiceTemplate(
-      seed: m2mGatewayApi.EServiceTemplateSeed,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplate> {
-      logger.info(`Creating eservice template with name ${seed.name}`);
-
-      const response =
-        await clients.eserviceTemplateProcessClient.createEServiceTemplate(
-          seed,
-          {
-            headers,
-          }
-        );
-      const polledResource = await pollEServiceTemplate(response, headers);
-      return toM2MGatewayEServiceTemplate(polledResource.data);
-    },
-    async updateDraftEServiceTemplateVersion(
-      templateId: EServiceTemplateId,
-      versionId: EServiceTemplateVersionId,
-      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
-      logger.info(
-        `Updating draft version ${versionId} of eservice template with id ${templateId}`
-      );
-      const response =
-        await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
-          {
-            ...seed,
-            attributes: undefined,
-          },
-          {
-            params: { templateId, templateVersionId: versionId },
-            headers,
-          }
-        );
-      const polledResource = await pollEServiceTemplate(response, headers);
-
-      return toM2MGatewayEServiceTemplateVersion(
-        retrieveEServiceTemplateVersionById(
-          polledResource,
-          unsafeBrandId(versionId)
-        )
-      );
-    },
-    async getEServiceTemplateRiskAnalysis(
-      templateId: EServiceTemplateId,
-      riskAnalysisId: RiskAnalysisId,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalysis> {
-      logger.info(
-        `Retrieving Risk Analysis ${riskAnalysisId} for E-Service Template ${templateId}`
-      );
-
-      const riskAnalysis = retrieveEServiceTemplateRiskAnalysisById(
-        await retrieveEServiceTemplateById(headers, templateId),
-        unsafeBrandId(riskAnalysisId)
-      );
-
-      return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
-    },
-
-    async deleteDraftEServiceTemplateVersion(
-      templateId: EServiceTemplateId,
-      versionId: EServiceTemplateVersionId,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
-      logger.info(
-        `Deleting version ${versionId} for eservice template with id ${templateId}`
-      );
-      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
-        headers,
-        templateId
-      );
-
-      if (
-        eserviceTemplate.versions.length === 1 &&
-        eserviceTemplate.versions[0].id === versionId
-      ) {
-        throw cannotDeleteLastEServiceTemplateVersion(templateId, versionId);
-      }
-
-      const response =
-        await clients.eserviceTemplateProcessClient.deleteDraftTemplateVersion(
-          undefined,
-          {
-            params: { templateId, templateVersionId: versionId },
-            headers,
-          }
-        );
-      await pollEServiceTemplateById(templateId, response.metadata, headers);
     },
     async createEServiceTemplateVersionCertifiedAttributesGroup(
       templateId: EServiceTemplateId,
