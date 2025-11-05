@@ -114,6 +114,7 @@ import {
   hasRoleToAccessDraftTemplateVersions,
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
+  assertRiskAnalysisExists,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -1029,6 +1030,7 @@ export function eserviceTemplateServiceBuilder(
       assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
       assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
+      assertRiskAnalysisExists(template.data, riskAnalysisId);
 
       const newTemplate: EServiceTemplate = {
         ...template.data,

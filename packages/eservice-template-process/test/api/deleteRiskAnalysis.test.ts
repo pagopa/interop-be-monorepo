@@ -21,6 +21,7 @@ import {
   eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
+  riskAnalysisNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API DELETE /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
@@ -85,6 +86,10 @@ describe("API DELETE /templates/:templateId/riskAnalysis/:riskAnalysisId", () =>
     {
       error: templateNotInReceiveMode(eserviceTemplate.id),
       expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisNotFound(eserviceTemplate.id, riskAnalysis.id),
+      expectedStatus: 404,
     },
     {
       error: operationForbidden,
