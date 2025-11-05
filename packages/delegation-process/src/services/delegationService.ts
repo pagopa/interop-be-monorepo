@@ -23,6 +23,7 @@ import {
   DB,
   eventRepository,
   FileManager,
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   M2MAuthData,
   PDFGenerator,
@@ -254,33 +255,61 @@ export function delegationServiceBuilder(
       },
     };
 
-    const activationContract = await contractBuilder.createActivationContract({
-      delegation: approvedDelegationWithoutContract,
-      delegator,
-      delegate,
-      eservice,
-      pdfGenerator,
-      fileManager,
-      config,
-      logger,
-    });
+    if (isFeatureFlagEnabled(config, "featureFlagDelegationsContractBuilder")) {
+      const activationContract = await contractBuilder.createActivationContract(
+        {
+          delegation: approvedDelegationWithoutContract,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
 
-    const approvedDelegation = {
-      ...approvedDelegationWithoutContract,
-      activationContract,
-    };
+      const approvedDelegation = {
+        ...approvedDelegationWithoutContract,
+        activationContract,
+      };
+      const event = await repository.createEvent(
+        match(kind)
+          .with(delegationKind.delegatedProducer, () =>
+            toCreateEventProducerDelegationApproved(
+              { data: approvedDelegation, metadata },
+              correlationId
+            )
+          )
+          .with(delegationKind.delegatedConsumer, () =>
+            toCreateEventConsumerDelegationApproved(
+              { data: approvedDelegation, metadata },
+              correlationId
+            )
+          )
+          .exhaustive()
+      );
 
+      return {
+        data: approvedDelegation,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    }
+
+    // Feature flag disabled: persist approval without generating contracts
     const event = await repository.createEvent(
       match(kind)
         .with(delegationKind.delegatedProducer, () =>
           toCreateEventProducerDelegationApproved(
-            { data: approvedDelegation, metadata },
+            { data: approvedDelegationWithoutContract, metadata },
             correlationId
           )
         )
         .with(delegationKind.delegatedConsumer, () =>
           toCreateEventConsumerDelegationApproved(
-            { data: approvedDelegation, metadata },
+            { data: approvedDelegationWithoutContract, metadata },
             correlationId
           )
         )
@@ -288,7 +317,7 @@ export function delegationServiceBuilder(
     );
 
     return {
-      data: approvedDelegation,
+      data: approvedDelegationWithoutContract,
       metadata: {
         version: event.newVersion,
       },
@@ -403,43 +432,47 @@ export function delegationServiceBuilder(
       },
     };
 
-    const revocationContract = await contractBuilder.createRevocationContract({
-      delegation: revokedDelegationWithoutContract,
-      delegator,
-      delegate,
-      eservice,
-      pdfGenerator,
-      fileManager,
-      config,
-      logger,
-    });
+    if (isFeatureFlagEnabled(config, "featureFlagDelegationsContractBuilder")) {
+      const revocationContract = await contractBuilder.createRevocationContract(
+        {
+          delegation: revokedDelegationWithoutContract,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
 
-    const revokedDelegation = {
-      ...revokedDelegationWithoutContract,
-      revocationContract,
-    };
-    await repository.createEvent(
-      match(kind)
-        .with(delegationKind.delegatedProducer, () =>
-          toCreateEventProducerDelegationRevoked(
-            {
-              data: revokedDelegation,
-              metadata,
-            },
-            correlationId
+      const revokedDelegation = {
+        ...revokedDelegationWithoutContract,
+        revocationContract,
+      };
+      await repository.createEvent(
+        match(kind)
+          .with(delegationKind.delegatedProducer, () =>
+            toCreateEventProducerDelegationRevoked(
+              {
+                data: revokedDelegation,
+                metadata,
+              },
+              correlationId
+            )
           )
-        )
-        .with(delegationKind.delegatedConsumer, () =>
-          toCreateEventConsumerDelegationRevoked(
-            {
-              data: revokedDelegation,
-              metadata,
-            },
-            correlationId
+          .with(delegationKind.delegatedConsumer, () =>
+            toCreateEventConsumerDelegationRevoked(
+              {
+                data: revokedDelegation,
+                metadata,
+              },
+              correlationId
+            )
           )
-        )
-        .exhaustive()
-    );
+          .exhaustive()
+      );
+    }
   }
 
   async function internalAddDelegationContract(

@@ -1,5 +1,21 @@
 import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 
+export function toGetPurposeTemplatesApiQueryParams(
+  params: m2mGatewayApi.GetPurposeTemplatesQueryParams
+): purposeTemplateApi.GetPurposeTemplatesQueryParams {
+  return {
+    purposeTitle: params.purposeTitle,
+    creatorIds: params.creatorIds,
+    eserviceIds: params.eserviceIds,
+    states: params.states,
+    targetTenantKind: params.targetTenantKind,
+    excludeExpiredRiskAnalysis: false,
+    handlesPersonalData: params.handlesPersonalData,
+    limit: params.limit,
+    offset: params.offset,
+  };
+}
+
 export function toM2MGatewayApiPurposeTemplate(
   purposeTemplate: purposeTemplateApi.PurposeTemplate
 ): m2mGatewayApi.PurposeTemplate {

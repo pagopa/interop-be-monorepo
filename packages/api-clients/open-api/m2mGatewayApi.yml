@@ -16295,7 +16295,7 @@ paths:
     parameters:
       - name: purposeTemplateId
         in: path
-        description: The ID of the Purpose Template to retrieve
+        description: The Purpose Template ID
         required: true
         schema:
           type: string
@@ -16309,6 +16309,10 @@ paths:
       responses:
         "200":
           description: Purpose Template retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -16316,10 +16320,6 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:

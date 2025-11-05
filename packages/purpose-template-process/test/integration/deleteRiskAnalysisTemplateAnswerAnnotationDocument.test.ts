@@ -38,7 +38,7 @@ import {
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("deleteRiskAnalysisTemplateAnswerAnnotationDocumentDocument", () => {
+describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockDocument1 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
   const mockDocument2 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
   const annotationDocument1 = {
@@ -153,7 +153,10 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocumentDocument", () => {
       documentId: annotationDocument1.id,
     });
 
-    expect(response).toBeUndefined();
+    expect(response).toEqual({
+      data: annotationDocument1,
+      metadata: { version: 1 },
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,

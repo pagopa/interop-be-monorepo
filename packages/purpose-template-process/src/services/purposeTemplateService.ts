@@ -21,6 +21,8 @@ import {
   RiskAnalysisTemplateAnswerAnnotationId,
   TenantKind,
   unsafeBrandId,
+  EService,
+  DescriptorId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -62,6 +64,7 @@ import {
   toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
 } from "../model/domain/toEvent.js";
 import {
+  addAnnotationDocumentToUpdatedAnswerIfNeeded,
   cleanupAnnotationDocsForRemovedAnswers,
   deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
 } from "../utilities/riskAnalysisDocUtils.js";
@@ -455,6 +458,30 @@ export function purposeTemplateServiceBuilder(
     purposeTemplateEventToBinaryDataV2
   );
 
+  function linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
+    purposeTemplateValidationResults: Array<{
+      eservice: EService;
+      descriptorId: DescriptorId;
+    }>,
+    purposeTemplateId: PurposeTemplateId,
+    creationTimestamp: Date,
+    createdEvents: Awaited<ReturnType<typeof repository.createEvents>>
+  ): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> {
+    return purposeTemplateValidationResults.map(
+      (purposeTemplateValidationResult) => ({
+        data: {
+          purposeTemplateId,
+          eserviceId: purposeTemplateValidationResult.eservice.id,
+          descriptorId: purposeTemplateValidationResult.descriptorId,
+          createdAt: creationTimestamp,
+        },
+        metadata: {
+          version: createdEvents[createdEvents.length - 1].newVersion,
+        },
+      })
+    );
+  }
+
   return {
     async createPurposeTemplate(
       seed: purposeTemplateApi.PurposeTemplateSeed,
@@ -623,7 +650,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
       logger.info(
         `Linking e-services ${eserviceIds} to purpose template ${purposeTemplateId}`
       );
@@ -680,14 +707,14 @@ export function purposeTemplateServiceBuilder(
         }
       );
 
-      await repository.createEvents(createEvents);
+      const createdEvents = await repository.createEvents(createEvents);
 
-      return validationResult.value.map((purposeTemplateValidationResult) => ({
+      return linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
+        validationResult.value,
         purposeTemplateId,
-        eserviceId: purposeTemplateValidationResult.eservice.id,
-        descriptorId: purposeTemplateValidationResult.descriptorId,
-        createdAt: creationTimestamp,
-      }));
+        creationTimestamp,
+        createdEvents
+      );
     },
     async unlinkEservicesFromPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -697,7 +724,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<void> {
+    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
       logger.info(
         `Unlinking e-services ${eserviceIds} from purpose template ${purposeTemplateId}`
       );
@@ -754,7 +781,14 @@ export function purposeTemplateServiceBuilder(
         }
       );
 
-      await repository.createEvents(createEvents);
+      const createdEvents = await repository.createEvents(createEvents);
+
+      return linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
+        validationResult.value,
+        purposeTemplateId,
+        creationTimestamp,
+        createdEvents
+      );
     },
     async updatePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -800,10 +834,19 @@ export function purposeTemplateServiceBuilder(
             )
           : purposeTemplate.data.purposeRiskAnalysisForm;
 
+      const purposeRiskAnalysisFormWithDocuments =
+        purposeTemplate.data.purposeRiskAnalysisForm && purposeRiskAnalysisForm
+          ? addAnnotationDocumentToUpdatedAnswerIfNeeded(
+              purposeTemplateSeed,
+              purposeTemplate.data.purposeRiskAnalysisForm,
+              purposeRiskAnalysisForm
+            )
+          : undefined;
+
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate.data,
         ...purposeTemplateSeed,
-        purposeRiskAnalysisForm,
+        purposeRiskAnalysisForm: purposeRiskAnalysisFormWithDocuments,
         updatedAt: new Date(),
         ...(!purposeTemplateSeed.purposeIsFreeOfCharge && {
           purposeFreeOfChargeReason: undefined,
@@ -1343,7 +1386,7 @@ export function purposeTemplateServiceBuilder(
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
       documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
-    }): Promise<void> {
+    }): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       const { logger, correlationId, authData } = ctx;
 
       logger.info(
@@ -1365,7 +1408,7 @@ export function purposeTemplateServiceBuilder(
         logger,
       });
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventPurposeTemplateAnnotationDocumentDeleted({
           purposeTemplate: updatedPurposeTemplate.data,
           documentId,
@@ -1373,6 +1416,13 @@ export function purposeTemplateServiceBuilder(
           correlationId,
         })
       );
+
+      return {
+        data: removedAnnotationDocument,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
   };
 }

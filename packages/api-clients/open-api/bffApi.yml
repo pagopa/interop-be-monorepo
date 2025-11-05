@@ -12157,12 +12157,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Published
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12282,12 +12278,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Unsuspended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12407,12 +12399,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Suspended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12532,12 +12520,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Archived
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -26365,42 +26349,9 @@ components:
       additionalProperties: false
       properties:
         text:
-          type: string
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+          type: string        
       required:
         - text
-        - docs
-    RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        documentId:
-          type: string
-          format: uuid
-        name:
-          type: string
-        contentType:
-          type: string
-        checksum:
-          type: string
-        prettyName:
-          type: string
-        path:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - documentId
-        - name
-        - contentType
-        - checksum
-        - prettyName
-        - path
-        - createdAt
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
@@ -28692,7 +28643,7 @@ components:
         - "catalogo-e-service"
         - aderente
         - "gestione-client"
-        - totalCount
+        - notifiche
       properties:
         erogazione:
           type: object
@@ -28779,9 +28730,15 @@ components:
           required:
             - "api-e-service"
             - totalCount
-        totalCount:
-          type: integer
-          format: int32
+        notifiche:
+          type: object
+          additionalProperties: false
+          properties:
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - totalCount
     PersonalDataFilter:
       type: string
       description: Filter e-services by personal data
