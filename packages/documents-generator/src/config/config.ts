@@ -11,7 +11,6 @@ import {
   ReadModelSQLDbConfig,
   TokenGenerationConfig,
   APIEndpoint,
-  FeatureFlagDocumentsGeneratorConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -26,7 +25,6 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
   .and(S3Config)
   .and(LoggerConfig)
   .and(TokenGenerationConfig)
-  .and(FeatureFlagDocumentsGeneratorConfig)
   .and(
     z
       .object({

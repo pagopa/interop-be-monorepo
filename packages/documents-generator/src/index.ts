@@ -11,7 +11,6 @@ import {
   genericLogger,
   initFileManager,
   initPDFGenerator,
-  isFeatureFlagEnabled,
   logger,
 } from "pagopa-interop-commons";
 
@@ -150,23 +149,21 @@ function processMessage(
 }
 
 try {
-  if (isFeatureFlagEnabled(config, "featureFlagDocumentGenerator")) {
-    await runConsumer(
-      baseConsumerConfig,
-      [config.agreementTopic, config.purposeTopic, config.delegationTopic],
-      processMessage(
-        {
-          agreementTopic: config.agreementTopic,
-        },
-        {
-          purposeTopic: config.purposeTopic,
-        },
-        {
-          delegationTopic: config.delegationTopic,
-        }
-      )
-    );
-  }
+  await runConsumer(
+    baseConsumerConfig,
+    [config.agreementTopic, config.purposeTopic, config.delegationTopic],
+    processMessage(
+      {
+        agreementTopic: config.agreementTopic,
+      },
+      {
+        purposeTopic: config.purposeTopic,
+      },
+      {
+        delegationTopic: config.delegationTopic,
+      }
+    )
+  );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);
 }
