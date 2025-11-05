@@ -86,6 +86,7 @@ describe("Agreement Splitter", () => {
         stamps: agreementStamps,
         rejectionReason,
         suspendedAt: new Date(),
+        signedContract,
       };
       // convert an agreement into a specific agreement data model
       const {
@@ -129,6 +130,7 @@ describe("Agreement Splitter", () => {
         metadataVersion: 1,
         createdAt: contract.createdAt.toISOString(),
       };
+
       const expectedSignedContractDocumentSQL: AgreementSignedContractSQL = {
         ...signedContract,
         agreementId: agreement.id,
@@ -229,6 +231,7 @@ describe("Agreement Splitter", () => {
       stamps: agreementStamps,
       rejectionReason: undefined,
       suspendedAt: undefined,
+      signedContract: undefined,
     };
     // convert an agreement into a specific agreement data model
     const {
@@ -237,6 +240,7 @@ describe("Agreement Splitter", () => {
       contractSQL,
       attributesSQL,
       stampsSQL,
+      signedContractSQL,
     } = splitAgreementIntoObjectsSQL(agreement, 1);
 
     const expectedAgreementSQL: AgreementSQL = {
@@ -297,6 +301,7 @@ describe("Agreement Splitter", () => {
       expectedAgreementConsumerDocumentSQL,
     ]);
     expect(contractSQL).toBeUndefined();
+    expect(signedContractSQL).toBeUndefined();
     expect(attributesSQL).toStrictEqual(
       expect.arrayContaining([
         expectedAgreementVerifiedAttributeSQL,

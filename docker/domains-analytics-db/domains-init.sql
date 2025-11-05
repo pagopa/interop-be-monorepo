@@ -164,7 +164,6 @@ CREATE TABLE domains.agreement (
   consumer_notes VARCHAR(2048),
   rejection_reason VARCHAR(2048),
   suspended_at TIMESTAMP WITH TIME ZONE,
-  signed_contract VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -282,7 +281,6 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version (
   updated_at TIMESTAMP WITH TIME ZONE,
   first_activation_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
-  signed_contract VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -323,7 +321,6 @@ CREATE TABLE IF NOT EXISTS domains.delegation (
   rejection_reason VARCHAR(2048),
   state VARCHAR(2048) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
-  signed_contract VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

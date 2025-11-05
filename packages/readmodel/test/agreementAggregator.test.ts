@@ -13,7 +13,6 @@ import {
 import {
   getMockAgreement,
   getMockAgreementAttribute,
-  getMockAgreementContract,
   getMockAgreementDocument,
   getMockAgreementStamps,
 } from "pagopa-interop-commons-test";
@@ -57,7 +56,7 @@ describe("Agreement Aggregator", () => {
         updatedAt: new Date(),
         consumerNotes: "some notes",
         contract: {
-          ...getMockAgreementContract(),
+          ...getMockAgreementDocument(),
           createdAt: new Date(),
         },
         stamps: agreementStamps,
@@ -77,7 +76,7 @@ describe("Agreement Aggregator", () => {
       signedContractSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
-      agreement.metadata.version,
+      agreement.metadata.version
     );
 
     const aggregatedAgreement = aggregateAgreement({
@@ -138,7 +137,7 @@ describe("Agreement Aggregator", () => {
       signedContractSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
-      agreement.metadata.version,
+      agreement.metadata.version
     );
 
     const aggregatedAgreement = aggregateAgreement({

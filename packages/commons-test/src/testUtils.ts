@@ -122,6 +122,8 @@ import {
   RiskAnalysisTemplateMultiAnswerV2,
   EmailNotificationPreference,
   AgreementSignedContract,
+  PurposeVersionSignedDocument,
+  DelegationSignedContractDocument,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -395,6 +397,15 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   createdAt: new Date(),
 });
 
+export const getMockPurposeVersionSignedDocument =
+  (): PurposeVersionSignedDocument => ({
+    path: "path",
+    id: generateId(),
+    contentType: "json",
+    createdAt: new Date(),
+    signedAt: new Date(),
+  });
+
 export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
   generateMock(PurposeVersionStamps);
 
@@ -619,6 +630,18 @@ export const getMockDelegationDocument = (
   contentType: "json",
   path: "path",
   createdAt: new Date(),
+});
+
+export const getMockDelegationSignedDocument = (
+  id?: DelegationContractId
+): DelegationSignedContractDocument => ({
+  id: id ?? generateId(),
+  name: "Test document",
+  prettyName: "Test document",
+  contentType: "json",
+  path: "path",
+  createdAt: new Date(),
+  signedAt: new Date(),
 });
 
 export const getMockTokenGenStatesConsumerClient = (
