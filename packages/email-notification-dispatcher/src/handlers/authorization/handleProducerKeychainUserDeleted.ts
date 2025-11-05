@@ -28,7 +28,6 @@ export async function handleProducerKeychainUserDeleted(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -53,11 +52,10 @@ export async function handleProducerKeychainUserDeleted(
       tenants: [producer],
       notificationType,
       readModelService,
-      userService,
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter((target) => target.type !== "User" || target.userId != userId);
+  ).filter((target) => target.type !== "User" || target.userId !== userId);
 
   if (targets.length === 0) {
     logger.info(

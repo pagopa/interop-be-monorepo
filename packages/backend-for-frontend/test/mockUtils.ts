@@ -515,6 +515,12 @@ export const getMockBffApiPurposeUpdateContent =
     dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
   });
 
+export const getMockBffApiPatchPurposeUpdateFromTemplateContent =
+  (): bffApi.PatchPurposeUpdateFromTemplateContent => ({
+    title: generateMock(z.string()),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+  });
+
 export const getMockBffApiPurposeVersionResource = (
   purposeId: PurposeId = generateId(),
   versionId: PurposeVersionId = generateId()
@@ -536,6 +542,14 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
   dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
 });
 
+export const getMockPurposeFromTemplateSeed =
+  (): bffApi.PurposeFromTemplateSeed => ({
+    eserviceId: generateId(),
+    consumerId: generateId(),
+    title: generateMock(z.string()),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+  });
+
 export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   targetDescription:
     "This is a valid target description that meets the minimum length requirement",
@@ -547,7 +561,7 @@ export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   purposeIsFreeOfCharge: false,
   purposeFreeOfChargeReason: undefined,
   purposeDailyCalls: 1000,
-  handlesPersonalData: false,
+  handlesPersonalData: true,
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({

@@ -18,7 +18,9 @@ import {
   getEServiceTemplateRiskAnalysisErrorMapper,
   getEServiceTemplateVersionDocumentsErrorMapper,
   getEServiceTemplateVersionErrorMapper,
+  createEServiceTemplateVersionAttributeGroupsErrorMapper,
   deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
+  assignEServiceTemplateVersionAttributesErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -728,6 +730,37 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/certifiedAttributes/groups",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceTemplateService.createEServiceTemplateVersionCertifiedAttributesGroup(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(201)
+            .send(
+              m2mGatewayApi.EServiceTemplateVersionCertifiedAttributesGroup.parse(
+                attributes
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceTemplateVersionAttributeGroupsErrorMapper,
+            ctx,
+            `Error creating certified attributes group for version ${req.params.versionId} for eservice template ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get(
       "/eserviceTemplates/:templateId/versions/:versionId/declaredAttributes",
       async (req, res) => {
@@ -744,7 +777,7 @@ const eserviceTemplateRouter = (
           return res
             .status(200)
             .send(
-              m2mGatewayApi.EServiceDescriptorDeclaredAttributes.parse(
+              m2mGatewayApi.EServiceTemplateVersionDeclaredAttributes.parse(
                 attributes
               )
             );
@@ -754,6 +787,37 @@ const eserviceTemplateRouter = (
             getEServiceTemplateVersionAttributesErrorMapper,
             ctx,
             `Error retrieving declared attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/declaredAttributes/groups",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceTemplateService.createEServiceTemplateVersionDeclaredAttributesGroup(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(201)
+            .send(
+              m2mGatewayApi.EServiceTemplateVersionDeclaredAttributesGroup.parse(
+                attributes
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceTemplateVersionAttributeGroupsErrorMapper,
+            ctx,
+            `Error creating declared attributes group for version ${req.params.versionId} for eservice template ${req.params.templateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -775,7 +839,7 @@ const eserviceTemplateRouter = (
           return res
             .status(200)
             .send(
-              m2mGatewayApi.EServiceDescriptorVerifiedAttributes.parse(
+              m2mGatewayApi.EServiceTemplateVersionVerifiedAttributes.parse(
                 attributes
               )
             );
@@ -785,6 +849,37 @@ const eserviceTemplateRouter = (
             getEServiceTemplateVersionAttributesErrorMapper,
             ctx,
             `Error retrieving verified attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/verifiedAttributes/groups",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceTemplateService.createEServiceTemplateVersionVerifiedAttributesGroup(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(201)
+            .send(
+              m2mGatewayApi.EServiceTemplateVersionVerifiedAttributesGroup.parse(
+                attributes
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceTemplateVersionAttributeGroupsErrorMapper,
+            ctx,
+            `Error creating verified attributes group for version ${req.params.versionId} for eservice template ${req.params.templateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -860,6 +955,82 @@ const eserviceTemplateRouter = (
             deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting declared attribute ${req.params.attributeId} from group ${req.params.groupIndex} for version ${req.params.versionId} of eservice template ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/certifiedAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceTemplateService.assignEServiceTemplateVersionCertifiedAttributesToGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
+            req.params.groupIndex,
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceTemplateVersionAttributesErrorMapper,
+            ctx,
+            `Error assigning certified attributes to version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/declaredAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceTemplateService.assignEServiceTemplateVersionDeclaredAttributesToGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
+            req.params.groupIndex,
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceTemplateVersionAttributesErrorMapper,
+            ctx,
+            `Error assigning declared attributes to version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/verifiedAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceTemplateService.assignEServiceTemplateVersionVerifiedAttributesToGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
+            req.params.groupIndex,
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceTemplateVersionAttributesErrorMapper,
+            ctx,
+            `Error assigning verified attributes to version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

@@ -2208,8 +2208,8 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind,
-        new Date() // [todo remove comment] risk analysis creation
-        // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+        new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+        eservice.data.personalData
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -2294,8 +2294,8 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind,
-        new Date() // [todo remove comment] risk analysis update
-        // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+        new Date(), // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+        eservice.data.personalData
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {
@@ -2839,7 +2839,7 @@ export function catalogServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<EService> {
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -2881,7 +2881,7 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventEServiceDescriptorAttributesUpdated(
           eservice.metadata.version,
           descriptor.id,
@@ -2891,7 +2891,10 @@ export function catalogServiceBuilder(
         )
       );
 
-      return updatedEService;
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async internalUpdateTemplateInstanceName(
       eserviceId: EServiceId,
@@ -4058,8 +4061,16 @@ async function updateDraftEService(
     ? apiEServiceModeToEServiceMode(mode)
     : eservice.data.mode;
 
+  // delete risk analysis in one of these cases:
+  // - mode is changed to "Deliver"
+  // - personalData flag is changed from true to false or vice versa
   const checkedRiskAnalysis =
-    updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
+    updatedMode === eserviceMode.deliver ||
+    (typeAndSeed.seed.personalData != null &&
+      eservice.data.personalData != null &&
+      typeAndSeed.seed.personalData !== eservice.data.personalData)
+      ? []
+      : eservice.data.riskAnalysis;
 
   const updatedIsSignalHubEnabled = match(typeAndSeed.type)
     .with("put", () => isSignalHubEnabled)

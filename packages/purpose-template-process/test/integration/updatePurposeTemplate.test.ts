@@ -3,7 +3,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  getLatestVersionFormRules,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -63,8 +66,12 @@ describe("updatePurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  const riskAnalisysPAVersion = "3.0";
-  const riskAnalisysPrivateVersion = "2.0";
+  const riskAnalysisPAVersion = getLatestVersionFormRules(
+    tenantKind.PA
+  )!.version;
+  const riskAnalysisPrivateVersion = getLatestVersionFormRules(
+    tenantKind.PRIVATE
+  )!.version;
   const creatorId = generateId<TenantId>();
   const creator: Tenant = getMockTenant(creatorId);
 
@@ -82,10 +89,10 @@ describe("updatePurposeTemplate", () => {
   };
 
   it.each([
-    { kind: tenantKind.PA, riskAnalysisVersion: riskAnalisysPAVersion },
+    { kind: tenantKind.PA, riskAnalysisVersion: riskAnalysisPAVersion },
     {
       kind: tenantKind.PRIVATE,
-      riskAnalysisVersion: riskAnalisysPrivateVersion,
+      riskAnalysisVersion: riskAnalysisPrivateVersion,
     },
   ])(
     "should successfully update a purpose template in draft state with valid data and targetTenantKind %s",
@@ -127,8 +134,8 @@ describe("updatePurposeTemplate", () => {
           {
             editable: false,
             annotation: undefined,
-            values: ["Updated Answer value"],
-            suggestedValues: [],
+            values: [],
+            suggestedValues: ["Updated Answer value", "Updated Answer value 2"],
           },
         ],
       ]);
@@ -200,10 +207,13 @@ describe("updatePurposeTemplate", () => {
             // add new value to answer "otherPurpose"
             .concat({
               id: expect.anything(),
-              value: "Updated Answer value",
+              value: undefined,
               key: "otherPurpose",
               editable: false,
-              suggestedValues: [],
+              suggestedValues: [
+                "Updated Answer value",
+                "Updated Answer value 2",
+              ],
             }),
           multiAnswers: mockValidRiskAnalysisTemplateForm.multiAnswers.map(
             (a) => ({
@@ -250,7 +260,8 @@ describe("updatePurposeTemplate", () => {
           ...riskAnalysisFormTemplateSeed,
           answers: updatedAnswers,
         },
-        tenantKind
+        tenantKind,
+        existingPurposeTemplate.handlesPersonalData
       );
     }
   );
@@ -268,17 +279,17 @@ describe("updatePurposeTemplate", () => {
   });
 
   it("Should throw a purposeTemplateNotInDraftState error if purpose template is not in draft state", async () => {
-    const purposeTemplateInActiveState: PurposeTemplate = {
+    const purposeTemplateInPublishedState: PurposeTemplate = {
       ...existingPurposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     };
 
     await addOneTenant(creator);
-    await addOnePurposeTemplate(purposeTemplateInActiveState);
+    await addOnePurposeTemplate(purposeTemplateInPublishedState);
 
     expect(
       purposeTemplateService.updatePurposeTemplate(
-        purposeTemplateInActiveState.id,
+        purposeTemplateInPublishedState.id,
         purposeTemplateSeed,
         getMockContext({
           authData: getMockAuthData(creatorId),
@@ -286,8 +297,8 @@ describe("updatePurposeTemplate", () => {
       )
     ).rejects.toThrowError(
       purposeTemplateNotInExpectedStates(
-        purposeTemplateInActiveState.id,
-        purposeTemplateInActiveState.state,
+        purposeTemplateInPublishedState.id,
+        purposeTemplateInPublishedState.state,
         [purposeTemplateState.draft]
       )
     );

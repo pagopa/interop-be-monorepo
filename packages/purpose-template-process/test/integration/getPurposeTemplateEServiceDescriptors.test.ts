@@ -29,31 +29,31 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
 
   const eservice1: EService = {
     ...getMockEService(),
-    name: "e-service 1",
+    name: "Test e-service 1",
     descriptors: [getMockDescriptor(descriptorState.published)],
   };
   const eservice2: EService = {
     ...getMockEService(),
-    name: "e-service 2",
+    name: "Test e-service 2",
     descriptors: [getMockDescriptor(descriptorState.archived)],
   };
 
   const purposeTemplate1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 1 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 1 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
   const purposeTemplate2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 2 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 2 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
   const purposeTemplate3: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 3 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 3 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
 
@@ -103,7 +103,6 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 0, limit: 50 },
@@ -124,7 +123,6 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 1, limit: 50 },
@@ -142,7 +140,6 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 0, limit: 1 },
@@ -160,7 +157,6 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [],
           producerIds: [eservice2.producerId],
         },
         { offset: 0, limit: 50 },
@@ -173,12 +169,12 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     });
   });
 
-  it("should get the linked purpose template e-service descriptors (filter: eserviceIds)", async () => {
+  it("should get the linked purpose template e-service descriptors (filter: eserviceName)", async () => {
     const result =
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [eservice2.id],
+          eserviceName: "E-SERVICE 2",
           producerIds: [],
         },
         { offset: 0, limit: 50 },
@@ -196,7 +192,6 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate3.id,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 0, limit: 50 },
@@ -216,7 +211,6 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: notExistingId,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 0, limit: 50 },

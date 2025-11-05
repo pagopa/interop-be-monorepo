@@ -82,7 +82,8 @@ export const handleAgreementMessageV2 = async (
             "AgreementConsumerDocumentRemoved",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
-            "AgreementDeletedByRevokedDelegation"
+            "AgreementDeletedByRevokedDelegation",
+            "AgreementContractGenerated"
           ),
         },
         (event) => {

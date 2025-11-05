@@ -10,7 +10,7 @@ import { TenantKind } from "../tenant/tenant.js";
 
 export const purposeTemplateState = {
   draft: "Draft",
-  active: "Active",
+  published: "Published",
   suspended: "Suspended",
   archived: "Archived",
 } as const;

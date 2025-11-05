@@ -31,7 +31,6 @@ export async function handleTenantVerifiedAttributeRevoked(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -55,7 +54,6 @@ export async function handleTenantVerifiedAttributeRevoked(
     tenants: [tenant],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

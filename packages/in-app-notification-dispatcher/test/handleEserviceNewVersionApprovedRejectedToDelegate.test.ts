@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
@@ -17,12 +17,12 @@ import {
   Delegation,
   DelegationState,
   delegationState,
-  DescriptorRejectionReason,
 } from "pagopa-interop-models";
 import {
   activeProducerDelegationNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "../src/handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { addOneDelegation, addOneTenant, readModelService } from "./utils.js";
 
@@ -45,7 +45,10 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
 
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneTenant(delegator);
     await addOneTenant(delegate);
@@ -161,11 +164,10 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     };
     await addOneDelegation(delegationWithUnknownDelegator);
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: delegate.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: delegate.id },
+    ]);
 
     await expect(() =>
       handleEserviceNewVersionApprovedRejectedToDelegate(
@@ -179,10 +181,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications =
       await handleEserviceNewVersionApprovedRejectedToDelegate(
@@ -198,17 +197,17 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
 
   it.each<{
     eventType:
-      | "EServiceDescriptorApprovedByDelegator"
-      | "EServiceDescriptorRejectedByDelegator";
+    | "EServiceDescriptorApprovedByDelegator"
+    | "EServiceDescriptorRejectedByDelegator";
     expectedBody: string;
   }>([
     {
       eventType: "EServiceDescriptorApprovedByDelegator",
-      expectedBody: `${delegator.name} ha approvato la nuova versione dell'e-service <strong>${eservice.name}</strong>.`,
+      expectedBody: `L'ente delegante ${delegator.name} ha approvato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.`,
     },
     {
       eventType: "EServiceDescriptorRejectedByDelegator",
-      expectedBody: `${delegator.name} ha rifiutato la nuova versione dell'e-service <strong>${eservice.name}</strong>.`,
+      expectedBody: `L'ente delegante ${delegator.name} ha rifiutato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.`,
     },
   ])(
     "should handle $eventType event correctly",
@@ -218,10 +217,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         { userId: generateId(), tenantId: delegator.id },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(delegateUsers);
+      mockGetNotificationRecipients.mockResolvedValue(delegateUsers);
 
       const notifications =
         await handleEserviceNewVersionApprovedRejectedToDelegate(
@@ -254,10 +250,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
       { userId: generateId(), tenantId: delegate.id },
       { userId: generateId(), tenantId: delegate.id },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications =
       await handleEserviceNewVersionApprovedRejectedToDelegate(
@@ -281,64 +274,4 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   const olderDate = new Date(latestDate);
   olderDate.setDate(olderDate.getDate() - 1);
 
-  it.each<{
-    rejectionReasons: DescriptorRejectionReason[] | undefined;
-    expectedReason: string;
-  }>([
-    {
-      rejectionReasons: undefined,
-      expectedReason: "",
-    },
-    {
-      rejectionReasons: [],
-      expectedReason: "",
-    },
-    {
-      rejectionReasons: [
-        { rejectedAt: latestDate, rejectionReason: "motivo1" },
-      ],
-      expectedReason: " Motivo: motivo1.",
-    },
-    {
-      rejectionReasons: [
-        { rejectedAt: olderDate, rejectionReason: "motivo1" },
-        { rejectedAt: latestDate, rejectionReason: "motivo2" },
-      ],
-      expectedReason: " Motivo: motivo2.",
-    },
-    {
-      rejectionReasons: [
-        { rejectedAt: latestDate, rejectionReason: "motivo1" },
-        { rejectedAt: olderDate, rejectionReason: "motivo2" },
-      ],
-      expectedReason: " Motivo: motivo1.",
-    },
-  ])(
-    "should report the correct rejection reason correctly ($rejectionReasons, $expectedReason)",
-    async ({ rejectionReasons, expectedReason }) => {
-      const delegateUsers = [{ userId: generateId(), tenantId: delegator.id }];
-
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(delegateUsers);
-
-      const notifications =
-        await handleEserviceNewVersionApprovedRejectedToDelegate(
-          toEServiceV2({
-            ...eservice,
-            descriptors: [{ ...eservice.descriptors[0], rejectionReasons }],
-          }),
-          descriptorId,
-          logger,
-          readModelService,
-          "EServiceDescriptorRejectedByDelegator"
-        );
-
-      const expectedBody = `${delegator.name} ha rifiutato la nuova versione dell'e-service <strong>${eservice.name}</strong>.${expectedReason}`;
-
-      expect(notifications).toHaveLength(delegateUsers.length);
-      expect(notifications[0].body).toEqual(expectedBody);
-    }
-  );
 });

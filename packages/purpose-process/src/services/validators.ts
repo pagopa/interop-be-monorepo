@@ -1,44 +1,55 @@
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
-  EService,
-  EServiceMode,
-  Purpose,
-  PurposeVersion,
-  PurposeRiskAnalysisForm,
-  RiskAnalysisForm,
-  TenantId,
-  TenantKind,
-  purposeVersionState,
-  EServiceId,
-  delegationKind,
-  Delegation,
-  delegationState,
-  DelegationId,
-} from "pagopa-interop-models";
-import {
-  validateRiskAnalysis,
+  M2MAdminAuthData,
+  Ownership,
+  ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
-  M2MAdminAuthData,
-  Ownership,
-  ownership,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  Delegation,
+  DelegationId,
+  delegationKind,
+  delegationState,
+  EService,
+  EServiceId,
+  EServiceMode,
+  Purpose,
+  PurposeRiskAnalysisForm,
+  PurposeTemplate,
+  PurposeTemplateId,
+  PurposeVersion,
+  purposeVersionState,
+  RiskAnalysisForm,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswer,
+  TenantId,
+  tenantKind,
+  TenantKind,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
+  invalidPersonalData,
+  invalidPurposeTenantKind,
   missingFreeOfChargeReason,
+  purposeNotInDraftState,
+  riskAnalysisAnswerNotInSuggestValues,
+  riskAnalysisContainsNotEditableAnswers,
+  riskAnalysisMissingExpectedFieldError,
+  riskAnalysisValidationFailed,
+  riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
+  tenantIsNotTheDelegate,
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegatedProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
-  purposeNotInDraftState,
-  riskAnalysisValidationFailed,
-  tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
 import {
   retrieveActiveAgreement,
@@ -50,7 +61,8 @@ export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
@@ -60,7 +72,8 @@ export const isRiskAnalysisFormValid = (
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
         tenantKind,
-        dateForExpirationValidation
+        dateForExpirationValidation,
+        personalDataInEService
       ).type === "valid"
     );
   }
@@ -117,17 +130,20 @@ export function validateRiskAnalysisOrThrow({
   schemaOnlyValidation,
   tenantKind,
   dateForExpirationValidation,
+  personalDataInEService,
 }: {
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
   dateForExpirationValidation: Date;
+  personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
     tenantKind,
-    dateForExpirationValidation
+    dateForExpirationValidation,
+    personalDataInEService
   );
   return match(result)
     .with({ type: "invalid" }, ({ issues }) => {
@@ -141,7 +157,8 @@ export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -151,6 +168,7 @@ export function validateAndTransformRiskAnalysis(
     schemaOnlyValidation,
     tenantKind,
     dateForExpirationValidation,
+    personalDataInEService,
   });
 
   return {
@@ -199,6 +217,18 @@ export const assertPurposeTitleIsNotDuplicated = async ({
 
   if (purposeWithSameName) {
     throw duplicatedPurposeTitle(title);
+  }
+};
+
+export const assertPersonalDataCompliant = (
+  eservicePersonalData: boolean | undefined,
+  purposeTemplateHandlesPersonalData: boolean
+): void => {
+  if (
+    eservicePersonalData === undefined ||
+    eservicePersonalData !== purposeTemplateHandlesPersonalData
+  ) {
+    throw invalidPersonalData(eservicePersonalData);
   }
 };
 
@@ -481,3 +511,190 @@ export const getOrganizationRole = async ({
     }
   }
 };
+
+export function assertValidPurposeTenantKind(
+  purposeTenantKind: TenantKind,
+  templateTargetTenantKind: TenantKind
+): void {
+  const privateTenantKinds: TenantKind[] = [
+    tenantKind.GSP,
+    tenantKind.SCP,
+    tenantKind.PRIVATE,
+  ];
+  const valid = match(purposeTenantKind)
+    .with(tenantKind.PA, () => templateTargetTenantKind === tenantKind.PA)
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
+      privateTenantKinds.includes(templateTargetTenantKind)
+    )
+    .exhaustive();
+
+  if (!valid) {
+    throw invalidPurposeTenantKind(purposeTenantKind, templateTargetTenantKind);
+  }
+}
+
+function buildSingleOrMultiAnswerValueFromTemplate(
+  { answer: answerFromTemplate, type }: RiskAnalysisTemplateAnswer,
+  isEditable: boolean,
+  hasSuggestions: boolean
+): string[] {
+  // Editable Answer or Single Answer with Suggestions must provide answer value in request body
+  if (isEditable || hasSuggestions) {
+    throw riskAnalysisMissingExpectedFieldError(answerFromTemplate.key);
+  }
+
+  // Using answer value from template
+  return type === "single"
+    ? answerFromTemplate.value
+      ? [answerFromTemplate.value]
+      : []
+    : answerFromTemplate.values;
+}
+
+function assertValidSingleOrMultiAnswerValueNonEditableField(
+  templateId: PurposeTemplateId,
+  { answer: answerFromTemplate, type }: RiskAnalysisTemplateAnswer,
+  answerSeed: string[],
+  hasSuggestions: boolean
+): void {
+  // Not Editable Multi Answer must not provide answer value in request body
+  if (type === "multi") {
+    throw riskAnalysisContainsNotEditableAnswers(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+
+  // Not Editable Single Answer without suggested values must not provide answer value in request body
+  if (!hasSuggestions) {
+    throw riskAnalysisContainsNotEditableAnswers(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+
+  // Not Editable Single Answer with suggested values must provide one of those in request body
+  if (
+    answerSeed.some(
+      (v: string) => !answerFromTemplate.suggestedValues.includes(v)
+    )
+  ) {
+    throw riskAnalysisAnswerNotInSuggestValues(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+}
+
+function buildSingleOrMultiAnswerValue(
+  templateId: PurposeTemplateId,
+  templateAnswer: RiskAnalysisTemplateAnswer,
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed
+): string[] {
+  const answerFromSeed = riskAnalysisForm.answers[templateAnswer.answer.key];
+  const isEditable = templateAnswer.answer.editable;
+  const hasSuggestions =
+    templateAnswer.type === "single" &&
+    templateAnswer.answer.suggestedValues.length > 0;
+
+  if (!answerFromSeed) {
+    return buildSingleOrMultiAnswerValueFromTemplate(
+      templateAnswer,
+      isEditable,
+      hasSuggestions
+    );
+  }
+
+  if (!isEditable) {
+    assertValidSingleOrMultiAnswerValueNonEditableField(
+      templateId,
+      templateAnswer,
+      answerFromSeed,
+      hasSuggestions
+    );
+  }
+
+  // Editable Answer or Single Answer with Suggestion using value from request's body
+  return answerFromSeed;
+}
+
+function buildAnswersSeed(
+  id: PurposeTemplateId,
+  riskAnalysisFormTemplate: RiskAnalysisFormTemplate,
+  riskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed
+): Record<string, string[]> {
+  const singleAnswers = riskAnalysisFormTemplate.singleAnswers.reduce(
+    (acc, templateAnswer) => ({
+      ...acc,
+      [templateAnswer.key]: buildSingleOrMultiAnswerValue(
+        id,
+        {
+          type: "single",
+          answer: templateAnswer,
+        },
+        riskAnalysisFormSeed
+      ),
+    }),
+    {}
+  );
+
+  const multiAnswers = riskAnalysisFormTemplate.multiAnswers.reduce(
+    (acc, templateAnswer) => ({
+      ...acc,
+      [templateAnswer.key]: buildSingleOrMultiAnswerValue(
+        id,
+        {
+          type: "multi",
+          answer: templateAnswer,
+        },
+        riskAnalysisFormSeed
+      ),
+    }),
+    {}
+  );
+
+  return {
+    ...singleAnswers,
+    ...multiAnswers,
+  };
+}
+
+export function validateRiskAnalysisAgainstTemplateOrThrow(
+  purposeTemplate: PurposeTemplate,
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  tenantKind: TenantKind,
+  createdAt: Date,
+  eservicePersonalData: boolean | undefined
+): PurposeRiskAnalysisForm | undefined {
+  if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
+    return undefined;
+  }
+
+  if (
+    purposeTemplate.purposeRiskAnalysisForm.version !== riskAnalysisForm.version
+  ) {
+    throw riskAnalysisVersionMismatch(
+      riskAnalysisForm.version,
+      purposeTemplate.purposeRiskAnalysisForm.version
+    );
+  }
+
+  const answersToSeed = buildAnswersSeed(
+    purposeTemplate.id,
+    purposeTemplate.purposeRiskAnalysisForm,
+    riskAnalysisForm
+  );
+
+  const formToValidate: purposeApi.RiskAnalysisFormSeed = {
+    version: purposeTemplate.purposeRiskAnalysisForm.version,
+    answers: answersToSeed,
+  };
+
+  return validateAndTransformRiskAnalysis(
+    formToValidate,
+    false,
+    tenantKind,
+    createdAt,
+    eservicePersonalData
+  );
+}

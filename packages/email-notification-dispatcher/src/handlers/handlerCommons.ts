@@ -5,8 +5,9 @@ import {
   Attribute,
   AttributeId,
   EService,
+  EServiceTemplateV2,
+  EServiceTemplateVersionId,
   EServiceV2,
-  NotificationConfig,
   NotificationType,
   PurposeV2,
   ProducerKeychainV2,
@@ -16,18 +17,25 @@ import {
   TenantId,
   tenantMailKind,
   TenantV2,
+  EServiceTemplate,
+  EServiceTemplateVersion,
+  descriptorState,
   UserId,
   ClientV2,
   EServiceId,
 } from "pagopa-interop-models";
-import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
+import {
+  getLatestTenantMailOfKind,
+  Logger,
+  notificationAdmittedRoles,
+} from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
 import {
   attributeNotFound,
   certifierTenantNotFound,
+  descriptorPublishedNotFound,
   eServiceNotFound,
   purposeNotFound,
 } from "../models/errors.js";
@@ -60,6 +68,16 @@ export type TenantHandlerParams = HandlerCommonParams & {
 
 export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
+};
+
+export type EserviceTemplateHandlerParams = HandlerCommonParams & {
+  eserviceTemplateV2Msg?: EServiceTemplateV2;
+  eserviceTemplateVersionId: EServiceTemplateVersionId;
+};
+
+export type EserviceTemplateNameUpdatedHandlerParams = HandlerCommonParams & {
+  eserviceTemplateV2Msg?: EServiceTemplateV2;
+  oldName?: string;
 };
 
 export type ProducerKeychainKeyHandlerParams = HandlerCommonParams & {
@@ -97,29 +115,23 @@ export type UserEmailNotificationRecipient = {
   type: "User";
   userId: UserId;
   tenantId: TenantId;
-  address: string;
 };
 
 type EmailNotificationRecipient =
   | TenantEmailNotificationRecipient
   | UserEmailNotificationRecipient;
 
-export async function getUserEmailsToNotify(
-  tenantId: TenantId,
-  notificationName: keyof NotificationConfig,
-  readModelService: ReadModelServiceSQL,
-  userService: UserServiceSQL
-): Promise<string[]> {
-  const tenantUsers =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [tenantId],
-      notificationName
-    );
-
-  const usersToNotify = await userService.readUsers(
-    tenantUsers.map((config) => config.userId)
-  );
-  return usersToNotify.map((user) => user.email);
+export function retrieveLatestPublishedEServiceTemplateVersion(
+  eserviceTemplate: EServiceTemplate
+): EServiceTemplateVersion {
+  const latestVersion = eserviceTemplate.versions
+    .filter((d) => d.state === descriptorState.published)
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
+  if (!latestVersion) {
+    throw descriptorPublishedNotFound(eserviceTemplate.id);
+  }
+  return latestVersion;
 }
 
 export async function retrieveAgreementEservice(
@@ -198,14 +210,12 @@ export const getRecipientsForTenants = async ({
   notificationType,
   includeTenantContactEmails,
   readModelService,
-  userService,
   logger,
 }: {
   tenants: Tenant[];
   notificationType: NotificationType;
   includeTenantContactEmails: boolean;
   readModelService: ReadModelServiceSQL;
-  userService: UserServiceSQL;
   logger: Logger;
 }): Promise<EmailNotificationRecipient[]> => {
   const tenantUsers =
@@ -214,22 +224,25 @@ export const getRecipientsForTenants = async ({
       notificationType
     );
 
-  const usersWithEmails = await userService.readUsers(
-    tenantUsers.map((u) => u.userId)
-  );
-
-  const userRecipients: UserEmailNotificationRecipient[] = tenantUsers.flatMap(
-    ({ userId, tenantId }) => {
-      const user = usersWithEmails.find((u) => u.userId === userId);
-      if (!user) {
+  const userRecipients: UserEmailNotificationRecipient[] = tenantUsers
+    .filter(({ userId, tenantId, userRoles }) => {
+      const userCanReceiveNotification = userRoles.some(
+        (r) => notificationAdmittedRoles[notificationType][r]
+      );
+      if (!userCanReceiveNotification) {
         logger.warn(
-          `Could not retrieve email for user ${userId}, skipping notification`
+          `Discarding notification for user ${userId} in ${tenantId} due to missing roles (notification type: ${notificationType}, user roles: ${userRoles.join(
+            ", "
+          )})`
         );
-        return [];
       }
-      return [{ type: "User" as const, userId, tenantId, address: user.email }];
-    }
-  );
+      return userCanReceiveNotification;
+    })
+    .map(({ userId, tenantId }) => ({
+      type: "User" as const,
+      userId,
+      tenantId,
+    }));
 
   const tenantRecipients: TenantEmailNotificationRecipient[] =
     includeTenantContactEmails

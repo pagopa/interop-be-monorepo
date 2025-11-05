@@ -7,15 +7,18 @@ import {
   purposeTemplateState,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateSingleAnswer,
   tenantKind,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockValidRiskAnalysisFormTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
@@ -42,9 +45,12 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     },
   };
 
+  const serviceResponse: WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> =
+    getMockWithMetadata(annotationDocument);
+
   purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument = vi
     .fn()
-    .mockResolvedValue({});
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -72,6 +78,9 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(204);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -88,7 +97,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
         [purposeTemplateState.draft]
       ),
       expectedStatus: 409,
