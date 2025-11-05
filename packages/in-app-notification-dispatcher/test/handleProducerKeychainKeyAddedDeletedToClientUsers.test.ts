@@ -273,8 +273,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
       const expectedBody =
         inAppTemplates.producerKeychainKeyDeletedToClientUsers(
           producerKeychain.name,
-          key1.userId,
-          key1.kid
+          key1.userId
         );
 
       const expectedNotifications = [
@@ -538,8 +537,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
       expect(notifications[0].body).toBe(
         inAppTemplates.producerKeychainKeyDeletedToClientUsers(
           producerKeychain.name,
-          key1.userId,
-          key1.kid
+          key1.userId
         )
       );
     });

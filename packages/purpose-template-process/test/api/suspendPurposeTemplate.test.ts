@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   generateToken,
@@ -13,7 +12,6 @@ import {
   PurposeTemplateId,
   purposeTemplateState,
 } from "pagopa-interop-models";
-import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
@@ -25,10 +23,6 @@ import {
 describe("API POST /purposeTemplates/{id}/suspend", () => {
   const purposeTemplate = getMockPurposeTemplate();
   const serviceResponse = getMockWithMetadata(purposeTemplate);
-
-  const apiResponse = purposeTemplateApi.PurposeTemplate.parse(
-    purposeTemplateToApiPurposeTemplate(purposeTemplate)
-  );
 
   beforeEach(() => {
     purposeTemplateService.suspendPurposeTemplate = vi
@@ -51,12 +45,12 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
+      expect(res.status).toBe(204);
+      expect(res.body).toEqual({});
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );

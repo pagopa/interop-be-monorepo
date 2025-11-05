@@ -24,6 +24,7 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../models/errors.js";
+import { config } from "../config/config.js";
 
 export async function getNotificationRecipients(
   tenantIds: TenantId[],
@@ -31,6 +32,14 @@ export async function getNotificationRecipients(
   readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+  if (config.notificationTypeBlocklist.includes(notificationType)) {
+    logger.info(
+      `Notification type ${notificationType} is in the blocklist, skipping notification for tenants ${tenantIds.join(
+        ","
+      )}`
+    );
+    return [];
+  }
   const usersWithNotifications =
     await readModelService.getTenantUsersWithNotificationEnabled(
       tenantIds,
