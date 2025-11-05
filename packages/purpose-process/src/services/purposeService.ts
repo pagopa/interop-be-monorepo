@@ -976,26 +976,40 @@ export function purposeServiceBuilder(
         },
       };
 
-      const riskAnalysisDocument = await generateRiskAnalysisDocument({
-        eservice,
-        purpose: purpose.data,
-        userId: stamps.creation.who,
-        dailyCalls: seed.dailyCalls,
-        readModelService,
-        fileManager,
-        pdfGenerator,
-        logger,
-      });
+      const riskAnalysisDocument = isFeatureFlagEnabled(
+        config,
+        "featureFlagPurposesContractBuilder"
+      )
+        ? await generateRiskAnalysisDocument({
+            eservice,
+            purpose: purpose.data,
+            userId: stamps.creation.who,
+            dailyCalls: seed.dailyCalls,
+            readModelService,
+            fileManager,
+            pdfGenerator,
+            logger,
+          })
+        : undefined;
 
-      const newPurposeVersion: PurposeVersion = {
-        id: generateId(),
-        riskAnalysis: riskAnalysisDocument,
-        state: purposeVersionState.active,
-        dailyCalls: seed.dailyCalls,
-        firstActivationAt: new Date(),
-        createdAt: new Date(),
-        stamps,
-      };
+      const newPurposeVersion: PurposeVersion = riskAnalysisDocument
+        ? {
+            id: generateId(),
+            riskAnalysis: riskAnalysisDocument,
+            state: purposeVersionState.active,
+            dailyCalls: seed.dailyCalls,
+            firstActivationAt: new Date(),
+            createdAt: new Date(),
+            stamps,
+          }
+        : {
+            id: generateId(),
+            state: purposeVersionState.active,
+            dailyCalls: seed.dailyCalls,
+            firstActivationAt: new Date(),
+            createdAt: new Date(),
+            stamps,
+          };
 
       const oldVersions = archiveActiveAndSuspendedPurposeVersions(
         purpose.data.versions
@@ -2237,23 +2251,39 @@ async function activatePurposeLogic({
     .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
     .exhaustive();
 
-  const updatedPurposeVersion: PurposeVersion = {
-    ...purposeVersion,
-    state: purposeVersionState.active,
-    riskAnalysis: await generateRiskAnalysisDocument({
-      eservice,
-      purpose: purpose.data,
-      userId: stamps?.creation.who,
-      dailyCalls: purposeVersion.dailyCalls,
-      readModelService,
-      fileManager,
-      pdfGenerator,
-      logger,
-    }),
-    stamps,
-    updatedAt: new Date(),
-    firstActivationAt: new Date(),
-  };
+  const riskAnalysis = isFeatureFlagEnabled(
+    config,
+    "featureFlagPurposesContractBuilder"
+  )
+    ? await generateRiskAnalysisDocument({
+        eservice,
+        purpose: purpose.data,
+        userId: stamps?.creation.who,
+        dailyCalls: purposeVersion.dailyCalls,
+        readModelService,
+        fileManager,
+        pdfGenerator,
+        logger,
+      })
+    : undefined;
+
+  const updatedPurposeVersion: PurposeVersion = riskAnalysis
+    ? {
+        ...purposeVersion,
+        state: purposeVersionState.active,
+        riskAnalysis,
+        stamps,
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+      }
+    : {
+        ...purposeVersion,
+        state: purposeVersionState.active,
+        stamps,
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+      };
+
   const unsuspendedPurpose: Purpose =
     fromState === purposeVersionState.waitingForApproval
       ? {

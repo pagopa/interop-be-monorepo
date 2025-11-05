@@ -26481,42 +26481,9 @@ components:
       additionalProperties: false
       properties:
         text:
-          type: string
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+          type: string        
       required:
         - text
-        - docs
-    RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        documentId:
-          type: string
-          format: uuid
-        name:
-          type: string
-        contentType:
-          type: string
-        checksum:
-          type: string
-        prettyName:
-          type: string
-        path:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - documentId
-        - name
-        - contentType
-        - checksum
-        - prettyName
-        - path
-        - createdAt
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false

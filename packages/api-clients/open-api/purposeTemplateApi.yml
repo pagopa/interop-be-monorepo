@@ -1262,13 +1262,8 @@ components:
         text:
           type: string
           maxLength: 250
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
       required:
         - text
-        - docs
     RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
       type: object
       additionalProperties: false
