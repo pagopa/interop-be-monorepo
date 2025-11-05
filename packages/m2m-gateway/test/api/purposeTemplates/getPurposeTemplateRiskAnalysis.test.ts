@@ -5,9 +5,11 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../../../src/api/riskAnalysisFormTemplateApiConverter.js";
+import { purposeTemplateRiskAnalysisFormNotFound } from "../../../src/model/errors.js";
 
 describe("GET /purposeTemplates/:purposeTemplateId/risAnalysis router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -65,15 +67,29 @@ describe("GET /purposeTemplates/:purposeTemplateId/risAnalysis router test", () 
     { ...mockM2MPurposeTemplateRiskAnalysisResponse, extraParam: "extraValue" },
     {},
   ])(
-    "Should return 500 when API model parsing fails for response",
+    "Should return 500 when API model parsing fails for response: %s",
     async (resp) => {
       mockPurposeTemplateService.getPurposeTemplateRiskAnalysis = vi
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockApiPurposeTemplate.id);
+      const res = await makeRequest(token);
 
       expect(res.status).toBe(500);
     }
   );
+
+  it("Should return 404 if risk analysis form is not found", async () => {
+    mockPurposeTemplateService.getPurposeTemplateRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(
+        purposeTemplateRiskAnalysisFormNotFound(
+          unsafeBrandId(mockApiPurposeTemplate.id)
+        )
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(404);
+  });
 });

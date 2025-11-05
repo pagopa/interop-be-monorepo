@@ -13,6 +13,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
+import { getPurposeTemplateRiskAnalysisErrorMapper } from "../utils/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -96,7 +97,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getPurposeTemplateRiskAnalysisErrorMapper,
             ctx,
             `Error retrieving risk analysis for purpose template with id ${req.params.purposeTemplateId}`
           );
