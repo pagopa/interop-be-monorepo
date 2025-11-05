@@ -2578,6 +2578,14 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog":
+    parameters:
+      - name: personalData
+        description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/PersonalDataFilter"
+
     get:
       tags:
         - eservices
@@ -2636,11 +2644,6 @@ paths:
         - in: query
           name: isConsumerDelegable
           description: EService isConsumerDelegable filter
-          schema:
-            type: boolean
-        - in: query
-          name: personalData
-          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
           schema:
             type: boolean
         - in: query
@@ -7026,6 +7029,13 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers/eservices":
+    parameters:
+      - name: personalData
+        description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/PersonalDataFilter"
     get:
       tags:
         - eservices
@@ -7051,11 +7061,6 @@ paths:
         - in: query
           name: delegated
           description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
-          schema:
-            type: boolean
-        - in: query
-          name: personalData
-          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
           schema:
             type: boolean
         - in: query
@@ -10615,15 +10620,10 @@ paths:
           default: []
         explode: false
       - in: query
-        name: eserviceIds
-        description: comma separated sequence of e-service IDs
+        name: eserviceName
+        description: filter linked e-services by name
         schema:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        explode: false
+          type: string
       - in: query
         name: offset
         required: true
@@ -12157,12 +12157,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Published
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12282,12 +12278,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Unsuspended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12407,12 +12399,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Suspended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12532,12 +12520,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Archived
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -21647,6 +21631,13 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog/eservices/templates":
+    parameters:
+      - name: personalData
+        description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned, if "defined" all e-service templates with a defined personal data flag will be returned
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/PersonalDataFilter"
     get:
       tags:
         - eserviceTemplates
@@ -21669,11 +21660,6 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: personalData
-          description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned
-          schema:
-            type: boolean
         - in: query
           name: offset
           required: true
@@ -26363,42 +26349,9 @@ components:
       additionalProperties: false
       properties:
         text:
-          type: string
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+          type: string        
       required:
         - text
-        - docs
-    RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        documentId:
-          type: string
-          format: uuid
-        name:
-          type: string
-        contentType:
-          type: string
-        checksum:
-          type: string
-        prettyName:
-          type: string
-        path:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - documentId
-        - name
-        - contentType
-        - checksum
-        - prettyName
-        - path
-        - createdAt
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
@@ -28690,7 +28643,7 @@ components:
         - "catalogo-e-service"
         - aderente
         - "gestione-client"
-        - totalCount
+        - notifiche
       properties:
         erogazione:
           type: object
@@ -28777,9 +28730,22 @@ components:
           required:
             - "api-e-service"
             - totalCount
-        totalCount:
-          type: integer
-          format: int32
+        notifiche:
+          type: object
+          additionalProperties: false
+          properties:
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - totalCount
+    PersonalDataFilter:
+      type: string
+      description: Filter e-services by personal data
+      enum:
+        - "TRUE"
+        - "FALSE"
+        - DEFINED
     ProblemError:
       properties:
         code:

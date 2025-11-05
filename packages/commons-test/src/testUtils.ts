@@ -351,7 +351,8 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
 
 export const getMockPurposeTemplate = (
   creatorId: TenantId = generateId<TenantId>(),
-  state: PurposeTemplateState = purposeTemplateState.draft
+  state: PurposeTemplateState = purposeTemplateState.draft,
+  handlesPersonalData: boolean = true
 ): PurposeTemplate => ({
   id: generateId(),
   targetDescription: "Purpose template target description",
@@ -362,7 +363,7 @@ export const getMockPurposeTemplate = (
   purposeTitle: "Purpose template title",
   purposeDescription: "Purpose template description",
   purposeIsFreeOfCharge: false,
-  handlesPersonalData: false,
+  handlesPersonalData,
 });
 
 export const getMockPurposeVersion = (

@@ -70,14 +70,14 @@ describe("linkEservicesToPurposeTemplate", () => {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor1],
-    personalData: false,
+    personalData: true,
   };
 
   const eService2: EService = {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor2],
-    personalData: false,
+    personalData: true,
   };
 
   const purposeTemplate: PurposeTemplate = {
@@ -107,16 +107,22 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(linkResponse).toHaveLength(2);
     expect(linkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
     });
     expect(linkResponse[1]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService2.id,
-      descriptorId: descriptor2.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService2.id,
+        descriptorId: descriptor2.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
     });
 
     const lastWrittenEvent = await readLastPurposeTemplateEvent(
@@ -168,10 +174,13 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(linkResponse).toHaveLength(1);
     expect(linkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 1 },
     });
 
     vi.useRealTimers();
@@ -259,7 +268,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [],
-      personalData: false,
+      personalData: true,
     };
 
     await addOneTenant(tenant);
@@ -288,7 +297,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [getMockDescriptor(descriptorState.deprecated)],
-      personalData: false,
+      personalData: true,
     };
 
     await addOneTenant(tenant);
@@ -320,7 +329,7 @@ describe("linkEservicesToPurposeTemplate", () => {
   it("should throw associationEServicesForPurposeTemplateFailed if the e-service has a different personal data flag than the purpose template", async () => {
     const eserviceWithDifferentPersonalDataFlag: EService = {
       ...eService1,
-      personalData: true,
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -466,16 +475,19 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(firstLinkResponse).toHaveLength(1);
     expect(firstLinkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+      },
+      metadata: { version: 1 },
     });
 
     await addOnePurposeTemplateEServiceDescriptor({
       purposeTemplateId: purposeTemplate.id,
       eserviceId: eService1.id,
       descriptorId: descriptor1.id,
-      createdAt: firstLinkResponse[0].createdAt,
+      createdAt: firstLinkResponse[0].data.createdAt,
     });
 
     await expect(

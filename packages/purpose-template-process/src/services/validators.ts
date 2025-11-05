@@ -60,6 +60,10 @@ import {
   unexpectedUnassociationEServiceError,
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
+import {
+  toRiskAnalysisFormTemplateToValidate,
+  toRiskAnalysisTemplateAnswerToValidate,
+} from "../model/domain/apiConverter.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
@@ -144,7 +148,8 @@ export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed
     | undefined,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  personalDataInPurposeTemplate: boolean
 ): RiskAnalysisFormTemplate | undefined {
   if (!riskAnalysisFormTemplate) {
     return undefined;
@@ -153,6 +158,7 @@ export function validateAndTransformRiskAnalysisTemplate(
   const validatedForm = validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate,
     tenantKind,
+    personalDataInPurposeTemplate,
   });
 
   return riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
@@ -169,13 +175,16 @@ export function validateRiskAnalysisAnswerAnnotationOrThrow(
 export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisFormTemplate,
   tenantKind,
+  personalDataInPurposeTemplate,
 }: {
   riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed;
   tenantKind: TenantKind;
+  personalDataInPurposeTemplate: boolean;
 }): RiskAnalysisTemplateValidatedForm {
   const result = validatePurposeTemplateRiskAnalysis(
-    riskAnalysisFormTemplate,
-    tenantKind
+    toRiskAnalysisFormTemplateToValidate(riskAnalysisFormTemplate),
+    tenantKind,
+    personalDataInPurposeTemplate
   );
 
   return match(result)
@@ -201,7 +210,7 @@ export function validateRiskAnalysisAnswerOrThrow({
 
   const result = validateRiskAnalysisAnswer(
     riskAnalysisAnswer.answerKey,
-    riskAnalysisAnswer.answerData,
+    toRiskAnalysisTemplateAnswerToValidate(riskAnalysisAnswer.answerData),
     tenantKind
   );
 
