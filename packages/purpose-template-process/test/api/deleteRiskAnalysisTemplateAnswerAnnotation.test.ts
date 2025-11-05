@@ -134,7 +134,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
       answerId: "invalid-id" as RiskAnalysisSingleAnswerId,
     },
   ])(
-    "Should return 400 if an invalid $name is passed",
+    "Should return 400 if invalid data is passed: %s",
     async ({ purposeTemplateId, answerId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, purposeTemplateId, answerId);
