@@ -16376,13 +16376,14 @@ paths:
     parameters:
       - name: purposeTemplateId
         in: path
+        description: The Purpose Template ID
         required: true
         schema:
           type: string
           format: uuid
     post:
-      summary: Publish a Purpose Template
-      description: Publish a Purpose Template in Draft state
+      summary: Publish a Purpose Template in Draft state
+      description: Publish a Purpose Template that is in Draft state, transitioning it to Published state
       operationId: publishPurposeTemplate
       tags:
         - purposeTemplates
