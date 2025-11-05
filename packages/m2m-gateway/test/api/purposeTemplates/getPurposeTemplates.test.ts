@@ -137,7 +137,7 @@ describe("API GET /purposeTemplates", () => {
       },
     },
   ])(
-    "Should return 500 when API model parsing fails for response",
+    "Should return 500 when API model parsing fails for response: %s",
     async (resp) => {
       mockPurposeTemplateService.getPurposeTemplates = vi
         .fn()
