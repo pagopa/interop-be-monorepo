@@ -16376,18 +16376,21 @@ paths:
     parameters:
       - name: purposeTemplateId
         in: path
+        description: The Purpose Template ID
         required: true
         schema:
           type: string
           format: uuid
       - name: answerId
         in: path
+        description: The Risk Analysis Form Template Answer ID
         required: true
         schema:
           type: string
           format: uuid
       - name: documentId
         in: path
+        description: The Risk Analysis Form Template Answer Annotation Document ID
         required: true
         schema:
           type: string
