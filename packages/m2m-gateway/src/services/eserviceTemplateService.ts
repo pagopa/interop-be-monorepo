@@ -435,6 +435,7 @@ export function eserviceTemplateServiceBuilder(
         eserviceTemplate,
         versionId
       );
+
       return toM2MGatewayEServiceTemplateVersion(version);
     },
     async createEServiceTemplateVersion(
@@ -641,6 +642,7 @@ export function eserviceTemplateServiceBuilder(
       ) {
         throw cannotDeleteLastEServiceTemplateVersion(templateId, versionId);
       }
+
       const response =
         await clients.eserviceTemplateProcessClient.deleteDraftTemplateVersion(
           undefined,
@@ -997,6 +999,7 @@ export function eserviceTemplateServiceBuilder(
       );
       return toM2MGatewayEServiceTemplateVersion(version);
     },
+
     async createEServiceTemplateVersionCertifiedAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
