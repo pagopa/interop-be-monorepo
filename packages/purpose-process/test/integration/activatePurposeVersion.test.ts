@@ -45,6 +45,7 @@ import {
   tenantKind,
   TenantId,
   DelegationId,
+  UserId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -81,6 +82,8 @@ import {
 } from "../integrationUtils.js";
 
 describe("activatePurposeVersion", () => {
+  const userId: UserId = generateId();
+
   let mockConsumer: Tenant;
   let mockProducer: Tenant;
   let mockEService: EService;
@@ -143,7 +146,22 @@ describe("activatePurposeVersion", () => {
   it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
     vi.spyOn(pdfGenerator, "generate");
 
-    await addOnePurpose(mockPurpose);
+    const consumerUserId = generateId<UserId>();
+    const versionWithStamp: PurposeVersion = {
+      ...mockPurposeVersion,
+      stamps: {
+        creation: {
+          who: consumerUserId,
+          when: new Date(),
+        },
+      },
+    };
+    const purposeWithStamp: Purpose = {
+      ...mockPurpose,
+      versions: [versionWithStamp],
+      consumerId: mockConsumer.id,
+    };
+    await addOnePurpose(purposeWithStamp);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
@@ -151,17 +169,17 @@ describe("activatePurposeVersion", () => {
 
     const activateResponse = await purposeService.activatePurposeVersion(
       {
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
+        purposeId: purposeWithStamp.id,
+        versionId: versionWithStamp.id,
         delegationId: undefined,
       },
-      getMockContext({ authData: getMockAuthData(mockProducer.id) })
+      getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
-      mockPurpose.id,
+      purposeWithStamp.id,
       "purpose",
       postgresDB
     );
@@ -174,7 +192,7 @@ describe("activatePurposeVersion", () => {
     });
 
     const expectedPurpose: Purpose = {
-      ...mockPurpose,
+      ...purposeWithStamp,
       suspendedByConsumer: false,
       suspendedByProducer: false,
       versions: [updatedVersion],
@@ -187,7 +205,7 @@ describe("activatePurposeVersion", () => {
     });
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: mockPurposeVersion.dailyCalls.toString(),
+      dailyCalls: versionWithStamp.dailyCalls.toString(),
       answers: expect.any(String),
       eServiceName: mockEService.name,
       producerName: mockProducer.name,
@@ -204,6 +222,8 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId: consumerUserId,
+      consumerId: purposeWithStamp.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -256,7 +276,7 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: producerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(delegate.id) })
+      getMockContext({ authData: getMockAuthData(delegate.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
@@ -305,6 +325,8 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId: undefined,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -696,7 +718,7 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: undefined,
       },
-      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      getMockContext({ authData: getMockAuthData(mockConsumer.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
@@ -719,6 +741,8 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -810,7 +834,9 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: delegation.id,
       },
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({
+        authData: getMockAuthData(delegation.delegateId, userId),
+      })
     );
 
     const updatedVersion = activateResponse.data;
@@ -833,6 +859,8 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: delegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
+      userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -968,7 +996,9 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: consumerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({
+        authData: getMockAuthData(consumerDelegate.id, userId),
+      })
     );
 
     const updatedVersion = activateResponse.data;
@@ -991,6 +1021,8 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: consumerDelegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
+      userId,
+      consumerId: consumer.id,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -1106,7 +1138,7 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: consumerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(producer.id) })
+      getMockContext({ authData: getMockAuthData(producer.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
@@ -1129,6 +1161,8 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: consumerDelegation.id,
       consumerDelegateName: producer.name,
       consumerDelegateIpaCode: producer.externalId.value,
+      userId,
+      consumerId: consumer.id,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -1506,7 +1540,9 @@ describe("activatePurposeVersion", () => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
       false,
-      mockConsumer.kind as TenantKind
+      mockConsumer.kind as TenantKind,
+      new Date(),
+      undefined
     );
 
     expect(async () => {

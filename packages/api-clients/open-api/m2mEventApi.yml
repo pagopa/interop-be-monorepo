@@ -1,0 +1,982 @@
+openapi: 3.0.3
+info:
+  title: M2M Events Manager
+  description: |
+    RESTful API service that provides machine-to-machine access to platform events,
+    enabling clients to retrieve near-real-time info about changes to platform
+    resources (E-Services, Agreements, etc.)
+  version: "{{version}}"
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  termsOfService: "http://swagger.io/terms/"
+  x-api-id: an x-api-id
+  x-summary: an x-summary
+servers:
+  - url: "/"
+security:
+  - bearerAuth: []
+tags:
+  - name: m2mEvents
+    description: M2M Events routes
+  - name: health
+    description: Verify service status
+paths:
+  /events/eservices:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get E-Service events
+      description: |
+        Retrieve list of E-Service events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getEServiceM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/DelegationId"
+      responses:
+        "200":
+          description: E-Service events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/agreements:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Agreement events
+      description: |
+        Retrieve list of Agreement events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getAgreementM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/DelegationId"
+      responses:
+        "200":
+          description: Agreement events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgreementM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/purposes:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Purpose events
+      description: |
+        Retrieve list of Purpose events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getPurposeM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/DelegationId"
+      responses:
+        "200":
+          description: Purpose events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/tenants:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Tenant events
+      description: |
+        Retrieve list of Tenant events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getTenantM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Tenant events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/attributes:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Attribute events
+      description: |
+        Retrieve list of Attribute events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getAttributeM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Attribute events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttributeM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/consumerDelegations:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Consumer Delegation events
+      description: |
+        Retrieve list of Consumer Delegation events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getConsumerDelegationM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Consumer Delegation events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumerDelegationM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/producerDelegations:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Producer Delegation events
+      description: |
+        Retrieve list of Producer Delegation events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getProducerDelegationM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Producer Delegation events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDelegationM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/clients:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Client events
+      description: |
+        Retrieve list of Client events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getClientM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Client events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/producerKeychains:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Producer Keychain events
+      description: |
+        Retrieve list of Producer Keychain events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getProducerKeychainM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Producer Keychain events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeychainM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/keys:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Key events
+      description: |
+        Retrieve list of Key events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getKeyM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Key events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeyM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/producerKeys:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Producer Key events
+      description: |
+        Retrieve list of Producer Key events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getProducerKeyM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Producer Key events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeyM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /events/eserviceTemplates:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get E-Service Template events
+      description: |
+        Retrieve list of E-Service Template events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getEServiceTemplateM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: E-Service Template events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /status:
+    get:
+      security: []
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  parameters:
+    LastEventId:
+      in: query
+      name: lastEventId
+      description: |
+        ID of the last event already received.
+        Only events that occurred after this ID will be returned.
+        If not provided, the oldest events up to the specified limit will be returned.
+      schema:
+        type: string
+        format: uuid
+    Limit:
+      in: query
+      name: limit
+      required: true
+      description: Maximum number of events to return.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 500
+    DelegationId:
+      in: query
+      name: delegationId
+      description: |
+        Filter events by delegation ID.
+        - Omitted: Return all events, both for delegated and non-delegated resources.
+        - Delegation UUID: Return only events for resources related to the specified delegation.
+        - null: Return only events for resources accessible without delegation
+            (public resources, resources accessible as consumer/producer, owned resources, etc.)
+      required: false
+      schema:
+        oneOf:
+          - type: "null"
+          - type: string
+            format: uuid
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
+  schemas:
+    EServiceM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        eserviceId:
+          type: string
+          format: uuid
+        descriptorId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - eserviceId
+    EServiceM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceM2MEvent"
+    AgreementM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        agreementId:
+          type: string
+          format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - agreementId
+    AgreementM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgreementM2MEvent"
+    PurposeM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        purposeId:
+          type: string
+          format: uuid
+        purposeVersionId:
+          type: string
+          format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - purposeId
+    PurposeM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeM2MEvent"
+    TenantM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        tenantId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - tenantId
+    TenantM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantM2MEvent"
+    AttributeM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - ATTRIBUTE_ADDED
+        eventTimestamp:
+          type: string
+          format: date-time
+        attributeId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - attributeId
+    AttributeM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttributeM2MEvent"
+    ConsumerDelegationM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        delegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - delegationId
+    ConsumerDelegationM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsumerDelegationM2MEvent"
+    ProducerDelegationM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        delegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - delegationId
+    ProducerDelegationM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerDelegationM2MEvent"
+    ClientM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        clientId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - clientId
+    ClientM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientM2MEvent"
+    ProducerKeychainM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        producerKeychainId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - producerKeychainId
+    ProducerKeychainM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerKeychainM2MEvent"
+    KeyM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        kid:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - kid
+    KeyM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/KeyM2MEvent"
+    ProducerKeyM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        kid:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - kid
+    ProducerKeyM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerKeyM2MEvent"
+    EServiceTemplateM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        eventTimestamp:
+          type: string
+          format: date-time
+        eserviceTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateVersionId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - eserviceTemplateId
+    EServiceTemplateM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateM2MEvent"
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: "^[ -~]{0,64}$"
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ProblemError"
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+        - errors
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          minLength: 8
+          maxLength: 8
+          pattern: "^[0-9]{3}-[0-9]{4}$"
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+      required:
+        - code
+        - detail
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).
+      scheme: bearer
+      bearerFormat: JWT

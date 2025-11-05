@@ -71,9 +71,10 @@ describe("updateEServiceTemplateName", () => {
       messageType: EServiceTemplateNameUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+      oldName: eserviceTemplate.name,
+    });
     expect(writtenPayload.eserviceTemplate).toEqual(
       toEServiceTemplateV2(returnedEServiceTemplate.data)
     );

@@ -2,17 +2,15 @@ import { z } from "zod";
 import {
   FileManagerConfig,
   CommonHTTPServiceConfig,
-  ReadModelDbConfig,
   EventStoreConfig,
   S3Config,
   SelfCareClientConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
   ApplicationAuditProducerConfig,
 } from "pagopa-interop-commons";
 
 const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
-  .and(ReadModelDbConfig)
+  .and(ReadModelSQLDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(SelfCareClientConfig)
@@ -27,8 +25,6 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
         agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
       }))
   )
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional())
   .and(ApplicationAuditProducerConfig);
 
 export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;

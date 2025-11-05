@@ -20,7 +20,6 @@ message PurposeTemplateEServiceUnlinkedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
   eservice.v2.EServiceV2 eservice = 2;
   string descriptorId = 3;
-  int64 createdAt = 4;
 }
 
 message PurposeTemplateDraftUpdatedV2 {
@@ -47,3 +46,12 @@ message PurposeTemplateArchivedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
+message PurposeTemplateAnnotationDocumentAddedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  string documentId = 2;
+}
+
+message PurposeTemplateAnnotationDocumentDeletedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  string documentId = 2;
+}

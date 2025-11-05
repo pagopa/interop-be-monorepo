@@ -91,7 +91,9 @@ export const createUpdatedPurpose = (
     validateAndTransformRiskAnalysis(
       purposeUpdateContent.riskAnalysisForm,
       false,
-      tenantKind
+      tenantKind,
+      new Date(),
+      undefined
     )!,
     writtenRiskAnalysisForm
   ),

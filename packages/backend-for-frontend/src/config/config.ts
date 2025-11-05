@@ -4,6 +4,8 @@ import {
   CommonHTTPServiceConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  FeatureFlagNotificationConfig,
+  FeatureFlagPurposeTemplateConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -69,13 +71,28 @@ export const PurposeProcessServerConfig = z
   .object({
     PURPOSE_PROCESS_URL: APIEndpoint,
     RISK_ANALYSIS_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     purposeUrl: c.PURPOSE_PROCESS_URL,
     riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCUMENTS_CONTAINER,
+    riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
   }));
 export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
+>;
+
+export const PurposeTemplateProcessServerConfig = z
+  .object({
+    PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
+    PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+  })
+  .transform((c) => ({
+    purposeTemplateUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
+    purposeTemplateDocumentsContainer: c.PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER,
+  }));
+export type PurposeTemplateProcessServerConfig = z.infer<
+  typeof PurposeTemplateProcessServerConfig
 >;
 
 export const AuthorizationProcessServerConfig = z
@@ -228,6 +245,37 @@ export const SelfcareProcessConfig = z
   }));
 export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
 
+export const NotificationConfigProcessServerConfig = z
+  .object({
+    NOTIFICATION_CONFIG_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    notificationConfigProcessUrl: c.NOTIFICATION_CONFIG_PROCESS_URL,
+  }));
+export type NotificationConfigProcessServerConfig = z.infer<
+  typeof NotificationConfigProcessServerConfig
+>;
+
+export const InAppNotificationManagerServerConfig = z
+  .object({
+    IN_APP_NOTIFICATION_MANAGER_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    inAppNotificationManagerUrl: c.IN_APP_NOTIFICATION_MANAGER_URL,
+  }));
+export type InAppNotificationManagerServerConfig = z.infer<
+  typeof InAppNotificationManagerServerConfig
+>;
+
+export const FrontendBaseURLConfig = z
+  .object({
+    FRONTEND_BASE_URL: z.string().url(),
+  })
+  .transform((c) => ({
+    frontendBaseUrl: c.FRONTEND_BASE_URL,
+  }));
+export type FrontendBaseURLConfig = z.infer<typeof FrontendBaseURLConfig>;
+
 export const SwaggerConfig = z
   .object({
     BFF_SWAGGER_UI_ENABLED: z.coerce.boolean().default(false),
@@ -243,6 +291,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(SelfCareClientConfig)
   .and(PurposeProcessServerConfig)
+  .and(PurposeTemplateProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
   .and(DelegationProcessServerConfig)
@@ -257,12 +306,17 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ImportFileConfig)
   .and(InterfaceVersion)
   .and(SelfcareProcessConfig)
+  .and(NotificationConfigProcessServerConfig)
+  .and(InAppNotificationManagerServerConfig)
   .and(SwaggerConfig)
   .and(ClientAssertionValidationConfig)
   .and(EServiceTemplateS3Config)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
-  .and(FeatureFlagClientAssertionStrictClaimsValidationConfig);
+  .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
+  .and(FeatureFlagNotificationConfig)
+  .and(FrontendBaseURLConfig)
+  .and(FeatureFlagPurposeTemplateConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

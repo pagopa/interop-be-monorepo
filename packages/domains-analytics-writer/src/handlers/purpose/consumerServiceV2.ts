@@ -67,6 +67,7 @@ export async function handlePurposeMessageV2(
               riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
               versionsSQL: splitResult.versionsSQL,
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
+              versionStampsSQL: splitResult.versionStampsSQL,
             } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }

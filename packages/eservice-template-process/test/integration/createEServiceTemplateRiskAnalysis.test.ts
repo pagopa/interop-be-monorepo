@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  expiredRulesVersionError,
   unexpectedFieldError,
   unexpectedFieldValueError,
 } from "pagopa-interop-commons";
@@ -14,6 +15,7 @@ import {
   getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
   getMockContext,
+  getMockExpiredEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -381,6 +383,53 @@ describe("createEServiceTemplateRiskAnalysis", () => {
           new Set(["INSTITUTIONAL", "OTHER"])
         ),
         unexpectedFieldError("unexpectedField"),
+      ])
+    );
+  });
+  it("should throw riskAnalysisValidationFailed if the risk analysis version has expired", async () => {
+    const requesterId = generateId<TenantId>();
+
+    const creatorTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const creator: Tenant = {
+      ...getMockTenant(requesterId),
+      kind: creatorTenantKind,
+    };
+
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.draft,
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
+      versions: [eserviceTemplateVersion],
+      creatorId: requesterId,
+    };
+    await addOneTenant(creator);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const mockExpiredRiskAnalysis =
+      getMockExpiredEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
+      buildRiskAnalysisSeed(mockExpiredRiskAnalysis);
+
+    expect(
+      eserviceTemplateService.createRiskAnalysis(
+        eserviceTemplate.id,
+        riskAnalysisSeed,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([
+        expiredRulesVersionError(
+          riskAnalysisSeed.riskAnalysisForm.version,
+          creatorTenantKind
+        ),
       ])
     );
   });

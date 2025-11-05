@@ -18,7 +18,6 @@ import { m2mTestToken } from "./mockUtils.js";
 
 export const { cleanup, fileManager } = await setupTestContainersVitest(
   undefined,
-  undefined,
   inject("fileManagerConfig")
 );
 

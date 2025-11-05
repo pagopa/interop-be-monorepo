@@ -150,6 +150,42 @@ export type GSIPKEServiceIdDescriptorId = z.infer<
   typeof GSIPKEServiceIdDescriptorId
 >;
 
+export const EServiceIdDescriptorId = z
+  .custom<`${EServiceId}/${DescriptorId}`>((val) => {
+    if (typeof val !== "string") {
+      return false;
+    }
+    const parts = val.split("/");
+    if (parts.length !== 2) {
+      return false;
+    }
+    return (
+      EServiceId.safeParse(parts[0]).success &&
+      DescriptorId.safeParse(parts[1]).success
+    );
+  })
+  .brand("EServiceIdDescriptorId");
+export type EServiceIdDescriptorId = z.infer<typeof EServiceIdDescriptorId>;
+
+export const EServiceTemplateIdEServiceTemplateVersionId = z
+  .custom<`${EServiceTemplateId}/${EServiceTemplateVersionId}`>((val) => {
+    if (typeof val !== "string") {
+      return false;
+    }
+    const parts = val.split("/");
+    if (parts.length !== 2) {
+      return false;
+    }
+    return (
+      EServiceTemplateId.safeParse(parts[0]).success &&
+      EServiceTemplateVersionId.safeParse(parts[1]).success
+    );
+  })
+  .brand("EServiceTemplateIdEServiceTemplateVersionId");
+export type EServiceTemplateIdEServiceTemplateVersionId = z.infer<
+  typeof EServiceTemplateIdEServiceTemplateVersionId
+>;
+
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 
@@ -211,6 +247,21 @@ export type RiskAnalysisTemplateAnswerAnnotationDocumentId = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotationDocumentId
 >;
 
+export const AttributeM2MEventId = z
+  .string()
+  .uuid()
+  .brand("AttributeM2MEventId");
+export type AttributeM2MEventId = z.infer<typeof AttributeM2MEventId>;
+
+export const EServiceM2MEventId = z.string().uuid().brand("EServiceM2MEventId");
+export type EServiceM2MEventId = z.infer<typeof EServiceM2MEventId>;
+
+export const AgreementM2MEventId = z
+  .string()
+  .uuid()
+  .brand("AgreementM2MEventId");
+export type AgreementM2MEventId = z.infer<typeof AgreementM2MEventId>;
+
 export const IDS = z.union([
   CorrelationId,
   SpanId,
@@ -253,6 +304,9 @@ export const IDS = z.union([
   RiskAnalysisFormTemplateId,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  AttributeM2MEventId,
+  EServiceM2MEventId,
+  AgreementM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

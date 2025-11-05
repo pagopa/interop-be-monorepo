@@ -59,6 +59,7 @@ import {
   userNotificationConfigInReadmodelNotificationConfig,
   userEnabledInAppNotificationInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
+  purposeVersionStampInReadmodelPurpose,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -207,12 +208,16 @@ export type PurposeRiskAnalysisFormSQL = InferSelectModel<
 export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
   typeof purposeRiskAnalysisAnswerInReadmodelPurpose
 >;
+export type PurposeVersionStampSQL = InferSelectModel<
+  typeof purposeVersionStampInReadmodelPurpose
+>;
 export type PurposeItemsSQL = {
   purposeSQL: PurposeSQL;
   riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
   riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
+  versionStampsSQL: PurposeVersionStampSQL[];
 };
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
@@ -318,3 +323,14 @@ export type PurposeTemplateItemsSQL = {
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 };
+export const purposeTemplateChildTables = [
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+];
+export const purposeTemplateTables = [
+  purposeTemplateInReadmodelPurposeTemplate,
+  ...purposeTemplateChildTables,
+];

@@ -2,12 +2,12 @@
   "name": "pagopa-interop-ivass-certified-attributes-importer",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability ivass-certified-attributes-importer job",
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
-    "test:old": "echo \"Old readmodel\" && vitest --config vitest.config.ts ",
+    "test": "vitest --config vitest.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -17,8 +17,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/adm-zip": "0.5.7",
@@ -33,7 +31,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.842.0",
     "adm-zip": "0.5.16",
-    "axios": "1.8.2",
+    "axios": "1.12.0",
     "csv": "6.3.11",
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",

@@ -23,6 +23,7 @@ import {
   TenantDbTable,
   ClientDbTable,
   ProducerKeychainDbTable,
+  PurposeTemplateDbTable,
   ClientDbTablePartialTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
@@ -69,6 +70,7 @@ await retryConnection(
       PurposeDbTable.purpose,
       PurposeDbTable.purpose_version,
       PurposeDbTable.purpose_version_document,
+      PurposeDbTable.purpose_version_stamp,
       PurposeDbTable.purpose_risk_analysis_form,
       PurposeDbTable.purpose_risk_analysis_answer,
       ClientDbTable.client,
@@ -97,6 +99,12 @@ await retryConnection(
       EserviceTemplateDbTable.eservice_template_version_interface,
       EserviceTemplateDbTable.eservice_template_risk_analysis,
       EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+      PurposeTemplateDbTable.purpose_template,
+      PurposeTemplateDbTable.purpose_template_eservice_descriptor,
+      PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
+      PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
+      PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
+      PurposeTemplateDbTable.purpose_template_risk_analysis_form,
     ]);
     await setupDbService.setupPartialStagingTables([
       TenantDbPartialTable.tenant_self_care_id,
@@ -140,6 +148,14 @@ await retryConnection(
       {
         name: DeletingDbTable.eservice_template_deleting_table,
         columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.purpose_template_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.purpose_template_eservice_descriptor_deleting_table,
+        columns: ["purposeTemplateId", "eserviceId", "descriptorId"],
       },
     ]);
   },

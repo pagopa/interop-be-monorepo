@@ -147,12 +147,12 @@ import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
-  ReadModelService,
 } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
@@ -163,7 +163,7 @@ export const retrieveEService = async (
 
 export const retrieveAgreement = async (
   agreementId: AgreementId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Agreement>> => {
   const agreement = await readModelService.getAgreementById(agreementId);
   if (!agreement) {
@@ -175,7 +175,7 @@ export const retrieveAgreement = async (
 
 export const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -213,7 +213,7 @@ function retrieveAgreementDocument(
 
 export const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   cachedActiveDelegations?: ActiveDelegations
 ): Promise<ActiveDelegations> => ({
   producerDelegation:
@@ -229,7 +229,7 @@ export const getActiveConsumerAndProducerDelegations = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   pdfGenerator: PDFGenerator
 ) {
@@ -1734,7 +1734,7 @@ async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
   authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Tenant> {
   const delegations =
     await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);

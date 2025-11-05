@@ -1,0 +1,28 @@
+meta {
+  name: Create eservice template version declared attributes group
+  type: http
+  seq: 33
+}
+
+post {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId/declaredAttributes/groups
+  body: json
+  auth: none
+}
+
+params:path {
+  versionId: {{versionId}}
+  templateId: {{templateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "attributeIds": [
+      "a18f8257-4310-437b-ad52-a9f383bdd468"
+    ]
+  }
+}

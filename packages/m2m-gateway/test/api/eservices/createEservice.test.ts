@@ -124,6 +124,7 @@ describe("POST /eservices router test", () => {
         // We currently do not support multiple audiences for consistency with front-end
       },
     },
+    { ...mockEserviceSeed, personalData: "invalidValue" },
   ])(
     "Should return 400 if passed an invalid Eservice seed (seed #%#)",
     async (body) => {

@@ -5,10 +5,13 @@ import {
   ClientJWKKey,
   Delegation,
   EService,
+  EServiceDescriptorPurposeTemplate,
   EServiceTemplate,
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
+  PurposeTemplate,
+  PurposeTemplateId,
   Tenant,
   TenantNotificationConfig,
   UserNotificationConfig,
@@ -67,8 +70,18 @@ import {
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
+  purposeTemplateInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeVersionStampInReadmodelPurpose,
+  purposeTemplateChildTables,
+  DrizzleTransactionType,
+  purposeTemplateTables,
 } from "pagopa-interop-readmodel-models";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
@@ -85,6 +98,10 @@ import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKe
 import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
 import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
+import {
+  splitPurposeTemplateIntoObjectsSQL,
+  toPurposeTemplateEServiceDescriptorSQL,
+} from "./purpose-template/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -626,6 +643,7 @@ export const upsertPurpose = async (
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
+      versionStampsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
     await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -652,6 +670,12 @@ export const upsertPurpose = async (
       await tx
         .insert(purposeVersionDocumentInReadmodelPurpose)
         .values(versionDocumentSQL);
+    }
+
+    for (const versionStampSQL of versionStampsSQL) {
+      await tx
+        .insert(purposeVersionStampInReadmodelPurpose)
+        .values(versionStampSQL);
     }
   });
 };
@@ -727,5 +751,156 @@ export const upsertTenant = async (
     for (const featureSQL of featuresSQL) {
       await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
     }
+  });
+};
+
+const updateMetadataVersionInPurposeTemplateTables = async (
+  tx: DrizzleTransactionType,
+  purposeTemplateId: PurposeTemplateId,
+  newMetadataVersion: number,
+  tables: typeof purposeTemplateTables = purposeTemplateTables
+): Promise<void> => {
+  for (const table of tables) {
+    await tx
+      .update(table)
+      .set({ metadataVersion: newMetadataVersion })
+      .where(
+        and(
+          eq(
+            "purposeTemplateId" in table ? table.purposeTemplateId : table.id,
+            purposeTemplateId
+          ),
+          lte(table.metadataVersion, newMetadataVersion)
+        )
+      );
+  }
+};
+export const upsertPurposeTemplate = async (
+  readModelDB: DrizzleReturnType,
+  purposeTemplate: PurposeTemplate,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      purposeTemplateInReadmodelPurposeTemplate,
+      metadataVersion,
+      purposeTemplate.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    for (const table of purposeTemplateChildTables) {
+      if (
+        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+      ) {
+        await tx
+          .delete(table)
+          .where(eq(table.purposeTemplateId, purposeTemplate.id));
+      }
+    }
+
+    const {
+      purposeTemplateSQL,
+      riskAnalysisFormTemplateSQL,
+      riskAnalysisTemplateAnswersSQL,
+      riskAnalysisTemplateAnswersAnnotationsSQL,
+      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+    } = splitPurposeTemplateIntoObjectsSQL(purposeTemplate, metadataVersion);
+
+    await tx
+      .insert(purposeTemplateInReadmodelPurposeTemplate)
+      .values(purposeTemplateSQL)
+      .onConflictDoUpdate({
+        target: purposeTemplateInReadmodelPurposeTemplate.id,
+        set: purposeTemplateSQL,
+      });
+
+    if (riskAnalysisFormTemplateSQL) {
+      await tx
+        .insert(purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate)
+        .values(riskAnalysisFormTemplateSQL);
+    }
+
+    if (riskAnalysisTemplateAnswersSQL) {
+      for (const answerSQL of riskAnalysisTemplateAnswersSQL) {
+        await tx
+          .insert(purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate)
+          .values(answerSQL);
+      }
+    }
+
+    for (const annotationSQL of riskAnalysisTemplateAnswersAnnotationsSQL) {
+      await tx
+        .insert(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate
+        )
+        .values(annotationSQL);
+    }
+
+    for (const annotationDocumentSQL of riskAnalysisTemplateAnswersAnnotationsDocumentsSQL) {
+      await tx
+        .insert(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .values(annotationDocumentSQL);
+    }
+
+    await updateMetadataVersionInPurposeTemplateTables(
+      tx,
+      purposeTemplate.id,
+      metadataVersion,
+      [purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate]
+    );
+  });
+};
+
+export const upsertPurposeTemplateEServiceDescriptor = async (
+  readModelDB: DrizzleReturnType,
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      purposeTemplateInReadmodelPurposeTemplate,
+      metadataVersion,
+      purposeTemplateEServiceDescriptor.purposeTemplateId
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+      .where(
+        and(
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+            purposeTemplateEServiceDescriptor.purposeTemplateId
+          ),
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+            purposeTemplateEServiceDescriptor.eserviceId
+          ),
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
+            purposeTemplateEServiceDescriptor.descriptorId
+          )
+        )
+      );
+
+    const purposeTemplateEServiceDescriptorSQL =
+      toPurposeTemplateEServiceDescriptorSQL(
+        purposeTemplateEServiceDescriptor,
+        metadataVersion
+      );
+
+    await tx
+      .insert(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+      .values(purposeTemplateEServiceDescriptorSQL);
   });
 };

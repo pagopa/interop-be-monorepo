@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-in-app-notification-db-models",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "private": true,
   "description": "PagoPA Interoperability In-App Notification DB Models",
   "type": "module",
@@ -16,10 +17,9 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "dependencies": {
-    "drizzle-orm": "0.39.3"
+    "drizzle-orm": "0.39.3",
+    "pagopa-interop-commons": "workspace:*"
   },
   "files": [
     "dist"

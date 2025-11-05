@@ -10,8 +10,6 @@ import {
   FileManager,
   FileManagerConfig,
   RateLimiter,
-  ReadModelDbConfig,
-  ReadModelRepository,
   RedisRateLimiterConfig,
   S3Config,
   genericLogger,
@@ -26,6 +24,8 @@ import {
   ReadModelSQLDbConfig,
   AnalyticsSQLDbConfig,
   InAppNotificationDBConfig,
+  M2MEventSQLDbConfig,
+  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -46,57 +46,43 @@ import { PecEmailManagerConfigTest } from "./testConfig.js";
  * import { setupTestContainersVitest } from "pagopa-interop-commons-test";
  * import { inject, afterEach } from "vitest";
  *
- * export const { readModelRepository, postgresDB, fileManager, cleanup } =
+ * export const { postgresDB, fileManager, cleanup } =
  *   setupTestContainersVitest(inject("config"));
  *
  * afterEach(cleanup);
  * ```
  */
-export async function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig
-): Promise<{
-  readModelRepository: ReadModelRepository;
-  cleanup: () => Promise<void>;
-}>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -105,7 +91,6 @@ export function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -113,7 +98,6 @@ export function setupTestContainersVitest(
   awsSESConfig?: AWSSesConfig,
   readModelSQLDbConfig?: ReadModelSQLDbConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -123,7 +107,6 @@ export function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -132,7 +115,6 @@ export function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -143,7 +125,6 @@ export function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export async function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -151,9 +132,9 @@ export async function setupTestContainersVitest(
   awsSESConfig?: AWSSesConfig,
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
-  inAppNotificationDbConfig?: InAppNotificationDBConfig
+  inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  m2mEventDbConfig?: M2MEventSQLDbConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -162,11 +143,10 @@ export async function setupTestContainersVitest(
   readModelDB: DrizzleReturnType;
   analyticsPostgresDB: DB;
   inAppNotificationDB: DrizzleReturnType;
+  m2mEventDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -174,9 +154,35 @@ export async function setupTestContainersVitest(
   awsSESConfig?: AWSSesConfig,
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
-  inAppNotificationDbConfig?: InAppNotificationDBConfig
+  inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  m2mEventDbConfig?: M2MEventSQLDbConfig,
+  userDbConfig?: UserSQLDbConfig
 ): Promise<{
-  readModelRepository?: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  pecEmailManager: EmailManagerPEC;
+  sesEmailManager: EmailManagerSES;
+  redisRateLimiter: RateLimiter;
+  readModelDB: DrizzleReturnType;
+  analyticsPostgresDB: DB;
+  inAppNotificationDB: DrizzleReturnType;
+  m2mEventDB: DrizzleReturnType;
+  userDB: DrizzleReturnType;
+  cleanup: () => Promise<void>;
+}>;
+// eslint-disable-next-line sonarjs/cognitive-complexity
+export async function setupTestContainersVitest(
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
+  emailManagerConfig?: PecEmailManagerConfigTest,
+  redisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig,
+  analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
+  inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  m2mEventDbConfig?: M2MEventSQLDbConfig,
+  userDbConfig?: UserSQLDbConfig
+): Promise<{
   postgresDB?: DB;
   fileManager?: FileManager;
   pecEmailManager?: EmailManagerPEC;
@@ -185,9 +191,10 @@ export async function setupTestContainersVitest(
   readModelDB?: DrizzleReturnType;
   analyticsPostgresDB?: DB;
   inAppNotificationDB?: DrizzleReturnType;
+  m2mEventDB?: DrizzleReturnType;
+  userDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
-  let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
   let pecEmailManager: EmailManagerPEC | undefined;
@@ -197,9 +204,8 @@ export async function setupTestContainersVitest(
   let readModelDB: DrizzleReturnType | undefined;
   let analyticsPostgresDB: DB | undefined;
   let inAppNotificationDB: DrizzleReturnType | undefined;
-  if (readModelDbConfig) {
-    readModelRepository = ReadModelRepository.init(readModelDbConfig);
-  }
+  let m2mEventDB: DrizzleReturnType | undefined;
+  let userDB: DrizzleReturnType | undefined;
 
   if (eventStoreConfig) {
     postgresDB = initDB({
@@ -272,8 +278,32 @@ export async function setupTestContainersVitest(
     });
     inAppNotificationDB = drizzle({ client: pool });
   }
+
+  if (m2mEventDbConfig) {
+    const pool = new pg.Pool({
+      user: m2mEventDbConfig.m2mEventSQLDbUsername,
+      password: m2mEventDbConfig.m2mEventSQLDbPassword,
+      host: m2mEventDbConfig.m2mEventSQLDbHost,
+      port: m2mEventDbConfig.m2mEventSQLDbPort,
+      database: m2mEventDbConfig.m2mEventSQLDbName,
+      ssl: m2mEventDbConfig.m2mEventSQLDbUseSSL,
+    });
+    m2mEventDB = drizzle({ client: pool });
+  }
+
+  if (userDbConfig) {
+    const pool = new pg.Pool({
+      user: userDbConfig.userSQLDbUsername,
+      password: userDbConfig.userSQLDbPassword,
+      host: userDbConfig.userSQLDbHost,
+      port: userDbConfig.userSQLDbPort,
+      database: userDbConfig.userSQLDbName,
+      ssl: userDbConfig.userSQLDbUseSSL,
+    });
+    userDB = drizzle({ client: pool });
+  }
+
   return {
-    readModelRepository,
     postgresDB,
     fileManager,
     pecEmailManager,
@@ -282,19 +312,9 @@ export async function setupTestContainersVitest(
     readModelDB,
     analyticsPostgresDB,
     inAppNotificationDB,
+    userDB,
+    m2mEventDB,
     cleanup: async (): Promise<void> => {
-      await readModelRepository?.agreements.deleteMany({});
-      await readModelRepository?.eservices.deleteMany({});
-      await readModelRepository?.tenants.deleteMany({});
-      await readModelRepository?.purposes.deleteMany({});
-      await readModelRepository?.attributes.deleteMany({});
-      await readModelRepository?.clients.deleteMany({});
-      await readModelRepository?.keys.deleteMany({});
-      await readModelRepository?.producerKeychains.deleteMany({});
-      await readModelRepository?.producerKeys.deleteMany({});
-      await readModelRepository?.delegations.deleteMany({});
-      await readModelRepository?.eserviceTemplates.deleteMany({});
-
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
       );
@@ -304,6 +324,9 @@ export async function setupTestContainersVitest(
       await postgresDB?.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
+      await postgresDB?.none(
+        "TRUNCATE TABLE purpose_template.events RESTART IDENTITY"
+      );
       await postgresDB?.none(
         'TRUNCATE TABLE "authorization".events RESTART IDENTITY'
       );
@@ -383,6 +406,12 @@ export async function setupTestContainersVitest(
       await analyticsPostgresDB?.none(
         "TRUNCATE TABLE domains.eservice_template CASCADE"
       );
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.purpose_template CASCADE"
+      );
+
+      // CLEANUP USER-SQL TABLES
+      await userDB?.execute(`TRUNCATE TABLE "user"."user" CASCADE`);
 
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =
@@ -419,6 +448,31 @@ export async function setupTestContainersVitest(
       if (inAppNotificationDB) {
         await inAppNotificationDB.execute(
           "TRUNCATE TABLE notification.notification CASCADE"
+        );
+      }
+
+      if (m2mEventDB) {
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.eservice CASCADE");
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.eservice_template CASCADE"
+        );
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.agreement CASCADE");
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.purpose CASCADE");
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.tenant CASCADE");
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.attribute CASCADE");
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.consumer_delegation CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.producer_delegation CASCADE"
+        );
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.client CASCADE");
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.producer_keychain CASCADE"
+        );
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.key CASCADE");
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.producer_key CASCADE"
         );
       }
     },
