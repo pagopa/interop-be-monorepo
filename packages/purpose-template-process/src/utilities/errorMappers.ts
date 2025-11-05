@@ -155,7 +155,7 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
     )
     .with(
       "purposeTemplateNotFound",
-      "riskAnalysisAnswerNotFound",
+      "riskAnalysisTemplateAnswerNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(

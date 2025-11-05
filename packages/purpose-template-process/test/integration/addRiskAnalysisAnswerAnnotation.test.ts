@@ -23,7 +23,7 @@ import {
   // hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
-  riskAnalysisAnswerNotFound,
+  riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
@@ -266,7 +266,9 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           authData: getMockAuthData(mockPurposeTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(riskAnalysisAnswerNotFound(nonExistentAnswerId));
+    ).rejects.toThrowError(
+      riskAnalysisTemplateAnswerNotFound({ answerId: nonExistentAnswerId })
+    );
 
     vi.useRealTimers();
   });
