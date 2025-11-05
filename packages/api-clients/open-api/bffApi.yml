@@ -28676,7 +28676,7 @@ components:
         - "catalogo-e-service"
         - aderente
         - "gestione-client"
-        - totalCount
+        - notifiche
       properties:
         erogazione:
           type: object
@@ -28763,9 +28763,15 @@ components:
           required:
             - "api-e-service"
             - totalCount
-        totalCount:
-          type: integer
-          format: int32
+        notifiche:
+          type: object
+          additionalProperties: false
+          properties:
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - totalCount
     PersonalDataFilter:
       type: string
       description: Filter e-services by personal data
