@@ -35,3 +35,15 @@ export function toM2MGatewayApiPurposeTemplate(
     purposeDailyCalls: purposeTemplate.purposeDailyCalls,
   };
 }
+
+export function toM2MGatewayApiDocument(
+  document: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument
+): m2mGatewayApi.Document {
+  return {
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    createdAt: document.createdAt,
+    contentType: document.contentType,
+  };
+}

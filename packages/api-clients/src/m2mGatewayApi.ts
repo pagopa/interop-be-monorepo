@@ -183,4 +183,10 @@ export type GetPurposeTemplatesQueryParams = QueryParametersByAlias<
   "getPurposeTemplates"
 >;
 
+export type GetRiskAnalysisTemplateAnswerAnnotationDocumentsQueryParams =
+  QueryParametersByAlias<
+    PurposeTemplateApi,
+    "getRiskAnalysisTemplateAnswerAnnotationDocuments"
+  >;
+
 export * from "./generated/m2mGatewayApi.js";
