@@ -316,6 +316,9 @@ paths:
       responses:
         "200":
           description: E-Services linked to purpose template
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -379,6 +382,9 @@ paths:
       responses:
         "204":
           description: E-Services unlinked from purpose template
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Bad Request
           content:
@@ -483,15 +489,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Suspended
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -532,15 +534,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Unsuspended
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -581,15 +579,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Archived
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -630,15 +624,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Published
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -687,6 +677,9 @@ paths:
       responses:
         "200":
           description: Risk Analysis Template Answer added.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -835,6 +828,9 @@ paths:
       responses:
         "204":
           description: Risk analysis form template answer annotation document deleted
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Bad Request
           content:
@@ -954,6 +950,9 @@ paths:
       responses:
         "200":
           description: Risk Analysis Template Answer Annotation added.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -985,6 +984,9 @@ paths:
       responses:
         "204":
           description: Risk analysis form template answer annotation deleted
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Bad Request
           content:
