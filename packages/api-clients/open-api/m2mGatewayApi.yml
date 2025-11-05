@@ -16470,13 +16470,14 @@ paths:
     parameters:
       - name: purposeTemplateId
         in: path
+        description: The Purpose Template ID
         required: true
         schema:
           type: string
           format: uuid
     post:
-      summary: Archive a Purpose Template
-      description: Archive a Purpose Template from Published or Suspended state
+      summary: Archive a Purpose Template in Published or Suspended state
+      description: Archive a Purpose Template that is in Published or Suspended state, transitioning it to Archived state
       operationId: archivePurposeTemplate
       tags:
         - purposeTemplates
