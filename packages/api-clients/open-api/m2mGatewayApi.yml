@@ -16470,13 +16470,14 @@ paths:
     parameters:
       - name: purposeTemplateId
         in: path
+        description: The Purpose Template ID
         required: true
         schema:
           type: string
           format: uuid
     post:
-      summary: Unsuspend a Purpose Template
-      description: Unsuspend a Purpose Template
+      summary: Unsuspend a Purpose Template in Suspended state
+      description: Unsuspend a Purpose Template that is in Suspended state, transitioning it to Published state
       operationId: unsuspendPurposeTemplate
       tags:
         - purposeTemplates
