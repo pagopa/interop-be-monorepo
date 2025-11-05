@@ -327,10 +327,11 @@ export function readModelServiceBuilderSQL({
       WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
     > {
       const queryResult = await readModelDB
-        .select({
-          riskAnalysisAnswerAnnotationDocument:
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-        })
+        .select(
+          getTableColumns(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+          )
+        )
         .from(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
         )
@@ -362,15 +363,59 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
 
-      const { riskAnalysisAnswerAnnotationDocument } = queryResult[0];
       return {
-        data: toRiskAnalysisTemplateAnswerAnnotationDocument(
-          riskAnalysisAnswerAnnotationDocument
-        ),
+        data: toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]),
         metadata: {
-          version: riskAnalysisAnswerAnnotationDocument.metadataVersion,
+          version: queryResult[0].metadataVersion,
         },
       };
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocuments(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+            )
+          )
+        )
+        .from(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .innerJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+              answerId
+            )
+          )
+        )
+        .orderBy(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.createdAt
+        )
+        .limit(limit)
+        .offset(offset);
+
+      return createListResult(
+        queryResult.map(toRiskAnalysisTemplateAnswerAnnotationDocument),
+        queryResult[0]?.totalCount
+      );
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,

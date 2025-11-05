@@ -13,6 +13,8 @@ import {
   TenantId,
   TenantKind,
   userRole,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswerId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -47,6 +49,7 @@ import {
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
   disassociationEServicesFromPurposeTemplateFailed,
   tenantNotAllowed,
+  riskAnalysisTemplateAnswerNotFound,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import {
@@ -238,10 +241,10 @@ export const assertRequesterIsCreator = (
   }
 };
 
-export const assertRequesterCanRetrievePurposeTemplate = async (
+export const assertRequesterCanRetrievePurposeTemplate = (
   purposeTemplate: PurposeTemplate,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
-): Promise<void> => {
+): void => {
   if (
     isPurposeTemplateDraft(purposeTemplate.state) &&
     !isRequesterCreator(purposeTemplate.creatorId, authData)
@@ -321,6 +324,23 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
 }
+
+export const assertAnswerExistsInRiskAnalysisTemplate = (
+  purposeTemplate: PurposeTemplate,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): void => {
+  const riskAnalysisTemplate = purposeTemplate.purposeRiskAnalysisForm;
+  const answerExists =
+    riskAnalysisTemplate?.singleAnswers.some((a) => a.id === answerId) ||
+    riskAnalysisTemplate?.multiAnswers.some((a) => a.id === answerId);
+
+  if (!answerExists) {
+    throw riskAnalysisTemplateAnswerNotFound({
+      purposeTemplateId: purposeTemplate.id,
+      answerId,
+    });
+  }
+};
 
 /**
  * Validate the existence of the eservices and check that their personal data flag matches the purpose template one
