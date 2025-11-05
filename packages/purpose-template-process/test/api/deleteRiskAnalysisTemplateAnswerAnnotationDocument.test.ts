@@ -153,7 +153,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
         "invalid-id" as RiskAnalysisTemplateAnswerAnnotationDocumentId,
     },
   ])(
-    "Should return 400 if invalid data is passed: %s",
+    "Should return 400 if invalid parameters are passed: %s",
     async ({ purposeTemplateId, answerId, documentId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

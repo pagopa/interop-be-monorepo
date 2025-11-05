@@ -62,7 +62,7 @@ describe("API DELETE /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/
       answerId: "invalid-id" as RiskAnalysisSingleAnswerId,
     },
   ])(
-    "Should return 400 if invalid data is passed: %s",
+    "Should return 400 if invalid parameters are passed: %s",
     async ({ purposeTemplateId, answerId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, purposeTemplateId, answerId);
