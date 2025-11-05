@@ -618,11 +618,55 @@ function buildSingleOrMultiAnswerValue(
   return answerFromSeed;
 }
 
+// This function handles cases where is creating or editing a purpose created from a template.
+// If answer is editable by template, it is possible to edit an answer for which a dependent answer is expected
+// (e.g., a radio button of editable answer that enables a single answer) then,
+// unlike other cases, the risk analysis must be built by including the answer contained in the seed
+// even if it is not present in the purpose template.
+function buildDependentAnswersFromSeed(
+  riskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed,
+  riskAnalysisFormTemplate: RiskAnalysisFormTemplate
+): Record<string, string[]> {
+  const upcomingAnswers = Object.keys(riskAnalysisFormSeed.answers);
+  const templateAnswers = [
+    riskAnalysisFormTemplate.singleAnswers.map((a) => a.key),
+    riskAnalysisFormTemplate.multiAnswers.map((a) => a.key),
+  ];
+
+  const additionalAnswers = upcomingAnswers.filter(
+    (answerKey) =>
+      !templateAnswers.some((templateAnswerKeys) =>
+        templateAnswerKeys.includes(answerKey)
+      )
+  );
+
+  return additionalAnswers.reduce(
+    (acc, answerKey) => ({
+      ...acc,
+      [answerKey]: riskAnalysisFormSeed.answers[answerKey],
+    }),
+    {}
+  );
+}
 function buildAnswersSeed(
   id: PurposeTemplateId,
   riskAnalysisFormTemplate: RiskAnalysisFormTemplate,
   riskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed
 ): Record<string, string[]> {
+  const upcomingDependentAnswers = buildDependentAnswersFromSeed(
+    riskAnalysisFormSeed,
+    riskAnalysisFormTemplate
+  );
+
+  const filteredRiskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed = {
+    ...riskAnalysisFormSeed,
+    answers: Object.fromEntries(
+      Object.entries(riskAnalysisFormSeed.answers).filter(
+        ([key]) => !upcomingDependentAnswers[key]
+      )
+    ),
+  };
+
   const singleAnswers = riskAnalysisFormTemplate.singleAnswers.reduce(
     (acc, templateAnswer) => ({
       ...acc,
@@ -632,7 +676,7 @@ function buildAnswersSeed(
           type: "single",
           answer: templateAnswer,
         },
-        riskAnalysisFormSeed
+        filteredRiskAnalysisFormSeed
       ),
     }),
     {}
@@ -647,7 +691,7 @@ function buildAnswersSeed(
           type: "multi",
           answer: templateAnswer,
         },
-        riskAnalysisFormSeed
+        filteredRiskAnalysisFormSeed
       ),
     }),
     {}
@@ -656,6 +700,7 @@ function buildAnswersSeed(
   return {
     ...singleAnswers,
     ...multiAnswers,
+    ...upcomingDependentAnswers,
   };
 }
 
