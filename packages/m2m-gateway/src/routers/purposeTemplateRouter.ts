@@ -84,12 +84,10 @@ const purposeTemplateRouter = (
 
           const file =
             await purposeTemplateService.downloadRiskAnalysisTemplateAnswerAnnotationDocument(
-              {
-                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-                answerId: unsafeBrandId(req.params.answerId),
-                documentId: unsafeBrandId(req.params.documentId),
-                ctx,
-              }
+              unsafeBrandId(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.answerId),
+              unsafeBrandId(req.params.documentId),
+              ctx
             );
 
           return sendDownloadedDocumentAsFormData(file, res);

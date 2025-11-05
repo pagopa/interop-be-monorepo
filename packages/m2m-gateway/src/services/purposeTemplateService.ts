@@ -85,18 +85,12 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async downloadRiskAnalysisTemplateAnswerAnnotationDocument({
-      purposeTemplateId,
-      answerId,
-      documentId,
-      ctx,
-    }: {
-      purposeTemplateId: PurposeTemplateId;
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-      ctx: WithLogger<M2MGatewayAppContext>;
-    }): Promise<DownloadedDocument> {
-      const { headers, logger } = ctx;
+    async downloadRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
       logger.info(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
