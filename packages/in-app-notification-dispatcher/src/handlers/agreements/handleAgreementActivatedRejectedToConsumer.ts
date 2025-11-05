@@ -49,14 +49,14 @@ export async function handleAgreementActivatedRejectedToConsumer(
   );
   const producer = await retrieveTenant(agreement.producerId, readModelService);
 
-  const body = inAppTemplates.agreementActivatedRejectedToConsumer(
-    producer.name,
-    eservice.name,
-    match(eventType)
-      .with("AgreementActivated", () => "attivato" as const)
-      .with("AgreementRejected", () => "rifiutato" as const)
-      .exhaustive()
-  );
+  const body = match(eventType)
+    .with("AgreementActivated", () =>
+      inAppTemplates.agreementActivatedToConsumer(producer.name, eservice.name)
+    )
+    .with("AgreementRejected", () =>
+      inAppTemplates.agreementRejectedToConsumer(eservice.name)
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,

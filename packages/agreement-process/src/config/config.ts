@@ -21,10 +21,12 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
       .object({
         CONSUMER_DOCUMENTS_PATH: z.string(),
         AGREEMENT_CONTRACTS_PATH: z.string(),
+        JSON_BODY_LIMIT: z.string().default("10mb"),
       })
       .transform((c) => ({
         consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
         agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
+        jsonBodyLimit: c.JSON_BODY_LIMIT,
       }))
   )
   .and(ApplicationAuditProducerConfig);
