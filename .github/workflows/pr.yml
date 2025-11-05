@@ -58,7 +58,7 @@ jobs:
       - name: Load dedicated test packages
         id: get_dedicated_packages
         run: |
-          DEDICATED_PACKAGES=$(cat ./dedicated_test_packages.json | jq -c .)
+          DEDICATED_PACKAGES='["pagopa-interop-backend-for-frontend", "pagopa-interop-m2m-gateway"]'
           echo "dedicated_packages=$DEDICATED_PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Find packages with test directories
