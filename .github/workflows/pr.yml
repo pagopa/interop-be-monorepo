@@ -264,6 +264,8 @@ jobs:
             echo "Running tests for package: $PACKAGE"
             pnpm --filter "$PACKAGE" test
           done
+        env:
+          VITEST_REPORTER_GITHUB_ACTIONS: 0
 
   find_dockerfiles:
     name: Find Dockerfiles
