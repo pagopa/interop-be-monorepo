@@ -103,7 +103,6 @@ import {
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
   eServiceTemplateWithoutPersonalDataFlag,
-  eServiceDescriptionUpdateConflict,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -178,6 +177,8 @@ import {
   assertEServiceUpdatableAfterPublish,
   hasRoleToAccessInactiveDescriptors,
   assertEServiceNameNotConflictingWithTemplate,
+  assertUpdateNameDifferentFromCurrent,
+  assertUpdateDescriptionDifferentFromCurrent,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -2406,9 +2407,7 @@ export function catalogServiceBuilder(
         description,
       };
 
-      if (description === eservice.data.description) {
-        throw eServiceDescriptionUpdateConflict(eserviceId);
-      }
+      assertUpdateDescriptionDifferentFromCurrent(description, eservice.data);
 
       const event = await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(
@@ -2594,6 +2593,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      assertUpdateNameDifferentFromCurrent(name, eservice.data);
       assertEServiceNotTemplateInstance(
         eservice.data.id,
         eservice.data.templateId

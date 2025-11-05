@@ -59,7 +59,8 @@ export const errorCodes = {
   eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
   missingPersonalDataFlag: "0043",
   eServiceTemplateWithoutPersonalDataFlag: "0044",
-  eServiceDescriptionUpdateConflict: "0045",
+  eServiceUpdateSameDescriptionConflict: "0045",
+  eServiceUpdateSameNameConflict: "0046",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -514,12 +515,22 @@ export function eServiceTemplateWithoutPersonalDataFlag(
   });
 }
 
-export function eServiceDescriptionUpdateConflict(
+export function eServiceUpdateSameDescriptionConflict(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `The description provided is the same as the current one for EService ${eserviceId}`,
-    code: "eServiceDescriptionUpdateConflict",
-    title: "EService description update conflict",
+    code: "eServiceUpdateSameDescriptionConflict",
+    title: "Same eService description update conflict",
+  });
+}
+
+export function eServiceUpdateSameNameConflict(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The name provided is the same as the current one for EService ${eserviceId}`,
+    code: "eServiceUpdateSameNameConflict",
+    title: "Same EService name update conflict",
   });
 }

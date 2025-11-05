@@ -438,7 +438,7 @@ export const updateEServiceDescriptionErrorMapper = (
     )
     .with(
       "eserviceWithoutValidDescriptors",
-      "eServiceDescriptionUpdateConflict",
+      "eServiceUpdateSameDescriptionConflict",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -467,6 +467,7 @@ export const updateEServiceNameErrorMapper = (
       "eserviceWithoutValidDescriptors",
       "eServiceNameDuplicateForProducer",
       "eserviceTemplateNameConflict",
+      "eServiceUpdateSameNameConflict",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

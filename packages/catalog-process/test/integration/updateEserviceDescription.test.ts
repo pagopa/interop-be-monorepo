@@ -26,7 +26,7 @@ import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
   templateInstanceNotAllowed,
-  eServiceDescriptionUpdateConflict,
+  eServiceUpdateSameDescriptionConflict,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -248,8 +248,6 @@ describe("update eService description", () => {
         eservice.description,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(
-      eServiceDescriptionUpdateConflict(eservice.id)
-    );
+    ).rejects.toThrowError(eServiceUpdateSameDescriptionConflict(eservice.id));
   });
 });
