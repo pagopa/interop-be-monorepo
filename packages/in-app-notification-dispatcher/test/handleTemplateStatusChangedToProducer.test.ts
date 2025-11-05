@@ -50,8 +50,13 @@ describe("handleTemplateStatusChangedToProducer", async () => {
   });
 
   it("should return empty array when no user notification configs exist for the template", async () => {
+    const creatorId = generateId<TenantId>();
+    const creatorTenant = getMockTenant(creatorId);
+    await addOneTenant(creatorTenant);
+
     mockGetNotificationRecipients.mockResolvedValue([]);
 
+    eserviceTemplate.creatorId = creatorId;
     const notifications = await handleTemplateStatusChangedToProducer(
       toEServiceTemplateV2(eserviceTemplate),
       logger,
@@ -72,6 +77,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
     ];
     mockGetNotificationRecipients.mockResolvedValue(users);
 
+    eserviceTemplate.creatorId = creatorId;
     const notifications = await handleTemplateStatusChangedToProducer(
       toEServiceTemplateV2(eserviceTemplate),
       logger,
@@ -79,7 +85,8 @@ describe("handleTemplateStatusChangedToProducer", async () => {
     );
 
     const body = inAppTemplates.templateStatusChangedToProducer(
-      eserviceTemplate.name
+      eserviceTemplate.name,
+      creatorTenant.name
     );
     const expectedNotifications = users.map((user) => ({
       userId: user.userId,

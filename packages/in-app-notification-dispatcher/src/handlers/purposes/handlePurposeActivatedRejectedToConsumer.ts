@@ -44,15 +44,22 @@ export async function handlePurposeActivatedRejectedToConsumer(
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
   const producer = await retrieveTenant(eservice.producerId, readModelService);
 
-  const body = inAppTemplates.purposeActivatedRejectedToConsumer(
-    purpose.title,
-    producer.name,
-    eservice.name,
-    match(type)
-      .with("PurposeVersionActivated", () => "attivato" as const)
-      .with("PurposeVersionRejected", () => "rifiutato" as const)
-      .exhaustive()
-  );
+  const body = match(type)
+    .with("PurposeVersionActivated", () =>
+      inAppTemplates.purposeActivatedToConsumer(
+        purpose.title,
+        producer.name,
+        eservice.name
+      )
+    )
+    .with("PurposeVersionRejected", () =>
+      inAppTemplates.purposeRejectedToConsumer(
+        purpose.title,
+        producer.name,
+        eservice.name
+      )
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
