@@ -139,7 +139,6 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
           ...validRiskAnalysisAnswerRequest.answerData,
           annotation: {
             text: textWithHyperlink,
-            docs: [],
           },
         },
       };

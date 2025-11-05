@@ -8,7 +8,10 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import { toM2MGatewayApiPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
+import {
+  toGetPurposeTemplatesApiQueryParams,
+  toM2MGatewayApiPurposeTemplate,
+} from "../api/purposeTemplateApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -61,7 +64,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       const {
         data: { results, totalCount },
       } = await clients.purposeTemplateProcessClient.getPurposeTemplates({
-        queries: queryParams,
+        queries: toGetPurposeTemplatesApiQueryParams(queryParams),
         headers,
       });
 
