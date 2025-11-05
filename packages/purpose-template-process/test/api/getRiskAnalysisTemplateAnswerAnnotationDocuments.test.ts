@@ -125,8 +125,14 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotatio
   );
 
   it.each([
-    { purposeTemplateId: "invalid" as PurposeTemplateId },
-    { answerId: "invalid" as RiskAnalysisMultiAnswerId },
+    {
+      purposeTemplateId: "invalid" as PurposeTemplateId,
+      answerId: mockAnswerId,
+    },
+    {
+      purposeTemplateId: mockPurposeTemplateId,
+      answerId: "invalid" as RiskAnalysisMultiAnswerId,
+    },
   ])(
     "Should return 400 if passed an invalid data: %s",
     async ({ purposeTemplateId, answerId }) => {
