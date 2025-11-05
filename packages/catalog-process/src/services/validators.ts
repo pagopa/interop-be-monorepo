@@ -364,7 +364,7 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
   }
 }
 
-export function assertUpdateNameDifferentFromCurrent(
+export function assertUpdatedNameDiffersFromCurrent(
   newName: string,
   eservice: EService
 ): void {
@@ -372,7 +372,7 @@ export function assertUpdateNameDifferentFromCurrent(
     throw eServiceUpdateSameNameConflict(eservice.id);
   }
 }
-export function assertUpdateDescriptionDifferentFromCurrent(
+export function assertUpdatedDescriptionDiffersFromCurrent(
   newDescription: string,
   eservice: EService
 ): void {

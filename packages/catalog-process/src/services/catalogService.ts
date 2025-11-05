@@ -177,8 +177,8 @@ import {
   assertEServiceUpdatableAfterPublish,
   hasRoleToAccessInactiveDescriptors,
   assertEServiceNameNotConflictingWithTemplate,
-  assertUpdateNameDifferentFromCurrent,
-  assertUpdateDescriptionDifferentFromCurrent,
+  assertUpdatedNameDiffersFromCurrent,
+  assertUpdatedDescriptionDiffersFromCurrent,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -2407,7 +2407,7 @@ export function catalogServiceBuilder(
         description,
       };
 
-      assertUpdateDescriptionDifferentFromCurrent(description, eservice.data);
+      assertUpdatedDescriptionDiffersFromCurrent(description, eservice.data);
 
       const event = await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(
@@ -2593,7 +2593,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertUpdateNameDifferentFromCurrent(name, eservice.data);
+      assertUpdatedNameDiffersFromCurrent(name, eservice.data);
       assertEServiceNotTemplateInstance(
         eservice.data.id,
         eservice.data.templateId
