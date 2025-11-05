@@ -31,7 +31,7 @@ import { config } from "../src/config/config.js";
 
 export function getMockConsumerDocument(
   agreementId: AgreementId,
-  name: string = "mockDocument",
+  name: string = "mockDocument"
 ): AgreementDocument {
   const id = generateId<AgreementDocumentId>();
   return {
@@ -45,7 +45,7 @@ export function getMockConsumerDocument(
 }
 
 export function getMockDocumentSeed(
-  document: AgreementDocument,
+  document: AgreementDocument
 ): agreementApi.DocumentSeed {
   return {
     id: document.id,
@@ -59,12 +59,12 @@ export function getMockDocumentSeed(
 export function getMockContract(
   agreementId: AgreementId,
   consumerId: TenantId,
-  producerId: TenantId,
+  producerId: TenantId
 ): AgreementDocument {
   const id = generateId<AgreementDocumentId>();
   const createdAt = new Date();
   const contractDocumentName = `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
-    createdAt,
+    createdAt
   )}_agreement_contract.pdf`;
   return {
     id,
@@ -78,13 +78,13 @@ export function getMockContract(
 export function getMockSignedContract(
   agreementId: AgreementId,
   consumerId: TenantId,
-  producerId: TenantId,
+  producerId: TenantId
 ): AgreementSignedContract {
   const id = generateId<AgreementDocumentId>();
   const createdAt = new Date();
   const signedAt = new Date();
   const contractDocumentName = `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
-    createdAt,
+    createdAt
   )}_agreement_signed_contract.pdf`;
   return {
     id,
@@ -156,7 +156,7 @@ export function getMockApiTenantVerifiedAttribute(): agreementApi.TenantAttribut
 }
 
 export const getRandomPastStamp = (
-  userId: UserId = generateId<UserId>(),
+  userId: UserId = generateId<UserId>()
 ): AgreementStamp => ({
   who: userId,
   when: subDays(new Date(), randomInt(10)),
@@ -176,7 +176,7 @@ export type RequesterIs = z.infer<typeof RequesterIs>;
 
 export const authDataAndDelegationsFromRequesterIs = (
   requesterIs: RequesterIs,
-  agreement: Agreement,
+  agreement: Agreement
 ): {
   authData: UIAuthData;
   producerDelegation: Delegation | undefined;

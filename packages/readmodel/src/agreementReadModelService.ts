@@ -42,6 +42,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
       					->2 agreement_attribute
       					->3 agreement_document
                 ->4 agreement_contract
+                ->5 agreement_signed_contract
       */
       const queryResult = await db
         .select({
