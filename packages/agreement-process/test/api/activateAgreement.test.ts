@@ -133,4 +133,11 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
       expect(res.status).toBe(400);
     }
   );
+
+  it(
+    "TEST",
+    async () => {
+      expect(mockAgreement).toBe(200);
+    }
+  );
 });
