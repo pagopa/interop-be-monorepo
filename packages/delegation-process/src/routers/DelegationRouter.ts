@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   DelegationContractDocument,
+  DelegationSignedContractDocument,
   EServiceId,
   TenantId,
   unsafeBrandId,
@@ -217,7 +218,9 @@ const delegationRouter = (
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { delegationId } = req.params;
-          const delegationContract = DelegationContractDocument.parse(req.body);
+          const delegationContract = DelegationSignedContractDocument.parse(
+            req.body
+          );
 
           const { metadata } =
             await delegationService.internalAddDelegationSignedContract(

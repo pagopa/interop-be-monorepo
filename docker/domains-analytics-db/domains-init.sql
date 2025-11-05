@@ -164,7 +164,6 @@ CREATE TABLE domains.agreement (
   consumer_notes VARCHAR(2048),
   rejection_reason VARCHAR(2048),
   suspended_at TIMESTAMP WITH TIME ZONE,
-  signed_contract VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -203,6 +202,19 @@ CREATE TABLE domains.agreement_consumer_document (
 );
 
 CREATE TABLE domains.agreement_contract (
+  id VARCHAR(36),
+  agreement_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR(2048) NOT NULL,
+  pretty_name VARCHAR(2048) NOT NULL,
+  content_type VARCHAR(2048) NOT NULL,
+  path VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (agreement_id, id)
+);
+
+CREATE TABLE domains.agreement_signed_contract (
   id VARCHAR(36),
   agreement_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.agreement(id),
   metadata_version INTEGER NOT NULL,
@@ -269,12 +281,23 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version (
   updated_at TIMESTAMP WITH TIME ZONE,
   first_activation_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
-  signed_contract VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
+  content_type VARCHAR(2048) NOT NULL,
+  path VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id, purpose_version_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_version_signed_document (
   id VARCHAR(36),
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
@@ -298,7 +321,6 @@ CREATE TABLE IF NOT EXISTS domains.delegation (
   rejection_reason VARCHAR(2048),
   state VARCHAR(2048) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
-  signed_contract VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -334,10 +356,25 @@ CREATE TABLE IF NOT EXISTS domains.delegation_contract_document (
   path VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR(2048) NOT NULL,
-  signed_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (id),
   CONSTRAINT delegation_contract_document_delegation_id_kind_unique UNIQUE (delegation_id, kind)
+);
+
+CREATE TABLE IF NOT EXISTS domains.delegation_signed_contract_document (
+  id VARCHAR(36),
+  delegation_id VARCHAR(36) NOT NULL REFERENCES domains.delegation (id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR(2048) NOT NULL,
+  content_type VARCHAR(2048) NOT NULL,
+  pretty_name VARCHAR(2048) NOT NULL,
+  path VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR(2048) NOT NULL,
+  signed_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (id),
+  CONSTRAINT delegation_signed_contract_document_delegation_id_kind_unique UNIQUE (delegation_id, kind)
 );
 
 CREATE TABLE IF NOT EXISTS domains.tenant (

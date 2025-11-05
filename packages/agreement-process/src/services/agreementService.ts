@@ -40,7 +40,7 @@ import {
   CompactTenant,
   CorrelationId,
   DelegationId,
-  AgreementContract,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -1597,7 +1597,7 @@ export function agreementServiceBuilder(
     },
     async internalAddAgreementSignedContract(
       agreementId: AgreementId,
-      agreementContract: AgreementContract,
+      agreementContract: AgreementSignedContract,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Adding agreement contract ${agreementId}`);
@@ -1608,8 +1608,7 @@ export function agreementServiceBuilder(
 
       const agreementWithDocument: Agreement = {
         ...agreement,
-        signedContract: agreementContract.id,
-        contract: agreementContract,
+        signedContract: agreementContract,
       };
       const event = await repository.createEvent(
         toCreateEventAgreementSignedContract(

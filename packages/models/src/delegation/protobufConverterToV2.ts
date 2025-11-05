@@ -6,6 +6,7 @@ import {
   DelegationStateV2,
   DelegationKindV2,
   DelegationContractDocumentV2,
+  DelegationSignedContractDocumentV2,
 } from "../gen/v2/delegation/delegation.js";
 import { dateToBigInt } from "../utils.js";
 import {
@@ -17,6 +18,7 @@ import {
   DelegationStamps,
   DelegationState,
   delegationState,
+  DelegationSignedContractDocument,
 } from "./delegation.js";
 
 export const toDelegationStateV2 = (
@@ -47,6 +49,13 @@ export const toDelegationKindV2 = (kind: DelegationKind): DelegationKindV2 =>
 export const toDelegationContractDocumentV2 = (
   contract: DelegationContractDocument
 ): DelegationContractDocumentV2 => ({
+  ...contract,
+  createdAt: dateToBigInt(contract.createdAt),
+});
+
+export const toDelegationSignedContractDocumentV2 = (
+  contract: DelegationSignedContractDocument
+): DelegationSignedContractDocumentV2 => ({
   ...contract,
   createdAt: dateToBigInt(contract.createdAt),
   signedAt: dateToBigInt(contract.signedAt),
@@ -82,4 +91,10 @@ export const toDelegationV2 = (delegation: Delegation): DelegationV2 => ({
   revocationContract:
     delegation.revocationContract &&
     toDelegationContractDocumentV2(delegation.revocationContract),
+  activationSignedContract:
+    delegation.activationSignedContract &&
+    toDelegationSignedContractDocumentV2(delegation.activationSignedContract),
+  revocationSignedContract:
+    delegation.revocationSignedContract &&
+    toDelegationSignedContractDocumentV2(delegation.revocationSignedContract),
 });

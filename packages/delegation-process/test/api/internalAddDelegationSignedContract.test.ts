@@ -11,6 +11,7 @@ import {
   generateId,
   DelegationContractDocument,
   DelegationContractId,
+  DelegationSignedContractDocument,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -18,13 +19,14 @@ import request from "supertest";
 import { api, delegationService } from "../vitest.api.setup.js";
 import { delegationNotFound } from "../../src/model/domain/errors.js";
 
-const mockDelegationContract: DelegationContractDocument = {
+const mockDelegationContract: DelegationSignedContractDocument = {
   id: generateId<DelegationContractId>(),
   path: "some/path/to/signed-contract.pdf",
   contentType: "application/pdf",
   name: "name",
   prettyName: "signed-contract.pdf",
   createdAt: new Date(),
+  signedAt: new Date(),
 };
 
 describe("API POST /internal/delegations/:delegationId/signedContract test", () => {
@@ -42,7 +44,7 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
   const makeRequest = async (
     token: string,
     delegationId: DelegationId = mockDelegation.id,
-    payload: DelegationContractDocument = mockDelegationContract
+    payload: DelegationSignedContractDocument = mockDelegationContract,
   ) =>
     request(api)
       .post(`/internal/delegations/${delegationId}/signedContract`)
@@ -59,22 +61,22 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
       const res = await makeRequest(token);
 
       expect(
-        delegationService.internalAddDelegationSignedContract
+        delegationService.internalAddDelegationSignedContract,
       ).toHaveBeenCalledWith(
         mockDelegation.id,
         mockDelegationContract,
-        expect.anything()
+        expect.anything(),
       );
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
       expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString()
+        serviceResponse.metadata.version.toString(),
       );
-    }
+    },
   );
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role)),
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -96,7 +98,7 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
-    }
+    },
   );
 
   it("Should return 400 if passed an invalid delegation id", async () => {

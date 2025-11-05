@@ -17,7 +17,7 @@ import {
   DelegationId,
   emptyErrorMapper,
   AgreementDocument,
-  AgreementContract,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -602,7 +602,7 @@ const agreementRouter = (
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { agreementId } = req.params;
-          const agreementContract = AgreementContract.parse(req.body);
+          const agreementContract = AgreementSignedContract.parse(req.body);
 
           const { metadata } =
             await agreementService.internalAddAgreementSignedContract(

@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockDelegation,
   getMockDelegationDocument,
+  getMockDelegationSignedDocument,
 } from "pagopa-interop-commons-test";
 import {
   dateToString,
@@ -8,12 +10,12 @@ import {
   delegationContractKind,
   delegationKind,
   DelegationStampKind,
-  generateId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
   DelegationContractDocumentSQL,
   DelegationSQL,
+  DelegationSignedContractDocumentSQL,
   DelegationStampSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitDelegationIntoObjectsSQL } from "../src/delegation/splitters.js";
@@ -23,6 +25,8 @@ describe("Delegation splitters", () => {
     const rejectionReason = "Rejection reason";
     const revocationContract = getMockDelegationDocument();
     const activationContract = getMockDelegationDocument();
+    const revocationSignedContract = getMockDelegationSignedDocument();
+    const activationSignedContract = getMockDelegationSignedDocument();
     const delegation: Delegation = {
       ...getMockDelegation({
         kind: delegationKind.delegatedProducer,
@@ -31,11 +35,16 @@ describe("Delegation splitters", () => {
       rejectionReason,
       revocationContract,
       activationContract,
-      signedContract: generateId(),
+      revocationSignedContract,
+      activationSignedContract,
     };
 
-    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-      splitDelegationIntoObjectsSQL(delegation, 1);
+    const {
+      delegationSQL,
+      stampsSQL,
+      contractDocumentsSQL,
+      contractSignedDocumentsSQL,
+    } = splitDelegationIntoObjectsSQL(delegation, 1);
 
     const expectedDelegationSQL: DelegationSQL = {
       metadataVersion: 1,
@@ -49,8 +58,6 @@ describe("Delegation splitters", () => {
       delegateId: delegation.delegateId,
       eserviceId: delegation.eserviceId,
       state: delegation.state,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      signedContract: delegation.signedContract!,
     };
 
     const expectedDelegationStamps: DelegationStampSQL = {
@@ -67,8 +74,6 @@ describe("Delegation splitters", () => {
       metadataVersion: 1,
       delegationId: delegation.id,
       createdAt: revocationContract.createdAt.toISOString(),
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      signedAt: revocationContract.signedAt!.toISOString(),
     };
 
     const expectedActivationContractDocument: DelegationContractDocumentSQL = {
@@ -77,9 +82,29 @@ describe("Delegation splitters", () => {
       metadataVersion: 1,
       delegationId: delegation.id,
       createdAt: activationContract.createdAt.toISOString(),
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      signedAt: revocationContract.signedAt!.toISOString(),
     };
+
+    const expectedRevocationSignedContractDocument: DelegationSignedContractDocumentSQL =
+      {
+        ...revocationSignedContract,
+        kind: delegationContractKind.revocation,
+        metadataVersion: 1,
+        delegationId: delegation.id,
+        createdAt: revocationSignedContract.createdAt.toISOString(),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+        signedAt: revocationSignedContract.signedAt?.toISOString()!,
+      };
+
+    const expectedActivationSignedContractDocument: DelegationSignedContractDocumentSQL =
+      {
+        ...activationSignedContract,
+        kind: delegationContractKind.activation,
+        metadataVersion: 1,
+        delegationId: delegation.id,
+        createdAt: activationSignedContract.createdAt.toISOString(),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+        signedAt: activationSignedContract.signedAt?.toISOString()!,
+      };
 
     expect(delegationSQL).toEqual(expectedDelegationSQL);
     expect(stampsSQL).toEqual([expectedDelegationStamps]);
@@ -87,6 +112,12 @@ describe("Delegation splitters", () => {
       expect.arrayContaining([
         expectedRevocationContractDocument,
         expectedActivationContractDocument,
+      ])
+    );
+    expect(contractSignedDocumentsSQL).toEqual(
+      expect.arrayContaining([
+        expectedRevocationSignedContractDocument,
+        expectedActivationSignedContractDocument,
       ])
     );
   });
@@ -112,7 +143,6 @@ describe("Delegation splitters", () => {
       delegateId: delegation.delegateId,
       eserviceId: delegation.eserviceId,
       state: delegation.state,
-      signedContract: null,
     };
 
     const expectedDelegationStamps: DelegationStampSQL = {

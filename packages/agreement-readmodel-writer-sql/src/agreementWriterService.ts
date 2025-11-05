@@ -5,7 +5,6 @@ import {
   AgreementId,
 } from "pagopa-interop-models";
 import {
-  agreementConsumerDocumentToAgreementConsumerDocumentSQL,
   agreementDocumentToAgreementDocumentSQL,
   checkMetadataVersion,
   splitAgreementIntoObjectsSQL,
@@ -16,6 +15,7 @@ import {
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementSignedContractInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   DrizzleReturnType,
   DrizzleTransactionType,
@@ -69,6 +69,7 @@ export function agreementWriterServiceBuilder(db: DrizzleReturnType) {
         attributesSQL,
         consumerDocumentsSQL,
         contractSQL,
+        signedContractSQL,
       } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
 
       await db.transaction(async (tx) => {
@@ -109,6 +110,11 @@ export function agreementWriterServiceBuilder(db: DrizzleReturnType) {
             .insert(agreementContractInReadmodelAgreement)
             .values(contractSQL);
         }
+        if (signedContractSQL !== undefined) {
+          await tx
+            .insert(agreementSignedContractInReadmodelAgreement)
+            .values(signedContractSQL);
+        }
       });
     },
     async deleteAgreementById(
@@ -145,12 +151,11 @@ export function agreementWriterServiceBuilder(db: DrizzleReturnType) {
           .delete(agreementConsumerDocumentInReadmodelAgreement)
           .where(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id));
 
-        const consumerDocumentSQL =
-          agreementConsumerDocumentToAgreementConsumerDocumentSQL(
-            doc,
-            agreementId,
-            metadataVersion
-          );
+        const consumerDocumentSQL = agreementDocumentToAgreementDocumentSQL(
+          doc,
+          agreementId,
+          metadataVersion
+        );
 
         await tx
           .insert(agreementConsumerDocumentInReadmodelAgreement)

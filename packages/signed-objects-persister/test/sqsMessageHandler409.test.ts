@@ -86,7 +86,7 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       conflictError
     );
 
-    // Mock della lettura della signature
+    // Mock of signature read
     (
       mockDbService.readDocumentSignatureReference as Mock
     ).mockResolvedValueOnce({
@@ -105,7 +105,7 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       void 0
     );
 
-    // Mock funzione di metadata
+    // Mock metadata function
     vi.mock("../src/utils/metadata/riskAnalysis.js", () => ({
       addPurposeRiskAnalysisSignedDocument: vi
         .fn()
@@ -120,10 +120,10 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       mockRefreshableToken
     );
 
-    // Verifica che resumeOrStoreBytes sia stato chiamato
+    // Check that resumeOrStoreBytes has been called
     expect(mockFileManager.resumeOrStoreBytes).toHaveBeenCalled();
 
-    // Verifica che la signature sia stata cancellata nonostante il 409
+    // Verify that the signature was deleted despite the 409
     expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
       sqsMessageBody.id
     );

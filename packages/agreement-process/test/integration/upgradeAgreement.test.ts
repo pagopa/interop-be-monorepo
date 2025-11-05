@@ -337,7 +337,7 @@ describe("upgrade Agreement", () => {
         updatedAt: undefined,
         rejectionReason: undefined,
       };
-
+      delete actualAgreementUpgraded.signedContract;
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
@@ -561,7 +561,7 @@ describe("upgrade Agreement", () => {
         updatedAt: undefined,
         rejectionReason: undefined,
       };
-
+      delete actualAgreementUpgraded.signedContract;
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
@@ -753,7 +753,7 @@ describe("upgrade Agreement", () => {
               },
             },
           };
-
+          delete actualAgreementArchived?.signedContract;
           expect(sortAgreementV2(actualAgreementArchived)).toEqual(
             sortAgreementV2(toAgreementV2(expectedAgreementArchived))
           );
@@ -821,7 +821,7 @@ describe("upgrade Agreement", () => {
             updatedAt: undefined,
             rejectionReason: undefined,
           };
-
+          delete actualAgreementUpgraded.signedContract;
           expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
           expect(upgradeAgreementResponse).toEqual({
             data: actualAgreementUpgraded,

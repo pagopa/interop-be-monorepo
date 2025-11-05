@@ -3,6 +3,7 @@ import {
   PurposeStateV2,
   PurposeV2,
   PurposeVersionDocumentV2,
+  PurposeVersionSignedDocumentV2,
   PurposeVersionStampsV2,
   PurposeVersionStampV2,
   PurposeVersionV2,
@@ -12,6 +13,7 @@ import {
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionSignedDocument,
   PurposeVersionStamp,
   PurposeVersionStamps,
   PurposeVersionState,
@@ -36,6 +38,13 @@ export const toPurposeVersionStateV2 = (
 export const toPurposeVersionDocumentV2 = (
   input: PurposeVersionDocument
 ): PurposeVersionDocumentV2 => ({
+  ...input,
+  createdAt: dateToBigInt(input.createdAt),
+});
+
+export const toPurposeVersionSignedDocumentV2 = (
+  input: PurposeVersionSignedDocument
+): PurposeVersionSignedDocumentV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
   signedAt: dateToBigInt(input.signedAt),
@@ -67,6 +76,7 @@ export const toPurposeVersionV2 = (
     ? toPurposeVersionDocumentV2(input.riskAnalysis)
     : undefined,
   stamps: input.stamps ? toPurposeVersionStampsV2(input.stamps) : undefined,
+  signedContract: undefined,
 });
 
 export const toPurposeV2 = (input: Purpose): PurposeV2 => ({

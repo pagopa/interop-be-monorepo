@@ -9,6 +9,7 @@ import {
   AgreementId,
   AgreementDocument,
   generateId,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -16,13 +17,14 @@ import request from "supertest";
 import { api, agreementService } from "../vitest.api.setup.js";
 import { agreementNotFound } from "../../src/model/domain/errors.js";
 
-const mockAgreementContract: AgreementDocument = {
+const mockAgreementContract: AgreementSignedContract = {
   id: generateId(),
   path: "some/path/to/signed-contract.pdf",
   contentType: "application/pdf",
   name: "name",
   prettyName: "signed-contract.pdf",
   createdAt: new Date(),
+  signedAt: new Date(),
 };
 
 describe("API POST /internal/agreement/:agreementId/signedContract test", () => {
@@ -38,7 +40,7 @@ describe("API POST /internal/agreement/:agreementId/signedContract test", () => 
   const makeRequest = async (
     token: string,
     agreementId: AgreementId = mockAgreement.id,
-    payload: AgreementDocument = mockAgreementContract
+    payload: AgreementSignedContract = mockAgreementContract
   ) =>
     request(api)
       .post(`/internal/agreement/${agreementId}/signedContract`)
