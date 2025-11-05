@@ -88,6 +88,11 @@ export function addMultipartFileToSupertestRequest(
   return req;
 }
 
+// After PR https://github.com/pagopa/interop-be-monorepo/pull/2586
+// This function is deprecated, as it causes too many flaky tests:api failures with its usage.
+// We adopt direct usage of "expect.any(File)" in place of this function,
+// until we find a proper solution.
+// Tracked in https://pagopa.atlassian.net/browse/PIN-7956
 export function fileFromTestMultipartFileUpload(
   file: TestMultipartFileUpload,
   date = new Date()
@@ -96,4 +101,27 @@ export function fileFromTestMultipartFileUpload(
     type: file.contentType,
     lastModified: date.getTime(),
   });
+}
+
+export async function expectFilesToBeEqual(
+  file1: File,
+  file2: File
+): Promise<void> {
+  expect(file1.name).toEqual(file2.name);
+  expect(file1.type).toEqual(file2.type);
+  expect(file1.size).toEqual(file2.size);
+  const [first, second] = await Promise.all([
+    file1.arrayBuffer(),
+    file2.arrayBuffer(),
+  ]);
+  expect(first).toEqual(second);
+}
+
+export async function expectDownloadedDocumentToBeEqual(
+  doc1: { id: string; file: File; prettyName: string | undefined },
+  doc2: { id: string; file: File; prettyName: string | undefined }
+): Promise<void> {
+  expect(doc1.id).toEqual(doc2.id);
+  expect(doc1.prettyName).toEqual(doc2.prettyName);
+  await expectFilesToBeEqual(doc1.file, doc2.file);
 }

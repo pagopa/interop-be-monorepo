@@ -14,6 +14,7 @@ import {
   UIAuthData,
   WithLogger,
   eventRepository,
+  isFeatureFlagEnabled,
   ownership,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
@@ -1742,7 +1743,10 @@ async function addContractOnFirstActivation(
   agreement: Agreement,
   activeDelegations: ActiveDelegations
 ): Promise<Agreement> {
-  if (isFirstActivation) {
+  if (
+    isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
+    isFirstActivation
+  ) {
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,

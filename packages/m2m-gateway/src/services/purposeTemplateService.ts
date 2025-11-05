@@ -11,7 +11,10 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { toM2MGatewayApiPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
+import {
+  toGetPurposeTemplatesApiQueryParams,
+  toM2MGatewayApiPurposeTemplate,
+} from "../api/purposeTemplateApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -69,7 +72,7 @@ export function purposeTemplateServiceBuilder(
       const {
         data: { results, totalCount },
       } = await clients.purposeTemplateProcessClient.getPurposeTemplates({
-        queries: queryParams,
+        queries: toGetPurposeTemplatesApiQueryParams(queryParams),
         headers,
       });
 
