@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Agreement, WithMetadata, generateId } from "pagopa-interop-models";
+import { Agreement, WithMetadata } from "pagopa-interop-models";
 import {
   getMockAgreementContract,
   getMockAgreementStamp,
@@ -37,7 +37,6 @@ describe("Agreement queries", () => {
             upgrade: getMockAgreementStamp(),
             archiving: getMockAgreementStamp(),
           },
-          signedContract: generateId(),
         },
         metadata: { version: 1 },
       };
@@ -131,7 +130,6 @@ describe("Agreement queries", () => {
             upgrade: getMockAgreementStamp(),
             archiving: getMockAgreementStamp(),
           },
-          signedContract: generateId(),
         },
         metadata: { version: 1 },
       };
