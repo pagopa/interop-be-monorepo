@@ -9,6 +9,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
+  retrieveEservice,
   retrieveTenant,
 } from "../handlerCommons.js";
 
@@ -39,6 +40,10 @@ export async function handleDelegationApprovedRejectedToDelegator(
     readModelService,
     logger
   );
+  const eservice = await retrieveEservice(
+    delegation.eserviceId,
+    readModelService
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(
@@ -53,9 +58,9 @@ export async function handleDelegationApprovedRejectedToDelegator(
   );
 
   const body = inAppTemplates.delegationApprovedRejectedToDelegator(
+    eservice.name,
     delegate.name,
-    eventType,
-    delegation.rejectionReason
+    eventType
   );
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
