@@ -13,8 +13,13 @@ get {
 params:path {
   purposeTemplateId: {{purposeTemplateId}}
   answerId: {{answerId}}
-  documentId: {{documentId}}
 }
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
 
 headers {
   Authorization: {{JWT-M2M}}
