@@ -64,6 +64,7 @@ import {
   toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
 } from "../model/domain/toEvent.js";
 import {
+  addAnnotationDocumentToUpdatedAnswerIfNeeded,
   cleanupAnnotationDocsForRemovedAnswers,
   deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
 } from "../utilities/riskAnalysisDocUtils.js";
@@ -828,10 +829,19 @@ export function purposeTemplateServiceBuilder(
             )
           : purposeTemplate.data.purposeRiskAnalysisForm;
 
+      const purposeRiskAnalysisFormWithDocuments =
+        purposeTemplate.data.purposeRiskAnalysisForm && purposeRiskAnalysisForm
+          ? addAnnotationDocumentToUpdatedAnswerIfNeeded(
+              purposeTemplateSeed,
+              purposeTemplate.data.purposeRiskAnalysisForm,
+              purposeRiskAnalysisForm
+            )
+          : undefined;
+
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate.data,
         ...purposeTemplateSeed,
-        purposeRiskAnalysisForm,
+        purposeRiskAnalysisForm: purposeRiskAnalysisFormWithDocuments,
         updatedAt: new Date(),
         ...(!purposeTemplateSeed.purposeIsFreeOfCharge && {
           purposeFreeOfChargeReason: undefined,
