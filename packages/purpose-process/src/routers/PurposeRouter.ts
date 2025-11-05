@@ -15,6 +15,7 @@ import {
   EServiceId,
   PurposeTemplateId,
   PurposeVersionDocument,
+  PurposeVersionSignedDocument,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -769,13 +770,15 @@ const purposeRouter = (
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
           const { purposeId, versionId } = req.params;
-          const riskAnalysisDocument = PurposeVersionDocument.parse(req.body);
+          const signedRiskAnalysis = PurposeVersionSignedDocument.parse(
+            req.body
+          );
 
           const { metadata } =
             await purposeService.internalAddSignedRiskAnalysisDocumentMetadata(
               unsafeBrandId(purposeId),
               unsafeBrandId(versionId),
-              riskAnalysisDocument,
+              signedRiskAnalysis,
               ctx
             );
           setMetadataVersionHeader(res, metadata);

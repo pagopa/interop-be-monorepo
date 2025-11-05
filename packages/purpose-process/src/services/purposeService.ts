@@ -44,6 +44,7 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  PurposeVersionSignedDocument,
   PurposeVersionStamps,
   RiskAnalysis,
   RiskAnalysisId,
@@ -1790,7 +1791,7 @@ export function purposeServiceBuilder(
     async internalAddSignedRiskAnalysisDocumentMetadata(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
-      riskAnalysisDocument: PurposeVersionDocument,
+      signedRiskAnalysis: PurposeVersionSignedDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(
@@ -1808,7 +1809,7 @@ export function purposeServiceBuilder(
 
       const updatedVersion: PurposeVersion = {
         ...versionRetrieved,
-        signedContract: riskAnalysisDocument,
+        signedContract: signedRiskAnalysis,
       };
 
       const updatedPurpose = replacePurposeVersion(

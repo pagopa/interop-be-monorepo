@@ -15,6 +15,7 @@ import {
   ListResult,
   TenantId,
   WithMetadata,
+  DelegationSignedContractDocument,
 } from "pagopa-interop-models";
 
 import {
@@ -476,7 +477,7 @@ export function delegationServiceBuilder(
   }
   async function internalAddDelegationSignedContract(
     delegationId: DelegationId,
-    delegationContract: DelegationContractDocument,
+    delegationContract: DelegationSignedContractDocument,
     { logger, correlationId }: WithLogger<AppContext<AuthData>>
   ): Promise<WithMetadata<Delegation>> {
     logger.info(`Adding delegation signed contract ${delegationId}`);
@@ -490,8 +491,7 @@ export function delegationServiceBuilder(
 
     const delegationWithContract = {
       ...delegation,
-      signedContract: delegationContract.id,
-      delegationContract,
+      signedContract: delegationContract,
     };
     const event = await repository.createEvent(
       toCreateEventDelegationSignedContractGenerated(
@@ -760,7 +760,7 @@ export function delegationServiceBuilder(
     },
     async internalAddDelegationSignedContract(
       delegationId: DelegationId,
-      delegationContract: DelegationContractDocument,
+      delegationContract: DelegationSignedContractDocument,
       ctx: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return await internalAddDelegationSignedContract(
