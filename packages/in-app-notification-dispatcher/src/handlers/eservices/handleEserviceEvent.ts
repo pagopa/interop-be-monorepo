@@ -27,18 +27,13 @@ export async function handleEServiceEvent(
           "EServiceDescriptorActivated",
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptorAttributesUpdated",
-          "EServiceDescriptorAgreementApprovalPolicyUpdated",
-          "EServiceDescriptorInterfaceAdded",
           "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentUpdated",
           "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptionUpdatedByTemplateUpdate",
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
         ),
       },
@@ -92,8 +87,13 @@ export async function handleEServiceEvent(
           "EServiceIsClientAccessDelegableDisabled",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
+          "EServiceDescriptorInterfaceAdded",
           "EServicePersonalDataFlagUpdatedAfterPublication",
-          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeleted"
         ),
       },
       () => {
