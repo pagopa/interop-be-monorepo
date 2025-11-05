@@ -74,12 +74,10 @@ describe("downloadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
 
     const result =
       await purposeTemplateService.downloadRiskAnalysisTemplateAnswerAnnotationDocument(
-        {
-          purposeTemplateId: mockPurposeTemplateId,
-          answerId: mockAnswerId,
-          documentId: mockDocumentId,
-          ctx: getMockM2MAdminAppContext(),
-        }
+        mockPurposeTemplateId,
+        mockAnswerId,
+        mockDocumentId,
+        getMockM2MAdminAppContext()
       );
 
     const expectedServiceResponse = {
