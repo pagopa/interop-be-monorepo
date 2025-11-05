@@ -113,7 +113,8 @@ describe("getPurposeTemplates", () => {
           m2mGatewayApi.PurposeTemplateState.Enum.PUBLISHED,
           m2mGatewayApi.PurposeTemplateState.Enum.DRAFT,
         ],
-      } satisfies m2mGatewayApi.GetPurposeTemplatesQueryParams,
+        excludeExpiredRiskAnalysis: false,
+      } satisfies purposeTemplateApi.GetPurposeTemplatesQueryParams,
     });
   });
 });
