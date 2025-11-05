@@ -581,7 +581,8 @@ export const getMockDelegation = ({
   rejectionReason,
   updatedAt,
   stamps,
-  signedContract,
+  activationSignedContract,
+  revocationSignedContract,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -595,7 +596,8 @@ export const getMockDelegation = ({
   rejectionReason?: string;
   updatedAt?: Date;
   stamps?: DelegationStamps;
-  signedContract?: string;
+  activationSignedContract?: DelegationSignedContractDocument;
+  revocationSignedContract?: DelegationSignedContractDocument;
 }): Delegation => {
   const creationTime = new Date();
 
@@ -617,7 +619,8 @@ export const getMockDelegation = ({
         when: creationTime,
       },
     },
-    ...(signedContract ? { signedContract } : {}),
+    ...(activationSignedContract ? { activationSignedContract } : {}),
+    ...(revocationSignedContract ? { revocationSignedContract } : {}),
   };
 };
 

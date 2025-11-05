@@ -81,6 +81,7 @@ import {
   DrizzleTransactionType,
   purposeTemplateTables,
   agreementSignedContractInReadmodelAgreement,
+  delegationSignedContractDocumentInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -435,8 +436,12 @@ export const upsertDelegation = async (
       .delete(delegationInReadmodelDelegation)
       .where(eq(delegationInReadmodelDelegation.id, delegation.id));
 
-    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-      splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+    const {
+      delegationSQL,
+      stampsSQL,
+      contractDocumentsSQL,
+      contractSignedDocumentsSQL,
+    } = splitDelegationIntoObjectsSQL(delegation, metadataVersion);
 
     await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
 
@@ -448,6 +453,11 @@ export const upsertDelegation = async (
       await tx
         .insert(delegationContractDocumentInReadmodelDelegation)
         .values(docSQL);
+    }
+    for (const docSignedSQL of contractSignedDocumentsSQL) {
+      await tx
+        .insert(delegationSignedContractDocumentInReadmodelDelegation)
+        .values(docSignedSQL);
     }
   });
 };
