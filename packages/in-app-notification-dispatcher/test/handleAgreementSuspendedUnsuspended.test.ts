@@ -28,6 +28,57 @@ import {
   addOneTenant,
   readModelService,
 } from "./utils.js";
+import { match } from "ts-pattern";
+// Helper function to get expected body based on event type and audience
+function getExpectedBodyForEvent(
+  eventType: AgreementSuspendedUnsuspendedEventType,
+  isProducerUser: boolean,
+  eserviceName: string,
+  consumerName: string,
+  producerName: string
+): string {
+  const subjectName = isProducerUser ? consumerName : producerName;
+  return match(eventType)
+    .with("AgreementSuspendedByPlatform", () =>
+      isProducerUser
+        ? inAppTemplates.agreementSuspendedByPlatformToProducer(subjectName, eserviceName)
+        : inAppTemplates.agreementSuspendedByPlatformToConsumer(eserviceName)
+    ).with("AgreementUnsuspendedByPlatform", () =>
+      isProducerUser
+        ? inAppTemplates.agreementUnsuspendedByPlatformToProducer(subjectName, eserviceName)
+        : inAppTemplates.agreementUnsuspendedByPlatformToConsumer(eserviceName)
+    ).with("AgreementSuspendedByConsumer", () =>
+      inAppTemplates.agreementSuspendedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementUnsuspendedByConsumer", () =>
+      inAppTemplates.agreementUnsuspendedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementSuspendedByProducer", () =>
+      inAppTemplates.agreementSuspendedByProducerToConsumer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementUnsuspendedByProducer", () =>
+      inAppTemplates.agreementUnsuspendedByProducerToConsumer(
+        subjectName,
+        eserviceName
+      )
+  )
+    .with("AgreementArchivedByConsumer", () =>
+      inAppTemplates.agreementArchivedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+  )
+    .exhaustive();
+}
 
 describe("handleAgreementSuspendedUnsuspended", () => {
   const producerId = generateId<TenantId>();
@@ -114,59 +165,38 @@ describe("handleAgreementSuspendedUnsuspended", () => {
   it.each<{
     eventType: AgreementSuspendedUnsuspendedEventType;
     expectedAudience: "consumer" | "producer" | "both";
-    expectedAction: "sospeso" | "riattivato" | "archiviato";
-    expectedSubject: string;
   }>([
     {
       eventType: "AgreementSuspendedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "sospeso",
-      expectedSubject: consumerTenant.name,
     },
     {
       eventType: "AgreementUnsuspendedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "riattivato",
-      expectedSubject: consumerTenant.name,
     },
     {
       eventType: "AgreementSuspendedByProducer",
       expectedAudience: "consumer",
-      expectedAction: "sospeso",
-      expectedSubject: producerTenant.name,
     },
     {
       eventType: "AgreementUnsuspendedByProducer",
       expectedAudience: "consumer",
-      expectedAction: "riattivato",
-      expectedSubject: producerTenant.name,
     },
     {
       eventType: "AgreementSuspendedByPlatform",
       expectedAudience: "both",
-      expectedAction: "sospeso",
-      expectedSubject: "La piattaforma",
     },
     {
       eventType: "AgreementUnsuspendedByPlatform",
       expectedAudience: "both",
-      expectedAction: "riattivato",
-      expectedSubject: "La piattaforma",
     },
     {
       eventType: "AgreementArchivedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "archiviato",
-      expectedSubject: consumerTenant.name,
     },
   ])(
     "should handle $eventType event correctly",
-    async ({
-      eventType,
-      expectedAudience,
-      expectedAction,
-      expectedSubject,
-    }) => {
+    async ({ eventType, expectedAudience }) => {
       const producerUsers = [
         { userId: generateId(), tenantId: producerId },
         { userId: generateId(), tenantId: producerId },
@@ -202,21 +232,14 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         expectedAudience === "producer"
           ? producerUsers
           : expectedAudience === "consumer"
-          ? consumerUsers
-          : expectedAudience === "both"
-          ? [...producerUsers, ...consumerUsers]
-          : [];
+            ? consumerUsers
+            : expectedAudience === "both"
+              ? [...producerUsers, ...consumerUsers]
+              : [];
 
       expect(notifications).toHaveLength(expectedUsers.length);
 
-      const expectedBody = inAppTemplates.agreementSuspendedUnsuspended(
-        expectedAction,
-        expectedSubject,
-        eservice.name
-      );
-
       const expectedNotifications = expectedUsers.map((user) => {
-        // Determine the notification type based on which audience this user belongs to
         const isProducerUser = producerUsers.some(
           (p) => p.userId === user.userId
         );
@@ -224,10 +247,18 @@ describe("handleAgreementSuspendedUnsuspended", () => {
           ? "agreementSuspendedUnsuspendedToProducer"
           : "agreementSuspendedUnsuspendedToConsumer";
 
+        const body = getExpectedBodyForEvent(
+          eventType,
+          isProducerUser,
+          eservice.name,
+          consumerTenant.name,
+          producerTenant.name
+        );
+
         return {
           userId: user.userId,
           tenantId: user.tenantId,
-          body: expectedBody,
+          body,
           notificationType,
           entityId: agreement.id,
         };
