@@ -16295,7 +16295,7 @@ paths:
     parameters:
       - name: purposeTemplateId
         in: path
-        description: The Purpose Template id
+        description: The Purpose Template ID
         required: true
         schema:
           type: string
