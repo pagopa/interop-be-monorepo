@@ -27,6 +27,10 @@ import {
   toPurposeTemplateV2,
   PurposeRiskAnalysisForm,
   PurposeRiskAnalysisFormV2,
+  RiskAnalysisSingleAnswer,
+  RiskAnalysisSingleAnswerV2,
+  RiskAnalysisMultiAnswerV2,
+  RiskAnalysisMultiAnswer,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
@@ -219,36 +223,36 @@ export function expectUniqueAswerInRiskAnalysisForm(
   riskAnalysisForm: PurposeRiskAnalysisForm,
   answerKey: string
 ): void {
-  const expectedOneOccurrenceInSingleAnswers =
-    riskAnalysisForm.singleAnswers.filter((a) => a.key === answerKey);
-
-  const expectedOneOccurrenceInMultiAnswers =
-    riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
-
-  if (expectedOneOccurrenceInSingleAnswers.length) {
-    expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
-  }
-
-  if (expectedOneOccurrenceInMultiAnswers.length) {
-    expect(expectedOneOccurrenceInMultiAnswers.length).toBe(1);
-  }
-
-  expect(
-    expectedOneOccurrenceInSingleAnswers.length +
-      expectedOneOccurrenceInMultiAnswers.length
-  ).toBe(1);
+  assertUniqueAnswerOccurrence(
+    riskAnalysisForm.singleAnswers,
+    riskAnalysisForm.multiAnswers,
+    answerKey
+  );
 }
 
 export function expectUniqueAswerInRiskAnalysisFormV2(
-  riskAnalysisForm: PurposeRiskAnalysisFormV2,
+  riskAnalysisFormV2: PurposeRiskAnalysisFormV2,
   answerKey: string
 ): void {
-  const expectedOneOccurrenceInSingleAnswers =
-    riskAnalysisForm.singleAnswers.filter((a) => a.key === answerKey);
+  assertUniqueAnswerOccurrence(
+    riskAnalysisFormV2.singleAnswers,
+    riskAnalysisFormV2.multiAnswers,
+    answerKey
+  );
+}
 
-  const expectedOneOccurrenceInMultiAnswers =
-    riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
+function assertUniqueAnswerOccurrence(
+  singleAnswers: RiskAnalysisSingleAnswer[] | RiskAnalysisSingleAnswerV2[],
+  multiAnswers: RiskAnalysisMultiAnswer[] | RiskAnalysisMultiAnswerV2[],
+  answerKey: string
+): void {
+  const expectedOneOccurrenceInSingleAnswers = singleAnswers.filter(
+    (a) => a.key === answerKey
+  );
 
+  const expectedOneOccurrenceInMultiAnswers = multiAnswers.filter(
+    (a) => a.key === answerKey
+  );
   if (expectedOneOccurrenceInSingleAnswers.length) {
     expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
   }
