@@ -2454,7 +2454,7 @@ paths:
       operationId: getSignedAgreementContract
       responses:
         "200":
-          description: Document retrieved
+          description: Agreement signed contract retrieved
           content:
             application/octet-stream:
               schema:

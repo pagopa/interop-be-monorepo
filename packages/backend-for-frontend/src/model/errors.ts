@@ -55,6 +55,7 @@ export const errorCodes = {
   invalidEserviceInterfaceFileDetected: "0047",
   operationForbidden: "0048",
   noVersionInEServiceTemplate: "0049",
+  delegationContractNotFound: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -383,6 +384,17 @@ export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
     detail: `Delegation ${delegationId} not found`,
     code: "delegationNotFound",
     title: "Delegation not found",
+  });
+}
+
+export function delegationContractNotFound(
+  delegationId: string,
+  contractId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation contract ${contractId}, for delegation ${delegationId} not found`,
+    code: "delegationContractNotFound",
+    title: "Delegation contract not found",
   });
 }
 
