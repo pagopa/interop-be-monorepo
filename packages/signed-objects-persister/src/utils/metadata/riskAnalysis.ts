@@ -19,13 +19,13 @@ export const addPurposeRiskAnalysisSignedDocument = async (
   correlationId: CorrelationId
 ): Promise<void> => {
   const token = (await refreshableToken.get()).serialized;
-  const documentWithIsoString = {
+  const documentSigned: purposeApi.PurposeVersionSignedDocument = {
     ...document,
     createdAt: document.createdAt.toISOString(),
     signedAt: new Date().toISOString(),
   };
   await purposeApi.purposeApi.addSignedRiskAnalysisDocumentMetadata(
-    documentWithIsoString,
+    documentSigned,
     {
       params: { purposeId, versionId },
       headers: getInteropHeaders({

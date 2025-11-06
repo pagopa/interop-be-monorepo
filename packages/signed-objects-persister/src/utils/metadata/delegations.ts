@@ -15,7 +15,7 @@ export const addDelegationSignedContract = async (
   delegationId: string,
   correlationId: CorrelationId
 ): Promise<void> => {
-  const contractWithIsoString = {
+  const contractSigned: delegationApi.DelegationSignedContractDocument = {
     ...contract,
     createdAt: contract.createdAt.toISOString(),
     signedAt: new Date().toISOString(),
@@ -23,7 +23,7 @@ export const addDelegationSignedContract = async (
   const token = (await refreshableToken.get()).serialized;
 
   await delegationApi.delegationApi.addSignedDelegationContractMetadata(
-    contractWithIsoString,
+    contractSigned,
     {
       params: { delegationId },
       headers: getInteropHeaders({
