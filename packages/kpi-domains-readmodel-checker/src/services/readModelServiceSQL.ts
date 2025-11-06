@@ -83,6 +83,7 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -575,6 +576,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
           purposeRiskAnalysisTemplateAnswerAnnotationDocument:
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateDocument:
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
         .leftJoin(
@@ -603,6 +606,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         );
 

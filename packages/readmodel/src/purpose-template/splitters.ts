@@ -5,9 +5,11 @@ import {
   PurposeTemplateId,
   riskAnalysisAnswerKind,
   RiskAnalysisFormTemplate,
+  RiskAnalysisFormTemplateId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
@@ -19,6 +21,7 @@ import {
   PurposeTemplateRiskAnalysisAnswerSQL,
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateSQL,
+  PurposeTemplateRiskAnalysisFormDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitPurposeTemplateIntoObjectsSQL = (
@@ -79,6 +82,8 @@ export const splitPurposeTemplateIntoObjectsSQL = (
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
       splitPurposeRiskAnalysisSQL?.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL ??
       [],
+    riskAnalysisTemplateDocumentSQL:
+      splitPurposeRiskAnalysisSQL?.riskAnalysisTemplateDocumentSQL,
   };
 };
 
@@ -92,14 +97,23 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
       riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
       riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
       riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+      riskAnalysisTemplateDocumentSQL:
+        | PurposeTemplateRiskAnalysisFormDocumentSQL
+        | undefined;
     }
   | undefined => {
   if (!riskAnalysisFormTemplate) {
     return undefined;
   }
 
-  const { id, version, singleAnswers, multiAnswers, ...rest } =
-    riskAnalysisFormTemplate;
+  const {
+    id,
+    version,
+    singleAnswers,
+    multiAnswers,
+    riskAnalysisTemplateDocument,
+    ...rest
+  } = riskAnalysisFormTemplate;
   void (rest satisfies Record<string, never>);
 
   const riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL = {
@@ -249,6 +263,17 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
     }
   );
 
+  const riskAnalysisTemplateDocumentSQL:
+    | PurposeTemplateRiskAnalysisFormDocumentSQL
+    | undefined = riskAnalysisTemplateDocument
+    ? toPurposeTemplateRiskAnalysisFormDocumentSQL(
+        riskAnalysisTemplateDocument,
+        metadataVersion,
+        purposeTemplateId,
+        id
+      )
+    : undefined;
+
   return {
     riskAnalysisFormTemplateSQL,
     riskAnalysisTemplateAnswersSQL: [
@@ -263,6 +288,7 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
       ...riskAnalysisTemplateSingleAnswersAnnotationsDocuments,
       ...riskAnalysisTemplateMultiAnswersAnnotationsDocuments,
     ],
+    riskAnalysisTemplateDocumentSQL,
   };
 };
 
@@ -324,4 +350,18 @@ export const toPurposeTemplateEServiceDescriptorSQL = (
   eserviceId: purposeTemplateEServiceDescriptor.eserviceId,
   descriptorId: purposeTemplateEServiceDescriptor.descriptorId,
   createdAt: dateToString(purposeTemplateEServiceDescriptor.createdAt),
+});
+
+export const toPurposeTemplateRiskAnalysisFormDocumentSQL = (
+  riskAnalysisTemplateDocument: RiskAnalysisTemplateDocument,
+  metadataVersion: number,
+  purposeTemplateId: PurposeTemplateId,
+  riskAnalysisFormId: RiskAnalysisFormTemplateId
+): PurposeTemplateRiskAnalysisFormDocumentSQL => ({
+  ...riskAnalysisTemplateDocument,
+  metadataVersion,
+  purposeTemplateId,
+  riskAnalysisFormId,
+  createdAt: dateToString(riskAnalysisTemplateDocument.createdAt),
+  signedAt: dateToString(riskAnalysisTemplateDocument.signedAt),
 });

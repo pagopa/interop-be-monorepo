@@ -2046,6 +2046,49 @@ export const purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate =
     ]
   );
 
+export const purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate =
+  readmodelPurposeTemplate.table(
+    "purpose_template_risk_analysis_form_document",
+    {
+      id: uuid().primaryKey().notNull(),
+      purposeTemplateId: uuid("purpose_template_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
+      name: varchar().notNull(),
+      prettyName: varchar("pretty_name").notNull(),
+      contentType: varchar("content_type").notNull(),
+      path: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
+      checksum: varchar().notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeTemplateId],
+        foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
+        name: "purpose_template_risk_analysis_form_purpose_template_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.riskAnalysisFormId],
+        foreignColumns: [
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+        ],
+        name: "purpose_template_risk_analysis_form_risk_analysis_form_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeTemplateId, table.metadataVersion],
+        foreignColumns: [
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateInReadmodelPurposeTemplate.metadataVersion,
+        ],
+        name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey4",
+      }),
+    ]
+  );
+
 export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
   readmodelPurposeTemplate.table(
     "purpose_template_risk_analysis_answer",

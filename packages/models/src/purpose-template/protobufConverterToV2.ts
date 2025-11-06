@@ -5,11 +5,13 @@ import {
   RiskAnalysisFormTemplateV2,
   RiskAnalysisTemplateAnswerAnnotationDocumentV2,
   RiskAnalysisTemplateAnswerAnnotationV2,
+  RiskAnalysisTemplateDocumentV2,
 } from "../gen/v2/purpose-template/purpose-template.js";
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateDocument,
 } from "../risk-analysis-template/riskAnalysisTemplate.js";
 import { dateToBigInt } from "../utils.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
@@ -49,6 +51,14 @@ export const toRiskAnalysisTemplateAnswerAnnotationV2 = (
   docs: input.docs.map(toRiskAnalysisTemplateAnswerAnnotationDocumentV2),
 });
 
+export const toRiskAnalysisTemplateDocumentV2 = (
+  input: RiskAnalysisTemplateDocument
+): RiskAnalysisTemplateDocumentV2 => ({
+  ...input,
+  signedAt: input.signedAt ? dateToBigInt(input.signedAt) : undefined,
+  createdAt: dateToBigInt(input.createdAt),
+});
+
 export const toRiskAnalysisFormTemplateV2 = (
   input: RiskAnalysisFormTemplate
 ): RiskAnalysisFormTemplateV2 => ({
@@ -66,6 +76,9 @@ export const toRiskAnalysisFormTemplateV2 = (
       ? toRiskAnalysisTemplateAnswerAnnotationV2(a.annotation)
       : undefined,
   })),
+  riskAnalysisTemplateDocument: input.riskAnalysisTemplateDocument
+    ? toRiskAnalysisTemplateDocumentV2(input.riskAnalysisTemplateDocument)
+    : undefined,
 });
 
 export const toPurposeTemplateV2 = (

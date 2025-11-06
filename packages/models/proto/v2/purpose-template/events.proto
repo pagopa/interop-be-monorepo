@@ -61,3 +61,13 @@ message PurposeTemplateAnnotationDocumentUpdatedV2 {
   string documentId = 2;
   string answerId = 3;
 }
+
+message RiskAnalysisTemplateDocumentAddedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  string documentId = 2;
+}
+
+message RiskAnalysisTemplateSignedDocumentAddedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  string documentId = 2;
+}
