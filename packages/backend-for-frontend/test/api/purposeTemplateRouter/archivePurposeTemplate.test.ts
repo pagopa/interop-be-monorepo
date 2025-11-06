@@ -3,20 +3,16 @@ import { generateId, PurposeTemplateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
-import { getMockBffApiPurposeTemplate } from "../../mockUtils.js";
 
 describe("API POST /purposeTemplates/{purposeTemplateId}/archive", () => {
-  const mockArchivedPurposeTemplate = getMockBffApiPurposeTemplate(
-    bffApi.PurposeTemplateState.Enum.ARCHIVED
-  );
+  const mockArchivedPurposeTemplateId = generateId<PurposeTemplateId>();
 
   beforeEach(() => {
     clients.purposeTemplateProcessClient.archivePurposeTemplate = vi
       .fn()
-      .mockResolvedValue(mockArchivedPurposeTemplate);
+      .mockResolvedValue(undefined);
   });
 
   const makeRequest = async (
@@ -30,7 +26,7 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/archive", () => {
 
   it("Should return 204 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockArchivedPurposeTemplate.id);
+    const res = await makeRequest(token, mockArchivedPurposeTemplateId);
     expect(res.status).toBe(204);
     expect(res.body).toEqual({});
   });
