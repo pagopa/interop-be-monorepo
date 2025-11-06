@@ -16,6 +16,7 @@ import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   eserviceTemplateDuplicate,
   eserviceTemplateNotFound,
+  eServiceTemplateUpdateSameNameConflict,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
@@ -108,6 +109,10 @@ describe("API POST /templates/:templateId/name/update", () => {
     },
     {
       error: eserviceTemplateDuplicate(mockEserviceTemplate.id),
+      expectedStatus: 409,
+    },
+    {
+      error: eServiceTemplateUpdateSameNameConflict(mockEserviceTemplate.id),
       expectedStatus: 409,
     },
   ])(
