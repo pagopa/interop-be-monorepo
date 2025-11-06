@@ -48,7 +48,6 @@ import {
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
-  riskAnalysisAnswerNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -136,10 +135,10 @@ function retrieveRiskAnalysisTemplateAnswer(
     return { type: "multi", answer: multiAnswer };
   }
 
-  throw riskAnalysisTemplateAnswerNotFound(
+  throw riskAnalysisTemplateAnswerNotFound({
     purposeTemplateId,
-    unsafeBrandId(answerId)
-  );
+    answerId: unsafeBrandId(answerId),
+  });
 }
 
 function retrieveAnswerAnnotation(
@@ -280,7 +279,10 @@ const updatePurposeTemplateWithoutAnnotation = async (
 
   const updatedAnswer = updatedSingleAnswer || updatedMultiAnswer;
   if (!updatedAnswer) {
-    throw riskAnalysisTemplateAnswerNotFound(purposeTemplate.data.id, answerId);
+    throw riskAnalysisTemplateAnswerNotFound({
+      purposeTemplateId: purposeTemplate.data.id,
+      answerId,
+    });
   }
 
   const annotationDocumentsToRemove = [
@@ -470,7 +472,7 @@ function findAnswerAndAnnotation(
     };
   }
 
-  throw riskAnalysisAnswerNotFound(answerId);
+  throw riskAnalysisTemplateAnswerNotFound({ answerId });
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
