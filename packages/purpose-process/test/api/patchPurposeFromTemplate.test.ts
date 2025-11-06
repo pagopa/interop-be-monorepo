@@ -18,6 +18,7 @@ import {
   purposeDraftVersionNotFound,
   purposeNotFound,
   purposeTemplateNotFound,
+  purposeTitleNotAllowed,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
@@ -140,7 +141,12 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {
-      error: duplicatedPurposeTitle("Any"),
+      error: purposeTitleNotAllowed(
+        "Any",
+        generateId(),
+        generateId(),
+        generateId()
+      ),
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {

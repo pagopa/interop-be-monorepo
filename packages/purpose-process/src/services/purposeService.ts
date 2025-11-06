@@ -119,6 +119,7 @@ import {
   assertPersonalDataCompliant,
   assertPurposeIsDraft,
   assertPurposeTitleIsNotDuplicated,
+  assertPurposeTitleNotExistsInOtherPurposes,
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
@@ -1822,11 +1823,12 @@ export function purposeServiceBuilder(
       );
 
       if (purposeUpdateContent.title) {
-        await assertPurposeTitleIsNotDuplicated({
+        await assertPurposeTitleNotExistsInOtherPurposes({
           readModelService,
           eserviceId: purpose.data.eserviceId,
           consumerId: purpose.data.consumerId,
           title: purposeUpdateContent.title,
+          purposeId: purpose.data.id,
         });
       }
 
