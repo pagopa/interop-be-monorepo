@@ -478,11 +478,9 @@ const purposeTemplateRouter = (
           const { purposeTemplateId, answerId, documentId } = req.params;
           const { data: annotationDocument, metadata } =
             await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
-              {
-                purposeTemplateId: unsafeBrandId(purposeTemplateId),
-                answerId: unsafeBrandId(answerId),
-                documentId: unsafeBrandId(documentId),
-              },
+              unsafeBrandId(purposeTemplateId),
+              unsafeBrandId(answerId),
+              unsafeBrandId(documentId),
               ctx
             );
 
@@ -575,11 +573,9 @@ const purposeTemplateRouter = (
 
           const { metadata } =
             await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
-              {
-                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-                answerId: unsafeBrandId(req.params.answerId),
-                ctx,
-              }
+              unsafeBrandId(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.answerId),
+              ctx
             );
 
           setMetadataVersionHeader(res, metadata);
@@ -605,12 +601,10 @@ const purposeTemplateRouter = (
 
           const { metadata } =
             await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-              {
-                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-                answerId: unsafeBrandId(req.params.answerId),
-                documentId: unsafeBrandId(req.params.documentId),
-                ctx,
-              }
+              unsafeBrandId(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.answerId),
+              unsafeBrandId(req.params.documentId),
+              ctx
             );
 
           setMetadataVersionHeader(res, metadata);

@@ -606,16 +606,11 @@ export function purposeTemplateServiceBuilder(
       return purposeTemplate;
     },
     async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
       {
-        purposeTemplateId,
-        answerId,
-        documentId,
-      }: {
-        purposeTemplateId: PurposeTemplateId;
-        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-      },
-      {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
@@ -1446,21 +1441,19 @@ export function purposeTemplateServiceBuilder(
         )
       );
     },
-    async deleteRiskAnalysisTemplateAnswerAnnotation({
-      purposeTemplateId,
-      answerId,
-      ctx,
-    }: {
-      purposeTemplateId: PurposeTemplateId;
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
-    }): Promise<
+    async deleteRiskAnalysisTemplateAnswerAnnotation(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
       WithMetadata<
         RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
       >
     > {
-      const { logger, correlationId, authData } = ctx;
-
       logger.info(
         `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
@@ -1497,19 +1490,16 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async deleteRiskAnalysisTemplateAnswerAnnotationDocument({
-      purposeTemplateId,
-      answerId,
-      documentId,
-      ctx,
-    }: {
-      purposeTemplateId: PurposeTemplateId;
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
-    }): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
-      const { logger, correlationId, authData } = ctx;
-
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       logger.info(
         `Deleting risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}, answer ${answerId}`
       );
