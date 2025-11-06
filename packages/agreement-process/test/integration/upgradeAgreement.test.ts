@@ -183,7 +183,6 @@ describe("upgrade Agreement", () => {
         ),
         suspendedAt: new Date(),
       };
-      delete agreement.signedContract;
       await addOneAgreement(agreement);
 
       const { authData, consumerDelegation, delegateConsumer } =
@@ -333,11 +332,11 @@ describe("upgrade Agreement", () => {
           })
         ),
         contract: expectedContract,
+        signedContract: undefined,
         suspendedByPlatform: undefined,
         updatedAt: undefined,
         rejectionReason: undefined,
       };
-      delete actualAgreementUpgraded.signedContract;
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
@@ -473,7 +472,6 @@ describe("upgrade Agreement", () => {
         ),
         suspendedAt: new Date(),
       };
-      delete agreement.signedContract;
       await addOneAgreement(agreement);
 
       const { authData, consumerDelegation, delegateConsumer } =
@@ -557,11 +555,11 @@ describe("upgrade Agreement", () => {
           })
         ),
         contract: expectedContract,
+        signedContract: undefined,
         suspendedByPlatform: undefined,
         updatedAt: undefined,
         rejectionReason: undefined,
       };
-      delete actualAgreementUpgraded.signedContract;
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
@@ -649,7 +647,6 @@ describe("upgrade Agreement", () => {
             contract: getMockContract(agreementId, consumerId, producer.id),
             suspendedAt: new Date(),
           };
-          delete agreement.signedContract;
           await addOneAgreement(agreement);
 
           const { authData, consumerDelegation, delegateConsumer } =
@@ -753,7 +750,6 @@ describe("upgrade Agreement", () => {
               },
             },
           };
-          delete actualAgreementArchived?.signedContract;
           expect(sortAgreementV2(actualAgreementArchived)).toEqual(
             sortAgreementV2(toAgreementV2(expectedAgreementArchived))
           );
@@ -817,11 +813,11 @@ describe("upgrade Agreement", () => {
                 path: actualAgreementUpgraded?.consumerDocuments[i].path,
               })),
             contract: expectedContract,
+            signedContract: undefined,
             suspendedByPlatform: undefined,
             updatedAt: undefined,
             rejectionReason: undefined,
           };
-          delete actualAgreementUpgraded.signedContract;
           expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
           expect(upgradeAgreementResponse).toEqual({
             data: actualAgreementUpgraded,
@@ -1028,7 +1024,6 @@ describe("upgrade Agreement", () => {
         contract: getMockContract(agreementId, consumer.id, producer.id),
         suspendedAt: new Date(),
       };
-      delete agreement.signedContract;
       await addOneAgreement(agreement);
 
       const { authData, consumerDelegation, delegateConsumer } =
@@ -1097,6 +1092,7 @@ describe("upgrade Agreement", () => {
         updatedAt: undefined,
         rejectionReason: undefined,
         contract: undefined,
+        signedContract: undefined,
       };
 
       expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);

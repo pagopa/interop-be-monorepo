@@ -449,7 +449,7 @@ export function delegationServiceBuilder(
     delegationContract: DelegationContractDocument,
     { logger, correlationId }: WithLogger<AppContext<AuthData>>
   ): Promise<WithMetadata<Delegation>> {
-    logger.info(`Adding delegation contract ${delegationId}`);
+    logger.info(`Adding delegation contract to delegation ${delegationId}`);
     const { data: delegation, metadata } = await retrieveDelegationById(
       {
         delegationId,
@@ -480,7 +480,9 @@ export function delegationServiceBuilder(
     delegationContract: DelegationSignedContractDocument,
     { logger, correlationId }: WithLogger<AppContext<AuthData>>
   ): Promise<WithMetadata<Delegation>> {
-    logger.info(`Adding delegation signed contract ${delegationId}`);
+    logger.info(
+      `Adding delegation signed contract to delegation ${delegationId}`
+    );
     const { data: delegation, metadata } = await retrieveDelegationById(
       {
         delegationId,
