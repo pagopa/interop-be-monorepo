@@ -44,6 +44,8 @@ import {
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
   eserviceTemplateNameConflict,
+  eServiceUpdateSameDescriptionConflict,
+  eServiceUpdateSameNameConflict,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -359,6 +361,23 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
   );
   if (!hasValidDescriptor) {
     throw eserviceWithoutValidDescriptors(eservice.id);
+  }
+}
+
+export function assertUpdatedNameDiffersFromCurrent(
+  newName: string,
+  eservice: EService
+): void {
+  if (newName === eservice.name) {
+    throw eServiceUpdateSameNameConflict(eservice.id);
+  }
+}
+export function assertUpdatedDescriptionDiffersFromCurrent(
+  newDescription: string,
+  eservice: EService
+): void {
+  if (newDescription === eservice.description) {
+    throw eServiceUpdateSameDescriptionConflict(eservice.id);
   }
 }
 
