@@ -25,6 +25,8 @@ import {
   EServiceDescriptorPurposeTemplate,
   PurposeTemplateEvent,
   toPurposeTemplateV2,
+  PurposeRiskAnalysisForm,
+  PurposeRiskAnalysisFormV2,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
@@ -212,3 +214,51 @@ export const sortUpdatePurposeReturn = (
     purpose: sortPurpose(updatePurposeReturn.data.purpose),
   },
 });
+
+export function expectUniqueAswerInRiskAnalysisForm(
+  riskAnalysisForm: PurposeRiskAnalysisForm,
+  answerKey: string
+): void {
+  const expectedOneOccurrenceInSingleAnswers =
+    riskAnalysisForm.singleAnswers.filter((a) => a.key === answerKey);
+
+  const expectedOneOccurrenceInMultiAnswers =
+    riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
+
+  if (expectedOneOccurrenceInSingleAnswers.length) {
+    expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
+  }
+
+  if (expectedOneOccurrenceInMultiAnswers.length) {
+    expect(expectedOneOccurrenceInMultiAnswers.length).toBe(1);
+  }
+
+  expect(
+    expectedOneOccurrenceInSingleAnswers.length +
+      expectedOneOccurrenceInMultiAnswers.length
+  ).toBe(1);
+}
+
+export function expectUniqueAswerInRiskAnalysisFormV2(
+  riskAnalysisForm: PurposeRiskAnalysisFormV2,
+  answerKey: string
+): void {
+  const expectedOneOccurrenceInSingleAnswers =
+    riskAnalysisForm.singleAnswers.filter((a) => a.key === answerKey);
+
+  const expectedOneOccurrenceInMultiAnswers =
+    riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
+
+  if (expectedOneOccurrenceInSingleAnswers.length) {
+    expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
+  }
+
+  if (expectedOneOccurrenceInMultiAnswers.length) {
+    expect(expectedOneOccurrenceInMultiAnswers.length).toBe(1);
+  }
+
+  expect(
+    expectedOneOccurrenceInSingleAnswers.length +
+      expectedOneOccurrenceInMultiAnswers.length
+  ).toBe(1);
+}
