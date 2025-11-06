@@ -29,7 +29,7 @@
     "tsx": "4.19.1",
     "supertest": "7.0.0",
     "drizzle-orm": "0.39.3",
-    "vitest": "1.6.1",
+    "vitest": "4.0.7",
     "typescript": "5.4.5"
   },
   "dependencies": {
