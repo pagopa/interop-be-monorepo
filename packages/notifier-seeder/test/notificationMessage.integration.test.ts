@@ -183,6 +183,7 @@ describe("Notification tests", async () => {
         stamps: {},
         contract: undefined,
         suspendedAt: undefined,
+        signedContract: undefined,
       };
 
       const agreementEventV2: AgreementAddedV2 = {

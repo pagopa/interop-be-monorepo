@@ -43,6 +43,7 @@ import {
   eserviceInReadmodelCatalog,
   tenantInReadmodelTenant,
   EServiceDescriptorSQL,
+  agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
 import {
   escapeRegExp,
@@ -437,6 +438,7 @@ export function readModelServiceBuilderSQL(
           contract: agreementContractInReadmodelAgreement,
           stamp: agreementStampInReadmodelAgreement,
           totalCount: queryAgreementIds.totalCount,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .innerJoin(
@@ -469,6 +471,13 @@ export function readModelServiceBuilderSQL(
           eq(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         )
         .orderBy(
@@ -579,6 +588,7 @@ export function readModelServiceBuilderSQL(
           contract: agreementContractInReadmodelAgreement,
           stamp: agreementStampInReadmodelAgreement,
           totalCount: queryAgreementIds.totalCount,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .innerJoin(
@@ -611,6 +621,13 @@ export function readModelServiceBuilderSQL(
           eq(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         )
         .orderBy(
