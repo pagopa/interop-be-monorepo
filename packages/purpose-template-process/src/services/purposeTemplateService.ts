@@ -94,6 +94,7 @@ import {
   assertSuspendableState,
   validateRiskAnalysisAnswerOrThrow,
   assertAnnotationDocumentPrettyNameIsUnique,
+  assertAnswerExistsInRiskAnalysisTemplate,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -598,10 +599,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      await assertRequesterCanRetrievePurposeTemplate(
-        purposeTemplate.data,
-        authData
-      );
+      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
 
       return purposeTemplate;
     },
@@ -618,6 +616,13 @@ export function purposeTemplateServiceBuilder(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
 
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
+      assertAnswerExistsInRiskAnalysisTemplate(purposeTemplate.data, answerId);
+
       return await retrieveAnswerAnnotationDocument(
         purposeTemplateId,
         answerId,
@@ -629,6 +634,7 @@ export function purposeTemplateServiceBuilder(
       filters: GetPurposeTemplateEServiceDescriptorsFilters,
       { offset, limit }: { offset: number; limit: number },
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
@@ -640,7 +646,11 @@ export function purposeTemplateServiceBuilder(
         )}`
       );
 
-      await retrievePurposeTemplate(purposeTemplateId, readModelService);
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
 
       return await readModelService.getPurposeTemplateEServiceDescriptors(
         filters,
