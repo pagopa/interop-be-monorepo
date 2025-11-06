@@ -8,6 +8,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -29,11 +30,9 @@ import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleConsumerDelegationSubmitted", async () => {
@@ -71,9 +70,6 @@ describe("handleConsumerDelegationSubmitted", async () => {
     await addOneEService(eservice);
     await addOneTenant(delegatorTenant);
     await addOneTenant(delegateTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -89,7 +85,12 @@ describe("handleConsumerDelegationSubmitted", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -99,7 +100,6 @@ describe("handleConsumerDelegationSubmitted", async () => {
         delegationV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -124,7 +124,6 @@ describe("handleConsumerDelegationSubmitted", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -147,7 +146,6 @@ describe("handleConsumerDelegationSubmitted", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -169,7 +167,6 @@ describe("handleConsumerDelegationSubmitted", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -189,7 +186,6 @@ describe("handleConsumerDelegationSubmitted", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -211,7 +207,12 @@ describe("handleConsumerDelegationSubmitted", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[2].id, tenantId: users[2].tenantId },
+        {
+          userId: users[2].id,
+          tenantId: users[2].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const delegation = getMockDelegation({
@@ -226,7 +227,6 @@ describe("handleConsumerDelegationSubmitted", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -257,7 +257,6 @@ describe("handleConsumerDelegationSubmitted", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
