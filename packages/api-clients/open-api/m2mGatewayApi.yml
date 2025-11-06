@@ -16375,8 +16375,8 @@ paths:
     delete:
       tags:
         - purposeTemplates
-      summary: Delete a Draft Purpose Template
-      description: Delete a Draft Purpose Template
+      summary: Delete a Purpose Template in Draft state
+      description: Delete a Purpose Template that is in Draft state
       operationId: deletePurposeTemplate
       responses:
         "204":
