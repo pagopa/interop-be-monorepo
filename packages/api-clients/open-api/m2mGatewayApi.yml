@@ -16398,8 +16398,8 @@ paths:
     get:
       tags:
         - purposeTemplates
-      summary: Retrieve a Risk Analysis Form Template Answer Annotation Document
-      description: Retrieve a Risk Analysis Form Template Answer Annotation Document
+      summary: Retrieve the Document of a Risk Analysis Form Template Answer Annotation
+      description: Retrieve the Document of a Risk Analysis Form Template Answer Annotation
       operationId: getRiskAnalysisTemplateAnswerAnnotationDocument
       responses:
         "200":
