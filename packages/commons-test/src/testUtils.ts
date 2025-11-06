@@ -544,6 +544,7 @@ export const getMockAuthData = (
     origin: "IPA",
   },
   selfcareId: generateId(),
+  jti: generateId(),
 });
 
 export const getMockDelegation = ({
@@ -1276,6 +1277,7 @@ export const getMockContextInternal = ({
 }): WithLogger<AppContext<InternalAuthData>> => ({
   authData: {
     systemRole: systemRole.INTERNAL_ROLE,
+    jti: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -1291,6 +1293,7 @@ export const getMockContextMaintenance = ({
 }): WithLogger<AppContext<MaintenanceAuthData>> => ({
   authData: {
     systemRole: systemRole.MAINTENANCE_ROLE,
+    jti: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -1309,6 +1312,7 @@ export const getMockContextM2M = ({
   authData: {
     systemRole: systemRole.M2M_ROLE,
     organizationId: organizationId || generateId(),
+    jti: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -1329,6 +1333,7 @@ export const getMockContextM2MAdmin = ({
     organizationId: organizationId || generateId(),
     clientId: generateId(),
     userId: generateId(),
+    jti: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
