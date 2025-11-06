@@ -42,8 +42,19 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  countDistinct,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  ne,
+  or,
+} from "drizzle-orm";
 import { match } from "ts-pattern";
+import { PgSelect } from "drizzle-orm/pg-core";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
 
@@ -112,177 +123,254 @@ export function readModelServiceBuilderSQL({
       const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
         filters;
 
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+      return await readModelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(
+              eserviceTemplateInReadmodelEserviceTemplate.id
+            ),
           })
-        )
-        .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .leftJoin(
-          eserviceTemplateVersionInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .where(
-          and(
-            // NAME FILTER
-            name
-              ? ilike(
-                  eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${escapeRegExp(name)}%`
-                )
-              : undefined,
-            // IDS FILTER
-            eserviceTemplatesIds.length > 0
-              ? inArray(
-                  eserviceTemplateInReadmodelEserviceTemplate.id,
-                  eserviceTemplatesIds
-                )
-              : undefined,
-            match(personalData)
-              .with("TRUE", () =>
-                eq(
-                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                  true
-                )
+          .from(eserviceTemplateInReadmodelEserviceTemplate)
+          .$dynamic();
+
+        const idsQuery = tx
+          .select({ id: eserviceTemplateInReadmodelEserviceTemplate.id })
+          .from(eserviceTemplateInReadmodelEserviceTemplate)
+          .$dynamic();
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithFilters = tx
+            .selectDistinctOn(
+              [eserviceTemplateInReadmodelEserviceTemplate.id],
+              { id: eserviceTemplateInReadmodelEserviceTemplate.id }
+            )
+            .from(eserviceTemplateInReadmodelEserviceTemplate)
+            .leftJoin(
+              eserviceTemplateVersionInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
               )
-              .with("FALSE", () =>
-                eq(
-                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                  false
-                )
-              )
-              .with("DEFINED", () =>
-                isNotNull(
-                  eserviceTemplateInReadmodelEserviceTemplate.personalData
-                )
-              )
-              .with(undefined, () => undefined)
-              .exhaustive(),
-            // CREATORS IDS FILTER
-            creatorsIds.length > 0
-              ? inArray(
-                  eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                  creatorsIds
-                )
-              : undefined,
-            // STATES FILTER
-            states.length > 0
-              ? inArray(
-                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                  states
-                )
-              : undefined,
-            // VISIBILITY FILTER
-            hasRoleToAccessDraftTemplateVersions(authData)
-              ? or(
-                  eq(
-                    eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                    authData.organizationId
-                  ),
-                  and(
-                    ne(
-                      eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                      eserviceTemplateVersionState.draft
-                    ),
-                    isNotNull(
-                      eserviceTemplateVersionInReadmodelEserviceTemplate.id
+            )
+            .where(
+              and(
+                // NAME FILTER
+                name
+                  ? ilike(
+                      eserviceTemplateInReadmodelEserviceTemplate.name,
+                      `%${escapeRegExp(name)}%`
+                    )
+                  : undefined,
+                // IDS FILTER
+                eserviceTemplatesIds.length > 0
+                  ? inArray(
+                      eserviceTemplateInReadmodelEserviceTemplate.id,
+                      eserviceTemplatesIds
+                    )
+                  : undefined,
+                // PERSONAL DATA FILTER
+                match(personalData)
+                  .with("TRUE", () =>
+                    eq(
+                      eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                      true
                     )
                   )
-                )
-              : and(
-                  ne(
-                    eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                    eserviceTemplateVersionState.draft
-                  ),
-                  isNotNull(
-                    eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                  .with("FALSE", () =>
+                    eq(
+                      eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                      false
+                    )
                   )
-                )
-          )
-        )
-        .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
-        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+                  .with("DEFINED", () =>
+                    isNotNull(
+                      eserviceTemplateInReadmodelEserviceTemplate.personalData
+                    )
+                  )
+                  .with(undefined, () => undefined)
+                  .exhaustive(),
+                // CREATORS IDS FILTER
+                creatorsIds.length > 0
+                  ? inArray(
+                      eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+                      creatorsIds
+                    )
+                  : undefined,
+                // STATES FILTER
+                states.length > 0
+                  ? inArray(
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                      states
+                    )
+                  : undefined,
+                // VISIBILITY FILTER
+                hasRoleToAccessDraftTemplateVersions(authData)
+                  ? or(
+                      eq(
+                        eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+                        authData.organizationId
+                      ),
+                      and(
+                        ne(
+                          eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                          eserviceTemplateVersionState.draft
+                        ),
+                        isNotNull(
+                          eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                        )
+                      )
+                    )
+                  : and(
+                      ne(
+                        eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                        eserviceTemplateVersionState.draft
+                      ),
+                      isNotNull(
+                        eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                      )
+                    )
+              )
+            )
+            .as("subqueryWithFilters");
 
-      const queryResult = await readModelDB
-        .select({
-          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
-          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-          interface:
-            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          attribute:
-            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          riskAnalysisAnswer:
-            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-          totalCount: subquery.totalCount,
-        })
-        .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .innerJoin(
-          subquery,
-          eq(
-            subquery.eserviceTemplateId,
-            eserviceTemplateInReadmodelEserviceTemplate.id
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
-            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
-          )
-        )
-        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name));
+          const queryAfterFilters = query.innerJoin(
+            subqueryWithFilters,
+            eq(
+              eserviceTemplateInReadmodelEserviceTemplate.id,
+              subqueryWithFilters.id
+            )
+          );
 
-      const eserviceTemplates = aggregateEServiceTemplateArray(
-        toEServiceTemplateAggregatorArray(queryResult)
-      );
-      return createListResult(
-        eserviceTemplates.map((eserviceTemplate) => eserviceTemplate.data),
-        queryResult[0]?.totalCount ?? 0
-      );
+          return queryAfterFilters
+            .leftJoin(
+              eserviceTemplateVersionInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.id,
+                eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
+                eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
+              )
+            )
+            .$dynamic();
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
+          .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
+          .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
+          .limit(limit)
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+              version: eserviceTemplateVersionInReadmodelEserviceTemplate,
+              interface:
+                eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+              document:
+                eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+              attribute:
+                eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+              riskAnalysis:
+                eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+              riskAnalysisAnswer:
+                eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+            })
+            .from(eserviceTemplateInReadmodelEserviceTemplate)
+            .where(inArray(eserviceTemplateInReadmodelEserviceTemplate.id, ids))
+            .leftJoin(
+              eserviceTemplateVersionInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.id,
+                eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
+              )
+            )
+            .leftJoin(
+              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
+                eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
+              )
+            )
+            .orderBy(
+              ascLower(eserviceTemplateInReadmodelEserviceTemplate.name)
+            ),
+          buildQuery(totalCountQuery),
+        ]);
+
+        const eserviceTemplates = aggregateEServiceTemplateArray(
+          toEServiceTemplateAggregatorArray(queryResult)
+        );
+
+        return createListResult(
+          eserviceTemplates.map((e) => e.data),
+          totalCount[0]?.count
+        );
+      });
     },
     async checkNameConflictInstances(
       eserviceTemplate: EServiceTemplate,
