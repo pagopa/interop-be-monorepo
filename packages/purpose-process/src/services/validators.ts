@@ -618,7 +618,7 @@ function buildSingleOrMultiAnswerValue(
   return answerFromSeed;
 }
 
-// This function handles cases where is creating or editing a purpose created from a template.
+// This function handles cases where a user is creating or editing a purpose based on a purpose template.
 // If answer is editable by template, it is possible to edit an answer for which a dependent answer is expected
 // (e.g., a radio button of editable answer that enables a single answer) then,
 // unlike other cases, the risk analysis must be built by including the answer contained in the seed

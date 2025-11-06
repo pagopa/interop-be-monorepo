@@ -56,6 +56,7 @@ import {
   addOnePurpose,
   addOnePurposeTemplate,
   addOneTenant,
+  expectUniqueAswerInRiskAnalysisForm,
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
@@ -880,6 +881,15 @@ describe("patchUpdatePurposeFromTemplate", () => {
       },
       updatedAt: new Date(),
     });
+
+    expectUniqueAswerInRiskAnalysisForm(
+      updatePurpose.data.riskAnalysisForm!,
+      "isRequestOnBehalfOfThirdParties"
+    );
+    expectUniqueAswerInRiskAnalysisForm(
+      updatePurpose.data.riskAnalysisForm!,
+      "thirdPartiesRequestDataUsage"
+    );
 
     await expectUpdatedPurpose(
       updatePurpose.data,
