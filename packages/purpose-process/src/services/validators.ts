@@ -18,6 +18,7 @@ import {
   EServiceId,
   EServiceMode,
   Purpose,
+  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeTemplate,
   PurposeTemplateId,
@@ -39,6 +40,7 @@ import {
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
   purposeNotInDraftState,
+  purposeTitleNotAllowed,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
@@ -197,6 +199,30 @@ export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
 export const isSuspendable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.active ||
   purposeVersion.state === purposeVersionState.suspended;
+
+export const assertPurposeTitleNotExistsInOtherPurposes = async ({
+  readModelService,
+  purposeId,
+  eserviceId,
+  consumerId,
+  title,
+}: {
+  readModelService: ReadModelServiceSQL;
+  purposeId: PurposeId;
+  eserviceId: EServiceId;
+  consumerId: TenantId;
+  title: string;
+}): Promise<void> => {
+  const purposeWithSameName = await readModelService.getPurpose(
+    eserviceId,
+    consumerId,
+    title
+  );
+
+  if (purposeWithSameName && purposeWithSameName?.data.id !== purposeId) {
+    throw purposeTitleNotAllowed(title, purposeId, eserviceId, consumerId);
+  }
+};
 
 export const assertPurposeTitleIsNotDuplicated = async ({
   readModelService,
