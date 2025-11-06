@@ -432,7 +432,7 @@ export function toCreateEventAgreementDocumentGenerated(
   };
 }
 
-export function toCreateEventAgreementSignedContract(
+export function toCreateEventAgreementSignedContractGenerated(
   agreement: WithMetadata<Agreement>,
   correlationId: CorrelationId
 ): CreateEvent<AgreementEventV2> {

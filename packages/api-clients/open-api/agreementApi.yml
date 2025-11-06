@@ -1675,7 +1675,6 @@ components:
         - contentType
         - createdAt
         - path
-        - signedAt
       properties:
         id:
           type: string

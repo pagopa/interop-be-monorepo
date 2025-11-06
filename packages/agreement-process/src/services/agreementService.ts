@@ -87,7 +87,7 @@ import {
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
   toCreateEventAgreementDocumentGenerated,
-  toCreateEventAgreementSignedContract,
+  toCreateEventAgreementSignedContractGenerated,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -1611,7 +1611,7 @@ export function agreementServiceBuilder(
         signedContract: agreementContract,
       };
       const event = await repository.createEvent(
-        toCreateEventAgreementSignedContract(
+        toCreateEventAgreementSignedContractGenerated(
           { data: agreementWithDocument, metadata },
           correlationId
         )

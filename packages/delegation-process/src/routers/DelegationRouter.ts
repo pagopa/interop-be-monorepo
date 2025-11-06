@@ -12,13 +12,13 @@ import {
 } from "pagopa-interop-commons";
 import {
   DelegationContractDocument,
-  DelegationSignedContractDocument,
   EServiceId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   apiDelegationKindToDelegationKind,
+  apiDelegationSignedContractToDelegationSignedContract,
   apiDelegationStateToDelegationState,
   delegationContractToApiDelegationContract,
   delegationToApiDelegation,
@@ -37,6 +37,7 @@ import {
   getConsumerEservicesErrorMapper,
   getConsumerDelegatorsWithAgreementsErrorMapper,
   generateDelegationContractErrorMapper,
+  generateDelegationSignedContractErrorMapper,
 } from "../utilities/errorMappers.js";
 import { DelegationService } from "../services/delegationService.js";
 
@@ -190,14 +191,12 @@ const delegationRouter = (
         const { delegationId } = req.params;
         const delegationContract = DelegationContractDocument.parse(req.body);
 
-        const { metadata } =
-          await delegationService.internalAddDelegationContract(
-            unsafeBrandId(delegationId),
-            delegationContract,
-            ctx
-          );
+        await delegationService.internalAddDelegationContract(
+          unsafeBrandId(delegationId),
+          delegationContract,
+          ctx
+        );
 
-        setMetadataVersionHeader(res, metadata);
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -218,23 +217,20 @@ const delegationRouter = (
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { delegationId } = req.params;
-          const delegationContract = DelegationSignedContractDocument.parse(
-            req.body
-          );
+          const delegationContract =
+            apiDelegationSignedContractToDelegationSignedContract(req.body);
 
-          const { metadata } =
-            await delegationService.internalAddDelegationSignedContract(
-              unsafeBrandId(delegationId),
-              delegationContract,
-              ctx
-            );
-          setMetadataVersionHeader(res, metadata);
+          await delegationService.internalAddDelegationSignedContract(
+            unsafeBrandId(delegationId),
+            delegationContract,
+            ctx
+          );
 
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            generateDelegationContractErrorMapper,
+            generateDelegationSignedContractErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

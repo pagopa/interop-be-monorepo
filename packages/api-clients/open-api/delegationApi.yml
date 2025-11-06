@@ -1093,7 +1093,6 @@ components:
         - contentType
         - path
         - createdAt
-        - signedAt
     DelegationStamp:
       type: object
       additionalProperties: false

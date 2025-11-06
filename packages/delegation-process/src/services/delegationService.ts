@@ -489,10 +489,15 @@ export function delegationServiceBuilder(
       readModelService
     );
 
-    const delegationWithContract = {
+    const delegationWithContract: Delegation = {
       ...delegation,
-      signedContract: delegationContract,
+      ...(delegation.activationSignedContract
+        ? { activationContract: delegationContract }
+        : delegation.revocationSignedContract
+        ? { revocationContract: delegationContract }
+        : {}),
     };
+
     const event = await repository.createEvent(
       toCreateEventDelegationSignedContractGenerated(
         { data: delegationWithContract, metadata },

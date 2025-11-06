@@ -17,12 +17,12 @@ import {
   DelegationId,
   emptyErrorMapper,
   AgreementDocument,
-  AgreementSignedContract,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
+  apiAgreementSignedDocumentToAgreementSignedDocument,
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
@@ -46,6 +46,7 @@ import {
   verifyTenantCertifiedAttributesErrorMapper,
   getAgreementConsumerDocumentsErrorMapper,
   generateAgreementDocumentsErrorMapper,
+  generateAgreementSignedDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -575,13 +576,11 @@ const agreementRouter = (
 
         const { agreementId } = req.params;
         const agreementContract = AgreementDocument.parse(req.body);
-        const { metadata } =
-          await agreementService.internalAddAgreementContract(
-            unsafeBrandId(agreementId),
-            agreementContract,
-            ctx
-          );
-        setMetadataVersionHeader(res, metadata);
+        await agreementService.internalAddAgreementContract(
+          unsafeBrandId(agreementId),
+          agreementContract,
+          ctx
+        );
 
         return res.status(204).send();
       } catch (error) {
@@ -602,21 +601,20 @@ const agreementRouter = (
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { agreementId } = req.params;
-          const agreementContract = AgreementSignedContract.parse(req.body);
+          const agreementContract =
+            apiAgreementSignedDocumentToAgreementSignedDocument(req.body);
 
-          const { metadata } =
-            await agreementService.internalAddAgreementSignedContract(
-              unsafeBrandId(agreementId),
-              agreementContract,
-              ctx
-            );
-          setMetadataVersionHeader(res, metadata);
+          await agreementService.internalAddAgreementSignedContract(
+            unsafeBrandId(agreementId),
+            agreementContract,
+            ctx
+          );
 
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            generateAgreementDocumentsErrorMapper,
+            generateAgreementSignedDocumentsErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

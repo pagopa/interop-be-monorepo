@@ -15,11 +15,11 @@ import {
   EServiceId,
   PurposeTemplateId,
   PurposeVersionDocument,
-  PurposeVersionSignedDocument,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
@@ -39,6 +39,7 @@ import {
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   generateRiskAnalysisDocumentErrorMapper,
+  generateRiskAnalysisSignedDocumentErrorMapper,
   getPurposeErrorMapper,
   getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
@@ -744,14 +745,12 @@ const purposeRouter = (
           const { purposeId, versionId } = req.params;
           const riskAnalysisDocument = PurposeVersionDocument.parse(req.body);
 
-          const { metadata } =
-            await purposeService.internalAddUnsignedRiskAnalysisDocumentMetadata(
-              unsafeBrandId(purposeId),
-              unsafeBrandId(versionId),
-              riskAnalysisDocument,
-              ctx
-            );
-          setMetadataVersionHeader(res, metadata);
+          await purposeService.internalAddUnsignedRiskAnalysisDocumentMetadata(
+            unsafeBrandId(purposeId),
+            unsafeBrandId(versionId),
+            riskAnalysisDocument,
+            ctx
+          );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -770,23 +769,20 @@ const purposeRouter = (
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
           const { purposeId, versionId } = req.params;
-          const signedRiskAnalysis = PurposeVersionSignedDocument.parse(
-            req.body
-          );
+          const signedRiskAnalysis =
+            apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys(req.body);
 
-          const { metadata } =
-            await purposeService.internalAddSignedRiskAnalysisDocumentMetadata(
-              unsafeBrandId(purposeId),
-              unsafeBrandId(versionId),
-              signedRiskAnalysis,
-              ctx
-            );
-          setMetadataVersionHeader(res, metadata);
+          await purposeService.internalAddSignedRiskAnalysisDocumentMetadata(
+            unsafeBrandId(purposeId),
+            unsafeBrandId(versionId),
+            signedRiskAnalysis,
+            ctx
+          );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            generateRiskAnalysisDocumentErrorMapper,
+            generateRiskAnalysisSignedDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

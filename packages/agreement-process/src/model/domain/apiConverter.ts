@@ -14,6 +14,7 @@ import {
   DelegationId,
   AgreementStamp,
   AgreementStamps,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -98,6 +99,15 @@ export const apiAgreementDocumentToAgreementDocument = (
   ...input,
   id: unsafeBrandId(input.id),
   createdAt: new Date(),
+});
+
+export const apiAgreementSignedDocumentToAgreementSignedDocument = (
+  input: agreementApi.SignedDocument
+): AgreementSignedContract => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(input.createdAt),
+  signedAt: input.signedAt ? new Date(input.signedAt) : undefined,
 });
 
 function fromApiTenantVerifier(

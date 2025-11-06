@@ -47,11 +47,11 @@ describe("API POST /internal/purposes/:purposeId/versions/:versionId/riskAnalysi
     token: string,
     purposeId: PurposeId = mockPurpose.id,
     versionId: PurposeVersionId = mockVersion.id,
-    payload: PurposeVersionSignedDocument = mockRiskAnalysisDocumentPayload,
+    payload: PurposeVersionSignedDocument = mockRiskAnalysisDocumentPayload
   ) =>
     request(api)
       .post(
-        `/internal/purposes/${purposeId}/versions/${versionId}/riskAnalysisDocument/signed`,
+        `/internal/purposes/${purposeId}/versions/${versionId}/riskAnalysisDocument/signed`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
@@ -66,23 +66,20 @@ describe("API POST /internal/purposes/:purposeId/versions/:versionId/riskAnalysi
       const res = await makeRequest(token);
 
       expect(
-        purposeService.internalAddSignedRiskAnalysisDocumentMetadata,
+        purposeService.internalAddSignedRiskAnalysisDocumentMetadata
       ).toHaveBeenCalledWith(
         mockPurpose.id,
         mockVersion.id,
         mockRiskAnalysisDocumentPayload,
-        expect.anything(),
+        expect.anything()
       );
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
-      expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString(),
-      );
-    },
+    }
   );
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role)),
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -104,7 +101,7 @@ describe("API POST /internal/purposes/:purposeId/versions/:versionId/riskAnalysi
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
-    },
+    }
   );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
@@ -112,7 +109,7 @@ describe("API POST /internal/purposes/:purposeId/versions/:versionId/riskAnalysi
     const res = await makeRequest(
       token,
       "invalid-purpose-id" as PurposeId,
-      mockVersion.id,
+      mockVersion.id
     );
     expect(res.status).toBe(400);
   });
@@ -122,7 +119,7 @@ describe("API POST /internal/purposes/:purposeId/versions/:versionId/riskAnalysi
     const res = await makeRequest(
       token,
       mockPurpose.id,
-      "invalid-version-id" as PurposeVersionId,
+      "invalid-version-id" as PurposeVersionId
     );
     expect(res.status).toBe(400);
   });
@@ -137,7 +134,7 @@ describe("API POST /internal/purposes/:purposeId/versions/:versionId/riskAnalysi
       token,
       mockPurpose.id,
       mockVersion.id,
-      invalidPayload,
+      invalidPayload
     );
     expect(res.status).toBe(400);
   });
