@@ -131,15 +131,11 @@ export function toCreateEventPurposeTemplatePublished(
   };
 }
 
-export function toCreateEventPurposeTemplateUnsuspended({
-  purposeTemplate,
-  version,
-  correlationId,
-}: {
-  purposeTemplate: PurposeTemplate;
-  version: number;
-  correlationId: CorrelationId;
-}): CreateEvent<PurposeTemplateEventV2> {
+export function toCreateEventPurposeTemplateUnsuspended(
+  purposeTemplate: PurposeTemplate,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: purposeTemplate.id,
     version,
@@ -152,15 +148,11 @@ export function toCreateEventPurposeTemplateUnsuspended({
   };
 }
 
-export function toCreateEventPurposeTemplateSuspended({
-  purposeTemplate,
-  version,
-  correlationId,
-}: {
-  purposeTemplate: PurposeTemplate;
-  version: number;
-  correlationId: CorrelationId;
-}): CreateEvent<PurposeTemplateEventV2> {
+export function toCreateEventPurposeTemplateSuspended(
+  purposeTemplate: PurposeTemplate,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: purposeTemplate.id,
     version,
@@ -173,15 +165,11 @@ export function toCreateEventPurposeTemplateSuspended({
   };
 }
 
-export function toCreateEventPurposeTemplateArchived({
-  purposeTemplate,
-  version,
-  correlationId,
-}: {
-  purposeTemplate: PurposeTemplate;
-  version: number;
-  correlationId: CorrelationId;
-}): CreateEvent<PurposeTemplateEventV2> {
+export function toCreateEventPurposeTemplateArchived(
+  purposeTemplate: PurposeTemplate,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: purposeTemplate.id,
     version,
@@ -211,17 +199,12 @@ export function toCreateEventPurposeTemplateDraftDeleted(
   };
 }
 
-export function toCreateEventPurposeTemplateAnnotationDocumentDeleted({
-  purposeTemplate,
-  documentId,
-  correlationId,
-  version,
-}: {
-  purposeTemplate: PurposeTemplate;
-  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-  correlationId: CorrelationId;
-  version: number;
-}): CreateEvent<PurposeTemplateEventV2> {
+export function toCreateEventPurposeTemplateAnnotationDocumentDeleted(
+  purposeTemplate: PurposeTemplate,
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: purposeTemplate.id,
     version,
