@@ -243,7 +243,7 @@ export function expectGenericSinglePageListResult<T>(
 ): void {
   expect(actual).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(expected),
+    results: expect.arrayContaining(expected as any),
   });
   expect(actual.results).toHaveLength(expected.length);
 }
@@ -261,18 +261,18 @@ export const sortAgreementAttributes = <T extends AgreementV2 | undefined>(
     ...agreement,
     verifiedAttributes: agreement.verifiedAttributes
       ? [...agreement.verifiedAttributes].sort(
-          sortBy<VerifiedAttributeV2>((attr) => attr.id)
-        )
+        sortBy<VerifiedAttributeV2>((attr) => attr.id)
+      )
       : [],
     certifiedAttributes: agreement.certifiedAttributes
       ? [...agreement.certifiedAttributes].sort(
-          sortBy<CertifiedAttributeV2>((att) => att.id)
-        )
+        sortBy<CertifiedAttributeV2>((att) => att.id)
+      )
       : [],
     declaredAttributes: agreement.declaredAttributes
       ? [...agreement.declaredAttributes].sort(
-          sortBy<DeclaredAttributeV2>((att) => att.id)
-        )
+        sortBy<DeclaredAttributeV2>((att) => att.id)
+      )
       : [],
   };
 };
