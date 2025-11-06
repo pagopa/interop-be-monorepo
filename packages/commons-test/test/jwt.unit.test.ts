@@ -37,6 +37,7 @@ const expectedUiAuthData: UIAuthData = {
     origin: "IPA",
     value: "5N2TR557",
   },
+  jti: mockUiTokenPaylod.jti,
   selfcareId: mockUiTokenPaylod.selfcareId,
   organizationId: mockUiTokenPaylod.organizationId,
   userId: mockUiTokenPaylod.uid,
@@ -49,6 +50,7 @@ const mockM2MTokenPayload: SerializedInteropJwtApiPayload = createPayload(
 
 const expectedM2MAuthData: M2MAuthData = {
   systemRole: systemRole.M2M_ROLE,
+  jti: mockM2MTokenPayload.jti,
   organizationId: mockM2MTokenPayload.organizationId,
 };
 
@@ -56,6 +58,7 @@ const mockInternalTokenPayload: SerializedInteropJwtInternalPayload =
   createPayload(systemRole.INTERNAL_ROLE);
 
 const expectedInternalAuthData: InternalAuthData = {
+  jti: mockInternalTokenPayload.jti,
   systemRole: systemRole.INTERNAL_ROLE,
 };
 
@@ -64,6 +67,7 @@ const mockMaintenanceTokenPayload: InteropJwtMaintenancePayload = createPayload(
 );
 
 const expectedMaintenanceAuthData: MaintenanceAuthData = {
+  jti: mockMaintenanceTokenPayload.jti,
   systemRole: systemRole.MAINTENANCE_ROLE,
 };
 
@@ -73,6 +77,7 @@ const mockSupportTokenPayload: SerializedInteropJwtUIPayload = createPayload(
 
 const expectedSupportAuthData: UIAuthData = {
   systemRole: undefined,
+  jti: mockSupportTokenPayload.jti,
   externalId: {
     origin: "IPA",
     value: "5N2TR557",
@@ -89,6 +94,7 @@ const mockM2MAdminTokenPayload: SerializedInteropJwtApiPayload = createPayload(
 
 const expectedM2MAdminAuthData: M2MAdminAuthData = {
   systemRole: systemRole.M2M_ADMIN_ROLE,
+  jti: mockM2MAdminTokenPayload.jti,
   organizationId: mockM2MAdminTokenPayload.organizationId,
   userId: mockM2MAdminUserId,
   clientId: mockM2MAdminTokenPayload.client_id,
