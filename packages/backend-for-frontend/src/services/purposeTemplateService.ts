@@ -397,78 +397,58 @@ export function purposeTemplateServiceBuilder(
     async publishPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Publishing purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.publishPurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
+      await purposeTemplateClient.publishPurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
     },
     async unsuspendPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.unsuspendPurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
+      await purposeTemplateClient.unsuspendPurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
     },
     async suspendPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Suspending purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.suspendPurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
+      await purposeTemplateClient.suspendPurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
     },
     async archivePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Archiving purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.archivePurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
+      await purposeTemplateClient.archivePurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
     },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
