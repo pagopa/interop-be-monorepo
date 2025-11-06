@@ -24,7 +24,7 @@
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
-    "vitest": "4.0.7"
+    "vitest": "1.6.1"
   },
   "dependencies": {
     "@protobuf-ts/runtime": "2.9.4",

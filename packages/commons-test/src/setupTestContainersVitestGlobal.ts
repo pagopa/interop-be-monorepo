@@ -19,7 +19,8 @@ import {
   DynamoDBClientConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
-import type { ProvidedContext } from "vitest";
+import type { } from "vitest";
+import type { GlobalSetupContext } from "vitest/node";
 import {
   TEST_AWS_SES_PORT,
   TEST_DYNAMODB_PORT,
@@ -91,16 +92,9 @@ export function setupTestContainersVitestGlobal() {
   const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
 
-  type GlobalSetupFnContext = {
-    provide: <T extends keyof ProvidedContext & string>(
-      key: T,
-      value: ProvidedContext[T]
-    ) => void;
-  };
-
   return async function ({
     provide,
-  }: GlobalSetupFnContext): Promise<() => Promise<void>> {
+  }: GlobalSetupContext): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
