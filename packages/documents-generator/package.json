@@ -16,8 +16,9 @@
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
     "check": "tsc --project tsconfig.check.json",
-    "test": "vitest",
-    "test:it": "vitest integration"
+    "test:unit": "vitest",
+    "test:it": "vitest integration",
+    "test": "pnpm test:unit && pnpm test:it"
   },
   "keywords": [],
   "author": "",

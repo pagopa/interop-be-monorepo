@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* @typescript-eslint/no-explicit-any */
 import {
   initPDFGenerator,
   launchPuppeteerBrowser,
@@ -231,12 +232,12 @@ export function expectUniqueAswerInRiskAnalysisForm(
 }
 
 export function expectUniqueAswerInRiskAnalysisFormV2(
-  riskAnalysisForm: PurposeRiskAnalysisFormV2,
+  riskAnalysisFormV2: PurposeRiskAnalysisFormV2,
   answerKey: string
 ): void {
   assertUniqueAnswerOccurrence(
-    riskAnalysisForm.singleAnswers,
-    riskAnalysisForm.multiAnswers,
+    riskAnalysisFormV2.singleAnswers,
+    riskAnalysisFormV2.multiAnswers,
     answerKey
   );
 }
@@ -264,6 +265,6 @@ function assertUniqueAnswerOccurrence(
 
   expect(
     expectedOneOccurrenceInSingleAnswers.length +
-    expectedOneOccurrenceInMultiAnswers.length
+      expectedOneOccurrenceInMultiAnswers.length
   ).toBe(1);
 }
