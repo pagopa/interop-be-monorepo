@@ -11,6 +11,8 @@ import { handlePurposeVersionActivated } from "./handlePurposeVersionActivated.j
 import { handlePurposeVersionRejected } from "./handlePurposeVersionRejected.js";
 import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
 import { handlePurposeVersionUnsuspendedByProducer } from "./handlePurposeVersionUnsuspendedByProducer.js";
+import { handleNewPurposeVersionWaitingForApproval } from "./handleNewPurposeVersionWaitingForApproval.js";
+import { handlePurposeWaitingForApproval } from "./handlePurposeWaitingForApproval.js";
 
 export async function handlePurposeEvent(
   params: HandlerParams<typeof PurposeEventV2>
@@ -95,10 +97,28 @@ export async function handlePurposeEvent(
       })
     )
     .with(
+      { type: "NewPurposeVersionWaitingForApproval" },
+      ({ data: { purpose } }) =>
+        handleNewPurposeVersionWaitingForApproval({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with({ type: "PurposeWaitingForApproval" }, ({ data: { purpose } }) =>
+      handlePurposeWaitingForApproval({
+        purposeV2Msg: purpose,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with(
       {
         type: P.union(
-          "NewPurposeVersionWaitingForApproval",
-          "PurposeWaitingForApproval",
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
