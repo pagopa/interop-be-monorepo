@@ -56,6 +56,7 @@ export const errorCodes = {
   riskAnalysisVersionMismatch: "0037",
   invalidPersonalData: "0038",
   purposeDraftVersionNotFound: "0039",
+  purposeTitleNotAllowed: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -257,6 +258,19 @@ export function duplicatedPurposeTitle(title: string): ApiError<ErrorCodes> {
     detail: `Purpose with title: ${title} already exists`,
     code: "duplicatedPurposeTitle",
     title: "Duplicated Purpose Title",
+  });
+}
+
+export function purposeTitleNotAllowed(
+  title: string,
+  purposeId: PurposeId,
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Impossibile to update purpose ${purposeId} with title: ${title}, title already exists in other purposes for the same consumer ${consumerId} and eservice ${eserviceId}`,
+    code: "purposeTitleNotAllowed",
+    title: "Duplicated Purpose Title in Other Purposes",
   });
 }
 

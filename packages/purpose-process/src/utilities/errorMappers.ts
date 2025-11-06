@@ -307,7 +307,7 @@ export const updatePurposeByTemplateErrorMapper = (
     )
     .with(
       "purposeDraftVersionNotFound",
-      "duplicatedPurposeTitle",
+      "purposeTitleNotAllowed",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
