@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable fp/no-delete */
 
 import { generateMock } from "@anatine/zod-mock";
 import { getMockAgreement } from "pagopa-interop-commons-test";
@@ -47,6 +48,7 @@ describe("events V1", async () => {
         consumerDocuments: [],
       },
     };
+
     const message: AgreementEventEnvelope = {
       event_version: 1,
       sequence_num: 1,
@@ -67,6 +69,7 @@ describe("events V1", async () => {
 
   it("should delete an agreement", async () => {
     const agreement = getMockAgreement();
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const agreementDeleted: AgreementDeletedV1 = {
       agreementId: agreement.id,
@@ -93,6 +96,7 @@ describe("events V1", async () => {
 
   it("should update an agreement", async () => {
     const agreement = getMockAgreement();
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const agreementUpdated: AgreementUpdatedV1 = {
       agreement: {
@@ -135,6 +139,7 @@ describe("events V1", async () => {
 
   it("should add a consumer document to an agreement", async () => {
     const agreement = getMockAgreement();
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const agreementConsumerDocument = generateMock(AgreementDocument);
 
@@ -176,6 +181,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       consumerDocuments: [agreementConsumerDocument],
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const consumerDocumentRemoved: AgreementConsumerDocumentRemovedV1 = {
       documentId: agreementConsumerDocument.id,
@@ -211,6 +217,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       contract: agreementContract,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const agreementContractAdded: AgreementContractAddedV1 = {
       contract: toAgreementDocumentV1(agreementContract),
@@ -245,6 +252,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.pending,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const activatedAgreement: Agreement = {
       ...agreement,
@@ -280,6 +288,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const suspendedAgreement: Agreement = {
       ...agreement,
@@ -306,7 +315,6 @@ describe("events V1", async () => {
     );
 
     expect(retrievedAgreement).not.toBeNull();
-
     expect(retrievedAgreement?.data).toStrictEqual(suspendedAgreement);
   });
 
@@ -315,6 +323,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const deactivatedAgreement: Agreement = {
       ...agreement,
@@ -350,6 +359,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
+    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const updatedAgreement: Agreement = {
       ...agreement,
@@ -358,7 +368,6 @@ describe("events V1", async () => {
     const payload: AgreementActivatedV1 = {
       agreement: toAgreementV1(updatedAgreement),
     };
-
     const message: AgreementEventEnvelope = {
       event_version: 1,
       sequence_num: 1,
@@ -376,7 +385,6 @@ describe("events V1", async () => {
     );
 
     expect(retrievedAgreement).not.toBeNull();
-
     expect(retrievedAgreement?.data).toStrictEqual(updatedAgreement);
   });
 });
