@@ -114,6 +114,8 @@ import {
   hasRoleToAccessDraftTemplateVersions,
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
+  assertUpdatedNameDiffersFromCurrent,
+  assertUpdatedDescriptionDiffersFromCurrent,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -645,6 +647,8 @@ export function eserviceTemplateServiceBuilder(
         authData
       );
 
+      assertUpdatedNameDiffersFromCurrent(name, eserviceTemplate.data);
+
       assertPublishedEServiceTemplate(eserviceTemplate.data);
 
       if (name !== eserviceTemplate.data.name) {
@@ -742,6 +746,11 @@ export function eserviceTemplateServiceBuilder(
       assertRequesterEServiceTemplateCreator(
         eserviceTemplate.data.creatorId,
         authData
+      );
+
+      assertUpdatedDescriptionDiffersFromCurrent(
+        description,
+        eserviceTemplate.data
       );
 
       assertPublishedEServiceTemplate(eserviceTemplate.data);

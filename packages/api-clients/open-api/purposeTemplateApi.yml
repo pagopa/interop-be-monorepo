@@ -316,6 +316,9 @@ paths:
       responses:
         "200":
           description: E-Services linked to purpose template
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -379,6 +382,9 @@ paths:
       responses:
         "204":
           description: E-Services unlinked from purpose template
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Bad Request
           content:
@@ -483,15 +489,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Suspended
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -532,15 +534,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Unsuspended
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -581,15 +579,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Archived
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -630,15 +624,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Published
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -687,6 +677,9 @@ paths:
       responses:
         "200":
           description: Risk Analysis Template Answer added.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -835,6 +828,9 @@ paths:
       responses:
         "204":
           description: Risk analysis form template answer annotation document deleted
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Bad Request
           content:
@@ -849,6 +845,71 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Risk analysis form template answer annotation document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: documentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Update Risk Analysis Answer Annotation Document
+      description: Update Answer Annotation Document in Risk Analysis of Purpose Template
+      operationId: updateRiskAnalysisTemplateAnswerAnnotationDocument
+      tags:
+        - purposeTemplate
+      requestBody:
+        required: true
+        description: A payload containing the possible document updatable fields
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      responses:
+        "200":
+          description: Answer Annotation Document Document updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource not found
           content:
             application/problem+json:
               schema:
@@ -889,6 +950,9 @@ paths:
       responses:
         "200":
           description: Risk Analysis Template Answer Annotation added.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -920,6 +984,9 @@ paths:
       responses:
         "204":
           description: Risk analysis form template answer annotation deleted
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Bad Request
           content:
@@ -1195,13 +1262,8 @@ components:
         text:
           type: string
           maxLength: 250
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
       required:
         - text
-        - docs
     RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
       type: object
       additionalProperties: false
@@ -1226,6 +1288,16 @@ components:
         - contentType
         - prettyName
         - path
+    UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed:
+      required:
+        - prettyName
+      type: object
+      additionalProperties: false
+      properties:
+        prettyName:
+          type: string
+          minLength: 5
+          maxLength: 60
     RiskAnalysisTemplateAnswer:
       type: object
       additionalProperties: false

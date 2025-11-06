@@ -61,61 +61,98 @@ export async function handleAgreementSuspendedUnsuspended(
     return [];
   }
 
-  const [eservice, subjectName] = await Promise.all([
+  const [eservice, { consumerName, producerName }] = await Promise.all([
     retrieveEservice(agreement.eserviceId, readModelService),
-    getSubjectName(agreement, eventType, readModelService),
+    getConsumerAndProducerNames(agreement, readModelService),
   ]);
 
-  const action: "sospeso" | "riattivato" | "archiviato" =
-    getActionPerformed(eventType);
-  const body = inAppTemplates.agreementSuspendedUnsuspended(
-    action,
-    subjectName,
-    eservice.name
-  );
-
   return usersWithNotifications.map(
-    ({ userId, tenantId, notificationType }) => ({
-      userId,
-      tenantId,
-      body,
-      notificationType,
-      entityId: agreement.id,
-    })
+    ({ userId, tenantId, notificationType }) => {
+      const body = getNotificationBody(
+        eventType,
+        notificationType,
+        eservice.name,
+        consumerName,
+        producerName
+      );
+      return {
+        userId,
+        tenantId,
+        body,
+        notificationType,
+        entityId: agreement.id,
+      };
+    }
   );
 }
 
-async function getSubjectName(
+async function getConsumerAndProducerNames(
   agreement: {
     producerId: TenantId;
     consumerId: TenantId;
   },
-  eventType: AgreementSuspendedUnsuspendedEventType,
   readModelService: ReadModelServiceSQL
-): Promise<string> {
-  const getTenantName = async (tenantId: TenantId): Promise<string> => {
-    const tenant = await retrieveTenant(tenantId, readModelService);
-    return tenant.name;
-  };
+): Promise<{ consumerName: string; producerName: string }> {
+  const [consumer, producer] = await Promise.all([
+    retrieveTenant(agreement.consumerId, readModelService),
+    retrieveTenant(agreement.producerId, readModelService),
+  ]);
+  return { consumerName: consumer.name, producerName: producer.name };
+}
 
-  return match<AgreementSuspendedUnsuspendedEventType, Promise<string>>(
-    eventType
-  )
-    .with(
-      "AgreementSuspendedByConsumer",
-      "AgreementUnsuspendedByConsumer",
-      "AgreementArchivedByConsumer",
-      () => getTenantName(agreement.consumerId)
+function getNotificationBody(
+  eventType: AgreementSuspendedUnsuspendedEventType,
+  notificationType: NotificationType,
+  eserviceName: string,
+  consumerName: string,
+  producerName: string
+): string {
+  return match(eventType)
+    .with("AgreementSuspendedByConsumer", () =>
+      inAppTemplates.agreementSuspendedByConsumerToProducer(
+        consumerName,
+        eserviceName
+      )
     )
-    .with(
-      "AgreementSuspendedByProducer",
-      "AgreementUnsuspendedByProducer",
-      () => getTenantName(agreement.producerId)
+    .with("AgreementSuspendedByPlatform", () =>
+      notificationType === "agreementSuspendedUnsuspendedToConsumer"
+        ? inAppTemplates.agreementSuspendedByPlatformToConsumer(eserviceName)
+        : inAppTemplates.agreementSuspendedByPlatformToProducer(
+            consumerName,
+            eserviceName
+          )
     )
-    .with(
-      "AgreementSuspendedByPlatform",
-      "AgreementUnsuspendedByPlatform",
-      () => Promise.resolve("La piattaforma")
+    .with("AgreementUnsuspendedByConsumer", () =>
+      inAppTemplates.agreementUnsuspendedByConsumerToProducer(
+        consumerName,
+        eserviceName
+      )
+    )
+    .with("AgreementUnsuspendedByPlatform", () =>
+      notificationType === "agreementSuspendedUnsuspendedToConsumer"
+        ? inAppTemplates.agreementUnsuspendedByPlatformToConsumer(eserviceName)
+        : inAppTemplates.agreementUnsuspendedByPlatformToProducer(
+            consumerName,
+            eserviceName
+          )
+    )
+    .with("AgreementArchivedByConsumer", () =>
+      inAppTemplates.agreementArchivedByConsumerToProducer(
+        consumerName,
+        eserviceName
+      )
+    )
+    .with("AgreementSuspendedByProducer", () =>
+      inAppTemplates.agreementSuspendedByProducerToConsumer(
+        producerName,
+        eserviceName
+      )
+    )
+    .with("AgreementUnsuspendedByProducer", () =>
+      inAppTemplates.agreementUnsuspendedByProducerToConsumer(
+        producerName,
+        eserviceName
+      )
     )
     .exhaustive();
 }
@@ -133,29 +170,6 @@ function getAudiencesToNotify(
     .with("AgreementSuspendedByPlatform", () => ["consumer", "producer"])
     .with("AgreementUnsuspendedByPlatform", () => ["consumer", "producer"])
     .with("AgreementArchivedByConsumer", () => ["producer"])
-    .exhaustive();
-}
-
-function getActionPerformed(
-  eventType: AgreementSuspendedUnsuspendedEventType
-): "sospeso" | "riattivato" | "archiviato" {
-  return match<
-    AgreementSuspendedUnsuspendedEventType,
-    "sospeso" | "riattivato" | "archiviato"
-  >(eventType)
-    .with(
-      "AgreementSuspendedByConsumer",
-      "AgreementSuspendedByProducer",
-      "AgreementSuspendedByPlatform",
-      () => "sospeso"
-    )
-    .with(
-      "AgreementUnsuspendedByConsumer",
-      "AgreementUnsuspendedByProducer",
-      "AgreementUnsuspendedByPlatform",
-      () => "riattivato"
-    )
-    .with("AgreementArchivedByConsumer", () => "archiviato")
     .exhaustive();
 }
 
