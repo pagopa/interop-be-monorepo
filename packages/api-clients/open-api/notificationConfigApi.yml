@@ -487,6 +487,7 @@ components:
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
         - producerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -527,6 +528,8 @@ components:
         clientKeyAddedDeletedToClientUsers:
           type: boolean
         producerKeychainKeyAddedDeletedToClientUsers:
+          type: boolean
+        purposeQuotaAdjustmentRequestToProducer:
           type: boolean
     TenantNotificationConfigSeed:
       type: object

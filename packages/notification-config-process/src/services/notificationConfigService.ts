@@ -74,6 +74,7 @@ const defaultNotificationConfigs = {
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
       clientKeyAddedDeletedToClientUsers: false,
       producerKeychainKeyAddedDeletedToClientUsers: false,
+      purposeQuotaAdjustmentRequestToProducer: false,
     } satisfies NotificationConfig,
     email: {
       agreementSuspendedUnsuspendedToProducer: false,
@@ -96,6 +97,7 @@ const defaultNotificationConfigs = {
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
       clientKeyAddedDeletedToClientUsers: false,
       producerKeychainKeyAddedDeletedToClientUsers: false,
+      purposeQuotaAdjustmentRequestToProducer: false,
     } satisfies NotificationConfig,
   },
 };

@@ -29,6 +29,7 @@ export const NotificationType = z.enum([
   "certifiedVerifiedAttributeAssignedRevokedToAssignee", // 24: Conferimento o revoca di attributi certificati o verificati
   "clientKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ClientKey)
   "producerKeychainKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ProducerKeychain)
+  "purposeQuotaAdjustmentRequestToProducer", // 06: Richiesta adeguamento piano di carico finalità
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 

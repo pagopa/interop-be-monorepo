@@ -274,6 +274,18 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente erogatore ${producerName} ha rifiutato la finalità <strong>${purposeName}</strong> che il tuo ente ha inoltrato per l'e-service <strong>${eserviceName}</strong>.`,
+  purposeQuotaAdjustmentNewVersionToProducer: (
+    consumerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${consumerName} ha richiesto un adeguamento del piano di carico per la finalità "<strong>${purposeName}</strong>", associata al tuo e-service <strong>${eserviceName}</strong>.`,
+  purposeQuotaAdjustmentFirstVersionToProducer: (
+    consumerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${consumerName} ha inviato la finalità "<strong>${purposeName}</strong>", che prevede un piano di carico superiore alla tua soglia, associata al tuo e-service <strong>${eserviceName}</strong>.`,
   clientAddedRemovedToProducer: (
     purposeName: string,
     eserviceName: string,

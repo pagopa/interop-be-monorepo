@@ -5,6 +5,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
+import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
 
 export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelopeV2,
@@ -59,7 +60,20 @@ export async function handlePurposeEvent(
       {
         type: P.union(
           "NewPurposeVersionWaitingForApproval",
-          "PurposeWaitingForApproval",
+          "PurposeWaitingForApproval"
+        ),
+      },
+      ({ data: { purpose }, type }) =>
+        handlePurposeQuotaAdjustmentRequestToProducer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: P.union(
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",

@@ -65,6 +65,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
     clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersInApp,
     producerKeychainKeyAddedDeletedToClientUsers:
       producerKeychainKeyAddedDeletedToClientUsersInApp,
+    purposeQuotaAdjustmentRequestToProducer:
+      purposeQuotaAdjustmentRequestToProducerInApp,
   },
   emailConfig: {
     agreementSuspendedUnsuspendedToProducer:
@@ -100,6 +102,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
     clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersEmail,
     producerKeychainKeyAddedDeletedToClientUsers:
       producerKeychainKeyAddedDeletedToClientUsersEmail,
+    purposeQuotaAdjustmentRequestToProducer:
+      purposeQuotaAdjustmentRequestToProducerEmail,
   },
   createdAt,
   updatedAt,
@@ -151,6 +155,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         clientKeyAddedDeletedToClientUsersInApp,
       producerKeychainKeyAddedDeletedToClientUsers:
         producerKeychainKeyAddedDeletedToClientUsersInApp,
+      purposeQuotaAdjustmentRequestToProducer:
+        purposeQuotaAdjustmentRequestToProducerInApp,
     },
     emailConfig: {
       agreementSuspendedUnsuspendedToProducer:
@@ -188,6 +194,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         clientKeyAddedDeletedToClientUsersEmail,
       producerKeychainKeyAddedDeletedToClientUsers:
         producerKeychainKeyAddedDeletedToClientUsersEmail,
+      purposeQuotaAdjustmentRequestToProducer:
+        purposeQuotaAdjustmentRequestToProducerEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),

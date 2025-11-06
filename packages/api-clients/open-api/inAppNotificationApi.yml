@@ -514,6 +514,7 @@ components:
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
         - producerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
     NotificationsByType:
       type: object
       additionalProperties: false
@@ -579,6 +580,9 @@ components:
               type: integer
               format: int32
             producerKeychainKeyAddedDeletedToClientUsers:
+              type: integer
+              format: int32
+            purposeQuotaAdjustmentRequestToProducer:
               type: integer
               format: int32
         totalCount:
