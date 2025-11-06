@@ -16,6 +16,7 @@ import {
   PurposeTemplateId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantKind,
 } from "pagopa-interop-models";
 import {
@@ -620,7 +621,7 @@ export function purposeTemplateServiceBuilder(
       ctx,
     }: {
       purposeTemplateId: PurposeTemplateId;
-      answerId: PurposeTemplateId;
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
       documentId: string;
       ctx: WithLogger<BffAppContext>;
     }): Promise<void> {
@@ -641,6 +642,33 @@ export function purposeTemplateServiceBuilder(
             documentId,
           },
           headers,
+        }
+      );
+    },
+    async updateRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      body: bffApi.UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Updating risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      return await purposeTemplateClient.updateRiskAnalysisTemplateAnswerAnnotationDocument(
+        body,
+        {
+          headers,
+          params: {
+            purposeTemplateId,
+            answerId,
+            documentId,
+          },
         }
       );
     },
