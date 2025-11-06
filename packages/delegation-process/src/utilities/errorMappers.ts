@@ -120,4 +120,5 @@ export const generateDelegationSignedContractErrorMapper = (
 ): number =>
   match(error.code)
     .with("delegationNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("incorrectState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

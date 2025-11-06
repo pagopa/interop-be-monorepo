@@ -282,4 +282,5 @@ export const generateAgreementSignedDocumentsErrorMapper = (
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

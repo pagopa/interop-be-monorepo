@@ -489,6 +489,11 @@ export function delegationServiceBuilder(
       readModelService
     );
 
+    assertIsState(
+      [delegationState.active, delegationState.revoked],
+      delegation
+    );
+
     const delegationWithContract: Delegation = {
       ...delegation,
       ...(delegation.activationSignedContract

@@ -10,12 +10,16 @@ import {
   AgreementDocument,
   generateId,
   AgreementSignedContract,
+  agreementState,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, agreementService } from "../vitest.api.setup.js";
-import { agreementNotFound } from "../../src/model/domain/errors.js";
+import {
+  agreementNotFound,
+  agreementNotInExpectedState,
+} from "../../src/model/domain/errors.js";
 
 const mockAgreementContract: AgreementSignedContract = {
   id: generateId(),
@@ -81,6 +85,13 @@ describe("API POST /internal/agreement/:agreementId/signedContract test", () => 
       error: agreementNotFound(mockAgreement.id),
       expectedStatus: 404,
       description: "agreementNotFound",
+    },
+    {
+      error: agreementNotInExpectedState(
+        mockAgreement.id,
+        agreementState.draft
+      ),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $description error",

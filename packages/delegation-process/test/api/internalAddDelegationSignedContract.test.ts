@@ -17,7 +17,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, delegationService } from "../vitest.api.setup.js";
-import { delegationNotFound } from "../../src/model/domain/errors.js";
+import {
+  delegationNotFound,
+  incorrectState,
+} from "../../src/model/domain/errors.js";
 
 const mockDelegationContract: DelegationSignedContractDocument = {
   id: generateId<DelegationContractId>(),
@@ -85,6 +88,14 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
       error: delegationNotFound(mockDelegation.id),
       expectedStatus: 404,
       description: "delegationNotFound",
+    },
+    {
+      error: incorrectState(
+        mockDelegation.id,
+        "Rejected",
+        "WaitingForApproval"
+      ),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $description error",

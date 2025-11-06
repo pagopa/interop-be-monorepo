@@ -1606,6 +1606,12 @@ export function agreementServiceBuilder(
         readModelService
       );
 
+      assertExpectedState(
+        agreementId,
+        agreement.state,
+        agreementUpdatableStates
+      );
+
       const agreementWithDocument: Agreement = {
         ...agreement,
         signedContract: agreementContract,
