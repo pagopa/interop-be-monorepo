@@ -247,7 +247,7 @@ describe("createPurposeFromTemplate", () => {
     });
   });
 
-  it.only("should write on event-store for the creation of a purpose when seed have answer not present in template but dependent of editable", async () => {
+  it("should write on event-store for the creation of a purpose when seed have answer not present in template but dependent of editable", async () => {
     const purposetemplateWithEditableAnswer: PurposeTemplate = {
       ...mockPurposeTemplateWithValidRiskAnalysis,
       purposeRiskAnalysisForm: {
