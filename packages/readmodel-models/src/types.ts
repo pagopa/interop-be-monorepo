@@ -63,6 +63,7 @@ import {
   agreementSignedContractInReadmodelAgreement,
   purposeVersionSignedDocumentInReadmodelPurpose,
   delegationSignedContractDocumentInReadmodelDelegation,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -322,6 +323,9 @@ export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
 export type PurposeTemplateRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate
 >;
+export type PurposeTemplateRiskAnalysisFormDocumentSQL = InferSelectModel<
+  typeof purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate
+>;
 export type PurposeTemplateRiskAnalysisAnswerSQL = InferSelectModel<
   typeof purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate
 >;
@@ -335,6 +339,9 @@ export type PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL =
 export type PurposeTemplateItemsSQL = {
   purposeTemplateSQL: PurposeTemplateSQL;
   riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
+  riskAnalysisTemplateDocumentSQL:
+    | PurposeTemplateRiskAnalysisFormDocumentSQL
+    | undefined;
   riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];

@@ -10,6 +10,8 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
   TenantKind,
@@ -445,6 +447,7 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
     multiAnswers: addAnnotationToAnswers(
       incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
+    riskAnalysisTemplateDocument: getMockRiskAnalysisTemplateDocument(),
   };
 };
 
@@ -460,6 +463,22 @@ export const getMockRiskAnalysisTemplateAnswerAnnotationDocument = (
   prettyName: "prettyName",
   contentType: "application/pdf",
   createdAt: new Date(),
+  checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+});
+
+export const getMockRiskAnalysisTemplateDocument = (
+  id: RiskAnalysisTemplateDocumentId = generateId(),
+  purposeTemplateId: PurposeTemplateId = generateId(),
+  basePath: string = "purposeTemplatePath",
+  name: string = `Document-${id}`
+): RiskAnalysisTemplateDocument => ({
+  id,
+  name,
+  path: `${basePath}/${purposeTemplateId}/${name}`,
+  prettyName: "prettyName",
+  contentType: "application/pdf",
+  createdAt: new Date(),
+  signedAt: undefined,
   checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 });
 

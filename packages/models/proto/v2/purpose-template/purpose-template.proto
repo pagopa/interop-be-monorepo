@@ -33,6 +33,7 @@ message RiskAnalysisFormTemplateV2 {
   string version = 2;
   repeated RiskAnalysisTemplateSingleAnswerV2 singleAnswers = 3;
   repeated RiskAnalysisTemplateMultiAnswerV2 multiAnswers = 4;
+  optional RiskAnalysisTemplateDocumentV2 riskAnalysisTemplateDocument = 5;
 }
 
 message RiskAnalysisTemplateSingleAnswerV2 {
@@ -50,6 +51,17 @@ message RiskAnalysisTemplateMultiAnswerV2 {
   repeated string values = 3;
   bool editable = 4;
   optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
+}
+
+message RiskAnalysisTemplateDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+  optional int64 signedAt = 7;
+  string checksum = 8;
 }
 
 message RiskAnalysisTemplateAnswerAnnotationV2 {

@@ -5,11 +5,13 @@ import {
   RiskAnalysisFormTemplateV2,
   RiskAnalysisTemplateAnswerAnnotationDocumentV2,
   RiskAnalysisTemplateAnswerAnnotationV2,
+  RiskAnalysisTemplateDocumentV2,
 } from "../gen/v2/purpose-template/purpose-template.js";
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateDocument,
 } from "../risk-analysis-template/riskAnalysisTemplate.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import { bigIntToDate } from "../utils.js";
@@ -50,6 +52,15 @@ export const fromRiskAnalysisTemplateAnswerAnnotationV2 = (
   docs: input.docs.map(fromRiskAnalysisTemplateAnswerAnnotationDocumentV2),
 });
 
+export const fromRiskAnalysisTemplateDocumentV2 = (
+  input: RiskAnalysisTemplateDocumentV2
+): RiskAnalysisTemplateDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  signedAt: input.signedAt ? bigIntToDate(input.signedAt) : undefined,
+  createdAt: bigIntToDate(input.createdAt),
+});
+
 export const fromPurposeRiskAnalysisFormTemplateV2 = (
   input: RiskAnalysisFormTemplateV2
 ): RiskAnalysisFormTemplate => ({
@@ -70,6 +81,9 @@ export const fromPurposeRiskAnalysisFormTemplateV2 = (
       ? fromRiskAnalysisTemplateAnswerAnnotationV2(a.annotation)
       : undefined,
   })),
+  riskAnalysisTemplateDocument: input.riskAnalysisTemplateDocument
+    ? fromRiskAnalysisTemplateDocumentV2(input.riskAnalysisTemplateDocument)
+    : undefined,
 });
 
 export const fromPurposeTemplateV2 = (
