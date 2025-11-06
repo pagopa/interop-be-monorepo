@@ -855,6 +855,71 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: documentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Update Risk Analysis Answer Annotation Document
+      description: Update Answer Annotation Document in Risk Analysis of Purpose Template
+      operationId: updateRiskAnalysisTemplateAnswerAnnotationDocument
+      tags:
+        - purposeTemplate
+      requestBody:
+        required: true
+        description: A payload containing the possible document updatable fields
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      responses:
+        "200":
+          description: Answer Annotation Document Document updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1223,6 +1288,16 @@ components:
         - contentType
         - prettyName
         - path
+    UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed:
+      required:
+        - prettyName
+      type: object
+      additionalProperties: false
+      properties:
+        prettyName:
+          type: string
+          minLength: 5
+          maxLength: 60
     RiskAnalysisTemplateAnswer:
       type: object
       additionalProperties: false
