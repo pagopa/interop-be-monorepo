@@ -60,6 +60,10 @@ import {
   unexpectedUnassociationEServiceError,
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
+import {
+  toRiskAnalysisFormTemplateToValidate,
+  toRiskAnalysisTemplateAnswerToValidate,
+} from "../model/domain/apiConverter.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
@@ -125,15 +129,31 @@ export const assertDocumentsLimitsNotReached = (
   }
 };
 
+const assertPrettyNameIsUnique = (
+  docPrettyName: string,
+  newPrettyName: string,
+  answerId: string
+): void => {
+  if (docPrettyName === newPrettyName) {
+    throw conflictDocumentPrettyNameDuplicate(answerId, newPrettyName);
+  }
+};
+
+export const assertAnnotationDocumentPrettyNameIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
+  });
+
 export const assertAnnotationDocumentIsUnique = (
   { answer }: RiskAnalysisTemplateAnswer,
   newPrettyName: string,
   newChecksum: string
 ): void =>
   [...(answer?.annotation?.docs || [])].forEach((doc) => {
-    if (doc.prettyName === newPrettyName) {
-      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
-    }
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
 
     if (doc?.checksum === newChecksum) {
       throw conflictDuplicatedDocument(answer.id, newChecksum);
@@ -178,7 +198,7 @@ export function validateRiskAnalysisTemplateOrThrow({
   personalDataInPurposeTemplate: boolean;
 }): RiskAnalysisTemplateValidatedForm {
   const result = validatePurposeTemplateRiskAnalysis(
-    riskAnalysisFormTemplate,
+    toRiskAnalysisFormTemplateToValidate(riskAnalysisFormTemplate),
     tenantKind,
     personalDataInPurposeTemplate
   );
@@ -206,7 +226,7 @@ export function validateRiskAnalysisAnswerOrThrow({
 
   const result = validateRiskAnalysisAnswer(
     riskAnalysisAnswer.answerKey,
-    riskAnalysisAnswer.answerData,
+    toRiskAnalysisTemplateAnswerToValidate(riskAnalysisAnswer.answerData),
     tenantKind
   );
 

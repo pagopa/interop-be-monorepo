@@ -184,12 +184,12 @@ const purposeTemplateRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const response = await purposeTemplateService.publishPurposeTemplate(
+        await purposeTemplateService.publishPurposeTemplate(
           unsafeBrandId(req.params.purposeTemplateId),
           ctx
         );
 
-        return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -206,13 +206,12 @@ const purposeTemplateRouter = (
         const ctx = fromBffAppContext(req.ctx, req.headers);
 
         try {
-          const response =
-            await purposeTemplateService.unsuspendPurposeTemplate(
-              unsafeBrandId(req.params.purposeTemplateId),
-              ctx
-            );
+          await purposeTemplateService.unsuspendPurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            ctx
+          );
 
-          return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -228,12 +227,12 @@ const purposeTemplateRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const response = await purposeTemplateService.suspendPurposeTemplate(
+        await purposeTemplateService.suspendPurposeTemplate(
           unsafeBrandId(req.params.purposeTemplateId),
           ctx
         );
 
-        return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -248,12 +247,12 @@ const purposeTemplateRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const response = await purposeTemplateService.archivePurposeTemplate(
+        await purposeTemplateService.archivePurposeTemplate(
           unsafeBrandId(req.params.purposeTemplateId),
           ctx
         );
 
-        return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -478,6 +477,33 @@ const purposeTemplateRouter = (
             emptyErrorMapper,
             ctx,
             `Error deleting risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result =
+            await purposeTemplateService.updateRiskAnalysisTemplateAnswerAnnotationDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.answerId),
+              unsafeBrandId(req.params.documentId),
+              req.body,
+              ctx
+            );
+
+          return res.status(200).send(result);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

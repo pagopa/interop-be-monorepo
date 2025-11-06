@@ -3,20 +3,16 @@ import { generateId, PurposeTemplateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
-import { getMockBffApiPurposeTemplate } from "../../mockUtils.js";
 
 describe("API POST /purposeTemplates/{purposeTemplateId}/unsuspend", () => {
-  const mockPublishedPurposeTemplate = getMockBffApiPurposeTemplate(
-    bffApi.PurposeTemplateState.Enum.PUBLISHED
-  );
+  const mockPublishedPurposeTemplateId = generateId<PurposeTemplateId>();
 
   beforeEach(() => {
     clients.purposeTemplateProcessClient.unsuspendPurposeTemplate = vi
       .fn()
-      .mockResolvedValue(mockPublishedPurposeTemplate);
+      .mockResolvedValue(undefined);
   });
 
   const makeRequest = async (
@@ -28,11 +24,11 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/unsuspend", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  it("Should return 200 for user with role Admin", async () => {
+  it("Should return 204 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockPublishedPurposeTemplate.id);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockPublishedPurposeTemplate);
+    const res = await makeRequest(token, mockPublishedPurposeTemplateId);
+    expect(res.status).toBe(204);
+    expect(res.body).toEqual({});
   });
 
   it("Should return 400 for invalid purpose template id", async () => {
