@@ -11,6 +11,7 @@ import {
   PurposeVersionV2,
   PurposeV2,
   PurposeVersionStampsV2,
+  PurposeVersionSignedDocumentV2,
 } from "../gen/v2/purpose/purpose.js";
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
@@ -19,6 +20,7 @@ import {
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionSignedDocument,
   PurposeVersionStamp,
   PurposeVersionStamps,
   PurposeVersionState,
@@ -52,6 +54,15 @@ export const fromPurposeVersionDocumentV2 = (
   createdAt: bigIntToDate(input.createdAt),
 });
 
+export const fromPurposeVersionSignedDocumentV2 = (
+  input: PurposeVersionSignedDocumentV2
+): PurposeVersionSignedDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: bigIntToDate(input.createdAt),
+  signedAt: bigIntToDate(input.signedAt),
+});
+
 export const fromPurposeVersionStampV2 = (
   input: PurposeVersionStampV2 | undefined
 ): PurposeVersionStamp | undefined =>
@@ -83,6 +94,7 @@ export const fromPurposeVersionV2 = (
   firstActivationAt: bigIntToDate(input.firstActivationAt),
   suspendedAt: bigIntToDate(input.suspendedAt),
   stamps: input.stamps ? fromPurposeVersionStampsV2(input.stamps) : undefined,
+  signedContract: undefined,
 });
 
 export const fromPurposeRiskAnalysisFormV2 = (

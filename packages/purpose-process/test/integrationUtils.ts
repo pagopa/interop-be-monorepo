@@ -27,10 +27,6 @@ import {
   toPurposeTemplateV2,
   PurposeRiskAnalysisForm,
   PurposeRiskAnalysisFormV2,
-  RiskAnalysisSingleAnswer,
-  RiskAnalysisSingleAnswerV2,
-  RiskAnalysisMultiAnswerV2,
-  RiskAnalysisMultiAnswer,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
@@ -220,37 +216,14 @@ export const sortUpdatePurposeReturn = (
 });
 
 export function expectUniqueAswerInRiskAnalysisForm(
-  riskAnalysisForm: PurposeRiskAnalysisForm,
+  riskAnalysisForm: PurposeRiskAnalysisForm | PurposeRiskAnalysisFormV2,
   answerKey: string
 ): void {
-  assertUniqueAnswerOccurrence(
-    riskAnalysisForm.singleAnswers,
-    riskAnalysisForm.multiAnswers,
-    answerKey
-  );
-}
-
-export function expectUniqueAswerInRiskAnalysisFormV2(
-  riskAnalysisFormV2: PurposeRiskAnalysisFormV2,
-  answerKey: string
-): void {
-  assertUniqueAnswerOccurrence(
-    riskAnalysisFormV2.singleAnswers,
-    riskAnalysisFormV2.multiAnswers,
-    answerKey
-  );
-}
-
-function assertUniqueAnswerOccurrence(
-  singleAnswers: RiskAnalysisSingleAnswer[] | RiskAnalysisSingleAnswerV2[],
-  multiAnswers: RiskAnalysisMultiAnswer[] | RiskAnalysisMultiAnswerV2[],
-  answerKey: string
-): void {
-  const expectedOneOccurrenceInSingleAnswers = singleAnswers.filter(
+  const expectedOneOccurrenceInSingleAnswers = riskAnalysisForm.singleAnswers.filter(
     (a) => a.key === answerKey
   );
 
-  const expectedOneOccurrenceInMultiAnswers = multiAnswers.filter(
+  const expectedOneOccurrenceInMultiAnswers = riskAnalysisForm.multiAnswers.filter(
     (a) => a.key === answerKey
   );
   if (expectedOneOccurrenceInSingleAnswers.length) {
@@ -263,6 +236,6 @@ function assertUniqueAnswerOccurrence(
 
   expect(
     expectedOneOccurrenceInSingleAnswers.length +
-      expectedOneOccurrenceInMultiAnswers.length
+    expectedOneOccurrenceInMultiAnswers.length
   ).toBe(1);
 }

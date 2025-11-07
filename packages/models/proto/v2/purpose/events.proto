@@ -104,3 +104,7 @@ message RiskAnalysisDocumentGeneratedV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }
+message RiskAnalysisSignedDocumentGeneratedV2 {
+  string versionId = 1;
+  PurposeV2 purpose = 2;
+}

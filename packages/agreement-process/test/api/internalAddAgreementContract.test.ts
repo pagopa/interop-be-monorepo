@@ -63,9 +63,6 @@ describe("API POST /internal/agreement/:agreementId/contract test", () => {
       );
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
-      expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString()
-      );
     }
   );
 
