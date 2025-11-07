@@ -1556,7 +1556,7 @@ export function purposeTemplateServiceBuilder(
       { logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<purposeTemplateApi.CompactOrganization>> {
       logger.info(
-        `Retrieving purpose template creator with name ${creatorName}, limit ${limit}, offset ${offset}`
+        `Retrieving purpose template creators with name ${creatorName}, limit ${limit}, offset ${offset}`
       );
       return await readModelService.getPurposeTemplatesCreators({
         creatorName,

@@ -183,9 +183,9 @@ describe("getPurposeTemplatesCreators", () => {
     const tenantsByName = await readModelService.getPurposeTemplatesCreators({
       creatorName: undefined,
       offset: 0,
-      limit: 3,
+      limit: 2,
     });
-    expect(tenantsByName.results.length).toBe(3);
+    expect(tenantsByName.results.length).toBe(2);
   });
   it("should get creators (pagination: offset, limit)", async () => {
     await addOneTenant(tenant1);
@@ -220,6 +220,7 @@ describe("getPurposeTemplatesCreators", () => {
       limit: 3,
     });
     expect(tenantsByName.results.length).toBe(1);
+    expect(tenantsByName.results).toEqual([mockTenant3]);
   });
   it("should not get creators for purpose templates not published", async () => {
     await addOneTenant(tenant1);

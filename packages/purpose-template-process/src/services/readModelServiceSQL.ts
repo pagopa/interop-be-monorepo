@@ -450,65 +450,62 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<purposeTemplateApi.CompactOrganization>> {
-      return await readModelDB.transaction(async (tx) => {
-        const queryResult = await tx
-          .select(
-            withTotalCount({
-              id: tenantInReadmodelTenant.id,
-              name: tenantInReadmodelTenant.name,
-            })
-          )
-          .from(tenantInReadmodelTenant)
-          .innerJoin(
-            purposeTemplateInReadmodelPurposeTemplate,
-            and(
-              eq(
-                tenantInReadmodelTenant.id,
-                purposeTemplateInReadmodelPurposeTemplate.creatorId
-              )
-            )
-          )
-          .where(
-            and(
-              eq(
-                purposeTemplateInReadmodelPurposeTemplate.state,
-                purposeTemplateState.published
-              ),
-              creatorName
-                ? ilike(
-                    tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(creatorName)}%`
-                  )
-                : undefined,
-              isNotNull(tenantInReadmodelTenant.selfcareId)
-            )
-          )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .limit(limit)
-          .offset(offset);
-
-        const data: purposeTemplateApi.CompactOrganization[] = queryResult.map(
-          (d) => ({
-            id: d.id,
-            name: d.name,
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
           })
+        )
+        .from(tenantInReadmodelTenant)
+        .innerJoin(
+          purposeTemplateInReadmodelPurposeTemplate,
+          and(
+            eq(
+              tenantInReadmodelTenant.id,
+              purposeTemplateInReadmodelPurposeTemplate.creatorId
+            )
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.state,
+              purposeTemplateState.published
+            ),
+            creatorName
+              ? ilike(
+                  tenantInReadmodelTenant.name,
+                  `%${escapeRegExp(creatorName)}%`
+                )
+              : undefined
+          )
+        )
+        .groupBy(tenantInReadmodelTenant.id)
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
+        .limit(limit)
+        .offset(offset);
+
+      const data: purposeTemplateApi.CompactOrganization[] = queryResult.map(
+        (d) => ({
+          id: d.id,
+          name: d.name,
+        })
+      );
+
+      const result = z
+        .array(purposeTemplateApi.CompactOrganization)
+        .safeParse(data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse compact organization items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
         );
+      }
 
-        const result = z
-          .array(purposeTemplateApi.CompactOrganization)
-          .safeParse(data);
-
-        if (!result.success) {
-          throw genericInternalError(
-            `Unable to parse compact organization items: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
-          );
-        }
-
-        return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
-      });
+      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
     },
   };
 }
