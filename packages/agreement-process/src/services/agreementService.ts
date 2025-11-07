@@ -1808,7 +1808,7 @@ async function getConsumerFromDelegationOrRequester(
   if (delegationId) {
     // If a delegation has been passed, the consumer is the delegator
 
-    var delegation = delegations.find((d) => d.id === delegationId);
+    const delegation = delegations.find((d) => d.id === delegationId);
 
     if (!delegation) {
       throw delegationNotFound(delegationId);
