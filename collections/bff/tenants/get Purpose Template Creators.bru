@@ -1,0 +1,26 @@
+meta {
+  name: get Purpose Temaplate Creators
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/purposeTemplatesCreators?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+
+
+docs {
+  Retrieve Tenants that published at least one Purpose Template
+}

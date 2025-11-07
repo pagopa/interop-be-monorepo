@@ -346,6 +346,46 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplatesCreators:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - in: query
+        name: name
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - tenant
+      operationId: getPurposeTemplatesCreators
+      description: Retrieve Tenants that have published a Purpose Template
+      responses:
+        "200":
+          description: Tenants retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenants"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /tenants:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

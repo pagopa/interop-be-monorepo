@@ -1935,6 +1935,27 @@ export function tenantServiceBuilder(
         { offset, limit }
       );
     },
+    async getPurposeTemplatesCreators(
+      {
+        creatorName,
+        offset,
+        limit,
+      }: {
+        creatorName: string | undefined;
+        offset: number;
+        limit: number;
+      },
+      { logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<ListResult<Tenant>> {
+      logger.info(
+        `Retrieving Creators with name = ${creatorName}, limit = ${limit}, offset = ${offset}`
+      );
+      return readModelService.getPurposeTemplatesCreators({
+        creatorName,
+        offset,
+        limit,
+      });
+    },
   };
 }
 

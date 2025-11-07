@@ -38,6 +38,7 @@ import {
   tenantInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
+  purposeTemplateInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
@@ -301,6 +302,60 @@ export function readModelServiceBuilderSQL(
                 ? ilike(
                     tenantInReadmodelTenant.name,
                     `%${escapeRegExp(producerName)}%`
+                  )
+                : undefined,
+              isNotNull(tenantInReadmodelTenant.selfcareId)
+            )
+          )
+          .groupBy(tenantInReadmodelTenant.id)
+          .orderBy(ascLower(tenantInReadmodelTenant.name))
+          .limit(limit)
+          .offset(offset);
+
+        const tenantIds = queryResult.map((item) => item.tenantId);
+        const tenants = await tenantReadModelService.getTenantsByIds(
+          tenantIds,
+          tx
+        );
+        return createListResult(
+          tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+          queryResult[0]?.totalCount
+        );
+      });
+    },
+
+    async getPurposeTemplatesCreators({
+      creatorName,
+      offset,
+      limit,
+    }: {
+      creatorName: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      return await readModelDB.transaction(async (tx) => {
+        const queryResult = await tx
+          .select(
+            withTotalCount({
+              tenantId: tenantInReadmodelTenant.id,
+            })
+          )
+          .from(tenantInReadmodelTenant)
+          .innerJoin(
+            purposeTemplateInReadmodelPurposeTemplate,
+            and(
+              eq(
+                tenantInReadmodelTenant.id,
+                purposeTemplateInReadmodelPurposeTemplate.creatorId
+              )
+            )
+          )
+          .where(
+            and(
+              creatorName
+                ? ilike(
+                    tenantInReadmodelTenant.name,
+                    `%${escapeRegExp(creatorName)}%`
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)

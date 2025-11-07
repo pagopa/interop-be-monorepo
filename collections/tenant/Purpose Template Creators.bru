@@ -1,0 +1,21 @@
+meta {
+  name: Purpose Template Creators
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-tenant}}/purposeTemplatesCreators?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
