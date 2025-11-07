@@ -45,7 +45,7 @@ jobs:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
   packages_sharding:
-    name: Create packages sharding
+    name: Packages sharding
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -59,8 +59,8 @@ jobs:
         id: get_dedicated_packages
         run: |
           # Manually define packages that require dedicated test shards here and use the name from package.json
-          DEDICATED_PACKAGES='["pagopa-interop-backend-for-frontend", "pagopa-interop-m2m-gateway"]'
-          echo "dedicated_packages=$DEDICATED_PACKAGES" >> $GITHUB_OUTPUT
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='["pagopa-interop-backend-for-frontend", "pagopa-interop-m2m-gateway"]'
+          echo "dedicated_packages=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
 
       - name: Find packages with test directories
         id: get_test_packages
@@ -85,20 +85,20 @@ jobs:
           echo "All valid packages found: $(echo "$PACKAGES" | jq 'length')"
           echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
-      - name: Separate remaining and dedicated packages
+      - name: Identify packages that require dedicated shards for testing
         id: filter_packages
         run: |
-          ALL_TEST_PACKAGES='${{ steps.get_test_packages.outputs.test_packages }}'
-          DEDICATED_PACKAGES='${{ steps.get_dedicated_packages.outputs.dedicated_packages }}'
+          ALL_PACKAGES='${{ steps.get_test_packages.outputs.test_packages }}'
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='${{ steps.get_dedicated_packages.outputs.dedicated_packages }}'
 
-          REMAINING_TEST_PACKAGES=$(echo "$ALL_TEST_PACKAGES" | jq -c --argjson dedicated "$DEDICATED_PACKAGES" '
+          PACKAGES_TO_TEST=$(echo "$ALL_PACKAGES" | jq -c --argjson dedicated "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" '
             . - $dedicated
           ')
 
-          echo "Remaining packages for sharding: $(echo "$REMAINING_TEST_PACKAGES" | jq 'length')"
+          echo "Remaining packages for sharding: $(echo "$PACKAGES_TO_TEST" | jq 'length')"
 
-          echo "remaining_test_packages=$REMAINING_TEST_PACKAGES" >> $GITHUB_OUTPUT
-          echo "dedicated_test_packages=$DEDICATED_PACKAGES" >> $GITHUB_OUTPUT
+          echo "packages_to_test=$PACKAGES_TO_TEST" >> $GITHUB_OUTPUT
+          echo "packages_test_dedicated_runner=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
 
       - name: Create shards matrices
         id: sharded_packages
@@ -140,32 +140,34 @@ jobs:
           }
 
 
-          REMAINING_PACKAGES_JSON='${{ steps.filter_packages.outputs.remaining_test_packages }}'
-          REMAINING_PACK_NUM=$(echo "$REMAINING_PACKAGES_JSON" | jq -r length)
+          PACKAGES_TO_TEST_JSON='${{ steps.filter_packages.outputs.packages_to_test }}'
+          PACK_TO_TEST_NUM=$(echo "$PACKAGES_TO_TEST_JSON" | jq -r length)
 
-          DEDICATED_PACKAGES_JSON='${{ steps.filter_packages.outputs.dedicated_test_packages }}'
-          DEDICATED_PACK_NUM=$(echo "$DEDICATED_PACKAGES_JSON" | jq -r length)
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
+          DEDICATED_PACK_NUM=$(echo "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" | jq -r length)
 
-          FIXED_SHARDS=$(create_fixed_size_shard_matrix "$REMAINING_PACKAGES_JSON" "$REMAINING_PACK_NUM")
+          SHARDS_FOR_TESTING=$(create_fixed_size_shard_matrix "$PACKAGES_TO_TEST_JSON" "$PACK_TO_TEST_NUM")
 
-          DEDICATED_START_INDEX=$((SHARD_NUM + 1)) # Inizia da 11
-          DEDICATED_SHARDS=$(create_dedicated_shards "$DEDICATED_PACKAGES_JSON" "$DEDICATED_START_INDEX")
+          DEDICATED_SHARD_START_INDEX=$((SHARD_NUM + 1)) # Start index after fixed shards
+          DEDICATED_SHARDS=$(create_dedicated_shards "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" "$DEDICATED_SHARD_START_INDEX")
 
           TEST_MATRIX=$(
-            (echo "$FIXED_SHARDS"; echo "$DEDICATED_SHARDS") |
+            (echo "$SHARDS_FOR_TESTING"; echo "$DEDICATED_SHARDS") |
             grep -v -e '^$' | # Rimuove linee vuote
             jq -s -c . # Trasforma la lista di oggetti in un array
           )
 
           echo "Test Matrix Length: $(echo "$TEST_MATRIX" | jq 'length')"
+          echo "::group::Shards created for testing"
+          echo "$TEST_MATRIX"
+          echo "::endgroup::"
           echo "test_matrix=$TEST_MATRIX" >> $GITHUB_OUTPUT
 
           ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
           ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
 
           LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM")
-          LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)
-
+          LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)          
           echo "Lint Matrix Length: $(echo "$LINT_MATRIX" | jq 'length')"
           echo "lint_matrix=$LINT_MATRIX" >> $GITHUB_OUTPUT
 
