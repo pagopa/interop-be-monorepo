@@ -1,4 +1,4 @@
 {
   "extends": "../tsconfig.json",
-  "include": [".", "../../purpose-template-process/test/integration/getPurposeTemplatesCreators.test.ts"]
+  "include": ["."]
 }
