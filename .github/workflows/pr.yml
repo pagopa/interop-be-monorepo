@@ -103,12 +103,14 @@ jobs:
       - name: Create shards matrices
         id: sharded_packages
         run: |
-          SHARD_NUM=10
+          SHARD_TEST_NUM=10
+          SHARD_LINT_NUM=10
 
           create_fixed_size_shard_matrix() {
             local PACKAGES_JSON=$1
             local PACK_NUM=$2
-            
+            local SHARD_NUM=$3
+
             matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
               [range(0; $shardNum) as $i |
               {
@@ -146,9 +148,9 @@ jobs:
           PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
           DEDICATED_PACK_NUM=$(echo "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" | jq -r length)
 
-          SHARDS_FOR_TESTING=$(create_fixed_size_shard_matrix "$PACKAGES_TO_TEST_JSON" "$PACK_TO_TEST_NUM")
+          SHARDS_FOR_TESTING=$(create_fixed_size_shard_matrix "$PACKAGES_TO_TEST_JSON" "$PACK_TO_TEST_NUM" "$SHARD_TEST_NUM")
 
-          DEDICATED_SHARD_START_INDEX=$((SHARD_NUM + 1)) # Start index after fixed shards
+          DEDICATED_SHARD_START_INDEX=$((SHARD_TEST_NUM + 1)) # Start index after fixed shards
           DEDICATED_SHARDS=$(create_dedicated_shards "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" "$DEDICATED_SHARD_START_INDEX")
 
           TEST_MATRIX=$(
@@ -166,7 +168,7 @@ jobs:
           ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
           ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
 
-          LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM")
+          LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "$SHARD_LINT_NUM")
           LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)          
           echo "Lint Matrix Length: $(echo "$LINT_MATRIX" | jq 'length')"
           echo "lint_matrix=$LINT_MATRIX" >> $GITHUB_OUTPUT
