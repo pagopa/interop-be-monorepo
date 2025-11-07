@@ -421,7 +421,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
-      draftPurposeTemplateByCreator2,
       publishedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
     ]);
