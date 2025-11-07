@@ -9,7 +9,7 @@ import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCompactOrganization } from "../../mockUtils.js";
 
-describe("API GET /purposeTemplatesCreators test", () => {
+describe("API GET /purposeTemplates/filter/creators test", () => {
   const mockPurposeTemplateCreators: bffApi.CompactOrganizations = {
     results: [
       getMockBffApiCompactOrganization(),
@@ -20,7 +20,7 @@ describe("API GET /purposeTemplatesCreators test", () => {
   const defaultQuery = { offset: 0, limit: 10, q: "" };
 
   beforeEach(() => {
-    services.tenantService.getPurposeTemplatesCreators = vi
+    services.purposeTemplateService.getPurposeTemplatesCreators = vi
       .fn()
       .mockResolvedValue(mockPurposeTemplateCreators);
   });
@@ -30,7 +30,7 @@ describe("API GET /purposeTemplatesCreators test", () => {
     query: typeof defaultQuery = defaultQuery
   ) =>
     request(api)
-      .get(`${appBasePath}/purposeTemplatesCreators`)
+      .get(`${appBasePath}/purposeTemplates/filter/creators`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query(query);

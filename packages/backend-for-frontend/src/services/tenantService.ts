@@ -211,34 +211,6 @@ export function tenantServiceBuilder(
         },
       };
     },
-    async getPurposeTemplatesCreators(
-      name: string | undefined,
-      offset: number,
-      limit: number,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CompactOrganizations> {
-      logger.info(
-        `Getting Purpose Templates creators with name ${name}, limit ${limit}, offset ${offset}`
-      );
-      const { results, totalCount } =
-        await tenantProcessClient.tenant.getPurposeTemplatesCreators({
-          queries: {
-            name,
-            offset,
-            limit,
-          },
-          headers,
-        });
-
-      return {
-        results: results.map((t) => ({ id: t.id, name: t.name })),
-        pagination: {
-          offset,
-          limit,
-          totalCount,
-        },
-      };
-    },
     async getRequesterCertifiedAttributes(
       offset: number,
       limit: number,
