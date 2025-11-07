@@ -203,7 +203,7 @@ jobs:
             packages/*/dist/
 
   lint:
-    name: Lint sharded
+    name: Lint sharded [ ${{ matrix.shard.shardIndex }} ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -236,7 +236,7 @@ jobs:
           done
 
   test:
-    name: Tests sharded
+    name: Tests sharded [ ${{ matrix.shard.shardIndex }} ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
