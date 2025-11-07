@@ -314,7 +314,6 @@ describe("events V1", async () => {
       state: agreementState.active,
       signedContract: undefined,
     };
-    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const suspendedAgreement: Agreement = {
       ...agreement,
@@ -359,7 +358,6 @@ describe("events V1", async () => {
       state: agreementState.active,
       signedContract: undefined,
     };
-    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const deactivatedAgreement: Agreement = {
       ...agreement,
@@ -403,7 +401,6 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
-    delete agreement.signedContract;
     await agreementWriterService.upsertAgreement(agreement, 1);
     const updatedAgreement: Agreement = {
       ...agreement,

@@ -183,7 +183,6 @@ describe("upgrade Agreement", () => {
         ),
         suspendedAt: new Date(),
       };
-      delete agreement.signedContract;
       await addOneAgreement(agreement);
 
       const { authData, consumerDelegation, delegateConsumer } =
@@ -473,7 +472,6 @@ describe("upgrade Agreement", () => {
         ),
         suspendedAt: new Date(),
       };
-      delete agreement.signedContract;
       await addOneAgreement(agreement);
 
       const { authData, consumerDelegation, delegateConsumer } =
@@ -649,7 +647,6 @@ describe("upgrade Agreement", () => {
             contract: getMockContract(agreementId, consumerId, producer.id),
             suspendedAt: new Date(),
           };
-          delete agreement.signedContract;
           await addOneAgreement(agreement);
 
           const { authData, consumerDelegation, delegateConsumer } =
@@ -1027,7 +1024,6 @@ describe("upgrade Agreement", () => {
         contract: getMockContract(agreementId, consumer.id, producer.id),
         suspendedAt: new Date(),
       };
-      delete agreement.signedContract;
       await addOneAgreement(agreement);
 
       const { authData, consumerDelegation, delegateConsumer } =
