@@ -230,12 +230,8 @@ jobs:
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running lint for package: $PACKAGE"
-            pnpm --filter "$PACKAGE" lint > /dev/null 2>&1 || LINT_FAILED=1
+            pnpm --filter "$PACKAGE" lint
           done
-          if [ "$LINT_FAILED" -ne 0 ]; then
-            echo "Linting failed for one or more packages."
-            exit 1
-          fi
 
   test:
     name: Tests sharded
