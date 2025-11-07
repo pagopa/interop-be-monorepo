@@ -13,13 +13,14 @@ import {
   activateAgreementErrorMapper,
   getAgreementByIdErrorMapper,
   getAgreementContractErrorMapper,
+  getAgreementSignedContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { AgreementService } from "../services/agreementService.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  agreementService: AgreementService,
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(bffApi.agreementsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -48,7 +49,7 @@ const agreementRouter = (
             states,
             showOnlyUpgradeable,
           },
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreements.parse(result));
       } catch (error) {
@@ -56,7 +57,7 @@ const agreementRouter = (
           error,
           getAgreementsErrorMapper,
           ctx,
-          "Error retrieving agreements",
+          "Error retrieving agreements"
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -84,7 +85,7 @@ const agreementRouter = (
             states,
             showOnlyUpgradeable,
           },
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreements.parse(result));
       } catch (error) {
@@ -92,7 +93,7 @@ const agreementRouter = (
           error,
           getAgreementsErrorMapper,
           ctx,
-          "Error retrieving agreements",
+          "Error retrieving agreements"
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -109,7 +110,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error creating agreement for EService ${req.body.eserviceId} and Descriptor ${req.body.descriptorId}`,
+          `Error creating agreement for EService ${req.body.eserviceId} and Descriptor ${req.body.descriptorId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -128,7 +129,7 @@ const agreementRouter = (
             requesterId,
             eServiceName: q,
           },
-          ctx,
+          ctx
         );
 
         return res.status(200).send(bffApi.CompactEServicesLight.parse(result));
@@ -137,7 +138,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`,
+          `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -156,7 +157,7 @@ const agreementRouter = (
             requesterId,
             eServiceName: q,
           },
-          ctx,
+          ctx
         );
 
         return res.status(200).send(bffApi.CompactEServicesLight.parse(result));
@@ -165,7 +166,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`,
+          `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -182,7 +183,7 @@ const agreementRouter = (
             limit,
             producerName: q,
           },
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.CompactOrganizations.parse(result));
       } catch (error) {
@@ -190,7 +191,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving producers from agreement filtered by producer name ${q}, offset ${offset}, limit ${limit}`,
+          `Error retrieving producers from agreement filtered by producer name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -207,7 +208,7 @@ const agreementRouter = (
             limit,
             consumerName: q,
           },
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.CompactOrganizations.parse(result));
       } catch (error) {
@@ -215,7 +216,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving consumers from agreement filtered by consumer name ${q}, offset ${offset}, limit ${limit}`,
+          `Error retrieving consumers from agreement filtered by consumer name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -227,7 +228,7 @@ const agreementRouter = (
       try {
         const result = await agreementService.getAgreementById(
           req.params.agreementId,
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));
       } catch (error) {
@@ -235,7 +236,7 @@ const agreementRouter = (
           error,
           getAgreementByIdErrorMapper,
           ctx,
-          `Error retrieving agreement ${req.params.agreementId}`,
+          `Error retrieving agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -252,7 +253,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error deleting agreement ${req.params.agreementId}`,
+          `Error deleting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -265,7 +266,7 @@ const agreementRouter = (
         const result = await agreementService.addAgreementConsumerDocument(
           req.params.agreementId,
           req.body,
-          ctx,
+          ctx
         );
 
         return res.status(200).send(result);
@@ -274,7 +275,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error adding consumer document to agreement ${req.params.agreementId}`,
+          `Error adding consumer document to agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -287,7 +288,7 @@ const agreementRouter = (
         const result = await agreementService.activateAgreement(
           req.params.agreementId,
           req.body.delegationId,
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));
       } catch (error) {
@@ -295,7 +296,7 @@ const agreementRouter = (
           error,
           activateAgreementErrorMapper,
           ctx,
-          `Error activating agreement ${req.params.agreementId}`,
+          `Error activating agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -307,7 +308,7 @@ const agreementRouter = (
       try {
         const result = await agreementService.cloneAgreement(
           req.params.agreementId,
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.CreatedResource.parse(result));
       } catch (error) {
@@ -315,7 +316,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error cloning agreement ${req.params.agreementId}`,
+          `Error cloning agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -330,7 +331,7 @@ const agreementRouter = (
           const result = await agreementService.getAgreementConsumerDocument(
             req.params.agreementId,
             req.params.documentId,
-            ctx,
+            ctx
           );
 
           return res.status(200).send(result);
@@ -339,11 +340,11 @@ const agreementRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error downloading consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`,
+            `Error downloading consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
 
     .delete(
@@ -355,7 +356,7 @@ const agreementRouter = (
           await agreementService.removeConsumerDocument(
             req.params.agreementId,
             req.params.documentId,
-            ctx,
+            ctx
           );
 
           return res.status(204).send();
@@ -364,11 +365,11 @@ const agreementRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error deleting consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`,
+            `Error deleting consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
 
     .get("/agreements/:agreementId/contract", async (req, res) => {
@@ -377,7 +378,7 @@ const agreementRouter = (
       try {
         const result = await agreementService.getAgreementContract(
           req.params.agreementId,
-          ctx,
+          ctx
         );
 
         return res.status(200).send(result);
@@ -386,7 +387,7 @@ const agreementRouter = (
           error,
           getAgreementContractErrorMapper,
           ctx,
-          `Error downloading contract for agreement ${req.params.agreementId}`,
+          `Error downloading contract for agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -397,16 +398,16 @@ const agreementRouter = (
       try {
         const result = await agreementService.getAgreementSignedContract(
           req.params.agreementId,
-          ctx,
+          ctx
         );
 
         return res.status(200).send(result);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getAgreementContractErrorMapper,
+          getAgreementSignedContractErrorMapper,
           ctx,
-          `Error downloading contract for agreement ${req.params.agreementId}`,
+          `Error downloading contract for agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -419,7 +420,7 @@ const agreementRouter = (
         const result = await agreementService.submitAgreement(
           req.params.agreementId,
           req.body,
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));
       } catch (error) {
@@ -427,7 +428,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error submitting agreement ${req.params.agreementId}`,
+          `Error submitting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -440,7 +441,7 @@ const agreementRouter = (
         const result = await agreementService.suspendAgreement(
           req.params.agreementId,
           req.body.delegationId,
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));
       } catch (error) {
@@ -448,7 +449,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error suspending agreement ${req.params.agreementId}`,
+          `Error suspending agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -461,7 +462,7 @@ const agreementRouter = (
         const result = await agreementService.rejectAgreement(
           req.params.agreementId,
           req.body,
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));
       } catch (error) {
@@ -469,7 +470,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error rejecting agreement ${req.params.agreementId}`,
+          `Error rejecting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -486,7 +487,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error archiving agreement ${req.params.agreementId}`,
+          `Error archiving agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -499,7 +500,7 @@ const agreementRouter = (
         const result = await agreementService.updateAgreement(
           req.params.agreementId,
           req.body,
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));
       } catch (error) {
@@ -507,7 +508,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error updating agreement ${req.params.agreementId}`,
+          `Error updating agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -519,7 +520,7 @@ const agreementRouter = (
       try {
         const result = await agreementService.upgradeAgreement(
           req.params.agreementId,
-          ctx,
+          ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));
       } catch (error) {
@@ -527,7 +528,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error upgrading agreement ${req.params.agreementId}`,
+          `Error upgrading agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -543,7 +544,7 @@ const agreementRouter = (
             req.params.tenantId,
             req.params.eserviceId,
             req.params.descriptorId,
-            ctx,
+            ctx
           );
           return res
             .status(200)
@@ -553,11 +554,11 @@ const agreementRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error verifying certified attributes`,
+            `Error verifying certified attributes`
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     );
 
   return agreementRouter;

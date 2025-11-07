@@ -388,11 +388,10 @@ export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
 }
 
 export function delegationContractNotFound(
-  delegationId: string,
-  contractId: string
+  delegationId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation contract ${contractId}, for delegation ${delegationId} not found`,
+    detail: `Delegation contract for delegation ${delegationId} not found`,
     code: "delegationContractNotFound",
     title: "Delegation contract not found",
   });

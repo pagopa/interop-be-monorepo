@@ -331,11 +331,10 @@ export function delegationServiceBuilder(
 
     async getDelegationSignedContract(
       delegationId: DelegationId,
-      signedContractId: DelegationContractId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
       logger.info(
-        `Retrieving delegation signed contract ${signedContractId} from delegation ${delegationId}`
+        `Retrieving delegation signed contract  from delegation ${delegationId}`
       );
 
       const delegation: delegationApi.Delegation =
@@ -352,11 +351,11 @@ export function delegationServiceBuilder(
       ];
 
       const foundSignedContract = signedContracts.find(
-        (signedContract) => signedContract?.id === signedContractId
+        (contract) => contract != null
       );
 
       if (!foundSignedContract) {
-        throw delegationContractNotFound(delegationId, signedContractId);
+        throw delegationContractNotFound(delegationId);
       }
 
       const path = foundSignedContract.path;

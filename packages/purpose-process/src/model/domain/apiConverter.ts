@@ -4,6 +4,7 @@ import {
   PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionSignedDocument,
   PurposeVersionState,
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
@@ -93,6 +94,16 @@ export const purposeVersionDocumentToApiPurposeVersionDocument = (
   contentType: document.contentType,
   path: document.path,
   createdAt: document.createdAt.toJSON(),
+});
+
+export const purposeVersionSignedDocumentToApiPurposeVersionSignedDocument = (
+  document: PurposeVersionSignedDocument
+): purposeApi.PurposeVersionSignedDocument => ({
+  id: document.id,
+  contentType: document.contentType,
+  path: document.path,
+  createdAt: document.createdAt.toJSON(),
+  signedAt: document.signedAt?.toJSON(),
 });
 
 export const purposeVersionToApiPurposeVersion = (
