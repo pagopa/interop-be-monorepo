@@ -74,14 +74,9 @@ describe("Purpose aggregator", () => {
   });
 
   it("should convert incomplete purpose SQL objects into a business logic purpose (null -> undefined)", () => {
-    const purposeVersion = {
-      ...getMockPurposeVersion(),
-    };
-
     const purpose: WithMetadata<Purpose> = {
       data: {
         ...getMockPurpose(),
-        versions: [purposeVersion],
       },
       metadata: { version: 1 },
     };

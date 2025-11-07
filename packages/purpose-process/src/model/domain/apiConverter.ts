@@ -9,6 +9,7 @@ import {
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   LocalizedText,
@@ -238,4 +239,13 @@ export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
   questions: configuration.questions.map(
     formConfigQuestionToApiFormConfigQuestion
   ),
+});
+
+export const apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys = (
+  input: purposeApi.PurposeVersionSignedDocument
+): PurposeVersionSignedDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(input.createdAt),
+  signedAt: input.signedAt ? new Date(input.signedAt) : undefined,
 });

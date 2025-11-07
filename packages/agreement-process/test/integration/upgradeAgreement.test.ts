@@ -107,7 +107,7 @@ describe("upgrade Agreement", () => {
       requesterIs.delegateConsumer,
       requesterIs.producer,
       // ^ Producer can upgrade because it's the same as the consumer
-    ])
+    ]),
   )(
     "Requester === %s, should succeed with valid Verified and Declared attributes when consumer and producer are the same",
     async (requesterIs) => {
@@ -154,14 +154,14 @@ describe("upgrade Agreement", () => {
       const docsNumber = Math.floor(Math.random() * 10) + 1;
       const agreementConsumerDocuments = Array.from(
         { length: docsNumber },
-        () => getMockConsumerDocument(agreementId)
+        () => getMockConsumerDocument(agreementId),
       );
 
       const agreement: Agreement = {
         ...getMockAgreement(
           eservice.id,
           producerAndConsumerId,
-          randomArrayItem(agreementUpgradableStates)
+          randomArrayItem(agreementUpgradableStates),
         ),
         id: agreementId,
         producerId: eservice.producerId,
@@ -179,7 +179,7 @@ describe("upgrade Agreement", () => {
         contract: getMockContract(
           agreementId,
           producerAndConsumerId,
-          producerAndConsumerId
+          producerAndConsumerId,
         ),
         suspendedAt: new Date(),
       };
@@ -233,15 +233,15 @@ describe("upgrade Agreement", () => {
 
       const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
+        getMockContext({ authData }),
       );
       const newAgreementId = unsafeBrandId<AgreementId>(
-        upgradeAgreementResponse.data.id
+        upgradeAgreementResponse.data.id,
       );
 
       const actualAgreementArchivedEvent = await readAgreementEventByVersion(
         agreement.id,
-        1
+        1,
       );
 
       expect(actualAgreementArchivedEvent).toMatchObject({
@@ -270,14 +270,14 @@ describe("upgrade Agreement", () => {
       };
 
       expect(sortAgreementV2(actualAgreementArchived)).toEqual(
-        sortAgreementV2(toAgreementV2(expectedAgreementArchived))
+        sortAgreementV2(toAgreementV2(expectedAgreementArchived)),
       );
 
       expect(newAgreementId).toBeDefined();
 
       const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
         newAgreementId,
-        0
+        0,
       );
 
       expect(actualAgreementUpgradedEvent).toMatchObject({
@@ -291,7 +291,7 @@ describe("upgrade Agreement", () => {
         decodeProtobufPayload({
           messageType: AgreementUpgradedV2,
           payload: actualAgreementUpgradedEvent.data,
-        }).agreement!
+        }).agreement!,
       );
 
       const contractDocumentId = actualAgreementUpgraded.contract!.id;
@@ -330,14 +330,14 @@ describe("upgrade Agreement", () => {
             ...doc,
             id: actualAgreementUpgraded?.consumerDocuments[i].id,
             path: actualAgreementUpgraded?.consumerDocuments[i].path,
-          })
+          }),
         ),
         contract: expectedContract,
+        signedContract: undefined,
         suspendedByPlatform: undefined,
         updatedAt: undefined,
         rejectionReason: undefined,
       };
-      delete actualAgreementUpgraded.signedContract;
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
@@ -348,10 +348,10 @@ describe("upgrade Agreement", () => {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
         expect(
-          await fileManager.listFiles(config.s3Bucket, genericLogger)
+          await fileManager.listFiles(config.s3Bucket, genericLogger),
         ).toContainEqual(expectedUploadedDocumentPath);
       }
-    }
+    },
   );
 
   it.each(
@@ -360,7 +360,7 @@ describe("upgrade Agreement", () => {
       requesterIs.delegateConsumer,
       requesterIs.producer,
       // ^ Producer can upgrade because it's the same as the consumer
-    ])
+    ]),
   )(
     "Requester === %s, should succeed with invalid Verified and Declared attributes when consumer and producer are the same",
     async (requesterIs) => {
@@ -444,14 +444,14 @@ describe("upgrade Agreement", () => {
       const docsNumber = Math.floor(Math.random() * 10) + 1;
       const agreementConsumerDocuments = Array.from(
         { length: docsNumber },
-        () => getMockConsumerDocument(agreementId)
+        () => getMockConsumerDocument(agreementId),
       );
 
       const agreement: Agreement = {
         ...getMockAgreement(
           eservice.id,
           producerAndConsumer.id,
-          randomArrayItem(agreementUpgradableStates)
+          randomArrayItem(agreementUpgradableStates),
         ),
         id: agreementId,
         producerId: eservice.producerId,
@@ -469,7 +469,7 @@ describe("upgrade Agreement", () => {
         contract: getMockContract(
           agreementId,
           producerAndConsumer.id,
-          producerAndConsumer.id
+          producerAndConsumer.id,
         ),
         suspendedAt: new Date(),
       };
@@ -492,16 +492,16 @@ describe("upgrade Agreement", () => {
 
       const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
+        getMockContext({ authData }),
       );
       const newAgreementId = unsafeBrandId<AgreementId>(
-        upgradeAgreementResponse.data.id
+        upgradeAgreementResponse.data.id,
       );
 
       expect(newAgreementId).toBeDefined();
       const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
         newAgreementId,
-        0
+        0,
       );
 
       expect(actualAgreementUpgradedEvent).toMatchObject({
@@ -515,7 +515,7 @@ describe("upgrade Agreement", () => {
         decodeProtobufPayload({
           messageType: AgreementUpgradedV2,
           payload: actualAgreementUpgradedEvent.data,
-        }).agreement!
+        }).agreement!,
       );
 
       const contractDocumentId = actualAgreementUpgraded.contract!.id;
@@ -554,14 +554,14 @@ describe("upgrade Agreement", () => {
             ...doc,
             id: actualAgreementUpgraded?.consumerDocuments[i].id,
             path: actualAgreementUpgraded?.consumerDocuments[i].path,
-          })
+          }),
         ),
         contract: expectedContract,
+        signedContract: undefined,
         suspendedByPlatform: undefined,
         updatedAt: undefined,
         rejectionReason: undefined,
       };
-      delete actualAgreementUpgraded.signedContract;
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
@@ -572,14 +572,14 @@ describe("upgrade Agreement", () => {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
         expect(
-          await fileManager.listFiles(config.s3Bucket, genericLogger)
+          await fileManager.listFiles(config.s3Bucket, genericLogger),
         ).toContainEqual(expectedUploadedDocumentPath);
       }
-    }
+    },
   );
 
   describe.each(
-    Object.values([requesterIs.consumer, requesterIs.delegateConsumer])
+    Object.values([requesterIs.consumer, requesterIs.delegateConsumer]),
   )(
     "Requester === %s, should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different",
     async (requesterIs) => {
@@ -624,14 +624,14 @@ describe("upgrade Agreement", () => {
           const docsNumber = Math.floor(Math.random() * 10) + 1;
           const agreementConsumerDocuments = Array.from(
             { length: docsNumber },
-            () => getMockConsumerDocument(agreementId)
+            () => getMockConsumerDocument(agreementId),
           );
 
           const agreement: Agreement = {
             ...getMockAgreement(
               eservice.id,
               consumerId,
-              randomArrayItem(agreementUpgradableStates)
+              randomArrayItem(agreementUpgradableStates),
             ),
             id: agreementId,
             producerId: eservice.producerId,
@@ -720,10 +720,10 @@ describe("upgrade Agreement", () => {
           const upgradeAgreementResponse =
             await agreementService.upgradeAgreement(
               agreement.id,
-              getMockContext({ authData })
+              getMockContext({ authData }),
             );
           const newAgreementId = unsafeBrandId<AgreementId>(
-            upgradeAgreementResponse.data.id
+            upgradeAgreementResponse.data.id,
           );
 
           const actualAgreementArchivedEvent =
@@ -753,9 +753,8 @@ describe("upgrade Agreement", () => {
               },
             },
           };
-          delete actualAgreementArchived?.signedContract;
           expect(sortAgreementV2(actualAgreementArchived)).toEqual(
-            sortAgreementV2(toAgreementV2(expectedAgreementArchived))
+            sortAgreementV2(toAgreementV2(expectedAgreementArchived)),
           );
 
           expect(newAgreementId).toBeDefined();
@@ -774,7 +773,7 @@ describe("upgrade Agreement", () => {
             decodeProtobufPayload({
               messageType: AgreementUpgradedV2,
               payload: actualAgreementUpgradedEvent.data,
-            }).agreement!
+            }).agreement!,
           );
 
           const contractDocumentId = actualAgreementUpgraded.contract!.id;
@@ -782,7 +781,7 @@ describe("upgrade Agreement", () => {
           const contractDocumentName = `${consumer.id}_${
             producer.id
           }_${formatDateyyyyMMddHHmmss(
-            contractCreatedAt
+            contractCreatedAt,
           )}_agreement_contract.pdf`;
 
           const expectedContract = {
@@ -817,11 +816,11 @@ describe("upgrade Agreement", () => {
                 path: actualAgreementUpgraded?.consumerDocuments[i].path,
               })),
             contract: expectedContract,
+            signedContract: undefined,
             suspendedByPlatform: undefined,
             updatedAt: undefined,
             rejectionReason: undefined,
           };
-          delete actualAgreementUpgraded.signedContract;
           expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
           expect(upgradeAgreementResponse).toEqual({
             data: actualAgreementUpgraded,
@@ -832,7 +831,7 @@ describe("upgrade Agreement", () => {
             const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
             expect(
-              await fileManager.listFiles(config.s3Bucket, genericLogger)
+              await fileManager.listFiles(config.s3Bucket, genericLogger),
             ).toContainEqual(expectedUploadedDocumentPath);
           }
 
@@ -843,17 +842,17 @@ describe("upgrade Agreement", () => {
               agreementId: newAgreementId,
               submitterId: actualAgreementUpgraded.stamps.submission!.who,
               submissionDate: dateAtRomeZone(
-                expectedUpgradedAgreement.stamps.submission!.when
+                expectedUpgradedAgreement.stamps.submission!.when,
               ),
               submissionTime: timeAtRomeZone(
-                expectedUpgradedAgreement.stamps.submission!.when
+                expectedUpgradedAgreement.stamps.submission!.when,
               ),
               activatorId: actualAgreementUpgraded.stamps.activation!.who,
               activationDate: dateAtRomeZone(
-                expectedUpgradedAgreement.stamps.activation!.when
+                expectedUpgradedAgreement.stamps.activation!.when,
               ),
               activationTime: timeAtRomeZone(
-                expectedUpgradedAgreement.stamps.activation!.when
+                expectedUpgradedAgreement.stamps.activation!.when,
               ),
               eserviceName: eservice.name,
               eserviceId: eservice.id,
@@ -866,10 +865,10 @@ describe("upgrade Agreement", () => {
               certifiedAttributes: [
                 {
                   assignmentDate: dateAtRomeZone(
-                    validCertifiedTenantAttribute.assignmentTimestamp
+                    validCertifiedTenantAttribute.assignmentTimestamp,
                   ),
                   assignmentTime: timeAtRomeZone(
-                    validCertifiedTenantAttribute.assignmentTimestamp
+                    validCertifiedTenantAttribute.assignmentTimestamp,
                   ),
                   attributeName: certifiedAttribute.name,
                   attributeId: certifiedAttribute.id,
@@ -878,10 +877,10 @@ describe("upgrade Agreement", () => {
               declaredAttributes: [
                 {
                   assignmentDate: dateAtRomeZone(
-                    validDeclaredTenantAttribute.assignmentTimestamp
+                    validDeclaredTenantAttribute.assignmentTimestamp,
                   ),
                   assignmentTime: timeAtRomeZone(
-                    validDeclaredTenantAttribute.assignmentTimestamp
+                    validDeclaredTenantAttribute.assignmentTimestamp,
                   ),
                   attributeName: declaredAttribute.name,
                   attributeId: declaredAttribute.id,
@@ -891,15 +890,15 @@ describe("upgrade Agreement", () => {
               verifiedAttributes: [
                 {
                   assignmentDate: dateAtRomeZone(
-                    validVerifiedTenantAttribute.assignmentTimestamp
+                    validVerifiedTenantAttribute.assignmentTimestamp,
                   ),
                   assignmentTime: timeAtRomeZone(
-                    validVerifiedTenantAttribute.assignmentTimestamp
+                    validVerifiedTenantAttribute.assignmentTimestamp,
                   ),
                   attributeName: verifiedAttribute.name,
                   attributeId: verifiedAttribute.id,
                   expirationDate: dateAtRomeZone(
-                    validVerifiedTenantAttribute.verifiedBy[0].expirationDate
+                    validVerifiedTenantAttribute.verifiedBy[0].expirationDate,
                   ),
                   delegationId: producerDelegation?.id,
                 },
@@ -914,11 +913,11 @@ describe("upgrade Agreement", () => {
 
           expect(pdfGenerator.generate).toHaveBeenCalledWith(
             expect.any(String),
-            expectedAgreementContractPDFPayload
+            expectedAgreementContractPDFPayload,
           );
-        }
+        },
       );
-    }
+    },
   );
 
   it.each(Object.values([requesterIs.consumer, requesterIs.delegateConsumer]))(
@@ -1003,14 +1002,14 @@ describe("upgrade Agreement", () => {
       const docsNumber = Math.floor(Math.random() * 10) + 1;
       const agreementConsumerDocuments = Array.from(
         { length: docsNumber },
-        () => getMockConsumerDocument(agreementId)
+        () => getMockConsumerDocument(agreementId),
       );
 
       const agreement: Agreement = {
         ...getMockAgreement(
           eservice.id,
           consumer.id,
-          randomArrayItem(agreementUpgradableStates)
+          randomArrayItem(agreementUpgradableStates),
         ),
         id: agreementId,
         producerId: eservice.producerId,
@@ -1047,16 +1046,16 @@ describe("upgrade Agreement", () => {
 
       const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
+        getMockContext({ authData }),
       );
       const newAgreementId = unsafeBrandId<AgreementId>(
-        upgradeAgreementResponse.data.id
+        upgradeAgreementResponse.data.id,
       );
 
       expect(newAgreementId).toBeDefined();
       const actualAgreementCreatedEvent = await readAgreementEventByVersion(
         newAgreementId,
-        0
+        0,
       );
 
       expect(actualAgreementCreatedEvent).toMatchObject({
@@ -1070,7 +1069,7 @@ describe("upgrade Agreement", () => {
         decodeProtobufPayload({
           messageType: AgreementAddedV2,
           payload: actualAgreementCreatedEvent.data,
-        }).agreement!
+        }).agreement!,
       );
 
       const expectedCreatedAgreement = {
@@ -1087,7 +1086,7 @@ describe("upgrade Agreement", () => {
             ...doc,
             id: actualCreatedAgreement?.consumerDocuments[i].id,
             path: actualCreatedAgreement?.consumerDocuments[i].path,
-          })
+          }),
         ),
         stamps: {
           suspensionByConsumer: agreement.stamps.suspensionByConsumer,
@@ -1097,6 +1096,7 @@ describe("upgrade Agreement", () => {
         updatedAt: undefined,
         rejectionReason: undefined,
         contract: undefined,
+        signedContract: undefined,
       };
 
       expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);
@@ -1109,10 +1109,10 @@ describe("upgrade Agreement", () => {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
         expect(
-          await fileManager.listFiles(config.s3Bucket, genericLogger)
+          await fileManager.listFiles(config.s3Bucket, genericLogger),
         ).toContainEqual(expectedUploadedDocumentPath);
       }
-    }
+    },
   );
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
@@ -1124,8 +1124,8 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreementId,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
@@ -1135,15 +1135,15 @@ describe("upgrade Agreement", () => {
     const agreement: Agreement = getMockAgreement(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      randomArrayItem(agreementUpgradableStates)
+      randomArrayItem(agreementUpgradableStates),
     );
     await addOneAgreement(agreement);
 
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
@@ -1167,10 +1167,10 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id),
     );
   });
 
@@ -1180,23 +1180,23 @@ describe("upgrade Agreement", () => {
 
     const invalidAgreementState = randomArrayItem(
       Object.values(agreementState).filter(
-        (s) => !agreementUpgradableStates.includes(s)
-      )
+        (s) => !agreementUpgradableStates.includes(s),
+      ),
     );
     const agreement: Agreement = getMockAgreement(
       generateId<EServiceId>(),
       consumerId,
-      invalidAgreementState
+      invalidAgreementState,
     );
     await addOneAgreement(agreement);
 
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      agreementNotInExpectedState(agreement.id, agreement.state)
+      agreementNotInExpectedState(agreement.id, agreement.state),
     );
   });
 
@@ -1207,15 +1207,15 @@ describe("upgrade Agreement", () => {
     const agreement: Agreement = getMockAgreement(
       generateId<EServiceId>(),
       consumerId,
-      randomArrayItem(agreementUpgradableStates)
+      randomArrayItem(agreementUpgradableStates),
     );
     await addOneAgreement(agreement);
 
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
@@ -1224,7 +1224,7 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumerId);
 
     const nonPublishedDescriptorState = Object.values(descriptorState).filter(
-      (s) => s !== descriptorState.published
+      (s) => s !== descriptorState.published,
     );
     const nonPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1240,7 +1240,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       producerId: eservice.producerId,
     };
@@ -1249,8 +1249,8 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(publishedDescriptorNotFound(agreement.eserviceId));
   });
 
@@ -1272,7 +1272,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       producerId: eservice.producerId,
     };
@@ -1281,10 +1281,10 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      unexpectedVersionFormat(agreement.eserviceId, publishedDescriptor.id)
+      unexpectedVersionFormat(agreement.eserviceId, publishedDescriptor.id),
     );
   });
 
@@ -1307,7 +1307,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       producerId: eservice.producerId,
     };
@@ -1316,10 +1316,10 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      descriptorNotFound(eservice.id, agreement.descriptorId)
+      descriptorNotFound(eservice.id, agreement.descriptorId),
     );
   });
 
@@ -1347,7 +1347,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1357,10 +1357,10 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      unexpectedVersionFormat(eservice.id, agreement.descriptorId)
+      unexpectedVersionFormat(eservice.id, agreement.descriptorId),
     );
   });
 
@@ -1388,7 +1388,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1398,10 +1398,10 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      noNewerDescriptor(eservice.id, agreement.descriptorId)
+      noNewerDescriptor(eservice.id, agreement.descriptorId),
     );
   });
 
@@ -1429,7 +1429,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumerId,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1439,8 +1439,8 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(tenantNotFound(consumerId));
   });
 
@@ -1469,7 +1469,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumer.id,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1479,8 +1479,8 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
   });
 
@@ -1528,7 +1528,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumer.id,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1538,10 +1538,10 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      missingCertifiedAttributesError(newPublishedDescriptor.id, consumer.id)
+      missingCertifiedAttributesError(newPublishedDescriptor.id, consumer.id),
     );
   });
 
@@ -1580,7 +1580,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumer.id,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       id: agreementId,
       producerId: eservice.producerId,
@@ -1593,8 +1593,8 @@ describe("upgrade Agreement", () => {
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(FileManagerError);
   });
 
@@ -1642,7 +1642,7 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(
         eservice.id,
         consumer.id,
-        randomArrayItem(agreementUpgradableStates)
+        randomArrayItem(agreementUpgradableStates),
       ),
       id: agreementId,
       producerId: eservice.producerId,
@@ -1653,17 +1653,17 @@ describe("upgrade Agreement", () => {
     const conflictingAgreement: Agreement = getMockAgreement(
       eservice.id,
       consumer.id,
-      agreementState.draft
+      agreementState.draft,
     );
     await addOneAgreement(conflictingAgreement);
 
     await expect(
       agreementService.upgradeAgreement(
         agreement.id,
-        getMockContext({ authData })
-      )
+        getMockContext({ authData }),
+      ),
     ).rejects.toThrowError(
-      agreementAlreadyExists(agreement.consumerId, agreement.eserviceId)
+      agreementAlreadyExists(agreement.consumerId, agreement.eserviceId),
     );
   });
 });
