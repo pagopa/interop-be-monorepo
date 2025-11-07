@@ -1324,11 +1324,11 @@ export function purposeTemplateServiceBuilder(
       });
 
       const createdEvent = await repository.createEvent(
-        toCreateEventPurposeTemplateUnsuspended(
-          updatedPurposeTemplate.data,
-          updatedPurposeTemplate.metadata.version,
-          correlationId
-        )
+        toCreateEventPurposeTemplateUnsuspended({
+          purposeTemplate: updatedPurposeTemplate.data,
+          version: updatedPurposeTemplate.metadata.version,
+          correlationId,
+        })
       );
 
       return {
@@ -1361,11 +1361,11 @@ export function purposeTemplateServiceBuilder(
       };
 
       const createdEvent = await repository.createEvent(
-        toCreateEventPurposeTemplateSuspended(
-          updatedPurposeTemplate,
-          purposeTemplate.metadata.version,
-          correlationId
-        )
+        toCreateEventPurposeTemplateSuspended({
+          purposeTemplate: updatedPurposeTemplate,
+          version: purposeTemplate.metadata.version,
+          correlationId,
+        })
       );
 
       return {
@@ -1398,11 +1398,11 @@ export function purposeTemplateServiceBuilder(
       };
 
       const createdEvent = await repository.createEvent(
-        toCreateEventPurposeTemplateArchived(
-          updatedPurposeTemplate,
-          purposeTemplate.metadata.version,
-          correlationId
-        )
+        toCreateEventPurposeTemplateArchived({
+          purposeTemplate: updatedPurposeTemplate,
+          version: purposeTemplate.metadata.version,
+          correlationId,
+        })
       );
 
       return {
@@ -1530,12 +1530,12 @@ export function purposeTemplateServiceBuilder(
       });
 
       const event = await repository.createEvent(
-        toCreateEventPurposeTemplateAnnotationDocumentDeleted(
-          updatedPurposeTemplate.data,
+        toCreateEventPurposeTemplateAnnotationDocumentDeleted({
+          purposeTemplate: updatedPurposeTemplate.data,
           documentId,
-          updatedPurposeTemplate.metadata.version,
-          correlationId
-        )
+          version: updatedPurposeTemplate.metadata.version,
+          correlationId,
+        })
       );
 
       return {
