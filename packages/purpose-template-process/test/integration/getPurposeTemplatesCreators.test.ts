@@ -216,11 +216,11 @@ describe("getPurposeTemplatesCreators", () => {
     await addOnePurposeTemplate(purposeTemplate3);
     const tenantsByName = await readModelService.getPurposeTemplatesCreators({
       creatorName: undefined,
-      offset: 2,
-      limit: 3,
+      offset: 1,
+      limit: 1,
     });
     expect(tenantsByName.results.length).toBe(1);
-    expect(tenantsByName.results).toEqual([mockTenant3]);
+    expect(tenantsByName.results).toEqual([mockTenant2]);
   });
   it("should not get creators for purpose templates not published", async () => {
     await addOneTenant(tenant1);
