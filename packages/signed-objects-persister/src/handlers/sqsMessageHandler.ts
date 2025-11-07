@@ -90,8 +90,8 @@ async function processMessage(
             error.name === "Conflict");
 
         const allowConflictWarning =
-          signature.fileKind === "RISK_ANALYSIS_DOCUMENT" ||
-          signature.fileKind === "AGREEMENT_CONTRACT";
+          fileKind === "RISK_ANALYSIS_DOCUMENT" ||
+          fileKind === "AGREEMENT_CONTRACT";
 
         if (isConflict && allowConflictWarning) {
           logger.warn(
