@@ -10,6 +10,7 @@ import { match } from "ts-pattern";
 import { handleAttributeEvent } from "../src/handlers/handleAttributeEvent.js";
 import {
   getMockEventEnvelopeCommons,
+  retrieveAllAttributeM2MEvents,
   retrieveLastAttributeM2MEvent,
   testM2mEventWriterService,
 } from "./utils.js";
@@ -41,6 +42,7 @@ describe("handleAttributeEvent test", async () => {
           id: expect.any(String),
           eventType,
           eventTimestamp,
+          resourceVersion: message.version,
           attributeId: attribute.id,
         }))
         .with("MaintenanceAttributeDeleted", () => undefined)
@@ -66,4 +68,47 @@ describe("handleAttributeEvent test", async () => {
       }
     }
   );
+
+  it("should not write the event if the same resource version is already present", async () => {
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: attribute.id,
+      type: "AttributeAdded",
+      data: {
+        attribute: toAttributeV1(attribute),
+      },
+    } as AttributeEventEnvelope;
+
+    const eventTimestamp = new Date();
+
+    // Insert the event for the first time
+    await handleAttributeEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    // Try to insert the same event again: should be skipped
+    await handleAttributeEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    // Try to insert one with a further resource version: should be inserted
+    await handleAttributeEvent(
+      { ...message, version: message.version + 1 },
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    expect(
+      testM2mEventWriterService.insertAttributeM2MEvent
+    ).toHaveBeenCalledTimes(3);
+
+    expect(await retrieveAllAttributeM2MEvents()).toHaveLength(2);
+  });
 });
