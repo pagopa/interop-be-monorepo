@@ -7,6 +7,7 @@ import {
   toTenantV2,
   Attribute,
   Delegation,
+  PurposeTemplate,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -32,6 +33,7 @@ import {
   upsertAttribute,
   upsertDelegation,
   upsertEService,
+  upsertPurposeTemplate,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -97,6 +99,12 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
+};
+
+export const addOnePurposeTemplate = async (
+  purposeTemplate: PurposeTemplate
+): Promise<void> => {
+  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
