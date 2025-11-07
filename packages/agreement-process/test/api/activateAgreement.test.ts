@@ -133,4 +133,7 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
       expect(res.status).toBe(400);
     }
   );
+
+  awakate
+
 });
