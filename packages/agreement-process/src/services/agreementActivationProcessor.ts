@@ -80,37 +80,37 @@ export function createActivationUpdateAgreementSeed({
 
   return isFirstActivation
     ? {
-      state: newState,
-      certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
-      declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
-      verifiedAttributes: matchingVerifiedAttributes(
-        eservice,
-        descriptor,
-        consumer
-      ),
-      suspendedByConsumer,
-      suspendedByProducer,
-      suspendedByPlatform,
-      stamps: {
-        ...agreement.stamps,
-        activation: stamp,
-      },
-    }
+        state: newState,
+        certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
+        declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
+        verifiedAttributes: matchingVerifiedAttributes(
+          eservice,
+          descriptor,
+          consumer
+        ),
+        suspendedByConsumer,
+        suspendedByProducer,
+        suspendedByPlatform,
+        stamps: {
+          ...agreement.stamps,
+          activation: stamp,
+        },
+      }
     : {
-      state: newState,
-      suspendedByConsumer,
-      suspendedByProducer,
-      stamps: {
-        ...agreement.stamps,
-        suspensionByConsumer,
-        suspensionByProducer,
-      },
-      suspendedByPlatform,
-      suspendedAt:
-        newState === agreementState.active
-          ? undefined
-          : agreement.suspendedAt,
-    };
+        state: newState,
+        suspendedByConsumer,
+        suspendedByProducer,
+        stamps: {
+          ...agreement.stamps,
+          suspensionByConsumer,
+          suspensionByProducer,
+        },
+        suspendedByPlatform,
+        suspendedAt:
+          newState === agreementState.active
+            ? undefined
+            : agreement.suspendedAt,
+      };
 }
 
 export async function createActivationEvent(
@@ -241,7 +241,12 @@ export async function createActivationEvent(
   }
 }
 
-export const archiveRelatedToAgreements = async (agreement: Agreement, authData: UIAuthData | M2MAdminAuthData, activeDelegations: ActiveDelegations, readModelService: ReadModelServiceSQL, correlationId: CorrelationId
+export const archiveRelatedToAgreements = async (
+  agreement: Agreement,
+  authData: UIAuthData | M2MAdminAuthData,
+  activeDelegations: ActiveDelegations,
+  readModelService: ReadModelServiceSQL,
+  correlationId: CorrelationId
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const existingAgreements = await readModelService.getAllAgreements({
     consumerId: agreement.consumerId,
@@ -276,19 +281,19 @@ export function maybeCreateSuspensionByPlatformEvents(
   ) {
     return updatedAgreement.suspendedByPlatform
       ? [
-        toCreateEventAgreementSuspendedByPlatform(
-          updatedAgreement,
-          agreementEventStoreVersion,
-          correlationId
-        ),
-      ]
+          toCreateEventAgreementSuspendedByPlatform(
+            updatedAgreement,
+            agreementEventStoreVersion,
+            correlationId
+          ),
+        ]
       : [
-        toCreateEventAgreementUnsuspendedByPlatform(
-          updatedAgreement,
-          agreementEventStoreVersion,
-          correlationId
-        ),
-      ];
+          toCreateEventAgreementUnsuspendedByPlatform(
+            updatedAgreement,
+            agreementEventStoreVersion,
+            correlationId
+          ),
+        ];
   }
   return [];
 }
