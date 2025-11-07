@@ -52,14 +52,16 @@ const purposeTemplateRouter = (
 
       try {
         const response =
-          await purposeTemplateService.getCreatorPurposeTemplates({
-            purposeTitle: req.query.q,
-            states: req.query.states,
-            eserviceIds: req.query.eserviceIds,
-            offset: req.query.offset,
-            limit: req.query.limit,
-            ctx,
-          });
+          await purposeTemplateService.getCreatorPurposeTemplates(
+            {
+              purposeTitle: req.query.q,
+              states: req.query.states,
+              eserviceIds: req.query.eserviceIds,
+              offset: req.query.offset,
+              limit: req.query.limit,
+            },
+            ctx
+          );
 
         return res
           .status(200)
@@ -79,17 +81,19 @@ const purposeTemplateRouter = (
 
       try {
         const response =
-          await purposeTemplateService.getCatalogPurposeTemplates({
-            purposeTitle: req.query.q,
-            targetTenantKind: req.query.targetTenantKind,
-            creatorIds: req.query.creatorIds,
-            eserviceIds: req.query.eserviceIds,
-            excludeExpiredRiskAnalysis: req.query.excludeExpiredRiskAnalysis,
-            handlesPersonalData: req.query.handlesPersonalData,
-            offset: req.query.offset,
-            limit: req.query.limit,
-            ctx,
-          });
+          await purposeTemplateService.getCatalogPurposeTemplates(
+            {
+              purposeTitle: req.query.q,
+              targetTenantKind: req.query.targetTenantKind,
+              creatorIds: req.query.creatorIds,
+              eserviceIds: req.query.eserviceIds,
+              excludeExpiredRiskAnalysis: req.query.excludeExpiredRiskAnalysis,
+              handlesPersonalData: req.query.handlesPersonalData,
+              offset: req.query.offset,
+              limit: req.query.limit,
+            },
+            ctx
+          );
 
         return res
           .status(200)
@@ -113,11 +117,11 @@ const purposeTemplateRouter = (
           const result =
             await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
               {
-                purposeTemplateId: req.params.purposeTemplateId,
-                answerId: req.params.answerId,
-                documentId: req.params.documentId,
-                ctx,
-              }
+                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+                answerId: unsafeBrandId(req.params.answerId),
+                documentId: unsafeBrandId(req.params.documentId),
+              },
+              ctx
             );
 
           return res.status(200).send(result);
@@ -137,14 +141,16 @@ const purposeTemplateRouter = (
       try {
         const { producerIds, eserviceName, offset, limit } = req.query;
         const response =
-          await purposeTemplateService.getPurposeTemplateEServiceDescriptors({
-            purposeTemplateId: req.params.purposeTemplateId,
-            producerIds,
-            eserviceName,
-            offset,
-            limit,
-            ctx,
-          });
+          await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+            {
+              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+              producerIds,
+              eserviceName,
+              offset,
+              limit,
+            },
+            ctx
+          );
         return res
           .status(200)
           .send(bffApi.EServiceDescriptorsPurposeTemplate.parse(response));
@@ -271,7 +277,7 @@ const purposeTemplateRouter = (
           const result =
             await purposeTemplateService.linkEServiceToPurposeTemplate(
               unsafeBrandId(req.params.purposeTemplateId),
-              req.body.eserviceId,
+              unsafeBrandId(req.body.eserviceId),
               ctx
             );
           return res
@@ -297,7 +303,7 @@ const purposeTemplateRouter = (
           const result =
             await purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
               unsafeBrandId(purposeTemplateId),
-              answerId,
+              unsafeBrandId(answerId),
               req.body,
               ctx
             );
@@ -320,7 +326,7 @@ const purposeTemplateRouter = (
         try {
           await purposeTemplateService.unlinkEServicesFromPurposeTemplate(
             unsafeBrandId(req.params.purposeTemplateId),
-            req.body.eserviceId,
+            unsafeBrandId(req.body.eserviceId),
             ctx
           );
           return res.status(204).send();
@@ -436,11 +442,9 @@ const purposeTemplateRouter = (
 
         try {
           await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
-            {
-              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-              answerId: unsafeBrandId(req.params.answerId),
-              ctx,
-            }
+            unsafeBrandId(req.params.purposeTemplateId),
+            unsafeBrandId(req.params.answerId),
+            ctx
           );
 
           return res.status(204).send();
@@ -466,8 +470,8 @@ const purposeTemplateRouter = (
               purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
               answerId: unsafeBrandId(req.params.answerId),
               documentId: unsafeBrandId(req.params.documentId),
-              ctx,
-            }
+            },
+            ctx
           );
 
           return res.status(204).send();
