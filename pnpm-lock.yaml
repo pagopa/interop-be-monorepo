@@ -5299,6 +5299,9 @@ importers:
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons

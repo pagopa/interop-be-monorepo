@@ -3,6 +3,7 @@ import { genericError } from "../errors.js";
 import {
   DelegationContractDocumentV2,
   DelegationKindV2,
+  DelegationSignedContractDocumentV2,
   DelegationStampsV2,
   DelegationStampV2,
   DelegationStateV2,
@@ -14,6 +15,7 @@ import {
   DelegationContractDocument,
   delegationKind,
   DelegationKind,
+  DelegationSignedContractDocument,
   DelegationStamp,
   DelegationStamps,
   DelegationState,
@@ -55,6 +57,18 @@ export const fromDelegationContractDocumentV2 = (
   contentType: input.contentType,
   path: input.path,
   createdAt: bigIntToDate(input.createdAt),
+});
+
+export const fromDelegationSignedContractDocumentV2 = (
+  input: DelegationSignedContractDocumentV2
+): DelegationSignedContractDocument => ({
+  id: unsafeBrandId(input.id),
+  name: input.name,
+  prettyName: input.prettyName,
+  contentType: input.contentType,
+  path: input.path,
+  createdAt: bigIntToDate(input.createdAt),
+  signedAt: bigIntToDate(input.signedAt),
 });
 
 export function fromDelegationStampV2(
@@ -118,5 +132,11 @@ export const fromDelegationV2 = (input: DelegationV2): Delegation => {
       input.revocationContract &&
       fromDelegationContractDocumentV2(input.revocationContract),
     stamps: fromDelegationStampsV2(input.stamps),
+    activationSignedContract:
+      input.activationSignedContract &&
+      fromDelegationSignedContractDocumentV2(input.activationSignedContract),
+    revocationSignedContract:
+      input.revocationSignedContract &&
+      fromDelegationSignedContractDocumentV2(input.revocationSignedContract),
   };
 };

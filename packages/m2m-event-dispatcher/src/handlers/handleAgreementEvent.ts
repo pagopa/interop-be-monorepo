@@ -45,7 +45,8 @@ export async function handleAgreementEvent(
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
           "AgreementArchivedByRevokedDelegation",
-          "AgreementContractGenerated"
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       async (event) => {
