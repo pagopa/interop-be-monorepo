@@ -13,11 +13,11 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
+  duplicatedPurposeTitle,
   eserviceNotFound,
   purposeDraftVersionNotFound,
   purposeNotFound,
   purposeTemplateNotFound,
-  purposeTitleNotAllowed,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
@@ -140,12 +140,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {
-      error: purposeTitleNotAllowed(
-        "Any",
-        generateId(),
-        generateId(),
-        generateId()
-      ),
+      error: duplicatedPurposeTitle("Any"),
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {

@@ -121,7 +121,6 @@ import {
   assertPersonalDataCompliant,
   assertPurposeIsDraft,
   assertPurposeTitleIsNotDuplicated,
-  assertPurposeTitleNotExistsInOtherPurposes,
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
@@ -1874,13 +1873,16 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (purposeUpdateContent.title) {
-        await assertPurposeTitleNotExistsInOtherPurposes({
+      if (
+        purposeUpdateContent.title &&
+        purposeUpdateContent.title?.toLocaleLowerCase() !==
+          purpose.data.title.toLocaleLowerCase()
+      ) {
+        await assertPurposeTitleIsNotDuplicated({
           readModelService,
           eserviceId: purpose.data.eserviceId,
           consumerId: purpose.data.consumerId,
           title: purposeUpdateContent.title,
-          purposeId: purpose.data.id,
         });
       }
 

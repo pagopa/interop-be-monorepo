@@ -39,11 +39,11 @@ import {
 import { match } from "ts-pattern";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  duplicatedPurposeTitle,
   eserviceNotFound,
   purposeDraftVersionNotFound,
   purposeNotFound,
   purposeTemplateNotFound,
-  purposeTitleNotAllowed,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
@@ -595,14 +595,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
           organizationId: consumer.id,
         })
       )
-    ).rejects.toThrowError(
-      purposeTitleNotAllowed(
-        existingTitle,
-        draftPurpose.id,
-        draftPurpose.eserviceId,
-        draftPurpose.consumerId
-      )
-    );
+    ).rejects.toThrowError(duplicatedPurposeTitle(existingTitle));
   });
 
   it("Should throw tenantIsNotTheConsumer if the tenant is not operating as consumer", async () => {
