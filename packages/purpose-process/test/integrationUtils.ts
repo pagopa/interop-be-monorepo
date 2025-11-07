@@ -219,13 +219,11 @@ export function expectUniqueAswerInRiskAnalysisForm(
   riskAnalysisForm: PurposeRiskAnalysisForm | PurposeRiskAnalysisFormV2,
   answerKey: string
 ): void {
-  const expectedOneOccurrenceInSingleAnswers = riskAnalysisForm.singleAnswers.filter(
-    (a) => a.key === answerKey
-  );
+  const expectedOneOccurrenceInSingleAnswers =
+    riskAnalysisForm.singleAnswers.filter((a) => a.key === answerKey);
 
-  const expectedOneOccurrenceInMultiAnswers = riskAnalysisForm.multiAnswers.filter(
-    (a) => a.key === answerKey
-  );
+  const expectedOneOccurrenceInMultiAnswers =
+    riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
   if (expectedOneOccurrenceInSingleAnswers.length) {
     expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
   }
@@ -236,6 +234,6 @@ export function expectUniqueAswerInRiskAnalysisForm(
 
   expect(
     expectedOneOccurrenceInSingleAnswers.length +
-    expectedOneOccurrenceInMultiAnswers.length
+      expectedOneOccurrenceInMultiAnswers.length
   ).toBe(1);
 }
