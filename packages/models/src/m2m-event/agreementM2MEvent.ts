@@ -34,6 +34,7 @@ export const AgreementM2MEventType = z.enum([
   "AgreementDeletedByRevokedDelegation",
   "AgreementArchivedByRevokedDelegation",
   "AgreementContractGenerated",
+  "AgreementSignedContractGenerated",
 ]);
 export type AgreementM2MEventType = z.infer<typeof AgreementM2MEventType>;
 

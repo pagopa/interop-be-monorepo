@@ -287,6 +287,7 @@ export async function handleMessageV2(
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementDeletedByRevokedDelegation" },
       { type: "AgreementContractGenerated" },
+      { type: "AgreementSignedContractGenerated" },
       () => Promise.resolve()
     )
     .exhaustive();

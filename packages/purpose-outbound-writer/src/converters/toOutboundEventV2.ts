@@ -42,6 +42,7 @@ function toOutboundPurposeVersionV2(
     stamps:
       purposeVersion.stamps &&
       toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
+    signedContract: undefined,
   };
 }
 
@@ -93,6 +94,7 @@ export function toOutboundEventV2(
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeVersionRejected" },
       { type: "RiskAnalysisDocumentGenerated" },
+      { type: "RiskAnalysisSignedDocumentGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

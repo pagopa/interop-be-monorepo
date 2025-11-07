@@ -120,7 +120,8 @@ describe("handleAgreementEvent test", async () => {
                     "AgreementArchivedByConsumer",
                     "AgreementArchivedByUpgrade",
                     "AgreementArchivedByRevokedDelegation",
-                    "AgreementContractGenerated"
+                    "AgreementContractGenerated",
+                    "AgreementSignedContractGenerated"
                   ),
                   async () => m2mEventVisibility.restricted
                 )

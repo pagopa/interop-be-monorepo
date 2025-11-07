@@ -65,6 +65,7 @@ export function signatureServiceBuilder(
           version: { N: String(item.version) },
           createdAt: { N: String(item.createdAt) },
           correlationId: { S: item.correlationId },
+          creationTimestamp: { N: getUnixTime(new Date()).toString() },
         },
         ReturnValues: "NONE",
       };
@@ -189,7 +190,7 @@ export function signatureServiceBuilder(
           streamId: data.Item.streamId.S,
           subObjectId: data.Item.subObjectId.S,
           contentType: data.Item.contentType.S,
-          path: data.Item.contentType.S,
+          path: data.Item.path.S,
           prettyname: data.Item.prettyname.S,
           fileName: data.Item.fileName.S,
           version: Number(data.Item.version.N),
