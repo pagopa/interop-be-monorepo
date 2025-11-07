@@ -13,7 +13,6 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  EServiceId,
   PurposeTemplateId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
@@ -76,7 +75,7 @@ export function purposeTemplateServiceBuilder(
     },
     async linkEServiceToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
-      eserviceId: EServiceId,
+      eserviceId: string,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.EServiceDescriptorPurposeTemplate> {
       logger.info(
@@ -101,7 +100,7 @@ export function purposeTemplateServiceBuilder(
     },
     async unlinkEServicesFromPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
-      eserviceId: EServiceId,
+      eserviceId: string,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(
@@ -122,23 +121,24 @@ export function purposeTemplateServiceBuilder(
         }
       );
     },
-    async getCreatorPurposeTemplates(
-      {
-        purposeTitle,
-        states,
-        eserviceIds,
-        offset,
-        limit,
-      }: {
-        purposeTitle: string | undefined;
-        states: bffApi.PurposeTemplateState[];
-        eserviceIds: string[];
-        offset: number;
-        limit: number;
-      },
-      { headers, authData, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatorPurposeTemplates> {
+    async getCreatorPurposeTemplates({
+      purposeTitle,
+      states,
+      eserviceIds,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTitle: string | undefined;
+      states: bffApi.PurposeTemplateState[];
+      eserviceIds: string[];
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.CreatorPurposeTemplates> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, authData, logger } = ctx;
 
       logger.info(
         `Retrieving creator's purpose templates with title ${purposeTitle}, offset ${offset}, limit ${limit}`
@@ -168,29 +168,29 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async getCatalogPurposeTemplates(
-      {
-        purposeTitle,
-        targetTenantKind,
-        creatorIds,
-        eserviceIds,
-        excludeExpiredRiskAnalysis,
-        handlesPersonalData,
-        offset,
-        limit,
-      }: {
-        purposeTitle: string | undefined;
-        targetTenantKind: TenantKind | undefined;
-        creatorIds: string[];
-        eserviceIds: string[];
-        excludeExpiredRiskAnalysis: boolean;
-        handlesPersonalData: boolean | undefined;
-        offset: number;
-        limit: number;
-      },
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CatalogPurposeTemplates> {
+    async getCatalogPurposeTemplates({
+      purposeTitle,
+      targetTenantKind,
+      creatorIds,
+      eserviceIds,
+      excludeExpiredRiskAnalysis,
+      handlesPersonalData,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTitle: string | undefined;
+      targetTenantKind: TenantKind | undefined;
+      creatorIds: string[];
+      eserviceIds: string[];
+      excludeExpiredRiskAnalysis: boolean;
+      handlesPersonalData: boolean | undefined;
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.CatalogPurposeTemplates> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      const { headers, logger } = ctx;
 
       logger.info(
         `Retrieving catalog purpose templates with title ${purposeTitle}, eserviceIds ${eserviceIds.toString()} offset ${offset}, limit ${limit}`
@@ -239,23 +239,24 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async getPurposeTemplateEServiceDescriptors(
-      {
-        purposeTemplateId,
-        producerIds,
-        eserviceName,
-        offset,
-        limit,
-      }: {
-        purposeTemplateId: PurposeTemplateId;
-        producerIds: string[];
-        eserviceName?: string;
-        offset: number;
-        limit: number;
-      },
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
+    async getPurposeTemplateEServiceDescriptors({
+      purposeTemplateId,
+      producerIds,
+      eserviceName,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      producerIds: string[];
+      eserviceName?: string;
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
 
       logger.info(
         `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with eserviceName ${eserviceName}, producerIds ${producerIds.toString()}, offset ${offset}, limit ${limit}`
@@ -319,19 +320,20 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async getRiskAnalysisTemplateAnswerAnnotationDocument(
-      {
-        purposeTemplateId,
-        answerId,
-        documentId,
-      }: {
-        purposeTemplateId: PurposeTemplateId;
-        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-      },
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<Buffer> {
+    async getRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      answerId: string;
+      documentId: string;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<Buffer> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
 
       logger.info(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
@@ -462,7 +464,7 @@ export function purposeTemplateServiceBuilder(
     },
     async addRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      answerId: string,
       body: bffApi.addRiskAnalysisTemplateAnswerAnnotationDocument_Body,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
@@ -564,12 +566,18 @@ export function purposeTemplateServiceBuilder(
         headers,
       });
     },
-    async deleteRiskAnalysisTemplateAnswerAnnotation(
-      purposeTemplateId: PurposeTemplateId,
-      answerId: PurposeTemplateId,
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<void> {
+    async deleteRiskAnalysisTemplateAnswerAnnotation({
+      purposeTemplateId,
+      answerId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: PurposeTemplateId;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
 
       logger.info(
         `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
@@ -586,19 +594,20 @@ export function purposeTemplateServiceBuilder(
         }
       );
     },
-    async deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-      {
-        purposeTemplateId,
-        answerId,
-        documentId,
-      }: {
-        purposeTemplateId: PurposeTemplateId;
-        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-      },
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<void> {
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+      documentId: string;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
 
       logger.info(
         `Deleting risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
@@ -621,9 +630,11 @@ export function purposeTemplateServiceBuilder(
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
       documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
       body: bffApi.UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed,
-      { headers, logger }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
 
       logger.info(
         `Updating risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
