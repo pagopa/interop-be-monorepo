@@ -63,7 +63,7 @@ describe("events V1", async () => {
     const agreement = await agreementReadModelService.getAgreementById(id);
 
     expect(agreement?.data).toStrictEqual(
-      fromAgreementV1(newAgreement.agreement!),
+      fromAgreementV1(newAgreement.agreement!)
     );
   });
 
@@ -88,7 +88,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
 
     expect(actualAgreement).toBeUndefined();
@@ -127,13 +127,13 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
 
     expect(actualAgreement).not.toBeNull();
 
     expect(actualAgreement?.data).toStrictEqual(
-      fromAgreementV1(agreementUpdated.agreement!),
+      fromAgreementV1(agreementUpdated.agreement!)
     );
   });
 
@@ -160,7 +160,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
     const updatedActualAgreement = {
       ...actualAgreement,
@@ -207,13 +207,13 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
 
     expect(actualAgreement).not.toBeNull();
 
     expect(
-      actualAgreement?.data.consumerDocuments.map((cd) => cd.id),
+      actualAgreement?.data.consumerDocuments.map((cd) => cd.id)
     ).not.toContain(agreementConsumerDocument.id);
   });
 
@@ -243,7 +243,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
 
     const updatedActualAgreement = {
@@ -292,7 +292,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
 
     const updatedRetrievedAgreement = {
@@ -338,7 +338,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
 
     const updatedRetrievedAgreement = {
@@ -383,7 +383,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
     const updatedRetrievedAgreement = {
       ...retrievedAgreement,
@@ -426,7 +426,7 @@ describe("events V1", async () => {
     await handleMessageV1(message, agreementWriterService);
 
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
-      agreement.id,
+      agreement.id
     );
     const updatedRetrievedAgreement = {
       ...retrievedAgreement,

@@ -9,7 +9,7 @@ export const addAgreementSignedContract = async (
   contract: AgreementDocument,
   refreshableToken: RefreshableInteropToken,
   agreementId: string,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): Promise<void> => {
   const contractSigned: agreementApi.SignedDocument = {
     ...contract,
@@ -25,6 +25,6 @@ export const addAgreementSignedContract = async (
         token,
         correlationId,
       }),
-    },
+    }
   );
 };

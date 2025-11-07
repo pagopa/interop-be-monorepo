@@ -44,7 +44,7 @@ describe("API POST /internal/agreement/:agreementId/signedContract test", () => 
   const makeRequest = async (
     token: string,
     agreementId: AgreementId = mockAgreement.id,
-    payload: AgreementSignedContract = mockAgreementContract,
+    payload: AgreementSignedContract = mockAgreementContract
   ) =>
     request(api)
       .post(`/internal/agreement/${agreementId}/signedContract`)
@@ -61,19 +61,19 @@ describe("API POST /internal/agreement/:agreementId/signedContract test", () => 
       const res = await makeRequest(token);
 
       expect(
-        agreementService.internalAddAgreementSignedContract,
+        agreementService.internalAddAgreementSignedContract
       ).toHaveBeenCalledWith(
         mockAgreement.id,
         mockAgreementContract,
-        expect.anything(),
+        expect.anything()
       );
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
-    },
+    }
   );
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role)),
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -89,7 +89,7 @@ describe("API POST /internal/agreement/:agreementId/signedContract test", () => 
     {
       error: agreementNotInExpectedState(
         mockAgreement.id,
-        agreementState.draft,
+        agreementState.draft
       ),
       expectedStatus: 400,
     },
@@ -102,7 +102,7 @@ describe("API POST /internal/agreement/:agreementId/signedContract test", () => 
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
-    },
+    }
   );
 
   it("Should return 400 if passed an invalid agreement id", async () => {

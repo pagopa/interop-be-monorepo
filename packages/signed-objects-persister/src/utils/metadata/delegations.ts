@@ -13,7 +13,7 @@ export const addDelegationSignedContract = async (
   contract: DelegationContractDocument,
   refreshableToken: RefreshableInteropToken,
   delegationId: string,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): Promise<void> => {
   const contractSigned: delegationApi.DelegationSignedContractDocument = {
     ...contract,
@@ -30,6 +30,6 @@ export const addDelegationSignedContract = async (
         token,
         correlationId,
       }),
-    },
+    }
   );
 };

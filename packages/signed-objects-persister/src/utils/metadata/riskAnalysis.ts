@@ -16,7 +16,7 @@ export const addPurposeRiskAnalysisSignedDocument = async (
   versionId: PurposeVersionDocumentId,
   document: PurposeVersionDocument,
   refreshableToken: RefreshableInteropToken,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): Promise<void> => {
   const token = (await refreshableToken.get()).serialized;
   const documentSigned: purposeApi.PurposeVersionSignedDocument = {
@@ -32,6 +32,6 @@ export const addPurposeRiskAnalysisSignedDocument = async (
         token,
         correlationId,
       }),
-    },
+    }
   );
 };

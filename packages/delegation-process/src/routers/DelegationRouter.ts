@@ -53,7 +53,7 @@ const {
 
 const delegationRouter = (
   ctx: ZodiosContext,
-  delegationService: DelegationService,
+  delegationService: DelegationService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -87,21 +87,21 @@ const delegationRouter = (
             delegateIds: delegateIds.map(unsafeBrandId<TenantId>),
             delegatorIds: delegatorIds.map(unsafeBrandId<TenantId>),
             delegationStates: delegationStates.map(
-              apiDelegationStateToDelegationState,
+              apiDelegationStateToDelegationState
             ),
             eserviceIds: eserviceIds.map(unsafeBrandId<EServiceId>),
             kind: kind && apiDelegationKindToDelegationKind(kind),
             offset,
             limit,
           },
-          ctx,
+          ctx
         );
 
         return res.status(200).send(
           delegationApi.Delegations.parse({
             results: delegations.results.map(delegationToApiDelegation),
             totalCount: delegations.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, getDelegationsErrorMapper, ctx);
@@ -125,20 +125,20 @@ const delegationRouter = (
 
         const { data, metadata } = await delegationService.getDelegationById(
           unsafeBrandId(delegationId),
-          ctx,
+          ctx
         );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
-            delegationApi.Delegation.parse(delegationToApiDelegation(data)),
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getDelegationByIdErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -162,27 +162,27 @@ const delegationRouter = (
           const contract = await delegationService.getDelegationContract(
             unsafeBrandId(delegationId),
             unsafeBrandId(contractId),
-            ctx,
+            ctx
           );
 
           return res
             .status(200)
             .send(
               delegationApi.DelegationContractDocument.parse(
-                delegationContractToApiDelegationContract(contract),
-              ),
+                delegationContractToApiDelegationContract(contract)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getDelegationContractErrorMapper,
             ctx,
-            `Error retrieving contract ${req.params.contractId} of delegation ${req.params.delegationId}`,
+            `Error retrieving contract ${req.params.contractId} of delegation ${req.params.delegationId}`
           );
 
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post("/internal/delegations/:delegationId/contract", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -194,7 +194,7 @@ const delegationRouter = (
         await delegationService.internalAddDelegationContract(
           unsafeBrandId(delegationId),
           delegationContract,
-          ctx,
+          ctx
         );
 
         return res.status(204).send();
@@ -202,7 +202,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           generateDelegationContractErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -223,7 +223,7 @@ const delegationRouter = (
           await delegationService.internalAddDelegationSignedContract(
             unsafeBrandId(delegationId),
             delegationContract,
-            ctx,
+            ctx
           );
 
           return res.status(204).send();
@@ -231,11 +231,11 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             generateDelegationSignedContractErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     );
 
   const delegationProducerRouter = ctx.router(delegationApi.producerApi.api, {
@@ -255,20 +255,20 @@ const delegationRouter = (
               delegateId: unsafeBrandId<TenantId>(req.body.delegateId),
               eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
             },
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .json(
-            delegationApi.Delegation.parse(delegationToApiDelegation(data)),
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createProducerDelegationErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -284,20 +284,20 @@ const delegationRouter = (
         const { data, metadata } =
           await delegationService.approveProducerDelegation(
             unsafeBrandId(delegationId),
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
-            delegationApi.Delegation.parse(delegationToApiDelegation(data)),
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           approveDelegationErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -315,20 +315,20 @@ const delegationRouter = (
           await delegationService.rejectProducerDelegation(
             unsafeBrandId(delegationId),
             rejectionReason,
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
-            delegationApi.Delegation.parse(delegationToApiDelegation(data)),
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           rejectDelegationErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -343,7 +343,7 @@ const delegationRouter = (
         const { delegationId } = req.params;
         await delegationService.revokeProducerDelegation(
           unsafeBrandId(delegationId),
-          ctx,
+          ctx
         );
 
         return res.status(204).send();
@@ -351,7 +351,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           revokeDelegationErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -375,20 +375,20 @@ const delegationRouter = (
               delegateId: unsafeBrandId<TenantId>(req.body.delegateId),
               eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
             },
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .json(
-            delegationApi.Delegation.parse(delegationToApiDelegation(data)),
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createConsumerDelegationErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -403,20 +403,20 @@ const delegationRouter = (
         const { data, metadata } =
           await delegationService.approveConsumerDelegation(
             unsafeBrandId(req.params.delegationId),
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .json(
-            delegationApi.Delegation.parse(delegationToApiDelegation(data)),
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           approveDelegationErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -433,20 +433,20 @@ const delegationRouter = (
           await delegationService.rejectConsumerDelegation(
             unsafeBrandId(req.params.delegationId),
             rejectionReason,
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
-            delegationApi.Delegation.parse(delegationToApiDelegation(data)),
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           rejectDelegationErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -461,7 +461,7 @@ const delegationRouter = (
         const { delegationId } = req.params;
         await delegationService.revokeConsumerDelegation(
           unsafeBrandId(delegationId),
-          ctx,
+          ctx
         );
 
         return res.status(204).send();
@@ -469,7 +469,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           revokeDelegationErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -496,7 +496,7 @@ const delegationRouter = (
             limit,
             offset,
           },
-          ctx,
+          ctx
         );
 
         return res
@@ -506,7 +506,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getConsumerDelegatorsErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -533,7 +533,7 @@ const delegationRouter = (
               limit,
               offset,
             },
-            ctx,
+            ctx
           );
 
         return res
@@ -543,7 +543,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getConsumerDelegatorsWithAgreementsErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -570,7 +570,7 @@ const delegationRouter = (
             limit,
             offset,
           },
-          ctx,
+          ctx
         );
 
         return res
@@ -580,7 +580,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getConsumerEservicesErrorMapper,
-          ctx,
+          ctx
         );
 
         return res.status(errorRes.status).send(errorRes);

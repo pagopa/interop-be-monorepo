@@ -54,7 +54,7 @@ import {
 
 const purposeRouter = (
   ctx: ZodiosContext,
-  purposeService: PurposeService,
+  purposeService: PurposeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeRouter = ctx.router(purposeApi.purposeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -102,15 +102,15 @@ const purposeRouter = (
             excludeDraft,
           },
           { offset, limit },
-          ctx,
+          ctx
         );
         return res.status(200).send(
           purposeApi.Purposes.parse({
             results: purposes.results.map((purpose) =>
-              purposeToApiPurpose(purpose, false),
+              purposeToApiPurpose(purpose, false)
             ),
             totalCount: purposes.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, getPurposesErrorMapper, ctx);
@@ -134,8 +134,8 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, createPurposeErrorMapper, ctx);
@@ -159,14 +159,14 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createReversePurposeErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -182,20 +182,20 @@ const purposeRouter = (
         } = await purposeService.updateReversePurpose(
           unsafeBrandId(req.params.id),
           req.body,
-          ctx,
+          ctx
         );
         return res
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           updateReversePurposeErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -212,7 +212,7 @@ const purposeRouter = (
         } = await purposeService.patchUpdateReversePurpose(
           unsafeBrandId(req.params.id),
           req.body,
-          ctx,
+          ctx
         );
 
         setMetadataVersionHeader(res, metadata);
@@ -221,14 +221,14 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           updateReversePurposeErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -251,7 +251,7 @@ const purposeRouter = (
           metadata,
         } = await purposeService.getPurposeById(
           unsafeBrandId(req.params.id),
-          ctx,
+          ctx
         );
 
         setMetadataVersionHeader(res, metadata);
@@ -260,8 +260,8 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, getPurposeErrorMapper, ctx);
@@ -279,15 +279,15 @@ const purposeRouter = (
         } = await purposeService.updatePurpose(
           unsafeBrandId(req.params.id),
           req.body,
-          ctx,
+          ctx
         );
 
         return res
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
@@ -306,7 +306,7 @@ const purposeRouter = (
         } = await purposeService.patchUpdatePurpose(
           unsafeBrandId(req.params.id),
           req.body,
-          ctx,
+          ctx
         );
 
         setMetadataVersionHeader(res, metadata);
@@ -315,8 +315,8 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
@@ -347,14 +347,14 @@ const purposeRouter = (
           await purposeService.internalDeletePurposeAfterDelegationRevocation(
             unsafeBrandId(req.params.id),
             unsafeBrandId(req.params.delegationId),
-            ctx,
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(error, deletePurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post("/purposes/:purposeId/versions", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -368,7 +368,7 @@ const purposeRouter = (
         } = await purposeService.createPurposeVersion(
           unsafeBrandId(req.params.purposeId),
           req.body,
-          ctx,
+          ctx
         );
 
         setMetadataVersionHeader(res, metadata);
@@ -377,13 +377,13 @@ const purposeRouter = (
           purposeApi.CreatedPurposeVersion.parse({
             purpose: purposeToApiPurpose(purpose, isRiskAnalysisValid),
             createdVersionId,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createPurposeVersionErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -399,7 +399,7 @@ const purposeRouter = (
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
           },
-          ctx,
+          ctx
         );
 
         setMetadataVersionHeader(res, metadata);
@@ -409,7 +409,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           deletePurposeVersionErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -432,18 +432,18 @@ const purposeRouter = (
             .status(200)
             .send(
               purposeApi.PurposeVersionDocument.parse(
-                purposeVersionDocumentToApiPurposeVersionDocument(document),
-              ),
+                purposeVersionDocumentToApiPurposeVersionDocument(document)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisDocumentErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/reject",
@@ -459,18 +459,18 @@ const purposeRouter = (
               versionId: unsafeBrandId(req.params.versionId),
               rejectionReason: req.body.rejectionReason,
             },
-            ctx,
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             rejectPurposeVersionErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",
@@ -490,7 +490,7 @@ const purposeRouter = (
                   ? unsafeBrandId<DelegationId>(req.body.delegationId)
                   : undefined,
               },
-              ctx,
+              ctx
             );
 
           setMetadataVersionHeader(res, metadata);
@@ -498,18 +498,18 @@ const purposeRouter = (
             .status(200)
             .send(
               purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(data),
-              ),
+                purposeVersionToApiPurposeVersion(data)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             activatePurposeVersionErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post("/purposes/:purposeId/clone", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -527,8 +527,8 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, clonePurposeErrorMapper, ctx);
@@ -551,25 +551,25 @@ const purposeRouter = (
                 ? unsafeBrandId<DelegationId>(req.body.delegationId)
                 : undefined,
             },
-            ctx,
+            ctx
           );
           setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
               purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(data),
-              ),
+                purposeVersionToApiPurposeVersion(data)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             suspendPurposeVersionErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
@@ -584,25 +584,25 @@ const purposeRouter = (
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
             },
-            ctx,
+            ctx
           );
           setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
               purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(data),
-              ),
+                purposeVersionToApiPurposeVersion(data)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             archivePurposeVersionErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post(
       "/internal/delegations/:delegationId/purposes/:purposeId/versions/:versionId/archive",
@@ -618,18 +618,18 @@ const purposeRouter = (
               versionId: unsafeBrandId(req.params.versionId),
               delegationId: unsafeBrandId(req.params.delegationId),
             },
-            ctx,
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             archivePurposeVersionErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .get("/purposes/riskAnalysis/latest", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -652,15 +652,15 @@ const purposeRouter = (
           .send(
             purposeApi.RiskAnalysisFormConfigResponse.parse(
               riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
-                riskAnalysisConfiguration,
-              ),
-            ),
+                riskAnalysisConfiguration
+              )
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           retrieveLatestRiskAnalysisConfigurationErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -689,19 +689,19 @@ const purposeRouter = (
             .send(
               purposeApi.RiskAnalysisFormConfigResponse.parse(
                 riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
-                  riskAnalysisConfiguration,
-                ),
-              ),
+                  riskAnalysisConfiguration
+                )
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             retrieveRiskAnalysisConfigurationByVersionErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post("/templates/:purposeTemplateId/purposes", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -715,7 +715,7 @@ const purposeRouter = (
         } = await purposeService.createPurposeFromTemplate(
           unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
           req.body,
-          ctx,
+          ctx
         );
 
         setMetadataVersionHeader(res, metadata);
@@ -724,14 +724,14 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid),
-            ),
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createPurposeFromTemplateErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -749,18 +749,18 @@ const purposeRouter = (
             unsafeBrandId(purposeId),
             unsafeBrandId(versionId),
             riskAnalysisDocument,
-            ctx,
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             generateRiskAnalysisDocumentErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post(
       "/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument/signed",
@@ -776,18 +776,18 @@ const purposeRouter = (
             unsafeBrandId(purposeId),
             unsafeBrandId(versionId),
             signedRiskAnalysis,
-            ctx,
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             generateRiskAnalysisSignedDocumentErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .patch(
       "/templates/:purposeTemplateId/purposes/:purposeId",
@@ -802,7 +802,7 @@ const purposeRouter = (
               unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
               unsafeBrandId(req.params.purposeId),
               req.body,
-              ctx,
+              ctx
             );
 
           setMetadataVersionHeader(res, updatedPurpose.metadata);
@@ -811,18 +811,18 @@ const purposeRouter = (
             .status(200)
             .send(
               purposeApi.Purpose.parse(
-                purposeToApiPurpose(updatedPurpose.data, true),
-              ),
+                purposeToApiPurpose(updatedPurpose.data, true)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             updatePurposeByTemplateErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .get(
       "/purposes/:purposeId/versions/:versionId/signedDocuments/:documentId",
@@ -842,18 +842,18 @@ const purposeRouter = (
             .status(200)
             .send(
               purposeApi.PurposeVersionSignedDocument.parse(
-                purposeVersionDocumentToApiPurposeVersionDocument(document),
-              ),
+                purposeVersionDocumentToApiPurposeVersionDocument(document)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisDocumentErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     );
   return purposeRouter;
 };

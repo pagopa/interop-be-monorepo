@@ -17,7 +17,6 @@ import {
   DelegationId,
   emptyErrorMapper,
   AgreementDocument,
-  AgreementSignedContract,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -63,7 +62,7 @@ const {
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  agreementService: AgreementService,
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(agreementApi.agreementApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -80,7 +79,7 @@ const agreementRouter = (
           await agreementService.submitAgreement(
             unsafeBrandId(req.params.agreementId),
             req.body,
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -88,7 +87,7 @@ const agreementRouter = (
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, submitAgreementErrorMapper, ctx);
@@ -110,7 +109,7 @@ const agreementRouter = (
                 ? unsafeBrandId<DelegationId>(req.body.delegationId)
                 : undefined,
             },
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -118,13 +117,13 @@ const agreementRouter = (
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           activateAgreementErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -140,7 +139,7 @@ const agreementRouter = (
           await agreementService.addConsumerDocument(
             unsafeBrandId(req.params.agreementId),
             req.body,
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -148,14 +147,14 @@ const agreementRouter = (
           .status(200)
           .send(
             agreementApi.Document.parse(
-              agreementDocumentToApiAgreementDocument(document),
-            ),
+              agreementDocumentToApiAgreementDocument(document)
+            )
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           addConsumerDocumentErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -170,19 +169,19 @@ const agreementRouter = (
           await agreementService.getAgreementConsumerDocuments(
             unsafeBrandId(req.params.agreementId),
             req.query,
-            ctx,
+            ctx
           );
         return res.status(200).send(
           agreementApi.Documents.parse({
             results: results.map(agreementDocumentToApiAgreementDocument),
             totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getAgreementConsumerDocumentsErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -203,24 +202,24 @@ const agreementRouter = (
           const document = await agreementService.getAgreementConsumerDocument(
             unsafeBrandId(req.params.agreementId),
             unsafeBrandId(req.params.documentId),
-            ctx,
+            ctx
           );
           return res
             .status(200)
             .send(
               agreementApi.Document.parse(
-                agreementDocumentToApiAgreementDocument(document),
-              ),
+                agreementDocumentToApiAgreementDocument(document)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getConsumerDocumentErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
 
     .delete(
@@ -235,7 +234,7 @@ const agreementRouter = (
             await agreementService.removeAgreementConsumerDocument(
               unsafeBrandId(req.params.agreementId),
               unsafeBrandId(req.params.documentId),
-              ctx,
+              ctx
             );
 
           setMetadataVersionHeader(res, metadata);
@@ -245,11 +244,11 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             removeConsumerDocumentErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
 
     .post("/agreements/:agreementId/suspend", async (req, res) => {
@@ -266,7 +265,7 @@ const agreementRouter = (
                 ? unsafeBrandId<DelegationId>(req.body.delegationId)
                 : undefined,
             },
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -274,13 +273,13 @@ const agreementRouter = (
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           suspendAgreementErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -296,7 +295,7 @@ const agreementRouter = (
           await agreementService.rejectAgreement(
             unsafeBrandId(req.params.agreementId),
             req.body.reason,
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -304,7 +303,7 @@ const agreementRouter = (
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, rejectAgreementErrorMapper, ctx);
@@ -320,18 +319,18 @@ const agreementRouter = (
 
         const agreement = await agreementService.archiveAgreement(
           unsafeBrandId(req.params.agreementId),
-          ctx,
+          ctx
         );
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           archiveAgreementErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -352,7 +351,7 @@ const agreementRouter = (
                 ? unsafeBrandId<DelegationId>(req.body.delegationId)
                 : undefined,
             },
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -360,7 +359,7 @@ const agreementRouter = (
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, createAgreementErrorMapper, ctx);
@@ -387,23 +386,23 @@ const agreementRouter = (
             consumerId: req.query.consumersIds.map(unsafeBrandId<TenantId>),
             producerId: req.query.producersIds.map(unsafeBrandId<TenantId>),
             descriptorId: req.query.descriptorsIds.map(
-              unsafeBrandId<DescriptorId>,
+              unsafeBrandId<DescriptorId>
             ),
             agreementStates: req.query.states.map(
-              apiAgreementStateToAgreementState,
+              apiAgreementStateToAgreementState
             ),
             showOnlyUpgradeable: req.query.showOnlyUpgradeable || false,
           },
           req.query.limit,
           req.query.offset,
-          ctx,
+          ctx
         );
 
         return res.status(200).send(
           agreementApi.Agreements.parse({
             results: agreements.results.map(agreementToApiAgreement),
             totalCount: agreements.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
@@ -426,14 +425,14 @@ const agreementRouter = (
           req.query.producerName,
           req.query.limit,
           req.query.offset,
-          ctx,
+          ctx
         );
 
         return res.status(200).send(
           agreementApi.CompactOrganizations.parse({
             results: producers.results,
             totalCount: producers.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
@@ -456,14 +455,14 @@ const agreementRouter = (
           req.query.consumerName,
           req.query.limit,
           req.query.offset,
-          ctx,
+          ctx
         );
 
         return res.status(200).send(
           agreementApi.CompactOrganizations.parse({
             results: consumers.results,
             totalCount: consumers.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
@@ -487,7 +486,7 @@ const agreementRouter = (
         const { data: agreement, metadata } =
           await agreementService.getAgreementById(
             unsafeBrandId(req.params.agreementId),
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -495,7 +494,7 @@ const agreementRouter = (
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
@@ -511,7 +510,7 @@ const agreementRouter = (
 
         await agreementService.deleteAgreementById(
           unsafeBrandId(req.params.agreementId),
-          ctx,
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
@@ -531,18 +530,18 @@ const agreementRouter = (
           await agreementService.internalDeleteAgreementAfterDelegationRevocation(
             unsafeBrandId(req.params.agreementId),
             unsafeBrandId(req.params.delegationId),
-            ctx,
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteAgreementErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
 
     .post(
@@ -556,18 +555,18 @@ const agreementRouter = (
           await agreementService.internalArchiveAgreementAfterDelegationRevocation(
             unsafeBrandId(req.params.agreementId),
             unsafeBrandId(req.params.delegationId),
-            ctx,
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             archiveAgreementErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post("/internal/agreement/:agreementId/contract", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -580,7 +579,7 @@ const agreementRouter = (
         await agreementService.internalAddAgreementContract(
           unsafeBrandId(agreementId),
           agreementContract,
-          ctx,
+          ctx
         );
 
         return res.status(204).send();
@@ -588,7 +587,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           generateAgreementDocumentsErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -608,7 +607,7 @@ const agreementRouter = (
           await agreementService.internalAddAgreementSignedContract(
             unsafeBrandId(agreementId),
             agreementContract,
-            ctx,
+            ctx
           );
 
           return res.status(204).send();
@@ -616,11 +615,11 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             generateAgreementSignedDocumentsErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
 
     .post("/agreements/:agreementId/update", async (req, res) => {
@@ -632,13 +631,13 @@ const agreementRouter = (
         const agreement = await agreementService.updateAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
-          ctx,
+          ctx
         );
 
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, updateAgreementErrorMapper, ctx);
@@ -655,7 +654,7 @@ const agreementRouter = (
         const { data: agreement, metadata } =
           await agreementService.upgradeAgreement(
             unsafeBrandId(req.params.agreementId),
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -663,13 +662,13 @@ const agreementRouter = (
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           upgradeAgreementErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -684,7 +683,7 @@ const agreementRouter = (
         const { data: agreement, metadata } =
           await agreementService.cloneAgreement(
             unsafeBrandId(req.params.agreementId),
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -692,7 +691,7 @@ const agreementRouter = (
         return res
           .status(200)
           .send(
-            agreementApi.Agreement.parse(agreementToApiAgreement(agreement)),
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, cloneAgreementErrorMapper, ctx);
@@ -709,7 +708,7 @@ const agreementRouter = (
         await agreementService.internalComputeAgreementsStateByAttribute(
           unsafeBrandId(req.body.attributeId),
           fromApiCompactTenant(req.body.consumer),
-          ctx,
+          ctx
         );
 
         return res.status(204).send();
@@ -717,7 +716,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           computeAgreementsStateErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -742,14 +741,14 @@ const agreementRouter = (
           },
           req.query.limit,
           req.query.offset,
-          ctx,
+          ctx
         );
 
         return res.status(200).send(
           agreementApi.CompactEServices.parse({
             results: eservices.results,
             totalCount: eservices.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
@@ -769,11 +768,11 @@ const agreementRouter = (
             {
               tenantId: unsafeBrandId<TenantId>(req.params.tenantId),
               descriptorId: unsafeBrandId<DescriptorId>(
-                req.params.descriptorId,
+                req.params.descriptorId
               ),
               eserviceId: unsafeBrandId<EServiceId>(req.params.eserviceId),
             },
-            ctx,
+            ctx
           );
           return res
             .status(200)
@@ -782,11 +781,11 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             verifyTenantCertifiedAttributesErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     );
 
   return agreementRouter;

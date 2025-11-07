@@ -47,7 +47,7 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
   const makeRequest = async (
     token: string,
     delegationId: DelegationId = mockDelegation.id,
-    payload: DelegationSignedContractDocument = mockDelegationContract,
+    payload: DelegationSignedContractDocument = mockDelegationContract
   ) =>
     request(api)
       .post(`/internal/delegations/${delegationId}/signedContract`)
@@ -64,19 +64,19 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
       const res = await makeRequest(token);
 
       expect(
-        delegationService.internalAddDelegationSignedContract,
+        delegationService.internalAddDelegationSignedContract
       ).toHaveBeenCalledWith(
         mockDelegation.id,
         mockDelegationContract,
-        expect.anything(),
+        expect.anything()
       );
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
-    },
+    }
   );
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role)),
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -93,7 +93,7 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
       error: incorrectState(
         mockDelegation.id,
         "Rejected",
-        "WaitingForApproval",
+        "WaitingForApproval"
       ),
       expectedStatus: 409,
     },
@@ -106,7 +106,7 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
-    },
+    }
   );
 
   it("Should return 400 if passed an invalid delegation id", async () => {
