@@ -614,6 +614,7 @@ export function purposeTemplateServiceBuilder(
         documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       },
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
