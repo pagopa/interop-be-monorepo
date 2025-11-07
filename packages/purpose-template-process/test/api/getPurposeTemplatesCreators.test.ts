@@ -1,26 +1,28 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { generateId, Tenant } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { tenantApi } from "pagopa-interop-api-clients";
-import { api, tenantService } from "../vitest.api.setup.js";
-import { toApiTenant } from "../../src/model/domain/apiConverter.js";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
-describe("API GET /purposeTemplateCreators test", () => {
-  const tenant1: Tenant = {
-    ...getMockTenant(),
-    name: "Tenant 1",
-  };
-  const tenant2: Tenant = {
-    ...getMockTenant(),
-    name: "Tenant 2",
-  };
-  const tenant3: Tenant = {
-    ...getMockTenant(),
-    name: "Tenant 3",
-  };
+describe("API GET /creators test", () => {
+  const tenant1: purposeTemplateApi.CompactOrganization =
+    purposeTemplateApi.CompactOrganization.strip().parse({
+      ...getMockTenant(),
+      name: "Tenant 1",
+    });
+  const tenant2: purposeTemplateApi.CompactOrganization =
+    purposeTemplateApi.CompactOrganization.strip().parse({
+      ...getMockTenant(),
+      name: "Tenant 2",
+    });
+  const tenant3: purposeTemplateApi.CompactOrganization =
+    purposeTemplateApi.CompactOrganization.strip().parse({
+      ...getMockTenant(),
+      name: "Tenant 3",
+    });
 
   const defaultQuery = { offset: 0, limit: 10, name: "Tenant" };
 
@@ -29,13 +31,24 @@ describe("API GET /purposeTemplateCreators test", () => {
     totalCount: 3,
   };
 
-  const apiResponse = tenantApi.Tenants.parse({
-    results: mockResponse.results.map(toApiTenant),
-    totalCount: mockResponse.totalCount,
-  });
+  const queryParams = {
+    limit: 10,
+    offset: 0,
+  };
+
+  const makeRequest = async (
+    token: string,
+    query: typeof queryParams = queryParams
+  ) =>
+    request(api)
+      .get("/creators")
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .query(query)
+      .send();
 
   beforeEach(() => {
-    tenantService.getPurposeTemplatesCreators = vi
+    purposeTemplateService.getPurposeTemplatesCreators = vi
       .fn()
       .mockResolvedValue(mockResponse);
   });
@@ -46,24 +59,15 @@ describe("API GET /purposeTemplateCreators test", () => {
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
   ];
-
-  const makeRequest = async (
-    token: string,
-    query: typeof defaultQuery = defaultQuery
-  ) =>
-    request(api)
-      .get("/purposeTemplatesCreators")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query(query);
-
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
+      const expected = mockResponse;
+
+      expect(res.body).toEqual(expected);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
     }
   );
 

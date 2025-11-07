@@ -11,7 +11,12 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  emptyErrorMapper,
+  EServiceId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -139,6 +144,36 @@ const purposeTemplateRouter = (
           createPurposeTemplateErrorMapper,
           ctx
         );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/creators", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const { creatorName, offset, limit } = req.query;
+
+        const { results, totalCount } =
+          await purposeTemplateService.getPurposeTemplatesCreators(
+            { creatorName, limit, offset },
+            ctx
+          );
+
+        return res.status(200).send(
+          purposeTemplateApi.CompactOrganizations.parse({
+            results,
+            totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })

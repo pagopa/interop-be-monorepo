@@ -662,9 +662,9 @@ export function purposeTemplateServiceBuilder(
         `Getting Purpose Templates creators with name ${name}, limit ${limit}, offset ${offset}`
       );
       const { results, totalCount } =
-        await tenantProcessClient.tenant.getPurposeTemplatesCreators({
+        await purposeTemplateClient.getPurposeTemplatesCreators({
           queries: {
-            name,
+            creatorName: name,
             offset,
             limit,
           },

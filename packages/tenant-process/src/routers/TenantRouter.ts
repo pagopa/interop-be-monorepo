@@ -130,38 +130,6 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/purposeTemplatesCreators", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      try {
-        validateAuthorization(ctx, [
-          ADMIN_ROLE,
-          API_ROLE,
-          SECURITY_ROLE,
-          SUPPORT_ROLE,
-        ]);
-
-        const { name, offset, limit } = req.query;
-        const producers = await tenantService.getPurposeTemplatesCreators(
-          {
-            creatorName: name,
-            offset,
-            limit,
-          },
-          ctx
-        );
-
-        return res.status(200).send(
-          tenantApi.Tenants.parse({
-            results: producers.results.map(toApiTenant),
-            totalCount: producers.totalCount,
-          })
-        );
-      } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
     .get("/tenants", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
