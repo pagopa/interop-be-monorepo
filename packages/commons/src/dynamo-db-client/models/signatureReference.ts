@@ -1,7 +1,11 @@
-export interface SignatureReference {
-  safeStorageId: string;
-  fileKind: string;
-  fileName: string;
-  correlationId: string;
-  creationTimestamp?: number;
-}
+import { z } from "zod";
+
+export const SignatureReferenceSchema = z.object({
+  safeStorageId: z.string(),
+  fileKind: z.string(),
+  fileName: z.string(),
+  correlationId: z.string(),
+  creationTimestamp: z.number().optional(),
+});
+
+export type SignatureReference = z.infer<typeof SignatureReferenceSchema>;
