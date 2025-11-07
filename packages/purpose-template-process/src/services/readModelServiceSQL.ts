@@ -2,6 +2,7 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  genericInternalError,
   ListResult,
   PurposeTemplate,
   PurposeTemplateId,
@@ -33,6 +34,7 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
@@ -57,6 +59,8 @@ import {
   UIAuthData,
   withTotalCount,
 } from "pagopa-interop-commons";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { z } from "zod";
 import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {
@@ -460,6 +464,72 @@ export function readModelServiceBuilderSQL({
         ),
         queryResult[0]?.totalCount
       );
+    },
+    async getPublishedPurposeTemplateCreators({
+      creatorName,
+      offset,
+      limit,
+    }: {
+      creatorName: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<purposeTemplateApi.CompactOrganization>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
+        .from(tenantInReadmodelTenant)
+        .innerJoin(
+          purposeTemplateInReadmodelPurposeTemplate,
+          and(
+            eq(
+              tenantInReadmodelTenant.id,
+              purposeTemplateInReadmodelPurposeTemplate.creatorId
+            )
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.state,
+              purposeTemplateState.published
+            ),
+            creatorName
+              ? ilike(
+                  tenantInReadmodelTenant.name,
+                  `%${escapeRegExp(creatorName)}%`
+                )
+              : undefined
+          )
+        )
+        .groupBy(tenantInReadmodelTenant.id)
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
+        .limit(limit)
+        .offset(offset);
+
+      const data: purposeTemplateApi.CompactOrganization[] = queryResult.map(
+        (d) => ({
+          id: d.id,
+          name: d.name,
+        })
+      );
+
+      const result = z
+        .array(purposeTemplateApi.CompactOrganization)
+        .safeParse(data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse compact organization items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
     },
   };
 }

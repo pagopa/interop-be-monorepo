@@ -1561,6 +1561,27 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
+    async getPublishedPurposeTemplateCreators(
+      {
+        creatorName,
+        offset,
+        limit,
+      }: {
+        creatorName: string | undefined;
+        offset: number;
+        limit: number;
+      },
+      { logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<ListResult<purposeTemplateApi.CompactOrganization>> {
+      logger.info(
+        `Retrieving purpose template creators with name ${creatorName}, limit ${limit}, offset ${offset}`
+      );
+      return await readModelService.getPublishedPurposeTemplateCreators({
+        creatorName,
+        limit,
+        offset,
+      });
+    },
   };
 }
 export type PurposeTemplateService = ReturnType<
