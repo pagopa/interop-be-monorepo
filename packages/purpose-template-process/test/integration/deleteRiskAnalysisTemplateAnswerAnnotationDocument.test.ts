@@ -106,12 +106,14 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
 
     const response =
       await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-        purposeTemplate.id,
-        riskAnalysisFormTemplate.singleAnswers[0].id,
-        annotationDocument1.id,
-        getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
-        })
+        {
+          purposeTemplateId: purposeTemplate.id,
+          answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
+          documentId: annotationDocument1.id,
+          ctx: getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          }),
+        }
       );
 
     const annotationDocumentDeletionEvent = await readLastPurposeTemplateEvent(
@@ -173,12 +175,14 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   it("should throw purposeTemplateNotFound if the purpose template doesn't exist", () => {
     void expect(
       purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-        purposeTemplate.id,
-        riskAnalysisFormTemplate.singleAnswers[0].id,
-        annotationDocument1.id,
-        getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
-        })
+        {
+          purposeTemplateId: purposeTemplate.id,
+          answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
+          documentId: annotationDocument1.id,
+          ctx: getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          }),
+        }
       )
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
@@ -189,12 +193,14 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     await addOnePurposeTemplate(purposeTemplate);
     expect(
       purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-        purposeTemplate.id,
-        riskAnalysisFormTemplate.singleAnswers[0].id,
-        annotationDocument1.id,
-        getMockContext({
-          authData: getMockAuthData(requesterId),
-        })
+        {
+          purposeTemplateId: purposeTemplate.id,
+          answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
+          documentId: annotationDocument1.id,
+          ctx: getMockContext({
+            authData: getMockAuthData(requesterId),
+          }),
+        }
       )
     ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
@@ -205,14 +211,16 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysisTemplate);
     expect(
       purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-        purposeTemplateWithoutRiskAnalysisTemplate.id,
-        generateId(),
-        generateId(),
-        getMockContext({
-          authData: getMockAuthData(
-            purposeTemplateWithoutRiskAnalysisTemplate.creatorId
-          ),
-        })
+        {
+          purposeTemplateId: purposeTemplateWithoutRiskAnalysisTemplate.id,
+          answerId: generateId(),
+          documentId: generateId(),
+          ctx: getMockContext({
+            authData: getMockAuthData(
+              purposeTemplateWithoutRiskAnalysisTemplate.creatorId
+            ),
+          }),
+        }
       )
     ).rejects.toThrowError(
       purposeTemplateRiskAnalysisFormNotFound(
@@ -229,12 +237,14 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     await addOnePurposeTemplate(purposeTemplate);
     expect(
       purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-        purposeTemplate.id,
-        answerId,
-        documentId,
-        getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
-        })
+        {
+          purposeTemplateId: purposeTemplate.id,
+          answerId,
+          documentId,
+          ctx: getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          }),
+        }
       )
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
@@ -260,12 +270,14 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       await addOnePurposeTemplate(purposeTemplateNotInWrongState);
       expect(
         purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-          purposeTemplate.id,
-          riskAnalysisFormTemplate.singleAnswers[0].id,
-          annotationDocument1.id,
-          getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
-          })
+          {
+            purposeTemplateId: purposeTemplate.id,
+            answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
+            documentId: annotationDocument1.id,
+            ctx: getMockContext({
+              authData: getMockAuthData(purposeTemplate.creatorId),
+            }),
+          }
         )
       ).rejects.toThrowError(
         purposeTemplateNotInExpectedStates(
