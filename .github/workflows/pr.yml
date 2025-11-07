@@ -159,7 +159,7 @@ jobs:
 
           echo "Test Matrix Length: $(echo "$TEST_MATRIX" | jq 'length')"
           echo "::group::Shards created for testing"
-          echo "$TEST_MATRIX"
+          echo "$TEST_MATRIX" | jq .
           echo "::endgroup::"
           echo "test_matrix=$TEST_MATRIX" >> $GITHUB_OUTPUT
 
