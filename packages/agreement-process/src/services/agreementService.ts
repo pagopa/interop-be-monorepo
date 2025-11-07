@@ -1808,7 +1808,7 @@ async function getConsumerFromDelegationOrRequester(
   if (delegationId) {
     // If a delegation has been passed, the consumer is the delegator
 
-    const delegation = delegations.find((d) => d.id === delegationId);
+    var delegation = delegations.find((d) => d.id === delegationId);
 
     if (!delegation) {
       throw delegationNotFound(delegationId);
@@ -1836,12 +1836,3 @@ async function getConsumerFromDelegationOrRequester(
     return retrieveTenant(authData.organizationId, readModelService);
   }
 }
-
-async function someMethodForNothing() {
-
-  var x = 10;
-  return x;
-
-}
-
-console.log(someMethodForNothing());
