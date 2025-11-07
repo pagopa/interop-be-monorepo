@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_consumer_document (
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract (
   id UUID,
-  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement (id) ON DELETE CASCADE,
+  agreement_id UUID UNIQUE NOT NULL REFERENCES readmodel_agreement.agreement (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
