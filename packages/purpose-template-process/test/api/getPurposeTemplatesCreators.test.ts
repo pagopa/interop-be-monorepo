@@ -48,7 +48,7 @@ describe("API GET /creators test", () => {
       .send();
 
   beforeEach(() => {
-    purposeTemplateService.getPurposeTemplatesCreators = vi
+    purposeTemplateService.getPublishedPurposeTemplateCreators = vi
       .fn()
       .mockResolvedValue(mockResponse);
   });

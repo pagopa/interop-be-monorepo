@@ -161,7 +161,7 @@ const purposeTemplateRouter = (
         const { creatorName, offset, limit } = req.query;
 
         const { results, totalCount } =
-          await purposeTemplateService.getPurposeTemplatesCreators(
+          await purposeTemplateService.getPublishedPurposeTemplateCreators(
             { creatorName, limit, offset },
             ctx
           );

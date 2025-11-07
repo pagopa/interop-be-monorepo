@@ -20,7 +20,7 @@ describe("API GET /purposeTemplates/filter/creators test", () => {
   const defaultQuery = { offset: 0, limit: 10, q: "" };
 
   beforeEach(() => {
-    services.purposeTemplateService.getPurposeTemplatesCreators = vi
+    services.purposeTemplateService.getPublishedPurposeTemplateCreators = vi
       .fn()
       .mockResolvedValue(mockPurposeTemplateCreators);
   });

@@ -15,7 +15,7 @@ import {
   readModelService,
 } from "../integrationUtils.js";
 
-describe("getPurposeTemplatesCreators", () => {
+describe("getPublishedPurposeTemplateCreators", () => {
   const tenant1: Tenant = {
     ...getMockTenant(),
     name: "Tenant 1",
@@ -68,11 +68,13 @@ describe("getPurposeTemplatesCreators", () => {
     };
     await addOnePurposeTemplate(purposeTemplate3);
 
-    const creators = await readModelService.getPurposeTemplatesCreators({
-      creatorName: undefined,
-      offset: 0,
-      limit: 50,
-    });
+    const creators = await readModelService.getPublishedPurposeTemplateCreators(
+      {
+        creatorName: undefined,
+        offset: 0,
+        limit: 50,
+      }
+    );
     expect(creators.totalCount).toBe(3);
     expect(creators.results).toEqual([mockTenant1, mockTenant2, mockTenant3]);
   });
@@ -95,11 +97,13 @@ describe("getPurposeTemplatesCreators", () => {
     };
     await addOnePurposeTemplate(purposeTemplate2);
 
-    const creators = await readModelService.getPurposeTemplatesCreators({
-      creatorName: "1",
-      offset: 0,
-      limit: 50,
-    });
+    const creators = await readModelService.getPublishedPurposeTemplateCreators(
+      {
+        creatorName: "1",
+        offset: 0,
+        limit: 50,
+      }
+    );
     expect(creators.totalCount).toBe(1);
     expect(creators.results).toEqual([mockTenant1]);
   });
@@ -122,11 +126,13 @@ describe("getPurposeTemplatesCreators", () => {
     };
     await addOnePurposeTemplate(purposeTemplate2);
 
-    const creators = await readModelService.getPurposeTemplatesCreators({
-      creatorName: "Tenant 6",
-      offset: 0,
-      limit: 50,
-    });
+    const creators = await readModelService.getPublishedPurposeTemplateCreators(
+      {
+        creatorName: "Tenant 6",
+        offset: 0,
+        limit: 50,
+      }
+    );
     expect(creators.totalCount).toBe(0);
     expect(creators.results).toEqual([]);
   });
@@ -145,11 +151,13 @@ describe("getPurposeTemplatesCreators", () => {
     };
     await addOnePurposeTemplate(purposeTemplate2);
 
-    const creators = await readModelService.getPurposeTemplatesCreators({
-      creatorName: "A tenant",
-      offset: 0,
-      limit: 50,
-    });
+    const creators = await readModelService.getPublishedPurposeTemplateCreators(
+      {
+        creatorName: "A tenant",
+        offset: 0,
+        limit: 50,
+      }
+    );
     expect(creators.totalCount).toBe(0);
     expect(creators.results).toEqual([]);
   });
@@ -180,11 +188,12 @@ describe("getPurposeTemplatesCreators", () => {
       creatorId: tenant3.id,
     };
     await addOnePurposeTemplate(purposeTemplate3);
-    const tenantsByName = await readModelService.getPurposeTemplatesCreators({
-      creatorName: undefined,
-      offset: 0,
-      limit: 2,
-    });
+    const tenantsByName =
+      await readModelService.getPublishedPurposeTemplateCreators({
+        creatorName: undefined,
+        offset: 0,
+        limit: 2,
+      });
     expect(tenantsByName.results.length).toBe(2);
   });
   it("should get creators (pagination: offset, limit)", async () => {
@@ -214,11 +223,12 @@ describe("getPurposeTemplatesCreators", () => {
       creatorId: tenant3.id,
     };
     await addOnePurposeTemplate(purposeTemplate3);
-    const tenantsByName = await readModelService.getPurposeTemplatesCreators({
-      creatorName: undefined,
-      offset: 1,
-      limit: 1,
-    });
+    const tenantsByName =
+      await readModelService.getPublishedPurposeTemplateCreators({
+        creatorName: undefined,
+        offset: 1,
+        limit: 1,
+      });
     expect(tenantsByName.results.length).toBe(1);
     expect(tenantsByName.results).toEqual([mockTenant2]);
   });
@@ -249,11 +259,12 @@ describe("getPurposeTemplatesCreators", () => {
       creatorId: tenant3.id,
     };
     await addOnePurposeTemplate(purposeTemplate3);
-    const tenantsByName = await readModelService.getPurposeTemplatesCreators({
-      creatorName: undefined,
-      offset: 0,
-      limit: 10,
-    });
+    const tenantsByName =
+      await readModelService.getPublishedPurposeTemplateCreators({
+        creatorName: undefined,
+        offset: 0,
+        limit: 10,
+      });
     expect(tenantsByName.results.length).toBe(2);
     expect(tenantsByName.results).toEqual([mockTenant2, mockTenant3]);
   });

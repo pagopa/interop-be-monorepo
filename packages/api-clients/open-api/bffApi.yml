@@ -10352,7 +10352,7 @@ paths:
     get:
       tags:
         - purposeTemplates
-      operationId: getPurposeTemplatesCreators
+      operationId: getPublishedPurposeTemplateCreators
       description: Retrieve Tenants that have published a purposeTemplate
       responses:
         "200":

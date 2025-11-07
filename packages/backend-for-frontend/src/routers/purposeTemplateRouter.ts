@@ -51,12 +51,13 @@ const purposeTemplateRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeTemplateService.getPurposeTemplatesCreators(
-          req.query.q,
-          req.query.offset,
-          req.query.limit,
-          ctx
-        );
+        const result =
+          await purposeTemplateService.getPublishedPurposeTemplateCreators(
+            req.query.q,
+            req.query.offset,
+            req.query.limit,
+            ctx
+          );
 
         return res.status(200).send(bffApi.CompactOrganizations.parse(result));
       } catch (error) {

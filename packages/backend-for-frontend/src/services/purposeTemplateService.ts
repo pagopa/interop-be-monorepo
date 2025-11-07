@@ -652,7 +652,7 @@ export function purposeTemplateServiceBuilder(
         }
       );
     },
-    async getPurposeTemplatesCreators(
+    async getPublishedPurposeTemplateCreators(
       name: string | undefined,
       offset: number,
       limit: number,
@@ -662,7 +662,7 @@ export function purposeTemplateServiceBuilder(
         `Getting Purpose Templates creators with name ${name}, limit ${limit}, offset ${offset}`
       );
       const { results, totalCount } =
-        await purposeTemplateClient.getPurposeTemplatesCreators({
+        await purposeTemplateClient.getPublishedPurposeTemplateCreators({
           queries: {
             creatorName: name,
             offset,

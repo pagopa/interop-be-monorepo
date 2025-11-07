@@ -441,7 +441,7 @@ export function readModelServiceBuilderSQL({
         queryResult[0]?.totalCount
       );
     },
-    async getPurposeTemplatesCreators({
+    async getPublishedPurposeTemplateCreators({
       creatorName,
       offset,
       limit,

@@ -176,7 +176,7 @@ paths:
     get:
       tags:
         - purposeTemplate
-      operationId: getPurposeTemplatesCreators
+      operationId: getPublishedPurposeTemplateCreators
       description: Retrieve Tenants that have published a Purpose Template
       parameters:
         - in: query

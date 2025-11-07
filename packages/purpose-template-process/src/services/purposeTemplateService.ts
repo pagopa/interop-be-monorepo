@@ -1543,7 +1543,7 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async getPurposeTemplatesCreators(
+    async getPublishedPurposeTemplateCreators(
       {
         creatorName,
         offset,
@@ -1558,7 +1558,7 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Retrieving purpose template creators with name ${creatorName}, limit ${limit}, offset ${offset}`
       );
-      return await readModelService.getPurposeTemplatesCreators({
+      return await readModelService.getPublishedPurposeTemplateCreators({
         creatorName,
         limit,
         offset,
