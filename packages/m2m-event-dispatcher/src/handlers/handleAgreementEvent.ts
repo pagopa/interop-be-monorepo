@@ -55,6 +55,7 @@ export async function handleAgreementEvent(
         );
         const m2mEvent = await createAgreementM2MEvent(
           agreement,
+          event.version,
           event.type,
           eventTimestamp,
           await readModelService.getActiveDelegationsForAgreement(agreement)
