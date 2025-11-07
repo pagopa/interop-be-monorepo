@@ -856,7 +856,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: Risk analysis form template answer annotation document not found
+          description: Not found
           content:
             application/problem+json:
               schema:

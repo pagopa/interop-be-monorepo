@@ -45,6 +45,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  ne,
   or,
   SQL,
 } from "drizzle-orm";
@@ -53,10 +54,14 @@ import {
   createListResult,
   escapeRegExp,
   getValidFormRulesVersions,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
   withTotalCount,
 } from "pagopa-interop-commons";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
+import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
@@ -76,7 +81,8 @@ export type GetPurposeTemplateEServiceDescriptorsFilters = {
 
 const getPurposeTemplatesFilters = (
   readModelDB: DrizzleReturnType,
-  filters: GetPurposeTemplatesFilters
+  filters: GetPurposeTemplatesFilters,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): SQL | undefined => {
   const {
     purposeTitle,
@@ -162,6 +168,22 @@ const getPurposeTemplatesFilters = (
         )
       : undefined;
 
+  const visibilityFilter = hasRoleToAccessDraftPurposeTemplates(authData)
+    ? or(
+        eq(
+          purposeTemplateInReadmodelPurposeTemplate.creatorId,
+          authData.organizationId
+        ),
+        ne(
+          purposeTemplateInReadmodelPurposeTemplate.state,
+          purposeTemplateState.draft
+        )
+      )
+    : ne(
+        purposeTemplateInReadmodelPurposeTemplate.state,
+        purposeTemplateState.draft
+      );
+
   return and(
     purposeTitleFilter,
     creatorIdsFilter,
@@ -169,7 +191,8 @@ const getPurposeTemplatesFilters = (
     statesFilter,
     targetTenantKindFilter,
     excludeExpiredRiskAnalysisFilters,
-    handlesPersonalDataFilter
+    handlesPersonalDataFilter,
+    visibilityFilter
   );
 };
 
@@ -199,7 +222,8 @@ export function readModelServiceBuilderSQL({
     },
     async getPurposeTemplates(
       filters: GetPurposeTemplatesFilters,
-      { limit, offset }: { limit: number; offset: number }
+      { limit, offset }: { limit: number; offset: number },
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<PurposeTemplate>> {
       const subquery = readModelDB
         .select(
@@ -222,7 +246,7 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
           )
         )
-        .where(getPurposeTemplatesFilters(readModelDB, filters))
+        .where(getPurposeTemplatesFilters(readModelDB, filters, authData))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)

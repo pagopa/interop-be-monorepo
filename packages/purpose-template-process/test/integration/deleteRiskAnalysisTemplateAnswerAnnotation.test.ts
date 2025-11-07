@@ -232,7 +232,10 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         }),
       })
     ).rejects.toThrowError(
-      riskAnalysisTemplateAnswerNotFound(purposeTemplate.id, answerId)
+      riskAnalysisTemplateAnswerNotFound({
+        purposeTemplateId: purposeTemplate.id,
+        answerId,
+      })
     );
   });
 

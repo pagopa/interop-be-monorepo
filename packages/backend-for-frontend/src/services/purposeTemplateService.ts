@@ -193,7 +193,7 @@ export function purposeTemplateServiceBuilder(
       const { headers, logger } = ctx;
 
       logger.info(
-        `Retrieving catalog purpose templates with title ${purposeTitle}, eserviceIds ${eserviceIds.toString()} offset ${offset}, limit ${limit}`
+        `Retrieving catalog purpose templates with purposeTitle ${purposeTitle}, targetTenantKind ${targetTenantKind}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, excludeExpiredRiskAnalysis ${excludeExpiredRiskAnalysis}, handlesPersonalData ${handlesPersonalData}, offset ${offset}, limit ${limit}`
       );
 
       const catalogPurposeTemplatesResponse =
