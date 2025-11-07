@@ -49,19 +49,9 @@ async function processMessage(
 ): Promise<void> {
   try {
     const { id, detail } = message;
-    const {
-      key: fileKey,
-      documentType,
-      client_short_code: clientCode,
-    } = detail;
+    const { key: fileKey, client_short_code: clientCode } = detail;
 
-    const signature = [
-      "RISK_ANALYSIS_DOCUMENT",
-      "AGREEMENT_CONTRACT",
-      "DELEGATION_CONTRACT",
-    ].includes(documentType)
-      ? await signatureService.readDocumentSignatureReference(id)
-      : await signatureService.readSignatureReference(id);
+    const signature = await signatureService.readSignatureReferenceById(id);
 
     if (!signature) {
       throw new Error(`Missing signature reference for message ${id}`);
@@ -100,8 +90,8 @@ async function processMessage(
             error.name === "Conflict");
 
         const allowConflictWarning =
-          documentType === "RISK_ANALYSIS_DOCUMENT" ||
-          documentType === "AGREEMENT_CONTRACT";
+          signature.fileKind === "RISK_ANALYSIS_DOCUMENT" ||
+          signature.fileKind === "AGREEMENT_CONTRACT";
 
         if (isConflict && allowConflictWarning) {
           logger.warn(

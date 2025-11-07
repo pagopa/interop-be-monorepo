@@ -208,6 +208,82 @@ export function signatureServiceBuilder(
         );
       }
     },
+
+    readSignatureReferenceById: async (
+      id: string
+    ): Promise<SignatureReference | DocumentSignatureReference | undefined> => {
+      const input: GetItemInput = {
+        Key: {
+          safeStorageId: { S: id },
+        },
+        TableName: config.signatureReferencesTableName,
+        ConsistentRead: true,
+      };
+
+      const command = new GetItemCommand(input);
+
+      try {
+        const data = await dynamoDBClient.send(command);
+
+        if (!data.Item) {
+          return undefined;
+        }
+
+        // Determine if it's a DocumentSignatureReference by checking for required fields
+        if (
+          "streamId" in data.Item &&
+          "subObjectId" in data.Item &&
+          "contentType" in data.Item &&
+          "path" in data.Item &&
+          "prettyname" in data.Item &&
+          "version" in data.Item &&
+          "createdAt" in data.Item
+        ) {
+          // It's a DocumentSignatureReference
+          assertValidDocumentSignatureReferenceItem(
+            data.Item,
+            config.signatureReferencesTableName,
+            id
+          );
+
+          return {
+            safeStorageId: data.Item.safeStorageId.S,
+            fileKind: data.Item.fileKind.S,
+            streamId: data.Item.streamId.S,
+            subObjectId: data.Item.subObjectId.S,
+            contentType: data.Item.contentType.S,
+            path: data.Item.path.S,
+            prettyname: data.Item.prettyname.S,
+            fileName: data.Item.fileName.S,
+            version: Number(data.Item.version.N),
+            createdAt: BigInt(data.Item.createdAt.N),
+            correlationId: data.Item.correlationId.S,
+            creationTimestamp: Number(data.Item.creationTimestamp.N),
+          };
+        } else {
+          // Assume it's a SignatureReference
+          assertValidSignatureReferenceItem(
+            data.Item,
+            config.signatureReferencesTableName,
+            id
+          );
+
+          return {
+            safeStorageId: data.Item.safeStorageId.S,
+            correlationId: data.Item.correlationId.S,
+            fileKind: data.Item.fileKind.S,
+            fileName: data.Item.fileName.S,
+            creationTimestamp: Number(data.Item.creationTimestamp.N),
+          };
+        }
+      } catch (error) {
+        throw genericInternalError(
+          `Error reading signature reference with id='${id}' from table '${
+            config.signatureReferencesTableName
+          }': ${formatError(error)}`
+        );
+      }
+    },
   };
 }
 
