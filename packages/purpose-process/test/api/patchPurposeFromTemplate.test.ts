@@ -13,7 +13,6 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
-  duplicatedPurposeTitle,
   eserviceNotFound,
   purposeDraftVersionNotFound,
   purposeNotFound,
