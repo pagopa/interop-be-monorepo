@@ -500,8 +500,6 @@ describe("integration tests V2 events", async () => {
     it("should do nothing if the descriptor is not the latest", async () => {
       const archivedDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        audience: ["pagopa.it/test1", "pagopa.it/test2"],
-        interface: getMockDocument(),
         state: descriptorState.archived,
         publishedAt: new Date(),
         archivedAt: new Date(),
