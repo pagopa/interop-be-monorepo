@@ -598,13 +598,13 @@ describe("integration tests V2 events", async () => {
         platformStatesCatalogEntry
       );
 
-      const archivedPlatformStatesEServiceDescriptorPK =
+      const archivedPlatformStatesCatalogPK =
         makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
           descriptorId: archivedDescriptor.id,
         });
       const retrievedArchivedEntry = await readCatalogEntry(
-        archivedPlatformStatesEServiceDescriptorPK,
+        archivedPlatformStatesCatalogPK,
         dynamoDBClient
       );
       expect(retrievedArchivedEntry).toBeUndefined();
