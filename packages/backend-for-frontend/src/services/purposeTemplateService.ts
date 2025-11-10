@@ -193,7 +193,7 @@ export function purposeTemplateServiceBuilder(
       const { headers, logger } = ctx;
 
       logger.info(
-        `Retrieving catalog purpose templates with title ${purposeTitle}, eserviceIds ${eserviceIds.toString()} offset ${offset}, limit ${limit}`
+        `Retrieving catalog purpose templates with purposeTitle ${purposeTitle}, targetTenantKind ${targetTenantKind}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, excludeExpiredRiskAnalysis ${excludeExpiredRiskAnalysis}, handlesPersonalData ${handlesPersonalData}, offset ${offset}, limit ${limit}`
       );
 
       const catalogPurposeTemplatesResponse =
@@ -651,6 +651,34 @@ export function purposeTemplateServiceBuilder(
           },
         }
       );
+    },
+    async getPublishedPurposeTemplateCreators(
+      name: string | undefined,
+      offset: number,
+      limit: number,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> {
+      logger.info(
+        `Getting Purpose Templates creators with name ${name}, limit ${limit}, offset ${offset}`
+      );
+      const { results, totalCount } =
+        await purposeTemplateClient.getPublishedPurposeTemplateCreators({
+          queries: {
+            creatorName: name,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: results.map((t) => ({ id: t.id, name: t.name })),
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
+      };
     },
   };
 }

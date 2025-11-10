@@ -12,6 +12,10 @@ import request from "supertest";
 import { authRole, AuthRole } from "pagopa-interop-commons";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate } from "../../src/model/domain/apiConverter.js";
+import {
+  purposeTemplateNotFound,
+  tenantNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("API GET /purposeTemplates/:id/eservices", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
@@ -108,6 +112,29 @@ describe("API GET /purposeTemplates/:id/eservices", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    {
+      error: purposeTemplateNotFound(generateId()),
+      expectedStatus: 404,
+    },
+    {
+      error: tenantNotAllowed(generateId()),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeTemplateService.getPurposeTemplateEServiceDescriptors = vi
+        .fn()
+        .mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it.each([
     { query: {} },
