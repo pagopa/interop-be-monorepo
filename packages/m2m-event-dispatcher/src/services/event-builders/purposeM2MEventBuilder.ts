@@ -81,7 +81,7 @@ function createPurposeM2MEventHelper(
 
 /**
  * Helper function to determine the visibility of an PurposeM2MEvent,
- * based on the event type; fallback to the state of the E-Service and its Descriptors if needed.
+ * based on the event type;
  */
 function getPurposeM2MEventVisibility(
   eventType: PurposeM2MEvent["eventType"]

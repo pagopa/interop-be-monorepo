@@ -34,7 +34,7 @@ export async function createAgreementM2MEvent(
 
 /**
  * Helper function to determine the visibility of an AgreementM2MEvent,
- * based on the event type; fallback to the state of the E-Service and its Descriptors if needed.
+ * based on the event type;
  */
 function getAgreementM2MEventVisibility(
   eventType: AgreementM2MEvent["eventType"],
