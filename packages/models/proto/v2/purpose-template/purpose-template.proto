@@ -61,7 +61,6 @@ message RiskAnalysisTemplateDocumentV2 {
   string contentType = 4;
   string path = 5;
   int64 createdAt = 6;
-  string checksum = 7;
 }
 
 message RiskAnalysisTemplateSignedDocumentV2 {
@@ -72,7 +71,6 @@ message RiskAnalysisTemplateSignedDocumentV2 {
   string path = 5;
   int64 createdAt = 6;
   int64 signedAt = 7;
-  string checksum = 8;
 }
 
 message RiskAnalysisTemplateAnswerAnnotationV2 {
