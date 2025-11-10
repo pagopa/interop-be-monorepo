@@ -1689,6 +1689,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: 3.842.0
         version: 3.842.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 3.840.0
+        version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       '@types/adm-zip':
         specifier: 0.5.7
         version: 0.5.7
