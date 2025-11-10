@@ -211,7 +211,7 @@ export async function handleMessageV2(
       );
       if (!isTheNewestDescriptor) {
         logger.info(
-          `Token-generation-states. Skipping processing of entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId} in token-generation-states. Reason: not the newest descriptor.`
+          `Token-generation-states. Skipping processing of entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}. Reason: not the newest descriptor.`
         );
         return;
       }
