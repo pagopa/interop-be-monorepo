@@ -109,13 +109,64 @@ export type FeatureFlagEServicePersonalDataConfig = z.infer<
   typeof FeatureFlagEServicePersonalDataConfig
 >;
 
+export const FeatureFlagDelegationsProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDelegationsContractBuilder:
+      c.FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagDelegationsProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagDelegationsProcessContractBuilderConfig
+>;
+
+export const FeatureFlagAgreementsProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAgreementsContractBuilder:
+      c.FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagAgreementsProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagAgreementsProcessContractBuilderConfig
+>;
+
+export const FeatureFlagPurposesProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagPurposesContractBuilder:
+      c.FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagPurposesProcessContractBuilderConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
   FeatureFlagNotificationConfig &
   FeatureFlagPurposeTemplateConfig &
-  FeatureFlagEServicePersonalDataConfig;
+  FeatureFlagEServicePersonalDataConfig &
+  FeatureFlagDelegationsProcessContractBuilderConfig &
+  FeatureFlagAgreementsProcessContractBuilderConfig &
+  FeatureFlagPurposesProcessContractBuilderConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

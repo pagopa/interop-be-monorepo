@@ -5,12 +5,14 @@ import {
   delegationContractKind,
   DelegationContractKind,
   DelegationId,
+  DelegationSignedContractDocument,
   DelegationStamp,
   DelegationStampKind,
 } from "pagopa-interop-models";
 import {
   DelegationContractDocumentSQL,
   DelegationItemsSQL,
+  DelegationSignedContractDocumentSQL,
   DelegationSQL,
   DelegationStampSQL,
 } from "pagopa-interop-readmodel-models";
@@ -29,6 +31,8 @@ export const splitDelegationIntoObjectsSQL = (
     activationContract,
     revocationContract,
     stamps,
+    activationSignedContract,
+    revocationSignedContract,
     ...rest
   }: Delegation,
   metadataVersion: number
@@ -49,6 +53,7 @@ export const splitDelegationIntoObjectsSQL = (
   };
 
   const contractDocumentsSQL: DelegationContractDocumentSQL[] = [];
+  const contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[] = [];
 
   if (activationContract) {
     const activationContractSQL =
@@ -72,6 +77,30 @@ export const splitDelegationIntoObjectsSQL = (
       );
     // eslint-disable-next-line functional/immutable-data
     contractDocumentsSQL.push(revocationContractSQL);
+  }
+
+  if (activationSignedContract) {
+    const activationSignedContractSQL =
+      delegationSignedContractDocumentToDelegationSignedContractDocumentSQL(
+        activationSignedContract,
+        id,
+        metadataVersion,
+        delegationContractKind.activation
+      );
+    // eslint-disable-next-line functional/immutable-data
+    contractSignedDocumentsSQL.push(activationSignedContractSQL);
+  }
+
+  if (revocationSignedContract) {
+    const revocationSignedContractSQL =
+      delegationSignedContractDocumentToDelegationSignedContractDocumentSQL(
+        revocationSignedContract,
+        id,
+        metadataVersion,
+        delegationContractKind.revocation
+      );
+    // eslint-disable-next-line functional/immutable-data
+    contractSignedDocumentsSQL.push(revocationSignedContractSQL);
   }
 
   const makeStampSQL = (
@@ -101,6 +130,7 @@ export const splitDelegationIntoObjectsSQL = (
     delegationSQL,
     contractDocumentsSQL,
     stampsSQL,
+    contractSignedDocumentsSQL,
   };
 };
 
@@ -130,5 +160,35 @@ const delegationContractDocumentToDelegationContractDocumentSQL = (
     contentType,
     path,
     createdAt: dateToString(createdAt),
+  };
+};
+const delegationSignedContractDocumentToDelegationSignedContractDocumentSQL = (
+  {
+    id,
+    name,
+    prettyName,
+    contentType,
+    path,
+    createdAt,
+    signedAt,
+    ...rest
+  }: DelegationSignedContractDocument,
+  delegationId: DelegationId,
+  metadataVersion: number,
+  delegationContractKind: DelegationContractKind
+): DelegationSignedContractDocumentSQL => {
+  void (rest satisfies Record<string, never>);
+
+  return {
+    id,
+    delegationId,
+    metadataVersion,
+    name,
+    kind: delegationContractKind,
+    prettyName,
+    contentType,
+    path,
+    createdAt: dateToString(createdAt),
+    signedAt: dateToString(signedAt),
   };
 };

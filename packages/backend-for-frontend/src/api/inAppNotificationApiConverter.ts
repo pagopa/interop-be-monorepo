@@ -57,7 +57,9 @@ export function toBffApiNotificationsCountBySection({
       ),
       totalCount: getNotificationTypesCount(results, "/gestione-client"),
     },
-    totalCount,
+    notifiche: {
+      totalCount,
+    },
   };
 }
 

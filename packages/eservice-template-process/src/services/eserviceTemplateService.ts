@@ -114,6 +114,8 @@ import {
   hasRoleToAccessDraftTemplateVersions,
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
+  assertUpdatedNameDiffersFromCurrent,
+  assertUpdatedDescriptionDiffersFromCurrent,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -645,6 +647,8 @@ export function eserviceTemplateServiceBuilder(
         authData
       );
 
+      assertUpdatedNameDiffersFromCurrent(name, eserviceTemplate.data);
+
       assertPublishedEServiceTemplate(eserviceTemplate.data);
 
       if (name !== eserviceTemplate.data.name) {
@@ -742,6 +746,11 @@ export function eserviceTemplateServiceBuilder(
       assertRequesterEServiceTemplateCreator(
         eserviceTemplate.data.creatorId,
         authData
+      );
+
+      assertUpdatedDescriptionDiffersFromCurrent(
+        description,
+        eserviceTemplate.data
       );
 
       assertPublishedEServiceTemplate(eserviceTemplate.data);
@@ -1130,7 +1139,7 @@ export function eserviceTemplateServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<EServiceTemplate> {
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating attributes of eservice template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
       );
@@ -1245,7 +1254,7 @@ export function eserviceTemplateServiceBuilder(
         updatedEServiceTemplateVersion
       );
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateVersionAttributesUpdated(
           eserviceTemplateId,
           eserviceTemplate.metadata.version,
@@ -1256,7 +1265,10 @@ export function eserviceTemplateServiceBuilder(
         )
       );
 
-      return updatedEServiceTemplate;
+      return {
+        data: updatedEServiceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async createEServiceTemplate(
       seed: eserviceTemplateApi.EServiceTemplateSeed,
