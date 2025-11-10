@@ -488,6 +488,7 @@ components:
         - clientKeyAddedDeletedToClientUsers
         - producerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
+        - purposeQuotaOverthresholdStateToConsumer
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -530,6 +531,8 @@ components:
         producerKeychainKeyAddedDeletedToClientUsers:
           type: boolean
         purposeQuotaAdjustmentRequestToProducer:
+          type: boolean
+        purposeQuotaOverthresholdStateToConsumer:
           type: boolean
     TenantNotificationConfigSeed:
       type: object

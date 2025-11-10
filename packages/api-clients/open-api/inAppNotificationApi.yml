@@ -515,6 +515,7 @@ components:
         - clientKeyAddedDeletedToClientUsers
         - producerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
+        - purposeQuotaOverthresholdStateToConsumer
     NotificationsByType:
       type: object
       additionalProperties: false
@@ -583,6 +584,9 @@ components:
               type: integer
               format: int32
             purposeQuotaAdjustmentRequestToProducer:
+              type: integer
+              format: int32
+            purposeQuotaOverthresholdStateToConsumer:
               type: integer
               format: int32
         totalCount:

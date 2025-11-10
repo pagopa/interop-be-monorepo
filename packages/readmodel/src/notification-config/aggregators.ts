@@ -140,6 +140,9 @@ export const aggregateUserNotificationConfig = ({
     purposeQuotaAdjustmentRequestToProducer: enabledInAppNotifications.includes(
       "purposeQuotaAdjustmentRequestToProducer"
     ),
+    purposeQuotaOverthresholdStateToConsumer: enabledInAppNotifications.includes(
+      "purposeQuotaOverthresholdStateToConsumer"
+    ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -210,6 +213,9 @@ export const aggregateUserNotificationConfig = ({
       ),
     purposeQuotaAdjustmentRequestToProducer: enabledEmailNotifications.includes(
       "purposeQuotaAdjustmentRequestToProducer"
+    ),
+    purposeQuotaOverthresholdStateToConsumer: enabledEmailNotifications.includes(
+      "purposeQuotaOverthresholdStateToConsumer"
     ),
   };
 

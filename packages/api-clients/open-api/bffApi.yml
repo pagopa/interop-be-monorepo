@@ -28506,6 +28506,7 @@ components:
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
+        - purposeQuotaOverthresholdStateToConsumer
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -28546,6 +28547,8 @@ components:
         clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
           type: boolean
         purposeQuotaAdjustmentRequestToProducer:
+          type: boolean
+        purposeQuotaOverthresholdStateToConsumer:
           type: boolean
     TenantNotificationConfig:
       type: object

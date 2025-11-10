@@ -6,6 +6,8 @@ import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChang
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
 import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
+import { handlePurposeQuotaOverthresholdToConsumer } from "./handlePurposeQuotaOverthresholdToConsumer.js";
+import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 
 export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelopeV2,
@@ -48,13 +50,20 @@ export async function handlePurposeEvent(
       {
         type: P.union("PurposeVersionActivated", "PurposeVersionRejected"),
       },
-      ({ data: { purpose }, type }) =>
-        handlePurposeActivatedRejectedToConsumer(
+      async ({ data: { purpose }, type }) => [
+        ...(await handlePurposeActivatedRejectedToConsumer(
           purpose,
           logger,
           readModelService,
           type
-        )
+        )),
+        ...(await handlePurposeQuotaAdjustmentResponseToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
     )
     .with(
       {
@@ -63,13 +72,20 @@ export async function handlePurposeEvent(
           "PurposeWaitingForApproval"
         ),
       },
-      ({ data: { purpose }, type }) =>
-        handlePurposeQuotaAdjustmentRequestToProducer(
+      async ({ data: { purpose }, type }) => [
+        ...(await handlePurposeQuotaAdjustmentRequestToProducer(
           purpose,
           logger,
           readModelService,
           type
-        )
+        )),
+        ...(await handlePurposeQuotaOverthresholdToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
     )
     .with(
       {

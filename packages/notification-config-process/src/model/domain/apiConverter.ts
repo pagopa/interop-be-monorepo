@@ -67,6 +67,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
       producerKeychainKeyAddedDeletedToClientUsersInApp,
     purposeQuotaAdjustmentRequestToProducer:
       purposeQuotaAdjustmentRequestToProducerInApp,
+    purposeQuotaOverthresholdStateToConsumer:
+      purposeQuotaOverthresholdStateToConsumerInApp,
   },
   emailConfig: {
     agreementSuspendedUnsuspendedToProducer:
@@ -104,6 +106,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
       producerKeychainKeyAddedDeletedToClientUsersEmail,
     purposeQuotaAdjustmentRequestToProducer:
       purposeQuotaAdjustmentRequestToProducerEmail,
+    purposeQuotaOverthresholdStateToConsumer:
+      purposeQuotaOverthresholdStateToConsumerEmail,
   },
   createdAt,
   updatedAt,
@@ -157,6 +161,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         producerKeychainKeyAddedDeletedToClientUsersInApp,
       purposeQuotaAdjustmentRequestToProducer:
         purposeQuotaAdjustmentRequestToProducerInApp,
+      purposeQuotaOverthresholdStateToConsumer:
+        purposeQuotaOverthresholdStateToConsumerInApp,
     },
     emailConfig: {
       agreementSuspendedUnsuspendedToProducer:
@@ -196,6 +202,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         producerKeychainKeyAddedDeletedToClientUsersEmail,
       purposeQuotaAdjustmentRequestToProducer:
         purposeQuotaAdjustmentRequestToProducerEmail,
+      purposeQuotaOverthresholdStateToConsumer:
+        purposeQuotaOverthresholdStateToConsumerEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
