@@ -15,6 +15,8 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisMultiAnswerId,
   userRole,
+  Descriptor,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -599,6 +601,34 @@ function validateEServiceDescriptors(validEservices: EService[]): {
 
   return { validationIssues, validEServiceDescriptorPairs };
 }
+
+export const validateAssociatedEserviceForPublish = async (
+  readModelService: ReadModelServiceSQL,
+  purposeTemplateId: PurposeTemplateId
+): Promise<PurposeTemplateValidationIssue[]> => {
+  const associatedEservicesWithDescriptorInNotValidState =
+    await readModelService.getPurposeTemplateEServiceWithDescriptorState(
+      purposeTemplateId,
+      [descriptorState.suspended, descriptorState.archived]
+    );
+
+  if (associatedEservicesWithDescriptorInNotValidState.totalCount) {
+    return associatedEservicesWithDescriptorInNotValidState.results.reduce(
+      (errors, eservice) => [
+        ...errors,
+        invalidDescriptorStateError(eservice.eserviceId, [
+          descriptorState.published,
+          descriptorState.draft,
+          descriptorState.waitingForApproval,
+          descriptorState.deprecated,
+        ]),
+      ],
+      [] as PurposeTemplateValidationIssue[]
+    );
+  }
+
+  return [];
+};
 
 export async function validateEservicesAssociations(
   eserviceIds: EServiceId[],

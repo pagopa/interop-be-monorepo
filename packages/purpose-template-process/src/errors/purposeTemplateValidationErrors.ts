@@ -72,6 +72,15 @@ export function unexpectedAssociationEServiceError(
   });
 }
 
+export function unexpectedAssociationEServicePublishError(
+  reason: string
+): PurposeTemplateValidationIssue {
+  return new PurposeTemplateValidationIssue({
+    code: "unexpectedAssociationEServiceError",
+    detail: `Eservices associated is not valid for publish ${reason}`,
+  });
+}
+
 export function unexpectedUnassociationEServiceError(
   reason: string,
   eserviceId: EServiceId

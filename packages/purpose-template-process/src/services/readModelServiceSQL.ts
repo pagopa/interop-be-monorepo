@@ -1,4 +1,29 @@
 import {
+  and,
+  eq,
+  exists,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  ne,
+  or,
+  SQL,
+} from "drizzle-orm";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+  getValidFormRulesVersions,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+  withTotalCount,
+} from "pagopa-interop-commons";
+import {
+  DescriptorState,
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
@@ -17,16 +42,17 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeTemplateArray,
   aggregatePurposeTemplateEServiceDescriptor,
   aggregatePurposeTemplateEServiceDescriptorArray,
   CatalogReadModelService,
   PurposeTemplateReadModelService,
-  aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
@@ -36,30 +62,6 @@ import {
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  and,
-  eq,
-  exists,
-  getTableColumns,
-  ilike,
-  inArray,
-  isNotNull,
-  isNull,
-  ne,
-  or,
-  SQL,
-} from "drizzle-orm";
-import {
-  ascLower,
-  createListResult,
-  escapeRegExp,
-  getValidFormRulesVersions,
-  M2MAdminAuthData,
-  M2MAuthData,
-  UIAuthData,
-  withTotalCount,
-} from "pagopa-interop-commons";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
@@ -454,6 +456,49 @@ export function readModelServiceBuilderSQL({
         )
         .limit(limit)
         .offset(offset);
+
+      const purposeTemplateEServiceDescriptors =
+        aggregatePurposeTemplateEServiceDescriptorArray(queryResult);
+
+      return createListResult(
+        purposeTemplateEServiceDescriptors.map(
+          (eserviceDescriptor) => eserviceDescriptor.data
+        ),
+        queryResult[0]?.totalCount
+      );
+    },
+    async getPurposeTemplateEServiceWithDescriptorState(
+      purposeTemplateId: PurposeTemplateId,
+      notAllowedDescriptorStates: DescriptorState[]
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+            )
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
+            eserviceDescriptorInReadmodelCatalog.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            inArray(
+              eserviceDescriptorInReadmodelCatalog.state,
+              notAllowedDescriptorStates
+            )
+          )
+        );
 
       const purposeTemplateEServiceDescriptors =
         aggregatePurposeTemplateEServiceDescriptorArray(queryResult);

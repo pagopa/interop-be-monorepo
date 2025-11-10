@@ -23,6 +23,7 @@ import {
   unsafeBrandId,
   EService,
   DescriptorId,
+  descriptorState,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -95,7 +96,10 @@ import {
   validateRiskAnalysisAnswerOrThrow,
   assertAnnotationDocumentPrettyNameIsUnique,
   assertAnswerExistsInRiskAnalysisTemplate,
+  validateEServiceForPublish,
+  validateAssociatedEserviceForPublish,
 } from "./validators.js";
+import { unexpectedAssociationEServicePublishError } from "../errors/purposeTemplateValidationErrors.js";
 
 async function retrievePurposeTemplate(
   id: PurposeTemplateId,
@@ -1610,6 +1614,19 @@ async function activatePurposeTemplate({
   assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
   assertActivatableState(purposeTemplate.data, expectedInitialState);
 
+  const eserviceStateValidationIssues =
+    await validateAssociatedEserviceForPublish(
+      readModelService,
+      purposeTemplate.data.id
+    );
+
+  if (eserviceStateValidationIssues.length > 0) {
+    unexpectedAssociationEServicePublishError(
+      eserviceStateValidationIssues
+        .map((issue) => `${issue.code}: ${issue.detail}`)
+        .join("; ")
+    );
+  }
   validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate:
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
