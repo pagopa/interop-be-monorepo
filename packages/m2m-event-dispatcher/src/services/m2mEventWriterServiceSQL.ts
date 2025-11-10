@@ -17,6 +17,7 @@ import {
   PurposeM2MEventSQL,
   ConsumerDelegationM2MEventSQL,
   ProducerDelegationM2MEventSQL,
+  EServiceTemplateM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { SQL, eq } from "drizzle-orm";
@@ -33,14 +34,16 @@ export function m2mEventWriterServiceSQLBuilder(
       | AttributeM2MEventSQL
       | PurposeM2MEventSQL
       | ConsumerDelegationM2MEventSQL
-      | ProducerDelegationM2MEventSQL,
+      | ProducerDelegationM2MEventSQL
+      | EServiceTemplateM2MEventSQL,
     table:
       | typeof eserviceInM2MEvent
       | typeof agreementInM2MEvent
       | typeof attributeInM2MEvent
       | typeof purposeInM2MEvent
       | typeof consumerDelegationInM2MEvent
-      | typeof producerDelegationInM2MEvent,
+      | typeof producerDelegationInM2MEvent
+      | typeof eserviceTemplateInM2MEvent,
     resourceIdFilter: SQL | undefined
   ): Promise<void> {
     return m2mEventDB.transaction(async (tx) => {
@@ -103,8 +106,14 @@ export function m2mEventWriterServiceSQLBuilder(
         eq(producerDelegationInM2MEvent.delegationId, event.delegationId)
       );
     },
-    async insertEServiceTemplateM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(eserviceTemplateInM2MEvent).values([]);
+    async insertEServiceTemplateM2MEvent(
+      event: EServiceTemplateM2MEventSQL
+    ): Promise<void> {
+      await insertIfResourceVersionNotPresent(
+        event,
+        eserviceTemplateInM2MEvent,
+        eq(eserviceTemplateInM2MEvent.id, event.eserviceTemplateId)
+      );
     },
     async insertClientM2MEvent(): Promise<void> {
       await m2mEventDB.insert(clientInM2MEvent).values([]);
