@@ -289,10 +289,10 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           })
         )
       ).rejects.toThrowError(
-        riskAnalysisTemplateAnswerNotFound(
-          existentPurposeTemplate.id,
-          subjectAnswerId
-        )
+        riskAnalysisTemplateAnswerNotFound({
+          purposeTemplateId: existentPurposeTemplate.id,
+          answerId: subjectAnswerId,
+        })
       );
     }
   );
