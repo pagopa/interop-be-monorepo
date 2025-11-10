@@ -476,6 +476,47 @@ function findAnswerAndAnnotation(
   throw riskAnalysisTemplateAnswerNotFound({ answerId });
 }
 
+async function activatePurposeTemplate({
+  id,
+  expectedInitialState,
+  authData,
+  readModelService,
+}: {
+  id: PurposeTemplateId;
+  expectedInitialState: PurposeTemplateState;
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">;
+  readModelService: ReadModelServiceSQL;
+}): Promise<WithMetadata<PurposeTemplate>> {
+  const purposeTemplate = await retrievePurposeTemplate(id, readModelService);
+
+  const purposeRiskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+
+  if (!purposeRiskAnalysisForm) {
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.data.id);
+  }
+
+  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertActivatableState(purposeTemplate.data, expectedInitialState);
+
+  validateRiskAnalysisTemplateOrThrow({
+    riskAnalysisFormTemplate:
+      riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
+        purposeRiskAnalysisForm
+      ),
+    tenantKind: purposeTemplate.data.targetTenantKind,
+    personalDataInPurposeTemplate: purposeTemplate.data.handlesPersonalData,
+  });
+
+  return {
+    data: {
+      ...purposeTemplate.data,
+      state: purposeTemplateState.published,
+      updatedAt: new Date(),
+    },
+    metadata: purposeTemplate.metadata,
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   dbInstance: DB,
@@ -1587,44 +1628,3 @@ export function purposeTemplateServiceBuilder(
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
-
-async function activatePurposeTemplate({
-  id,
-  expectedInitialState,
-  authData,
-  readModelService,
-}: {
-  id: PurposeTemplateId;
-  expectedInitialState: PurposeTemplateState;
-  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">;
-  readModelService: ReadModelServiceSQL;
-}): Promise<WithMetadata<PurposeTemplate>> {
-  const purposeTemplate = await retrievePurposeTemplate(id, readModelService);
-
-  const purposeRiskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
-
-  if (!purposeRiskAnalysisForm) {
-    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.data.id);
-  }
-
-  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
-  assertActivatableState(purposeTemplate.data, expectedInitialState);
-
-  validateRiskAnalysisTemplateOrThrow({
-    riskAnalysisFormTemplate:
-      riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
-        purposeRiskAnalysisForm
-      ),
-    tenantKind: purposeTemplate.data.targetTenantKind,
-    personalDataInPurposeTemplate: purposeTemplate.data.handlesPersonalData,
-  });
-
-  return {
-    data: {
-      ...purposeTemplate.data,
-      state: purposeTemplateState.published,
-      updatedAt: new Date(),
-    },
-    metadata: purposeTemplate.metadata,
-  };
-}
