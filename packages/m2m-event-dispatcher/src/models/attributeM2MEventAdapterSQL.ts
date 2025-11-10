@@ -8,6 +8,7 @@ export function toAttributeM2MEventSQL(
     id: event.id,
     eventType: event.eventType,
     eventTimestamp: dateToString(event.eventTimestamp),
+    resourceVersion: event.resourceVersion,
     attributeId: event.attributeId,
   };
 }
