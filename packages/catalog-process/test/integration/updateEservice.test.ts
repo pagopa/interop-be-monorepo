@@ -267,9 +267,6 @@ describe("update eService", () => {
   });
 
   it("should write on event-store for the update of an eService (mode change: risk analysis has to be deleted)", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
-
     const eservice: EService = {
       ...mockEService,
       riskAnalysis: [getMockValidRiskAnalysis("PA")],
@@ -318,9 +315,6 @@ describe("update eService", () => {
   });
 
   it("should write on event-store for the update of an eService (personalData flag change: risk analysis has to be deleted)", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
-
     const eservice: EService = {
       ...mockEService,
       mode: eserviceMode.receive,
