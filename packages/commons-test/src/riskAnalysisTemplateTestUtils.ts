@@ -481,7 +481,6 @@ export const getMockRiskAnalysisTemplateDocument = (
   prettyName: "prettyName",
   contentType: "application/pdf",
   createdAt: new Date(),
-  checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b955",
 });
 export const getMockRiskAnalysisTemplateSignedDocument = (
   id: RiskAnalysisTemplateDocumentId = generateId(),
@@ -491,7 +490,6 @@ export const getMockRiskAnalysisTemplateSignedDocument = (
 ): RiskAnalysisTemplateSignedDocument => ({
   ...getMockRiskAnalysisTemplateDocument(id, purposeTemplateId, basePath, name),
   signedAt: new Date(),
-  checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b975",
 });
 
 export const getMockRiskAnalysisTemplateAnswerAnnotation = (

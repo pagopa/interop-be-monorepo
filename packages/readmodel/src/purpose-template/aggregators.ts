@@ -592,7 +592,6 @@ export const aggregateRiskAnalysisFormDocument = ({
   contentType,
   path,
   createdAt,
-  checksum,
 }: PurposeTemplateRiskAnalysisFormDocumentSQL): RiskAnalysisTemplateDocument => ({
   id: unsafeBrandId<RiskAnalysisTemplateDocumentId>(id),
   name,
@@ -600,7 +599,6 @@ export const aggregateRiskAnalysisFormDocument = ({
   contentType,
   path,
   createdAt: new Date(createdAt),
-  checksum,
 });
 
 export const aggregateRiskAnalysisFormSignedDocument = ({
@@ -611,7 +609,6 @@ export const aggregateRiskAnalysisFormSignedDocument = ({
   path,
   createdAt,
   signedAt,
-  checksum,
 }: PurposeTemplateRiskAnalysisFormSignedDocumentSQL): RiskAnalysisTemplateSignedDocument => ({
   id: unsafeBrandId<RiskAnalysisTemplateDocumentId>(id),
   name,
@@ -620,5 +617,4 @@ export const aggregateRiskAnalysisFormSignedDocument = ({
   path,
   createdAt: new Date(createdAt),
   signedAt: new Date(signedAt),
-  checksum,
 });

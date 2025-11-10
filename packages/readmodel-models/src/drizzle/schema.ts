@@ -2062,7 +2062,6 @@ export const purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate =
         withTimezone: true,
         mode: "string",
       }).notNull(),
-      checksum: varchar().notNull(),
     },
     (table) => [
       foreignKey({
@@ -2108,7 +2107,6 @@ export const purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemp
         withTimezone: true,
         mode: "string",
       }).notNull(),
-      checksum: varchar().notNull(),
     },
     (table) => [
       foreignKey({

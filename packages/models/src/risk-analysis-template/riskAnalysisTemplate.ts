@@ -79,16 +79,20 @@ export const RiskAnalysisTemplateDocument = z.object({
   contentType: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
-  checksum: z.string(),
 });
 export type RiskAnalysisTemplateDocument = z.infer<
   typeof RiskAnalysisTemplateDocument
 >;
 
-export const RiskAnalysisTemplateSignedDocument =
-  RiskAnalysisTemplateDocument.extend({
-    signedAt: z.coerce.date(),
-  });
+export const RiskAnalysisTemplateSignedDocument = z.object({
+  id: RiskAnalysisTemplateDocumentId,
+  name: z.string(),
+  prettyName: z.string(),
+  contentType: z.string(),
+  path: z.string(),
+  createdAt: z.coerce.date(),
+  signedAt: z.coerce.date(),
+});
 export type RiskAnalysisTemplateSignedDocument = z.infer<
   typeof RiskAnalysisTemplateSignedDocument
 >;
