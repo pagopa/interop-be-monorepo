@@ -20,6 +20,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  eServiceUpdateSameDescriptionConflict,
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
   templateInstanceNotAllowed,
@@ -108,6 +109,10 @@ describe("API /eservices/{eServiceId}/description/update authorization test", ()
         mockEService.templateId!
       ),
       expectedStatus: 403,
+    },
+    {
+      error: eServiceUpdateSameDescriptionConflict(mockEService.id),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",

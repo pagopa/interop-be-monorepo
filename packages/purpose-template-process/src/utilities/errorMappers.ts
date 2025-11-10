@@ -30,7 +30,7 @@ export const createPurposeTemplateErrorMapper = (
 export const getPurposeTemplatesErrorMapper = (): number =>
   HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
-export const getPurposeTemplateErrorMapper = (
+const getPurposeTemplateOrPurposeTemplateEServiceDescriptorsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -38,12 +38,15 @@ export const getPurposeTemplateErrorMapper = (
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  getPurposeTemplateOrPurposeTemplateEServiceDescriptorsErrorMapper(error);
+
 export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code)
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  getPurposeTemplateOrPurposeTemplateEServiceDescriptorsErrorMapper(error);
 
 export const linkEservicesToPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -109,6 +112,7 @@ export const addPurposeTemplateAnswerAnnotationErrorMapper = (
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "conflictDocumentPrettyNameDuplicate",
       "conflictDuplicatedDocument",
@@ -138,9 +142,12 @@ export const getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
 ): number =>
   match(error.code)
     .with(
+      "purposeTemplateNotFound",
+      "riskAnalysisTemplateAnswerNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addRiskAnalysisAnswerAnnotationErrorMapper = (
@@ -154,7 +161,7 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
     )
     .with(
       "purposeTemplateNotFound",
-      "riskAnalysisAnswerNotFound",
+      "riskAnalysisTemplateAnswerNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
@@ -224,6 +231,23 @@ export const deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
     .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
     .with(
       "purposeTemplateNotFound",
+      "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("conflictDocumentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "purposeTemplateNotFound",
+      "purposeTemplateRiskAnalysisFormNotFound",
+      "riskAnalysisTemplateAnswerNotFound",
+      "riskAnalysisTemplateAnswerAnnotationNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )

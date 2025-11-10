@@ -14,9 +14,11 @@ import {
   purposeTemplateState,
   PurposeTemplateUnsuspendedV2,
   toPurposeTemplateV2,
+  tenantKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  getLatestVersionFormRules,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -56,7 +58,7 @@ describe("unsuspendPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it.skip("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
+  it("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
     const metadataVersion = 1;
     await addOnePurposeTemplate(purposeTemplate, metadataVersion);
 
@@ -81,7 +83,7 @@ describe("unsuspendPurposeTemplate", () => {
 
     const expectedPurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
       updatedAt: new Date(),
     };
 
@@ -137,7 +139,7 @@ describe("unsuspendPurposeTemplate", () => {
       ...purposeTemplate,
       purposeRiskAnalysisForm: {
         id: generateId(),
-        version: "3.0",
+        version: getLatestVersionFormRules(tenantKind.PA)!.version,
         singleAnswers: [
           {
             id: generateId(),
@@ -156,7 +158,8 @@ describe("unsuspendPurposeTemplate", () => {
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
         purposeTemplateWithInvalidRiskAnalysis.purposeRiskAnalysisForm!
       ),
-      purposeTemplateWithInvalidRiskAnalysis.targetTenantKind
+      purposeTemplateWithInvalidRiskAnalysis.targetTenantKind,
+      purposeTemplateWithInvalidRiskAnalysis.handlesPersonalData
     );
 
     await expect(async () => {
@@ -175,9 +178,9 @@ describe("unsuspendPurposeTemplate", () => {
     {
       error: purposeTemplateStateConflict(
         purposeTemplate.id,
-        purposeTemplateState.active
+        purposeTemplateState.published
       ),
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     },
     {
       error: purposeTemplateNotInExpectedStates(

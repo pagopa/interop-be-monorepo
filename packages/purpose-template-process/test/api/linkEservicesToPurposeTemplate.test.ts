@@ -8,6 +8,7 @@ import {
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
+  WithMetadata,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -35,21 +36,28 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
     generateId<EServiceId>(),
   ];
 
-  const mockEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[] =
-    [
-      {
+  const mockEServiceDescriptorPurposeTemplates: Array<
+    WithMetadata<EServiceDescriptorPurposeTemplate>
+  > = [
+    {
+      data: {
         purposeTemplateId,
         eserviceId: eserviceIds[0],
         descriptorId: generateId<DescriptorId>(),
         createdAt: new Date(),
       },
-      {
+      metadata: { version: 1 },
+    },
+    {
+      data: {
         purposeTemplateId,
         eserviceId: eserviceIds[1],
         descriptorId: generateId<DescriptorId>(),
         createdAt: new Date(),
       },
-    ];
+      metadata: { version: 1 },
+    },
+  ];
 
   const validLinkRequest: purposeTemplateApi.linkEServicesToPurposeTemplate_Body =
     {
@@ -80,8 +88,10 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
       const res = await makeRequest(token, purposeTemplateId, validLinkRequest);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
-        mockEServiceDescriptorPurposeTemplates.map(
-          eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate
+        mockEServiceDescriptorPurposeTemplates.map((eserviceDescriptor) =>
+          eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
+            eserviceDescriptor.data
+          )
         )
       );
       expect(
@@ -175,7 +185,7 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
         purposeTemplateState.suspended,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       ),
       expectedStatus: 400,
     },
@@ -183,7 +193,7 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
         purposeTemplateState.archived,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       ),
       expectedStatus: 400,
     },
