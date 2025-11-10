@@ -15,6 +15,7 @@ import {
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementSignedContractInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   DrizzleReturnType,
   DrizzleTransactionType,
@@ -68,6 +69,7 @@ export function agreementWriterServiceBuilder(db: DrizzleReturnType) {
         attributesSQL,
         consumerDocumentsSQL,
         contractSQL,
+        signedContractSQL,
       } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
 
       await db.transaction(async (tx) => {
@@ -107,6 +109,11 @@ export function agreementWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(agreementContractInReadmodelAgreement)
             .values(contractSQL);
+        }
+        if (signedContractSQL !== undefined) {
+          await tx
+            .insert(agreementSignedContractInReadmodelAgreement)
+            .values(signedContractSQL);
         }
       });
     },
