@@ -21,6 +21,7 @@ import {
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
