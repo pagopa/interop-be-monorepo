@@ -1,6 +1,8 @@
 import {
   AgreementEventEnvelopeV2,
   AgreementV2,
+  DelegationEventEnvelopeV2,
+  DelegationV2,
   EServiceEventEnvelopeV2,
   EServiceV2,
   missingKafkaMessageDataError,
@@ -35,5 +37,15 @@ export function assertPurposeExistsInEvent(
 } {
   if (!event.data.purpose) {
     throw missingKafkaMessageDataError("purpose", event.type);
+  }
+}
+
+export function assertDelegationExistsInEvent(
+  event: DelegationEventEnvelopeV2
+): asserts event is DelegationEventEnvelopeV2 & {
+  data: { delegation: DelegationV2 };
+} {
+  if (!event.data.delegation) {
+    throw missingKafkaMessageDataError("delegation", event.type);
   }
 }

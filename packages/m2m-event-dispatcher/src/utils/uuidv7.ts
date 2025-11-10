@@ -1,6 +1,7 @@
 import {
   AgreementM2MEventId,
   AttributeM2MEventId,
+  DelegationM2MEventId,
   EServiceM2MEventId,
   PurposeM2MEventId,
   unsafeBrandId,
@@ -13,6 +14,7 @@ export function generateM2MEventId<
     | EServiceM2MEventId
     | AgreementM2MEventId
     | PurposeM2MEventId
+    | DelegationM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
