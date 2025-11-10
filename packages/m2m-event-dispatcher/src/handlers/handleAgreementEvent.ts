@@ -45,7 +45,8 @@ export async function handleAgreementEvent(
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
           "AgreementArchivedByRevokedDelegation",
-          "AgreementContractGenerated"
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       async (event) => {
@@ -54,6 +55,7 @@ export async function handleAgreementEvent(
         );
         const m2mEvent = await createAgreementM2MEvent(
           agreement,
+          event.version,
           event.type,
           eventTimestamp,
           await readModelService.getActiveDelegationsForAgreement(agreement)
