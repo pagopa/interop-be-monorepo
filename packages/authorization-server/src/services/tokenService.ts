@@ -10,7 +10,6 @@ import {
   clientKindTokenGenStates,
   DescriptorId,
   EServiceId,
-  generateId,
   genericInternalError,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -19,12 +18,9 @@ import {
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesGenericClient,
-  unsafeBrandId,
-  GeneratedTokenAuditDetails,
   GSIPKEServiceIdDescriptorId,
   ClientAssertion,
   FullTokenGenerationStatesConsumerClient,
-  CorrelationId,
   ClientKindTokenGenStates,
   ClientId,
   DPoPProof,
@@ -39,9 +35,6 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
   AuthServerAppContext,
-  FileManager,
-  formatDateyyyyMMdd,
-  formatTimehhmmss,
   InteropApiToken,
   InteropConsumerToken,
   InteropTokenGenerator,
@@ -49,10 +42,8 @@ import {
   Logger,
   RateLimiter,
   RateLimiterStatus,
-  secondsToMilliseconds,
   WithLogger,
 } from "pagopa-interop-commons";
-import { initProducer } from "kafka-iam-auth";
 import {
   checkDPoPCache,
   verifyDPoPProof,
@@ -63,9 +54,7 @@ import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
-  fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
-  kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
   platformStateValidationFailed,
   dpopProofValidationFailed,
@@ -74,6 +63,7 @@ import {
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
+import { AuditService } from "./auditService.js";
 
 export type GeneratedTokenData =
   | {
@@ -95,14 +85,12 @@ export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
-  fileManager,
+  auditService,
 }: {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
   redisRateLimiter: RateLimiter;
-  producer: Awaited<ReturnType<typeof initProducer>>;
-  fileManager: FileManager;
+  auditService: AuditService;
 }) {
   return {
     // eslint-disable-next-line max-params
@@ -274,15 +262,14 @@ export function tokenServiceBuilder({
               dpopJWK: dpopProofJWT?.header.jwk,
             });
 
-            await publishAudit({
-              producer,
+            await auditService.publishAudit({
+              eserviceId,
+              descriptorId,
               generatedToken: token,
               key,
               clientAssertion: clientAssertionJWT,
               dpop: dpopProofJWT,
               correlationId,
-              fileManager,
-              logger,
             });
 
             logTokenGenerationInfo({
@@ -372,118 +359,6 @@ export const retrieveKey = async (
       })
       .with({ clientKind: clientKindTokenGenStates.api }, (entry) => entry)
       .exhaustive();
-  }
-};
-
-export const publishAudit = async ({
-  producer,
-  generatedToken,
-  key,
-  clientAssertion,
-  dpop,
-  correlationId,
-  fileManager,
-  logger,
-}: {
-  producer: Awaited<ReturnType<typeof initProducer>>;
-  generatedToken: InteropConsumerToken;
-  key: FullTokenGenerationStatesConsumerClient;
-  clientAssertion: ClientAssertion;
-  dpop: DPoPProof | undefined;
-  correlationId: CorrelationId;
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<void> => {
-  const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
-    key.GSIPK_eserviceId_descriptorId
-  );
-  const messageBody: GeneratedTokenAuditDetails = {
-    jwtId: generatedToken.payload.jti,
-    correlationId,
-    issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
-    clientId: clientAssertion.payload.sub,
-    organizationId: key.consumerId,
-    agreementId: key.agreementId,
-    eserviceId,
-    descriptorId,
-    purposeId: key.GSIPK_purposeId,
-    purposeVersionId: unsafeBrandId(key.purposeVersionId),
-    algorithm: generatedToken.header.alg,
-    keyId: generatedToken.header.kid,
-    audience: [generatedToken.payload.aud].flat().join(","),
-    subject: generatedToken.payload.sub,
-    notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
-    expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
-    issuer: generatedToken.payload.iss,
-    clientAssertion: {
-      algorithm: clientAssertion.header.alg,
-      audience: [clientAssertion.payload.aud].flat().join(","),
-      expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
-      issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
-      issuer: clientAssertion.payload.iss,
-      jwtId: clientAssertion.payload.jti,
-      keyId: clientAssertion.header.kid,
-      subject: clientAssertion.payload.sub,
-    },
-    ...(dpop
-      ? {
-          dpop: {
-            typ: dpop.header.typ,
-            alg: dpop.header.alg,
-            jwk: dpop.header.jwk,
-            htm: dpop.payload.htm,
-            htu: dpop.payload.htu,
-            iat: secondsToMilliseconds(dpop.payload.iat),
-            jti: dpop.payload.jti,
-          },
-        }
-      : {}),
-  };
-
-  try {
-    const res = await producer.send({
-      messages: [
-        {
-          key: generatedToken.payload.jti,
-          value: JSON.stringify(messageBody),
-        },
-      ],
-    });
-    if (res.length === 0 || res[0].errorCode !== 0) {
-      throw kafkaAuditingFailed();
-    }
-  } catch (e) {
-    logger.error("Main auditing flow failed, going through fallback");
-    await fallbackAudit(messageBody, fileManager, logger);
-  }
-};
-
-export const fallbackAudit = async (
-  messageBody: GeneratedTokenAuditDetails,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> => {
-  const date = new Date();
-  const ymdDate = formatDateyyyyMMdd(date);
-  const hmsTime = formatTimehhmmss(date);
-
-  const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
-  const filePath = `token-details/${ymdDate}`;
-
-  try {
-    await fileManager.storeBytes(
-      {
-        bucket: config.s3Bucket,
-        path: filePath,
-        name: fileName,
-        content: Buffer.from(JSON.stringify(messageBody)),
-      },
-      logger
-    );
-    logger.info("Auditing succeeded through fallback");
-  } catch (err) {
-    logger.error(`Auditing fallback failed: ${err}`);
-    throw fallbackAuditFailed(messageBody.clientId);
   }
 };
 

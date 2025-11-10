@@ -1,14 +1,15 @@
 import {
+  genericLogger,
   initFileManager,
   initRedisRateLimiter,
   InteropTokenGenerator,
   startServer,
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { initProducer } from "kafka-iam-auth";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
 import { tokenServiceBuilder } from "./services/tokenService.js";
+import { AuditService } from "./services/auditService.js";
 
 const dynamoDBClient = new DynamoDBClient();
 const redisRateLimiter = await initRedisRateLimiter({
@@ -20,8 +21,14 @@ const redisRateLimiter = await initRedisRateLimiter({
   redisPort: config.rateLimiterRedisPort,
   timeout: config.rateLimiterTimeout,
 });
-const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
+
+const auditService = await AuditService.create(
+  config,
+  config.tokenAuditingTopic,
+  fileManager,
+  genericLogger
+);
 
 const tokenGenerator = new InteropTokenGenerator({
   generatedInteropTokenKid: config.generatedInteropTokenKid,
@@ -35,8 +42,7 @@ const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
-  fileManager,
+  auditService,
 });
 
 startServer(await createApp(tokenService), config);

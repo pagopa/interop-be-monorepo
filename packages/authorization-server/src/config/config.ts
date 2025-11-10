@@ -34,10 +34,16 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
     z
       .object({
         TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION: z.string(),
+        KAFKA_PRODUCER_RECONNECT_BASE_INTERVAL_MS: z
+          .string()
+          .default("1000")
+          .transform((s) => parseInt(s, 10)),
       })
       .transform((c) => ({
         tokenGenerationStatesTable:
           c.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
+        kafkaProducerReconnectBaseIntervalMs:
+          c.KAFKA_PRODUCER_RECONNECT_BASE_INTERVAL_MS,
       }))
   )
   .and(ApplicationAuditProducerConfig)
