@@ -37,6 +37,8 @@ import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
 import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
+import eventRouter from "./routers/eventRouter.js";
+import { EventService } from "./services/eventService.js";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;
@@ -49,6 +51,7 @@ export type M2MGatewayServices = {
   tenantService: TenantService;
   keyService: KeyService;
   producerKeychainService: ProducerKeychainService;
+  eventService: EventService;
 };
 
 export type RateLimiterMiddleware = ReturnType<
@@ -72,6 +75,7 @@ export async function createApp(
     tenantService,
     keyService,
     producerKeychainService,
+    eventService,
   } = services;
 
   const app = zodiosCtx.app();
@@ -107,7 +111,8 @@ export async function createApp(
     eserviceTemplateRouter(zodiosCtx, eserviceTemplateService),
     clientRouter(zodiosCtx, clientService),
     producerKeychainRouter(zodiosCtx, producerKeychainService),
-    keyRouter(zodiosCtx, keyService)
+    keyRouter(zodiosCtx, keyService),
+    eventRouter(zodiosCtx, eventService)
   );
 
   app.use(errorsToApiProblemsMiddleware);
