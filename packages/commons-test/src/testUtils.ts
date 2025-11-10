@@ -123,6 +123,7 @@ import {
   AgreementSignedContract,
   PurposeVersionSignedDocument,
   DelegationSignedContractDocument,
+  SelfcareId,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -1383,11 +1384,12 @@ export const getMockContextM2MAdmin = ({
 });
 
 export const getMockSessionClaims = (
+  organizationId: SelfcareId = generateId(),
   roles: UserRole[] = [userRole.ADMIN_ROLE]
 ): UIClaims => ({
   uid: generateId(),
   organization: {
-    id: generateId(),
+    id: organizationId,
     name: "My Org",
     roles: roles.map((r) => ({ role: r })),
   },
