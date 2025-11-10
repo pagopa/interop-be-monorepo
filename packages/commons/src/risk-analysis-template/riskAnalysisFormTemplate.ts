@@ -89,6 +89,7 @@ export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
       ...(a.annotation ? { annotation: mapAnnotation(a.annotation) } : {}),
     })),
     riskAnalysisTemplateDocument: undefined,
+    riskAnalysisTemplateSignedDocument: undefined,
   };
 }
 

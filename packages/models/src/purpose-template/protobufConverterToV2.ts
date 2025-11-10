@@ -6,12 +6,14 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentV2,
   RiskAnalysisTemplateAnswerAnnotationV2,
   RiskAnalysisTemplateDocumentV2,
+  RiskAnalysisTemplateSignedDocumentV2,
 } from "../gen/v2/purpose-template/purpose-template.js";
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateSignedDocument,
 } from "../risk-analysis-template/riskAnalysisTemplate.js";
 import { dateToBigInt } from "../utils.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
@@ -55,8 +57,14 @@ export const toRiskAnalysisTemplateDocumentV2 = (
   input: RiskAnalysisTemplateDocument
 ): RiskAnalysisTemplateDocumentV2 => ({
   ...input,
-  signedAt: input.signedAt ? dateToBigInt(input.signedAt) : undefined,
   createdAt: dateToBigInt(input.createdAt),
+});
+export const toRiskAnalysisTemplateSignedDocumentV2 = (
+  input: RiskAnalysisTemplateSignedDocument
+): RiskAnalysisTemplateSignedDocumentV2 => ({
+  ...input,
+  createdAt: dateToBigInt(input.createdAt),
+  signedAt: dateToBigInt(input.signedAt),
 });
 
 export const toRiskAnalysisFormTemplateV2 = (
@@ -78,6 +86,11 @@ export const toRiskAnalysisFormTemplateV2 = (
   })),
   riskAnalysisTemplateDocument: input.riskAnalysisTemplateDocument
     ? toRiskAnalysisTemplateDocumentV2(input.riskAnalysisTemplateDocument)
+    : undefined,
+  riskAnalysisTemplateSignedDocument: input.riskAnalysisTemplateSignedDocument
+    ? toRiskAnalysisTemplateSignedDocumentV2(
+        input.riskAnalysisTemplateSignedDocument
+      )
     : undefined,
 });
 

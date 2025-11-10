@@ -34,6 +34,7 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
@@ -254,6 +255,8 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
           purposeRiskAnalysisTemplateDocument:
             purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateSignedDocument:
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
           totalCount: subquery.totalCount,
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
@@ -297,6 +300,13 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         )
         .orderBy(
