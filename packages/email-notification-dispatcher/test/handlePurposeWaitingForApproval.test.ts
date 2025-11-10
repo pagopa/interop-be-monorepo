@@ -192,7 +192,7 @@ describe("handlePurposeWaitingForApproval", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(3);
+    expect(messages.length).toEqual(2);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
@@ -232,7 +232,7 @@ describe("handlePurposeWaitingForApproval", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(2);
+    expect(messages.length).toEqual(1);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
@@ -261,13 +261,10 @@ describe("handlePurposeWaitingForApproval", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(3);
+    expect(messages.length).toEqual(2);
+    // Tenant contact emails are not included since includeTenantContactEmails is false
     expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" &&
-          message.address === producerTenant.mails[0].address
-      )
+      messages.every((message) => message.type === "User")
     ).toBe(true);
   });
 
@@ -309,13 +306,7 @@ describe("handlePurposeWaitingForApproval", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(1);
-    expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" && message.address === newMail.address
-      )
-    ).toBe(true);
+    expect(messages.length).toEqual(0);
   });
 
   it("should not generate a message to the producer if they disabled email notification", async () => {
@@ -368,7 +359,7 @@ describe("handlePurposeWaitingForApproval", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(3);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
