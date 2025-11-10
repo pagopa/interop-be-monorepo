@@ -48,6 +48,7 @@ import {
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -84,7 +85,6 @@ import {
   assertPurposeTemplateHasRiskAnalysisForm,
   validateRiskAnalysisAnswerAnnotationOrThrow,
   assertPurposeTemplateTitleIsNotDuplicated,
-  assertRequesterCanRetrievePurposeTemplate,
   assertRequesterIsCreator,
   assertDocumentsLimitsNotReached,
   validateAndTransformRiskAnalysisTemplate,
@@ -95,6 +95,9 @@ import {
   validateRiskAnalysisAnswerOrThrow,
   assertAnnotationDocumentPrettyNameIsUnique,
   assertAnswerExistsInRiskAnalysisTemplate,
+  hasRoleToAccessDraftPurposeTemplates,
+  isRequesterCreator,
+  isPurposeTemplateDraft,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -517,6 +520,21 @@ async function activatePurposeTemplate({
   };
 }
 
+function applyVisibilityToPurposeTemplate(
+  purposeTemplate: WithMetadata<PurposeTemplate>,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): WithMetadata<PurposeTemplate> {
+  if (
+    (hasRoleToAccessDraftPurposeTemplates(authData) &&
+      isRequesterCreator(purposeTemplate.data.creatorId, authData)) ||
+    !isPurposeTemplateDraft(purposeTemplate.data.state)
+  ) {
+    return purposeTemplate;
+  }
+
+  throw tenantNotAllowed(authData.organizationId);
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   dbInstance: DB,
@@ -645,9 +663,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
-
-      return purposeTemplate;
+      return applyVisibilityToPurposeTemplate(purposeTemplate, authData);
     },
     async getRiskAnalysisTemplateAnswerAnnotationDocument(
       {
@@ -668,11 +684,11 @@ export function purposeTemplateServiceBuilder(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
 
-      const purposeTemplate = await retrievePurposeTemplate(
-        purposeTemplateId,
-        readModelService
+      const purposeTemplate = applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
       );
-      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
+
       assertAnswerExistsInRiskAnalysisTemplate(purposeTemplate.data, answerId);
 
       return await retrieveAnswerAnnotationDocument(
@@ -698,11 +714,10 @@ export function purposeTemplateServiceBuilder(
         )}`
       );
 
-      const purposeTemplate = await retrievePurposeTemplate(
-        purposeTemplateId,
-        readModelService
+      applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
       );
-      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
 
       return await readModelService.getPurposeTemplateEServiceDescriptors(
         filters,
