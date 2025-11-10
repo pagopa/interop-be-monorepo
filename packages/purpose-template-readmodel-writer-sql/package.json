@@ -2,6 +2,7 @@
   "name": "pagopa-interop-purpose-template-readmodel-writer-sql",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability purpose consumer service that updates the read model when events are stored",
   "main": "dist",
   "type": "module",
@@ -17,8 +18,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",

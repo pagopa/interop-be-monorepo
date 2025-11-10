@@ -1,0 +1,16 @@
+meta {
+  name: Get counts
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host-in-app-notification}}/notifications/byType
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

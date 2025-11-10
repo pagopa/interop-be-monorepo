@@ -47,6 +47,7 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
@@ -68,6 +69,7 @@ import {
   cloneEServiceDocument,
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
@@ -87,7 +89,8 @@ export const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
-  headers: Headers,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  ctx: WithLogger<BffAppContext>,
   requesterId: TenantId
 ): Promise<bffApi.CatalogEService[]> => {
   const tenantsIds = new Set([
@@ -95,13 +98,19 @@ export const enhanceCatalogEservices = async (
     requesterId,
   ] as TenantId[]);
 
+  const notificationsPromise = filterUnreadNotifications(
+    inAppNotificationManagerClient,
+    eservices.map((a) => a.id),
+    ctx
+  );
+
   const cachedTenants = new Map(
     await Promise.all(
       Array.from(tenantsIds).map(
         async (tenantId): Promise<[TenantId, tenantApi.Tenant]> => [
           tenantId,
           await tenantProcessClient.tenant.getTenant({
-            headers,
+            headers: ctx.headers,
             params: { id: tenantId },
           }),
         ]
@@ -120,7 +129,8 @@ export const enhanceCatalogEservices = async (
     (
       agreementProcessClient: AgreementProcessClient,
       headers: Headers,
-      requesterId: TenantId
+      requesterId: TenantId,
+      notifications: string[]
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
     async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
       const producerTenant = getCachedTenant(eservice.producerId as TenantId);
@@ -133,20 +143,30 @@ export const enhanceCatalogEservices = async (
         eservice,
         headers
       );
-
+      const hasNotifications = notifications.includes(eservice.id);
       const isRequesterEqProducer = requesterId === eservice.producerId;
 
       return toBffCatalogApiEService(
         eservice,
         producerTenant,
         isRequesterEqProducer,
+        hasNotifications,
         latestActiveDescriptor,
         latestAgreement
       );
     };
 
+  const notifications = await notificationsPromise;
+
   return await Promise.all(
-    eservices.map(enhanceEService(agreementProcessClient, headers, requesterId))
+    eservices.map(
+      enhanceEService(
+        agreementProcessClient,
+        ctx.headers,
+        requesterId,
+        notifications
+      )
+    )
   );
 };
 
@@ -174,7 +194,8 @@ const enhanceProducerEService = (
   requesterId: TenantId,
   delegations: delegationApi.Delegation[],
   delegationTenants: Map<string, tenantApi.Tenant>,
-  eserviceTemplates: eserviceTemplateApi.EServiceTemplate[]
+  eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
+  hasNotifications: boolean
 ): bffApi.ProducerEService => {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
@@ -236,6 +257,7 @@ const enhanceProducerEService = (
       eserviceTemplate !== undefined &&
       activeDescriptor !== undefined &&
       checkNewTemplateVersionAvailable(eserviceTemplate, activeDescriptor),
+    hasUnreadNotifications: hasNotifications,
   };
 };
 
@@ -302,12 +324,13 @@ export function catalogServiceBuilder(
   attributeProcessClient: AttributeProcessClient,
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: EServiceTemplateProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
   return {
     getCatalog: async (
-      { headers, authData, logger }: WithLogger<BffAppContext>,
+      ctx: WithLogger<BffAppContext>,
       queries: catalogApi.GetEServicesQueryParams
     ): Promise<bffApi.CatalogEServices> => {
       const {
@@ -320,14 +343,15 @@ export function catalogServiceBuilder(
         mode,
         agreementStates,
         isConsumerDelegable,
+        personalData,
       } = queries;
-      logger.info(
-        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, offset = ${offset}, limit = ${limit}`
+      ctx.logger.info(
+        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, personalData = ${personalData}, offset = ${offset}, limit = ${limit}`
       );
-      const requesterId = authData.organizationId;
+      const requesterId = ctx.authData.organizationId;
       const eservicesResponse: catalogApi.EServices =
         await catalogProcessClient.getEServices({
-          headers,
+          headers: ctx.headers,
           queries,
         });
 
@@ -335,7 +359,8 @@ export function catalogServiceBuilder(
         eservicesResponse.results,
         tenantProcessClient,
         agreementProcessClient,
-        headers,
+        inAppNotificationManagerClient,
+        ctx,
         requesterId
       );
       const response: bffApi.CatalogEServices = {
@@ -525,6 +550,7 @@ export function catalogServiceBuilder(
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
         isClientAccessDelegable: eservice.isClientAccessDelegable,
+        personalData: eservice.personalData,
       };
     },
     updateEServiceDescription: async (
@@ -597,6 +623,26 @@ export function catalogServiceBuilder(
         }
       );
     },
+
+    updateEServicePersonalDataFlag: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      personalDataSeed: bffApi.EServicePersonalDataFlagUpdateSeed
+    ): Promise<void> => {
+      logger.info(
+        `Set personal flag for E-Service with id = ${eServiceId} to ${personalDataSeed.personalData}`
+      );
+      await catalogProcessClient.updateEServicePersonalDataFlagAfterPublication(
+        personalDataSeed,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+    },
+
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers, logger }: WithLogger<BffAppContext>
@@ -734,10 +780,12 @@ export function catalogServiceBuilder(
       eserviceName: string | undefined,
       consumersIds: string[],
       delegated: boolean | undefined,
+      personalData: bffApi.PersonalDataFilter | undefined,
       offset: number,
       limit: number,
-      { headers, authData, logger }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServices> => {
+      const { headers, authData, logger } = ctx;
       logger.info(
         `Retrieving producer EServices with name ${eserviceName}, offset ${offset}, limit ${limit}, consumersIds ${JSON.stringify(
           consumersIds
@@ -760,6 +808,7 @@ export function catalogServiceBuilder(
               name: eserviceName,
               producersIds: requesterId,
               delegated,
+              personalData,
               offset,
               limit,
             },
@@ -796,6 +845,12 @@ export function catalogServiceBuilder(
         res.totalCount = totalCount;
       }
 
+      const notificationsPromise = filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        res.results.map((a) => a.id),
+        ctx
+      );
+
       const delegations = await getAllDelegations(
         delegationProcessClient,
         headers,
@@ -831,6 +886,7 @@ export function catalogServiceBuilder(
             },
           })
       );
+      const notifications = await notificationsPromise;
 
       return {
         results: res.results.map((result) =>
@@ -839,7 +895,8 @@ export function catalogServiceBuilder(
             requesterId,
             delegations,
             delegationTenants,
-            eserviceTemplates
+            eserviceTemplates,
+            notifications.includes(result.id)
           )
         ),
         pagination: {

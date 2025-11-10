@@ -1,9 +1,12 @@
 import { and, eq, inArray } from "drizzle-orm";
 import {
   Agreement,
+  Attribute,
+  AttributeId,
   Delegation,
   EService,
   EServiceId,
+  EServiceTemplateId,
   NotificationConfig,
   Purpose,
   PurposeId,
@@ -16,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
+  AttributeReadModelService,
   CatalogReadModelService,
   DelegationReadModelService,
   NotificationConfigReadModelService,
@@ -25,11 +29,13 @@ import {
 import {
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
+  eserviceInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
@@ -37,6 +43,7 @@ export function readModelServiceBuilderSQL({
   purposeReadModelServiceSQL,
 }: {
   agreementReadModelServiceSQL: AgreementReadModelService;
+  attributeReadModelServiceSQL: AttributeReadModelService;
   catalogReadModelServiceSQL: CatalogReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
@@ -94,8 +101,33 @@ export function readModelServiceBuilderSQL({
         )
       )?.data;
     },
+    async getEServicesByTemplateId(
+      templateId: EServiceTemplateId
+    ): Promise<EService[]> {
+      return await catalogReadModelServiceSQL.getEServicesByFilter(
+        eq(eserviceInReadmodelCatalog.templateId, templateId)
+      );
+    },
     async getPurposeById(purposeId: PurposeId): Promise<Purpose | undefined> {
       return (await purposeReadModelServiceSQL.getPurposeById(purposeId))?.data;
+    },
+    async getAttributeById(
+      attributeId: AttributeId
+    ): Promise<Attribute | undefined> {
+      const attributeWithMetadata =
+        await attributeReadModelServiceSQL.getAttributeById(attributeId);
+
+      if (!attributeWithMetadata) {
+        return undefined;
+      }
+      return attributeWithMetadata.data;
+    },
+    async getTenantByCertifierId(
+      certifierId: string
+    ): Promise<Tenant | undefined> {
+      return (
+        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId)
+      )?.data;
     },
   };
 }

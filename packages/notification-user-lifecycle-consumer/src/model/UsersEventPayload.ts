@@ -22,9 +22,6 @@ export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
     productId: data.productId,
     user: {
       userId: unsafeBrandId<UserId>(userId),
-      name: data.user.name,
-      familyName: data.user.familyName,
-      email: data.user.email,
       productRole: data.user.productRole,
     },
   };

@@ -110,6 +110,17 @@ import {
   TenantNotificationConfig,
   UserNotificationConfig,
   DelegationStamps,
+  PurposeVersionStamps,
+  PurposeTemplate,
+  tenantKind,
+  purposeTemplateState,
+  PurposeTemplateState,
+  PurposeTemplateV2,
+  RiskAnalysisTemplateSingleAnswer,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswerV2,
+  RiskAnalysisTemplateMultiAnswerV2,
+  EmailNotificationPreference,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -221,7 +232,8 @@ export const getMockEServiceAttributes = (): EserviceAttributes => ({
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
-  descriptors: Descriptor[] = []
+  descriptors: Descriptor[] = [],
+  templateId?: EServiceTemplateId | undefined
 ): EService => ({
   id: eserviceId,
   name: "eService name",
@@ -232,6 +244,7 @@ export const getMockEService = (
   descriptors,
   riskAnalysis: [],
   mode: "Deliver",
+  ...(templateId && { templateId }),
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -336,8 +349,25 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   freeOfChargeReason: "test",
 });
 
+export const getMockPurposeTemplate = (
+  creatorId: TenantId = generateId<TenantId>(),
+  state: PurposeTemplateState = purposeTemplateState.draft
+): PurposeTemplate => ({
+  id: generateId(),
+  targetDescription: "Purpose template target description",
+  targetTenantKind: tenantKind.PA,
+  creatorId,
+  state,
+  createdAt: new Date(),
+  purposeTitle: "Purpose template title",
+  purposeDescription: "Purpose template description",
+  purposeIsFreeOfCharge: false,
+  handlesPersonalData: false,
+});
+
 export const getMockPurposeVersion = (
-  state?: PurposeVersionState
+  state?: PurposeVersionState,
+  stamps?: PurposeVersionStamps
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
@@ -353,6 +383,7 @@ export const getMockPurposeVersion = (
   ...(state === purposeVersionState.rejected
     ? { rejectionReason: "test" }
     : {}),
+  ...(stamps ? { stamps } : {}),
 });
 
 export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
@@ -361,6 +392,9 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   contentType: "json",
   createdAt: new Date(),
 });
+
+export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
+  generateMock(PurposeVersionStamps);
 
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
@@ -1046,6 +1080,75 @@ export const sortPurpose = <
   }
 };
 
+const sortRiskAnalysisTemplateAnswers = <
+  T extends
+    | RiskAnalysisTemplateSingleAnswer
+    | RiskAnalysisTemplateSingleAnswerV2
+    | RiskAnalysisTemplateMultiAnswer
+    | RiskAnalysisTemplateMultiAnswerV2
+>(
+  answers: T[]
+): T[] =>
+  [...answers]
+    .map((answer) => ({
+      ...answer,
+      ...(answer.annotation && {
+        annotation: {
+          ...answer.annotation,
+          docs: [...answer.annotation.docs].sort(sortBy((doc) => doc.id)),
+        },
+      }),
+      ...("suggestedValues" in answer &&
+        answer.suggestedValues && {
+          suggestedValues: [...answer.suggestedValues].sort(),
+        }),
+    }))
+    .sort(sortBy((a) => a.key));
+
+export const sortPurposeTemplate = <
+  T extends
+    | PurposeTemplate
+    | PurposeTemplateV2
+    | WithMetadata<PurposeTemplate>
+    | undefined
+>(
+  purposeTemplate: T
+): T => {
+  if (!purposeTemplate) {
+    return purposeTemplate;
+  } else if ("data" in purposeTemplate) {
+    return {
+      ...purposeTemplate,
+      data: sortPurposeTemplate(purposeTemplate.data),
+    };
+  } else {
+    return {
+      ...purposeTemplate,
+      ...(purposeTemplate.purposeRiskAnalysisForm
+        ? {
+            purposeRiskAnalysisForm: {
+              ...purposeTemplate.purposeRiskAnalysisForm,
+              singleAnswers: sortRiskAnalysisTemplateAnswers(
+                purposeTemplate.purposeRiskAnalysisForm.singleAnswers.map(
+                  (answer) => ({
+                    ...answer,
+                  })
+                )
+              ),
+              multiAnswers: sortRiskAnalysisTemplateAnswers(
+                purposeTemplate.purposeRiskAnalysisForm.multiAnswers.map(
+                  (answer) => ({
+                    ...answer,
+                  })
+                )
+              ),
+            },
+          }
+        : {}),
+    };
+  }
+};
+
 export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
   client: T
 ): T => {
@@ -1295,8 +1398,11 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   id: generateId(),
   userId: generateId(),
   tenantId: generateId(),
+  inAppNotificationPreference: generateMock(z.boolean()),
+  emailNotificationPreference: generateMock(EmailNotificationPreference),
   inAppConfig: getMockNotificationConfig(),
   emailConfig: getMockNotificationConfig(),
+  userRoles: [userRole.ADMIN_ROLE],
   createdAt: generateMock(z.coerce.date()),
   updatedAt: generateMock(z.coerce.date().optional()),
 });

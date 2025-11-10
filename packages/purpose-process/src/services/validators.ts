@@ -25,6 +25,7 @@ import {
   ownership,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -39,16 +40,18 @@ import {
   riskAnalysisValidationFailed,
   tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
 } from "./purposeService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
@@ -57,7 +60,9 @@ export const isRiskAnalysisFormValid = (
       validateRiskAnalysis(
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
-        tenantKind
+        tenantKind,
+        dateForExpirationValidation,
+        personalDataInEService
       ).type === "valid"
     );
   }
@@ -113,27 +118,36 @@ export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
   tenantKind,
+  dateForExpirationValidation,
+  personalDataInEService,
 }: {
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
+  dateForExpirationValidation: Date;
+  personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind
+    tenantKind,
+    dateForExpirationValidation,
+    personalDataInEService
   );
-  if (result.type === "invalid") {
-    throw riskAnalysisValidationFailed(result.issues);
-  } else {
-    return result.value;
-  }
+  return match(result)
+    .with({ type: "invalid" }, ({ issues }) => {
+      throw riskAnalysisValidationFailed(issues);
+    })
+    .with({ type: "valid" }, ({ value }) => value)
+    .exhaustive();
 }
 
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -142,6 +156,8 @@ export function validateAndTransformRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
     tenantKind,
+    dateForExpirationValidation,
+    personalDataInEService,
   });
 
   return {
@@ -177,7 +193,7 @@ export const assertPurposeTitleIsNotDuplicated = async ({
   consumerId,
   title,
 }: {
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   eserviceId: EServiceId;
   consumerId: TenantId;
   title: string;
@@ -197,7 +213,7 @@ export async function isOverQuota(
   eservice: EService,
   purpose: Purpose,
   dailyCalls: number,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<boolean> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
@@ -250,7 +266,7 @@ export const assertRequesterCanRetrievePurpose = async (
   purpose: Purpose,
   eservice: EService,
   authData: Pick<UIAuthData, "organizationId">,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   // This validator is for retrieval operations that can be performed by all the tenants involved:
   // the consumer, the producer, the consumer delegate, and the producer delegate.
@@ -372,7 +388,7 @@ export const verifyRequesterIsConsumerOrDelegateConsumer = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
   authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<DelegationId | undefined> => {
   try {
     assertRequesterIsConsumer(
@@ -419,7 +435,7 @@ export const getOrganizationRole = async ({
   purpose: Purpose;
   producerId: TenantId;
   delegationId: DelegationId | undefined;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   authData: UIAuthData | M2MAdminAuthData;
 }): Promise<Ownership> => {
   if (

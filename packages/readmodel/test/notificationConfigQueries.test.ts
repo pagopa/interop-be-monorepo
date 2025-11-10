@@ -4,19 +4,21 @@ import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 import { match } from "ts-pattern";
 import {
+  NotificationType,
   TenantId,
   UserNotificationConfig,
+  emailNotificationPreference,
   generateId,
 } from "pagopa-interop-models";
 import {
   getMockTenantNotificationConfig,
   getMockUserNotificationConfig,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
 } from "../src/testUtils.js";
-import { NotificationType } from "../src/notification-config/utils.js";
 import { notificationConfigReadModelService } from "./notificationConfigUtils.js";
 import { readModelDB } from "./utils.js";
 
@@ -93,6 +95,7 @@ describe("Notification config queries", () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -114,6 +117,7 @@ describe("Notification config queries", () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
         },
       };
       await insertUserNotificationConfig(
@@ -154,6 +158,7 @@ describe("Notification config queries", () => {
         match(notificationChannel)
           .with("inApp", () => ({
             ...config,
+            inAppNotificationPreference: enabled,
             inAppConfig: {
               ...config.inAppConfig,
               [notificationType]: enabled,
@@ -161,6 +166,9 @@ describe("Notification config queries", () => {
           }))
           .with("email", () => ({
             ...config,
+            emailNotificationPreference: enabled
+              ? emailNotificationPreference.enabled
+              : emailNotificationPreference.disabled,
             emailConfig: {
               ...config.emailConfig,
               [notificationType]: enabled,
@@ -251,6 +259,50 @@ describe("Notification config queries", () => {
             notificationType,
             notificationChannel
           );
+        expect(retrievedUsers).toHaveLength(0);
+      }
+    );
+
+    it.each(["inApp", "email"] as const)(
+      "should not return users if the channel preference is disabled (%s)",
+      async (notificationChannel) => {
+        const tenantId = generateId<TenantId>();
+        const notificationType = generateMock(NotificationType);
+        const enabledConfig = set(
+          notificationType,
+          notificationChannel,
+          true
+        )({
+          ...getMockUserNotificationConfig(),
+          tenantId,
+        });
+        const configWithDisabledPreference = match(notificationChannel)
+          .with("inApp", () => ({
+            ...enabledConfig,
+            inAppNotificationPreference: false,
+          }))
+          .with("email", () => ({
+            ...enabledConfig,
+            emailNotificationPreference: randomArrayItem([
+              emailNotificationPreference.disabled,
+              emailNotificationPreference.digest,
+            ]),
+          }))
+          .exhaustive();
+
+        await insertUserNotificationConfig(
+          readModelDB,
+          configWithDisabledPreference,
+          0
+        );
+
+        const retrievedUsers =
+          await notificationConfigReadModelService.getTenantUsersWithNotificationEnabled(
+            [tenantId],
+            notificationType,
+            notificationChannel
+          );
+
         expect(retrievedUsers).toHaveLength(0);
       }
     );

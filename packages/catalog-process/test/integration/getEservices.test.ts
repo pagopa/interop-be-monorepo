@@ -27,6 +27,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
 import { getMockDelegation } from "pagopa-interop-commons-test";
+import { match } from "ts-pattern";
 import {
   addOneEService,
   addOneTenant,
@@ -36,6 +37,7 @@ import {
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import { getContextsAllowedToSeeInactiveDescriptors } from "../mockUtils.js";
+import { PersonalDataFilter } from "../../src/model/domain/models.js";
 
 describe("get eservices", () => {
   const organizationId1: TenantId = generateId();
@@ -71,6 +73,7 @@ describe("get eservices", () => {
       isSignalHubEnabled: true,
       isConsumerDelegable: true,
       isClientAccessDelegable: true,
+      personalData: true,
     };
     await addOneEService(eservice1);
 
@@ -87,6 +90,7 @@ describe("get eservices", () => {
       name: "eservice 002 test",
       descriptors: [descriptor2],
       producerId: organizationId1,
+      personalData: true,
     };
     await addOneEService(eservice2);
 
@@ -103,6 +107,7 @@ describe("get eservices", () => {
       name: "eservice 003 test",
       descriptors: [descriptor3],
       producerId: organizationId1,
+      personalData: false,
     };
     await addOneEService(eservice3);
 
@@ -120,6 +125,7 @@ describe("get eservices", () => {
       producerId: organizationId2,
       descriptors: [descriptor4],
       isConsumerDelegable: true,
+      personalData: false,
     };
     await addOneEService(eservice4);
 
@@ -457,7 +463,7 @@ describe("get eservices", () => {
       sortEServices([eservice1, eservice2, eservice3, eservice6])
     );
   });
-  it("should get the eServices if they exist (parameters: statestates, name)", async () => {
+  it("should get the eServices if they exist (parameters: agreementStates, states, name)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [],
@@ -479,7 +485,7 @@ describe("get eservices", () => {
       sortEServices([eservice1, eservice3])
     );
   });
-  it("should not get the eServices if they don't exist (parameters: statestates, name)", async () => {
+  it("should not get the eServices if they don't exist (parameters: agreementStates, states, name)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [],
@@ -1042,7 +1048,7 @@ describe("get eservices", () => {
     expect(sortEServices(result.results)).toEqual(sortEServices([eservice4]));
   });
 
-  it("should get the eServices if they exist (parameters: attributesIdstates, producersIds)", async () => {
+  it("should get the eServices if they exist (parameters: agreementStates, attributesIds, producersIds)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [],
@@ -1062,7 +1068,7 @@ describe("get eservices", () => {
     expect(sortEServices(result.results)).toEqual(sortEServices([eservice1]));
   });
 
-  it("should get the eServices if they exist (parameters: attributesIdstates, eservicesIds)", async () => {
+  it("should get the eServices if they exist (parameters: agreementStates, attributesIds, eservicesIds, producersIds)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [eservice1.id, eservice4.id],
@@ -1085,7 +1091,7 @@ describe("get eservices", () => {
     );
   });
 
-  it("should not get the eServices if they don't exist (parameters: attributesIdstates)", async () => {
+  it("should not get the eServices if they don't exist (parameters: agreementStates, attributesIds)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [],
@@ -1931,4 +1937,45 @@ describe("get eservices", () => {
       sortEServices([eservice4, eservice5])
     );
   });
+
+  it.each(["TRUE", "FALSE", "DEFINED", undefined] as PersonalDataFilter[])(
+    "should get the eServices if they exist (parameters: personalData = %s)",
+    async (personalData) => {
+      const result = await catalogService.getEServices(
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+          templatesIds: [],
+          personalData,
+        },
+        0,
+        50,
+        getMockContext({
+          authData: getMockAuthData(organizationId3),
+        })
+      );
+
+      const expectedEServices = match(personalData)
+        .with("TRUE", () => [eservice1, eservice2])
+        .with("FALSE", () => [eservice3, eservice4])
+        .with("DEFINED", () => [eservice1, eservice2, eservice3, eservice4])
+        .with(undefined, () => [
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+        ])
+        .exhaustive();
+
+      expect(result.totalCount).toBe(expectedEServices.length);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices(expectedEServices)
+      );
+    }
+  );
 });

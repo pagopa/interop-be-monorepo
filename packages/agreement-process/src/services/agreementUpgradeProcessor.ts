@@ -31,8 +31,8 @@ import {
 import { ActiveDelegations } from "../model/domain/models.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
-import { ReadModelService } from "./readModelService.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export async function createUpgradeOrNewDraft({
   agreement,
@@ -54,7 +54,7 @@ export async function createUpgradeOrNewDraft({
   newDescriptor: Descriptor;
   consumer: Tenant;
   producer: Tenant;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
   authData: UIAuthData | M2MAdminAuthData;

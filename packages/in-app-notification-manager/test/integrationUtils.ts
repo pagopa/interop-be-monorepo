@@ -20,7 +20,6 @@ export const { cleanup, inAppNotificationDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  undefined,
   inject("inAppNotificationDbConfig")
 );
 

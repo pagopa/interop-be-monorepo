@@ -1,9 +1,0 @@
-[default]
-aws_access_key_id=key
-aws_secret_access_key=secret
-region=eu-south-1
-services=local
-
-[services local]
-dynamodb= 
-  endpoint_url=http://localhost:8085
