@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
-import { AuthData, formatDateyyyyMMddTHHmmss } from "pagopa-interop-commons";
+import { AuthData, formatDateyyyyMMddThhmmss } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
 import {
@@ -89,7 +89,7 @@ describe("getEServiceConsumers", () => {
       },
       headers: bffMockContext.headers,
     });
-    const currentDate = formatDateyyyyMMddTHHmmss(new Date());
+    const currentDate = formatDateyyyyMMddThhmmss(new Date());
     const expectedFilename = `${currentDate}-lista-fruitori-${eService.name}.csv`;
     expect(result.filename).toBe(expectedFilename);
 
@@ -107,7 +107,7 @@ describe("getEServiceConsumers", () => {
       bffMockContext
     );
 
-    const currentDate = formatDateyyyyMMddTHHmmss(new Date());
+    const currentDate = formatDateyyyyMMddThhmmss(new Date());
     const expectedFilename = `${currentDate}-lista-fruitori-${eService.name}.csv`;
     expect(result.filename).toBe(expectedFilename);
 

@@ -9,8 +9,8 @@ export function formatDateyyyyMMddHHmmss(date: Date): string {
   return format(date, "yyyyMMddHHmmss");
 }
 
-export function formatDateyyyyMMddTHHmmss(date: Date): string {
-  return format(date, "yyyy-MM-dd'T'HH:mm:ss");
+export function formatDateyyyyMMddThhmmss(date: Date): string {
+  return format(date, "yyyy-MM-dd'T'hh:mm:ss");
 }
 
 export function formatDateyyyyMMdd(date: Date): string {
