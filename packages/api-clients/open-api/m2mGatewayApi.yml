@@ -16561,7 +16561,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "409":
-          description: The Purpose Template is already in Archived state
+          description: Conflict
           content:
             application/problem+json:
               schema:
