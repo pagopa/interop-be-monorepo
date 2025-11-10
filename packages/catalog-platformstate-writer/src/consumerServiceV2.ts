@@ -7,6 +7,7 @@ import {
   EServiceEventEnvelopeV2,
   EServiceV2,
   fromEServiceV2,
+  genericInternalError,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   missingKafkaMessageDataError,
@@ -324,6 +325,8 @@ export const parseEServiceAndDescriptor = (
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
     throw missingKafkaMessageDataError("descriptor", eventType);
+      `Descriptor ${descriptorId} not found in e-service ${eservice.id} while processing event ${eventType}`
+    );
   }
   return { eservice, descriptor };
 };
