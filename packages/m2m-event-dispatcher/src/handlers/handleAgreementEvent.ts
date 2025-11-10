@@ -58,7 +58,9 @@ export async function handleAgreementEvent(
           event.version,
           event.type,
           eventTimestamp,
-          await readModelService.getActiveDelegationsForAgreement(agreement)
+          await readModelService.getActiveDelegationsForAgreementOrPurpose(
+            agreement
+          )
         );
 
         await m2mEventWriterService.insertAgreementM2MEvent(

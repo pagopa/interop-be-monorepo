@@ -14,6 +14,7 @@ import {
   AttributeM2MEventSQL,
   EServiceM2MEventSQL,
   AgreementM2MEventSQL,
+  PurposeM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { SQL, eq } from "drizzle-orm";
@@ -24,11 +25,16 @@ export function m2mEventWriterServiceSQLBuilder(
   m2mEventDB: ReturnType<typeof drizzle>
 ) {
   function insertIfResourceVersionNotPresent(
-    event: EServiceM2MEventSQL | AgreementM2MEventSQL | AttributeM2MEventSQL,
+    event:
+      | EServiceM2MEventSQL
+      | AgreementM2MEventSQL
+      | AttributeM2MEventSQL
+      | PurposeM2MEventSQL,
     table:
       | typeof eserviceInM2MEvent
       | typeof agreementInM2MEvent
-      | typeof attributeInM2MEvent,
+      | typeof attributeInM2MEvent
+      | typeof purposeInM2MEvent,
     resourceIdFilter: SQL | undefined
   ): Promise<void> {
     return m2mEventDB.transaction(async (tx) => {
@@ -60,8 +66,12 @@ export function m2mEventWriterServiceSQLBuilder(
         eq(agreementInM2MEvent.agreementId, event.agreementId)
       );
     },
-    async insertPurposeM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(purposeInM2MEvent).values([]);
+    async insertPurposeM2MEvent(event: PurposeM2MEventSQL): Promise<void> {
+      await insertIfResourceVersionNotPresent(
+        event,
+        purposeInM2MEvent,
+        eq(purposeInM2MEvent.purposeId, event.purposeId)
+      );
     },
     async insertKeyM2MEvent(): Promise<void> {
       await m2mEventDB.insert(keyInM2MEvent).values([]);

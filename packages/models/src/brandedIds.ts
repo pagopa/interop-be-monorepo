@@ -262,6 +262,9 @@ export const AgreementM2MEventId = z
   .brand("AgreementM2MEventId");
 export type AgreementM2MEventId = z.infer<typeof AgreementM2MEventId>;
 
+export const PurposeM2MEventId = z.string().uuid().brand("PurposeM2MEventId");
+export type PurposeM2MEventId = z.infer<typeof PurposeM2MEventId>;
+
 export const IDS = z.union([
   CorrelationId,
   SpanId,
@@ -307,6 +310,7 @@ export const IDS = z.union([
   AttributeM2MEventId,
   EServiceM2MEventId,
   AgreementM2MEventId,
+  PurposeM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

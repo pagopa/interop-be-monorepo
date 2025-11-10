@@ -4,6 +4,8 @@ import {
   EServiceEventEnvelopeV2,
   EServiceV2,
   missingKafkaMessageDataError,
+  PurposeEventEnvelopeV2,
+  PurposeV2,
 } from "pagopa-interop-models";
 
 export function assertEServiceExistsInEvent(
@@ -23,5 +25,15 @@ export function assertAgreementExistsInEvent(
 } {
   if (!event.data.agreement) {
     throw missingKafkaMessageDataError("agreement", event.type);
+  }
+}
+
+export function assertPurposeExistsInEvent(
+  event: PurposeEventEnvelopeV2
+): asserts event is PurposeEventEnvelopeV2 & {
+  data: { purpose: PurposeV2 };
+} {
+  if (!event.data.purpose) {
+    throw missingKafkaMessageDataError("purpose", event.type);
   }
 }
