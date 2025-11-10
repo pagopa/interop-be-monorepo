@@ -22,38 +22,41 @@ import {
   addOnePurposeTemplateEServiceDescriptor,
   purposeTemplateService,
 } from "../integrationUtils.js";
-import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
+import {
+  purposeTemplateNotFound,
+  tenantNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("getPurposeTemplateEServiceDescriptors", async () => {
   const creatorId = generateId<TenantId>();
 
   const eservice1: EService = {
     ...getMockEService(),
-    name: "e-service 1",
+    name: "Test e-service 1",
     descriptors: [getMockDescriptor(descriptorState.published)],
   };
   const eservice2: EService = {
     ...getMockEService(),
-    name: "e-service 2",
+    name: "Test e-service 2",
     descriptors: [getMockDescriptor(descriptorState.archived)],
   };
 
   const purposeTemplate1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 1 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 1 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
   const purposeTemplate2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 2 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 2 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
   const purposeTemplate3: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 3 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 3 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
 
@@ -103,11 +106,10 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(allPurposeTemplateEServiceDescriptors).toEqual({
@@ -124,11 +126,10 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 1, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -142,11 +143,10 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 0, limit: 1 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -160,11 +160,10 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [],
           producerIds: [eservice2.producerId],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -173,16 +172,16 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     });
   });
 
-  it("should get the linked purpose template e-service descriptors (filter: eserviceIds)", async () => {
+  it("should get the linked purpose template e-service descriptors (filter: eserviceName)", async () => {
     const result =
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate1.id,
-          eserviceIds: [eservice2.id],
+          eserviceName: "E-SERVICE 2",
           producerIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -196,11 +195,10 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: purposeTemplate3.id,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -216,12 +214,28 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       purposeTemplateService.getPurposeTemplateEServiceDescriptors(
         {
           purposeTemplateId: notExistingId,
-          eserviceIds: [],
           producerIds: [],
         },
         { offset: 0, limit: 50 },
         getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
+  });
+
+  it("should throw tenantNotAllowed if the requester is not the creator and the purpose template is in draft state", async () => {
+    const purposeTemplateDraft = getMockPurposeTemplate();
+    await addOnePurposeTemplate(purposeTemplateDraft);
+
+    const requesterId = generateId<TenantId>();
+    await expect(
+      purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+        {
+          purposeTemplateId: purposeTemplateDraft.id,
+          producerIds: [],
+        },
+        { offset: 0, limit: 50 },
+        getMockContext({ authData: getMockAuthData(requesterId) })
+      )
+    ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 });

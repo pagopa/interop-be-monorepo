@@ -121,6 +121,9 @@ import {
   RiskAnalysisTemplateSingleAnswerV2,
   RiskAnalysisTemplateMultiAnswerV2,
   EmailNotificationPreference,
+  AgreementSignedContract,
+  PurposeVersionSignedDocument,
+  DelegationSignedContractDocument,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -351,7 +354,8 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
 
 export const getMockPurposeTemplate = (
   creatorId: TenantId = generateId<TenantId>(),
-  state: PurposeTemplateState = purposeTemplateState.draft
+  state: PurposeTemplateState = purposeTemplateState.draft,
+  handlesPersonalData: boolean = true
 ): PurposeTemplate => ({
   id: generateId(),
   targetDescription: "Purpose template target description",
@@ -362,7 +366,7 @@ export const getMockPurposeTemplate = (
   purposeTitle: "Purpose template title",
   purposeDescription: "Purpose template description",
   purposeIsFreeOfCharge: false,
-  handlesPersonalData: false,
+  handlesPersonalData,
 });
 
 export const getMockPurposeVersion = (
@@ -392,6 +396,15 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   contentType: "json",
   createdAt: new Date(),
 });
+
+export const getMockPurposeVersionSignedDocument =
+  (): PurposeVersionSignedDocument => ({
+    path: "path",
+    id: generateId(),
+    contentType: "json",
+    createdAt: new Date(),
+    signedAt: new Date(),
+  });
 
 export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
   generateMock(PurposeVersionStamps);
@@ -441,6 +454,16 @@ export const getMockAgreementDocument = (): AgreementDocument => ({
   contentType: "json",
   path: "filePath",
   createdAt: new Date(),
+});
+
+export const getMockAgreementContract = (): AgreementSignedContract => ({
+  id: generateId(),
+  name: "fileName",
+  prettyName: "prettyName",
+  contentType: "json",
+  path: "filePath",
+  createdAt: new Date(),
+  signedAt: new Date(),
 });
 
 export const getMockClient = ({
@@ -558,6 +581,8 @@ export const getMockDelegation = ({
   rejectionReason,
   updatedAt,
   stamps,
+  activationSignedContract,
+  revocationSignedContract,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -571,6 +596,8 @@ export const getMockDelegation = ({
   rejectionReason?: string;
   updatedAt?: Date;
   stamps?: DelegationStamps;
+  activationSignedContract?: DelegationSignedContractDocument;
+  revocationSignedContract?: DelegationSignedContractDocument;
 }): Delegation => {
   const creationTime = new Date();
 
@@ -592,6 +619,8 @@ export const getMockDelegation = ({
         when: creationTime,
       },
     },
+    ...(activationSignedContract ? { activationSignedContract } : {}),
+    ...(revocationSignedContract ? { revocationSignedContract } : {}),
   };
 };
 
@@ -604,6 +633,18 @@ export const getMockDelegationDocument = (
   contentType: "json",
   path: "path",
   createdAt: new Date(),
+});
+
+export const getMockDelegationSignedDocument = (
+  id?: DelegationContractId
+): DelegationSignedContractDocument => ({
+  id: id ?? generateId(),
+  name: "Test document",
+  prettyName: "Test document",
+  contentType: "json",
+  path: "path",
+  createdAt: new Date(),
+  signedAt: new Date(),
 });
 
 export const getMockTokenGenStatesConsumerClient = (

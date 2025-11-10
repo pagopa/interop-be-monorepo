@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -15,6 +15,7 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleAgreementManagementToProducer } from "../src/handlers/agreements/handleAgreementManagementToProducer.js";
 import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -48,7 +49,10 @@ describe("handleAgreementManagementToProducer", () => {
   };
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
@@ -76,11 +80,10 @@ describe("handleAgreementManagementToProducer", () => {
       consumerId: unknownTenantId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: producerId },
+    ]);
 
     await expect(() =>
       handleAgreementManagementToProducer(
@@ -99,11 +102,10 @@ describe("handleAgreementManagementToProducer", () => {
       eserviceId: unknownEserviceId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: producerId },
+    ]);
 
     await expect(() =>
       handleAgreementManagementToProducer(
@@ -116,10 +118,7 @@ describe("handleAgreementManagementToProducer", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleAgreementManagementToProducer(
       toAgreementV2(agreement),
@@ -133,64 +132,59 @@ describe("handleAgreementManagementToProducer", () => {
 
   it.each<{
     eventType:
-      | "AgreementActivated"
-      | "AgreementSubmitted"
-      | "AgreementUpgraded";
-    expectedAction: "attivato" | "creato" | "aggiornato";
+    | "AgreementActivated"
+    | "AgreementSubmitted"
+    | "AgreementUpgraded";
   }>([
     {
       eventType: "AgreementActivated",
-      expectedAction: "attivato",
     },
     {
       eventType: "AgreementSubmitted",
-      expectedAction: "creato",
     },
     {
       eventType: "AgreementUpgraded",
-      expectedAction: "aggiornato",
     },
-  ])(
-    "should handle $eventType event correctly",
-    async ({ eventType, expectedAction }) => {
-      const producerUsers = [
-        { userId: generateId(), tenantId: producerId },
-        { userId: generateId(), tenantId: producerId },
-      ];
+  ])("should handle $eventType event correctly", async ({ eventType }) => {
+    const producerUsers = [
+      { userId: generateId(), tenantId: producerId },
+      { userId: generateId(), tenantId: producerId },
+    ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(producerUsers);
+    mockGetNotificationRecipients.mockResolvedValue(producerUsers);
 
-      const notifications = await handleAgreementManagementToProducer(
-        toAgreementV2(agreement),
-        logger,
-        readModelService,
-        eventType
-      );
+    const notifications = await handleAgreementManagementToProducer(
+      toAgreementV2(agreement),
+      logger,
+      readModelService,
+      eventType
+    );
 
-      expect(notifications).toHaveLength(producerUsers.length);
+    expect(notifications).toHaveLength(producerUsers.length);
 
-      const expectedBody = inAppTemplates.agreementManagementToProducer(
-        consumerTenant.name,
-        eservice.name,
-        expectedAction
-      );
+    // Use the same template function as the implementation for each event type
+    const templateMap = {
+      AgreementActivated: inAppTemplates.agreementActivatedToProducer,
+      AgreementSubmitted: inAppTemplates.agreementSubmittedToProducer,
+      AgreementUpgraded: inAppTemplates.agreementUpgradedToProducer,
+    };
+    const expectedBody = templateMap[eventType](
+      consumerTenant.name,
+      eservice.name
+    );
 
-      const expectedNotifications = producerUsers.map((user) => ({
-        userId: user.userId,
-        tenantId: user.tenantId,
-        body: expectedBody,
-        notificationType: "agreementManagementToProducer",
-        entityId: agreement.id,
-      }));
+    const expectedNotifications = producerUsers.map((user) => ({
+      userId: user.userId,
+      tenantId: user.tenantId,
+      body: expectedBody,
+      notificationType: "agreementManagementToProducer",
+      entityId: agreement.id,
+    }));
 
-      expect(notifications).toEqual(
-        expect.arrayContaining(expectedNotifications)
-      );
-    }
-  );
+    expect(notifications).toEqual(
+      expect.arrayContaining(expectedNotifications)
+    );
+  });
 
   it("should generate notifications for multiple users", async () => {
     const users = [
@@ -198,10 +192,7 @@ describe("handleAgreementManagementToProducer", () => {
       { userId: generateId(), tenantId: producerId },
       { userId: generateId(), tenantId: producerId },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleAgreementManagementToProducer(
       toAgreementV2(agreement),
