@@ -1,0 +1,19 @@
+meta {
+  name: Get Attributes Events
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{host-m2m-gw}}/events/attributes/
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+docs {
+  Retrieves a certified attribute by its ID.
+}

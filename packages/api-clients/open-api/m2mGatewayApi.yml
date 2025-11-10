@@ -16180,27 +16180,11 @@ paths:
       description: |
         Retrieve list of Attribute events that occurred after the specified event ID.
         Results are ordered in ascending order (oldest events first).
-      operationId: getAttributeM2MEvents
+      operationId: getAttributesEvents
       parameters:
-        - in: query
-          name: lastEventId
-          description: |
-            ID of the last event already received.
-            Only events that occurred after this ID will be returned.
-            If not provided, the oldest events up to the specified limit will be returned.
-          schema:
-            type: string
-            format: uuid
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-    responses:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/eventsLimit"
+      responses:
         "200":
           description: Attribute events retrieved
           content:
@@ -16240,8 +16224,8 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-        "404":
-          description: Not Found
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -16267,6 +16251,27 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
 components:
+  parameters:
+    LastEventId:
+      in: query
+      name: lastEventId
+      description: |
+        ID of the last event already received.
+        Only events that occurred after this ID will be returned.
+        If not provided, the oldest events up to the specified limit will be returned.
+      schema:
+        type: string
+        format: uuid
+    eventsLimit:
+      in: query
+      name: limit
+      required: true
+      description: Maximum number of events to return.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 500
   schemas:
     AttributeEvent:
       type: object

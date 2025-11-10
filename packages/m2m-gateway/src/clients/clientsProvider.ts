@@ -74,8 +74,8 @@ export type AuthorizationProcessClient = {
 export type EServiceTemplateProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof eserviceTemplateApi.createProcessApiClient>
 >;
-export type EventManagerClient = ZodiosClientWithMetadata<
-  ReturnType<typeof m2mEventApi.createM2mEventsApiClient>
+export type EventManagerClient = ReturnType<
+  typeof m2mEventApi.createM2mEventsApiClient
 >;
 
 export type PagoPAInteropBeClients = {
@@ -162,8 +162,7 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       eserviceTemplateApi.createProcessApiClient,
       config.eserviceTemplateProcessUrl
     ),
-    eventManagerClient: createZodiosClientEnhancedWithMetadata(
-      m2mEventApi.createM2mEventsApiClient,
+    eventManagerClient: m2mEventApi.createM2mEventsApiClient(
       config.eventManagerUrl
     ),
   };

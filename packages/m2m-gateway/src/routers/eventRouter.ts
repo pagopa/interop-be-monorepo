@@ -8,7 +8,7 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { EventService } from "../services/eventService.js";
@@ -28,9 +28,17 @@ const eventRouter = (
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-      await eventService.getAttributeEvents(ctx);
+      const events = await eventService.getAttributeEvents(
+        {
+          lastEventId: req.query.lastEventId
+            ? unsafeBrandId(req.query.lastEventId)
+            : undefined,
+          limit: req.query.limit,
+        },
+        ctx
+      );
 
-      return res.status(200).send();
+      return res.status(200).send(events);
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
