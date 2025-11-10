@@ -170,6 +170,48 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /creators:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - purposeTemplate
+      operationId: getPublishedPurposeTemplateCreators
+      description: Retrieve Tenants that have published a Purpose Template
+      parameters:
+        - in: query
+          name: creatorName
+          description: Query to filter creators by name
+          schema:
+            type: string
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: A list of creators
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactOrganizations"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -814,7 +856,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: Risk analysis form template answer annotation document not found
+          description: Not found
           content:
             application/problem+json:
               schema:
@@ -845,6 +887,71 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Risk analysis form template answer annotation document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: documentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Update Risk Analysis Answer Annotation Document
+      description: Update Answer Annotation Document in Risk Analysis of Purpose Template
+      operationId: updateRiskAnalysisTemplateAnswerAnnotationDocument
+      tags:
+        - purposeTemplate
+      requestBody:
+        required: true
+        description: A payload containing the possible document updatable fields
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      responses:
+        "200":
+          description: Answer Annotation Document Document updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource not found
           content:
             application/problem+json:
               schema:
@@ -1223,6 +1330,16 @@ components:
         - contentType
         - prettyName
         - path
+    UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed:
+      required:
+        - prettyName
+      type: object
+      additionalProperties: false
+      properties:
+        prettyName:
+          type: string
+          minLength: 5
+          maxLength: 60
     RiskAnalysisTemplateAnswer:
       type: object
       additionalProperties: false
@@ -1309,6 +1426,32 @@ components:
         - answerData
       additionalProperties: false
       description: A single risk analysis answer with explicit key and data structure
+    CompactOrganization:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    CompactOrganizations:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactOrganization"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Problem:
       properties:
         type:

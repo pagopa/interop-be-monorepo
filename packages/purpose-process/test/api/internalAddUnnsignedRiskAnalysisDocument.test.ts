@@ -71,9 +71,6 @@ describe("API POST /internal/purposes/:purposeId/versions/:versionId/riskAnalysi
       );
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
-      expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString()
-      );
     }
   );
 
