@@ -79,11 +79,18 @@ export const RiskAnalysisTemplateDocument = z.object({
   contentType: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
-  signedAt: z.coerce.date().optional(),
   checksum: z.string(),
 });
 export type RiskAnalysisTemplateDocument = z.infer<
   typeof RiskAnalysisTemplateDocument
+>;
+
+export const RiskAnalysisTemplateSignedDocument =
+  RiskAnalysisTemplateDocument.extend({
+    signedAt: z.coerce.date(),
+  });
+export type RiskAnalysisTemplateSignedDocument = z.infer<
+  typeof RiskAnalysisTemplateSignedDocument
 >;
 
 export const RiskAnalysisFormTemplate = z.object({
@@ -92,5 +99,7 @@ export const RiskAnalysisFormTemplate = z.object({
   singleAnswers: z.array(RiskAnalysisTemplateSingleAnswer),
   multiAnswers: z.array(RiskAnalysisTemplateMultiAnswer),
   riskAnalysisTemplateDocument: RiskAnalysisTemplateDocument.optional(),
+  riskAnalysisTemplateSignedDocument:
+    RiskAnalysisTemplateSignedDocument.optional(),
 });
 export type RiskAnalysisFormTemplate = z.infer<typeof RiskAnalysisFormTemplate>;

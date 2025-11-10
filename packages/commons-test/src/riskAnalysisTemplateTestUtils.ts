@@ -13,6 +13,7 @@ import {
   RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
   TenantKind,
   tenantKind,
@@ -448,6 +449,8 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
       incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
     riskAnalysisTemplateDocument: getMockRiskAnalysisTemplateDocument(),
+    riskAnalysisTemplateSignedDocument:
+      getMockRiskAnalysisTemplateSignedDocument(),
   };
 };
 
@@ -478,8 +481,17 @@ export const getMockRiskAnalysisTemplateDocument = (
   prettyName: "prettyName",
   contentType: "application/pdf",
   createdAt: new Date(),
-  signedAt: undefined,
-  checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b955",
+});
+export const getMockRiskAnalysisTemplateSignedDocument = (
+  id: RiskAnalysisTemplateDocumentId = generateId(),
+  purposeTemplateId: PurposeTemplateId = generateId(),
+  basePath: string = "purposeTemplatePath",
+  name: string = `Document-${id}-signed`
+): RiskAnalysisTemplateSignedDocument => ({
+  ...getMockRiskAnalysisTemplateDocument(id, purposeTemplateId, basePath, name),
+  signedAt: new Date(),
+  checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b975",
 });
 
 export const getMockRiskAnalysisTemplateAnswerAnnotation = (

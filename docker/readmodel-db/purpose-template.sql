@@ -92,7 +92,27 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  signed_at TIMESTAMP WITH TIME ZONE,
+  checksum VARCHAR NOT NULL,
+  
+  PRIMARY KEY (id),
+  
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_form_signed_document (
+  id UUID,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  
+  -- link to  Risk Analysis (RiskAnalysisFormTemplate)
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_form (id) ON DELETE CASCADE,
+  
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  signed_at TIMESTAMP WITH TIME ZONE NOT NULL,
   checksum VARCHAR NOT NULL,
   
   PRIMARY KEY (id),
