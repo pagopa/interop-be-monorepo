@@ -122,14 +122,14 @@ jobs:
               }
               ] | .[] | select(.packages|length > 0)
               ')
-            
+
             echo "$matrix"
           }
 
           create_dedicated_shards() {
             local PACKAGES_JSON=$1
             local START_INDEX=$2
-            
+
             matrix=$(jq --argjson packs "$PACKAGES_JSON" --argjson startIndex "$START_INDEX" -n -c '
               ($packs | to_entries)[] |
               {
@@ -137,7 +137,7 @@ jobs:
                 "packages": [ .value ]
               }
             ')
-            
+
             echo "$matrix"
           }
 
@@ -169,7 +169,7 @@ jobs:
           ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
 
           LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "$SHARD_LINT_NUM")
-          LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)          
+          LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)
           echo "Lint Matrix Length: $(echo "$LINT_MATRIX" | jq 'length')"
           echo "lint_matrix=$LINT_MATRIX" >> $GITHUB_OUTPUT
 
@@ -269,6 +269,29 @@ jobs:
             echo "Running tests for package: $PACKAGE"
             pnpm --filter "$PACKAGE" test
           done
+
+  lint_result:
+    name: Lint Result
+    needs: [lint]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check lint result
+        run: |
+          [[ ${{ needs.lint.result }} != 'success' ]] && exit 1
+          exit 0
+
+  test_result:
+    name: Test Result
+    needs: [test]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check tests result
+        run: |
+          [[ ${{ needs.test.result }} != 'success' ]] && exit 1
+          exit 0
+
 
   find_dockerfiles:
     name: Find Dockerfiles
