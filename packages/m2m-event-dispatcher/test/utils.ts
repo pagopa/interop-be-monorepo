@@ -4,7 +4,9 @@ import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   agreementInM2MEvent,
   attributeInM2MEvent,
+  consumerDelegationInM2MEvent,
   eserviceInM2MEvent,
+  producerDelegationInM2MEvent,
   purposeInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { afterEach, inject } from "vitest";
@@ -12,6 +14,7 @@ import {
   AgreementM2MEvent,
   AttributeM2MEvent,
   Delegation,
+  DelegationM2MEvent,
   EService,
   EServiceM2MEvent,
   PurposeM2MEvent,
@@ -151,4 +154,34 @@ export async function retrieveAllPurposeM2MEvents(): Promise<
 
 export async function retrieveLastPurposeM2MEvent(): Promise<PurposeM2MEvent> {
   return (await retrieveAllPurposeM2MEvents())[0];
+}
+
+export async function retrieveAllConsumerDelegationM2MEvents(): Promise<
+  DelegationM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(consumerDelegationInM2MEvent)
+    .orderBy(desc(consumerDelegationInM2MEvent.id));
+
+  return sqlEvents.map((e) => DelegationM2MEvent.parse(e));
+}
+
+export async function retrieveLastConsumerDelegationM2MEvent(): Promise<DelegationM2MEvent> {
+  return (await retrieveAllConsumerDelegationM2MEvents())[0];
+}
+
+export async function retrieveAllProducerDelegationM2MEvents(): Promise<
+  DelegationM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(producerDelegationInM2MEvent)
+    .orderBy(desc(producerDelegationInM2MEvent.id));
+
+  return sqlEvents.map((e) => DelegationM2MEvent.parse(e));
+}
+
+export async function retrieveLastProducerDelegationM2MEvent(): Promise<DelegationM2MEvent> {
+  return (await retrieveAllProducerDelegationM2MEvents())[0];
 }
