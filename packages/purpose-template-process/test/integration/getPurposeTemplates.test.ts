@@ -227,7 +227,7 @@ describe("getPurposeTemplates", async () => {
     ]);
   });
 
-  it("should not get purpose templates with filters: eserviceIds", async () => {
+  it("should not get purpose templates if they don't exist (filters: eserviceIds)", async () => {
     const result = await purposeTemplateService.getPurposeTemplates(
       {
         eserviceIds: [generateId()],
