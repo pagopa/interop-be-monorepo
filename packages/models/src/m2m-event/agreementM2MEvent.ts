@@ -48,6 +48,7 @@ export const AgreementM2MEvent = z.object({
   id: AgreementM2MEventId,
   eventType: AgreementM2MEventType,
   eventTimestamp: z.coerce.date(),
+  resourceVersion: z.number().int().min(0),
   agreementId: AgreementId,
   consumerId: TenantId,
   producerId: TenantId,
