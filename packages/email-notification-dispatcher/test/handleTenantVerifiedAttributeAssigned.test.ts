@@ -6,6 +6,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -28,11 +29,9 @@ import { attributeNotFound } from "../src/models/errors.js";
 import {
   addOneAttribute,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleTenantVerifiedAttributeAssigned", async () => {
@@ -72,9 +71,6 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
     await addOneTenant(verifierTenant);
     await addOneTenant(targetTenant);
     await addOneAttribute(attribute);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -90,7 +86,12 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -101,7 +102,6 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
         attributeId: generateId(),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -119,7 +119,6 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
         attributeId: unknownAttributeId,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -139,7 +138,6 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -168,7 +166,6 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -182,7 +179,6 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -204,7 +200,12 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const messages = await handleTenantVerifiedAttributeAssigned({
@@ -212,7 +213,6 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -236,7 +236,6 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
       attributeId,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

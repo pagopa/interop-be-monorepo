@@ -10327,6 +10327,78 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/filter/creators:
+    parameters:
+      - in: query
+        name: q
+        description: Query to filter creators by name
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - purposeTemplates
+      operationId: getPublishedPurposeTemplateCreators
+      description: Retrieve Tenants that have published a purposeTemplate
+      responses:
+        "200":
+          description: Tenants retrieved
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactOrganizations"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposeTemplates/{purposeTemplateId}/linkEservice:
     parameters:
       - name: purposeTemplateId
@@ -10620,15 +10692,10 @@ paths:
           default: []
         explode: false
       - in: query
-        name: eserviceIds
-        description: comma separated sequence of e-service IDs
+        name: eserviceName
+        description: filter linked e-services by name
         schema:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        explode: false
+          type: string
       - in: query
         name: offset
         required: true
@@ -11941,6 +12008,130 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}/update:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        description: the risk analysis template answer id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: documentId
+        in: path
+        description: the risk analysis template answer annotation document id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplates
+      summary: Update Answer Annotation Document in Risk Analysis of Purpose Template
+      operationId: updateRiskAnalysisTemplateAnswerAnnotationDocument
+      requestBody:
+        description: A payload containing the possible document updatable fields
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      responses:
+        "200":
+          description: Risk Analysis Answer Annotation updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation:
     parameters:
       - name: purposeTemplateId
@@ -12162,12 +12353,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Published
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12287,12 +12474,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Unsuspended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12412,12 +12595,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Suspended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12537,12 +12716,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Archived
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -25236,6 +25411,14 @@ components:
       properties:
         prettyName:
           type: string
+    UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - prettyName
+      properties:
+        prettyName:
+          type: string
     DescriptorRejectionReason:
       type: object
       additionalProperties: false
@@ -26149,7 +26332,7 @@ components:
       type: string
       description: Purpose Template State
       enum:
-        - ACTIVE
+        - PUBLISHED
         - DRAFT
         - SUSPENDED
         - ARCHIVED
@@ -26371,41 +26554,8 @@ components:
       properties:
         text:
           type: string
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
       required:
         - text
-        - docs
-    RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        documentId:
-          type: string
-          format: uuid
-        name:
-          type: string
-        contentType:
-          type: string
-        checksum:
-          type: string
-        prettyName:
-          type: string
-        path:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - documentId
-        - name
-        - contentType
-        - checksum
-        - prettyName
-        - path
-        - createdAt
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
@@ -28697,7 +28847,7 @@ components:
         - "catalogo-e-service"
         - aderente
         - "gestione-client"
-        - totalCount
+        - notifiche
       properties:
         erogazione:
           type: object
@@ -28784,9 +28934,15 @@ components:
           required:
             - "api-e-service"
             - totalCount
-        totalCount:
-          type: integer
-          format: int32
+        notifiche:
+          type: object
+          additionalProperties: false
+          properties:
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - totalCount
     PersonalDataFilter:
       type: string
       description: Filter e-services by personal data

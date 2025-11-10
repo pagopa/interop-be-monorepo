@@ -144,7 +144,9 @@ export const handlePurposeMessageV2 = async (
             "DraftPurposeDeleted",
             "WaitingForApprovalPurposeDeleted",
             "WaitingForApprovalPurposeVersionDeleted",
-            "PurposeDeletedByRevokedDelegation"
+            "PurposeDeletedByRevokedDelegation",
+            "RiskAnalysisDocumentGenerated",
+            "RiskAnalysisSignedDocumentGenerated"
           ),
         },
         (event) => {

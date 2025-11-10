@@ -12,6 +12,9 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswerId,
+  userRole,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -25,6 +28,9 @@ import {
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
   validateNoHyperlinks,
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
+  systemRole,
 } from "pagopa-interop-commons";
 import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
@@ -43,6 +49,7 @@ import {
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
   disassociationEServicesFromPurposeTemplateFailed,
   tenantNotAllowed,
+  riskAnalysisTemplateAnswerNotFound,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import {
@@ -60,6 +67,10 @@ import {
   unexpectedUnassociationEServiceError,
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
+import {
+  toRiskAnalysisFormTemplateToValidate,
+  toRiskAnalysisTemplateAnswerToValidate,
+} from "../model/domain/apiConverter.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
@@ -68,10 +79,6 @@ const isRequesterCreator = (
   creatorId: TenantId,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
 ): boolean => authData.organizationId === creatorId;
-
-const isPurposeTemplateActive = (
-  currentPurposeTemplateState: PurposeTemplateState
-): boolean => currentPurposeTemplateState === purposeTemplateState.active;
 
 const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
@@ -125,15 +132,31 @@ export const assertDocumentsLimitsNotReached = (
   }
 };
 
+const assertPrettyNameIsUnique = (
+  docPrettyName: string,
+  newPrettyName: string,
+  answerId: string
+): void => {
+  if (docPrettyName === newPrettyName) {
+    throw conflictDocumentPrettyNameDuplicate(answerId, newPrettyName);
+  }
+};
+
+export const assertAnnotationDocumentPrettyNameIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
+  });
+
 export const assertAnnotationDocumentIsUnique = (
   { answer }: RiskAnalysisTemplateAnswer,
   newPrettyName: string,
   newChecksum: string
 ): void =>
   [...(answer?.annotation?.docs || [])].forEach((doc) => {
-    if (doc.prettyName === newPrettyName) {
-      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
-    }
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
 
     if (doc?.checksum === newChecksum) {
       throw conflictDuplicatedDocument(answer.id, newChecksum);
@@ -144,7 +167,8 @@ export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed
     | undefined,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  personalDataInPurposeTemplate: boolean
 ): RiskAnalysisFormTemplate | undefined {
   if (!riskAnalysisFormTemplate) {
     return undefined;
@@ -153,6 +177,7 @@ export function validateAndTransformRiskAnalysisTemplate(
   const validatedForm = validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate,
     tenantKind,
+    personalDataInPurposeTemplate,
   });
 
   return riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
@@ -169,13 +194,16 @@ export function validateRiskAnalysisAnswerAnnotationOrThrow(
 export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisFormTemplate,
   tenantKind,
+  personalDataInPurposeTemplate,
 }: {
   riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed;
   tenantKind: TenantKind;
+  personalDataInPurposeTemplate: boolean;
 }): RiskAnalysisTemplateValidatedForm {
   const result = validatePurposeTemplateRiskAnalysis(
-    riskAnalysisFormTemplate,
-    tenantKind
+    toRiskAnalysisFormTemplateToValidate(riskAnalysisFormTemplate),
+    tenantKind,
+    personalDataInPurposeTemplate
   );
 
   return match(result)
@@ -201,7 +229,7 @@ export function validateRiskAnalysisAnswerOrThrow({
 
   const result = validateRiskAnalysisAnswer(
     riskAnalysisAnswer.answerKey,
-    riskAnalysisAnswer.answerData,
+    toRiskAnalysisTemplateAnswerToValidate(riskAnalysisAnswer.answerData),
     tenantKind
   );
 
@@ -233,12 +261,12 @@ export const assertRequesterIsCreator = (
   }
 };
 
-export const assertRequesterCanRetrievePurposeTemplate = async (
+export const assertRequesterCanRetrievePurposeTemplate = (
   purposeTemplate: PurposeTemplate,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
-): Promise<void> => {
+): void => {
   if (
-    !isPurposeTemplateActive(purposeTemplate.state) &&
+    isPurposeTemplateDraft(purposeTemplate.state) &&
     !isRequesterCreator(purposeTemplate.creatorId, authData)
   ) {
     throw tenantNotAllowed(authData.organizationId);
@@ -279,7 +307,7 @@ export const assertActivatableState = (
   assertPurposeTemplateStateIsValid(
     purposeTemplate,
     [expectedInitialState],
-    purposeTemplateState.active
+    purposeTemplateState.published
   );
 };
 
@@ -288,13 +316,13 @@ export const assertSuspendableState = (
 ): void => {
   assertPurposeTemplateStateIsValid(
     purposeTemplate,
-    [purposeTemplateState.active],
+    [purposeTemplateState.published],
     purposeTemplateState.suspended
   );
 };
 
 export const archivableInitialStates: PurposeTemplateState[] = [
-  purposeTemplateState.active,
+  purposeTemplateState.published,
   purposeTemplateState.suspended,
 ];
 export const assertArchivableState = (
@@ -316,6 +344,23 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
 }
+
+export const assertAnswerExistsInRiskAnalysisTemplate = (
+  purposeTemplate: PurposeTemplate,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): void => {
+  const riskAnalysisTemplate = purposeTemplate.purposeRiskAnalysisForm;
+  const answerExists =
+    riskAnalysisTemplate?.singleAnswers.some((a) => a.id === answerId) ||
+    riskAnalysisTemplate?.multiAnswers.some((a) => a.id === answerId);
+
+  if (!answerExists) {
+    throw riskAnalysisTemplateAnswerNotFound({
+      purposeTemplateId: purposeTemplate.id,
+      answerId,
+    });
+  }
+};
 
 /**
  * Validate the existence of the eservices and check that their personal data flag matches the purpose template one
@@ -651,4 +696,20 @@ export async function validateEservicesDisassociations(
   }
 
   return validPurposeTemplateResult(validEServiceDescriptorPairs);
+}
+
+export function hasRoleToAccessDraftPurposeTemplates(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }
