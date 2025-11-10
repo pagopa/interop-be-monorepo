@@ -55,6 +55,7 @@ export async function handleEServiceEvent(
         );
         const m2mEvent = await createEServiceM2MEvent(
           eservice,
+          event.version,
           event.type,
           eventTimestamp,
           await readModelService.getActiveProducerDelegationForEService(
@@ -103,6 +104,7 @@ export async function handleEServiceEvent(
         const m2mEvent = await createEServiceDescriptorM2MEvent(
           eservice,
           unsafeBrandId(event.data.descriptorId),
+          event.version,
           event.type,
           eventTimestamp,
           await readModelService.getActiveProducerDelegationForEService(

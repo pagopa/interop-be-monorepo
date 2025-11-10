@@ -78,7 +78,7 @@ export const { cleanup, analyticsPostgresDB, readModelDB } =
     undefined,
     undefined,
     inject("readModelSQLConfig"),
-    inject("analyticsSQLConfig")
+    inject("analyticsSQLConfig"),
   );
 
 afterEach(cleanup);
@@ -117,55 +117,55 @@ export const producerKeychainKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
-  eservice: WithMetadata<EService>
+  eservice: WithMetadata<EService>,
 ): Promise<void> => {
   const splitResult = EserviceItemsSchema.parse(
-    splitEserviceIntoObjectsSQL(eservice.data, eservice.metadata.version)
+    splitEserviceIntoObjectsSQL(eservice.data, eservice.metadata.version),
   );
 
   await writeInKpi(CatalogDbTable.eservice, [splitResult.eserviceSQL]);
   await writeInKpi(
     CatalogDbTable.eservice_descriptor,
-    splitResult.descriptorsSQL
+    splitResult.descriptorsSQL,
   );
   await writeInKpi(
     CatalogDbTable.eservice_descriptor_attribute,
-    splitResult.attributesSQL
+    splitResult.attributesSQL,
   );
   await writeInKpi(
     CatalogDbTable.eservice_descriptor_document,
-    splitResult.documentsSQL
+    splitResult.documentsSQL,
   );
   await writeInKpi(
     CatalogDbTable.eservice_descriptor_interface,
-    splitResult.interfacesSQL
+    splitResult.interfacesSQL,
   );
   await writeInKpi(
     CatalogDbTable.eservice_descriptor_rejection_reason,
-    splitResult.rejectionReasonsSQL
+    splitResult.rejectionReasonsSQL,
   );
   await writeInKpi(
     CatalogDbTable.eservice_descriptor_template_version_ref,
-    splitResult.templateVersionRefsSQL
+    splitResult.templateVersionRefsSQL,
   );
   await writeInKpi(
     CatalogDbTable.eservice_risk_analysis,
-    splitResult.riskAnalysesSQL
+    splitResult.riskAnalysesSQL,
   );
   await writeInKpi(
     CatalogDbTable.eservice_risk_analysis_answer,
-    splitResult.riskAnalysisAnswersSQL
+    splitResult.riskAnalysisAnswersSQL,
   );
 };
 
 export const addOneEServiceTemplate = async (
-  eserviceTemplate: WithMetadata<EServiceTemplate>
+  eserviceTemplate: WithMetadata<EServiceTemplate>,
 ): Promise<void> => {
   const splitResult = EserviceTemplateItemsSchema.parse(
     splitEServiceTemplateIntoObjectsSQL(
       eserviceTemplate.data,
-      eserviceTemplate.metadata.version
-    )
+      eserviceTemplate.metadata.version,
+    ),
   );
 
   await writeInKpi(EserviceTemplateDbTable.eservice_template, [
@@ -173,138 +173,146 @@ export const addOneEServiceTemplate = async (
   ]);
   await writeInKpi(
     EserviceTemplateDbTable.eservice_template_version,
-    splitResult.versionsSQL
+    splitResult.versionsSQL,
   );
   await writeInKpi(
     EserviceTemplateDbTable.eservice_template_version_attribute,
-    splitResult.attributesSQL
+    splitResult.attributesSQL,
   );
   await writeInKpi(
     EserviceTemplateDbTable.eservice_template_version_document,
-    splitResult.documentsSQL
+    splitResult.documentsSQL,
   );
   await writeInKpi(
     EserviceTemplateDbTable.eservice_template_version_interface,
-    splitResult.interfacesSQL
+    splitResult.interfacesSQL,
   );
   await writeInKpi(
     EserviceTemplateDbTable.eservice_template_risk_analysis,
-    splitResult.riskAnalysesSQL
+    splitResult.riskAnalysesSQL,
   );
   await writeInKpi(
     EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
-    splitResult.riskAnalysisAnswersSQL
+    splitResult.riskAnalysisAnswersSQL,
   );
 };
 
 export const addOneAttribute = async (
-  attribute: WithMetadata<Attribute>
+  attribute: WithMetadata<Attribute>,
 ): Promise<void> => {
   const splitResult = AttributeSchema.parse(
-    splitAttributeIntoObjectsSQL(attribute.data, attribute.metadata.version)
+    splitAttributeIntoObjectsSQL(attribute.data, attribute.metadata.version),
   );
 
   await writeInKpi(AttributeDbTable.attribute, [splitResult]);
 };
 
 export const addOneTenant = async (
-  tenant: WithMetadata<Tenant>
+  tenant: WithMetadata<Tenant>,
 ): Promise<void> => {
   const splitResult = TenantItemsSchema.parse(
-    splitTenantIntoObjectsSQL(tenant.data, tenant.metadata.version)
+    splitTenantIntoObjectsSQL(tenant.data, tenant.metadata.version),
   );
 
   await writeInKpi(TenantDbTable.tenant, [splitResult.tenantSQL]);
   await writeInKpi(TenantDbTable.tenant_mail, splitResult.mailsSQL);
   await writeInKpi(
     TenantDbTable.tenant_certified_attribute,
-    splitResult.certifiedAttributesSQL
+    splitResult.certifiedAttributesSQL,
   );
   await writeInKpi(
     TenantDbTable.tenant_declared_attribute,
-    splitResult.declaredAttributesSQL
+    splitResult.declaredAttributesSQL,
   );
   await writeInKpi(
     TenantDbTable.tenant_verified_attribute,
-    splitResult.verifiedAttributesSQL
+    splitResult.verifiedAttributesSQL,
   );
   await writeInKpi(
     TenantDbTable.tenant_verified_attribute_verifier,
-    splitResult.verifiedAttributeVerifiersSQL
+    splitResult.verifiedAttributeVerifiersSQL,
   );
   await writeInKpi(
     TenantDbTable.tenant_verified_attribute_revoker,
-    splitResult.verifiedAttributeRevokersSQL
+    splitResult.verifiedAttributeRevokersSQL,
   );
   await writeInKpi(TenantDbTable.tenant_feature, splitResult.featuresSQL);
 };
 
 export const addOnePurpose = async (
-  purpose: WithMetadata<Purpose>
+  purpose: WithMetadata<Purpose>,
 ): Promise<void> => {
   const splitResult = PurposeItemsSchema.parse(
-    splitPurposeIntoObjectsSQL(purpose.data, purpose.metadata.version)
+    splitPurposeIntoObjectsSQL(purpose.data, purpose.metadata.version),
   );
 
   await writeInKpi(PurposeDbTable.purpose, [splitResult.purposeSQL]);
   await writeInKpi(
     PurposeDbTable.purpose_risk_analysis_form,
-    splitResult.riskAnalysisFormSQL ? [splitResult.riskAnalysisFormSQL] : []
+    splitResult.riskAnalysisFormSQL ? [splitResult.riskAnalysisFormSQL] : [],
   );
   await writeInKpi(
     PurposeDbTable.purpose_risk_analysis_answer,
-    splitResult.riskAnalysisAnswersSQL ?? []
+    splitResult.riskAnalysisAnswersSQL ?? [],
   );
   await writeInKpi(PurposeDbTable.purpose_version, splitResult.versionsSQL);
   await writeInKpi(
     PurposeDbTable.purpose_version_document,
-    splitResult.versionDocumentsSQL
+    splitResult.versionDocumentsSQL,
   );
 };
 
 export const addOneDelegation = async (
-  delegation: WithMetadata<Delegation>
+  delegation: WithMetadata<Delegation>,
 ): Promise<void> => {
   const splitResult = DelegationItemsSchema.parse(
-    splitDelegationIntoObjectsSQL(delegation.data, delegation.metadata.version)
+    splitDelegationIntoObjectsSQL(delegation.data, delegation.metadata.version),
   );
 
   await writeInKpi(DelegationDbTable.delegation, [splitResult.delegationSQL]);
   await writeInKpi(DelegationDbTable.delegation_stamp, splitResult.stampsSQL);
   await writeInKpi(
     DelegationDbTable.delegation_contract_document,
-    splitResult.contractDocumentsSQL
+    splitResult.contractDocumentsSQL,
+  );
+  await writeInKpi(
+    DelegationDbTable.delegation_signed_contract_document,
+    splitResult.contractSignedDocumentsSQL,
   );
 };
 
 export const addOneAgreement = async (
-  agreement: WithMetadata<Agreement>
+  agreement: WithMetadata<Agreement>,
 ): Promise<void> => {
   const splitResult = AgreementItemsSchema.parse(
-    splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version)
+    splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version),
   );
 
   await writeInKpi(AgreementDbTable.agreement, [splitResult.agreementSQL]);
   await writeInKpi(AgreementDbTable.agreement_stamp, splitResult.stampsSQL);
   await writeInKpi(
     AgreementDbTable.agreement_attribute,
-    splitResult.attributesSQL
+    splitResult.attributesSQL,
   );
   await writeInKpi(
     AgreementDbTable.agreement_consumer_document,
-    splitResult.consumerDocumentsSQL
+    splitResult.consumerDocumentsSQL,
   );
   await writeInKpi(
     AgreementDbTable.agreement_contract,
-    splitResult.contractSQL ? [splitResult.contractSQL] : []
+    splitResult.contractSQL ? [splitResult.contractSQL] : [],
+  );
+  await writeInKpi(
+    AgreementDbTable.agreement_signed_contract,
+    splitResult.signedContractSQL ? [splitResult.signedContractSQL] : [],
   );
 };
 
 export const addOneClient = async (
-  client: WithMetadata<Client>
+  client: WithMetadata<Client>,
 ): Promise<void> => {
   const splitResult = ClientItemsSchema.parse(
-    splitClientIntoObjectsSQL(client.data, client.metadata.version)
+    splitClientIntoObjectsSQL(client.data, client.metadata.version),
   );
 
   await writeInKpi(ClientDbTable.client, [splitResult.clientSQL]);
@@ -314,13 +322,13 @@ export const addOneClient = async (
 };
 
 export const addOneProducerKeychain = async (
-  producerKeychain: WithMetadata<ProducerKeychain>
+  producerKeychain: WithMetadata<ProducerKeychain>,
 ): Promise<void> => {
   const splitResult = ProducerKeychainItemsSchema.parse(
     splitProducerKeychainIntoObjectsSQL(
       producerKeychain.data,
-      producerKeychain.metadata.version
-    )
+      producerKeychain.metadata.version,
+    ),
   );
 
   await writeInKpi(ProducerKeychainDbTable.producer_keychain, [
@@ -328,26 +336,26 @@ export const addOneProducerKeychain = async (
   ]);
   await writeInKpi(
     ProducerKeychainDbTable.producer_keychain_user,
-    splitResult.usersSQL
+    splitResult.usersSQL,
   );
   await writeInKpi(
     ProducerKeychainDbTable.producer_keychain_eservice,
-    splitResult.eservicesSQL
+    splitResult.eservicesSQL,
   );
   await writeInKpi(
     ProducerKeychainDbTable.producer_keychain_key,
-    splitResult.keysSQL
+    splitResult.keysSQL,
   );
 };
 
 export const addOnePurposeTemplate = async (
-  purposeTemplate: WithMetadata<PurposeTemplate>
+  purposeTemplate: WithMetadata<PurposeTemplate>,
 ): Promise<void> => {
   const splitResult = PurposeTemplateItemsSchema.parse(
     splitPurposeTemplateIntoObjectsSQL(
       purposeTemplate.data,
-      purposeTemplate.metadata.version
-    )
+      purposeTemplate.metadata.version,
+    ),
   );
 
   await writeInKpi(PurposeTemplateDbTable.purpose_template, [
@@ -358,27 +366,27 @@ export const addOnePurposeTemplate = async (
     PurposeTemplateDbTable.purpose_template_risk_analysis_form,
     splitResult.riskAnalysisFormTemplateSQL
       ? [splitResult.riskAnalysisFormTemplateSQL]
-      : []
+      : [],
   );
 
   await writeInKpi(
     PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
-    splitResult.riskAnalysisTemplateAnswersSQL
+    splitResult.riskAnalysisTemplateAnswersSQL,
   );
 
   await writeInKpi(
     PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
-    splitResult.riskAnalysisTemplateAnswersAnnotationsSQL
+    splitResult.riskAnalysisTemplateAnswersAnnotationsSQL,
   );
 
   await writeInKpi(
     PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
-    splitResult.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
+    splitResult.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
   );
 };
 
 function getColumnNameMapper<T extends DomainDbTable>(
-  tableName: T
+  tableName: T,
 ): (columnKey: string) => string {
   const table = DomainDbTableReadModels[tableName] as unknown as Record<
     string,
@@ -390,7 +398,7 @@ function getColumnNameMapper<T extends DomainDbTable>(
 function buildColumnSet<T extends DomainDbTable>(
   pgp: IMain,
   tableName: T,
-  schema: DomainDbTableSchemas[T]
+  schema: DomainDbTableSchemas[T],
 ): ColumnSet<z.infer<DomainDbTableSchemas[T]>> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
   const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
@@ -408,7 +416,7 @@ function buildColumnSet<T extends DomainDbTable>(
 
 async function writeInKpi<T extends DomainDbTable>(
   tableName: T,
-  data: Array<z.infer<DomainDbTableSchemas[T]>>
+  data: Array<z.infer<DomainDbTableSchemas[T]>>,
 ): Promise<void> {
   if (data.length === 0) {
     return;

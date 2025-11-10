@@ -45,7 +45,8 @@ export async function handlePurposeTemplateMessageV2(
             "PurposeTemplateUnsuspended",
             "PurposeTemplateSuspended",
             "PurposeTemplateArchived",
-            "PurposeTemplateAnnotationDocumentDeleted"
+            "PurposeTemplateAnnotationDocumentDeleted",
+            "PurposeTemplateAnnotationDocumentUpdated"
           ),
         },
         (msg) => {

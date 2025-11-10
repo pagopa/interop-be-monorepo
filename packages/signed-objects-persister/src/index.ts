@@ -7,14 +7,21 @@ import {
   SafeStorageService,
   SignatureServiceBuilder,
   signatureServiceBuilder,
+  RefreshableInteropToken,
+  InteropTokenGenerator,
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Message } from "@aws-sdk/client-sqs";
 import { config } from "./config/config.js";
 import { sqsMessageHandler } from "./handlers/sqsMessageHandler.js";
 
+const refreshableToken = new RefreshableInteropToken(
+  new InteropTokenGenerator(config)
+);
+await refreshableToken.init();
 const fileManager: FileManager = initFileManager(config);
 const dynamoDBClient: DynamoDBClient = new DynamoDBClient();
+
 const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
   dynamoDBClient,
   config
@@ -32,7 +39,8 @@ const handler = async (messagePayload: Message): Promise<void> => {
     messagePayload,
     fileManager,
     signatureService,
-    safeStorageService
+    safeStorageService,
+    refreshableToken
   );
 };
 
