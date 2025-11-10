@@ -1,11 +1,9 @@
 import {
   and,
   eq,
-  exists,
   getTableColumns,
   ilike,
   inArray,
-  isNotNull,
   isNull,
   ne,
   notInArray,
@@ -83,7 +81,6 @@ export type GetPurposeTemplateEServiceDescriptorsFilters = {
 };
 
 const getPurposeTemplatesFilters = (
-  readModelDB: DrizzleReturnType,
   filters: GetPurposeTemplatesFilters,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): SQL | undefined => {
@@ -111,21 +108,9 @@ const getPurposeTemplatesFilters = (
 
   const eserviceIdsFilter =
     eserviceIds.length > 0
-      ? and(
-          exists(
-            readModelDB
-              .select()
-              .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-              .where(
-                inArray(
-                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-                  eserviceIds
-                )
-              )
-          ),
-          isNotNull(
-            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId
-          )
+      ? inArray(
+          purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+          eserviceIds
         )
       : undefined;
 
@@ -249,7 +234,7 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
           )
         )
-        .where(getPurposeTemplatesFilters(readModelDB, filters, authData))
+        .where(getPurposeTemplatesFilters(filters, authData))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
