@@ -174,6 +174,7 @@ export async function handleMessageV2(
       { type: "PurposeCloned" },
       { type: "PurposeDeletedByRevokedDelegation" },
       { type: "RiskAnalysisDocumentGenerated" },
+      { type: "RiskAnalysisSignedDocumentGenerated" },
       () => Promise.resolve()
     )
     .exhaustive();
