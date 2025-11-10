@@ -187,9 +187,10 @@ export async function handleMessageV2(
       }
     )
     .with({ type: "EServiceDescriptorArchived" }, async (msg) => {
+      const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
       const { eservice, descriptor } = parseEServiceAndDescriptor(
         msg.data.eservice,
-        unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+        descriptorId,
         msg.type
       );
 
@@ -200,11 +201,21 @@ export async function handleMessageV2(
       await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
 
       // token-generation-states
-      const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: eservice.id,
         descriptorId,
       });
+
+      const isTheNewestDescriptor = eservice.descriptors.every(
+        (d) => Number(d.version) <= Number(descriptor.version)
+      );
+      if (!isTheNewestDescriptor) {
+        logger.info(
+          `Token-generation-states. Skipping processing of entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId} in token-generation-states. Reason: not the newest descriptor.`
+        );
+        return;
+      }
+
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
         descriptorStateToItemState(descriptor.state),
@@ -324,7 +335,7 @@ export const parseEServiceAndDescriptor = (
 
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
-    throw missingKafkaMessageDataError("descriptor", eventType);
+    throw genericInternalError(
       `Descriptor ${descriptorId} not found in e-service ${eservice.id} while processing event ${eventType}`
     );
   }
