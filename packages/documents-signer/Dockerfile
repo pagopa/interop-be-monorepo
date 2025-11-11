@@ -35,6 +35,7 @@ RUN pnpm build && \
     package*.json packages/documents-signer/package*.json \
     packages/commons \
     packages/models \
+    packages/kafka-iam-auth \
     packages/documents-signer/dist && \
     find /out -exec touch -h --date=@0 {} \;  
 
