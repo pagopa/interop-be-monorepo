@@ -71,8 +71,8 @@ function createEServiceTemplateM2MEventHelper(
 }
 
 /**
- * Helper function to determine the visibility of an EServiceM2MEvent,
- * based on the event type; fallback to the state of the E-Service and its Descriptors if needed.
+ * Helper function to determine the visibility of an EServiceTemplateM2MEvent,
+ * based on the event type; fallback to the state of the E-Service Template and its Versions if needed.
  */
 function getEServiceTemplateM2MEventVisibility(
   eventType: EServiceTemplateM2MEvent["eventType"],
@@ -82,7 +82,7 @@ function getEServiceTemplateM2MEventVisibility(
   return match(eventType)
     .with(
       P.union(
-        // Draft E-Service Template events, visible only to the owner (producer or delegate)
+        // Draft E-Service Template events, visible only to the owner (creator)
         "EServiceTemplateAdded",
         "EServiceTemplateDraftUpdated",
         "EServiceTemplateVersionAdded",
@@ -90,7 +90,6 @@ function getEServiceTemplateM2MEventVisibility(
         "EServiceTemplateRiskAnalysisAdded",
         "EServiceTemplateRiskAnalysisUpdated",
         "EServiceTemplateRiskAnalysisDeleted",
-        "EServiceTemplateDraftVersionDeleted",
         "EServiceTemplateDraftVersionUpdated",
         "EServiceTemplateDraftVersionDeleted",
         "EServiceTemplateVersionInterfaceAdded",
