@@ -595,7 +595,7 @@ function validateEServiceDescriptors(validEservices: EService[]): {
   return { validationIssues, validEServiceDescriptorPairs };
 }
 
-export const validateAssociatedEserviceForPublish = async (
+export const validateAssociatedEserviceForPublication = async (
   readModelService: ReadModelServiceSQL,
   purposeTemplateId: PurposeTemplateId
 ): Promise<PurposeTemplateValidationIssue[]> => {
