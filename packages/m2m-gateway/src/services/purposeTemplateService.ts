@@ -7,6 +7,7 @@ import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
 } from "../api/purposeTemplateApiConverter.js";
+import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -76,7 +77,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       const eserviceIds = processResults.map(({ eserviceId }) => eserviceId);
-      const results = await clients.catalogProcessClient
+      const eservices = await clients.catalogProcessClient
         .getEServices({
           queries: { eservicesIds: eserviceIds, offset: 0, limit },
           headers,
@@ -84,7 +85,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         .then(({ data: eService }) => eService.results);
 
       return {
-        results,
+        results: eservices.map(toM2MGatewayApiEService),
         pagination: {
           limit,
           offset,
