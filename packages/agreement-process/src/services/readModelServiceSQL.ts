@@ -1,4 +1,16 @@
-import { ilike, inArray, or, and, eq, SQL, asc } from "drizzle-orm";
+import {
+  ilike,
+  inArray,
+  or,
+  and,
+  eq,
+  SQL,
+  asc,
+  gt,
+  countDistinct,
+  isNull,
+  isNotNull,
+} from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -42,7 +54,6 @@ import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   tenantInReadmodelTenant,
-  EServiceDescriptorSQL,
   agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -73,80 +84,6 @@ export type AgreementEServicesQueryFilters = {
   consumerIds: TenantId[];
   producerIds: TenantId[];
 };
-
-async function filterAgreementsUpgradeable(
-  agreementEserviceAndDescriptors: Array<{
-    agreementId: string;
-    agreementDescriptorId: string;
-    eserviceId: string | null;
-    descriptor: EServiceDescriptorSQL | null;
-  }>,
-  agreements: Agreement[],
-  offset: number,
-  limit: number
-): Promise<ListResult<Agreement>> {
-  const agreementEserviceGroupedDescriptors = Array.from(
-    agreementEserviceAndDescriptors
-      .reduce(
-        (
-          map,
-          { agreementId, agreementDescriptorId, eserviceId, descriptor }
-        ) => {
-          if (!eserviceId || !descriptor) {
-            return map;
-          }
-          if (!map.has(agreementId)) {
-            map.set(agreementId, {
-              agreementId,
-              agreementDescriptorId,
-              eserviceId,
-              descriptors: [],
-            });
-          }
-          // eslint-disable-next-line functional/immutable-data
-          map.get(agreementId)?.descriptors.push(descriptor);
-          return map;
-        },
-        new Map<
-          string,
-          {
-            agreementId: string;
-            agreementDescriptorId: string;
-            eserviceId: string;
-            descriptors: EServiceDescriptorSQL[];
-          }
-        >()
-      )
-      .values()
-  );
-  const agreementsUpgradableIds: string[] = agreementEserviceGroupedDescriptors
-    .filter(({ agreementDescriptorId, descriptors }) => {
-      const currentDescriptor = descriptors.find(
-        (descr) => descr.id === agreementDescriptorId
-      );
-      const upgradableDescriptor = descriptors.filter((upgradable) => {
-        // Since the dates are optional, if they are undefined they are set to a very old date
-        const currentPublishedAt =
-          currentDescriptor?.publishedAt ?? new Date(0);
-        const upgradablePublishedAt = upgradable.publishedAt ?? new Date(0);
-        return (
-          upgradablePublishedAt > currentPublishedAt &&
-          (upgradable.state === descriptorState.published ||
-            upgradable.state === descriptorState.suspended)
-        );
-      });
-      return upgradableDescriptor.length > 0;
-    })
-    .map((item) => item.agreementId);
-
-  const upgradableAgreements = agreements
-    .filter((agreement) =>
-      agreementsUpgradableIds.some((id) => agreement.id === id)
-    )
-    .slice(offset, offset + limit);
-
-  return createListResult(upgradableAgreements, upgradableAgreements.length);
-}
 
 const toArray = <T>(value: T | T[] | undefined | null): T[] => {
   if (!value) {
@@ -374,134 +311,20 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
-      const queryBaseAgreementIds = addDelegationJoins(
-        readmodelDB
-          .select(
-            withTotalCount({
-              id: agreementInReadmodelAgreement.id,
-              eserviceName: eserviceInReadmodelCatalog.name,
-            })
-          )
-          .from(agreementInReadmodelAgreement)
-          .leftJoin(
-            eserviceInReadmodelCatalog,
-            eq(
-              agreementInReadmodelAgreement.eserviceId,
-              eserviceInReadmodelCatalog.id
-            )
-          )
-          .leftJoin(
-            eserviceDescriptorInReadmodelCatalog,
-            eq(
-              agreementInReadmodelAgreement.descriptorId,
-              eserviceDescriptorInReadmodelCatalog.id
-            )
-          )
-          .leftJoin(
-            agreementAttributeInReadmodelAgreement,
-            eq(
-              agreementInReadmodelAgreement.id,
-              agreementAttributeInReadmodelAgreement.agreementId
-            )
-          )
-          .where(
-            getAgreementsFilters({
-              filters,
-              requesterId,
-              withVisibilityAndDelegationFilters: true,
-            })
-          )
-          .groupBy(
-            agreementInReadmodelAgreement.id,
-            eserviceInReadmodelCatalog.name
-          )
-          .orderBy(
-            ascLower(eserviceInReadmodelCatalog.name),
-            agreementInReadmodelAgreement.id
-          )
-          .$dynamic()
-      );
-
-      const queryAgreementIds = filters.showOnlyUpgradeable
-        ? queryBaseAgreementIds.as("queryAgreementIds")
-        : queryBaseAgreementIds
-            .limit(limit)
-            .offset(offset)
-            .as("queryAgreementIds");
-
-      const resultSet = await readmodelDB
-        .select({
-          eserviceName: queryAgreementIds.eserviceName,
-          agreement: agreementInReadmodelAgreement,
-          attribute: agreementAttributeInReadmodelAgreement,
-          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
-          contract: agreementContractInReadmodelAgreement,
-          stamp: agreementStampInReadmodelAgreement,
-          totalCount: queryAgreementIds.totalCount,
-          signedContract: agreementSignedContractInReadmodelAgreement,
-        })
-        .from(agreementInReadmodelAgreement)
-        .innerJoin(
-          queryAgreementIds,
-          eq(agreementInReadmodelAgreement.id, queryAgreementIds.id)
-        )
-        .leftJoin(
-          agreementAttributeInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementAttributeInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          agreementConsumerDocumentInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementConsumerDocumentInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          agreementContractInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementContractInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          agreementStampInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementStampInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          agreementSignedContractInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementSignedContractInReadmodelAgreement.agreementId
-          )
-        )
-        .orderBy(
-          ascLower(queryAgreementIds.eserviceName),
-          agreementInReadmodelAgreement.id
-        );
-
-      const agreements = aggregateAgreementArray(
-        toAgreementAggregatorArray(resultSet)
-      ).map(({ data }) => data);
-
-      if (filters.showOnlyUpgradeable) {
-        const agreementEserviceAndDescriptors = await readmodelDB
+      return await readmodelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
           .select({
-            agreementId: agreementInReadmodelAgreement.id,
-            agreementDescriptorId: agreementInReadmodelAgreement.descriptorId,
-            eserviceId: eserviceInReadmodelCatalog.id,
-            descriptor: eserviceDescriptorInReadmodelCatalog,
+            count: countDistinct(agreementInReadmodelAgreement.id),
           })
           .from(agreementInReadmodelAgreement)
-          .innerJoin(
-            queryAgreementIds,
-            eq(agreementInReadmodelAgreement.id, queryAgreementIds.id)
-          )
+          .$dynamic();
+
+        const idsQuery = tx
+          .select({
+            id: agreementInReadmodelAgreement.id,
+            eserviceName: eserviceInReadmodelCatalog.name,
+          })
+          .from(agreementInReadmodelAgreement)
           .leftJoin(
             eserviceInReadmodelCatalog,
             eq(
@@ -509,21 +332,196 @@ export function readModelServiceBuilderSQL(
               agreementInReadmodelAgreement.eserviceId
             )
           )
-          .leftJoin(
-            eserviceDescriptorInReadmodelCatalog,
-            eq(
-              eserviceDescriptorInReadmodelCatalog.eserviceId,
-              agreementInReadmodelAgreement.eserviceId
+          .$dynamic();
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithAgreementFilters = addDelegationJoins(
+            tx
+              .selectDistinctOn([agreementInReadmodelAgreement.id], {
+                id: agreementInReadmodelAgreement.id,
+              })
+              .from(agreementInReadmodelAgreement)
+              .leftJoin(
+                agreementAttributeInReadmodelAgreement,
+                eq(
+                  agreementInReadmodelAgreement.id,
+                  agreementAttributeInReadmodelAgreement.agreementId
+                )
+              )
+              .$dynamic()
+          )
+            .where(
+              getAgreementsFilters({
+                filters,
+                requesterId,
+                withVisibilityAndDelegationFilters: true,
+              })
             )
+            .as("subqueryWithAgreementFilters");
+
+          const agreementDescriptor = alias(
+            eserviceDescriptorInReadmodelCatalog,
+            "agreementDescriptor"
           );
-        return await filterAgreementsUpgradeable(
-          agreementEserviceAndDescriptors,
-          agreements,
-          offset,
-          limit
+          const subqueryWithOnlyShowUpgradeableFilter = tx
+            .selectDistinctOn([agreementInReadmodelAgreement.id], {
+              id: agreementInReadmodelAgreement.id,
+            })
+            .from(agreementInReadmodelAgreement)
+            .leftJoin(
+              eserviceInReadmodelCatalog,
+              eq(
+                eserviceInReadmodelCatalog.id,
+                agreementInReadmodelAgreement.eserviceId
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.eserviceId,
+                agreementInReadmodelAgreement.eserviceId
+              )
+            )
+            .leftJoin(
+              agreementDescriptor,
+              eq(
+                agreementDescriptor.id,
+                agreementInReadmodelAgreement.descriptorId
+              )
+            )
+            .where(
+              and(
+                or(
+                  eq(
+                    eserviceDescriptorInReadmodelCatalog.state,
+                    descriptorState.published
+                  ),
+                  eq(
+                    eserviceDescriptorInReadmodelCatalog.state,
+                    descriptorState.suspended
+                  )
+                ),
+                or(
+                  gt(
+                    eserviceDescriptorInReadmodelCatalog.publishedAt,
+                    agreementDescriptor.publishedAt
+                  ),
+                  and(
+                    isNull(agreementDescriptor.publishedAt),
+                    isNotNull(eserviceDescriptorInReadmodelCatalog.publishedAt)
+                  )
+                )
+              )
+            )
+            .as("subqueryWithOnlyShowUpgradeableFilter");
+
+          const queryAfterAgreementFilter = query
+            .innerJoin(
+              subqueryWithAgreementFilters,
+              eq(
+                agreementInReadmodelAgreement.id,
+                subqueryWithAgreementFilters.id
+              )
+            )
+            .$dynamic();
+
+          return filters.showOnlyUpgradeable
+            ? queryAfterAgreementFilter.innerJoin(
+                subqueryWithOnlyShowUpgradeableFilter,
+                eq(
+                  agreementInReadmodelAgreement.id,
+                  subqueryWithOnlyShowUpgradeableFilter.id
+                )
+              )
+            : queryAfterAgreementFilter;
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
+          .groupBy(
+            eserviceInReadmodelCatalog.name,
+            agreementInReadmodelAgreement.id
+          )
+          .orderBy(
+            ascLower(eserviceInReadmodelCatalog.name),
+            agreementInReadmodelAgreement.id
+          )
+          .limit(limit)
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              eserviceName: eserviceInReadmodelCatalog.name,
+              agreement: agreementInReadmodelAgreement,
+              attribute: agreementAttributeInReadmodelAgreement,
+              consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+              contract: agreementContractInReadmodelAgreement,
+              stamp: agreementStampInReadmodelAgreement,
+              signedContract: agreementSignedContractInReadmodelAgreement,
+            })
+            .from(agreementInReadmodelAgreement)
+            .where(inArray(agreementInReadmodelAgreement.id, ids))
+            .leftJoin(
+              eserviceInReadmodelCatalog,
+              eq(
+                agreementInReadmodelAgreement.eserviceId,
+                eserviceInReadmodelCatalog.id
+              )
+            )
+            .leftJoin(
+              agreementAttributeInReadmodelAgreement,
+              eq(
+                agreementInReadmodelAgreement.id,
+                agreementAttributeInReadmodelAgreement.agreementId
+              )
+            )
+            .leftJoin(
+              agreementConsumerDocumentInReadmodelAgreement,
+              eq(
+                agreementInReadmodelAgreement.id,
+                agreementConsumerDocumentInReadmodelAgreement.agreementId
+              )
+            )
+            .leftJoin(
+              agreementContractInReadmodelAgreement,
+              eq(
+                agreementInReadmodelAgreement.id,
+                agreementContractInReadmodelAgreement.agreementId
+              )
+            )
+            .leftJoin(
+              agreementStampInReadmodelAgreement,
+              eq(
+                agreementInReadmodelAgreement.id,
+                agreementStampInReadmodelAgreement.agreementId
+              )
+            )
+            .leftJoin(
+              agreementSignedContractInReadmodelAgreement,
+              eq(
+                agreementInReadmodelAgreement.id,
+                agreementSignedContractInReadmodelAgreement.agreementId
+              )
+            )
+            .orderBy(
+              ascLower(eserviceInReadmodelCatalog.name),
+              agreementInReadmodelAgreement.id
+            ),
+          buildQuery(totalCountQuery),
+        ]);
+
+        const agreements = aggregateAgreementArray(
+          toAgreementAggregatorArray(queryResult)
         );
-      }
-      return createListResult(agreements, resultSet[0]?.totalCount);
+
+        return createListResult(
+          agreements.map((a) => a.data),
+          totalCount[0]?.count
+        );
+      });
     },
 
     async getAgreementById(
