@@ -5,14 +5,13 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId
   body: none
   auth: none
 }
 
 params:path {
   purposeTemplateId: {{purposeTemplateId}}
-  answerId: {{answerId}}
   documentId: {{documentId}}
 }
 
