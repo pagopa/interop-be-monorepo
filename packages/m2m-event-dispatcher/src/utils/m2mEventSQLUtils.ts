@@ -8,6 +8,10 @@ import {
   consumerDelegationInM2MEvent,
   producerDelegationInM2MEvent,
   eserviceTemplateInM2MEvent,
+  clientInM2MEvent,
+  producerKeychainInM2MEvent,
+  producerKeyInM2MEvent,
+  keyInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { DrizzleTransactionType } from "pagopa-interop-readmodel-models";
@@ -21,6 +25,10 @@ export async function isResourceVersionPresent<
     | typeof consumerDelegationInM2MEvent
     | typeof producerDelegationInM2MEvent
     | typeof eserviceTemplateInM2MEvent
+    | typeof clientInM2MEvent
+    | typeof producerKeychainInM2MEvent
+    | typeof producerKeyInM2MEvent
+    | typeof keyInM2MEvent
 >(
   tx: DrizzleTransactionType,
   resourceVersion: number,
