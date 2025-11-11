@@ -155,17 +155,22 @@ function retrieveAnswerAnnotation(
   return answer.annotation;
 }
 
-async function retrieveAnswerAnnotationDocument(
-  purposeTemplateId: PurposeTemplateId,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  readModelService: ReadModelServiceSQL
-): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+async function retrieveAnswerAnnotationDocument({
+  purposeTemplateId,
+  answerId,
+  documentId,
+  readModelService,
+}: {
+  purposeTemplateId: PurposeTemplateId;
+  answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  readModelService: ReadModelServiceSQL;
+}): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
   const annotationDocument =
     await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
 
   if (!annotationDocument) {
@@ -634,12 +639,41 @@ export function purposeTemplateServiceBuilder(
       assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
       assertAnswerExistsInRiskAnalysisTemplate(purposeTemplate.data, answerId);
 
-      return await retrieveAnswerAnnotationDocument(
+      return await retrieveAnswerAnnotationDocument({
         purposeTemplateId,
         answerId,
         documentId,
+        readModelService,
+      });
+    },
+    async getRiskAnalysisTemplateAnnotationDocument(
+      {
+        purposeTemplateId,
+        documentId,
+      }: {
+        purposeTemplateId: PurposeTemplateId;
+        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}`
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
         readModelService
       );
+      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
+
+      return await retrieveAnswerAnnotationDocument({
+        purposeTemplateId,
+        documentId,
+        readModelService,
+      });
     },
     async getPurposeTemplateEServiceDescriptors(
       filters: GetPurposeTemplateEServiceDescriptorsFilters,
@@ -1135,12 +1169,12 @@ export function purposeTemplateServiceBuilder(
         purposeTemplate.data.id
       );
 
-      const oldAnnotationDocument = await retrieveAnswerAnnotationDocument(
+      const oldAnnotationDocument = await retrieveAnswerAnnotationDocument({
         purposeTemplateId,
         answerId,
         documentId,
-        readModelService
-      );
+        readModelService,
+      });
 
       const newAnnotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument =
         {
