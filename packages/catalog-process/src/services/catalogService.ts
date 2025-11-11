@@ -17,11 +17,11 @@ import {
   WithLogger,
   formatDateddMMyyyyHHmmss,
   assertFeatureFlagEnabled,
-  isFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -486,15 +486,6 @@ export async function parseAndCheckAttributes(
   };
 }
 
-function isTenantInSignalHubWhitelist(
-  organizationId: TenantId,
-  isSignalHubEnabled: boolean | undefined
-): boolean | undefined {
-  return config.signalhubWhitelistProducer?.includes(organizationId)
-    ? isSignalHubEnabled
-    : false;
-}
-
 async function innerCreateEService(
   {
     seed,
@@ -541,15 +532,7 @@ async function innerCreateEService(
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: template?.riskAnalysis ?? [],
-    isSignalHubEnabled: isFeatureFlagEnabled(
-      config,
-      "featureFlagSignalhubWhitelist"
-    )
-      ? isTenantInSignalHubWhitelist(
-          authData.organizationId,
-          seed.isSignalHubEnabled
-        )
-      : seed.isSignalHubEnabled,
+    isSignalHubEnabled: seed.isSignalHubEnabled,
     isConsumerDelegable: seed.isConsumerDelegable,
     isClientAccessDelegable: match(seed.isConsumerDelegable)
       .with(P.nullish, () => undefined)
@@ -986,12 +969,7 @@ export function catalogServiceBuilder(
 
       const updatedEService: EService = {
         ...eservice.data,
-        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
-          ? isTenantInSignalHubWhitelist(
-              authData.organizationId,
-              eserviceSeed.isSignalHubEnabled
-            )
-          : eserviceSeed.isSignalHubEnabled,
+        isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
@@ -4122,15 +4100,7 @@ async function updateDraftEService(
           serverUrls: [],
         }))
       : eservice.data.descriptors,
-    isSignalHubEnabled: isFeatureFlagEnabled(
-      config,
-      "featureFlagSignalhubWhitelist"
-    )
-      ? isTenantInSignalHubWhitelist(
-          authData.organizationId,
-          updatedIsSignalHubEnabled
-        )
-      : updatedIsSignalHubEnabled,
+    isSignalHubEnabled: updatedIsSignalHubEnabled,
     isConsumerDelegable: updatedIsConsumerDelegable,
     isClientAccessDelegable: match(updatedIsConsumerDelegable)
       .with(P.nullish, () => undefined)
