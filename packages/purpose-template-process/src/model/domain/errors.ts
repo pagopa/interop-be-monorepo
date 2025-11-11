@@ -37,7 +37,7 @@ export const errorCodes = {
   conflictDuplicatedDocument: "0020",
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
-  unexpectedAssociationEServiceError: "0023",
+  invalidAssociatedEServiceForPublishError: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -77,9 +77,9 @@ export function invalidAssociatedEServiceForPublishError(
   reasons: PurposeTemplateValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Eservice associated is not valid for publish. Reasons: ${reasons}`,
-    code: "unexpectedAssociationEServiceError",
-    title: "Eservice associated is not valid for publish",
+    detail: `Linked e-service descriptors are not valid for publishing. Reasons: ${reasons}`,
+    code: "invalidAssociatedEServiceForPublishError",
+    title: "Linked e-service descriptors are not valid for publishing",
   });
 }
 

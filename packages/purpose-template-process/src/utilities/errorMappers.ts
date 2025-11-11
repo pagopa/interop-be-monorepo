@@ -181,7 +181,7 @@ export const activatePurposeTemplateErrorMapper = (
     .with(
       "purposeTemplateNotInExpectedStates",
       "purposeTemplateStateConflict",
-      "unexpectedAssociationEServiceError",
+      "invalidAssociatedEServiceForPublishError",
       () => HTTP_STATUS_CONFLICT
     )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)

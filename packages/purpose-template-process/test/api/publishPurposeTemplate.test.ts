@@ -97,7 +97,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
     },
     {
       error: unexpectedAssociationEServicePublishError(
-        expect.any(PurposeTemplateValidationIssue)
+        expect.any(Array<PurposeTemplateValidationIssue>)
       ),
       expectedStatus: 409,
     },
