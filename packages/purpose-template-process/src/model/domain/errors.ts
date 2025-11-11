@@ -37,6 +37,7 @@ export const errorCodes = {
   conflictDuplicatedDocument: "0020",
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
+  unexpectedAssociationEServiceError: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -69,6 +70,16 @@ export function purposeTemplateNotFound(
     detail: `No Purpose Template found for ID ${purposeTemplateId}`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template Not Found",
+  });
+}
+
+export function unexpectedAssociationEServicePublishError(
+  reasons: PurposeTemplateValidationIssue[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Eservice associated is not valid for publish. Reasons: ${reasons}`,
+    code: "unexpectedAssociationEServiceError",
+    title: "Eservice associated is not valid for publish",
   });
 }
 

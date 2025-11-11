@@ -49,6 +49,7 @@ import {
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
   tenantNotAllowed,
+  unexpectedAssociationEServicePublishError,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -69,7 +70,7 @@ import {
   cleanupAnnotationDocsForRemovedAnswers,
   deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
 } from "../utilities/riskAnalysisDocUtils.js";
-import { unexpectedAssociationEServicePublishError } from "../errors/purposeTemplateValidationErrors.js";
+import {} from "../errors/purposeTemplateValidationErrors.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
@@ -511,7 +512,7 @@ async function activatePurposeTemplate({
 
   if (eserviceStateValidationIssues.length > 0) {
     throw unexpectedAssociationEServicePublishError(
-      eserviceStateValidationIssues.map((issue) => issue.message).join(";")
+      eserviceStateValidationIssues
     );
   }
 

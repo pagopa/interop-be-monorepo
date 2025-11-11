@@ -20,7 +20,9 @@ import {
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
+  unexpectedAssociationEServicePublishError,
 } from "../../src/model/domain/errors.js";
+import { PurposeTemplateValidationIssue } from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("API POST /purposeTemplates/{id}/publish", () => {
   const purposeTemplate = getMockPurposeTemplate();
@@ -90,6 +92,12 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       error: purposeTemplateStateConflict(
         generateId(),
         purposeTemplateState.published
+      ),
+      expectedStatus: 409,
+    },
+    {
+      error: unexpectedAssociationEServicePublishError(
+        expect.any(PurposeTemplateValidationIssue)
       ),
       expectedStatus: 409,
     },
