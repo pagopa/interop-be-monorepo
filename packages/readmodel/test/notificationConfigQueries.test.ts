@@ -96,6 +96,8 @@ describe("Notification config queries", () => {
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
           producerKeychainKeyAddedDeletedToClientUsers: false,
+          purposeQuotaAdjustmentRequestToProducer: false,
+          purposeQuotaOverthresholdStateToConsumer: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -118,6 +120,8 @@ describe("Notification config queries", () => {
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
           producerKeychainKeyAddedDeletedToClientUsers: false,
+          purposeQuotaAdjustmentRequestToProducer: false,
+          purposeQuotaOverthresholdStateToConsumer: false,
         },
       };
       await insertUserNotificationConfig(
