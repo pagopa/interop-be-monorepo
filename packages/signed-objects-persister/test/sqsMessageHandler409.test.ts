@@ -24,6 +24,7 @@ const mockDbService: SignatureServiceBuilder = {
   saveDocumentSignatureReference: vi.fn(),
   deleteSignatureReference: vi.fn(),
   readDocumentSignatureReference: vi.fn(),
+  readSignatureReferenceById: vi.fn(),
 };
 
 const mockSafeStorageService: SafeStorageService = {
@@ -51,7 +52,7 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       detail: {
         key: "conflict-file.pdf",
         versionId: "12345",
-        documentType: "RISK_ANALYSIS_DOCUMENT",
+        documentType: "INTEROP_LEGAL_FACTS",
         documentStatus: "SAVED",
         contentType: "application/pdf",
         checksum: "mock-checksum",
@@ -87,12 +88,10 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
     );
 
     // Mock of signature read
-    (
-      mockDbService.readDocumentSignatureReference as Mock
-    ).mockResolvedValueOnce({
+    (mockDbService.readSignatureReferenceById as Mock).mockResolvedValueOnce({
       id: sqsMessageBody.id,
       key: sqsMessageBody.detail.key,
-      fileKind: sqsMessageBody.detail.documentType,
+      fileKind: "RISK_ANALYSIS_DOCUMENT",
       createdAt: BigInt(123456),
       contentType: "application/pdf",
       subObjectId: "sub-object-id",

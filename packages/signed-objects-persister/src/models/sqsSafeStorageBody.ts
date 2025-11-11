@@ -12,15 +12,9 @@ export const SqsSafeStorageBodySchema = z.object({
   detail: z.object({
     key: z.string(),
     versionId: z.string(),
-    documentType: z.enum([
-      "RISK_ANALYSIS_DOCUMENT",
-      "AGREEMENT_CONTRACT",
-      "DELEGATION_CONTRACT",
-      "VOUCHER_AUDIT",
-      "EVENT_JOURNAL",
-    ]),
+    documentType: z.literal("INTEROP_LEGAL_FACTS"),
     documentStatus: z.literal("SAVED"),
-    contentType: z.literal("application/pdf"),
+    contentType: z.string(),
     checksum: z.string(),
     retentionUntil: z.string().datetime(),
     tags: z.nullable(z.any()),
