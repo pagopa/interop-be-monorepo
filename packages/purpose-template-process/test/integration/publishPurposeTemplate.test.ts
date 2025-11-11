@@ -27,10 +27,7 @@ import {
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  invalidDescriptorStateError,
-  invalidDescriptorStateForPublishingError,
-} from "../../src/errors/purposeTemplateValidationErrors.js";
+import { invalidDescriptorStateForPublishingError } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   invalidAssociatedEServiceForPublishError,
   purposeTemplateNotInExpectedStates,
