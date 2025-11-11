@@ -18,7 +18,10 @@ import {
   PurposeM2MEventId,
   PurposeVersionId,
   ProducerDelegationM2MEvent,
+  KeyM2MEvent,
+  KeyM2MEventId,
   TenantId,
+  UserId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -35,13 +38,12 @@ export function generateM2MEventId<
     | EServiceM2MEventId
     | AgreementM2MEventId
     | DelegationM2MEventId
+    | KeyM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
 
-export function getMockedAttributeM2MEvent(
-  eventType: AttributeM2MEvent["eventType"]
-): AttributeM2MEvent {
+export function getMockedAttributeM2MEvent(eventType: AttributeM2MEvent["eventType"]): AttributeM2MEvent {
   return {
     id: generateM2MEventId(),
     eventType,
@@ -164,9 +166,7 @@ export function getMockedConsumerDelegationM2MEvent(
 }
 
 function getMockedDelegationM2MEvent(
-  eventType:
-    | ConsumerDelegationM2MEvent["eventType"]
-    | ProducerDelegationM2MEvent["eventType"]
+  eventType: ConsumerDelegationM2MEvent["eventType"] | ProducerDelegationM2MEvent["eventType"]
 ): ConsumerDelegationM2MEvent | ProducerDelegationM2MEvent {
   return {
     id: generateM2MEventId(),
@@ -174,5 +174,16 @@ function getMockedDelegationM2MEvent(
     eventTimestamp: new Date(),
     resourceVersion: randomInt(1, 1000),
     delegationId: generateId<DelegationId>(),
+  };
+}
+
+export function getMockedKeyM2MEvent(eventType: KeyM2MEvent["eventType"]): KeyM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    kid: generateId(),
+    clientId: generateId(),
   };
 }

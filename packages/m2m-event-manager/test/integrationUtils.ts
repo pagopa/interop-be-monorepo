@@ -7,6 +7,7 @@ import {
   EServiceM2MEvent,
   PurposeM2MEvent,
   ProducerDelegationM2MEvent,
+  KeyM2MEvent,
   dateToString,
 } from "pagopa-interop-models";
 import {
@@ -16,6 +17,7 @@ import {
   eserviceInM2MEvent,
   purposeInM2MEvent,
   producerDelegationInM2MEvent,
+  keyInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventServiceBuilder } from "../src/services/m2mEventService.js";
 import { m2mEventReaderServiceSQLBuilder } from "../src/services/m2mEventReaderServiceSQL.js";
@@ -37,9 +39,7 @@ afterEach(cleanup);
 const m2mEventReaderServiceSQL = m2mEventReaderServiceSQLBuilder(m2mEventDB);
 export const m2mEventService = m2mEventServiceBuilder(m2mEventReaderServiceSQL);
 
-export async function writeAttributeM2MEvent(
-  event: AttributeM2MEvent
-): Promise<void> {
+export async function writeAttributeM2MEvent(event: AttributeM2MEvent): Promise<void> {
   await m2mEventDB.insert(attributeInM2MEvent).values([
     {
       ...event,
@@ -87,9 +87,7 @@ export async function writePurposeM2MEvent(event: PurposeM2MEvent) {
   ]);
 }
 
-export async function writeProducerDelegationM2MEvent(
-  event: ProducerDelegationM2MEvent
-): Promise<void> {
+export async function writeProducerDelegationM2MEvent(event: ProducerDelegationM2MEvent): Promise<void> {
   await m2mEventDB.insert(producerDelegationInM2MEvent).values([
     {
       ...event,
@@ -98,10 +96,17 @@ export async function writeProducerDelegationM2MEvent(
   ]);
 }
 
-export async function writeConsumerDelegationM2MEvent(
-  event: ConsumerDelegationM2MEvent
-): Promise<void> {
+export async function writeConsumerDelegationM2MEvent(event: ConsumerDelegationM2MEvent): Promise<void> {
   await m2mEventDB.insert(consumerDelegationInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeKeyM2MEvent(event: KeyM2MEvent): Promise<void> {
+  await m2mEventDB.insert(keyInM2MEvent).values([
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),

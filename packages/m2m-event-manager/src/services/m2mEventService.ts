@@ -16,6 +16,8 @@ import {
   ConsumerDelegationM2MEvent,
   DelegationM2MEventId,
   ProducerDelegationM2MEvent,
+  KeyM2MEvent,
+  KeyM2MEventId,
 } from "pagopa-interop-models";
 import { DelegationIdParam } from "../model/types.js";
 import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";
@@ -140,11 +142,14 @@ export function m2mEventServiceBuilder(
       return [];
     },
     async getKeyM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: KeyM2MEventId | undefined,
+      limit: number,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<KeyM2MEvent[]> {
+      logger.info(
+        `Getting key M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getKeyM2MEvents(lastEventId, limit);
     },
     async getProducerKeyM2MEvents(
       _lastEventId: string | undefined,

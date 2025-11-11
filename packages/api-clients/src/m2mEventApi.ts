@@ -33,4 +33,9 @@ export type GetConsumerDelegationM2MEventsQueryParams = QueryParametersByAlias<
   "getConsumerDelegationM2MEvents"
 >;
 
+export type GetKeyM2MEventsQueryParams = QueryParametersByAlias<
+  M2MEventsAPI,
+  "getKeyM2MEvents"
+>;
+
 export * from "./generated/m2mEventApi.js";
