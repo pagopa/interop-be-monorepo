@@ -50,11 +50,11 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async getPurposeTemplateEServiceDescriptors(
+    async getPurposeTemplateEServices(
       purposeTemplateId: PurposeTemplateId,
-      queryParams: m2mGatewayApi.GetPurposeTemplateEServiceDescriptorsQueryParams,
+      queryParams: m2mGatewayApi.GetPurposeTemplateEServicesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorsPurposeTemplate> {
+    ): Promise<m2mGatewayApi.EServices> {
       const { producerIds, eserviceName, limit, offset } = queryParams;
 
       logger.info(
@@ -62,7 +62,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       const {
-        data: { results, totalCount },
+        data: { results: processResults, totalCount },
       } =
         await clients.purposeTemplateProcessClient.getPurposeTemplateEServices({
           params: { id: purposeTemplateId },
@@ -74,6 +74,14 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
           },
           headers,
         });
+
+      const eserviceIds = processResults.map(({ eserviceId }) => eserviceId);
+      const results = await clients.catalogProcessClient
+        .getEServices({
+          queries: { eservicesIds: eserviceIds, offset: 0, limit },
+          headers,
+        })
+        .then(({ data: eService }) => eService.results);
 
       return {
         results,

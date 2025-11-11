@@ -56,8 +56,8 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const purposeTemplateEServiceDescriptors =
-          await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+        const purposeTemplateEServices =
+          await purposeTemplateService.getPurposeTemplateEServices(
             unsafeBrandId(req.params.purposeTemplateId),
             req.query,
             ctx
@@ -65,17 +65,13 @@ const purposeTemplateRouter = (
 
         return res
           .status(200)
-          .send(
-            m2mGatewayApi.EServiceDescriptorsPurposeTemplate.parse(
-              purposeTemplateEServiceDescriptors
-            )
-          );
+          .send(m2mGatewayApi.EServices.parse(purposeTemplateEServices));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving purpose template ${req.params.purposeTemplateId} versions`
+          `Error retrieving purpose template e-services for purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   generateToken,
-  getMockedApiEServiceDescriptorPurposeTemplate,
+  getMockedApiEservice,
 } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -12,6 +12,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
   const authorizedRoles: AuthRole[] = [
@@ -22,7 +23,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
   const makeRequest = async (
     token: string,
     purposeTemplateId: string = generateId(),
-    query: m2mGatewayApi.GetPurposeTemplateEServiceDescriptorsQueryParams = mockQueryParams
+    query: m2mGatewayApi.GetPurposeTemplateEServicesQueryParams = mockQueryParams
   ) =>
     request(api)
       .get(`${appBasePath}/purposeTemplates/${purposeTemplateId}/eservices`)
@@ -30,28 +31,20 @@ describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
       .query(query)
       .send();
 
-  const mockPurposeTemplateEServiceDescriptor1 =
-    getMockedApiEServiceDescriptorPurposeTemplate();
-  const mockPurposeTemplateEServiceDescriptor2 =
-    getMockedApiEServiceDescriptorPurposeTemplate();
-  const mockPurposeTemplateEServiceDescriptor3 =
-    getMockedApiEServiceDescriptorPurposeTemplate();
+  const mockApiEService1 = getMockedApiEservice();
+  const mockApiEService2 = getMockedApiEservice();
+  const mockApiEService3 = getMockedApiEservice();
 
-  const mockM2MPurposeTemplateEServiceDescriptorsResponse: m2mGatewayApi.EServiceDescriptorsPurposeTemplate =
-    {
-      results: [
-        mockPurposeTemplateEServiceDescriptor1,
-        mockPurposeTemplateEServiceDescriptor2,
-        mockPurposeTemplateEServiceDescriptor3,
-      ],
-      pagination: {
-        offset: 0,
-        limit: 10,
-        totalCount: 3,
-      },
-    };
+  const mockM2MPurposeTemplateEServicesResponse: m2mGatewayApi.EServices = {
+    pagination: { offset: 0, limit: 10, totalCount: 3 },
+    results: [
+      toM2MGatewayApiEService(mockApiEService1),
+      toM2MGatewayApiEService(mockApiEService2),
+      toM2MGatewayApiEService(mockApiEService3),
+    ],
+  };
 
-  const mockQueryParams: m2mGatewayApi.GetPurposeTemplateEServiceDescriptorsQueryParams =
+  const mockQueryParams: m2mGatewayApi.GetPurposeTemplateEServicesQueryParams =
     {
       offset: 0,
       limit: 10,
@@ -62,17 +55,15 @@ describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      mockPurposeTemplateService.getPurposeTemplateEServiceDescriptors = vi
+      mockPurposeTemplateService.getPurposeTemplateEServices = vi
         .fn()
-        .mockResolvedValue(mockM2MPurposeTemplateEServiceDescriptorsResponse);
+        .mockResolvedValue(mockM2MPurposeTemplateEServicesResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(
-        mockM2MPurposeTemplateEServiceDescriptorsResponse
-      );
+      expect(res.body).toEqual(mockM2MPurposeTemplateEServicesResponse);
     }
   );
 
@@ -110,23 +101,23 @@ describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
     const res = await makeRequest(
       token,
       generateId(),
-      query as m2mGatewayApi.GetPurposeTemplateEServiceDescriptorsQueryParams
+      query as m2mGatewayApi.GetPurposeTemplateEServicesQueryParams
     );
     expect(res.status).toBe(400);
   });
 
   it.each([
     {
-      ...mockM2MPurposeTemplateEServiceDescriptorsResponse,
+      ...mockM2MPurposeTemplateEServicesResponse,
       results: [
         {
-          ...mockM2MPurposeTemplateEServiceDescriptorsResponse.results[0],
+          ...mockM2MPurposeTemplateEServicesResponse.results[0],
           createdAt: undefined,
         },
       ],
     },
     {
-      ...mockM2MPurposeTemplateEServiceDescriptorsResponse,
+      ...mockM2MPurposeTemplateEServicesResponse,
       pagination: {
         offset: "invalidOffset",
         limit: "invalidLimit",
@@ -136,7 +127,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockPurposeTemplateService.getPurposeTemplateEServiceDescriptors = vi
+      mockPurposeTemplateService.getPurposeTemplateEServices = vi
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

@@ -16344,7 +16344,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorsPurposeTemplate"
+                $ref: "#/components/schemas/EServices"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -18883,40 +18883,6 @@ components:
         - purposeDescription
         - purposeIsFreeOfCharge
         - handlesPersonalData
-    EServiceDescriptorsPurposeTemplate:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
-    EServiceDescriptorPurposeTemplate:
-      type: object
-      additionalProperties: false
-      properties:
-        purposeTemplateId:
-          type: string
-          format: uuid
-        eserviceId:
-          type: string
-          format: uuid
-        descriptorId:
-          type: string
-          format: uuid
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - purposeTemplateId
-        - eserviceId
-        - descriptorId
-        - createdAt
     PurposeTemplateState:
       type: string
       description: Purpose Template State

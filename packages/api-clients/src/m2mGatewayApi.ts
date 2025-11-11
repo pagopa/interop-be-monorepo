@@ -183,7 +183,9 @@ export type GetPurposeTemplatesQueryParams = QueryParametersByAlias<
   "getPurposeTemplates"
 >;
 
-export type GetPurposeTemplateEServiceDescriptorsQueryParams =
-  QueryParametersByAlias<PurposeTemplateApi, "getPurposeTemplateEServices">;
+export type GetPurposeTemplateEServicesQueryParams = QueryParametersByAlias<
+  PurposeTemplateApi,
+  "getPurposeTemplateEServices"
+>;
 
 export * from "./generated/m2mGatewayApi.js";
