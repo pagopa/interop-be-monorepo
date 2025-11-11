@@ -14,6 +14,7 @@ COPY .npmrc /app/
 COPY ./packages/documents-signer/package.json /app/packages/documents-signer/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -23,6 +24,7 @@ COPY turbo.json /app/
 COPY ./packages/documents-signer /app/packages/documents-signer
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -33,6 +35,7 @@ RUN pnpm build && \
     package*.json packages/documents-signer/package*.json \
     packages/commons \
     packages/models \
+    packages/kafka-iam-auth \
     packages/documents-signer/dist && \
     find /out -exec touch -h --date=@0 {} \;  
 
