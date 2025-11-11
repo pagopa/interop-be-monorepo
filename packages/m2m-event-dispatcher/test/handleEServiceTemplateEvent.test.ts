@@ -68,7 +68,6 @@ describe("handleEServiceTemplateEvent test", async () => {
             P.union(
               // Draft E-Service Template version events, owner visibility
               "EServiceTemplateVersionAdded",
-              "EServiceTemplateDraftVersionDeleted",
               "EServiceTemplateDraftVersionUpdated",
               "EServiceTemplateDraftVersionDeleted",
               "EServiceTemplateVersionInterfaceAdded",
