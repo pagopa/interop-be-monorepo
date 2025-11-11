@@ -23,6 +23,7 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   unsafeBrandId,
+  bigIntToDate,
 } from "pagopa-interop-models";
 
 import { S3ServiceException } from "@aws-sdk/client-s3";
@@ -58,6 +59,7 @@ async function processMessage(
     if (!signature) {
       throw new Error(`Missing signature reference for message ${id}`);
     }
+
     const { fileKind } = signature;
 
     if (!(fileKind in FILE_KIND_CONFIG)) {
@@ -126,7 +128,7 @@ async function processMessage(
           id: unsafeBrandId<PurposeVersionDocumentId>(docSignature.subObjectId),
           contentType: docSignature.contentType,
           path: s3Key,
-          createdAt: new Date(Number(docSignature.createdAt)),
+          createdAt: bigIntToDate(docSignature.createdAt),
         }),
         agreement: (): AgreementDocument => ({
           path: s3Key,
@@ -134,7 +136,7 @@ async function processMessage(
           id: unsafeBrandId<AgreementDocumentId>(docSignature.streamId),
           prettyName: docSignature.prettyname,
           contentType: docSignature.contentType,
-          createdAt: new Date(Number(docSignature.createdAt)),
+          createdAt: bigIntToDate(docSignature.createdAt),
         }),
         delegation: (): DelegationContractDocument => ({
           id: unsafeBrandId<DelegationContractId>(docSignature.streamId),
@@ -142,7 +144,7 @@ async function processMessage(
           prettyName: docSignature.prettyname,
           contentType: docSignature.contentType,
           path: s3Key,
-          createdAt: new Date(Number(docSignature.createdAt)),
+          createdAt: bigIntToDate(docSignature.createdAt),
         }),
       } as const;
 
@@ -151,6 +153,9 @@ async function processMessage(
 
     if (process) {
       const { metadataMap, correlationId, docSignature } = buildMetadata();
+      logger.info(
+        `Processing signature reference with createdAt = ${docSignature.createdAt}`
+      );
 
       await match(process)
         .with("riskAnalysis", async () =>
@@ -159,7 +164,8 @@ async function processMessage(
             docSignature.subObjectId as PurposeVersionDocumentId,
             metadataMap.riskAnalysis(),
             refreshableToken,
-            correlationId
+            correlationId,
+            logger
           )
         )
         .with("agreement", async () =>
@@ -167,7 +173,8 @@ async function processMessage(
             metadataMap.agreement(),
             refreshableToken,
             docSignature.streamId,
-            correlationId
+            correlationId,
+            logger
           )
         )
         .with("delegation", async () =>
@@ -175,7 +182,8 @@ async function processMessage(
             metadataMap.delegation(),
             refreshableToken,
             docSignature.streamId,
-            correlationId
+            correlationId,
+            logger
           )
         )
         .with(P._, () => logger.warn(`Unexpected process type: ${process}`))
