@@ -105,7 +105,7 @@ export async function handleDelegationEvent(
         {
           /**
            * We avoid exposing the unsigned document generation.
-           * The user will only be able to see only the signed one.
+           * The user will only be able to see the signed one.
            */
           type: P.union("DelegationContractGenerated"),
         },

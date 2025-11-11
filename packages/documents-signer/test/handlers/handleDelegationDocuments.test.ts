@@ -63,7 +63,7 @@ describe("handleDelegationDocument", () => {
     );
     expect(safeStorageServiceMock.createFile).toHaveBeenCalledWith(
       expect.objectContaining({
-        contentType: "application/gzip",
+        contentType: "application/pdf",
         checksumValue: "fake-checksum",
       })
     );
