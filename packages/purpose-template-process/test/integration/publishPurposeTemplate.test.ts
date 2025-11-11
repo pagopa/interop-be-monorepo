@@ -225,7 +225,7 @@ describe("publishPurposeTemplate", () => {
     }
   );
 
-  it("should throw unexpectedAssociationEServicePublishError if purpose template have link of at least one archived eservice", async () => {
+  it("should throw unexpectedAssociationEServicePublishError if purpose template is linked to at least one archived eservice", async () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const invalidStateEService: EService = {
