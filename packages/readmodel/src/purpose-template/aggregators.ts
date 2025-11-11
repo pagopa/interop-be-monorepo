@@ -460,7 +460,9 @@ export const toPurposeTemplateAggregatorArray = (
         riskAnalysisFormSignedDocumentSQL.id
       );
       // eslint-disable-next-line functional/immutable-data
-      riskAnalysisFormDocumentsSQL.push(riskAnalysisFormSignedDocumentSQL);
+      riskAnalysisFormSignedDocumentsSQL.push(
+        riskAnalysisFormSignedDocumentSQL
+      );
     }
   });
 
