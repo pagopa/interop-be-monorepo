@@ -823,6 +823,37 @@ const purposeRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .get(
+      "/purposes/:purposeId/versions/:versionId/signedDocuments/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+
+          const document = await purposeService.getRiskAnalysisSignedDocument({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            documentId: unsafeBrandId(req.params.documentId),
+            ctx,
+          });
+          return res
+            .status(200)
+            .send(
+              purposeApi.PurposeVersionSignedDocument.parse(
+                purposeVersionDocumentToApiPurposeVersionDocument(document)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
   return purposeRouter;
 };
