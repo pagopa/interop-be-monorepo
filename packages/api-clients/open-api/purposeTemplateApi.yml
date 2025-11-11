@@ -1210,6 +1210,56 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/purposeTemplates/{purposeTemplateId}/riskAnalysisDocument/signed:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: The purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of a signed Risk Analysis Template document to the purpose template Risk Analysis Form
+      summary: Add signed Risk Analysis Template document metadata to purpose template
+      tags:
+        - purposeTemplate
+      operationId: internalAddSignedRiskAnalysisTemplateDocumentMetadata
+      requestBody:
+        description: The signed Risk Analysis Template document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateSignedDocument"
+      responses:
+        "204":
+          description: Signed Risk Analysis Template metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:
@@ -1612,6 +1662,35 @@ components:
         - contentType
         - path
         - createdAt
+    RiskAnalysisTemplateSignedDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - path
+        - createdAt
+        - signedAt
     RiskAnalysisTemplateAnswerRequest:
       type: object
       properties:

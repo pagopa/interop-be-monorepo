@@ -35,6 +35,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
   TenantKind,
   unsafeBrandId,
@@ -67,6 +68,7 @@ import {
   toCreateEventPurposeTemplateSuspended,
   toCreateEventPurposeTemplateUnsuspended,
   toCreateEventRiskAnalysisTemplateDocumentAdded,
+  toCreateEventRiskAnalysisTemplateSignedDocumentAdded,
 } from "../model/domain/toEvent.js";
 import {
   addAnnotationDocumentToUpdatedAnswerIfNeeded,
@@ -1698,7 +1700,7 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       riskAnalysisTemplateDocument: RiskAnalysisTemplateDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
-    ): Promise<WithMetadata<RiskAnalysisFormTemplate>> {
+    ): Promise<void> {
       logger.info(
         `Adding risk analysis document to purpose template ${purposeTemplateId}, document id ${riskAnalysisTemplateDocument.id}`
       );
@@ -1720,7 +1722,7 @@ export function purposeTemplateServiceBuilder(
         purposeRiskAnalysisForm: updatedFormTemplate,
       };
 
-      const event = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventRiskAnalysisTemplateDocumentAdded(
           updatedPurposeTemplate,
           riskAnalysisTemplateDocument.id,
@@ -1728,54 +1730,42 @@ export function purposeTemplateServiceBuilder(
           metadata.version
         )
       );
-
-      return {
-        data: updatedFormTemplate,
-        metadata: { version: event.newVersion },
-      };
     },
-    // async internalAddSignedRiskAnalysisTemplateDocumentMetadata(
-    //   purposeTemplateId: PurposeTemplateId,
-    //   documentId: RiskAnalysisTemplateDocumentId,
-    //   riskAnalysisSignedDocument: RiskAnalysisTemplateSignedDocument,
-    //   { logger, correlationId }: WithLogger<AppContext<AuthData>>
-    // ): Promise<WithMetadata<PurposeTemplate>> {
-    //   logger.info(
-    //     `Adding signed risk analysis document for purpose ${purposeId}, version ${versionId}`
-    //   );
-    //   const purposeRetrieved = await retrievePurpose(
-    //     purposeId,
-    //     readModelService
-    //   );
+    async internalAddSignedRiskAnalysisTemplateDocumentMetadata(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisTemplateSignedDocument: RiskAnalysisTemplateSignedDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Adding signed risk analysis document to purpose template ${purposeTemplateId}, document id ${riskAnalysisTemplateSignedDocument.id}`
+      );
+      const { data: purposeTemplate, metadata } = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
 
-    //   const versionRetrieved = retrievePurposeVersion(
-    //     versionId,
-    //     purposeRetrieved
-    //   );
+      const riskAnalysisFormTemplate =
+        retrieveRiskAnalysisFormTemplate(purposeTemplate);
 
-    //   const updatedVersion: PurposeVersion = {
-    //     ...versionRetrieved,
-    //     signedContract: signedRiskAnalysis,
-    //   };
+      const updatedFormTemplate: RiskAnalysisFormTemplate = {
+        ...riskAnalysisFormTemplate,
+        riskAnalysisTemplateSignedDocument,
+      };
 
-    //   const updatedPurpose = replacePurposeVersion(
-    //     purposeRetrieved.data,
-    //     updatedVersion
-    //   );
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate,
+        purposeRiskAnalysisForm: updatedFormTemplate,
+      };
 
-    //   const event = await repository.createEvent(
-    //     toCreateEventRiskAnalysisSignedDocumentGenerated({
-    //       purpose: updatedPurpose,
-    //       version: purposeRetrieved.metadata.version,
-    //       versionId,
-    //       correlationId,
-    //     })
-    //   );
-    //   return {
-    //     data: updatedVersion,
-    //     metadata: { version: event.newVersion },
-    //   };
-    // },
+      await repository.createEvent(
+        toCreateEventRiskAnalysisTemplateSignedDocumentAdded(
+          updatedPurposeTemplate,
+          riskAnalysisTemplateSignedDocument.id,
+          correlationId,
+          metadata.version
+        )
+      );
+    },
   };
 }
 export type PurposeTemplateService = ReturnType<
