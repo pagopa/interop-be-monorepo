@@ -1,0 +1,32 @@
+meta {
+  name: Add Signed Risk Analysis Template document to Purpose Template
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-purpose-template}}/internal/purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "id": "8c9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3c",
+    "name": "risk_analysis_template_signed.pdf",
+    "contentType": "application/pdf",
+    "prettyName": "Template Analisi Rischio Firmato",
+    "path": "/docs/risk-analysis/template_signed.pdf",
+    "createdAt": "2025-11-05T14:48:01.000Z",
+    "signedAt": "2025-11-07T14:48:01.000Z"
+  }
+}

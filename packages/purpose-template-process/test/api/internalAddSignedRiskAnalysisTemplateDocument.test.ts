@@ -9,8 +9,8 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   RiskAnalysisFormTemplateId,
-  RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateDocumentId,
+  RiskAnalysisTemplateSignedDocument,
   generateId,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -28,33 +28,34 @@ const {
   HTTP_STATUS_NOT_FOUND,
 } = constants;
 
-describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDocument test", () => {
+describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed test", () => {
   const mockPurposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),
   };
 
-  const mockRiskAnalysisDocumentPayload: RiskAnalysisTemplateDocument = {
+  const mockRiskAnalysisDocumentPayload: RiskAnalysisTemplateSignedDocument = {
     id: generateId<RiskAnalysisTemplateDocumentId>(),
     path: "s3://path/to/the/risk/analysis/file.pdf",
     contentType: "application/pdf",
     name: "risk_analysis_file.pdf",
     prettyName: "Risk analysis document",
     createdAt: new Date(),
+    signedAt: new Date(),
   };
 
   beforeEach(() => {
-    purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata =
+    purposeTemplateService.internalAddSignedRiskAnalysisTemplateDocumentMetadata =
       vi.fn().mockResolvedValue(undefined);
   });
 
   const makeRequest = async (
     token: string,
     purposeTemplateId: PurposeTemplateId = mockPurposeTemplate.id,
-    payload: RiskAnalysisTemplateDocument = mockRiskAnalysisDocumentPayload
+    payload: RiskAnalysisTemplateSignedDocument = mockRiskAnalysisDocumentPayload
   ) =>
     request(api)
       .post(
-        `/internal/purposeTemplates/${purposeTemplateId}/riskAnalysisDocument`
+        `/internal/purposeTemplates/${purposeTemplateId}/riskAnalysisDocument/signed`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
@@ -63,13 +64,13 @@ describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDoc
   const authorizedRoles: AuthRole[] = [authRole.INTERNAL_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s on successful risk analysis template document add",
+    "Should return 204 for user with role %s on successful risk analysis template signed document add",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(
-        purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata
+        purposeTemplateService.internalAddSignedRiskAnalysisTemplateDocumentMetadata
       ).toHaveBeenCalledWith(
         mockPurposeTemplate.id,
         mockRiskAnalysisDocumentPayload,
@@ -105,7 +106,7 @@ describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDoc
   ])(
     "Should return $expectedStatus for $description error",
     async ({ error, expectedStatus }) => {
-      purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata =
+      purposeTemplateService.internalAddSignedRiskAnalysisTemplateDocumentMetadata =
         vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token);
@@ -126,7 +127,7 @@ describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDoc
     const invalidPayload = {
       id: generateId(),
       submissionDate: new Date(),
-    } as unknown as RiskAnalysisTemplateDocument;
+    } as unknown as RiskAnalysisTemplateSignedDocument;
 
     const res = await makeRequest(
       token,

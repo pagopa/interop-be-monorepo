@@ -281,3 +281,24 @@ export function toCreateEventRiskAnalysisTemplateDocumentAdded(
     },
   };
 }
+
+export function toCreateEventRiskAnalysisTemplateSignedDocumentAdded(
+  purposeTemplate: PurposeTemplate,
+  documentId: RiskAnalysisTemplateDocumentId,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "RiskAnalysisTemplateSignedDocumentAdded",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        documentId,
+      },
+    },
+  };
+}
