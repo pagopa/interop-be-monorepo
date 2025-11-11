@@ -8,7 +8,7 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { EventService } from "../services/eventService.js";
@@ -30,9 +30,7 @@ const eventRouter = (
 
       const events = await eventService.getAttributeEvents(
         {
-          lastEventId: req.query.lastEventId
-            ? unsafeBrandId(req.query.lastEventId)
-            : undefined,
+          lastEventId: req.query.lastEventId,
           limit: req.query.limit,
         },
         ctx
