@@ -96,14 +96,14 @@ export type ApplicationAuditTopicConfig = z.infer<
   typeof ApplicationAuditTopicConfig
 >;
 
-export const EmailSenderTopicConfig = z
+export const EmailDispatchTopicConfig = z
   .object({
-    EMAIL_SENDER_TOPIC: z.string(),
+    EMAIL_DISPATCH_TOPIC: z.string(),
   })
   .transform((c) => ({
-    emailSenderTopic: c.EMAIL_SENDER_TOPIC,
+    emailDispatchTopic: c.EMAIL_DISPATCH_TOPIC,
   }));
-export type EmailSenderTopicConfig = z.infer<typeof EmailSenderTopicConfig>;
+export type EmailDispatchTopicConfig = z.infer<typeof EmailDispatchTopicConfig>;
 
 export const PurposeTemplateTopicConfig = z
   .object({
@@ -127,7 +127,7 @@ export const KafkaTopicConfig = z.union([
   EServiceTemplateTopicConfig,
   NotificationConfigTopicConfig,
   ApplicationAuditTopicConfig,
-  EmailSenderTopicConfig,
+  EmailDispatchTopicConfig,
   PurposeTemplateTopicConfig,
 ]);
 export type KafkaTopicConfig = z.infer<typeof KafkaTopicConfig>;
