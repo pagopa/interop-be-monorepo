@@ -6,7 +6,6 @@ import {
   toDelegationV2,
   DelegationEventEnvelopeV2,
   delegationKind,
-  DelegationKind,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
