@@ -25,8 +25,8 @@ import {
 
 describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
   const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
-  const documentId =
-    riskAnalysisFormTemplate.singleAnswers[0].annotation!.docs[0].id;
+  const annotationDoc =
+    riskAnalysisFormTemplate.singleAnswers[0].annotation!.docs[0];
 
   const purposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -42,12 +42,12 @@ describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
       await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
-          documentId,
+          documentId: annotationDoc.id,
         },
         getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
       );
     expect(purposeTemplateResponse).toMatchObject({
-      data: documentId,
+      data: annotationDoc,
       metadata: { version: 0 },
     });
   });
@@ -78,7 +78,7 @@ describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
       purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
-          documentId,
+          documentId: annotationDoc.id,
         },
         getMockContext({
           authData: getMockAuthData(requesterId),
@@ -93,7 +93,7 @@ describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
       purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
         {
           purposeTemplateId: notExistentPurposeTemplateId,
-          documentId,
+          documentId: annotationDoc.id,
         },
         getMockContext({
           authData: getMockAuthData(purposeTemplate.creatorId),
