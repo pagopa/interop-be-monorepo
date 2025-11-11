@@ -20,7 +20,7 @@ import {
 const notificationType: NotificationType =
   "purposeQuotaAdjustmentRequestToProducer";
 
-export async function handleNewPurposeVersionWaitingForApproval(
+export async function handleNewPurposeVersionWaitingForApprovalToProducer(
   data: PurposeHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {

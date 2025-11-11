@@ -5,6 +5,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
+  getMockPurposeVersion,
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
@@ -27,7 +28,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handlePurposeVersionRejected } from "../src/handlers/purposes/handlePurposeVersionRejected.js";
+import { handlePurposeVersionRejectedFirstVersion } from "../src/handlers/purposes/handlePurposeVersionRejected.js";
 import {
   addOneEService,
   addOnePurpose,
@@ -95,7 +96,7 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should throw missingKafkaMessageDataError when purpose is undefined", async () => {
     await expect(() =>
-      handlePurposeVersionRejected({
+      handlePurposeVersionRejectedFirstVersion({
         purposeV2Msg: undefined,
         logger,
         templateService,
@@ -111,14 +112,14 @@ describe("handlePurposeVersionRejected", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: eservice.id,
       consumerId: unknownConsumerId,
     };
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeVersionRejected({
+      handlePurposeVersionRejectedFirstVersion({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -138,14 +139,14 @@ describe("handlePurposeVersionRejected", async () => {
     await addOneEService(eserviceWithUnknownProducer);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: eserviceWithUnknownProducer.id,
       consumerId: consumerTenant.id,
     };
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeVersionRejected({
+      handlePurposeVersionRejectedFirstVersion({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -159,14 +160,14 @@ describe("handlePurposeVersionRejected", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: unknownEServiceId,
       consumerId: consumerTenant.id,
     };
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeVersionRejected({
+      handlePurposeVersionRejectedFirstVersion({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -178,13 +179,13 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should generate one message per user of the consumer", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handlePurposeVersionRejectedFirstVersion({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -218,13 +219,13 @@ describe("handlePurposeVersionRejected", async () => {
       ]);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handlePurposeVersionRejectedFirstVersion({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -247,13 +248,13 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should generate one message to the consumer", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handlePurposeVersionRejectedFirstVersion({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -284,13 +285,13 @@ describe("handlePurposeVersionRejected", async () => {
     await addOneTenant(consumerTenantWithMultipleMails);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: eservice.id,
       consumerId: consumerTenantWithMultipleMails.id,
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handlePurposeVersionRejectedFirstVersion({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -318,13 +319,13 @@ describe("handlePurposeVersionRejected", async () => {
       });
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handlePurposeVersionRejectedFirstVersion({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -344,13 +345,13 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId,
       consumerId,
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handlePurposeVersionRejectedFirstVersion({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,

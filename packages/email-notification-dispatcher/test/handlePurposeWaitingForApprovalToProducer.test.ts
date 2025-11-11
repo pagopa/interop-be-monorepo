@@ -6,6 +6,7 @@ import {
   getMockEService,
   getMockPurpose,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import {
@@ -18,13 +19,15 @@ import {
   Purpose,
   Tenant,
   TenantId,
+  TenantMail,
   TenantNotificationConfigId,
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handlePurposeWaitingForApprovalOverthreshold } from "../src/handlers/purposes/handlePurposeWaitingForApprovalOverthreshold.js";
+import { handlePurposeWaitingForApprovalToProducer } from "../src/handlers/purposes/handlePurposeWaitingForApproval.js";
 import {
   addOneEService,
   addOnePurpose,
@@ -34,17 +37,12 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
+describe("handlePurposeWaitingForApproval", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
 
-  const dailyCallsPerConsumer = 1000;
-  const descriptor = {
-    ...getMockDescriptorPublished(),
-    dailyCallsPerConsumer,
-  };
-
+  const descriptor = getMockDescriptorPublished();
   const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
@@ -54,14 +52,15 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
     name: "Producer Tenant",
+    mails: [getMockTenantMail()],
   };
   const consumerTenant = {
     ...getMockTenant(consumerId),
     name: "Consumer Tenant",
   };
   const users = [
-    getMockUser(consumerTenant.id),
-    getMockUser(consumerTenant.id),
+    getMockUser(producerTenant.id),
+    getMockUser(producerTenant.id),
   ];
 
   const { logger } = getMockContext({});
@@ -74,7 +73,7 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
       .fn()
       .mockResolvedValue({
         id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenant.id,
+        tenantId: producerTenant.id,
         enabled: true,
         createAt: new Date(),
       });
@@ -88,14 +87,15 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
           .map((user) => ({
             userId: user.id,
             tenantId: user.tenantId,
-            userRoles: [authRole.ADMIN_ROLE, authRole.SECURITY_ROLE],
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
           }))
       );
   });
 
   it("should throw missingKafkaMessageDataError when purpose is undefined", async () => {
     await expect(() =>
-      handlePurposeWaitingForApprovalOverthreshold({
+      handlePurposeWaitingForApprovalToProducer({
         purposeV2Msg: undefined,
         logger,
         templateService,
@@ -118,7 +118,7 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeWaitingForApprovalOverthreshold({
+      handlePurposeWaitingForApprovalToProducer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -126,6 +126,33 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
+  });
+
+  it("should throw tenantNotFound when producer is not found", async () => {
+    const unknownProducerId = generateId<TenantId>();
+
+    const eserviceWithUnknownProducer: EService = {
+      ...getMockEService(),
+      producerId: unknownProducerId,
+    };
+    await addOneEService(eserviceWithUnknownProducer);
+
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eserviceWithUnknownProducer.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOnePurpose(purpose);
+
+    await expect(() =>
+      handlePurposeWaitingForApprovalToProducer({
+        purposeV2Msg: toPurposeV2(purpose),
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
@@ -139,7 +166,7 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeWaitingForApprovalOverthreshold({
+      handlePurposeWaitingForApprovalToProducer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -149,7 +176,7 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
   });
 
-  it("should generate one message per user of the consumer", async () => {
+  it("should generate one message per user of the producer", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
@@ -157,7 +184,7 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeWaitingForApprovalOverthreshold({
+    const messages = await handlePurposeWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -185,6 +212,7 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
         {
           userId: users[0].id,
           tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
           userRoles: [authRole.ADMIN_ROLE],
         },
       ]);
@@ -196,7 +224,7 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeWaitingForApprovalOverthreshold({
+    const messages = await handlePurposeWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -210,9 +238,14 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
         (message) => message.type === "User" && message.userId === users[0].id
       )
     ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
-  it("should generate a complete and correct message", async () => {
+  it("should generate one message to the producer", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
@@ -220,7 +253,104 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeWaitingForApprovalOverthreshold({
+    const messages = await handlePurposeWaitingForApprovalToProducer({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(2);
+    // Tenant contact emails are not included since includeTenantContactEmails is false
+    expect(messages.every((message) => message.type === "User")).toBe(true);
+  });
+
+  it("should generate a message using the latest producer mail that was registered", async () => {
+    const oldMail: TenantMail = {
+      ...getMockTenantMail(),
+      createdAt: new Date(1999),
+    };
+    const newMail = getMockTenantMail();
+    const producerTenantWithMultipleMails: Tenant = {
+      ...getMockTenant(producerId),
+      mails: [oldMail, newMail],
+    };
+    await addOneTenant(producerTenantWithMultipleMails);
+
+    // Mock to return no users for this specific producer
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([]);
+
+    const eserviceWithMultipleMailProducer: EService = {
+      ...getMockEService(),
+      producerId: producerTenantWithMultipleMails.id,
+    };
+    await addOneEService(eserviceWithMultipleMailProducer);
+
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eserviceWithMultipleMailProducer.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOnePurpose(purpose);
+
+    const messages = await handlePurposeWaitingForApprovalToProducer({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(0);
+  });
+
+  it("should not generate a message to the producer if they disabled email notification", async () => {
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: producerTenant.id,
+        enabled: false,
+        createAt: new Date(),
+      });
+
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOnePurpose(purpose);
+
+    const messages = await handlePurposeWaitingForApprovalToProducer({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(2);
+    expect(
+      messages.some(
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === producerTenant.mails[0].address
+      )
+    ).toBe(false);
+  });
+
+  it("should generate a complete and correct message", async () => {
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId,
+      consumerId,
+    };
+    await addOnePurpose(purpose);
+
+    const messages = await handlePurposeWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -231,11 +361,21 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
+      expect(message.email.body).toContain(
+        `Finalità &quot;${purpose.title}&quot; con piano di carico superiore alla soglia`
+      );
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(consumerTenant.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(producerTenant.name);
+          expect(message.email.body).toContain(consumerTenant.name);
+        })
+        .exhaustive();
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain(dailyCallsPerConsumer.toString());
-      if (message.type === "User") {
-        expect(message.email.body).toContain("{{ recipientName }}");
-      }
+      expect(message.email.body).toContain(purpose.title);
     });
   });
 });

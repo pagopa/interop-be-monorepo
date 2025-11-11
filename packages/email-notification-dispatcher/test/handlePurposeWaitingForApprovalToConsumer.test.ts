@@ -24,7 +24,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleNewPurposeVersionWaitingForApprovalOverthreshold } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApprovalOverthreshold.js";
+import { handlePurposeWaitingForApprovalToConsumer } from "../src/handlers/purposes/handlePurposeWaitingForApprovalOverthreshold.js";
 import {
   addOneEService,
   addOnePurpose,
@@ -34,7 +34,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
+describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -88,7 +88,6 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
           .map((user) => ({
             userId: user.id,
             tenantId: user.tenantId,
-            // Only consider ADMIN_ROLE and SECURITY_ROLE since role restrictions are tested separately
             userRoles: [authRole.ADMIN_ROLE, authRole.SECURITY_ROLE],
           }))
       );
@@ -96,7 +95,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
   it("should throw missingKafkaMessageDataError when purpose is undefined", async () => {
     await expect(() =>
-      handleNewPurposeVersionWaitingForApprovalOverthreshold({
+      handlePurposeWaitingForApprovalToConsumer({
         purposeV2Msg: undefined,
         logger,
         templateService,
@@ -104,10 +103,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError(
-        "purpose",
-        "NewPurposeVersionWaitingForApproval"
-      )
+      missingKafkaMessageDataError("purpose", "PurposeWaitingForApproval")
     );
   });
 
@@ -122,7 +118,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handleNewPurposeVersionWaitingForApprovalOverthreshold({
+      handlePurposeWaitingForApprovalToConsumer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -143,7 +139,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handleNewPurposeVersionWaitingForApprovalOverthreshold({
+      handlePurposeWaitingForApprovalToConsumer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -161,14 +157,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages =
-      await handleNewPurposeVersionWaitingForApprovalOverthreshold({
-        purposeV2Msg: toPurposeV2(purpose),
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      });
+    const messages = await handlePurposeWaitingForApprovalToConsumer({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
 
     expect(messages.length).toEqual(2);
     expect(
@@ -201,14 +196,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages =
-      await handleNewPurposeVersionWaitingForApprovalOverthreshold({
-        purposeV2Msg: toPurposeV2(purpose),
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      });
+    const messages = await handlePurposeWaitingForApprovalToConsumer({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
 
     expect(messages.length).toEqual(1);
     expect(
@@ -216,42 +210,6 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
         (message) => message.type === "User" && message.userId === users[0].id
       )
     ).toBe(true);
-    expect(
-      messages.some(
-        (message) => message.type === "User" && message.userId === users[1].id
-      )
-    ).toBe(false);
-  });
-
-  it("should not generate a message to the consumer if they disabled email notification", async () => {
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockResolvedValue({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenant.id,
-        enabled: false,
-        createAt: new Date(),
-      });
-
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOnePurpose(purpose);
-
-    const messages =
-      await handleNewPurposeVersionWaitingForApprovalOverthreshold({
-        purposeV2Msg: toPurposeV2(purpose),
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      });
-
-    // User messages are still sent even if tenant config is disabled
-    // Tenant config only affects tenant contact emails (which are not included anyway)
-    expect(messages.length).toEqual(2);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -262,14 +220,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages =
-      await handleNewPurposeVersionWaitingForApprovalOverthreshold({
-        purposeV2Msg: toPurposeV2(purpose),
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      });
+    const messages = await handlePurposeWaitingForApprovalToConsumer({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
     expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
@@ -279,52 +236,6 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       if (message.type === "User") {
         expect(message.email.body).toContain("{{ recipientName }}");
       }
-    });
-  });
-
-  it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
-    const olderDescriptor = {
-      ...getMockDescriptorPublished(),
-      dailyCallsPerConsumer: 500,
-      version: "1",
-      publishedAt: new Date("2023-01-01"),
-    };
-    const newerDescriptor = {
-      ...getMockDescriptorPublished(),
-      dailyCallsPerConsumer: 2000,
-      version: "2",
-      publishedAt: new Date("2024-01-01"),
-    };
-
-    const eserviceWithMultipleDescriptors = {
-      ...getMockEService(),
-      id: generateId<EServiceId>(),
-      producerId,
-      descriptors: [olderDescriptor, newerDescriptor],
-    };
-
-    await addOneEService(eserviceWithMultipleDescriptors);
-
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eserviceWithMultipleDescriptors.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOnePurpose(purpose);
-
-    const messages =
-      await handleNewPurposeVersionWaitingForApprovalOverthreshold({
-        purposeV2Msg: toPurposeV2(purpose),
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      });
-
-    expect(messages.length).toBe(2);
-    messages.forEach((message) => {
-      expect(message.email.body).toContain("2000");
-      expect(message.email.body).not.toContain("500");
     });
   });
 });

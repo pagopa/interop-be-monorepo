@@ -6,7 +6,6 @@ import {
   getMockEService,
   getMockPurpose,
   getMockTenant,
-  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import {
@@ -19,15 +18,13 @@ import {
   Purpose,
   Tenant,
   TenantId,
-  TenantMail,
   TenantNotificationConfigId,
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handlePurposeWaitingForApproval } from "../src/handlers/purposes/handlePurposeWaitingForApproval.js";
+import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApprovalOverthreshold.js";
 import {
   addOneEService,
   addOnePurpose,
@@ -37,12 +34,17 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handlePurposeWaitingForApproval", async () => {
+describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
 
-  const descriptor = getMockDescriptorPublished();
+  const dailyCallsPerConsumer = 1000;
+  const descriptor = {
+    ...getMockDescriptorPublished(),
+    dailyCallsPerConsumer,
+  };
+
   const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
@@ -52,15 +54,14 @@ describe("handlePurposeWaitingForApproval", async () => {
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
     name: "Producer Tenant",
-    mails: [getMockTenantMail()],
   };
   const consumerTenant = {
     ...getMockTenant(consumerId),
     name: "Consumer Tenant",
   };
   const users = [
-    getMockUser(producerTenant.id),
-    getMockUser(producerTenant.id),
+    getMockUser(consumerTenant.id),
+    getMockUser(consumerTenant.id),
   ];
 
   const { logger } = getMockContext({});
@@ -73,7 +74,7 @@ describe("handlePurposeWaitingForApproval", async () => {
       .fn()
       .mockResolvedValue({
         id: generateId<TenantNotificationConfigId>(),
-        tenantId: producerTenant.id,
+        tenantId: consumerTenant.id,
         enabled: true,
         createAt: new Date(),
       });
@@ -87,15 +88,15 @@ describe("handlePurposeWaitingForApproval", async () => {
           .map((user) => ({
             userId: user.id,
             tenantId: user.tenantId,
-            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
-            userRoles: [authRole.ADMIN_ROLE],
+            // Only consider ADMIN_ROLE and SECURITY_ROLE since role restrictions are tested separately
+            userRoles: [authRole.ADMIN_ROLE, authRole.SECURITY_ROLE],
           }))
       );
   });
 
   it("should throw missingKafkaMessageDataError when purpose is undefined", async () => {
     await expect(() =>
-      handlePurposeWaitingForApproval({
+      handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: undefined,
         logger,
         templateService,
@@ -103,7 +104,10 @@ describe("handlePurposeWaitingForApproval", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("purpose", "PurposeWaitingForApproval")
+      missingKafkaMessageDataError(
+        "purpose",
+        "NewPurposeVersionWaitingForApproval"
+      )
     );
   });
 
@@ -118,7 +122,7 @@ describe("handlePurposeWaitingForApproval", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeWaitingForApproval({
+      handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -126,33 +130,6 @@ describe("handlePurposeWaitingForApproval", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
-  });
-
-  it("should throw tenantNotFound when producer is not found", async () => {
-    const unknownProducerId = generateId<TenantId>();
-
-    const eserviceWithUnknownProducer: EService = {
-      ...getMockEService(),
-      producerId: unknownProducerId,
-    };
-    await addOneEService(eserviceWithUnknownProducer);
-
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eserviceWithUnknownProducer.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOnePurpose(purpose);
-
-    await expect(() =>
-      handlePurposeWaitingForApproval({
-        purposeV2Msg: toPurposeV2(purpose),
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
@@ -166,7 +143,7 @@ describe("handlePurposeWaitingForApproval", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeWaitingForApproval({
+      handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -176,7 +153,7 @@ describe("handlePurposeWaitingForApproval", async () => {
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
   });
 
-  it("should generate one message per user of the producer", async () => {
+  it("should generate one message per user of the consumer", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
@@ -184,7 +161,7 @@ describe("handlePurposeWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -212,7 +189,6 @@ describe("handlePurposeWaitingForApproval", async () => {
         {
           userId: users[0].id,
           tenantId: users[0].tenantId,
-          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
           userRoles: [authRole.ADMIN_ROLE],
         },
       ]);
@@ -224,7 +200,7 @@ describe("handlePurposeWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -245,76 +221,12 @@ describe("handlePurposeWaitingForApproval", async () => {
     ).toBe(false);
   });
 
-  it("should generate one message to the producer", async () => {
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOnePurpose(purpose);
-
-    const messages = await handlePurposeWaitingForApproval({
-      purposeV2Msg: toPurposeV2(purpose),
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(2);
-    // Tenant contact emails are not included since includeTenantContactEmails is false
-    expect(
-      messages.every((message) => message.type === "User")
-    ).toBe(true);
-  });
-
-  it("should generate a message using the latest producer mail that was registered", async () => {
-    const oldMail: TenantMail = {
-      ...getMockTenantMail(),
-      createdAt: new Date(1999),
-    };
-    const newMail = getMockTenantMail();
-    const producerTenantWithMultipleMails: Tenant = {
-      ...getMockTenant(producerId),
-      mails: [oldMail, newMail],
-    };
-    await addOneTenant(producerTenantWithMultipleMails);
-
-    // Mock to return no users for this specific producer
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
-
-    const eserviceWithMultipleMailProducer: EService = {
-      ...getMockEService(),
-      producerId: producerTenantWithMultipleMails.id,
-    };
-    await addOneEService(eserviceWithMultipleMailProducer);
-
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eserviceWithMultipleMailProducer.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOnePurpose(purpose);
-
-    const messages = await handlePurposeWaitingForApproval({
-      purposeV2Msg: toPurposeV2(purpose),
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(0);
-  });
-
-  it("should not generate a message to the producer if they disabled email notification", async () => {
+  it("should not generate a message to the consumer if they disabled email notification", async () => {
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
         id: generateId<TenantNotificationConfigId>(),
-        tenantId: producerTenant.id,
+        tenantId: consumerTenant.id,
         enabled: false,
         createAt: new Date(),
       });
@@ -326,7 +238,7 @@ describe("handlePurposeWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -334,25 +246,20 @@ describe("handlePurposeWaitingForApproval", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
+    // User messages are still sent even if tenant config is disabled
+    // Tenant config only affects tenant contact emails (which are not included anyway)
     expect(messages.length).toEqual(2);
-    expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" &&
-          message.address === producerTenant.mails[0].address
-      )
-    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
-      eserviceId,
-      consumerId,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -363,21 +270,56 @@ describe("handlePurposeWaitingForApproval", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
-      expect(message.email.body).toContain(
-        `Finalità &quot;${purpose.title}&quot; con piano di carico superiore alla soglia`
-      );
-      match(message.type)
-        .with("User", () => {
-          expect(message.email.body).toContain("{{ recipientName }}");
-          expect(message.email.body).toContain(consumerTenant.name);
-        })
-        .with("Tenant", () => {
-          expect(message.email.body).toContain(producerTenant.name);
-          expect(message.email.body).toContain(consumerTenant.name);
-        })
-        .exhaustive();
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain(purpose.title);
+      expect(message.email.body).toContain(dailyCallsPerConsumer.toString());
+      if (message.type === "User") {
+        expect(message.email.body).toContain("{{ recipientName }}");
+      }
+    });
+  });
+
+  it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
+    const olderDescriptor = {
+      ...getMockDescriptorPublished(),
+      dailyCallsPerConsumer: 500,
+      version: "1",
+      publishedAt: new Date("2023-01-01"),
+    };
+    const newerDescriptor = {
+      ...getMockDescriptorPublished(),
+      dailyCallsPerConsumer: 2000,
+      version: "2",
+      publishedAt: new Date("2024-01-01"),
+    };
+
+    const eserviceWithMultipleDescriptors = {
+      ...getMockEService(),
+      id: generateId<EServiceId>(),
+      producerId,
+      descriptors: [olderDescriptor, newerDescriptor],
+    };
+
+    await addOneEService(eserviceWithMultipleDescriptors);
+
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eserviceWithMultipleDescriptors.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOnePurpose(purpose);
+
+    const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toBe(2);
+    messages.forEach((message) => {
+      expect(message.email.body).toContain("2000");
+      expect(message.email.body).not.toContain("500");
     });
   });
 });

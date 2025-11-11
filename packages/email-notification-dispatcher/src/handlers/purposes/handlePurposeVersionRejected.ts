@@ -19,7 +19,7 @@ import {
 
 const notificationType: NotificationType = "purposeActivatedRejectedToConsumer";
 
-export async function handlePurposeVersionRejected(
+export async function handlePurposeVersionRejectedFirstVersion(
   data: PurposeHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -34,6 +34,14 @@ export async function handlePurposeVersionRejected(
     throw missingKafkaMessageDataError("purpose", "PurposeVersionRejected");
   }
   const purpose = fromPurposeV2(purposeV2Msg);
+
+  // Only send notification if there is only one version (version count = 1)
+  if (purpose.versions.length !== 1) {
+    logger.info(
+      `Purpose ${purpose.id} has more than one version, skipping purposeVersionRejectedFirstVersion notification`
+    );
+    return [];
+  }
 
   const [htmlTemplate, eservice, consumer] = await Promise.all([
     retrieveHTMLTemplate(

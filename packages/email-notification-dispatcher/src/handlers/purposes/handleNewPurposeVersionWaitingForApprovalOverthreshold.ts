@@ -21,7 +21,7 @@ import {
 const notificationType: NotificationType =
   "purposeQuotaOverthresholdStateToConsumer";
 
-export async function handleNewPurposeVersionWaitingForApprovalOverthreshold(
+export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
   data: PurposeHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {

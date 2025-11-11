@@ -20,7 +20,7 @@ import {
 const notificationType: NotificationType =
   "purposeQuotaOverthresholdStateToConsumer";
 
-export async function handlePurposeVersionRejectedQuotaAdjustment(
+export async function handlePurposeVersionRejectedOtherVersion(
   data: PurposeHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -39,7 +39,7 @@ export async function handlePurposeVersionRejectedQuotaAdjustment(
   // Only send notification if there are multiple versions (version count > 1)
   if (purpose.versions.length <= 1) {
     logger.info(
-      `Purpose ${purpose.id} has only one version, skipping purposeQuotaAdjustmentResponse notification`
+      `Purpose ${purpose.id} has only one version, skipping purposeVersionRejectedOtherVersion notification`
     );
     return [];
   }

@@ -27,7 +27,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleNewPurposeVersionWaitingForApproval } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApproval.js";
+import { handleNewPurposeVersionWaitingForApprovalToProducer } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApproval.js";
 import {
   addOneEService,
   addOnePurpose,
@@ -95,7 +95,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
 
   it("should throw missingKafkaMessageDataError when purpose is undefined", async () => {
     await expect(() =>
-      handleNewPurposeVersionWaitingForApproval({
+      handleNewPurposeVersionWaitingForApprovalToProducer({
         purposeV2Msg: undefined,
         logger,
         templateService,
@@ -121,7 +121,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handleNewPurposeVersionWaitingForApproval({
+      handleNewPurposeVersionWaitingForApprovalToProducer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -148,7 +148,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handleNewPurposeVersionWaitingForApproval({
+      handleNewPurposeVersionWaitingForApprovalToProducer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -169,7 +169,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handleNewPurposeVersionWaitingForApproval({
+      handleNewPurposeVersionWaitingForApprovalToProducer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -187,7 +187,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handleNewPurposeVersionWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -227,7 +227,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handleNewPurposeVersionWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -256,7 +256,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handleNewPurposeVersionWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -266,9 +266,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
 
     expect(messages.length).toEqual(2);
     // Tenant contact emails are not included since includeTenantContactEmails is false
-    expect(
-      messages.every((message) => message.type === "User")
-    ).toBe(true);
+    expect(messages.every((message) => message.type === "User")).toBe(true);
   });
 
   it("should generate a message using the latest producer mail that was registered", async () => {
@@ -301,7 +299,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handleNewPurposeVersionWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -329,7 +327,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handleNewPurposeVersionWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -355,7 +353,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handleNewPurposeVersionWaitingForApproval({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
