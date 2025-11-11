@@ -24405,6 +24405,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FormConfigQuestion"
+        expiration:
+          type: string
+          format: date-time
       required:
         - version
         - questions
@@ -26059,6 +26062,9 @@ components:
           description: Indicates if there are unread notifications for this purpose
         purposeTemplate:
           $ref: "#/components/schemas/CompactPurposeTemplate"
+        rulesetExpiration:
+          type: string
+          format: date-time
       required:
         - id
         - title

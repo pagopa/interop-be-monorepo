@@ -1193,6 +1193,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FormConfigQuestionResponse"
+        expiration:
+          type: string
+          format: date-time
       required:
         - version
         - questions

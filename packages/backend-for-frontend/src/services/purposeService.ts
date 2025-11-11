@@ -128,6 +128,7 @@ export function purposeServiceBuilder(
     producers: tenantApi.Tenant[],
     consumers: tenantApi.Tenant[],
     purposeTemplate: purposeTemplateApi.PurposeTemplate | undefined,
+    riskAnalysisRuleset: purposeApi.RiskAnalysisFormConfigResponse | undefined,
     headers: Headers,
     correlationId: CorrelationId,
     notifications: string[]
@@ -260,6 +261,7 @@ export function purposeServiceBuilder(
       purposeTemplate: purposeTemplate
         ? toCompactPurposeTemplate(purposeTemplate)
         : undefined,
+      rulesetExpiration: riskAnalysisRuleset?.expiration,
     };
   };
 
@@ -355,6 +357,7 @@ export function purposeServiceBuilder(
           producers,
           consumers,
           purposeTemplate,
+          undefined,
           headers,
           correlationId,
           notifications
@@ -761,6 +764,20 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
+      const riskAnalysisRuleset = purpose.riskAnalysisForm?.version
+        ? await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion(
+            {
+              params: {
+                riskAnalysisVersion: purpose.riskAnalysisForm?.version,
+              },
+              headers,
+              queries: {
+                eserviceId: purpose.eserviceId,
+              },
+            }
+          )
+        : undefined;
+
       return await enhancePurpose(
         authData,
         purpose,
@@ -768,6 +785,7 @@ export function purposeServiceBuilder(
         [producer],
         [consumer],
         purposeTemplate,
+        riskAnalysisRuleset,
         headers,
         correlationId,
         notification
