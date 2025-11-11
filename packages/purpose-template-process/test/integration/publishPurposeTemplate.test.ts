@@ -4,6 +4,8 @@ import {
   getMockAuthData,
   getMockCompleteRiskAnalysisFormTemplate,
   getMockContext,
+  getMockDescriptor,
+  getMockEService,
   getMockPurposeTemplate,
   sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
@@ -15,6 +17,9 @@ import {
   PurposeTemplatePublishedV2,
   toPurposeTemplateV2,
   tenantKind,
+  EService,
+  descriptorState,
+  EServiceId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -23,7 +28,9 @@ import {
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  addOneEService,
   addOnePurposeTemplate,
+  addOnePurposeTemplateEServiceDescriptor,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
@@ -34,6 +41,11 @@ import {
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import {
+  invalidDescriptorStateError,
+  unexpectedAssociationEServicePublishError,
+} from "../../src/errors/purposeTemplateValidationErrors.js";
+import { DESCRIPTOR_ALLOWED_STATE_PUBLISH } from "../../src/services/validators.js";
 
 describe("publishPurposeTemplate", () => {
   const creatorId = generateId<TenantId>();
@@ -212,4 +224,53 @@ describe("publishPurposeTemplate", () => {
       }).rejects.toThrowError(error);
     }
   );
+
+  it("should throw unexpectedAssociationEServicePublishError if purpose template have link of at least one archived eservice", async () => {
+    await addOnePurposeTemplate(purposeTemplate);
+
+    const invalidStateEService: EService = {
+      ...getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
+        getMockDescriptor(descriptorState.archived),
+      ]),
+      personalData: true,
+    };
+    const relatedEServices: EService[] = [
+      ...Array.from({ length: 3 }).map(() => ({
+        ...getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
+          getMockDescriptor(descriptorState.published),
+        ]),
+        personalData: true,
+      })),
+      invalidStateEService,
+    ];
+
+    await Promise.all(
+      relatedEServices.map((eservice) => addOneEService(eservice))
+    );
+
+    await Promise.all(
+      relatedEServices.map((eservice) =>
+        addOnePurposeTemplateEServiceDescriptor({
+          purposeTemplateId: purposeTemplate.id,
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+          createdAt: new Date(),
+        })
+      )
+    );
+
+    await expect(async () => {
+      await purposeTemplateService.publishPurposeTemplate(
+        purposeTemplate.id,
+        getMockContext({ authData: getMockAuthData(creatorId) })
+      );
+    }).rejects.toThrowError(
+      unexpectedAssociationEServicePublishError(
+        invalidDescriptorStateError(
+          invalidStateEService.id,
+          DESCRIPTOR_ALLOWED_STATE_PUBLISH
+        ).message
+      )
+    );
+  });
 });
