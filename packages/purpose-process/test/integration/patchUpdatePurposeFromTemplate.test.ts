@@ -561,14 +561,30 @@ describe("patchUpdatePurposeFromTemplate", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
-  it("Should throw duplicatedPurposeTitle if the purpose title already exists", async () => {
+  it("Should throw purposeTitleNotAllowed if the purpose title already exists in different purpose with same eService and consumer", async () => {
+    const existingTitle = "Existing Title";
     await addOnePurpose(draftPurpose);
+    await addOnePurpose({
+      ...draftPurpose,
+      id: generateId<PurposeId>(),
+      title: existingTitle,
+      versions: [
+        {
+          ...draftPurpose.versions[0],
+          id: generateId(),
+        },
+      ],
+      riskAnalysisForm: {
+        ...validRiskAnalysis.riskAnalysisForm,
+        id: generateId(),
+      },
+    });
     await addOneEService(eservice);
     await addOneTenant(consumer);
     await addOnePurposeTemplate(purposeTemplate);
 
     const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
-      title: draftPurpose.title,
+      title: existingTitle,
     };
     expect(
       purposeService.patchUpdatePurposeFromTemplate(
@@ -579,7 +595,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
           organizationId: consumer.id,
         })
       )
-    ).rejects.toThrowError(duplicatedPurposeTitle(draftPurpose.title));
+    ).rejects.toThrowError(duplicatedPurposeTitle(existingTitle));
   });
 
   it("Should throw tenantIsNotTheConsumer if the tenant is not operating as consumer", async () => {
@@ -890,6 +906,104 @@ describe("patchUpdatePurposeFromTemplate", () => {
       updatePurpose.data.riskAnalysisForm!,
       "thirdPartiesRequestDataUsage"
     );
+
+    await expectUpdatedPurpose(
+      updatePurpose.data,
+      writtenPayload,
+      expectedPurpose
+    );
+  });
+
+  it("Should write on event store for the patch update of a purpose updating the same name", async () => {
+    await addOnePurpose(draftPurpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
+      ...updatePurposeSeed,
+      title: draftPurpose.title,
+      riskAnalysisForm: {
+        ...updatePurposeSeed.riskAnalysisForm!,
+        answers: {
+          ...updatePurposeSeed.riskAnalysisForm!.answers,
+          ...updatedSingleAnswersWithFreeText,
+          ...updatedSingleAnswerFreeTextWithSuggestValue,
+        },
+      },
+    };
+    const updatePurpose = await purposeService.patchUpdatePurposeFromTemplate(
+      purposeTemplate.id,
+      draftPurpose.id,
+      updateContent,
+      getMockContextM2MAdmin({
+        organizationId: consumer.id,
+      })
+    );
+
+    const writtenPayload = await expectWrittenEventAndGetPayload(
+      draftPurpose.id
+    );
+
+    const expectedPurpose: Purpose = sortPurpose({
+      ...draftPurpose,
+      title: updateContent.title!,
+      versions: [
+        {
+          createdAt: draftPurpose.versions[0].createdAt,
+          dailyCalls: updateContent.dailyCalls!,
+          firstActivationAt: draftPurpose.versions[0].firstActivationAt,
+          id: draftPurpose.versions[0].id,
+          riskAnalysis: draftPurpose.versions[0].riskAnalysis,
+          state: draftPurpose.versions[0].state,
+          updatedAt: new Date(),
+          suspendedAt: draftPurpose.versions[0].suspendedAt,
+          stamps: draftPurpose.versions[0].stamps,
+        },
+      ],
+      riskAnalysisForm: {
+        ...draftPurpose.riskAnalysisForm!,
+        id: expect.any(String),
+        multiAnswers: draftPurpose.riskAnalysisForm!.multiAnswers.map((a) => ({
+          ...a,
+          id: expect.any(String),
+        })),
+        singleAnswers: [
+          ...draftPurpose
+            .riskAnalysisForm!.singleAnswers.filter(
+              (a) => a.key !== "ruleOfLawText"
+            )
+            .map((a) =>
+              match(a.key)
+                .with("legalBasisPublicInterest", () => ({
+                  ...a,
+                  id: expect.any(String),
+                  value: legalBasisPublicInterest.legalBasisPublicInterest[0],
+                }))
+                .with("publicInterestTaskText", () => ({
+                  ...a,
+                  id: expect.any(String),
+                  value:
+                    updatedSingleAnswersWithFreeText.publicInterestTaskText[0],
+                }))
+                .with("legalObligationReference", () => ({
+                  ...a,
+                  id: expect.any(String),
+                  value:
+                    updatedSingleAnswerFreeTextWithSuggestValue
+                      .legalObligationReference[0],
+                }))
+                .otherwise(() => ({ ...a, id: expect.any(String) }))
+            ),
+          {
+            id: expect.any(String),
+            key: "publicInterestTaskText",
+            value: updatedSingleAnswersWithFreeText.publicInterestTaskText[0],
+          },
+        ],
+      },
+      updatedAt: new Date(),
+    });
 
     await expectUpdatedPurpose(
       updatePurpose.data,

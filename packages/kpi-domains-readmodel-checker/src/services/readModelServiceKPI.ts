@@ -239,6 +239,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         PurposeDbTable.purpose_version_stamp
       );
+      const versionSignedDocumentsSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_signed_document
+      );
 
       return aggregatePurposeArray({
         purposesSQL,
@@ -250,6 +254,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       });
     },
 
@@ -274,6 +279,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         AgreementDbTable.agreement_attribute
       );
+      const signedContractsSQL = await getManyFromDb(
+        dbContext,
+        AgreementDbTable.agreement_signed_contract
+      );
 
       return aggregateAgreementArray({
         agreementsSQL,
@@ -281,6 +290,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         consumerDocumentsSQL,
         contractsSQL,
         attributesSQL,
+        signedContractsSQL,
       });
     },
 
@@ -346,10 +356,16 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         DelegationDbTable.delegation_stamp
       );
 
+      const contractSignedDocumentsSQL = await getManyFromDb(
+        dbContext,
+        DelegationDbTable.delegation_signed_contract_document
+      );
+
       return aggregateDelegationsArray({
         delegationsSQL,
         contractDocumentsSQL,
         stampsSQL,
+        contractSignedDocumentsSQL,
       });
     },
 

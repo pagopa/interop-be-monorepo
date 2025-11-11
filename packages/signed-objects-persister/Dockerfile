@@ -14,6 +14,7 @@ COPY .npmrc /app/
 COPY ./packages/signed-objects-persister/package.json /app/packages/signed-objects-persister/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -23,6 +24,7 @@ COPY turbo.json /app/
 COPY ./packages/signed-objects-persister /app/packages/signed-objects-persister
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/api-clients /app/packages/api-clients
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -33,6 +35,7 @@ RUN pnpm build && \
     package*.json packages/signed-objects-persister/package*.json \
     packages/commons \
     packages/models \
+    packages/api-clients \
     packages/signed-objects-persister/dist && \
     find /out -exec touch -h --date=@0 {} \;  
 

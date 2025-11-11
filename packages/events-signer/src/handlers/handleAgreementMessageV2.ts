@@ -83,7 +83,8 @@ export const handleAgreementMessageV2 = async (
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
             "AgreementDeletedByRevokedDelegation",
-            "AgreementContractGenerated"
+            "AgreementContractGenerated",
+            "AgreementSignedContractGenerated"
           ),
         },
         (event) => {

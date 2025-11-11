@@ -47,7 +47,8 @@ export async function handlePurposeMessageV2(
             "PurposeCloned",
             "PurposeVersionArchivedByRevokedDelegation",
             "WaitingForApprovalPurposeVersionDeleted",
-            "RiskAnalysisDocumentGenerated"
+            "RiskAnalysisDocumentGenerated",
+            "RiskAnalysisSignedDocumentGenerated"
           ),
         },
         (msg) => {
@@ -69,6 +70,7 @@ export async function handlePurposeMessageV2(
               versionsSQL: splitResult.versionsSQL,
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
               versionStampsSQL: splitResult.versionStampsSQL,
+              versionSignedDocumentsSQL: splitResult.versionSignedDocumentsSQL,
             } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }

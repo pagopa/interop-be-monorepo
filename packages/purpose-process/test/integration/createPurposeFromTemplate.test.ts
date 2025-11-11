@@ -66,7 +66,7 @@ import {
   addOnePurposeTemplate,
   addOnePurposeTemplateEServiceDescriptor,
   addOneTenant,
-  expectUniqueAswerInRiskAnalysisFormV2,
+  expectUniqueAswerInRiskAnalysisForm,
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
@@ -428,12 +428,12 @@ describe("createPurposeFromTemplate", () => {
       metadata: { version: 0 },
     });
 
-    expectUniqueAswerInRiskAnalysisFormV2(
+    expectUniqueAswerInRiskAnalysisForm(
       writtenPayload.purpose!.riskAnalysisForm!,
       "isRequestOnBehalfOfThirdParties"
     );
 
-    expectUniqueAswerInRiskAnalysisFormV2(
+    expectUniqueAswerInRiskAnalysisForm(
       writtenPayload.purpose!.riskAnalysisForm!,
       "thirdPartiesRequestDataUsage"
     );

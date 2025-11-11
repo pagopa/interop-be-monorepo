@@ -19,6 +19,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
@@ -38,6 +39,7 @@ import {
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   generateRiskAnalysisDocumentErrorMapper,
+  generateRiskAnalysisSignedDocumentErrorMapper,
   getPurposeErrorMapper,
   getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
@@ -743,19 +745,44 @@ const purposeRouter = (
           const { purposeId, versionId } = req.params;
           const riskAnalysisDocument = PurposeVersionDocument.parse(req.body);
 
-          const { metadata } =
-            await purposeService.internalAddUnsignedRiskAnalysisDocumentMetadata(
-              unsafeBrandId(purposeId),
-              unsafeBrandId(versionId),
-              riskAnalysisDocument,
-              ctx
-            );
-          setMetadataVersionHeader(res, metadata);
+          await purposeService.internalAddUnsignedRiskAnalysisDocumentMetadata(
+            unsafeBrandId(purposeId),
+            unsafeBrandId(versionId),
+            riskAnalysisDocument,
+            ctx
+          );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             generateRiskAnalysisDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument/signed",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const { purposeId, versionId } = req.params;
+          const signedRiskAnalysis =
+            apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys(req.body);
+
+          await purposeService.internalAddSignedRiskAnalysisDocumentMetadata(
+            unsafeBrandId(purposeId),
+            unsafeBrandId(versionId),
+            signedRiskAnalysis,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateRiskAnalysisSignedDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -797,7 +824,6 @@ const purposeRouter = (
         }
       }
     );
-
   return purposeRouter;
 };
 export default purposeRouter;

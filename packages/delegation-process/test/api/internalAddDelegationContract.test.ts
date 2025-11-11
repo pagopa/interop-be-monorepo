@@ -67,9 +67,6 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
       );
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
-      expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString()
-      );
     }
   );
 

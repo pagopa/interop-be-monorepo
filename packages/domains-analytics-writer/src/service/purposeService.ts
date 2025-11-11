@@ -25,6 +25,7 @@ import { purposeVersionRepo } from "../repository/purpose/purposeVersion.reposit
 import { purposeVersionDocumentRepo } from "../repository/purpose/purposeVersionDocument.repository.js";
 import { purposeRepo } from "../repository/purpose/purpose.repository.js";
 import { purposeVersionStampRepo } from "../repository/purpose/purposeVersionStamp.repository.js";
+import { purposeVersionSignedDocumentRepo } from "../repository/purpose/purposeVersionSignedDocument.repository.js";
 
 export function purposeServiceBuilder(db: DBContext) {
   const purposeRepository = purposeRepo(db.conn);
@@ -33,6 +34,9 @@ export function purposeServiceBuilder(db: DBContext) {
   const versionStampRepository = purposeVersionStampRepo(db.conn);
   const formRepository = purposeRiskAnalysisFormRepo(db.conn);
   const answerRepository = purposeRiskAnalysisAnswerRepo(db.conn);
+  const signedVersionDocumentRepository = purposeVersionSignedDocumentRepo(
+    db.conn
+  );
 
   return {
     async upsertBatchPurpose(
@@ -56,6 +60,9 @@ export function purposeServiceBuilder(db: DBContext) {
             ),
             riskAnalysisAnswersSQL: batch.flatMap(
               (item) => item.riskAnalysisAnswersSQL ?? []
+            ),
+            versionSignedDocumentsSQL: batch.flatMap(
+              (item) => item.versionSignedDocumentsSQL
             ),
           };
 
@@ -101,6 +108,13 @@ export function purposeServiceBuilder(db: DBContext) {
               batchItems.riskAnalysisAnswersSQL
             );
           }
+          if (batchItems.versionSignedDocumentsSQL.length) {
+            await signedVersionDocumentRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.versionSignedDocumentsSQL
+            );
+          }
           genericLogger.info(
             `Staging data inserted for batch of ${batchItems.purposeSQL.length} purposes`
           );
@@ -112,6 +126,7 @@ export function purposeServiceBuilder(db: DBContext) {
         await versionStampRepository.merge(t);
         await formRepository.merge(t);
         await answerRepository.merge(t);
+        await signedVersionDocumentRepository.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -124,6 +139,7 @@ export function purposeServiceBuilder(db: DBContext) {
             PurposeDbTable.purpose_version,
             PurposeDbTable.purpose_risk_analysis_answer,
             PurposeDbTable.purpose_risk_analysis_form,
+            PurposeDbTable.purpose_version_signed_document,
           ],
           PurposeDbTable.purpose
         );
@@ -139,6 +155,7 @@ export function purposeServiceBuilder(db: DBContext) {
       await versionStampRepository.clean();
       await formRepository.clean();
       await answerRepository.clean();
+      await signedVersionDocumentRepository.clean();
       genericLogger.info(`Staging data cleaned`);
     },
 
@@ -226,6 +243,7 @@ export function purposeServiceBuilder(db: DBContext) {
             PurposeDbTable.purpose_version_stamp,
             PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_risk_analysis_answer,
+            PurposeDbTable.purpose_version_signed_document,
           ],
           DeletingDbTable.purpose_deleting_table
         );

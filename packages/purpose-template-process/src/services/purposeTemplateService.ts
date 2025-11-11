@@ -48,7 +48,6 @@ import {
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
-  riskAnalysisAnswerNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -95,6 +94,7 @@ import {
   assertSuspendableState,
   validateRiskAnalysisAnswerOrThrow,
   assertAnnotationDocumentPrettyNameIsUnique,
+  assertAnswerExistsInRiskAnalysisTemplate,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -136,10 +136,10 @@ function retrieveRiskAnalysisTemplateAnswer(
     return { type: "multi", answer: multiAnswer };
   }
 
-  throw riskAnalysisTemplateAnswerNotFound(
+  throw riskAnalysisTemplateAnswerNotFound({
     purposeTemplateId,
-    unsafeBrandId(answerId)
-  );
+    answerId: unsafeBrandId(answerId),
+  });
 }
 
 function retrieveAnswerAnnotation(
@@ -280,7 +280,10 @@ const updatePurposeTemplateWithoutAnnotation = async (
 
   const updatedAnswer = updatedSingleAnswer || updatedMultiAnswer;
   if (!updatedAnswer) {
-    throw riskAnalysisTemplateAnswerNotFound(purposeTemplate.data.id, answerId);
+    throw riskAnalysisTemplateAnswerNotFound({
+      purposeTemplateId: purposeTemplate.data.id,
+      answerId,
+    });
   }
 
   const annotationDocumentsToRemove = [
@@ -470,7 +473,7 @@ function findAnswerAndAnnotation(
     };
   }
 
-  throw riskAnalysisAnswerNotFound(answerId);
+  throw riskAnalysisTemplateAnswerNotFound({ answerId });
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -568,6 +571,7 @@ export function purposeTemplateServiceBuilder(
       filters: GetPurposeTemplatesFilters,
       { offset, limit }: { offset: number; limit: number },
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<PurposeTemplate>> {
@@ -577,10 +581,14 @@ export function purposeTemplateServiceBuilder(
         )}, limit = ${limit}, offset = ${offset}`
       );
 
-      return await readModelService.getPurposeTemplates(filters, {
-        offset,
-        limit,
-      });
+      return await readModelService.getPurposeTemplates(
+        filters,
+        {
+          offset,
+          limit,
+        },
+        authData
+      );
     },
     async getPurposeTemplateById(
       purposeTemplateId: PurposeTemplateId,
@@ -596,10 +604,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      await assertRequesterCanRetrievePurposeTemplate(
-        purposeTemplate.data,
-        authData
-      );
+      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
 
       return purposeTemplate;
     },
@@ -614,12 +619,20 @@ export function purposeTemplateServiceBuilder(
         documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       },
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       logger.info(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
+      assertAnswerExistsInRiskAnalysisTemplate(purposeTemplate.data, answerId);
 
       return await retrieveAnswerAnnotationDocument(
         purposeTemplateId,
@@ -632,6 +645,7 @@ export function purposeTemplateServiceBuilder(
       filters: GetPurposeTemplateEServiceDescriptorsFilters,
       { offset, limit }: { offset: number; limit: number },
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
@@ -643,7 +657,11 @@ export function purposeTemplateServiceBuilder(
         )}`
       );
 
-      await retrievePurposeTemplate(purposeTemplateId, readModelService);
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
 
       return await readModelService.getPurposeTemplateEServiceDescriptors(
         filters,
@@ -1542,6 +1560,27 @@ export function purposeTemplateServiceBuilder(
           version: event.newVersion,
         },
       };
+    },
+    async getPublishedPurposeTemplateCreators(
+      {
+        creatorName,
+        offset,
+        limit,
+      }: {
+        creatorName: string | undefined;
+        offset: number;
+        limit: number;
+      },
+      { logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<ListResult<purposeTemplateApi.CompactOrganization>> {
+      logger.info(
+        `Retrieving purpose template creators with name ${creatorName}, limit ${limit}, offset ${offset}`
+      );
+      return await readModelService.getPublishedPurposeTemplateCreators({
+        creatorName,
+        limit,
+        offset,
+      });
     },
   };
 }

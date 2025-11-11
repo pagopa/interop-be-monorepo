@@ -1,6 +1,7 @@
 import { DelegationId, unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementDocumentV2,
+  AgreementSignedContractV2,
   AgreementStampV2,
   AgreementStampsV2,
   AgreementStateV2,
@@ -14,6 +15,7 @@ import {
   AgreementState,
   agreementState,
   Agreement,
+  AgreementSignedContract,
 } from "./agreement.js";
 
 export const fromAgreementDocumentV2 = (
@@ -22,6 +24,14 @@ export const fromAgreementDocumentV2 = (
   ...input,
   id: unsafeBrandId(input.id),
   createdAt: bigIntToDate(input.createdAt),
+});
+export const fromAgreementSignedContractV2 = (
+  input: AgreementSignedContractV2
+): AgreementSignedContract => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: bigIntToDate(input.createdAt),
+  signedAt: bigIntToDate(input.signedAt),
 });
 
 export const fromAgreementStampV2 = (
@@ -98,4 +108,7 @@ export const fromAgreementV2 = (input: AgreementV2): Agreement => ({
     ? fromAgreementDocumentV2(input.contract)
     : undefined,
   stamps: fromAgreementStampsV2(input.stamps),
+  signedContract: input.signedContract
+    ? fromAgreementSignedContractV2(input.signedContract)
+    : undefined,
 });

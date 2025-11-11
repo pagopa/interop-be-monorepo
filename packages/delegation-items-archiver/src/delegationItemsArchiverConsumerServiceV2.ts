@@ -88,6 +88,7 @@ export async function handleMessageV2({
       { type: "ConsumerDelegationSubmitted" },
       { type: "ConsumerDelegationRejected" },
       { type: "DelegationContractGenerated" },
+      { type: "DelegationSignedContractGenerated" },
       () => Promise.resolve()
     )
     .exhaustive();

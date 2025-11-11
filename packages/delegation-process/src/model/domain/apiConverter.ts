@@ -3,11 +3,13 @@ import {
   Delegation,
   DelegationContractDocument,
   DelegationKind,
+  DelegationSignedContractDocument,
   DelegationStamp,
   DelegationStamps,
   DelegationState,
   delegationKind,
   delegationState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -136,3 +138,12 @@ export const apiDelegationStateToDelegationState = (
       () => delegationState.waitingForApproval
     )
     .exhaustive();
+
+export const apiDelegationSignedContractToDelegationSignedContract = (
+  input: delegationApi.DelegationSignedContractDocument
+): DelegationSignedContractDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(input.createdAt),
+  signedAt: input.signedAt ? new Date(input.signedAt) : undefined,
+});

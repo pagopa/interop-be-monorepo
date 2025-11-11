@@ -24,6 +24,7 @@ import {
   AgreementConsumerDocumentSchema,
 } from "../model/agreement/agreementConsumerDocument.js";
 import { AgreementContractSchema } from "../model/agreement/agreementContract.js";
+import { agreementSignedContractRepo } from "../repository/agreement/agreementSignedContract.repository.js";
 
 export function agreementServiceBuilder(db: DBContext) {
   const agreementRepository = agreementRepo(db.conn);
@@ -31,6 +32,7 @@ export function agreementServiceBuilder(db: DBContext) {
   const attributeRepository = agreementAttributeRepo(db.conn);
   const docRepository = agreementConsumerDocumentRepo(db.conn);
   const contractRepository = agreementContractRepo(db.conn);
+  const signedContractRepository = agreementSignedContractRepo(db.conn);
 
   return {
     async upsertBatchAgreement(
@@ -49,6 +51,9 @@ export function agreementServiceBuilder(db: DBContext) {
             docs: batch.flatMap((item) => item.consumerDocumentsSQL),
             contracts: batch.flatMap((item) =>
               item.contractSQL ? [item.contractSQL] : []
+            ),
+            signedContracts: batch.flatMap((item) =>
+              item.signedContractSQL ? [item.signedContractSQL] : []
             ),
           };
 
@@ -79,6 +84,13 @@ export function agreementServiceBuilder(db: DBContext) {
               batchItems.contracts
             );
           }
+          if (batchItems.signedContracts.length) {
+            await signedContractRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.signedContracts
+            );
+          }
 
           genericLogger.info(
             `Staging data inserted for agreement batch: ${batchItems.agreements
@@ -92,6 +104,7 @@ export function agreementServiceBuilder(db: DBContext) {
         await attributeRepository.merge(t);
         await docRepository.merge(t);
         await contractRepository.merge(t);
+        await signedContractRepository.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -103,6 +116,7 @@ export function agreementServiceBuilder(db: DBContext) {
             AgreementDbTable.agreement_attribute,
             AgreementDbTable.agreement_consumer_document,
             AgreementDbTable.agreement_contract,
+            AgreementDbTable.agreement_signed_contract,
           ],
           AgreementDbTable.agreement
         );
@@ -117,6 +131,7 @@ export function agreementServiceBuilder(db: DBContext) {
       await attributeRepository.clean();
       await docRepository.clean();
       await contractRepository.clean();
+      await signedContractRepository.clean();
 
       genericLogger.info("Staging data cleaned for agreement");
     },

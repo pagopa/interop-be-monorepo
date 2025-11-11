@@ -165,7 +165,8 @@ export async function handlePurposeMessageV2(
           "PurposeVersionOverQuotaUnsuspended",
           "PurposeArchived",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisDocumentGenerated"
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => Promise.resolve()

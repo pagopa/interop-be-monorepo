@@ -23,7 +23,7 @@ import {
   // hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
-  riskAnalysisAnswerNotFound,
+  riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
@@ -245,7 +245,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  it("should throw riskAnalysisAnswerNotFound if answer is not found", async () => {
+  it("should throw riskAnalysisTemplateAnswerNotFound if answer is not found", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -266,7 +266,9 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           authData: getMockAuthData(mockPurposeTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(riskAnalysisAnswerNotFound(nonExistentAnswerId));
+    ).rejects.toThrowError(
+      riskAnalysisTemplateAnswerNotFound({ answerId: nonExistentAnswerId })
+    );
 
     vi.useRealTimers();
   });

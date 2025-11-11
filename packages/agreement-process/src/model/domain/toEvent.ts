@@ -431,3 +431,21 @@ export function toCreateEventAgreementDocumentGenerated(
     correlationId,
   };
 }
+
+export function toCreateEventAgreementSignedContractGenerated(
+  agreement: WithMetadata<Agreement>,
+  correlationId: CorrelationId
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.data.id,
+    version: agreement.metadata.version,
+    event: {
+      type: "AgreementSignedContractGenerated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement.data),
+      },
+    },
+    correlationId,
+  };
+}

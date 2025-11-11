@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { generateId } from "pagopa-interop-models";
 import {
+  DocumentSignatureReference,
   SignatureReference,
   signatureServiceBuilder,
 } from "pagopa-interop-commons";
@@ -160,6 +161,57 @@ describe("signatureServiceBuilder - Integration Tests", () => {
     expect(Number(item?.ttl?.N)).toBeGreaterThan(Math.floor(Date.now() / 1000));
     expect(item?.logicallyDeleted?.BOOL ?? item?.logicallyDeleted?.N).toBe(
       true
+    );
+  });
+
+  it("should save and retrieve both SignatureReference and DocumentSignatureReference independently", async () => {
+    const signatureService = signatureServiceBuilder(dynamoDBClient, config);
+
+    const sigRefId = generateId();
+    const sigRef: SignatureReference = {
+      safeStorageId: sigRefId,
+      fileKind: "VOUCHER_AUDIT",
+      fileName: "signature.pdf",
+      correlationId: generateId(),
+      creationTimestamp: getUnixTime(new Date()),
+    };
+
+    const docSigRefId = generateId();
+    const docSigRef: DocumentSignatureReference = {
+      safeStorageId: docSigRefId,
+      streamId: generateId(),
+      subObjectId: generateId(),
+      fileKind: "RISK_ANALYSIS_DOCUMENT",
+      fileName: "document.pdf",
+      prettyname: "Pretty Document",
+      contentType: "application/pdf",
+      correlationId: generateId(),
+      version: 2,
+      createdAt: BigInt(12345),
+      creationTimestamp: getUnixTime(new Date()),
+      path: "/some/path/document.pdf", // campo obbligatorio per l'assert
+    };
+
+    await signatureService.saveSignatureReference(sigRef);
+    await signatureService.saveDocumentSignatureReference(docSigRef);
+
+    const retrievedSigRef = await signatureService.readSignatureReference(
+      sigRefId
+    );
+    const retrievedDocSigRef =
+      await signatureService.readDocumentSignatureReference(docSigRefId);
+
+    expect(retrievedSigRef).toBeDefined();
+    expect(retrievedSigRef?.safeStorageId).toBe(sigRef.safeStorageId);
+    expect(retrievedSigRef?.fileName).toBe(sigRef.fileName);
+
+    expect(retrievedDocSigRef).toBeDefined();
+    expect(retrievedDocSigRef?.safeStorageId).toBe(docSigRef.safeStorageId);
+    expect(retrievedDocSigRef?.fileName).toBe(docSigRef.fileName);
+    expect(retrievedDocSigRef?.prettyname).toBe(docSigRef.prettyname);
+
+    expect(retrievedSigRef?.safeStorageId).not.toBe(
+      retrievedDocSigRef?.safeStorageId
     );
   });
 });

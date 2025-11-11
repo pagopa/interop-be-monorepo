@@ -100,10 +100,10 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
       expectedStatus: 500,
     },
     {
-      error: riskAnalysisTemplateAnswerNotFound(
+      error: riskAnalysisTemplateAnswerNotFound({
         purposeTemplateId,
-        serviceResponse.data.id
-      ),
+        answerId: serviceResponse.data.id,
+      }),
       expectedStatus: 404,
     },
     {
