@@ -1,56 +1,37 @@
-import {
-  DescriptorId,
-  descriptorState,
-  EService,
-  EServiceId,
-  PurposeTemplateId,
-  PurposeTemplate,
-  purposeTemplateState,
-  PurposeTemplateState,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateAnswer,
-  RiskAnalysisTemplateAnswerAnnotationDocument,
-  TenantId,
-  TenantKind,
-  RiskAnalysisSingleAnswerId,
-  RiskAnalysisMultiAnswerId,
-  userRole,
-} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
 import {
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
   M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  systemRole,
   UIAuthData,
+  validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
-  validateNoHyperlinks,
-  hasAtLeastOneSystemRole,
-  hasAtLeastOneUserRole,
-  systemRole,
 } from "pagopa-interop-commons";
 import {
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
-  associationEServicesForPurposeTemplateFailed,
-  annotationDocumentLimitExceeded,
-  conflictDocumentPrettyNameDuplicate,
-  conflictDuplicatedDocument,
-  hyperlinkDetectionError,
-  missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
-  purposeTemplateNotInExpectedStates,
-  purposeTemplateRiskAnalysisFormNotFound,
-  purposeTemplateStateConflict,
-  riskAnalysisTemplateValidationFailed,
-  tooManyEServicesForPurposeTemplate,
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
-  disassociationEServicesFromPurposeTemplateFailed,
-  tenantNotAllowed,
-  riskAnalysisTemplateAnswerNotFound,
-} from "../model/domain/errors.js";
+  DescriptorId,
+  descriptorState,
+  EService,
+  EServiceId,
+  PurposeTemplate,
+  PurposeTemplateId,
+  purposeTemplateState,
+  PurposeTemplateState,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  TenantId,
+  TenantKind,
+  userRole,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   eserviceAlreadyAssociatedError,
@@ -71,11 +52,30 @@ import {
   toRiskAnalysisFormTemplateToValidate,
   toRiskAnalysisTemplateAnswerToValidate,
 } from "../model/domain/apiConverter.js";
+import {
+  annotationDocumentLimitExceeded,
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
+  associationEServicesForPurposeTemplateFailed,
+  conflictDocumentPrettyNameDuplicate,
+  conflictDuplicatedDocument,
+  disassociationEServicesFromPurposeTemplateFailed,
+  hyperlinkDetectionError,
+  missingFreeOfChargeReason,
+  purposeTemplateNameConflict,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
+  purposeTemplateStateConflict,
+  riskAnalysisTemplateAnswerNotFound,
+  riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
+  tooManyEServicesForPurposeTemplate,
+} from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
-export const DESCRIPTOR_ALLOWED_STATE_PUBLISH = [
+export const ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING = [
   descriptorState.published,
   descriptorState.draft,
   descriptorState.waitingForApproval,
@@ -602,7 +602,7 @@ export const validateAssociatedEserviceForPublication = async (
   const associatedEservicesWithDescriptorInNotValidState =
     await readModelService.getPurposeTemplateEServiceWithDescriptorState(
       purposeTemplateId,
-      DESCRIPTOR_ALLOWED_STATE_PUBLISH
+      ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING
     );
 
   if (associatedEservicesWithDescriptorInNotValidState.totalCount) {
@@ -611,7 +611,7 @@ export const validateAssociatedEserviceForPublication = async (
         ...errors,
         invalidDescriptorStateError(
           eservice.eserviceId,
-          DESCRIPTOR_ALLOWED_STATE_PUBLISH
+          ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING
         ),
       ],
       [] as PurposeTemplateValidationIssue[]

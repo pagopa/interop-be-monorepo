@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
+  getLatestVersionFormRules,
+  riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
+  validatePurposeTemplateRiskAnalysis,
+} from "pagopa-interop-commons";
+import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockCompleteRiskAnalysisFormTemplate,
@@ -10,30 +15,22 @@ import {
   sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
-  generateId,
-  TenantId,
-  PurposeTemplate,
-  purposeTemplateState,
-  PurposeTemplatePublishedV2,
-  toPurposeTemplateV2,
-  tenantKind,
-  EService,
   descriptorState,
+  EService,
   EServiceId,
+  generateId,
+  PurposeTemplate,
+  PurposeTemplatePublishedV2,
+  purposeTemplateState,
+  TenantId,
+  tenantKind,
+  toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
-  getLatestVersionFormRules,
-  riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
-  validatePurposeTemplateRiskAnalysis,
-} from "pagopa-interop-commons";
-import {
-  addOneEService,
-  addOnePurposeTemplate,
-  addOnePurposeTemplateEServiceDescriptor,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+  invalidDescriptorStateError,
+  unexpectedAssociationEServicePublishError,
+} from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
@@ -41,11 +38,14 @@ import {
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING } from "../../src/services/validators.js";
 import {
-  invalidDescriptorStateError,
-  unexpectedAssociationEServicePublishError,
-} from "../../src/errors/purposeTemplateValidationErrors.js";
-import { DESCRIPTOR_ALLOWED_STATE_PUBLISH } from "../../src/services/validators.js";
+  addOneEService,
+  addOnePurposeTemplate,
+  addOnePurposeTemplateEServiceDescriptor,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("publishPurposeTemplate", () => {
   const creatorId = generateId<TenantId>();
@@ -268,7 +268,7 @@ describe("publishPurposeTemplate", () => {
       unexpectedAssociationEServicePublishError(
         invalidDescriptorStateError(
           invalidStateEService.id,
-          DESCRIPTOR_ALLOWED_STATE_PUBLISH
+          ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING
         ).message
       )
     );
