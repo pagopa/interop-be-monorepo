@@ -37,6 +37,7 @@ import {
   eserviceAlreadyAssociatedError,
   eserviceNotAssociatedError,
   eserviceNotFound,
+  invalidDescriptorStateForPublishingError,
   invalidDescriptorStateError,
   invalidPurposeTemplateResult,
   missingDescriptorError,
@@ -609,8 +610,8 @@ export const validateAssociatedEserviceForPublication = async (
     return associatedEservicesWithDescriptorInNotValidState.results.reduce(
       (errors, eservice) => [
         ...errors,
-        invalidDescriptorStateError(
-          eservice.eserviceId,
+        invalidDescriptorStateForPublishingError(
+          eservice,
           ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING
         ),
       ],

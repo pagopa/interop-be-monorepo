@@ -29,9 +29,10 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   invalidDescriptorStateError,
-  unexpectedAssociationEServicePublishError,
+  invalidDescriptorStateForPublishingError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
+  invalidAssociatedEServiceForPublishError,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
@@ -265,12 +266,17 @@ describe("publishPurposeTemplate", () => {
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
     }).rejects.toThrowError(
-      unexpectedAssociationEServicePublishError(
-        invalidDescriptorStateError(
-          invalidStateEService.id,
+      invalidAssociatedEServiceForPublishError([
+        invalidDescriptorStateForPublishingError(
+          {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: invalidStateEService.id,
+            descriptorId: invalidStateEService.descriptors[0].id,
+            createdAt: expect.any(Date),
+          },
           ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING
-        ).message
-      )
+        ),
+      ])
     );
   });
 });

@@ -1,5 +1,7 @@
 import {
+  DescriptorState,
   EService,
+  EServiceDescriptorPurposeTemplate,
   EServiceId,
   InternalError,
   PurposeTemplate,
@@ -15,7 +17,8 @@ type PurposeTemplateValidationIssueCode =
   | "missingDescriptor"
   | "invalidDescriptorState"
   | "unexpectedUnassociationEServiceError"
-  | "purposeTemplateEServicePersonalDataFlagMismatch";
+  | "purposeTemplateEServicePersonalDataFlagMismatch"
+  | "invalidDescriptorStateForPublishingError";
 
 export class PurposeTemplateValidationIssue extends InternalError<PurposeTemplateValidationIssueCode> {
   constructor({
@@ -120,6 +123,22 @@ export function invalidDescriptorStateError(
     detail: `EService ${eserviceId} has no valid descriptors. Expected ${expectedStates.join(
       ", "
     )}.`,
+  });
+}
+
+export function invalidDescriptorStateForPublishingError(
+  eserviceDecriptorPurposeTemplate: EServiceDescriptorPurposeTemplate,
+  expectedStates: DescriptorState[]
+): PurposeTemplateValidationIssue {
+  return new PurposeTemplateValidationIssue({
+    code: "invalidDescriptorStateForPublishingError",
+    detail: `Descriptor ${
+      eserviceDecriptorPurposeTemplate.descriptorId
+    } of e-service ${
+      eserviceDecriptorPurposeTemplate.eserviceId
+    } is not valid for association with the purpose template ${
+      eserviceDecriptorPurposeTemplate.purposeTemplateId
+    }. Expected states: ${expectedStates.join(", ")}.`,
   });
 }
 
