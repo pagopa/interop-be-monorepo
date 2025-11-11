@@ -5,15 +5,15 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/events/attributes/
+  url: {{host-m2m-gw}}/events/attributes/?limit=10
   body: none
   auth: none
 }
 
-headers {
-  Authorization: {{JWT-M2M}}
+params:query {
+  limit: 10
 }
 
-docs {
-  Retrieves a certified attribute by its ID.
+headers {
+  Authorization: {{JWT-M2M}}
 }

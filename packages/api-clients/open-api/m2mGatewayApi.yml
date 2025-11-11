@@ -16183,7 +16183,7 @@ paths:
       operationId: getAttributesEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
-        - $ref: "#/components/parameters/eventsLimit"
+        - $ref: "#/components/parameters/EventsLimit"
       responses:
         "200":
           description: Attribute events retrieved
@@ -16262,7 +16262,7 @@ components:
       schema:
         type: string
         format: uuid
-    eventsLimit:
+    EventsLimit:
       in: query
       name: limit
       required: true
