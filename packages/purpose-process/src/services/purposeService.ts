@@ -196,6 +196,24 @@ const retrievePurposeVersionDocument = (
   return document;
 };
 
+const retrievePurposeVersionSignedDocument = (
+  purposeId: PurposeId,
+  purposeVersion: PurposeVersion,
+  documentId: PurposeVersionDocumentId
+): PurposeVersionSignedDocument => {
+  const document = purposeVersion.signedContract;
+
+  if (document === undefined || document.id !== documentId) {
+    throw purposeVersionDocumentNotFound(
+      purposeId,
+      purposeVersion.id,
+      documentId
+    );
+  }
+
+  return document;
+};
+
 const retrieveEService = async (
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
@@ -1930,6 +1948,42 @@ export function purposeServiceBuilder(
         data: updatedPurpose,
         metadata: { version: createdEvent.newVersion },
       };
+    },
+    async getRiskAnalysisSignedDocument({
+      purposeId,
+      versionId,
+      documentId,
+      ctx: { authData, logger },
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      documentId: PurposeVersionDocumentId;
+      ctx: WithLogger<AppContext<UIAuthData>>;
+    }): Promise<PurposeVersionDocument> {
+      logger.info(
+        `Retrieving Risk Analysis signed document ${documentId} in version ${versionId} of Purpose ${purposeId}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      await assertRequesterCanRetrievePurpose(
+        purpose.data,
+        eservice,
+        authData,
+        readModelService
+      );
+
+      const version = retrievePurposeVersion(versionId, purpose);
+
+      return retrievePurposeVersionSignedDocument(
+        purposeId,
+        version,
+        documentId
+      );
     },
   };
 }
