@@ -13,6 +13,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("getPurposeTemplateEServiceDescriptors", () => {
   const mockParams: m2mGatewayApi.GetPurposeTemplateEServicesQueryParams = {
@@ -32,7 +33,6 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
       },
     })
   );
-
   mockInteropBeClients.catalogProcessClient = {
     getEServices: mockGetEServices,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
@@ -47,7 +47,6 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
       ...getMockedApiEServiceDescriptorPurposeTemplate(),
       eserviceId: mockApiEService2.id,
     };
-
   const mockApiPurposeTemplateEServiceDescriptors = [
     mockApiPurposeTemplateEServiceDescriptor1,
     mockApiPurposeTemplateEServiceDescriptor2,
@@ -62,16 +61,16 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
       metadata: undefined,
     };
 
-  const mockGetPurposeTemplateEServiceDescriptors = vi
+  const mockGetPurposeTemplateEServices = vi
     .fn()
     .mockResolvedValue(mockPurposeTemplateEServiceDescriptorsProcessResponse);
 
   mockInteropBeClients.purposeTemplateProcessClient = {
-    getPurposeTemplateEServices: mockGetPurposeTemplateEServiceDescriptors,
+    getPurposeTemplateEServices: mockGetPurposeTemplateEServices,
   } as unknown as PagoPAInteropBeClients["purposeTemplateProcessClient"];
 
   beforeEach(() => {
-    mockGetPurposeTemplateEServiceDescriptors.mockClear();
+    mockGetPurposeTemplateEServices.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -83,7 +82,9 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
         totalCount:
           mockPurposeTemplateEServiceDescriptorsProcessResponse.data.totalCount,
       },
-      results: [mockApiEService1, mockApiEService2],
+      results: [mockApiEService1, mockApiEService2].map(
+        toM2MGatewayApiEService
+      ),
     };
 
     const result = await purposeTemplateService.getPurposeTemplateEServices(
