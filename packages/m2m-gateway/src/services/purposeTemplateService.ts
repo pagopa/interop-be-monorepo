@@ -2,8 +2,6 @@ import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -87,20 +85,18 @@ export function purposeTemplateServiceBuilder(
     },
     async downloadRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
       documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<DownloadedDocument> {
       logger.info(
-        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}`
       );
 
       const { data: document } =
-        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnswerAnnotationDocument(
+        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnnotationDocument(
           {
             params: {
               purposeTemplateId,
-              answerId,
               documentId,
             },
             headers,

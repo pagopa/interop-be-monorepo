@@ -17,12 +17,11 @@ describe("GET /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerI
   const makeRequest = async (
     token: string,
     purposeTemplateId: string = generateId(),
-    answerId: string = generateId(),
     documentId: string = generateId()
   ) =>
     request(api)
       .get(
-        `${appBasePath}/purposeTemplates/${purposeTemplateId}/riskAnalysis/answers/${answerId}/annotation/documents/${documentId}`
+        `${appBasePath}/purposeTemplates/${purposeTemplateId}/riskAnalysis/annotationDocuments/${documentId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .buffer(true)
@@ -48,29 +47,17 @@ describe("GET /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerI
   it.each([
     {
       purposeTemplateId: "invalid-id",
-      answerId: generateId(),
       documentId: generateId(),
     },
     {
       purposeTemplateId: generateId(),
-      answerId: "invalid-id",
-      documentId: generateId(),
-    },
-    {
-      purposeTemplateId: generateId(),
-      answerId: generateId(),
       documentId: "invalid-id",
     },
   ])(
     "Should return 400 if invalid parameters are passed: %s",
-    async ({ purposeTemplateId, answerId, documentId }) => {
+    async ({ purposeTemplateId, documentId }) => {
       const token = generateToken(authRole.M2M_ROLE);
-      const res = await makeRequest(
-        token,
-        purposeTemplateId,
-        answerId,
-        documentId
-      );
+      const res = await makeRequest(token, purposeTemplateId, documentId);
       expect(res.status).toBe(400);
     }
   );

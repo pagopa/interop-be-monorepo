@@ -16372,18 +16372,11 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments/{documentId}:
     parameters:
       - name: purposeTemplateId
         in: path
         description: The Purpose Template ID
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: answerId
-        in: path
-        description: The Answer ID of the Risk Analysis Template
         required: true
         schema:
           type: string

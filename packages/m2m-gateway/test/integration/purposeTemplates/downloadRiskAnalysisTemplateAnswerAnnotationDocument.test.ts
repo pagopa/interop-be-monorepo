@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   generateId,
   PurposeTemplateId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
 import {
@@ -25,7 +24,6 @@ describe("downloadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     "This is a mock file content for testing purposes.\nOn multiple lines.";
 
   const mockPurposeTemplateId = generateId<PurposeTemplateId>();
-  const mockAnswerId = generateId<RiskAnalysisSingleAnswerId>();
   const mockDocumentId =
     generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>();
   const mockDocumentName = "doc.pdf";
@@ -37,18 +35,18 @@ describe("downloadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     }
   );
   const mockPurposeTemplateProcessResponse = getMockWithMetadata(mockDocument);
-  const mockGetRiskAnalysisTemplateAnswerAnnotationDocument = vi
+  const mockGetRiskAnalysisTemplateAnnotationDocument = vi
     .fn()
     .mockResolvedValue(mockPurposeTemplateProcessResponse);
 
   mockInteropBeClients.purposeTemplateProcessClient = {
-    getRiskAnalysisTemplateAnswerAnnotationDocument:
-      mockGetRiskAnalysisTemplateAnswerAnnotationDocument,
+    getRiskAnalysisTemplateAnnotationDocument:
+      mockGetRiskAnalysisTemplateAnnotationDocument,
   } as unknown as PagoPAInteropBeClients["purposeTemplateProcessClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockGetRiskAnalysisTemplateAnswerAnnotationDocument.mockClear();
+    mockGetRiskAnalysisTemplateAnnotationDocument.mockClear();
   });
 
   it("Should succeed, perform API clients calls, and retrieve the file", async () => {
@@ -75,7 +73,6 @@ describe("downloadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     const result =
       await purposeTemplateService.downloadRiskAnalysisTemplateAnswerAnnotationDocument(
         mockPurposeTemplateId,
-        mockAnswerId,
         mockDocumentId,
         getMockM2MAdminAppContext()
       );
@@ -91,10 +88,9 @@ describe("downloadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient
-          .getRiskAnalysisTemplateAnswerAnnotationDocument,
+          .getRiskAnalysisTemplateAnnotationDocument,
       params: {
         purposeTemplateId: mockPurposeTemplateId,
-        answerId: mockAnswerId,
         documentId: mockDocumentId,
       },
     });
