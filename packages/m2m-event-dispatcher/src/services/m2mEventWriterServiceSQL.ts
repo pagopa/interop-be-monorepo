@@ -112,7 +112,10 @@ export function m2mEventWriterServiceSQLBuilder(
       await insertIfResourceVersionNotPresent(
         event,
         eserviceTemplateInM2MEvent,
-        eq(eserviceTemplateInM2MEvent.id, event.eserviceTemplateId)
+        eq(
+          eserviceTemplateInM2MEvent.eserviceTemplateId,
+          event.eserviceTemplateId
+        )
       );
     },
     async insertClientM2MEvent(): Promise<void> {
