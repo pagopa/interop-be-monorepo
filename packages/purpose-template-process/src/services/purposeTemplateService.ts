@@ -23,7 +23,6 @@ import {
   unsafeBrandId,
   EService,
   DescriptorId,
-  descriptorState,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -69,6 +68,7 @@ import {
   cleanupAnnotationDocsForRemovedAnswers,
   deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
 } from "../utilities/riskAnalysisDocUtils.js";
+import { unexpectedAssociationEServicePublishError } from "../errors/purposeTemplateValidationErrors.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
@@ -96,10 +96,8 @@ import {
   validateRiskAnalysisAnswerOrThrow,
   assertAnnotationDocumentPrettyNameIsUnique,
   assertAnswerExistsInRiskAnalysisTemplate,
-  validateEServiceForPublish,
   validateAssociatedEserviceForPublish,
 } from "./validators.js";
-import { unexpectedAssociationEServicePublishError } from "../errors/purposeTemplateValidationErrors.js";
 
 async function retrievePurposeTemplate(
   id: PurposeTemplateId,
