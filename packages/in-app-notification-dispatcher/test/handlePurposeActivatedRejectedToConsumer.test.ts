@@ -16,8 +16,8 @@ import {
   toPurposeV2,
   purposeVersionState,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { match } from "ts-pattern";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handlePurposeActivatedRejectedToConsumer } from "../src/handlers/purposes/handlePurposeActivatedRejectedToConsumer.js";
 import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
