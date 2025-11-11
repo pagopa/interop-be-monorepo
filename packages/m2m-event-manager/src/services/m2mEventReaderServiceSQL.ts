@@ -2,6 +2,7 @@ import {
   agreementInM2MEvent,
   attributeInM2MEvent,
   eserviceInM2MEvent,
+  purposeInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -11,6 +12,8 @@ import {
   AttributeM2MEventId,
   EServiceM2MEvent,
   EServiceM2MEventId,
+  PurposeM2MEvent,
+  PurposeM2MEventId,
   TenantId,
   m2mEventVisibility,
 } from "pagopa-interop-models";
@@ -24,6 +27,7 @@ import { fromAttributeM2MEventSQL } from "../model/attributeM2MEventAdapterSQL.j
 import { fromEServiceM2MEventSQL } from "../model/eserviceM2MEventAdapterSQL.js";
 import { fromAgreementM2MEventSQL } from "../model/agreementM2MEventAdapterSQL.js";
 import { DelegationIdParam } from "../model/types.js";
+import { fromPurposeM2MEventSQL } from "../model/purposeM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -125,6 +129,44 @@ export function m2mEventReaderServiceSQLBuilder(
         .limit(limit);
 
       return sqlEvents.map(fromAgreementM2MEventSQL);
+    },
+
+    async getPurposeM2MEvents(
+      lastEventId: PurposeM2MEventId | undefined,
+      limit: number,
+      delegationId: DelegationIdParam,
+      requester: TenantId
+    ): Promise<PurposeM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(purposeInM2MEvent)
+        .where(
+          and(
+            afterEventIdFilter(purposeInM2MEvent, lastEventId),
+            visibilityFilter(purposeInM2MEvent, {
+              ownerFilter: or(
+                eq(purposeInM2MEvent.consumerId, requester),
+                eq(purposeInM2MEvent.consumerDelegateId, requester)
+              ),
+              restrictedFilter: or(
+                eq(purposeInM2MEvent.consumerId, requester),
+                eq(purposeInM2MEvent.consumerDelegateId, requester),
+                eq(purposeInM2MEvent.producerId, requester),
+                eq(purposeInM2MEvent.producerDelegateId, requester)
+              ),
+            }),
+            delegationIdFilter(purposeInM2MEvent, delegationId, {
+              nullFilter: or(
+                eq(purposeInM2MEvent.producerId, requester),
+                eq(purposeInM2MEvent.consumerId, requester)
+              ),
+            })
+          )
+        )
+        .orderBy(asc(purposeInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromPurposeM2MEventSQL);
     },
   };
 }

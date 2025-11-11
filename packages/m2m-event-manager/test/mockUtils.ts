@@ -11,6 +11,9 @@ import {
   EServiceId,
   EServiceM2MEvent,
   EServiceM2MEventId,
+  PurposeId,
+  PurposeM2MEvent,
+  PurposeM2MEventId,
   TenantId,
   generateId,
   unsafeBrandId,
@@ -19,7 +22,11 @@ import {
 import { v7 as uuidv7 } from "uuid";
 
 export function generateM2MEventId<
-  ID extends AttributeM2MEventId | EServiceM2MEventId | AgreementM2MEventId
+  ID extends
+    | AttributeM2MEventId
+    | EServiceM2MEventId
+    | AgreementM2MEventId
+    | PurposeM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
@@ -88,6 +95,41 @@ export function getMockedAgreementM2MEvent({
     eventTimestamp: new Date(),
     resourceVersion: randomInt(1, 1000),
     agreementId: generateId<AgreementId>(),
+    visibility,
+    consumerId: consumerId ?? generateId<TenantId>(),
+    consumerDelegateId: consumerDelegateId ?? generateId<TenantId>(),
+    consumerDelegationId: consumerDelegationId ?? generateId<DelegationId>(),
+    producerId: producerId ?? generateId<TenantId>(),
+    producerDelegateId: producerDelegateId ?? generateId<TenantId>(),
+    producerDelegationId: producerDelegationId ?? generateId<DelegationId>(),
+  };
+}
+
+export function getMockedPurposeM2MEvent({
+  eventType,
+  visibility,
+  consumerId,
+  producerId,
+  consumerDelegateId,
+  consumerDelegationId,
+  producerDelegateId,
+  producerDelegationId,
+}: {
+  eventType: PurposeM2MEvent["eventType"];
+  visibility: PurposeM2MEvent["visibility"];
+  consumerId?: TenantId;
+  consumerDelegateId?: TenantId;
+  consumerDelegationId?: DelegationId;
+  producerId?: TenantId;
+  producerDelegateId?: TenantId;
+  producerDelegationId?: DelegationId;
+}): PurposeM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    purposeId: generateId<PurposeId>(),
     visibility,
     consumerId: consumerId ?? generateId<TenantId>(),
     consumerDelegateId: consumerDelegateId ?? generateId<TenantId>(),
