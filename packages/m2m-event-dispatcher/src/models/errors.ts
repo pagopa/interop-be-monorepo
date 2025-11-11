@@ -1,6 +1,13 @@
-import { DescriptorId, EServiceId, InternalError } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceId,
+  InternalError,
+  PurposeId,
+} from "pagopa-interop-models";
 
-type M2MEventDispatcherErrorCode = "descriptorNotFoundInEService";
+type M2MEventDispatcherErrorCode =
+  | "descriptorNotFoundInEService"
+  | "purposeEServiceNotFound";
 
 export class M2MEventDispatcherError extends InternalError<M2MEventDispatcherErrorCode> {
   constructor({
@@ -21,5 +28,14 @@ export function descriptorNotFoundInEService(
   return new M2MEventDispatcherError({
     detail: `Descriptor ${descriptorId} not found in E-Service ${eserviceId}`,
     code: "descriptorNotFoundInEService",
+  });
+}
+export function purposeEServiceNotFound(
+  eserviceId: EServiceId,
+  purposeId: PurposeId
+): M2MEventDispatcherError {
+  return new M2MEventDispatcherError({
+    detail: `EService ${eserviceId} Purpose ${purposeId} not found`,
+    code: "purposeEServiceNotFound",
   });
 }

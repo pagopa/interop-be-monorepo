@@ -24,98 +24,106 @@ export async function handleEServiceEvent(
   assertEServiceExistsInEvent(decodedMessage);
   const eservice = fromEServiceV2(decodedMessage.data.eservice);
 
-  return match(decodedMessage)
-    .with(
-      {
-        type: P.union(
-          "EServiceAdded",
-          "DraftEServiceUpdated",
-          "EServiceCloned",
-          "EServiceDeleted",
-          "EServiceNameUpdated",
-          "EServiceDescriptionUpdated",
-          "EServiceIsConsumerDelegableEnabled",
-          "EServiceIsConsumerDelegableDisabled",
-          "EServiceIsClientAccessDelegableEnabled",
-          "EServiceIsClientAccessDelegableDisabled",
-          "EServiceNameUpdatedByTemplateUpdate",
-          "EServiceDescriptionUpdatedByTemplateUpdate",
-          "EServiceSignalHubEnabled",
-          "EServiceSignalHubDisabled",
-          "EServiceRiskAnalysisAdded",
-          "EServiceRiskAnalysisUpdated",
-          "EServiceRiskAnalysisDeleted",
-          "EServicePersonalDataFlagUpdatedAfterPublication",
-          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
-        ),
-      },
-      async (event) => {
-        logger.info(
-          `Creating EService M2M Event - type ${event.type}, eserviceId ${eservice.id}`
-        );
-        const m2mEvent = await createEServiceM2MEvent(
-          eservice,
-          event.version,
-          event.type,
-          eventTimestamp,
-          await readModelService.getActiveProducerDelegationForEService(
-            eservice
-          )
-        );
+  return (
+    match(decodedMessage)
+      /**
+       * Handling events related to the main E-Service resource (no descriptorId).
+       */
+      .with(
+        {
+          type: P.union(
+            "EServiceAdded",
+            "DraftEServiceUpdated",
+            "EServiceCloned",
+            "EServiceDeleted",
+            "EServiceNameUpdated",
+            "EServiceDescriptionUpdated",
+            "EServiceIsConsumerDelegableEnabled",
+            "EServiceIsConsumerDelegableDisabled",
+            "EServiceIsClientAccessDelegableEnabled",
+            "EServiceIsClientAccessDelegableDisabled",
+            "EServiceNameUpdatedByTemplateUpdate",
+            "EServiceDescriptionUpdatedByTemplateUpdate",
+            "EServiceSignalHubEnabled",
+            "EServiceSignalHubDisabled",
+            "EServiceRiskAnalysisAdded",
+            "EServiceRiskAnalysisUpdated",
+            "EServiceRiskAnalysisDeleted",
+            "EServicePersonalDataFlagUpdatedAfterPublication",
+            "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+          ),
+        },
+        async (event) => {
+          logger.info(
+            `Creating EService M2M Event - type ${event.type}, eserviceId ${eservice.id}`
+          );
+          const m2mEvent = await createEServiceM2MEvent(
+            eservice,
+            event.version,
+            event.type,
+            eventTimestamp,
+            await readModelService.getActiveProducerDelegationForEService(
+              eservice
+            )
+          );
 
-        await m2mEventWriterService.insertEServiceM2MEvent(
-          toEServiceM2MEventSQL(m2mEvent)
-        );
-      }
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorPublished",
-          "EServiceDescriptorActivated",
-          "EServiceDescriptorApprovedByDelegator",
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorArchived",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorAgreementApprovalPolicyUpdated",
-          "EServiceDescriptorAdded",
-          "EServiceDraftDescriptorDeleted",
-          "EServiceDraftDescriptorUpdated",
-          "EServiceDescriptorAttributesUpdated",
-          "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator",
-          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
-          "EServiceDescriptorInterfaceDeleted"
-        ),
-      },
-      async (event) => {
-        logger.info(
-          `Creating EService M2M Event - type ${event.type}, eserviceId ${eservice.id}, descriptorId ${event.data.descriptorId}`
-        );
-        const m2mEvent = await createEServiceDescriptorM2MEvent(
-          eservice,
-          unsafeBrandId(event.data.descriptorId),
-          event.version,
-          event.type,
-          eventTimestamp,
-          await readModelService.getActiveProducerDelegationForEService(
-            eservice
-          )
-        );
+          await m2mEventWriterService.insertEServiceM2MEvent(
+            toEServiceM2MEventSQL(m2mEvent)
+          );
+        }
+      )
+      /**
+       * Handling events related to the EService Descriptors (with descriptorId).
+       */
+      .with(
+        {
+          type: P.union(
+            "EServiceDescriptorPublished",
+            "EServiceDescriptorActivated",
+            "EServiceDescriptorApprovedByDelegator",
+            "EServiceDescriptorSuspended",
+            "EServiceDescriptorArchived",
+            "EServiceDescriptorQuotasUpdated",
+            "EServiceDescriptorAgreementApprovalPolicyUpdated",
+            "EServiceDescriptorAdded",
+            "EServiceDraftDescriptorDeleted",
+            "EServiceDraftDescriptorUpdated",
+            "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorSubmittedByDelegate",
+            "EServiceDescriptorRejectedByDelegator",
+            "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+            "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+            "EServiceDescriptorDocumentAdded",
+            "EServiceDescriptorDocumentUpdated",
+            "EServiceDescriptorDocumentDeleted",
+            "EServiceDescriptorDocumentAddedByTemplateUpdate",
+            "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+            "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+            "EServiceDescriptorInterfaceAdded",
+            "EServiceDescriptorInterfaceUpdated",
+            "EServiceDescriptorInterfaceDeleted"
+          ),
+        },
+        async (event) => {
+          logger.info(
+            `Creating EService M2M Event - type ${event.type}, eserviceId ${eservice.id}, descriptorId ${event.data.descriptorId}`
+          );
+          const m2mEvent = await createEServiceDescriptorM2MEvent(
+            eservice,
+            unsafeBrandId(event.data.descriptorId),
+            event.version,
+            event.type,
+            eventTimestamp,
+            await readModelService.getActiveProducerDelegationForEService(
+              eservice
+            )
+          );
 
-        await m2mEventWriterService.insertEServiceM2MEvent(
-          toEServiceM2MEventSQL(m2mEvent)
-        );
-      }
-    )
-    .exhaustive();
+          await m2mEventWriterService.insertEServiceM2MEvent(
+            toEServiceM2MEventSQL(m2mEvent)
+          );
+        }
+      )
+      .exhaustive()
+  );
 }

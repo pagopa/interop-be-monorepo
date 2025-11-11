@@ -140,6 +140,7 @@ export async function retrieveAllPurposeM2MEvents(): Promise<
   return sqlEvents.map((e) =>
     PurposeM2MEvent.parse({
       ...e,
+      purposeVersionId: e.purposeVersionId ?? undefined,
       consumerDelegationId: e.consumerDelegationId ?? undefined,
       consumerDelegateId: e.consumerDelegateId ?? undefined,
       producerDelegationId: e.producerDelegationId ?? undefined,
