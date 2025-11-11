@@ -11,6 +11,7 @@ import {
   toPurposeTemplateV2,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisMultiAnswerId,
+  RiskAnalysisTemplateDocumentId,
 } from "pagopa-interop-models";
 
 export function toCreateEventPurposeTemplateAdded(
@@ -255,6 +256,27 @@ export function toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated(
         purposeTemplate: toPurposeTemplateV2(purposeTemplate),
         documentId,
         answerId,
+      },
+    },
+  };
+}
+
+export function toCreateEventRiskAnalysisTemplateDocumentAdded(
+  purposeTemplate: PurposeTemplate,
+  documentId: RiskAnalysisTemplateDocumentId,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "RiskAnalysisTemplateDocumentAdded",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        documentId,
       },
     },
   };

@@ -1160,6 +1160,56 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: The purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an unsigned Risk Analysis Template document to the purpose template Risk Analysis Form
+      summary: Add unsigned Risk Analysis Template document metadata to purpose template
+      tags:
+        - purposeTemplate
+      operationId: internalAddUnsignedRiskAnalysisTemplateDocumentMetadata
+      requestBody:
+        description: The unsigned Risk Analysis Template document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateDocument"
+      responses:
+        "204":
+          description: Risk Analysis Template metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:
@@ -1536,6 +1586,31 @@ components:
         - prettyName
         - path
         - checksum
+        - createdAt
+    RiskAnalysisTemplateDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - path
         - createdAt
     RiskAnalysisTemplateAnswerRequest:
       type: object

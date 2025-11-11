@@ -16,6 +16,7 @@ import {
   EServiceId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateDocument,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -41,6 +42,7 @@ import {
   createRiskAnalysisAnswerErrorMapper,
   getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+  addRiskAnalysisTemplateDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
@@ -70,6 +72,7 @@ const purposeTemplateRouter = (
     M2M_ROLE,
     SECURITY_ROLE,
     SUPPORT_ROLE,
+    INTERNAL_ROLE,
   } = authRole;
 
   purposeTemplateRouter
@@ -774,6 +777,32 @@ const purposeTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/purposeTemplates/:purposeTemplateId/riskAnalysisDocument",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const { purposeTemplateId } = req.params;
+          const riskAnalysisTemplateDocument =
+            RiskAnalysisTemplateDocument.parse(req.body);
+
+          await purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata(
+            unsafeBrandId(purposeTemplateId),
+            riskAnalysisTemplateDocument,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addRiskAnalysisTemplateDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
