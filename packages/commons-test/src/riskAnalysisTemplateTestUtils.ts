@@ -482,6 +482,7 @@ export const getMockRiskAnalysisTemplateDocument = (
   contentType: "application/pdf",
   createdAt: new Date(),
 });
+
 export const getMockRiskAnalysisTemplateSignedDocument = (
   id: RiskAnalysisTemplateDocumentId = generateId(),
   purposeTemplateId: PurposeTemplateId = generateId(),
