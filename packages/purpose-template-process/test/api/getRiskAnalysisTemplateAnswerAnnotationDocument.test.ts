@@ -105,7 +105,7 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
       error: riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         generateId(),
         generateId(),
-        generateId()
+        generateId<RiskAnalysisSingleAnswerId>()
       ),
       expectedStatus: 404,
     },

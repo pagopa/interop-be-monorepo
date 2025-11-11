@@ -171,8 +171,8 @@ async function retrieveAnswerAnnotationDocument(
   if (!annotationDocument) {
     throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
       purposeTemplateId,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
   }
 
@@ -427,8 +427,8 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
   if (!removedAnnotationDocument) {
     throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
       purposeTemplate.data.id,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
   }
 

@@ -167,11 +167,13 @@ export function riskAnalysisTemplateAnswerAnnotationNotFound(
 
 export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   purposeTemplateId: PurposeTemplateId,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
+    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId}${
+      answerId ? ` and answer ${answerId}` : ""
+    }`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
   });

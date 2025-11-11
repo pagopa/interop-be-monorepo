@@ -113,8 +113,8 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     {
       error: riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplateId,
-        answer.id,
-        annotationDocument.id
+        annotationDocument.id,
+        answer.id
       ),
       expectedStatus: 404,
     },
