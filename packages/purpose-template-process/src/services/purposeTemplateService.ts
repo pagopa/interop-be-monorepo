@@ -1619,10 +1619,8 @@ async function activatePurposeTemplate({
     );
 
   if (eserviceStateValidationIssues.length > 0) {
-    unexpectedAssociationEServicePublishError(
-      eserviceStateValidationIssues
-        .map((issue) => `${issue.code}: ${issue.detail}`)
-        .join("; ")
+    throw unexpectedAssociationEServicePublishError(
+      eserviceStateValidationIssues.map((issue) => issue.message).join(";")
     );
   }
   validateRiskAnalysisTemplateOrThrow({

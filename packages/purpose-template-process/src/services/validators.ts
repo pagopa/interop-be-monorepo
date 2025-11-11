@@ -15,8 +15,6 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisMultiAnswerId,
   userRole,
-  Descriptor,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -76,6 +74,13 @@ import {
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
+
+export const DESCRIPTOR_ALLOWED_STATE_PUBLISH = [
+  descriptorState.published,
+  descriptorState.draft,
+  descriptorState.waitingForApproval,
+  descriptorState.deprecated,
+];
 
 const isRequesterCreator = (
   creatorId: TenantId,
@@ -609,19 +614,17 @@ export const validateAssociatedEserviceForPublish = async (
   const associatedEservicesWithDescriptorInNotValidState =
     await readModelService.getPurposeTemplateEServiceWithDescriptorState(
       purposeTemplateId,
-      [descriptorState.suspended, descriptorState.archived]
+      DESCRIPTOR_ALLOWED_STATE_PUBLISH
     );
 
   if (associatedEservicesWithDescriptorInNotValidState.totalCount) {
     return associatedEservicesWithDescriptorInNotValidState.results.reduce(
       (errors, eservice) => [
         ...errors,
-        invalidDescriptorStateError(eservice.eserviceId, [
-          descriptorState.published,
-          descriptorState.draft,
-          descriptorState.waitingForApproval,
-          descriptorState.deprecated,
-        ]),
+        invalidDescriptorStateError(
+          eservice.eserviceId,
+          DESCRIPTOR_ALLOWED_STATE_PUBLISH
+        ),
       ],
       [] as PurposeTemplateValidationIssue[]
     );
