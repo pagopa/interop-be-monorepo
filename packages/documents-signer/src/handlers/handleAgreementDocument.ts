@@ -38,7 +38,7 @@ export async function handleAgreementDocument(
         const checksum = await calculateSha256Base64(Buffer.from(file));
 
         const safeStorageRequest: FileCreationRequest = {
-          contentType: "application/gzip",
+          contentType: "application/pdf",
           documentType: config.safeStorageDocType,
           status: config.safeStorageDocStatus,
           checksumValue: checksum,
