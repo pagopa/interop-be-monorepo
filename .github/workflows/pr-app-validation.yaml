@@ -176,6 +176,9 @@ jobs:
           LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "$SHARD_LINT_NUM")
           LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)
           echo "Lint Matrix Length: $(echo "$LINT_MATRIX" | jq 'length')"
+          echo "::group::Shards created for linting"
+          echo "$LINT_MATRIX" | jq .
+          echo "::endgroup::"
           echo "lint_matrix=$LINT_MATRIX" >> $GITHUB_OUTPUT
 
   build:
