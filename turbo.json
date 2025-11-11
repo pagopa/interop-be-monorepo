@@ -24,7 +24,7 @@
       "outputs": ["dist/**"]
     },
     "check": {
-      "dependsOn": ["generate-model", "generate-protobuf", "^build", "^check"],
+      "dependsOn": ["build"],
       "outputs": ["dist/**"]
     },
     "generate-model": {
@@ -36,16 +36,16 @@
       "outputs": ["src/gen/**"]
     },
     "test": {
-      "dependsOn": ["build", "^test", "test:integration", "test:api"]
+      "dependsOn": []
     },
     "test:integration": {
-      "dependsOn": ["build", "^test:integration"]
+      "dependsOn": ["build"]
     },
     "test:api": {
-      "dependsOn": ["build", "^test:api"]
+      "dependsOn": ["build"]
     },
     "lint": {
-      "dependsOn": ["build", "^lint"],
+      "dependsOn": [],
       "outputs": [".eslintcache"]
     },
     "lint:autofix": {
@@ -53,14 +53,14 @@
       "outputs": ["dist"]
     },
     "lint:openapi": {
-      "dependsOn": ["^lint:openapi"],
+      "dependsOn": [],
       "cache": false
     },
     "format:check": {
-      "dependsOn": ["^format:check"]
+      "dependsOn": []
     },
     "format:write": {
-      "dependsOn": ["^format:write"]
+      "dependsOn": []
     },
     "generate-db-models": {
       "dependsOn": ["//#infra:start", "^generate-db-models"],
