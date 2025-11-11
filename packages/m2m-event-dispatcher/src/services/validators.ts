@@ -3,12 +3,16 @@ import {
   AgreementV2,
   DelegationEventEnvelopeV2,
   DelegationV2,
+  EService,
   EServiceEventEnvelopeV2,
+  EServiceId,
   EServiceV2,
   missingKafkaMessageDataError,
   PurposeEventEnvelopeV2,
+  PurposeId,
   PurposeV2,
 } from "pagopa-interop-models";
+import { purposeEServiceNotFound } from "../models/errors.js";
 
 export function assertEServiceExistsInEvent(
   event: EServiceEventEnvelopeV2
@@ -37,6 +41,16 @@ export function assertPurposeExistsInEvent(
 } {
   if (!event.data.purpose) {
     throw missingKafkaMessageDataError("purpose", event.type);
+  }
+}
+
+export function assertPurposeEServiceExists(
+  eservice: EService | undefined,
+  eserviceId: EServiceId,
+  purposeId: PurposeId
+): asserts eservice is EService {
+  if (!eservice) {
+    throw purposeEServiceNotFound(eserviceId, purposeId);
   }
 }
 

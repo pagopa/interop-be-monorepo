@@ -33,7 +33,6 @@ export const PurposeM2MEventType = z.enum([
   "PurposeCloned",
   "PurposeDeletedByRevokedDelegation",
   "PurposeVersionArchivedByRevokedDelegation",
-  "RiskAnalysisDocumentGenerated",
   "RiskAnalysisSignedDocumentGenerated",
 ]);
 export type PurposeM2MEventType = z.infer<typeof PurposeM2MEventType>;

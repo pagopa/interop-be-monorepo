@@ -51,7 +51,9 @@ async function processMessage(
     const { id, detail } = message;
     const { key: fileKey, client_short_code: clientCode } = detail;
 
-    const signature = await signatureService.readSignatureReferenceById(id);
+    const signature = await signatureService.readSignatureReferenceById(
+      fileKey
+    );
 
     if (!signature) {
       throw new Error(`Missing signature reference for message ${id}`);
@@ -180,7 +182,7 @@ async function processMessage(
         .exhaustive();
     }
 
-    await signatureService.deleteSignatureReference(id);
+    await signatureService.deleteSignatureReference(fileKey);
     logger.info(
       `Record ${id} deleted from DynamoDB table ${config.signatureReferencesTableName}`
     );

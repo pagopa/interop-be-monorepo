@@ -5,6 +5,7 @@ import {
   PurposeM2MEvent,
   PurposeVersionId,
   m2mEventVisibility,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { generateM2MEventId } from "../../utils/uuidv7.js";
@@ -75,16 +76,17 @@ function createPurposeM2MEventHelper(
     consumerDelegationId: delegations.consumerDelegation?.id,
     producerDelegateId: delegations.producerDelegation?.delegateId,
     producerDelegationId: delegations.producerDelegation?.id,
-    visibility: getPurposeM2MEventVisibility(eventType),
+    visibility: getPurposeM2MEventVisibility(eventType, purpose),
   };
 }
 
 /**
  * Helper function to determine the visibility of an PurposeM2MEvent,
- * based on the event type;
+ * based on the event type; fallback to the state of the Purpose and its Versions if needed.
  */
 function getPurposeM2MEventVisibility(
-  eventType: PurposeM2MEvent["eventType"]
+  eventType: PurposeM2MEvent["eventType"],
+  purpose: Purpose
 ): PurposeM2MEvent["visibility"] {
   return match(eventType)
     .with(
@@ -93,8 +95,7 @@ function getPurposeM2MEventVisibility(
         "PurposeAdded",
         "DraftPurposeUpdated",
         "DraftPurposeDeleted",
-        "PurposeCloned",
-        "PurposeDeletedByRevokedDelegation"
+        "PurposeCloned"
       ),
       () => m2mEventVisibility.owner
     )
@@ -115,11 +116,28 @@ function getPurposeM2MEventVisibility(
         "PurposeWaitingForApproval",
         "NewPurposeVersionWaitingForApproval",
         "PurposeVersionRejected",
-        "RiskAnalysisDocumentGenerated",
         "RiskAnalysisSignedDocumentGenerated",
         "PurposeVersionArchivedByRevokedDelegation"
       ),
       () => m2mEventVisibility.restricted
     )
+    .with(
+      P.union(
+        // Events that apply both to draft and published Purposes,
+        // visibility depends on the state of the Purpose
+        "PurposeDeletedByRevokedDelegation"
+      ),
+      () => getPurposeM2MEventVisibilityFromPurpose(purpose)
+    )
     .exhaustive();
+}
+
+function getPurposeM2MEventVisibilityFromPurpose(
+  purpose: Purpose
+): PurposeM2MEvent["visibility"] {
+  if (purpose.versions.every((v) => v.state === purposeVersionState.draft)) {
+    return m2mEventVisibility.owner;
+  } else {
+    return m2mEventVisibility.restricted;
+  }
 }

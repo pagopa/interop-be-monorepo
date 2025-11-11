@@ -227,6 +227,20 @@ describe("getPurposeTemplates", async () => {
     ]);
   });
 
+  it("should not get purpose templates if they don't exist (filters: eserviceIds)", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [generateId()],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId1) })
+    );
+
+    expectSinglePageListResult(result, []);
+  });
+
   it("should get purpose templates with filters: creatorIds", async () => {
     const result = await purposeTemplateService.getPurposeTemplates(
       {
