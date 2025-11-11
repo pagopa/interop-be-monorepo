@@ -109,7 +109,7 @@ jobs:
         id: sharded_packages
         run: |
           SHARD_TEST_NUM=10
-          SHARD_LINT_NUM=10
+          SHARD_LINT_NUM=5
 
           create_fixed_size_shard_matrix() {
             local PACKAGES_JSON=$1
