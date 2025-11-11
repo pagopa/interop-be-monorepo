@@ -1689,6 +1689,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: 3.842.0
         version: 3.842.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 3.840.0
+        version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       '@types/adm-zip':
         specifier: 0.5.7
         version: 0.5.7
@@ -4669,8 +4672,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.7.0
-        version: 1.7.0
+        specifier: 1.8.1
+        version: 1.8.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -7049,6 +7052,9 @@ packages:
 
   '@pagopa/interop-outbound-models@1.7.0':
     resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
+
+  '@pagopa/interop-outbound-models@1.8.1':
+    resolution: {integrity: sha512-WOxbvxvc03fKYn/I1cxucbhvak+h5NFGFAu3ESV/3Y15mDWDEO4ZZz+Ybm+v4dxb54OuOQME8JSVot9tExr+pQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14090,6 +14096,12 @@ snapshots:
       - typescript
 
   '@pagopa/interop-outbound-models@1.7.0':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
+
+  '@pagopa/interop-outbound-models@1.8.1':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0

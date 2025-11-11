@@ -1873,7 +1873,11 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (purposeUpdateContent.title) {
+      if (
+        purposeUpdateContent.title &&
+        purposeUpdateContent.title?.toLocaleLowerCase() !==
+          purpose.data.title.toLocaleLowerCase()
+      ) {
         await assertPurposeTitleIsNotDuplicated({
           readModelService,
           eserviceId: purpose.data.eserviceId,
