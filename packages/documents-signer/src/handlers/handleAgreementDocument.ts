@@ -94,7 +94,8 @@ export async function handleAgreementDocument(
           "AgreementSuspendedByProducer",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByPlatform",
-          "AgreementRejected"
+          "AgreementRejected",
+          "AgreementSignedContractGenerated"
         ),
       },
       () => Promise.resolve()
