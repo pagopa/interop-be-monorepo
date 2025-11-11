@@ -9,9 +9,10 @@ import {
   AgreementM2MEventId,
   AttributeM2MEvent,
   AttributeM2MEventId,
-  DelegationId,
   EServiceM2MEvent,
   EServiceM2MEventId,
+  PurposeM2MEvent,
+  PurposeM2MEventId,
 } from "pagopa-interop-models";
 import { DelegationIdParam } from "../model/types.js";
 import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";
@@ -60,12 +61,23 @@ export function m2mEventServiceBuilder(
       );
     },
     async getPurposeM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _delegationId: DelegationId | undefined,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: PurposeM2MEventId | undefined,
+      limit: number,
+      delegationId: DelegationIdParam,
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<PurposeM2MEvent[]> {
+      logger.info(
+        `Getting purpose M2M events with lastEventId=${lastEventId}, limit=${limit}, delegationId=${delegationId}`
+      );
+      return m2mEventReaderService.getPurposeM2MEvents(
+        lastEventId,
+        limit,
+        delegationId,
+        authData.organizationId
+      );
     },
     async getTenantM2MEvents(
       _lastEventId: string | undefined,
