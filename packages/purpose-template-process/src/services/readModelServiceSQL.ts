@@ -8,6 +8,7 @@ import {
   isNotNull,
   isNull,
   ne,
+  notInArray,
   or,
   SQL,
 } from "drizzle-orm";
@@ -469,7 +470,7 @@ export function readModelServiceBuilderSQL({
     },
     async getPurposeTemplateEServiceWithDescriptorState(
       purposeTemplateId: PurposeTemplateId,
-      notAllowedDescriptorStates: DescriptorState[]
+      allowedDescriptorStates: DescriptorState[]
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
       const queryResult = await readModelDB
         .select(
@@ -493,9 +494,9 @@ export function readModelServiceBuilderSQL({
               purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
               purposeTemplateId
             ),
-            inArray(
+            notInArray(
               eserviceDescriptorInReadmodelCatalog.state,
-              notAllowedDescriptorStates
+              allowedDescriptorStates
             )
           )
         );
