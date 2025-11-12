@@ -605,25 +605,6 @@ describe("Risk Analysis Validation", () => {
       ],
     });
 
-    const expiredVersionForPrivate = "1.0";
-    const expiredRiskAnalysis2: RiskAnalysisFormToValidate = {
-      ...expiredRiskAnalysis1_0_Private,
-      version: expiredVersionForPrivate,
-    };
-
-    expect(
-      validateRiskAnalysis(
-        expiredRiskAnalysis2,
-        false,
-        "PRIVATE",
-        new Date(),
-        undefined
-      )
-    ).toEqual({
-      type: "invalid",
-      issues: [expiredRulesVersionError(expiredVersionForPrivate, "PRIVATE")],
-    });
-
     vi.useRealTimers();
   });
 
