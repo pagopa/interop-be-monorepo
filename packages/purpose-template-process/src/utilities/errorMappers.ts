@@ -177,11 +177,14 @@ export const activatePurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("riskAnalysisTemplateValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "riskAnalysisTemplateValidationFailed",
+      "invalidAssociatedEServiceForPublishError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with(
       "purposeTemplateNotInExpectedStates",
       "purposeTemplateStateConflict",
-      "invalidAssociatedEServiceForPublishError",
       () => HTTP_STATUS_CONFLICT
     )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)

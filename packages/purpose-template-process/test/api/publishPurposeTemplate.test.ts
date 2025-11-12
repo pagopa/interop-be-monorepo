@@ -99,7 +99,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       error: invalidAssociatedEServiceForPublishError(
         expect.any(Array<PurposeTemplateValidationIssue>)
       ),
-      expectedStatus: 409,
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",
