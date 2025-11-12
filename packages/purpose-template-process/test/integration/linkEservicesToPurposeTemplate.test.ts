@@ -14,6 +14,7 @@ import {
   toPurposeTemplateV2,
   EServiceId,
   PurposeTemplateId,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -49,6 +50,10 @@ import {
   eserviceAlreadyAssociatedError,
   purposeTemplateEServicePersonalDataFlagMismatch,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
+
+const ALLOWED_DESCRIPTOR_STATES_FOR_ASSOCIATION: DescriptorState[] = [
+  descriptorState.published,
+];
 
 describe("linkEservicesToPurposeTemplate", () => {
   const tenant: Tenant = {
@@ -292,39 +297,97 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw associationEServicesForPurposeTemplateFailed if eservice has no valid descriptors (descriptors with state different from published or draft)", async () => {
-    const eserviceWithDeprecatedDescriptor: EService = {
-      ...getMockEService(),
-      producerId: tenant.id,
-      descriptors: [getMockDescriptor(descriptorState.deprecated)],
-      personalData: true,
-    };
+  it.each(ALLOWED_DESCRIPTOR_STATES_FOR_ASSOCIATION)(
+    "should link eservice with descriptor in state %s",
+    async (state) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
 
-    await addOneTenant(tenant);
-    await addOneEService(eserviceWithDeprecatedDescriptor);
-    await addOnePurposeTemplate(purposeTemplate);
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        version: "1",
+      };
 
-    await expect(
-      purposeTemplateService.linkEservicesToPurposeTemplate(
-        purposeTemplate.id,
-        [eserviceWithDeprecatedDescriptor.id],
-        getMockContext({
-          authData: getMockAuthData(tenant.id),
-        })
-      )
-    ).rejects.toThrowError(
-      associationEServicesForPurposeTemplateFailed(
-        [
-          invalidDescriptorStateError(eserviceWithDeprecatedDescriptor.id, [
-            descriptorState.published,
-            descriptorState.draft,
-          ]),
-        ],
-        [eserviceWithDeprecatedDescriptor.id],
-        purposeTemplate.id
-      )
-    );
-  });
+      const eService: EService = {
+        ...getMockEService(),
+        producerId: tenant.id,
+        descriptors: [descriptor],
+        personalData: true,
+      };
+
+      await addOneTenant(tenant);
+      await addOnePurposeTemplate(purposeTemplate);
+      await addOneEService(eService);
+
+      const response =
+        await purposeTemplateService.linkEservicesToPurposeTemplate(
+          purposeTemplate.id,
+          [eService.id],
+          getMockContext({
+            authData: getMockAuthData(tenant.id),
+          })
+        );
+
+      expect(response).toHaveLength(1);
+      expect(response[0]).toMatchObject({
+        data: {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceId: eService.id,
+          descriptorId: descriptor.id,
+          createdAt: new Date(),
+        },
+        metadata: { version: 1 },
+      });
+
+      vi.useRealTimers();
+    }
+  );
+
+  it.each(
+    Object.values(descriptorState).filter(
+      (s) => !ALLOWED_DESCRIPTOR_STATES_FOR_ASSOCIATION.includes(s)
+    )
+  )(
+    "should throw invalidDescriptorStateError when trying to link eservice with descriptor in state %s",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        version: "1",
+      };
+
+      const eService: EService = {
+        ...getMockEService(),
+        producerId: tenant.id,
+        descriptors: [descriptor],
+        personalData: true,
+      };
+
+      await addOneTenant(tenant);
+      await addOnePurposeTemplate(purposeTemplate);
+      await addOneEService(eService);
+
+      await expect(
+        purposeTemplateService.linkEservicesToPurposeTemplate(
+          purposeTemplate.id,
+          [eService.id],
+          getMockContext({
+            authData: getMockAuthData(tenant.id),
+          })
+        )
+      ).rejects.toThrowError(
+        associationEServicesForPurposeTemplateFailed(
+          [
+            invalidDescriptorStateError(
+              eService.id,
+              ALLOWED_DESCRIPTOR_STATES_FOR_ASSOCIATION
+            ),
+          ],
+          [eService.id],
+          purposeTemplate.id
+        )
+      );
+    }
+  );
 
   it("should throw associationEServicesForPurposeTemplateFailed if the e-service has a different personal data flag than the purpose template", async () => {
     const eserviceWithDifferentPersonalDataFlag: EService = {
