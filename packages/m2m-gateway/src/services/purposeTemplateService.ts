@@ -1,16 +1,12 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import {
-  PurposeTemplateId,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId,
-} from "pagopa-interop-models";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
-  toM2MGatewayApiDocument,
   toM2MGatewayApiPurposeTemplate,
+  toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
 } from "../api/purposeTemplateApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
@@ -55,25 +51,25 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async getRiskAnalysisTemplateAnswerAnnotationDocuments(
+    async getRiskAnalysisTemplateAnnotationDocuments(
       purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
       {
         offset,
         limit,
       }: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Documents> {
+    ): Promise<m2mGatewayApi.RiskAnalysisTemplateAnnotationDocuments> {
       logger.info(
-        `Retrieving annotation documents for purpose template ${purposeTemplateId} and answer ${answerId}`
+        `Retrieving annotation documents for purpose template ${purposeTemplateId}`
       );
 
-      const { data: documents } =
-        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnswerAnnotationDocuments(
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnnotationDocuments(
           {
             params: {
-              id: purposeTemplateId,
-              answerId,
+              purposeTemplateId,
             },
             queries: {
               offset,
@@ -84,11 +80,13 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         );
 
       return {
-        results: documents.results.map(toM2MGatewayApiDocument),
+        results: results.map(
+          toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument
+        ),
         pagination: {
           limit,
           offset,
-          totalCount: documents.totalCount,
+          totalCount,
         },
       };
     },

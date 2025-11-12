@@ -51,7 +51,7 @@ const purposeTemplateRouter = (
       }
     })
     .get(
-      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents",
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
@@ -59,20 +59,25 @@ const purposeTemplateRouter = (
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
           const documents =
-            await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments(
+            await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
               unsafeBrandId(req.params.purposeTemplateId),
-              unsafeBrandId(req.params.answerId),
               req.query,
               ctx
             );
 
-          return res.status(200).send(m2mGatewayApi.Documents.parse(documents));
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.RiskAnalysisTemplateAnnotationDocuments.parse(
+                documents
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
             ctx,
-            `Error retrieving annotation documents for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
+            `Error retrieving annotation documents for purpose template ${req.params.purposeTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

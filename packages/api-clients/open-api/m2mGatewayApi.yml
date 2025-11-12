@@ -16291,7 +16291,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments:
     parameters:
       - name: purposeTemplateId
         in: path
@@ -16300,19 +16300,12 @@ paths:
         schema:
           type: string
           format: uuid
-      - name: answerId
-        in: path
-        description: The Risk Analysis Template Answer ID
-        required: true
-        schema:
-          type: string
-          format: uuid
     get:
       tags:
         - purposeTemplates
-      summary: Retrieve the Documents of a Risk Analysis Template Answer Annotation
-      description: Retrieve the Documents of a Risk Analysis Template Answer Annotation
-      operationId: getRiskAnalysisTemplateAnswerAnnotationDocuments
+      summary: Retrieve a list of Risk Analysis Template Annotation Documents
+      description: Retrieve a list of Risk Analysis Template Annotation Documents for the
+      operationId: getRiskAnalysisTemplateAnnotationDocuments
       parameters:
         - in: query
           name: offset
@@ -16333,7 +16326,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Risk Analysis Template Answer Annotation Documents retrieved
+          description: Risk Analysis Template Annotation Documents retrieved
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -16344,7 +16337,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Documents"
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocuments"
         "400":
           description: Bad Request
           content:
@@ -18884,6 +18877,31 @@ components:
         - DRAFT
         - SUSPENDED
         - ARCHIVED
+    RiskAnalysisTemplateAnnotationDocuments:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocument"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    RiskAnalysisTemplateAnnotationDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        document:
+          $ref: "#/components/schemas/Document"
+        answerId:
+          type: string
+          format: uuid
+      required:
+        - document
+        - answerId
     Problem:
       properties:
         type:

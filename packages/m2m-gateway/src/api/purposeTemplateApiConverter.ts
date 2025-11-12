@@ -36,14 +36,17 @@ export function toM2MGatewayApiPurposeTemplate(
   };
 }
 
-export function toM2MGatewayApiDocument(
-  document: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument
-): m2mGatewayApi.Document {
+export function toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument(
+  documentWithAnswerId: purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentWithAnswerId
+): m2mGatewayApi.RiskAnalysisTemplateAnnotationDocument {
   return {
-    id: document.id,
-    name: document.name,
-    prettyName: document.prettyName,
-    createdAt: document.createdAt,
-    contentType: document.contentType,
+    answerId: documentWithAnswerId.answerId,
+    document: {
+      id: documentWithAnswerId.document.id,
+      name: documentWithAnswerId.document.name,
+      prettyName: documentWithAnswerId.document.prettyName,
+      createdAt: documentWithAnswerId.document.createdAt,
+      contentType: documentWithAnswerId.document.contentType,
+    },
   };
 }
