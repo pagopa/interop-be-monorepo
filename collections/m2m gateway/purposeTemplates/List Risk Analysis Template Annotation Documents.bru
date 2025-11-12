@@ -1,18 +1,17 @@
 meta {
-  name: List Risk Analysis Template Answer Annotation Documents
+  name: List Risk Analysis Template Annotation Documents
   type: http
   seq: 13
 }
 
 get {
-  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments
   body: none
   auth: none
 }
 
 params:path {
   purposeTemplateId: {{purposeTemplateId}}
-  answerId: {{answerId}}
 }
 
 params:query {
