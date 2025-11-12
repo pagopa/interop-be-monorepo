@@ -72,7 +72,7 @@ describe("API POST /purposeTemplates/{id}/archive", () => {
         purposeTemplateState.draft,
         [purposeTemplateState.archived]
       ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
