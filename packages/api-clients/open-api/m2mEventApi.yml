@@ -538,6 +538,50 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - ESERVICE_ADDED
+            - DRAFT_ESERVICE_UPDATED
+            - ESERVICE_CLONED
+            - ESERVICE_DELETED
+            - ESERVICE_DESCRIPTOR_PUBLISHED
+            - ESERVICE_DESCRIPTOR_ACTIVATED
+            - ESERVICE_DESCRIPTOR_APPROVED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_SUSPENDED
+            - ESERVICE_DESCRIPTOR_ARCHIVED
+            - ESERVICE_DESCRIPTOR_ADDED
+            - ESERVICE_DRAFT_DESCRIPTOR_DELETED
+            - ESERVICE_DRAFT_DESCRIPTOR_UPDATED
+            - ESERVICE_DESCRIPTOR_SUBMITTED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_REJECTED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_DOCUMENT_ADDED
+            - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED
+            - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED
+            - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
+            - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
+            - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
+            - ESERVICE_RISK_ANALYSIS_ADDED
+            - ESERVICE_RISK_ANALYSIS_UPDATED
+            - ESERVICE_RISK_ANALYSIS_DELETED
+            - ESERVICE_NAME_UPDATED
+            - ESERVICE_DESCRIPTION_UPDATED
+            - ESERVICE_IS_CONSUMER_DELEGABLE_ENABLED
+            - ESERVICE_IS_CONSUMER_DELEGABLE_DISABLED
+            - ESERVICE_IS_CLIENT_ACCESS_DELEGABLE_ENABLED
+            - ESERVICE_IS_CLIENT_ACCESS_DELEGABLE_DISABLED
+            - ESERVICE_SIGNAL_HUB_ENABLED
+            - ESERVICE_SIGNAL_HUB_DISABLED
+            - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED
+            - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED
+            - ESERVICE_DESCRIPTOR_AGREEMENT_APPROVAL_POLICY_UPDATED
+            - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
+            - ESERVICE_NAME_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTION_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_ADDED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
         eventTimestamp:
           type: string
           format: date-time
@@ -574,6 +618,30 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - AGREEMENT_ADDED
+            - DRAFT_AGREEMENT_UPDATED
+            - AGREEMENT_DELETED
+            - AGREEMENT_ACTIVATED
+            - AGREEMENT_REJECTED
+            - AGREEMENT_UPGRADED
+            - AGREEMENT_SUBMITTED
+            - AGREEMENT_ARCHIVED_BY_CONSUMER
+            - AGREEMENT_SUSPENDED_BY_CONSUMER
+            - AGREEMENT_UNSUSPENDED_BY_CONSUMER
+            - AGREEMENT_SUSPENDED_BY_PRODUCER
+            - AGREEMENT_UNSUSPENDED_BY_PRODUCER
+            - AGREEMENT_SUSPENDED_BY_PLATFORM
+            - AGREEMENT_UNSUSPENDED_BY_PLATFORM
+            - AGREEMENT_ARCHIVED_BY_UPGRADE
+            - AGREEMENT_CONSUMER_DOCUMENT_ADDED
+            - AGREEMENT_CONSUMER_DOCUMENT_REMOVED
+            - AGREEMENT_ARCHIVED_BY_REVOKED_DELEGATION
+            - AGREEMENT_DELETED_BY_REVOKED_DELEGATION
+            - AGREEMENT_SET_MISSING_CERTIFIED_ATTRIBUTES_BY_PLATFORM
+            - AGREEMENT_SET_DRAFT_BY_PLATFORM
+            - AGREEMENT_CONTRACT_GENERATED
+            - AGREEMENT_SIGNED_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -610,6 +678,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
@@ -649,6 +719,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
@@ -711,6 +783,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
@@ -741,6 +815,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
@@ -771,6 +847,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
@@ -801,6 +879,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
@@ -831,6 +911,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
@@ -861,6 +943,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
@@ -891,6 +975,8 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - TODO # Add actual event types here
         eventTimestamp:
           type: string
           format: date-time
