@@ -8,7 +8,11 @@ import {
 } from "pagopa-interop-models";
 import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import {
+  createDummyStub,
+  getMockAuthData,
+  getMockContext,
+} from "pagopa-interop-commons-test";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import {
   AgreementProcessClient,
@@ -17,6 +21,7 @@ import {
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
+  PurposeProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
@@ -235,6 +240,8 @@ describe("getCatalogEServiceDescriptor", () => {
     },
   ]);
 
+  const mockPurposeProcessClient = createDummyStub<PurposeProcessClient>();
+
   vi.spyOn(delegationService, "getAllDelegations").mockResolvedValue([]);
 
   vi.spyOn(agreementService, "getLatestAgreement").mockResolvedValue({
@@ -260,7 +267,7 @@ describe("getCatalogEServiceDescriptor", () => {
   vi.spyOn(
     catalogApiConverter,
     "toBffCatalogDescriptorEService"
-  ).mockReturnValue(catalogDescriptorEService);
+  ).mockReturnValue(Promise.resolve(catalogDescriptorEService));
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,
@@ -270,6 +277,7 @@ describe("getCatalogEServiceDescriptor", () => {
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
     mockInAppNotificationManagerClient,
+    mockPurposeProcessClient,
     fileManager,
     config
   );

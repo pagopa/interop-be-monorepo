@@ -17,8 +17,10 @@ import {
 describe("API GET /eservices/:eServiceId/riskAnalysis/:riskAnalysisId", () => {
   const mockEService = getMockCatalogApiEService();
   const mockRiskAnalysis = mockEService.riskAnalysis[0];
-  const mockApiRiskAnalysis =
-    toBffCatalogApiEserviceRiskAnalysis(mockRiskAnalysis);
+  const mockApiRiskAnalysis = toBffCatalogApiEserviceRiskAnalysis(
+    mockRiskAnalysis,
+    undefined
+  );
 
   beforeEach(() => {
     clients.catalogProcessClient.getEServiceById = vi
