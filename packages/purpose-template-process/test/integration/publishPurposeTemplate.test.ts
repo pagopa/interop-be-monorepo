@@ -27,7 +27,7 @@ import {
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { invalidDescriptorStateForPublishingError } from "../../src/errors/purposeTemplateValidationErrors.js";
+import { invalidDescriptorStateForPublishError } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   invalidAssociatedEServiceForPublishError,
   purposeTemplateNotInExpectedStates,
@@ -36,7 +36,7 @@ import {
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
-import { ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING } from "../../src/services/validators.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISH } from "../../src/services/validators.js";
 import {
   addOneEService,
   addOnePurposeTemplate,
@@ -264,14 +264,14 @@ describe("publishPurposeTemplate", () => {
       );
     }).rejects.toThrowError(
       invalidAssociatedEServiceForPublishError([
-        invalidDescriptorStateForPublishingError(
+        invalidDescriptorStateForPublishError(
           {
             purposeTemplateId: purposeTemplate.id,
             eserviceId: invalidStateEService.id,
             descriptorId: invalidStateEService.descriptors[0].id,
             createdAt: expect.any(Date),
           },
-          ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISHING
+          ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISH
         ),
       ])
     );

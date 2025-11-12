@@ -94,7 +94,7 @@ import {
   isPurposeTemplateDraft,
   isRequesterCreator,
   validateAndTransformRiskAnalysisTemplate,
-  validateAssociatedEserviceForPublication,
+  validateAssociatedEserviceForPublish,
   validateEservicesAssociations,
   validateEservicesDisassociations,
   validateRiskAnalysisAnswerAnnotationOrThrow,
@@ -504,7 +504,7 @@ async function activatePurposeTemplate({
   assertActivatableState(purposeTemplate.data, expectedInitialState);
 
   const eserviceStateValidationIssues =
-    await validateAssociatedEserviceForPublication(
+    await validateAssociatedEserviceForPublish(
       readModelService,
       purposeTemplate.data.id
     );

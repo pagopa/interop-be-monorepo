@@ -18,7 +18,7 @@ type PurposeTemplateValidationIssueCode =
   | "invalidDescriptorState"
   | "unexpectedUnassociationEServiceError"
   | "purposeTemplateEServicePersonalDataFlagMismatch"
-  | "invalidDescriptorStateForPublishingError";
+  | "invalidDescriptorStateForPublishError";
 
 export class PurposeTemplateValidationIssue extends InternalError<PurposeTemplateValidationIssueCode> {
   constructor({
@@ -126,7 +126,7 @@ export function invalidDescriptorStateError(
   });
 }
 
-export function invalidDescriptorStateForPublishingError(
+export function invalidDescriptorStateForPublishError(
   eserviceDecriptorPurposeTemplate: EServiceDescriptorPurposeTemplate,
   expectedStates: DescriptorState[]
 ): PurposeTemplateValidationIssue {
