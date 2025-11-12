@@ -97,7 +97,8 @@ describe("handleEServiceTemplateEvent test", async () => {
               // E-Service Template events after publication, public visibility
               "EServiceTemplateIntendedTargetUpdated",
               "EServiceTemplateDescriptionUpdated",
-              "EServiceTemplateNameUpdated"
+              "EServiceTemplateNameUpdated",
+              "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
             ),
             async () => [
               {
@@ -124,8 +125,7 @@ describe("handleEServiceTemplateEvent test", async () => {
               "EServiceTemplateVersionSuspended",
               "EServiceTemplateVersionAttributesUpdated",
               "EServiceTemplateVersionPublished",
-              "EServiceTemplateVersionQuotasUpdated",
-              "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
+              "EServiceTemplateVersionQuotasUpdated"
             ),
             async () => [
               {
@@ -235,7 +235,7 @@ describe("handleEServiceTemplateEvent test", async () => {
             eventTimestamp,
             resourceVersion: message.version,
             eserviceTemplateId: eserviceTemplate.id,
-            versionId,
+            eserviceTemplateVersionId: versionId,
             creatorId: eserviceTemplate.creatorId,
             visibility: expectedVisibility,
           });
