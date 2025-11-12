@@ -40,47 +40,27 @@ describe("getAttributeEvents integration", () => {
     mockGetAttributeM2MEvents.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const expectedResponse: m2mGatewayApi.AttributeEvents = {
-      events: [mockAttributeEvent1, mockAttributeEvent2],
-    };
-
-    const result = await eventService.getAttributeEvents(
-      {
-        lastEventId: generateId(),
-        limit: 10,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result).toEqual(expectedResponse);
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockGetAttributeM2MEvents,
-      queries: {
-        lastEventId: expect.any(String),
-        limit: 10,
-      },
-    });
-  });
-
-  it("Should succeed without lastEventId", async () => {
-    const expectedResponse: m2mGatewayApi.AttributeEvents = {
-      events: [mockAttributeEvent1, mockAttributeEvent2],
-    };
-
-    const result = await eventService.getAttributeEvents(
-      {
-        limit: 20,
-      },
-      getMockM2MAdminAppContext()
-    );
-
-    expect(result).toEqual(expectedResponse);
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockGetAttributeM2MEvents,
-      queries: {
-        lastEventId: undefined,
-        limit: 20,
-      },
-    });
-  });
+  it.each([generateId(), undefined])(
+    "Should succeed and perform API clients calls",
+    async (lastEventId) => {
+      const expectedResponse: m2mGatewayApi.AttributeEvents = {
+        events: [mockAttributeEvent1, mockAttributeEvent2],
+      };
+      const result = await eventService.getAttributeEvents(
+        {
+          lastEventId,
+          limit: 10,
+        },
+        getMockM2MAdminAppContext()
+      );
+      expect(result).toEqual(expectedResponse);
+      expectApiClientGetToHaveBeenCalledWith({
+        mockGet: mockGetAttributeM2MEvents,
+        queries: {
+          lastEventId,
+          limit: 10,
+        },
+      });
+    }
+  );
 });

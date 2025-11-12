@@ -803,6 +803,58 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposes/{purposeId}/versions/{versionId}/signedDocuments/{documentId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - purpose
+      summary: Get an Risk Analysis signed document
+      description: Retrieves a risk analysis signed document by id
+      operationId: getRiskAnalysisSignedDocument
+      parameters:
+        - name: purposeId
+          in: path
+          description: the purpose id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: versionId
+          in: path
+          description: the version Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: documentId
+          in: path
+          description: the document id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Risk Analysis signed document retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeVersionDocument"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Document Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
