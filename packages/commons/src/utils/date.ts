@@ -17,8 +17,8 @@ export function formatDateyyyyMMdd(date: Date): string {
   return format(date, "yyyyMMdd");
 }
 
-export function formatTimehhmmss(date: Date): string {
-  return format(date, "hhmmss");
+export function formatTimeHHmmss(date: Date): string {
+  return format(date, "HHmmss");
 }
 
 export function dateAtRomeZone(date: Date): string {
