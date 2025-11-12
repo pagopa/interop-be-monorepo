@@ -1,29 +1,3 @@
-import {
-  EServiceDescriptorPurposeTemplate,
-  EServiceId,
-  generateId,
-  PurposeTemplate,
-  PurposeTemplateId,
-  purposeTemplateState,
-  WithMetadata,
-  purposeTemplateEventToBinaryDataV2,
-  ListResult,
-  PurposeTemplateState,
-  RiskAnalysisTemplateAnswer,
-  RiskAnalysisTemplateAnswerAnnotation,
-  RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  RiskAnalysisTemplateAnswerAnnotationDocument,
-  RiskAnalysisSingleAnswerId,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
-  RiskAnalysisTemplateAnswerAnnotationId,
-  TenantKind,
-  unsafeBrandId,
-  EService,
-  DescriptorId,
-} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
@@ -38,22 +12,51 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import {
+  DescriptorId,
+  EService,
+  EServiceDescriptorPurposeTemplate,
+  EServiceId,
+  generateId,
+  ListResult,
+  PurposeTemplate,
+  purposeTemplateEventToBinaryDataV2,
+  PurposeTemplateId,
+  purposeTemplateState,
+  PurposeTemplateState,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
+  TenantKind,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  purposeTemplateNotFound,
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
+  invalidAssociatedEServiceForPublication,
+  purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
   tenantNotAllowed,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
-  toCreateEventPurposeTemplateArchived,
   toCreateEventPurposeTemplateAnnotationDocumentDeleted,
+  toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
+  toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated,
+  toCreateEventPurposeTemplateArchived,
   toCreateEventPurposeTemplateDraftDeleted,
   toCreateEventPurposeTemplateDraftUpdated,
   toCreateEventPurposeTemplateEServiceLinked,
@@ -61,8 +64,6 @@ import {
   toCreateEventPurposeTemplatePublished,
   toCreateEventPurposeTemplateSuspended,
   toCreateEventPurposeTemplateUnsuspended,
-  toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
-  toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated,
 } from "../model/domain/toEvent.js";
 import {
   addAnnotationDocumentToUpdatedAnswerIfNeeded,
@@ -77,27 +78,28 @@ import {
 import {
   assertActivatableState,
   assertAnnotationDocumentIsUnique,
-  assertArchivableState,
-  assertConsistentFreeOfCharge,
-  assertEServiceIdsCountIsBelowThreshold,
-  assertPurposeTemplateStateIsValid,
-  assertPurposeTemplateIsDraft,
-  assertPurposeTemplateHasRiskAnalysisForm,
-  validateRiskAnalysisAnswerAnnotationOrThrow,
-  assertPurposeTemplateTitleIsNotDuplicated,
-  assertRequesterIsCreator,
-  assertDocumentsLimitsNotReached,
-  validateAndTransformRiskAnalysisTemplate,
-  validateEservicesAssociations,
-  validateEservicesDisassociations,
-  validateRiskAnalysisTemplateOrThrow,
-  assertSuspendableState,
-  validateRiskAnalysisAnswerOrThrow,
   assertAnnotationDocumentPrettyNameIsUnique,
   assertAnswerExistsInRiskAnalysisTemplate,
+  assertArchivableState,
+  assertConsistentFreeOfCharge,
+  assertDocumentsLimitsNotReached,
+  assertEServiceIdsCountIsBelowThreshold,
+  assertPurposeTemplateHasRiskAnalysisForm,
+  assertPurposeTemplateIsDraft,
+  assertPurposeTemplateStateIsValid,
+  assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterIsCreator,
+  assertSuspendableState,
   hasRoleToAccessDraftPurposeTemplates,
-  isRequesterCreator,
   isPurposeTemplateDraft,
+  isRequesterCreator,
+  validateAndTransformRiskAnalysisTemplate,
+  validateAssociatedEserviceForPublication,
+  validateEservicesAssociations,
+  validateEservicesDisassociations,
+  validateRiskAnalysisAnswerAnnotationOrThrow,
+  validateRiskAnalysisAnswerOrThrow,
+  validateRiskAnalysisTemplateOrThrow,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -500,6 +502,18 @@ async function activatePurposeTemplate({
 
   assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
   assertActivatableState(purposeTemplate.data, expectedInitialState);
+
+  const eserviceStateValidationIssues =
+    await validateAssociatedEserviceForPublication(
+      readModelService,
+      purposeTemplate.data.id
+    );
+
+  if (eserviceStateValidationIssues.length > 0) {
+    throw invalidAssociatedEServiceForPublication(
+      eserviceStateValidationIssues
+    );
+  }
 
   validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate:
