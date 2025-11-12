@@ -29,15 +29,15 @@ describe("API /events/purposes test", () => {
   const mockPurposeM2MEventsResponse: m2mEventApi.PurposeM2MEvents = {
     events: mockPurposeM2MEvents.map(
       (e) =>
-      ({
-        id: e.id,
-        eventTimestamp: e.eventTimestamp.toJSON(),
-        eventType: testToUpperSnakeCase(e.eventType),
-        purposeId: e.purposeId,
-        purposeVersionId: e.purposeVersionId,
-        consumerDelegationId: e.consumerDelegationId,
-        producerDelegationId: e.producerDelegationId,
-      } as m2mEventApi.PurposeM2MEvent)
+        ({
+          id: e.id,
+          eventTimestamp: e.eventTimestamp.toJSON(),
+          eventType: testToUpperSnakeCase(e.eventType),
+          purposeId: e.purposeId,
+          purposeVersionId: e.purposeVersionId,
+          consumerDelegationId: e.consumerDelegationId,
+          producerDelegationId: e.producerDelegationId,
+        } as m2mEventApi.PurposeM2MEvent)
     ),
   };
 
