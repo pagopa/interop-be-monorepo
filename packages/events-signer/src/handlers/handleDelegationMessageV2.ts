@@ -20,7 +20,7 @@ import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handleDelegationMessageV2 = async (
   eventsWithTimestamp: Array<{
     delegationV2: DelegationEventV2;
-    timestamp: string;
+    timestamp: Date;
   }>,
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
