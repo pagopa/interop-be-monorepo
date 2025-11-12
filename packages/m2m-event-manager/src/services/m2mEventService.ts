@@ -13,6 +13,9 @@ import {
   EServiceM2MEventId,
   PurposeM2MEvent,
   PurposeM2MEventId,
+  ConsumerDelegationM2MEvent,
+  DelegationM2MEventId,
+  ProducerDelegationM2MEvent,
 } from "pagopa-interop-models";
 import { DelegationIdParam } from "../model/types.js";
 import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";
@@ -97,18 +100,30 @@ export function m2mEventServiceBuilder(
       return m2mEventReaderService.getAttributeM2MEvents(lastEventId, limit);
     },
     async getConsumerDelegationM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: DelegationM2MEventId | undefined,
+      limit: number,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ConsumerDelegationM2MEvent[]> {
+      logger.info(
+        `Getting consumer delegation M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getConsumerDelegationM2MEvents(
+        lastEventId,
+        limit
+      );
     },
     async getProducerDelegationM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: DelegationM2MEventId | undefined,
+      limit: number,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ProducerDelegationM2MEvent[]> {
+      logger.info(
+        `Getting producer delegation M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getProducerDelegationM2MEvents(
+        lastEventId,
+        limit
+      );
     },
     async getClientM2MEvents(
       _lastEventId: string | undefined,
