@@ -75,6 +75,41 @@ export function m2mEventWriterServiceSQLBuilder(
     });
   }
 
+  type Tx = Parameters<
+    Parameters<ReturnType<typeof drizzle>["transaction"]>[0]
+  >[0];
+
+  async function clearConsumerDelegationInTable(
+    tx: Tx,
+    table: typeof agreementInM2MEvent | typeof purposeInM2MEvent,
+    delegationId: string
+  ): Promise<void> {
+    await tx
+      .update(table)
+      .set({
+        consumerDelegationId: null,
+        consumerDelegateId: null,
+      } as Partial<typeof table.$inferInsert>)
+      .where(eq(table.consumerDelegationId, delegationId));
+  }
+
+  async function clearProducerDelegationInTable(
+    tx: Tx,
+    table:
+      | typeof eserviceInM2MEvent
+      | typeof agreementInM2MEvent
+      | typeof purposeInM2MEvent,
+    delegationId: string
+  ): Promise<void> {
+    await tx
+      .update(table)
+      .set({
+        producerDelegationId: null,
+        producerDelegateId: null,
+      } as Partial<typeof table.$inferInsert>)
+      .where(eq(table.producerDelegationId, delegationId));
+  }
+
   return {
     async insertEServiceM2MEvent(event: EServiceM2MEventSQL): Promise<void> {
       await insertIfResourceVersionNotPresent(
@@ -181,6 +216,43 @@ export function m2mEventWriterServiceSQLBuilder(
         attributeInM2MEvent,
         eq(attributeInM2MEvent.attributeId, event.attributeId)
       );
+    },
+    async removeConsumerDelegationVisibility(
+      delegationId: string
+    ): Promise<void> {
+      await m2mEventDB.transaction(async (tx) => {
+        await clearConsumerDelegationInTable(
+          tx,
+          agreementInM2MEvent,
+          delegationId
+        );
+        await clearConsumerDelegationInTable(
+          tx,
+          purposeInM2MEvent,
+          delegationId
+        );
+      });
+    },
+    async removeProducerDelegationVisibility(
+      delegationId: string
+    ): Promise<void> {
+      await m2mEventDB.transaction(async (tx) => {
+        await clearProducerDelegationInTable(
+          tx,
+          agreementInM2MEvent,
+          delegationId
+        );
+        await clearProducerDelegationInTable(
+          tx,
+          purposeInM2MEvent,
+          delegationId
+        );
+        await clearProducerDelegationInTable(
+          tx,
+          eserviceInM2MEvent,
+          delegationId
+        );
+      });
     },
   };
 }
