@@ -357,7 +357,7 @@ export function purposeServiceBuilder(
           producers,
           consumers,
           purposeTemplate,
-          undefined,
+          undefined, // NOTE: if we need the rulesetExpiration when retrieving the purposes list, we have to fetch it here
           headers,
           correlationId,
           notifications
