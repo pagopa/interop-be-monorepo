@@ -939,7 +939,8 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - CLIENT_KEY_ADDED
+            - CLIENT_KEY_DELETED
         eventTimestamp:
           type: string
           format: date-time
