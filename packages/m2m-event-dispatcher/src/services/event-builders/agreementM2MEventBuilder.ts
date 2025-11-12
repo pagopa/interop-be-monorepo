@@ -69,7 +69,6 @@ function getAgreementM2MEventVisibility(
         "AgreementArchivedByConsumer",
         "AgreementArchivedByUpgrade",
         "AgreementArchivedByRevokedDelegation",
-        "AgreementContractGenerated",
         "AgreementSignedContractGenerated"
       ),
       () => m2mEventVisibility.restricted
