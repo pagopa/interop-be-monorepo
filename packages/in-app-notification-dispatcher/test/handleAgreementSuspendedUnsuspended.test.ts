@@ -15,6 +15,7 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import {
   AgreementSuspendedUnsuspendedEventType,
@@ -28,7 +29,6 @@ import {
   addOneTenant,
   readModelService,
 } from "./utils.js";
-import { match } from "ts-pattern";
 // Helper function to get expected body based on event type and audience
 function getExpectedBodyForEvent(
   eventType: AgreementSuspendedUnsuspendedEventType,
@@ -41,13 +41,21 @@ function getExpectedBodyForEvent(
   return match(eventType)
     .with("AgreementSuspendedByPlatform", () =>
       isProducerUser
-        ? inAppTemplates.agreementSuspendedByPlatformToProducer(subjectName, eserviceName)
+        ? inAppTemplates.agreementSuspendedByPlatformToProducer(
+            subjectName,
+            eserviceName
+          )
         : inAppTemplates.agreementSuspendedByPlatformToConsumer(eserviceName)
-    ).with("AgreementUnsuspendedByPlatform", () =>
+    )
+    .with("AgreementUnsuspendedByPlatform", () =>
       isProducerUser
-        ? inAppTemplates.agreementUnsuspendedByPlatformToProducer(subjectName, eserviceName)
+        ? inAppTemplates.agreementUnsuspendedByPlatformToProducer(
+            subjectName,
+            eserviceName
+          )
         : inAppTemplates.agreementUnsuspendedByPlatformToConsumer(eserviceName)
-    ).with("AgreementSuspendedByConsumer", () =>
+    )
+    .with("AgreementSuspendedByConsumer", () =>
       inAppTemplates.agreementSuspendedByConsumerToProducer(
         subjectName,
         eserviceName
@@ -70,13 +78,13 @@ function getExpectedBodyForEvent(
         subjectName,
         eserviceName
       )
-  )
+    )
     .with("AgreementArchivedByConsumer", () =>
       inAppTemplates.agreementArchivedByConsumerToProducer(
         subjectName,
         eserviceName
       )
-  )
+    )
     .exhaustive();
 }
 
@@ -232,10 +240,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         expectedAudience === "producer"
           ? producerUsers
           : expectedAudience === "consumer"
-            ? consumerUsers
-            : expectedAudience === "both"
-              ? [...producerUsers, ...consumerUsers]
-              : [];
+          ? consumerUsers
+          : expectedAudience === "both"
+          ? [...producerUsers, ...consumerUsers]
+          : [];
 
       expect(notifications).toHaveLength(expectedUsers.length);
 

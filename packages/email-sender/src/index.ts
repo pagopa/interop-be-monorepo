@@ -34,4 +34,8 @@ const processor = emailSenderProcessorBuilder(
   templateService
 );
 
-await runConsumer(config, [config.emailSenderTopic], processor.processMessage);
+await runConsumer(
+  config,
+  [config.emailDispatchTopic],
+  processor.processMessage
+);
