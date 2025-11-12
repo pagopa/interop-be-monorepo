@@ -28,7 +28,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handlePurposeVersionRejectedFirstVersion } from "../src/handlers/purposes/handlePurposeVersionRejected.js";
+import { handlePurposeVersionRejectedFirstVersion } from "../src/handlers/purposes/handlePurposeVersionRejectedFirstVersion.js";
 import {
   addOneEService,
   addOnePurpose,

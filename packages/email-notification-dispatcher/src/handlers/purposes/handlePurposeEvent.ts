@@ -7,16 +7,16 @@ import { HandlerParams } from "../../models/handlerParams.js";
 import { handlePurposeVersionSuspendedByConsumer } from "./handlePurposeVersionSuspendedByConsumer.js";
 import { handlePurposeVersionUnsuspendedByConsumer } from "./handlePurposeVersionUnsuspendedByConsumer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
-import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivated.js";
-import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejected.js";
+import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
+import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
 import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
 import { handlePurposeVersionUnsuspendedByProducer } from "./handlePurposeVersionUnsuspendedByProducer.js";
-import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApproval.js";
-import { handlePurposeWaitingForApprovalToProducer } from "./handlePurposeWaitingForApproval.js";
-import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalOverthreshold.js";
-import { handlePurposeWaitingForApprovalToConsumer } from "./handlePurposeWaitingForApprovalOverthreshold.js";
-import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedQuotaAdjustment.js";
-import { handlePurposeVersionRejectedOtherVersion } from "./handlePurposeVersionRejectedQuotaAdjustment.js";
+import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
+import { handlePurposeWaitingForApprovalToProducer } from "./handlePurposeWaitingForApprovalToProducer.js";
+import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
+import { handlePurposeWaitingForApprovalToConsumer } from "./handlePurposeWaitingForApprovalToConsumer.js";
+import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
+import { handlePurposeVersionRejectedOtherVersion } from "./handlePurposeVersionRejectedOtherVersion.js";
 
 export async function handlePurposeEvent(
   params: HandlerParams<typeof PurposeEventV2>

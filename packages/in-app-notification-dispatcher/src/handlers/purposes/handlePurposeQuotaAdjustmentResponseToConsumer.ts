@@ -42,9 +42,6 @@ export async function handlePurposeQuotaAdjustmentResponseToConsumer(
     `Sending in-app notification for handlePurposeQuotaAdjustmentResponseToConsumer ${purpose.id}`
   );
 
-  const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
-  const producer = await retrieveTenant(eservice.producerId, readModelService);
-
   const usersWithNotifications = await getNotificationRecipients(
     [purpose.consumerId],
     "purposeOverQuotaStateToConsumer",
@@ -62,6 +59,9 @@ export async function handlePurposeQuotaAdjustmentResponseToConsumer(
     .with("PurposeVersionActivated", () => "accettato" as const)
     .with("PurposeVersionRejected", () => "rifiutato" as const)
     .exhaustive();
+
+  const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
+  const producer = await retrieveTenant(eservice.producerId, readModelService);
 
   const body = inAppTemplates.purposeQuotaAdjustmentResponseToConsumer(
     producer.name,

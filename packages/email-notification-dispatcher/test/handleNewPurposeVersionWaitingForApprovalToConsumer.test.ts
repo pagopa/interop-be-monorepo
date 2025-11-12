@@ -24,7 +24,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApprovalOverthreshold.js";
+import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApprovalToConsumer.js";
 import {
   addOneEService,
   addOnePurpose,
