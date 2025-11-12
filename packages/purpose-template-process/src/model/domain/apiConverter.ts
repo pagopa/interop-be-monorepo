@@ -193,6 +193,14 @@ export const annotationDocumentToApiAnnotationDocument = (
   createdAt: annotationDocument.createdAt.toJSON(),
 });
 
+export const annotationDocumentToApiAnnotationDocumentWithAnswerId = (
+  answerId: string,
+  annotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument
+): purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocument => ({
+  answerId,
+  document: annotationDocumentToApiAnnotationDocument(annotationDocument),
+});
+
 // RiskAnalysisTemplateAnswerSeed don't require 'docs',
 // but RiskAnalysisTemplateAnswerToValidate requires 'docs' property.
 export const toRiskAnalysisTemplateAnswerToValidate = (

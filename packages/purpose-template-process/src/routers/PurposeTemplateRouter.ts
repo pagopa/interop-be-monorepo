@@ -42,6 +42,7 @@ import {
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
+  annotationDocumentToApiAnnotationDocumentWithAnswerId,
   apiPurposeTemplateStateToPurposeTemplateState,
   eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
   purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
@@ -112,8 +113,8 @@ const purposeTemplateRouter = (
           );
         return res.status(200).send(
           purposeTemplateApi.PurposeTemplates.parse({
-            results: purposeTemplates.results.map((purposeTemplate) =>
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            results: purposeTemplates.results.map(
+              purposeTemplateToApiPurposeTemplate
             ),
             totalCount: purposeTemplates.totalCount,
           })
@@ -274,7 +275,7 @@ const purposeTemplateRouter = (
         ]);
 
         const { producerIds, eserviceName, offset, limit } = req.query;
-        const purposeTemplateEServicesDescriptors =
+        const { results, totalCount } =
           await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
             {
               purposeTemplateId: unsafeBrandId(req.params.id),
@@ -287,13 +288,12 @@ const purposeTemplateRouter = (
 
         return res.status(200).send(
           purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
-            results: purposeTemplateEServicesDescriptors.results.map(
-              (purposeTemplateEServiceDescriptor) =>
-                eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-                  purposeTemplateEServiceDescriptor
-                )
+            results: results.map((purposeTemplateEServiceDescriptor) =>
+              eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
+                purposeTemplateEServiceDescriptor
+              )
             ),
-            totalCount: purposeTemplateEServicesDescriptors.totalCount,
+            totalCount,
           })
         );
       } catch (error) {
@@ -694,7 +694,7 @@ const purposeTemplateRouter = (
       }
     )
     .get(
-      "/purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation/documents",
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -708,23 +708,23 @@ const purposeTemplateRouter = (
             M2M_ROLE,
           ]);
 
-          const { id, answerId } = req.params;
-
-          const documents =
-            await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments(
-              unsafeBrandId(id),
-              unsafeBrandId(answerId),
+          const { results, totalCount } =
+            await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
+              unsafeBrandId(req.params.purposeTemplateId),
               req.query,
               ctx
             );
 
           return res.status(200).send(
-            purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocuments.parse(
+            purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocuments.parse(
               {
-                results: documents.results.map(
-                  annotationDocumentToApiAnnotationDocument
+                results: results.map((d) =>
+                  annotationDocumentToApiAnnotationDocumentWithAnswerId(
+                    d.answerId,
+                    d.document
+                  )
                 ),
-                totalCount: documents.totalCount,
+                totalCount,
               }
             )
           );

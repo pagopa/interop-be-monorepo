@@ -14,6 +14,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
   TenantKind,
+  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -359,19 +360,24 @@ export function readModelServiceBuilderSQL({
         },
       };
     },
-    async getRiskAnalysisTemplateAnswerAnnotationDocuments(
+    async getRiskAnalysisTemplateAnnotationDocuments(
       purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-      offset: number,
-      limit: number
-    ): Promise<ListResult<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+      { limit, offset }: { limit: number; offset: number }
+    ): Promise<
+      ListResult<{
+        answerId: RiskAnalysisMultiAnswerId | RiskAnalysisSingleAnswerId;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }>
+    > {
       const queryResult = await readModelDB
         .select(
-          withTotalCount(
-            getTableColumns(
+          withTotalCount({
+            answerId:
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+            ...getTableColumns(
               purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
-            )
-          )
+            ),
+          })
         )
         .from(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
@@ -390,8 +396,8 @@ export function readModelServiceBuilderSQL({
               purposeTemplateId
             ),
             eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
-              answerId
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
             )
           )
         )
@@ -401,10 +407,28 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset);
 
-      return createListResult(
-        queryResult.map(toRiskAnalysisTemplateAnswerAnnotationDocument),
-        queryResult[0]?.totalCount
-      );
+      const results: Array<{
+        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }> = queryResult.map((r) => ({
+        answerId: unsafeBrandId<
+          RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+        >(r.answerId),
+        document: toRiskAnalysisTemplateAnswerAnnotationDocument({
+          id: r.id,
+          name: r.name,
+          metadataVersion: r.metadataVersion,
+          createdAt: r.createdAt,
+          purposeTemplateId: r.purposeTemplateId,
+          annotationId: r.annotationId,
+          prettyName: r.prettyName,
+          contentType: r.contentType,
+          path: r.path,
+          checksum: r.checksum,
+        }),
+      }));
+
+      return createListResult(results, queryResult[0]?.totalCount);
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,

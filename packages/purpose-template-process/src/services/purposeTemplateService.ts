@@ -698,33 +698,34 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
     },
-    async getRiskAnalysisTemplateAnswerAnnotationDocuments(
+    async getRiskAnalysisTemplateAnnotationDocuments(
       purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
       {
         offset,
         limit,
-      }: purposeTemplateApi.GetRiskAnalysisTemplateAnswerAnnotationDocumentsQueryParams,
+      }: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams,
       {
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
-    ): Promise<ListResult<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+    ): Promise<
+      ListResult<{
+        answerId: string;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }>
+    > {
       logger.info(
-        `Retrieving risk analysis template answer annotation documents for purpose template ${purposeTemplateId} and answer ${answerId}`
+        `Retrieving risk analysis template annotation documents for purpose template ${purposeTemplateId}`
       );
 
-      const purposeTemplate = applyVisibilityToPurposeTemplate(
+      applyVisibilityToPurposeTemplate(
         await retrievePurposeTemplate(purposeTemplateId, readModelService),
         authData
       );
-      assertAnswerExistsInRiskAnalysisTemplate(purposeTemplate.data, answerId);
 
-      return readModelService.getRiskAnalysisTemplateAnswerAnnotationDocuments(
+      return readModelService.getRiskAnalysisTemplateAnnotationDocuments(
         purposeTemplateId,
-        answerId,
-        offset,
-        limit
+        { offset, limit }
       );
     },
     async getPurposeTemplateEServiceDescriptors(

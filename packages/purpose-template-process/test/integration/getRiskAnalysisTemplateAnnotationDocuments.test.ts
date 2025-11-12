@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 import {
   getMockAuthData,
@@ -10,7 +11,6 @@ import {
 import {
   PurposeTemplate,
   PurposeTemplateId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   generateId,
@@ -27,7 +27,6 @@ import {
 } from "../integrationUtils.js";
 import {
   purposeTemplateNotFound,
-  riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -36,14 +35,26 @@ const sortByCreatedAtDate = (
   b: RiskAnalysisTemplateAnswerAnnotationDocument
 ): number => a.createdAt.getTime() - b.createdAt.getTime();
 
-describe("getRiskAnalysisTemplateAnswerAnnotationDocuments", () => {
+describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
+  const mockDate1 = new Date();
+  const mockDate2 = new Date(mockDate1.getTime() + 1000);
   const riskAnalysisTemplate = getMockCompleteRiskAnalysisFormTemplate();
-  const answerId = riskAnalysisTemplate.singleAnswers[0].id;
   const riskAnalysisTemplateAnswerAnnotationDocuments: RiskAnalysisTemplateAnswerAnnotationDocument[] =
     [
-      getMockRiskAnalysisTemplateAnswerAnnotationDocument(),
-      getMockRiskAnalysisTemplateAnswerAnnotationDocument(),
-    ];
+      {
+        ...getMockRiskAnalysisTemplateAnswerAnnotationDocument(),
+        createdAt: mockDate1,
+      },
+      {
+        ...getMockRiskAnalysisTemplateAnswerAnnotationDocument(),
+        createdAt: mockDate2,
+      },
+    ].sort(sortByCreatedAtDate);
+  const riskAnalysisTemplateAnswerAnnotationDocumentsWithAnswerId =
+    riskAnalysisTemplateAnswerAnnotationDocuments.map((document) => ({
+      answerId: riskAnalysisTemplate.singleAnswers[0].id,
+      document,
+    }));
   const purposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeRiskAnalysisForm: {
@@ -57,6 +68,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocuments", () => {
           },
         },
       ],
+      multiAnswers: [],
     },
   };
 
@@ -70,16 +82,14 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocuments", () => {
       userRoles: [userRole.ADMIN_ROLE],
     };
     const result =
-      await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments(
+      await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
         purposeTemplate.id,
-        answerId,
         { offset: 0, limit: 10 },
         getMockContext({ authData })
       );
 
     expect(result).toEqual({
-      results:
-        riskAnalysisTemplateAnswerAnnotationDocuments.sort(sortByCreatedAtDate),
+      results: riskAnalysisTemplateAnswerAnnotationDocumentsWithAnswerId,
       totalCount: riskAnalysisTemplateAnswerAnnotationDocuments.length,
     });
   });
@@ -105,19 +115,16 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocuments", () => {
         userRoles: [userRole.ADMIN_ROLE],
       };
       const result =
-        await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments(
+        await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
           purposeTemplateNotInDraftState.id,
-          answerId,
           { offset: 0, limit: 10 },
           getMockContext({ authData })
         );
 
       expect(result).toEqual({
-        results:
-          riskAnalysisTemplateAnswerAnnotationDocuments.sort(
-            sortByCreatedAtDate
-          ),
-        totalCount: riskAnalysisTemplateAnswerAnnotationDocuments.length,
+        results: riskAnalysisTemplateAnswerAnnotationDocumentsWithAnswerId,
+        totalCount:
+          riskAnalysisTemplateAnswerAnnotationDocumentsWithAnswerId.length,
       });
     }
   );
@@ -125,38 +132,19 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocuments", () => {
   it("should throw tenantNotAllowed if the requester is not the creator and the purpose template state is draft", async () => {
     const requesterId = generateId<TenantId>();
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments(
+      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
         purposeTemplate.id,
-        answerId,
         { offset: 0, limit: 10 },
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 
-  it("should throw riskAnalysisTemplateAnswerNotFound if the risk analysis template answer doesn't exist", async () => {
-    const notExistentAnswerId = generateId<RiskAnalysisSingleAnswerId>();
-    await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments(
-        purposeTemplate.id,
-        notExistentAnswerId,
-        { offset: 0, limit: 10 },
-        getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
-      )
-    ).rejects.toThrowError(
-      riskAnalysisTemplateAnswerNotFound({
-        purposeTemplateId: purposeTemplate.id,
-        answerId: notExistentAnswerId,
-      })
-    );
-  });
-
   it("should throw purposeTemplateNotFound if the purpose template doesn't exist", async () => {
     const notExistentPurposeTemplateId = generateId<PurposeTemplateId>();
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments(
+      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
         notExistentPurposeTemplateId,
-        answerId,
         { offset: 0, limit: 10 },
         getMockContext({})
       )

@@ -6,47 +6,61 @@ import {
 import {
   generateId,
   PurposeTemplateId,
-  RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
-import { annotationDocumentToApiAnnotationDocument } from "../../src/model/domain/apiConverter.js";
+import { annotationDocumentToApiAnnotationDocumentWithAnswerId } from "../../src/model/domain/apiConverter.js";
 import {
   purposeTemplateNotFound,
   riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API GET /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation/documents test", () => {
+describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", () => {
+  const mockAnswerId = generateId<RiskAnalysisSingleAnswerId>();
   const mockDocument1 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
   const mockDocument2 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
+  const mockDocumentWithAnswerId1 = {
+    answerId: mockAnswerId,
+    document: mockDocument1,
+  };
+  const mockDocumentWithAnswerId2 = {
+    answerId: mockAnswerId,
+    document: mockDocument2,
+  };
   const mockPurposeTemplateId = generateId<PurposeTemplateId>();
-  const mockAnswerId = generateId<RiskAnalysisSingleAnswerId>();
 
   const mockProcessResponse = {
-    results: [mockDocument1, mockDocument2],
+    results: [mockDocumentWithAnswerId1, mockDocumentWithAnswerId2],
     totalCount: 2,
   };
 
   const apiResponse =
-    purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocuments.parse({
-      results: mockProcessResponse.results.map(
-        annotationDocumentToApiAnnotationDocument
-      ),
+    purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocuments.parse({
+      results: [
+        annotationDocumentToApiAnnotationDocumentWithAnswerId(
+          mockAnswerId,
+          mockDocument1
+        ),
+        annotationDocumentToApiAnnotationDocumentWithAnswerId(
+          mockAnswerId,
+          mockDocument2
+        ),
+      ],
       totalCount: mockProcessResponse.totalCount,
     });
 
-  const mockQueryParams: purposeTemplateApi.GetRiskAnalysisTemplateAnswerAnnotationDocumentsQueryParams =
+  const mockQueryParams: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
     {
       offset: 0,
       limit: 10,
     };
 
   beforeEach(() => {
-    purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments = vi
+    purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments = vi
       .fn()
       .mockResolvedValue(mockProcessResponse);
   });
@@ -55,14 +69,11 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotatio
   const makeRequest = async (
     token: string,
     purposeTemplateId: PurposeTemplateId = mockPurposeTemplateId,
-    answerId:
-      | RiskAnalysisSingleAnswerId
-      | RiskAnalysisMultiAnswerId = mockAnswerId,
-    query: purposeTemplateApi.GetRiskAnalysisTemplateAnswerAnnotationDocumentsQueryParams = mockQueryParams
+    query: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams = mockQueryParams
   ) =>
     request(api)
       .get(
-        `/purposeTemplates/${purposeTemplateId}/riskAnalysis/answers/${answerId}/annotation/documents`
+        `/purposeTemplates/${purposeTemplateId}/riskAnalysis/annotationDocuments`
       )
       .query(query)
       .set("Authorization", `Bearer ${token}`)
@@ -85,10 +96,9 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotatio
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(
-        purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments
+        purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments
       ).toHaveBeenCalledWith(
         mockPurposeTemplateId,
-        mockAnswerId,
         mockQueryParams,
         expect.any(Object) // context
       );
@@ -116,8 +126,9 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotatio
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocuments =
-        vi.fn().mockRejectedValue(error);
+      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments = vi
+        .fn()
+        .mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
@@ -129,15 +140,11 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotatio
       purposeTemplateId: "invalid" as PurposeTemplateId,
       answerId: mockAnswerId,
     },
-    {
-      purposeTemplateId: mockPurposeTemplateId,
-      answerId: "invalid" as RiskAnalysisMultiAnswerId,
-    },
   ])(
     "Should return 400 if passed an invalid data: %s",
-    async ({ purposeTemplateId, answerId }) => {
+    async ({ purposeTemplateId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeTemplateId, answerId);
+      const res = await makeRequest(token, purposeTemplateId);
       expect(res.status).toBe(400);
     }
   );
@@ -153,8 +160,7 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotatio
     const res = await makeRequest(
       token,
       mockPurposeTemplateId,
-      mockAnswerId,
-      query as unknown as purposeTemplateApi.GetRiskAnalysisTemplateAnswerAnnotationDocumentsQueryParams
+      query as unknown as purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams
     );
 
     expect(res.status).toBe(400);

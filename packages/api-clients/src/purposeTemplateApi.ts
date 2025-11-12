@@ -8,10 +8,7 @@ export type GetPurposeTemplatesQueryParams = QueryParametersByAlias<
   "getPurposeTemplates"
 >;
 
-export type GetRiskAnalysisTemplateAnswerAnnotationDocumentsQueryParams =
-  QueryParametersByAlias<
-    Api,
-    "getRiskAnalysisTemplateAnswerAnnotationDocuments"
-  >;
+export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
+  QueryParametersByAlias<Api, "getRiskAnalysisTemplateAnnotationDocuments">;
 
 export * from "./generated/purposeTemplateApi.js";

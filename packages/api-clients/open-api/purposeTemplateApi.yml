@@ -744,17 +744,11 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-      - name: id
+      - name: purposeTemplateId
         in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: answerId
-        in: path
+        description: The Purpose Template ID
         required: true
         schema:
           type: string
@@ -764,9 +758,9 @@ paths:
         - bearerAuth: []
       tags:
         - purposeTemplate
-      summary: Retrieve a list of risk analysis template answer annotation documents
-      operationId: getRiskAnalysisTemplateAnswerAnnotationDocuments
-      description: Retrieves a list of risk analysis template answer annotation documents for the specified purpose template and answer
+      summary: Retrieve a list of Risk Analysis Template Annotation Documents
+      description: Retrieve a list of Risk Analysis Template Annotation Documents for the specified Purpose Template
+      operationId: getRiskAnalysisTemplateAnnotationDocuments
       parameters:
         - in: query
           name: offset
@@ -785,11 +779,11 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Risk Analysis Template Answer Annotation Documents retrieved
+          description: Risk Analysis Template Annotation Documents retrieved
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocuments"
+                $ref: "#/components/schemas/GetRiskAnalysisTemplateAnnotationDocuments"
         "400":
           description: Bad request
           content:
@@ -808,6 +802,21 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       summary: Add Document to Risk Analysis Answer Annotation
       description: Add Answer Annotation Document to Risk Analysis of Purpose Template
@@ -1379,6 +1388,32 @@ components:
         - contentType
         - prettyName
         - path
+    GetRiskAnalysisTemplateAnnotationDocuments:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/GetRiskAnalysisTemplateAnnotationDocument"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    GetRiskAnalysisTemplateAnnotationDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        document:
+          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+        answerId:
+          type: string
+          format: uuid
+      required:
+        - document
+        - answerId
     UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed:
       required:
         - prettyName
@@ -1434,20 +1469,6 @@ components:
         - text
         - id
         - docs
-    RiskAnalysisTemplateAnswerAnnotationDocuments:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
-        totalCount:
-          type: integer
-          format: int32
-      required:
-        - results
-        - totalCount
     RiskAnalysisTemplateAnswerAnnotationDocument:
       type: object
       additionalProperties: false
