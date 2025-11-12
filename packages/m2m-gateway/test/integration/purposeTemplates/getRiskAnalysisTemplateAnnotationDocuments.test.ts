@@ -12,7 +12,7 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
-  const mockQueryParams: m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams =
+  const mockQueryParams: m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
     {
       offset: 0,
       limit: 10,

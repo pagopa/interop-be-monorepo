@@ -28,7 +28,7 @@ describe("GET /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocume
   const makeRequest = async (
     token: string,
     purposeTemplateId: PurposeTemplateId,
-    query: m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams
+    query: m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams
   ) =>
     request(api)
       .get(
@@ -42,7 +42,7 @@ describe("GET /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocume
     authRole.M2M_ADMIN_ROLE,
   ];
 
-  const mockQueryParams: m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams =
+  const mockQueryParams: m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
     {
       offset: 0,
       limit: 10,
@@ -95,7 +95,7 @@ describe("GET /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocume
     const res = await makeRequest(
       token,
       generateId(),
-      query as unknown as m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams
+      query as unknown as m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams
     );
 
     expect(res.status).toBe(400);

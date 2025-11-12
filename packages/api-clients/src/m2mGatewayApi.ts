@@ -183,7 +183,7 @@ export type GetPurposeTemplatesQueryParams = QueryParametersByAlias<
   "getPurposeTemplates"
 >;
 
-export type GetRiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams =
+export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
   QueryParametersByAlias<
     PurposeTemplateApi,
     "getRiskAnalysisTemplateAnnotationDocuments"
