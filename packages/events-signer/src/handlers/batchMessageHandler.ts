@@ -23,6 +23,7 @@ import {
   SignatureServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
+import { getEventTimestamp } from "../utils/eventTimestamp.js";
 import { handleAgreementMessageV2 } from "./handleAgreementMessageV2.js";
 import { handleAuthorizationMessageV1 } from "./handleAuthorizationMessageV1.js";
 import { handleAuthorizationMessageV2 } from "./handleAuthorizationMessageV2.js";
@@ -54,7 +55,7 @@ export async function executeTopicHandler(
     .with(config.catalogTopic, async () => {
       const eservicesV2WithTimestamp: Array<{
         eserviceV2: EServiceEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -64,7 +65,7 @@ export async function executeTopicHandler(
           .with({ event_version: 2 }, (msg) =>
             eservicesV2WithTimestamp.push({
               eserviceV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -81,7 +82,7 @@ export async function executeTopicHandler(
     .with(config.agreementTopic, async () => {
       const agreementsV2WithTimestamp: Array<{
         agreementV2: AgreementEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -91,7 +92,7 @@ export async function executeTopicHandler(
           .with({ event_version: 2 }, (msg) =>
             agreementsV2WithTimestamp.push({
               agreementV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -108,7 +109,7 @@ export async function executeTopicHandler(
     .with(config.purposeTopic, async () => {
       const purposesV2WithTimestamp: Array<{
         purposeV2: PurposeEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -118,7 +119,7 @@ export async function executeTopicHandler(
           .with({ event_version: 2 }, (msg) =>
             purposesV2WithTimestamp.push({
               purposeV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -135,11 +136,11 @@ export async function executeTopicHandler(
     .with(config.authorizationTopic, async () => {
       const authorizationsV1WithTimestamp: Array<{
         authV1: AuthorizationEventEnvelopeV1;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
       const authorizationsV2WithTimestamp: Array<{
         authV2: AuthorizationEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -148,13 +149,13 @@ export async function executeTopicHandler(
           .with({ event_version: 1 }, (msg) =>
             authorizationsV1WithTimestamp.push({
               authV1: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .with({ event_version: 2 }, (msg) =>
             authorizationsV2WithTimestamp.push({
               authV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -179,7 +180,7 @@ export async function executeTopicHandler(
     .with(config.delegationTopic, async () => {
       const delegationsV2WithTimestamp: Array<{
         delegationV2: DelegationEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -188,7 +189,7 @@ export async function executeTopicHandler(
           .with({ event_version: 2 }, (msg) =>
             delegationsV2WithTimestamp.push({
               delegationV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
