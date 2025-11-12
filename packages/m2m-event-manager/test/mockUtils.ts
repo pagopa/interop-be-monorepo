@@ -115,6 +115,7 @@ export function getMockedPurposeM2MEvent({
   consumerDelegationId,
   producerDelegateId,
   producerDelegationId,
+  purposeVersionId,
 }: {
   eventType: PurposeM2MEvent["eventType"];
   visibility: PurposeM2MEvent["visibility"];
@@ -124,6 +125,7 @@ export function getMockedPurposeM2MEvent({
   producerId?: TenantId;
   producerDelegateId?: TenantId;
   producerDelegationId?: DelegationId;
+  purposeVersionId?: PurposeVersionId;
 }): PurposeM2MEvent {
   return {
     id: generateM2MEventId(),
@@ -131,7 +133,7 @@ export function getMockedPurposeM2MEvent({
     eventTimestamp: new Date(),
     resourceVersion: randomInt(1, 1000),
     purposeId: generateId<PurposeId>(),
-    purposeVersionId: generateId<PurposeVersionId>(),
+    purposeVersionId: purposeVersionId ?? generateId<PurposeVersionId>(),
     visibility,
     consumerId: consumerId ?? generateId<TenantId>(),
     consumerDelegateId: consumerDelegateId ?? generateId<TenantId>(),
