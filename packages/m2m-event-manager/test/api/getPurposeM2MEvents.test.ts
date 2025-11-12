@@ -12,7 +12,7 @@ import { generateM2MEventId, getMockedPurposeM2MEvent } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../utils.js";
 
-describe("API /events/agreements test", () => {
+describe("API /events/purposes test", () => {
   const mockPurposeM2MEvents = PurposeM2MEventType.options
     .map((eventType) => [
       getMockedPurposeM2MEvent({
@@ -34,6 +34,7 @@ describe("API /events/agreements test", () => {
         eventTimestamp: e.eventTimestamp.toJSON(),
         eventType: testToUpperSnakeCase(e.eventType),
         purposeId: e.purposeId,
+        purposeVersionId: e.purposeVersionId,
         consumerDelegationId: e.consumerDelegationId,
         producerDelegationId: e.producerDelegationId,
       } as m2mEventApi.PurposeM2MEvent)

@@ -6,6 +6,7 @@ export function fromPurposeM2MEventSQL(
 ): PurposeM2MEvent {
   return PurposeM2MEvent.parse({
     ...event,
+    purposeVersionId: event.purposeVersionId ?? undefined,
     consumerDelegationId: event.consumerDelegationId ?? undefined,
     consumerDelegateId: event.consumerDelegateId ?? undefined,
     producerDelegationId: event.producerDelegationId ?? undefined,

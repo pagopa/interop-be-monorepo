@@ -74,6 +74,7 @@ export async function writePurposeM2MEvent(event: PurposeM2MEvent) {
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
+      purposeVersionId: event.purposeVersionId ?? null,
       consumerDelegateId: event.consumerDelegateId ?? null,
       consumerDelegationId: event.consumerDelegationId ?? null,
       producerDelegateId: event.producerDelegateId ?? null,
