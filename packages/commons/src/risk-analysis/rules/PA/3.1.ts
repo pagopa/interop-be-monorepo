@@ -166,6 +166,10 @@ export const pa31 = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "NO",
+        },
+        {
           id: "usesThirdPartyPersonalData",
           value: "YES",
         },
