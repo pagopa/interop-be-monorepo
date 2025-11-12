@@ -4,17 +4,39 @@ import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   agreementInM2MEvent,
   attributeInM2MEvent,
+  clientInM2MEvent,
+  consumerDelegationInM2MEvent,
   eserviceInM2MEvent,
+  eserviceTemplateInM2MEvent,
+  keyInM2MEvent,
+  producerDelegationInM2MEvent,
+  producerKeyInM2MEvent,
+  producerKeychainInM2MEvent,
+  purposeInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { afterEach, inject } from "vitest";
 import {
   AgreementM2MEvent,
   AttributeM2MEvent,
+  ClientM2MEvent,
   Delegation,
+  DelegationM2MEvent,
+  EService,
   EServiceM2MEvent,
+  EServiceTemplateM2MEvent,
+  KeyM2MEvent,
+  ProducerKeyM2MEvent,
+  ProducerKeychainM2MEvent,
+  PurposeM2MEvent,
 } from "pagopa-interop-models";
-import { delegationReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import { upsertDelegation } from "pagopa-interop-readmodel/testUtils";
+import {
+  delegationReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
+  upsertDelegation,
+  upsertEService,
+} from "pagopa-interop-readmodel/testUtils";
 import { m2mEventWriterServiceSQLBuilder } from "../src/services/m2mEventWriterServiceSQL.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -38,6 +60,7 @@ export const testM2mEventWriterService =
 
 export const testReadModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: delegationReadModelServiceBuilder(readModelDB),
+  catalogReadModelServiceSQL: catalogReadModelServiceBuilder(readModelDB),
 });
 
 export const getMockEventEnvelopeCommons = () => ({
@@ -51,6 +74,12 @@ export const addOneDelegationToReadModel = async (
   delegation: Delegation
 ): Promise<void> => {
   await upsertDelegation(readModelDB, delegation, 0);
+};
+
+export const addOneEServiceToReadModel = async (
+  eservice: EService
+): Promise<void> => {
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export async function retrieveLastAttributeM2MEvent(): Promise<AttributeM2MEvent> {
@@ -111,4 +140,134 @@ export async function retrieveAllAgreementM2MEvents(): Promise<
       producerDelegateId: e.producerDelegateId ?? undefined,
     })
   );
+}
+
+export async function retrieveAllPurposeM2MEvents(): Promise<
+  PurposeM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(purposeInM2MEvent)
+    .orderBy(desc(purposeInM2MEvent.id));
+
+  return sqlEvents.map((e) =>
+    PurposeM2MEvent.parse({
+      ...e,
+      purposeVersionId: e.purposeVersionId ?? undefined,
+      consumerDelegationId: e.consumerDelegationId ?? undefined,
+      consumerDelegateId: e.consumerDelegateId ?? undefined,
+      producerDelegationId: e.producerDelegationId ?? undefined,
+      producerDelegateId: e.producerDelegateId ?? undefined,
+    })
+  );
+}
+
+export async function retrieveLastPurposeM2MEvent(): Promise<PurposeM2MEvent> {
+  return (await retrieveAllPurposeM2MEvents())[0];
+}
+
+export async function retrieveAllConsumerDelegationM2MEvents(): Promise<
+  DelegationM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(consumerDelegationInM2MEvent)
+    .orderBy(desc(consumerDelegationInM2MEvent.id));
+
+  return sqlEvents.map((e) => DelegationM2MEvent.parse(e));
+}
+
+export async function retrieveLastConsumerDelegationM2MEvent(): Promise<DelegationM2MEvent> {
+  return (await retrieveAllConsumerDelegationM2MEvents())[0];
+}
+
+export async function retrieveAllProducerDelegationM2MEvents(): Promise<
+  DelegationM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(producerDelegationInM2MEvent)
+    .orderBy(desc(producerDelegationInM2MEvent.id));
+
+  return sqlEvents.map((e) => DelegationM2MEvent.parse(e));
+}
+
+export async function retrieveLastProducerDelegationM2MEvent(): Promise<DelegationM2MEvent> {
+  return (await retrieveAllProducerDelegationM2MEvents())[0];
+}
+
+export async function retrieveLastEServiceTemplateM2MEvent(): Promise<EServiceTemplateM2MEvent> {
+  return (await retrieveAllEServiceTemplateM2MEvents())[0];
+}
+
+export async function retrieveAllEServiceTemplateM2MEvents(): Promise<
+  EServiceTemplateM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(eserviceTemplateInM2MEvent)
+    .orderBy(desc(eserviceTemplateInM2MEvent.id));
+
+  return sqlEvents.map((e) =>
+    EServiceTemplateM2MEvent.parse({
+      ...e,
+      eserviceTemplateVersionId: e.eserviceTemplateVersionId ?? undefined,
+    })
+  );
+}
+
+export async function retrieveLastClientM2MEvent(): Promise<ClientM2MEvent> {
+  return (await retrieveAllClientM2MEvents())[0];
+}
+
+export async function retrieveAllClientM2MEvents(): Promise<ClientM2MEvent[]> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(clientInM2MEvent)
+    .orderBy(desc(clientInM2MEvent.id));
+
+  return sqlEvents.map((e) => ClientM2MEvent.parse(e));
+}
+
+export async function retrieveLastKeyM2MEvent(): Promise<KeyM2MEvent> {
+  return (await retrieveAllKeyM2MEvents())[0];
+}
+
+export async function retrieveAllKeyM2MEvents(): Promise<KeyM2MEvent[]> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(keyInM2MEvent)
+    .orderBy(desc(keyInM2MEvent.id));
+
+  return sqlEvents.map((e) => KeyM2MEvent.parse(e));
+}
+
+export async function retrieveLastProducerKeyM2MEvent(): Promise<ProducerKeyM2MEvent> {
+  return (await retrieveAllProducerKeyM2MEvents())[0];
+}
+
+export async function retrieveAllProducerKeyM2MEvents(): Promise<
+  ProducerKeyM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(producerKeyInM2MEvent)
+    .orderBy(desc(producerKeyInM2MEvent.id));
+
+  return sqlEvents.map((e) => ProducerKeyM2MEvent.parse(e));
+}
+
+export async function retrieveLastProducerKeychainM2MEvent(): Promise<ProducerKeychainM2MEvent> {
+  return (await retrieveAllProducerKeychainM2MEvents())[0];
+}
+
+export async function retrieveAllProducerKeychainM2MEvents(): Promise<
+  ProducerKeychainM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(producerKeychainInM2MEvent)
+    .orderBy(desc(producerKeychainInM2MEvent.id));
+
+  return sqlEvents.map((e) => ProducerKeychainM2MEvent.parse(e));
 }
