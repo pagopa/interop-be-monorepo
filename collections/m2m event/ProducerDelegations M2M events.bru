@@ -1,0 +1,22 @@
+meta {
+  name: producerDelegations M2M events
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host-m2m-event-manager}}/events/producerDelegations?limit=10&delegationId=null
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  delegationId: null
+  ~lastEventId: 
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  X-Correlation-Id: {{correlation-id}}
+}
