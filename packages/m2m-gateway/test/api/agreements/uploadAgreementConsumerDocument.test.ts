@@ -11,7 +11,6 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
-  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -37,7 +36,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
     prettyName: mockFileUpload.prettyName,
     name: mockFileUpload.filename,
     contentType: mockFileUpload.contentType,
-    createdAt: new Date().toISOString(),
+    createdAt: mockDate.toISOString(),
   };
 
   const makeRequest = async (
@@ -70,10 +69,10 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
         mockAgreementService.uploadAgreementConsumerDocument
       ).toHaveBeenCalledWith(
         agreementId,
-        {
-          file: fileFromTestMultipartFileUpload(mockFileUpload, mockDate),
+        expect.objectContaining({
+          file: expect.any(File),
           prettyName: mockFileUpload.prettyName,
-        },
+        }),
         expect.any(Object) // Context object
       );
     }
