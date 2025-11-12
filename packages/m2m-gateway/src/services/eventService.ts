@@ -8,6 +8,22 @@ export type EventService = ReturnType<typeof eventServiceBuilder>;
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
+    async getEServiceEvents(
+      { lastEventId, limit }: m2mGatewayApi.GetEventManagerEServicesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceEvents> {
+      logger.info(`Retrieving eservice events`);
+
+      const { events } = await clients.eventManagerClient.getEServiceM2MEvents({
+        queries: {
+          lastEventId,
+          limit,
+        },
+        headers,
+      });
+
+      return { events };
+    },
     async getAttributeEvents(
       {
         lastEventId,
