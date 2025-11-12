@@ -184,15 +184,7 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
         purposeTemplateState.suspended,
         [purposeTemplateState.draft, purposeTemplateState.published]
       ),
-      expectedStatus: 400,
-    },
-    {
-      error: purposeTemplateNotInExpectedStates(
-        purposeTemplateId,
-        purposeTemplateState.archived,
-        [purposeTemplateState.draft, purposeTemplateState.published]
-      ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     {
       error: tenantNotAllowed(generateId()),

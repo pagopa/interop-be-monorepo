@@ -858,6 +858,32 @@ export function purposeServiceBuilder(
         }
       );
     },
+    async getRiskAnalysisSignedDocument(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      documentId: PurposeVersionDocumentId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Uint8Array> {
+      logger.info(
+        `Downloading risk analysis signed document ${documentId} from purpose ${purposeId} with version ${versionId}`
+      );
+
+      const signedDocument =
+        await purposeProcessClient.getRiskAnalysisSignedDocument({
+          params: {
+            purposeId,
+            versionId,
+            documentId,
+          },
+          headers,
+        });
+
+      return await fileManager.get(
+        config.riskAnalysisDocumentsContainer,
+        signedDocument.path,
+        logger
+      );
+    },
   };
 }
 

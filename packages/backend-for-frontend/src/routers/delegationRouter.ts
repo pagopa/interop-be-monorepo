@@ -110,7 +110,29 @@ const delegationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .get("/delegations/:delegationId/signedContract", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { delegationId } = req.params;
+
+      try {
+        const result = await delegationService.getDelegationSignedContract(
+          unsafeBrandId(delegationId),
+          ctx
+        );
+
+        return res.status(200).send(result);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving contract of delegation ${req.params.delegationId}`
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
   return delegationRouter;
 };
 
