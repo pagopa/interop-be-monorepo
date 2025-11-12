@@ -26,6 +26,9 @@ describe("API GET /eservices/:eServiceId/riskAnalysis/:riskAnalysisId", () => {
     clients.catalogProcessClient.getEServiceById = vi
       .fn()
       .mockResolvedValue(mockEService);
+    clients.purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion = vi
+      .fn()
+      .mockResolvedValue({ expiration: undefined });
   });
 
   const makeRequest = async (
