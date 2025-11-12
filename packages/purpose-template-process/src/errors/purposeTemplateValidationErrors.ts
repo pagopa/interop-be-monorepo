@@ -131,7 +131,7 @@ export function invalidDescriptorStateForPublishError(
   expectedStates: DescriptorState[]
 ): PurposeTemplateValidationIssue {
   return new PurposeTemplateValidationIssue({
-    code: "invalidDescriptorStateForPublishingError",
+    code: "invalidDescriptorStateForPublishError",
     detail: `Descriptor ${
       eserviceDecriptorPurposeTemplate.descriptorId
     } of e-service ${
