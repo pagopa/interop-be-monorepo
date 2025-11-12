@@ -14,7 +14,7 @@ import {
   FileManager,
   WithLogger,
   createPollingByCondition,
-  formatDateyyyyMMddThhmmss,
+  formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
@@ -1033,7 +1033,7 @@ export function catalogServiceBuilder(
         eserviceId
       );
 
-      const currentDate = formatDateyyyyMMddThhmmss(new Date());
+      const currentDate = formatDateyyyyMMddTHHmmss(new Date());
       const filename = `${currentDate}-lista-fruitori-${eservice.name}.csv`;
 
       const buildCsv = (consumers: catalogApi.EServiceConsumer[]): string =>
