@@ -14,6 +14,7 @@ import {
   PurposeId,
   PurposeM2MEvent,
   PurposeM2MEventId,
+  PurposeVersionId,
   TenantId,
   generateId,
   unsafeBrandId,
@@ -23,10 +24,10 @@ import { v7 as uuidv7 } from "uuid";
 
 export function generateM2MEventId<
   ID extends
-    | AttributeM2MEventId
-    | EServiceM2MEventId
-    | AgreementM2MEventId
-    | PurposeM2MEventId
+  | AttributeM2MEventId
+  | EServiceM2MEventId
+  | AgreementM2MEventId
+  | PurposeM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
@@ -130,6 +131,7 @@ export function getMockedPurposeM2MEvent({
     eventTimestamp: new Date(),
     resourceVersion: randomInt(1, 1000),
     purposeId: generateId<PurposeId>(),
+    purposeVersionId: generateId<PurposeVersionId>(),
     visibility,
     consumerId: consumerId ?? generateId<TenantId>(),
     consumerDelegateId: consumerDelegateId ?? generateId<TenantId>(),

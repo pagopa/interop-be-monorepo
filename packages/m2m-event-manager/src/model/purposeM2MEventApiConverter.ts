@@ -59,10 +59,6 @@ function toApiPurposeM2MEventType(
       () => "PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION"
     )
     .with(
-      "RiskAnalysisDocumentGenerated",
-      () => "RISK_ANALYSIS_DOCUMENT_GENERATED"
-    )
-    .with(
       "RiskAnalysisSignedDocumentGenerated",
       () => "RISK_ANALYSIS_SIGNED_DOCUMENT_GENERATED"
     )
