@@ -169,7 +169,8 @@ export async function handlePurposeEvent(
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisDocumentGenerated"
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => {

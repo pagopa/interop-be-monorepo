@@ -48,6 +48,7 @@ export async function handleMessageV2(
       { type: "PurposeCloned" },
       { type: "PurposeVersionArchivedByRevokedDelegation" },
       { type: "RiskAnalysisDocumentGenerated" },
+      { type: "RiskAnalysisSignedDocumentGenerated" },
       async (message) => {
         await purposeWriterService.upsertPurpose(purpose, message.version);
       }

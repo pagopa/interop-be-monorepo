@@ -5,6 +5,7 @@ import { AgreementAttributeSchema } from "./agreementAttribute.js";
 import { AgreementConsumerDocumentSchema } from "./agreementConsumerDocument.js";
 import { AgreementContractSchema } from "./agreementContract.js";
 import { AgreementStampSchema } from "./agreementStamp.js";
+import { AgreementSignedContractSchema } from "./agreementSignedContract.js";
 
 export const AgreementSchema = createSelectSchema(
   agreementInReadmodelAgreement
@@ -19,6 +20,7 @@ export const AgreementItemsSchema = z.object({
   attributesSQL: z.array(AgreementAttributeSchema),
   consumerDocumentsSQL: z.array(AgreementConsumerDocumentSchema),
   contractSQL: AgreementContractSchema.optional(),
+  signedContractSQL: AgreementSignedContractSchema.optional(),
 });
 
 export type AgreementItemsSchema = z.infer<typeof AgreementItemsSchema>;

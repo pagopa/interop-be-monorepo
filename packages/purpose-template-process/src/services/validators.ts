@@ -12,6 +12,9 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswerId,
+  userRole,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -25,6 +28,9 @@ import {
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
   validateNoHyperlinks,
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
+  systemRole,
 } from "pagopa-interop-commons";
 import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
@@ -43,6 +49,7 @@ import {
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
   disassociationEServicesFromPurposeTemplateFailed,
   tenantNotAllowed,
+  riskAnalysisTemplateAnswerNotFound,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import {
@@ -68,16 +75,12 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
-const isRequesterCreator = (
+export const isRequesterCreator = (
   creatorId: TenantId,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
 ): boolean => authData.organizationId === creatorId;
 
-const isPurposeTemplatePublished = (
-  currentPurposeTemplateState: PurposeTemplateState
-): boolean => currentPurposeTemplateState === purposeTemplateState.published;
-
-const isPurposeTemplateDraft = (
+export const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
 ): boolean => currentPurposeTemplateState === purposeTemplateState.draft;
 
@@ -129,15 +132,31 @@ export const assertDocumentsLimitsNotReached = (
   }
 };
 
+const assertPrettyNameIsUnique = (
+  docPrettyName: string,
+  newPrettyName: string,
+  answerId: string
+): void => {
+  if (docPrettyName === newPrettyName) {
+    throw conflictDocumentPrettyNameDuplicate(answerId, newPrettyName);
+  }
+};
+
+export const assertAnnotationDocumentPrettyNameIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
+  });
+
 export const assertAnnotationDocumentIsUnique = (
   { answer }: RiskAnalysisTemplateAnswer,
   newPrettyName: string,
   newChecksum: string
 ): void =>
   [...(answer?.annotation?.docs || [])].forEach((doc) => {
-    if (doc.prettyName === newPrettyName) {
-      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
-    }
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
 
     if (doc?.checksum === newChecksum) {
       throw conflictDuplicatedDocument(answer.id, newChecksum);
@@ -242,18 +261,6 @@ export const assertRequesterIsCreator = (
   }
 };
 
-export const assertRequesterCanRetrievePurposeTemplate = async (
-  purposeTemplate: PurposeTemplate,
-  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
-): Promise<void> => {
-  if (
-    !isPurposeTemplatePublished(purposeTemplate.state) &&
-    !isRequesterCreator(purposeTemplate.creatorId, authData)
-  ) {
-    throw tenantNotAllowed(authData.organizationId);
-  }
-};
-
 export const assertPurposeTemplateStateIsValid = (
   purposeTemplate: PurposeTemplate,
   expectedInitialStates: PurposeTemplateState[],
@@ -325,6 +332,23 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
 }
+
+export const assertAnswerExistsInRiskAnalysisTemplate = (
+  purposeTemplate: PurposeTemplate,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): void => {
+  const riskAnalysisTemplate = purposeTemplate.purposeRiskAnalysisForm;
+  const answerExists =
+    riskAnalysisTemplate?.singleAnswers.some((a) => a.id === answerId) ||
+    riskAnalysisTemplate?.multiAnswers.some((a) => a.id === answerId);
+
+  if (!answerExists) {
+    throw riskAnalysisTemplateAnswerNotFound({
+      purposeTemplateId: purposeTemplate.id,
+      answerId,
+    });
+  }
+};
 
 /**
  * Validate the existence of the eservices and check that their personal data flag matches the purpose template one
@@ -660,4 +684,20 @@ export async function validateEservicesDisassociations(
   }
 
   return validPurposeTemplateResult(validEServiceDescriptorPairs);
+}
+
+export function hasRoleToAccessDraftPurposeTemplates(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }
