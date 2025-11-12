@@ -18941,6 +18941,9 @@ components:
           minLength: 1
           maxLength: 250
         answers:
+          description: |
+            Key-value pairs of risk analysis form template answers.
+            Key: question ID; value: template of the answer
           additionalProperties:
             $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
       required:
