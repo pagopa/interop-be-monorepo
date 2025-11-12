@@ -12,9 +12,9 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
-  userRole,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisMultiAnswerId,
+  userRole,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";

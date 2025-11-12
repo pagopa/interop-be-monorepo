@@ -410,23 +410,15 @@ export function readModelServiceBuilderSQL({
       const results: Array<{
         answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
         document: RiskAnalysisTemplateAnswerAnnotationDocument;
-      }> = queryResult.map((r) => ({
-        answerId: unsafeBrandId<
-          RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
-        >(r.answerId),
-        document: toRiskAnalysisTemplateAnswerAnnotationDocument({
-          id: r.id,
-          name: r.name,
-          metadataVersion: r.metadataVersion,
-          createdAt: r.createdAt,
-          purposeTemplateId: r.purposeTemplateId,
-          annotationId: r.annotationId,
-          prettyName: r.prettyName,
-          contentType: r.contentType,
-          path: r.path,
-          checksum: r.checksum,
-        }),
-      }));
+      }> = queryResult.map((r) => {
+        const { answerId, ...document } = r;
+        return {
+          answerId: unsafeBrandId<
+            RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+          >(answerId),
+          document: toRiskAnalysisTemplateAnswerAnnotationDocument(document),
+        };
+      });
 
       return createListResult(results, queryResult[0]?.totalCount);
     },

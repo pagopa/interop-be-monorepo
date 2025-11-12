@@ -30,7 +30,7 @@ export const createPurposeTemplateErrorMapper = (
 export const getPurposeTemplatesErrorMapper = (): number =>
   HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
-const getPurposeTemplateOrPurposeTemplateEServiceDescriptorsErrorMapper = (
+const commonPurposeTemplatesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -40,13 +40,15 @@ const getPurposeTemplateOrPurposeTemplateEServiceDescriptorsErrorMapper = (
 
 export const getPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
-): number =>
-  getPurposeTemplateOrPurposeTemplateEServiceDescriptorsErrorMapper(error);
+): number => commonPurposeTemplatesErrorMapper(error);
 
 export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
   error: ApiError<ErrorCodes>
-): number =>
-  getPurposeTemplateOrPurposeTemplateEServiceDescriptorsErrorMapper(error);
+): number => commonPurposeTemplatesErrorMapper(error);
+
+export const getRiskAnalysisTemplateAnnotationDocumentsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number => commonPurposeTemplatesErrorMapper(error);
 
 export const linkEservicesToPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -258,18 +260,6 @@ export const updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
       "riskAnalysisTemplateAnswerNotFound",
       "riskAnalysisTemplateAnswerAnnotationNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const getRiskAnalysisTemplateAnswerAnnotationDocumentsErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with(
-      "purposeTemplateNotFound",
-      "riskAnalysisTemplateAnswerNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)

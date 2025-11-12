@@ -37,7 +37,7 @@ import {
   updatePurposeTemplateErrorMapper,
   addPurposeTemplateAnswerAnnotationErrorMapper,
   createRiskAnalysisAnswerErrorMapper,
-  getRiskAnalysisTemplateAnswerAnnotationDocumentsErrorMapper,
+  getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
@@ -726,7 +726,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getRiskAnalysisTemplateAnswerAnnotationDocumentsErrorMapper,
+            getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

@@ -15,7 +15,6 @@ import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { annotationDocumentToApiAnnotationDocumentWithAnswerId } from "../../src/model/domain/apiConverter.js";
 import {
   purposeTemplateNotFound,
-  riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -115,10 +114,6 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", 
 
   it.each([
     { error: purposeTemplateNotFound(generateId()), expectedStatus: 404 },
-    {
-      error: riskAnalysisTemplateAnswerNotFound({ answerId: generateId() }),
-      expectedStatus: 404,
-    },
     {
       error: tenantNotAllowed(generateId()),
       expectedStatus: 403,
