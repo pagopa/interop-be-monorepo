@@ -1,7 +1,7 @@
 import {
   AWSSesConfig,
   KafkaConsumerConfig,
-  EmailSenderTopicConfig,
+  EmailDispatchTopicConfig,
   SelfCareClientConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
@@ -28,7 +28,7 @@ export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
 export const EmailSenderConfig = KafkaConsumerConfig.and(SESEmailSenderConfig)
   .and(AWSSesConfig)
-  .and(EmailSenderTopicConfig)
+  .and(EmailDispatchTopicConfig)
   .and(SelfCareClientConfig)
   .and(ReadModelSQLDbConfig);
 
