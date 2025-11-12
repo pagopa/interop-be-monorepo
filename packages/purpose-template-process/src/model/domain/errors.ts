@@ -38,6 +38,7 @@ export const errorCodes = {
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
   invalidAssociatedEServiceForPublicationError: "0023",
+  purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -294,5 +295,15 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
+  purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No signed document found for Risk Analysis Template Form ${purposeTemplateRiskAnalysisForm}`,
+    code: "purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound",
+    title: "Risk Analysis Template Signed Document Not Found",
   });
 }

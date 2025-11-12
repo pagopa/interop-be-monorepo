@@ -53,6 +53,7 @@ import {
   riskAnalysisTemplateAnswerNotFound,
   ruleSetNotFoundError,
   tenantNotAllowed,
+  purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -125,6 +126,17 @@ function retrieveRiskAnalysisFormTemplate(
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
   return purposeTemplate.purposeRiskAnalysisForm;
+}
+
+function retrieveRiskAnalysisTemplateSignedDocument(
+  formTemplate: RiskAnalysisFormTemplate
+): RiskAnalysisTemplateSignedDocument {
+  if (!formTemplate.riskAnalysisTemplateSignedDocument) {
+    throw purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
+      formTemplate.id
+    );
+  }
+  return formTemplate.riskAnalysisTemplateSignedDocument;
 }
 
 function retrieveRiskAnalysisTemplateAnswer(
@@ -978,6 +990,29 @@ export function purposeTemplateServiceBuilder(
           version: event.newVersion,
         },
       };
+    },
+    async getRiskAnalysisTemplateSignedDocument(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<RiskAnalysisTemplateSignedDocument> {
+      logger.info(
+        `Retrieving risk analysis template signed document from purpose template ${purposeTemplateId}`
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      applyVisibilityToPurposeTemplate(purposeTemplate, authData);
+
+      const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
+        purposeTemplate.data
+      );
+
+      return retrieveRiskAnalysisTemplateSignedDocument(
+        riskAnalysisFormTemplate
+      );
     },
     async createRiskAnalysisAnswer(
       purposeTemplateId: PurposeTemplateId,

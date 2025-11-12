@@ -12,6 +12,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -79,6 +80,15 @@ export const purposeTemplateToApiPurposeTemplate = (
       )
     : undefined,
 });
+
+export const riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument =
+  (
+    signedDocument: RiskAnalysisTemplateSignedDocument
+  ): purposeTemplateApi.RiskAnalysisTemplateSignedDocument => ({
+    ...signedDocument,
+    createdAt: signedDocument.createdAt.toJSON(),
+    signedAt: signedDocument.signedAt.toJSON(),
+  });
 
 export const riskAnalysisAnswerToApiRiskAnalysisAnswer = (
   riskAnalysisAnswer:

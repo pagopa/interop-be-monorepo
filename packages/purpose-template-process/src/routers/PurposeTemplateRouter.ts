@@ -41,6 +41,7 @@ import {
   createRiskAnalysisAnswerErrorMapper,
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
   addRiskAnalysisTemplateDocumentErrorMapper,
+  getRiskAnalysisTemplateSignedDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
@@ -49,6 +50,7 @@ import {
   purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
   purposeTemplateToApiPurposeTemplate,
   riskAnalysisAnswerToApiRiskAnalysisAnswer,
+  riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument,
 } from "../model/domain/apiConverter.js";
 
 const purposeTemplateRouter = (
@@ -690,6 +692,38 @@ const purposeTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/signedDocument",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+
+          const document =
+            await purposeTemplateService.getRiskAnalysisTemplateSignedDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              purposeTemplateApi.RiskAnalysisTemplateSignedDocument.parse(
+                riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument(
+                  document
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateSignedDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

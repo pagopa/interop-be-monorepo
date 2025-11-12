@@ -380,6 +380,30 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get(
+      "/purposeTemplates/:purposeTemplateId/signedDocument",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result =
+            await purposeTemplateService.getRiskAnalysisTemplateSignedDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+
+          return res.status(200).send(Buffer.from(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error downloading signed risk analysis template document for purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers",
       async (req, res) => {
