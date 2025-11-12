@@ -16,10 +16,7 @@ export type EServiceDocumentId = z.infer<typeof EServiceDocumentId>;
 export const AgreementId = z.string().uuid().brand("AgreementId");
 export type AgreementId = z.infer<typeof AgreementId>;
 
-export const AgreementDocumentId = z
-  .string()
-  .uuid()
-  .brand("AgreementDocumentId");
+export const AgreementDocumentId = z.string().uuid().brand("AgreementDocumentId");
 export type AgreementDocumentId = z.infer<typeof AgreementDocumentId>;
 
 export const AttributeId = z.string().uuid().brand("AttributeId");
@@ -34,21 +31,11 @@ export type TenantId = z.infer<typeof TenantId>;
 export const UserId = z.string().uuid().brand("UserId");
 export type UserId = z.infer<typeof UserId>;
 
-export const RiskAnalysisSingleAnswerId = z
-  .string()
-  .uuid()
-  .brand("RiskAnalysisSingleAnswerId");
-export type RiskAnalysisSingleAnswerId = z.infer<
-  typeof RiskAnalysisSingleAnswerId
->;
+export const RiskAnalysisSingleAnswerId = z.string().uuid().brand("RiskAnalysisSingleAnswerId");
+export type RiskAnalysisSingleAnswerId = z.infer<typeof RiskAnalysisSingleAnswerId>;
 
-export const RiskAnalysisMultiAnswerId = z
-  .string()
-  .uuid()
-  .brand("RiskAnalysisMultiAnswerId");
-export type RiskAnalysisMultiAnswerId = z.infer<
-  typeof RiskAnalysisMultiAnswerId
->;
+export const RiskAnalysisMultiAnswerId = z.string().uuid().brand("RiskAnalysisMultiAnswerId");
+export type RiskAnalysisMultiAnswerId = z.infer<typeof RiskAnalysisMultiAnswerId>;
 
 export const RiskAnalysisFormId = z.string().uuid().brand("RiskAnalysisFormId");
 export type RiskAnalysisFormId = z.infer<typeof RiskAnalysisFormId>;
@@ -62,10 +49,7 @@ export type PurposeId = z.infer<typeof PurposeId>;
 export const PurposeVersionId = z.string().uuid().brand("PurposeVersionId");
 export type PurposeVersionId = z.infer<typeof PurposeVersionId>;
 
-export const PurposeVersionDocumentId = z
-  .string()
-  .uuid()
-  .brand("PurposeVersionDocumentId");
+export const PurposeVersionDocumentId = z.string().uuid().brand("PurposeVersionDocumentId");
 export type PurposeVersionDocumentId = z.infer<typeof PurposeVersionDocumentId>;
 
 export const ClientId = z.string().uuid().brand("ClientId");
@@ -80,10 +64,7 @@ export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
 export const DelegationId = z.string().uuid().brand("DelegationId");
 export type DelegationId = z.infer<typeof DelegationId>;
 
-export const DelegationContractId = z
-  .string()
-  .uuid()
-  .brand("DelegationContractId");
+export const DelegationContractId = z.string().uuid().brand("DelegationContractId");
 export type DelegationContractId = z.infer<typeof DelegationContractId>;
 
 const eserviceDescriptorPrefix = "ESERVICEDESCRIPTOR#";
@@ -91,18 +72,14 @@ export const PlatformStatesEServiceDescriptorPK = z
   .string()
   .refine((pk) => pk.startsWith(eserviceDescriptorPrefix))
   .brand(`${eserviceDescriptorPrefix}eServiceId#descriptorId`);
-export type PlatformStatesEServiceDescriptorPK = z.infer<
-  typeof PlatformStatesEServiceDescriptorPK
->;
+export type PlatformStatesEServiceDescriptorPK = z.infer<typeof PlatformStatesEServiceDescriptorPK>;
 
 const agreementPrefix = "AGREEMENT#";
 export const PlatformStatesAgreementPK = z
   .string()
   .refine((pk) => pk.startsWith(agreementPrefix))
   .brand(`${agreementPrefix}consumerId#eserviceId`);
-export type PlatformStatesAgreementPK = z.infer<
-  typeof PlatformStatesAgreementPK
->;
+export type PlatformStatesAgreementPK = z.infer<typeof PlatformStatesAgreementPK>;
 
 const purposePrefix = "PURPOSE#";
 export const PlatformStatesPurposePK = z
@@ -118,37 +95,25 @@ export const PlatformStatesClientPK = z
   .brand(`${clientPrefix}clientId`);
 export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 
-export const GSIPKConsumerIdEServiceId = z
-  .string()
-  .brand(`tenantId#eserviceId`);
-export type GSIPKConsumerIdEServiceId = z.infer<
-  typeof GSIPKConsumerIdEServiceId
->;
+export const GSIPKConsumerIdEServiceId = z.string().brand(`tenantId#eserviceId`);
+export type GSIPKConsumerIdEServiceId = z.infer<typeof GSIPKConsumerIdEServiceId>;
 
 export const clientKidPurposePrefix = "CLIENTKIDPURPOSE#";
 export const TokenGenerationStatesClientKidPurposePK = z
   .string()
   .refine((pk) => pk.startsWith(clientKidPurposePrefix))
   .brand(`${clientKidPurposePrefix}clientId#kid#purposeId`);
-export type TokenGenerationStatesClientKidPurposePK = z.infer<
-  typeof TokenGenerationStatesClientKidPurposePK
->;
+export type TokenGenerationStatesClientKidPurposePK = z.infer<typeof TokenGenerationStatesClientKidPurposePK>;
 
 export const clientKidPrefix = "CLIENTKID#";
 export const TokenGenerationStatesClientKidPK = z
   .string()
   .refine((pk) => pk.startsWith(clientKidPrefix))
   .brand(`${clientKidPrefix}clientId#kid`);
-export type TokenGenerationStatesClientKidPK = z.infer<
-  typeof TokenGenerationStatesClientKidPK
->;
+export type TokenGenerationStatesClientKidPK = z.infer<typeof TokenGenerationStatesClientKidPK>;
 
-export const GSIPKEServiceIdDescriptorId = z
-  .string()
-  .brand(`eserviceId#descriptorId`);
-export type GSIPKEServiceIdDescriptorId = z.infer<
-  typeof GSIPKEServiceIdDescriptorId
->;
+export const GSIPKEServiceIdDescriptorId = z.string().brand(`eserviceId#descriptorId`);
+export type GSIPKEServiceIdDescriptorId = z.infer<typeof GSIPKEServiceIdDescriptorId>;
 
 export const EServiceIdDescriptorId = z
   .custom<`${EServiceId}/${DescriptorId}`>((val) => {
@@ -159,10 +124,7 @@ export const EServiceIdDescriptorId = z
     if (parts.length !== 2) {
       return false;
     }
-    return (
-      EServiceId.safeParse(parts[0]).success &&
-      DescriptorId.safeParse(parts[1]).success
-    );
+    return EServiceId.safeParse(parts[0]).success && DescriptorId.safeParse(parts[1]).success;
   })
   .brand("EServiceIdDescriptorId");
 export type EServiceIdDescriptorId = z.infer<typeof EServiceIdDescriptorId>;
@@ -176,15 +138,10 @@ export const EServiceTemplateIdEServiceTemplateVersionId = z
     if (parts.length !== 2) {
       return false;
     }
-    return (
-      EServiceTemplateId.safeParse(parts[0]).success &&
-      EServiceTemplateVersionId.safeParse(parts[1]).success
-    );
+    return EServiceTemplateId.safeParse(parts[0]).success && EServiceTemplateVersionId.safeParse(parts[1]).success;
   })
   .brand("EServiceTemplateIdEServiceTemplateVersionId");
-export type EServiceTemplateIdEServiceTemplateVersionId = z.infer<
-  typeof EServiceTemplateIdEServiceTemplateVersionId
->;
+export type EServiceTemplateIdEServiceTemplateVersionId = z.infer<typeof EServiceTemplateIdEServiceTemplateVersionId>;
 
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
@@ -195,49 +152,26 @@ export type GSIPKClientIdKid = z.infer<typeof GSIPKClientIdKid>;
 export const EServiceTemplateId = z.string().uuid().brand("EServiceTemplateId");
 export type EServiceTemplateId = z.infer<typeof EServiceTemplateId>;
 
-export const EServiceTemplateVersionId = z
-  .string()
-  .uuid()
-  .brand("EServiceTemplateVersionId");
-export type EServiceTemplateVersionId = z.infer<
-  typeof EServiceTemplateVersionId
->;
+export const EServiceTemplateVersionId = z.string().uuid().brand("EServiceTemplateVersionId");
+export type EServiceTemplateVersionId = z.infer<typeof EServiceTemplateVersionId>;
 
 export const NotificationId = z.string().uuid().brand("NotificationId");
 export type NotificationId = z.infer<typeof NotificationId>;
 
-export const TenantNotificationConfigId = z
-  .string()
-  .uuid()
-  .brand("TenantNotificationConfigId");
-export type TenantNotificationConfigId = z.infer<
-  typeof TenantNotificationConfigId
->;
+export const TenantNotificationConfigId = z.string().uuid().brand("TenantNotificationConfigId");
+export type TenantNotificationConfigId = z.infer<typeof TenantNotificationConfigId>;
 
-export const UserNotificationConfigId = z
-  .string()
-  .uuid()
-  .brand("UserNotificationConfigId");
+export const UserNotificationConfigId = z.string().uuid().brand("UserNotificationConfigId");
 export type UserNotificationConfigId = z.infer<typeof UserNotificationConfigId>;
 
 export const PurposeTemplateId = z.string().uuid().brand("PurposeTemplateId");
 export type PurposeTemplateId = z.infer<typeof PurposeTemplateId>;
 
-export const RiskAnalysisFormTemplateId = z
-  .string()
-  .uuid()
-  .brand("RiskAnalysisFormTemplateId");
-export type RiskAnalysisFormTemplateId = z.infer<
-  typeof RiskAnalysisFormTemplateId
->;
+export const RiskAnalysisFormTemplateId = z.string().uuid().brand("RiskAnalysisFormTemplateId");
+export type RiskAnalysisFormTemplateId = z.infer<typeof RiskAnalysisFormTemplateId>;
 
-export const RiskAnalysisTemplateAnswerAnnotationId = z
-  .string()
-  .uuid()
-  .brand("RiskAnalysisTemplateAnswerAnnotationId");
-export type RiskAnalysisTemplateAnswerAnnotationId = z.infer<
-  typeof RiskAnalysisTemplateAnswerAnnotationId
->;
+export const RiskAnalysisTemplateAnswerAnnotationId = z.string().uuid().brand("RiskAnalysisTemplateAnswerAnnotationId");
+export type RiskAnalysisTemplateAnswerAnnotationId = z.infer<typeof RiskAnalysisTemplateAnswerAnnotationId>;
 
 export const RiskAnalysisTemplateAnswerAnnotationDocumentId = z
   .string()
@@ -247,37 +181,23 @@ export type RiskAnalysisTemplateAnswerAnnotationDocumentId = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotationDocumentId
 >;
 
-export const AttributeM2MEventId = z
-  .string()
-  .uuid()
-  .brand("AttributeM2MEventId");
+export const AttributeM2MEventId = z.string().uuid().brand("AttributeM2MEventId");
 export type AttributeM2MEventId = z.infer<typeof AttributeM2MEventId>;
 
 export const EServiceM2MEventId = z.string().uuid().brand("EServiceM2MEventId");
 export type EServiceM2MEventId = z.infer<typeof EServiceM2MEventId>;
 
-export const AgreementM2MEventId = z
-  .string()
-  .uuid()
-  .brand("AgreementM2MEventId");
+export const AgreementM2MEventId = z.string().uuid().brand("AgreementM2MEventId");
 export type AgreementM2MEventId = z.infer<typeof AgreementM2MEventId>;
 
 export const PurposeM2MEventId = z.string().uuid().brand("PurposeM2MEventId");
 export type PurposeM2MEventId = z.infer<typeof PurposeM2MEventId>;
 
-export const DelegationM2MEventId = z
-  .string()
-  .uuid()
-  .brand("DelegationM2MEventId");
+export const DelegationM2MEventId = z.string().uuid().brand("DelegationM2MEventId");
 export type DelegationM2MEventId = z.infer<typeof DelegationM2MEventId>;
 
-export const EServiceTemplateM2MEventId = z
-  .string()
-  .uuid()
-  .brand("EServiceTemplateM2MEventId");
-export type EServiceTemplateM2MEventId = z.infer<
-  typeof EServiceTemplateM2MEventId
->;
+export const EServiceTemplateM2MEventId = z.string().uuid().brand("EServiceTemplateM2MEventId");
+export type EServiceTemplateM2MEventId = z.infer<typeof EServiceTemplateM2MEventId>;
 
 export const ClientM2MEventId = z.string().uuid().brand("ClientM2MEventId");
 export type ClientM2MEventId = z.infer<typeof ClientM2MEventId>;
@@ -285,18 +205,10 @@ export type ClientM2MEventId = z.infer<typeof ClientM2MEventId>;
 export const KeyM2MEventId = z.string().uuid().brand("KeyM2MEventId");
 export type KeyM2MEventId = z.infer<typeof KeyM2MEventId>;
 
-export const ProducerKeychainM2MEventId = z
-  .string()
-  .uuid()
-  .brand("ProducerKeychainM2MEventId");
-export type ProducerKeychainM2MEventId = z.infer<
-  typeof ProducerKeychainM2MEventId
->;
+export const ProducerKeychainM2MEventId = z.string().uuid().brand("ProducerKeychainM2MEventId");
+export type ProducerKeychainM2MEventId = z.infer<typeof ProducerKeychainM2MEventId>;
 
-export const ProducerKeyM2MEventId = z
-  .string()
-  .uuid()
-  .brand("ProducerKeyM2MEventId");
+export const ProducerKeyM2MEventId = z.string().uuid().brand("ProducerKeyM2MEventId");
 export type ProducerKeyM2MEventId = z.infer<typeof ProducerKeyM2MEventId>;
 
 export const TenantM2MEventId = z.string().uuid().brand("TenantM2MEventId");

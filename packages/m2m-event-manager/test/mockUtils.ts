@@ -21,7 +21,6 @@ import {
   KeyM2MEvent,
   KeyM2MEventId,
   TenantId,
-  UserId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";

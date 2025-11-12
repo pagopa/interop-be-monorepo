@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { getMockContextM2M } from "pagopa-interop-commons-test";
 import { KeyM2MEventType } from "pagopa-interop-models";
 import { getMockedKeyM2MEvent } from "../mockUtils.js";
-import {
-  m2mEventService,
-  writeKeyM2MEvent,
-} from "../integrationUtils.js";
+import { m2mEventService, writeKeyM2MEvent } from "../integrationUtils.js";
 
 describe("getKeyM2MEvents", () => {
   const mockKeyM2MEvents = KeyM2MEventType.options
@@ -54,9 +51,7 @@ describe("getKeyM2MEvents", () => {
         getMockContextM2M({})
       );
 
-      const filteredEvents = mockKeyM2MEvents.filter(
-        (e) => e.id > lastEventId
-      );
+      const filteredEvents = mockKeyM2MEvents.filter((e) => e.id > lastEventId);
       expect(events).toEqual(
         filteredEvents.slice(0, limit) // get the first N events after the lastEventId
       );
