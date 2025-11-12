@@ -26,12 +26,7 @@ export function toM2MGatewayApiRiskAnalysisTemplateAnswers(
         id: answer.id,
         values: answer.values,
         editable: answer.editable,
-        annotation: answer.annotation
-          ? {
-              id: answer.annotation.id,
-              text: answer.annotation.text,
-            }
-          : undefined,
+        annotationText: answer.annotation ? answer.annotation.text : undefined,
         suggestedValues: answer.suggestedValues,
       } satisfies m2mGatewayApi.RiskAnalysisTemplateAnswer,
     };

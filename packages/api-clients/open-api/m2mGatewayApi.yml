@@ -18964,8 +18964,10 @@ components:
             maxLength: 2000
         editable:
           type: boolean
-        annotation:
-          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
+        annotationText:
+          type: string
+          minLength: 1
+          maxLength: 250
         suggestedValues:
           type: array
           items:
