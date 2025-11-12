@@ -26,6 +26,7 @@ import {
   agreementInReadmodelAgreement,
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
+  delegationSignedContractDocumentInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
@@ -167,6 +168,8 @@ export function readModelServiceBuilderSQL({
           delegationStamp: delegationStampInReadmodelDelegation,
           delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
+          delegationSignedContractDocument:
+            delegationSignedContractDocumentInReadmodelDelegation,
           totalCount: subquery.totalCount,
         })
         .from(delegationInReadmodelDelegation)
@@ -186,6 +189,13 @@ export function readModelServiceBuilderSQL({
           eq(
             delegationInReadmodelDelegation.id,
             delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          delegationSignedContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationSignedContractDocumentInReadmodelDelegation.delegationId
           )
         )
         .orderBy(delegationInReadmodelDelegation.createdAt);

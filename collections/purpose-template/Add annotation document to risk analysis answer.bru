@@ -4,20 +4,20 @@ meta {
   seq: 3
 }
 
-post {                                
+post {
   url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents
   body: json
   auth: none
 }
 
 params:path {
-  answerId: {{answerId}}
   purposeTemplateId: {{purposeTemplateId}}
+  answerId: {{answerId}}
 }
 
 headers {
-  Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT}}
 }
 
 body:json {
