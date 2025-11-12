@@ -25030,6 +25030,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        rulesetExpiration:
+          type: string
+          format: date-time
     EServiceTemplateRiskAnalysis:
       type: object
       additionalProperties: false
