@@ -703,7 +703,7 @@ export function purposeTemplateServiceBuilder(
       {
         offset,
         limit,
-      }: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams,
+      }: purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams,
       {
         authData,
         logger,

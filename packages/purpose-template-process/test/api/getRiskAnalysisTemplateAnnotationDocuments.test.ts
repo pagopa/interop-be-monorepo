@@ -39,21 +39,21 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", 
   };
 
   const apiResponse =
-    purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocuments.parse({
-      results: [
-        annotationDocumentToApiAnnotationDocumentWithAnswerId(
-          mockAnswerId,
-          mockDocument1
-        ),
-        annotationDocumentToApiAnnotationDocumentWithAnswerId(
-          mockAnswerId,
-          mockDocument2
-        ),
-      ],
-      totalCount: mockProcessResponse.totalCount,
-    });
+    purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerId.parse(
+      {
+        results: [
+          annotationDocumentToApiAnnotationDocumentWithAnswerId(
+            mockDocumentWithAnswerId1
+          ),
+          annotationDocumentToApiAnnotationDocumentWithAnswerId(
+            mockDocumentWithAnswerId2
+          ),
+        ],
+        totalCount: mockProcessResponse.totalCount,
+      }
+    );
 
-  const mockQueryParams: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
+  const mockQueryParams: purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams =
     {
       offset: 0,
       limit: 10,
@@ -69,7 +69,7 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", 
   const makeRequest = async (
     token: string,
     purposeTemplateId: PurposeTemplateId = mockPurposeTemplateId,
-    query: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams = mockQueryParams
+    query: purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams = mockQueryParams
   ) =>
     request(api)
       .get(
@@ -160,7 +160,7 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", 
     const res = await makeRequest(
       token,
       mockPurposeTemplateId,
-      query as unknown as purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams
+      query as unknown as purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams
     );
 
     expect(res.status).toBe(400);

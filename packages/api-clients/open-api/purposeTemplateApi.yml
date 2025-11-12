@@ -783,7 +783,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetRiskAnalysisTemplateAnnotationDocuments"
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentsWithAnswerId"
         "400":
           description: Bad request
           content:
@@ -1388,21 +1388,21 @@ components:
         - contentType
         - prettyName
         - path
-    GetRiskAnalysisTemplateAnnotationDocuments:
+    RiskAnalysisTemplateAnnotationDocumentsWithAnswerId:
       type: object
       additionalProperties: false
       properties:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/GetRiskAnalysisTemplateAnnotationDocument"
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentWithAnswerId"
         totalCount:
           type: integer
           format: int32
       required:
         - results
         - totalCount
-    GetRiskAnalysisTemplateAnnotationDocument:
+    RiskAnalysisTemplateAnnotationDocumentWithAnswerId:
       type: object
       additionalProperties: false
       properties:

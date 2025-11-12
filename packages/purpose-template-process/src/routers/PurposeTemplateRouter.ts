@@ -716,13 +716,10 @@ const purposeTemplateRouter = (
             );
 
           return res.status(200).send(
-            purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocuments.parse(
+            purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerId.parse(
               {
-                results: results.map((d) =>
-                  annotationDocumentToApiAnnotationDocumentWithAnswerId(
-                    d.answerId,
-                    d.document
-                  )
+                results: results.map(
+                  annotationDocumentToApiAnnotationDocumentWithAnswerId
                 ),
                 totalCount,
               }
