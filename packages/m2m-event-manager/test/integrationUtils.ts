@@ -3,13 +3,17 @@ import { inject, afterEach } from "vitest";
 import {
   AgreementM2MEvent,
   AttributeM2MEvent,
+  ConsumerDelegationM2MEvent,
   EServiceM2MEvent,
+  ProducerDelegationM2MEvent,
   dateToString,
 } from "pagopa-interop-models";
 import {
   agreementInM2MEvent,
   attributeInM2MEvent,
+  consumerDelegationInM2MEvent,
   eserviceInM2MEvent,
+  producerDelegationInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventServiceBuilder } from "../src/services/m2mEventService.js";
 import { m2mEventReaderServiceSQLBuilder } from "../src/services/m2mEventReaderServiceSQL.js";
@@ -63,6 +67,28 @@ export async function writeAgreementM2MEvent(event: AgreementM2MEvent) {
       consumerDelegationId: event.consumerDelegationId ?? null,
       producerDelegateId: event.producerDelegateId ?? null,
       producerDelegationId: event.producerDelegationId ?? null,
+    },
+  ]);
+}
+
+export async function writeProducerDelegationM2MEvent(
+  event: ProducerDelegationM2MEvent
+): Promise<void> {
+  await m2mEventDB.insert(producerDelegationInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeConsumerDelegationM2MEvent(
+  event: ConsumerDelegationM2MEvent
+): Promise<void> {
+  await m2mEventDB.insert(consumerDelegationInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
     },
   ]);
 }

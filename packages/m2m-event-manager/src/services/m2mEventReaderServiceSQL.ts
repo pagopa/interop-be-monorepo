@@ -1,7 +1,9 @@
 import {
   agreementInM2MEvent,
   attributeInM2MEvent,
+  consumerDelegationInM2MEvent,
   eserviceInM2MEvent,
+  producerDelegationInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -9,8 +11,11 @@ import {
   AgreementM2MEventId,
   AttributeM2MEvent,
   AttributeM2MEventId,
+  ConsumerDelegationM2MEvent,
+  DelegationM2MEventId,
   EServiceM2MEvent,
   EServiceM2MEventId,
+  ProducerDelegationM2MEvent,
   TenantId,
   m2mEventVisibility,
 } from "pagopa-interop-models";
@@ -24,6 +29,10 @@ import { fromAttributeM2MEventSQL } from "../model/attributeM2MEventAdapterSQL.j
 import { fromEServiceM2MEventSQL } from "../model/eserviceM2MEventAdapterSQL.js";
 import { fromAgreementM2MEventSQL } from "../model/agreementM2MEventAdapterSQL.js";
 import { DelegationIdParam } from "../model/types.js";
+import {
+  fromConsumerDelegationM2MEventSQL,
+  fromProducerDelegationM2MEventSQL,
+} from "../model/delegationM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -125,6 +134,34 @@ export function m2mEventReaderServiceSQLBuilder(
         .limit(limit);
 
       return sqlEvents.map(fromAgreementM2MEventSQL);
+    },
+
+    async getProducerDelegationM2MEvents(
+      lastEventId: DelegationM2MEventId | undefined,
+      limit: number
+    ): Promise<ProducerDelegationM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(producerDelegationInM2MEvent)
+        .where(afterEventIdFilter(producerDelegationInM2MEvent, lastEventId))
+        .orderBy(asc(producerDelegationInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromProducerDelegationM2MEventSQL);
+    },
+
+    async getConsumerDelegationM2MEvents(
+      lastEventId: DelegationM2MEventId | undefined,
+      limit: number
+    ): Promise<ConsumerDelegationM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(consumerDelegationInM2MEvent)
+        .where(afterEventIdFilter(consumerDelegationInM2MEvent, lastEventId))
+        .orderBy(asc(consumerDelegationInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromConsumerDelegationM2MEventSQL);
     },
   };
 }
