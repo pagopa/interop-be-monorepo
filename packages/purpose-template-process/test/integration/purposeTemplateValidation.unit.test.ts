@@ -51,15 +51,10 @@ describe("Purpose Template Validation", () => {
       handlesPersonalData: true,
     };
     const eserviceId1 = generateId<EServiceId>();
-    const eserviceId2 = generateId<EServiceId>();
     const descriptorId1 = generateId<DescriptorId>();
-    const descriptorId2 = generateId<DescriptorId>();
 
     const mockDescriptor1 = getMockDescriptor(descriptorState.published);
     mockDescriptor1.id = descriptorId1;
-
-    const mockDescriptor2 = getMockDescriptor(descriptorState.draft);
-    mockDescriptor2.id = descriptorId2;
 
     const mockEService1: EService = {
       ...getMockEService(eserviceId1, generateId<TenantId>(), [
@@ -67,20 +62,13 @@ describe("Purpose Template Validation", () => {
       ]),
       personalData: true,
     };
-    const mockEService2: EService = {
-      ...getMockEService(eserviceId2, generateId<TenantId>(), [
-        mockDescriptor2,
-      ]),
-      personalData: true,
-    };
 
     it("should return valid result when all validations pass", async () => {
-      const eserviceIds = [eserviceId1, eserviceId2];
+      const eserviceIds = [eserviceId1];
 
       mockReadModelService.getEServiceById = vi
         .fn()
-        .mockResolvedValueOnce(mockEService1)
-        .mockResolvedValueOnce(mockEService2);
+        .mockResolvedValueOnce(mockEService1);
 
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
         vi.fn().mockResolvedValue(undefined); // No existing associations
@@ -93,10 +81,7 @@ describe("Purpose Template Validation", () => {
 
       expect(result).toEqual({
         type: "valid",
-        value: [
-          { eservice: mockEService1, descriptorId: descriptorId1 },
-          { eservice: mockEService2, descriptorId: descriptorId2 },
-        ],
+        value: [{ eservice: mockEService1, descriptorId: descriptorId1 }],
       });
     });
 
@@ -281,10 +266,7 @@ describe("Purpose Template Validation", () => {
       expect(result).toEqual({
         type: "invalid",
         issues: [
-          invalidDescriptorStateError(eserviceId1, [
-            descriptorState.published,
-            descriptorState.draft,
-          ]),
+          invalidDescriptorStateError(eserviceId1, [descriptorState.published]),
         ],
       });
     });
