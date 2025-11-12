@@ -73,13 +73,13 @@ export async function handleProducerKeychainKeyAdded(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Nuova chiave aggiunta al client "${producerKeychain.name}"`,
+      subject: `Nuova chiave aggiunta al portachiavi erogatore "${producerKeychain.name}"`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `Nuova chiave aggiunta al client "${producerKeychain.name}"`,
+        title: `Nuova chiave aggiunta al portachiavi erogatore "${producerKeychain.name}"`,
         notificationType,
         entityId: producerKeychain.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
-        clientName: producerKeychain.name,
+        producerKeychainName: producerKeychain.name,
       }),
     },
     tenantId: t.tenantId,
