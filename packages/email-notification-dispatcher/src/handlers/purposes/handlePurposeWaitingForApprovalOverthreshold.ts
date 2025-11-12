@@ -18,8 +18,7 @@ import {
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 
-const notificationType: NotificationType =
-  "purposeQuotaOverthresholdStateToConsumer";
+const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
 export async function handlePurposeWaitingForApprovalToConsumer(
   data: PurposeHandlerParams

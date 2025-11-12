@@ -6,7 +6,7 @@ import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChang
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
 import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
-import { handlePurposeQuotaOverthresholdToConsumer } from "./handlePurposeQuotaOverthresholdToConsumer.js";
+import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
 import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 
 export async function handlePurposeEvent(
@@ -79,7 +79,7 @@ export async function handlePurposeEvent(
           readModelService,
           type
         )),
-        ...(await handlePurposeQuotaOverthresholdToConsumer(
+        ...(await handlePurposeOverQuotaToConsumer(
           purpose,
           logger,
           readModelService,

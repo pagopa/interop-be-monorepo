@@ -190,8 +190,8 @@ describe("database test", async () => {
             !initialInAppConfig.producerKeychainKeyAddedDeletedToClientUsers,
           purposeQuotaAdjustmentRequestToProducer:
             !initialInAppConfig.purposeQuotaAdjustmentRequestToProducer,
-          purposeQuotaOverthresholdStateToConsumer:
-            !initialInAppConfig.purposeQuotaOverthresholdStateToConsumer,
+          purposeOverQuotaStateToConsumer:
+            !initialInAppConfig.purposeOverQuotaStateToConsumer,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer:
@@ -236,8 +236,8 @@ describe("database test", async () => {
             !initialEmailConfig.producerKeychainKeyAddedDeletedToClientUsers,
           purposeQuotaAdjustmentRequestToProducer:
             !initialEmailConfig.purposeQuotaAdjustmentRequestToProducer,
-          purposeQuotaOverthresholdStateToConsumer:
-            !initialEmailConfig.purposeQuotaOverthresholdStateToConsumer,
+          purposeOverQuotaStateToConsumer:
+            !initialEmailConfig.purposeOverQuotaStateToConsumer,
         },
       };
 

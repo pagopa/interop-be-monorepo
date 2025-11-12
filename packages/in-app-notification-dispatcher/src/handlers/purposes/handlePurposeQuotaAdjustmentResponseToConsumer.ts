@@ -47,7 +47,7 @@ export async function handlePurposeQuotaAdjustmentResponseToConsumer(
 
   const usersWithNotifications = await getNotificationRecipients(
     [purpose.consumerId],
-    "purposeQuotaOverthresholdStateToConsumer",
+    "purposeOverQuotaStateToConsumer",
     readModelService,
     logger
   );
@@ -74,7 +74,7 @@ export async function handlePurposeQuotaAdjustmentResponseToConsumer(
     userId,
     tenantId,
     body,
-    notificationType: "purposeQuotaOverthresholdStateToConsumer",
+    notificationType: "purposeOverQuotaStateToConsumer",
     entityId: purpose.id,
   }));
 }

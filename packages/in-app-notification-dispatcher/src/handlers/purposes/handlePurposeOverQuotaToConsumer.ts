@@ -13,21 +13,21 @@ import {
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
-export type PurposeQuotaOverthresholdToConsumerType =
+export type PurposeOverQuotaToConsumerType =
   | "NewPurposeVersionWaitingForApproval"
   | "PurposeWaitingForApproval";
 
-export async function handlePurposeQuotaOverthresholdToConsumer(
+export async function handlePurposeOverQuotaToConsumer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  type: PurposeQuotaOverthresholdToConsumerType
+  type: PurposeOverQuotaToConsumerType
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
     throw missingKafkaMessageDataError("purpose", type);
   }
   logger.info(
-    `Sending in-app notification for handlePurposeQuotaOverthresholdToConsumer ${purposeV2Msg.id}`
+    `Sending in-app notification for handlePurposeOverQuotaToConsumer ${purposeV2Msg.id}`
   );
   const purpose = fromPurposeV2(purposeV2Msg);
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
@@ -35,7 +35,7 @@ export async function handlePurposeQuotaOverthresholdToConsumer(
 
   const usersWithNotifications = await getNotificationRecipients(
     [purpose.consumerId],
-    "purposeQuotaOverthresholdStateToConsumer",
+    "purposeOverQuotaStateToConsumer",
     readModelService,
     logger
   );
@@ -46,7 +46,7 @@ export async function handlePurposeQuotaOverthresholdToConsumer(
     return [];
   }
 
-  const body = inAppTemplates.purposeQuotaOverthresholdToConsumer(
+  const body = inAppTemplates.purposeOverQuotaToConsumer(
     eservice.name,
     dailyCallsPerConsumer
   );
@@ -55,7 +55,7 @@ export async function handlePurposeQuotaOverthresholdToConsumer(
     userId,
     tenantId,
     body,
-    notificationType: "purposeQuotaOverthresholdStateToConsumer",
+    notificationType: "purposeOverQuotaStateToConsumer",
     entityId: purpose.id,
   }));
 }

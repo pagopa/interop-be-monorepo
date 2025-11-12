@@ -17,7 +17,7 @@ import {
   purposeVersionState,
 } from "pagopa-interop-models";
 import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
-import { handlePurposeQuotaOverthresholdToConsumer } from "../src/handlers/purposes/handlePurposeQuotaOverthresholdToConsumer.js";
+import { handlePurposeOverQuotaToConsumer } from "../src/handlers/purposes/handlePurposeOverQuotaToConsumer.js";
 import { eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -27,7 +27,7 @@ import {
   readModelService,
 } from "./utils.js";
 
-describe("handlePurposeQuotaOverthresholdToConsumer", () => {
+describe("handlePurposeOverQuotaToConsumer", () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -73,7 +73,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
 
   it("should throw missingKafkaMessageDataError when purpose is undefined", async () => {
     await expect(() =>
-      handlePurposeQuotaOverthresholdToConsumer(
+      handlePurposeOverQuotaToConsumer(
         undefined,
         logger,
         readModelService,
@@ -97,7 +97,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
     ]);
 
     await expect(() =>
-      handlePurposeQuotaOverthresholdToConsumer(
+      handlePurposeOverQuotaToConsumer(
         toPurposeV2(purposeWithUnknownEservice),
         logger,
         readModelService,
@@ -109,7 +109,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
   it("should return empty array when no users have notifications enabled", async () => {
     mockGetNotificationRecipients.mockResolvedValue([]);
 
-    const notifications = await handlePurposeQuotaOverthresholdToConsumer(
+    const notifications = await handlePurposeOverQuotaToConsumer(
       toPurposeV2(purpose),
       logger,
       readModelService,
@@ -138,7 +138,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
 
     mockGetNotificationRecipients.mockResolvedValue(consumerUsers);
 
-    const notifications = await handlePurposeQuotaOverthresholdToConsumer(
+    const notifications = await handlePurposeOverQuotaToConsumer(
       toPurposeV2(purpose),
       logger,
       readModelService,
@@ -147,7 +147,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
 
     expect(notifications).toHaveLength(consumerUsers.length);
 
-    const expectedBody = inAppTemplates.purposeQuotaOverthresholdToConsumer(
+    const expectedBody = inAppTemplates.purposeOverQuotaToConsumer(
       eservice.name,
       dailyCallsPerConsumer
     );
@@ -156,7 +156,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
       userId: user.userId,
       tenantId: user.tenantId,
       body: expectedBody,
-      notificationType: "purposeQuotaOverthresholdStateToConsumer",
+      notificationType: "purposeOverQuotaStateToConsumer",
       entityId: purpose.id,
     }));
 
@@ -173,7 +173,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
     ];
     mockGetNotificationRecipients.mockResolvedValue(users);
 
-    const notifications = await handlePurposeQuotaOverthresholdToConsumer(
+    const notifications = await handlePurposeOverQuotaToConsumer(
       toPurposeV2(purpose),
       logger,
       readModelService,
@@ -225,7 +225,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
     const consumerUsers = [{ userId: generateId(), tenantId: consumerId }];
     mockGetNotificationRecipients.mockResolvedValue(consumerUsers);
 
-    const notifications = await handlePurposeQuotaOverthresholdToConsumer(
+    const notifications = await handlePurposeOverQuotaToConsumer(
       toPurposeV2(purposeForMultiDescriptor),
       logger,
       readModelService,
@@ -235,7 +235,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
     expect(notifications).toHaveLength(1);
 
     // Should use the newer descriptor's dailyCallsPerConsumer value
-    const expectedBody = inAppTemplates.purposeQuotaOverthresholdToConsumer(
+    const expectedBody = inAppTemplates.purposeOverQuotaToConsumer(
       eserviceWithMultipleDescriptors.name,
       2000
     );
@@ -251,7 +251,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
 
     mockGetNotificationRecipients.mockResolvedValue(consumerUsers);
 
-    const notifications = await handlePurposeQuotaOverthresholdToConsumer(
+    const notifications = await handlePurposeOverQuotaToConsumer(
       toPurposeV2(purpose),
       logger,
       readModelService,
@@ -268,7 +268,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
     // Verify getNotificationRecipients was called with consumer tenant ID
     expect(mockGetNotificationRecipients).toHaveBeenCalledWith(
       [consumerId],
-      "purposeQuotaOverthresholdStateToConsumer",
+      "purposeOverQuotaStateToConsumer",
       readModelService,
       logger
     );
@@ -278,7 +278,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
     const consumerUsers = [{ userId: generateId(), tenantId: consumerId }];
     mockGetNotificationRecipients.mockResolvedValue(consumerUsers);
 
-    const notifications = await handlePurposeQuotaOverthresholdToConsumer(
+    const notifications = await handlePurposeOverQuotaToConsumer(
       toPurposeV2(purpose),
       logger,
       readModelService,
@@ -289,7 +289,7 @@ describe("handlePurposeQuotaOverthresholdToConsumer", () => {
 
     const notification = notifications[0];
     expect(notification.notificationType).toBe(
-      "purposeQuotaOverthresholdStateToConsumer"
+      "purposeOverQuotaStateToConsumer"
     );
     expect(notification.entityId).toBe(purpose.id);
     expect(notification.userId).toBe(consumerUsers[0].userId);

@@ -134,7 +134,7 @@ export const notificationAdmittedRoles = {
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
   },
-  purposeQuotaOverthresholdStateToConsumer: {
+  purposeOverQuotaStateToConsumer: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
     [SECURITY_ROLE]: true,

@@ -75,7 +75,7 @@ const defaultNotificationConfigs = {
       clientKeyAddedDeletedToClientUsers: false,
       producerKeychainKeyAddedDeletedToClientUsers: false,
       purposeQuotaAdjustmentRequestToProducer: false,
-      purposeQuotaOverthresholdStateToConsumer: false,
+      purposeOverQuotaStateToConsumer: false,
     } satisfies NotificationConfig,
     email: {
       agreementSuspendedUnsuspendedToProducer: false,
@@ -99,7 +99,7 @@ const defaultNotificationConfigs = {
       clientKeyAddedDeletedToClientUsers: false,
       producerKeychainKeyAddedDeletedToClientUsers: false,
       purposeQuotaAdjustmentRequestToProducer: false,
-      purposeQuotaOverthresholdStateToConsumer: false,
+      purposeOverQuotaStateToConsumer: false,
     } satisfies NotificationConfig,
   },
 };

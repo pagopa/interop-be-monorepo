@@ -286,7 +286,7 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente ${consumerName} ha inviato la finalità "<strong>${purposeName}</strong>", che prevede un piano di carico superiore alla tua soglia, associata al tuo e-service <strong>${eserviceName}</strong>.`,
-  purposeQuotaOverthresholdToConsumer: (
+  purposeOverQuotaToConsumer: (
     eserviceName: string,
     dailyCalls: number
   ): string =>

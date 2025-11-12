@@ -214,7 +214,7 @@ describe("handlePurposeQuotaAdjustmentResponseToConsumer", () => {
         userId: user.userId,
         tenantId: user.tenantId,
         body: expectedBody,
-        notificationType: "purposeQuotaOverthresholdStateToConsumer",
+        notificationType: "purposeOverQuotaStateToConsumer",
         entityId: purpose.id,
       }));
 
@@ -223,7 +223,7 @@ describe("handlePurposeQuotaAdjustmentResponseToConsumer", () => {
       );
       expect(mockGetNotificationRecipients).toHaveBeenCalledWith(
         [consumerId],
-        "purposeQuotaOverthresholdStateToConsumer",
+        "purposeOverQuotaStateToConsumer",
         expect.any(Object),
         expect.any(Object)
       );
@@ -275,10 +275,10 @@ describe("handlePurposeQuotaAdjustmentResponseToConsumer", () => {
       );
 
     expect(notificationsActivated[0].notificationType).toBe(
-      "purposeQuotaOverthresholdStateToConsumer"
+      "purposeOverQuotaStateToConsumer"
     );
     expect(notificationsRejected[0].notificationType).toBe(
-      "purposeQuotaOverthresholdStateToConsumer"
+      "purposeOverQuotaStateToConsumer"
     );
   });
 });
