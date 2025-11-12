@@ -75,12 +75,12 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
-const isRequesterCreator = (
+export const isRequesterCreator = (
   creatorId: TenantId,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
 ): boolean => authData.organizationId === creatorId;
 
-const isPurposeTemplateDraft = (
+export const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
 ): boolean => currentPurposeTemplateState === purposeTemplateState.draft;
 
@@ -132,15 +132,31 @@ export const assertDocumentsLimitsNotReached = (
   }
 };
 
+const assertPrettyNameIsUnique = (
+  docPrettyName: string,
+  newPrettyName: string,
+  answerId: string
+): void => {
+  if (docPrettyName === newPrettyName) {
+    throw conflictDocumentPrettyNameDuplicate(answerId, newPrettyName);
+  }
+};
+
+export const assertAnnotationDocumentPrettyNameIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
+  });
+
 export const assertAnnotationDocumentIsUnique = (
   { answer }: RiskAnalysisTemplateAnswer,
   newPrettyName: string,
   newChecksum: string
 ): void =>
   [...(answer?.annotation?.docs || [])].forEach((doc) => {
-    if (doc.prettyName === newPrettyName) {
-      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
-    }
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
 
     if (doc?.checksum === newChecksum) {
       throw conflictDuplicatedDocument(answer.id, newChecksum);
@@ -241,18 +257,6 @@ export const assertRequesterIsCreator = (
   authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
 ): void => {
   if (!isRequesterCreator(creatorId, authData)) {
-    throw tenantNotAllowed(authData.organizationId);
-  }
-};
-
-export const assertRequesterCanRetrievePurposeTemplate = (
-  purposeTemplate: PurposeTemplate,
-  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
-): void => {
-  if (
-    isPurposeTemplateDraft(purposeTemplate.state) &&
-    !isRequesterCreator(purposeTemplate.creatorId, authData)
-  ) {
     throw tenantNotAllowed(authData.organizationId);
   }
 };

@@ -245,7 +245,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  it("should throw riskAnalysisAnswerNotFound if answer is not found", async () => {
+  it("should throw riskAnalysisTemplateAnswerNotFound if answer is not found", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 

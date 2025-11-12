@@ -42,6 +42,19 @@ export type DelegationContractDocument = z.infer<
   typeof DelegationContractDocument
 >;
 
+export const DelegationSignedContractDocument = z.object({
+  id: DelegationContractId,
+  name: z.string(),
+  prettyName: z.string(),
+  contentType: z.string(),
+  path: z.string(),
+  createdAt: z.coerce.date(),
+  signedAt: z.coerce.date().optional(),
+});
+export type DelegationSignedContractDocument = z.infer<
+  typeof DelegationSignedContractDocument
+>;
+
 export const DelegationStamp = z.object({
   who: UserId,
   when: z.coerce.date(),
@@ -69,6 +82,8 @@ export const Delegation = z.object({
   activationContract: DelegationContractDocument.optional(),
   revocationContract: DelegationContractDocument.optional(),
   stamps: DelegationStamps,
+  activationSignedContract: DelegationSignedContractDocument.optional(),
+  revocationSignedContract: DelegationSignedContractDocument.optional(),
 });
 export type Delegation = z.infer<typeof Delegation>;
 
