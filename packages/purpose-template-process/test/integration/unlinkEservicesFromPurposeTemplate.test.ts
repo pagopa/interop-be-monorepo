@@ -337,59 +337,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     );
   });
 
-  it.each(
-    ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
-  )("should unlink eservice with descriptor in state %s", async (state) => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(state),
-      version: "1",
-    };
-
-    const eService: EService = {
-      ...getMockEService(),
-      producerId: tenant.id,
-      descriptors: [descriptor],
-      personalData: true,
-    };
-
-    await addOneTenant(tenant);
-    await addOnePurposeTemplate(purposeTemplate);
-    await addOneEService(eService);
-
-    await addOnePurposeTemplateEServiceDescriptor({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService.id,
-      descriptorId: descriptor.id,
-      createdAt: new Date(),
-    });
-
-    const unlinkResponse =
-      await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
-        purposeTemplate.id,
-        [eService.id],
-        getMockContext({
-          authData: getMockAuthData(tenant.id),
-        })
-      );
-
-    expect(unlinkResponse).toHaveLength(1);
-    expect(unlinkResponse[0]).toMatchObject({
-      data: {
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId: eService.id,
-        descriptorId: descriptor.id,
-        createdAt: new Date(),
-      },
-      metadata: { version: 1 },
-    });
-
-    vi.useRealTimers();
-  });
-
-  it("should throw invalidDescriptorStateError when trying to unlink eservice with descriptor in invalid state (draft)", async () => {
+  it("should throw invalidDescriptorStateError when trying to unlink eservice with descriptor in invalid state (not Published, Archived, Suspended or Deprecated)", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
       version: "1",

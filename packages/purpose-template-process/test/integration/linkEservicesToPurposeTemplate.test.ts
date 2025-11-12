@@ -293,7 +293,7 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw invalidDescriptorStateError when trying to link eservice with descriptor in invalid state (suspended)", async () => {
+  it("should throw invalidDescriptorStateError when trying to link eservice that has no valid descriptors (descriptors with state different from published)", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.suspended),
       version: "1",

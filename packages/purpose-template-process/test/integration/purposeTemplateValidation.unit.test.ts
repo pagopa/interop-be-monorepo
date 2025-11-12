@@ -250,7 +250,7 @@ describe("Purpose Template Validation", () => {
           )
       )
     )(
-      "should return invalid result (invalidDescriptorStateError) when associating an eservice that only has invalid descriptor state $s (validateEServiceDescriptors)",
+      "should return invalid result (invalidDescriptorStateError) when associating an eservice that only has invalid descriptor state %s (validateEServiceDescriptors)",
       async (invalidState) => {
         const eserviceIds = [eserviceId1];
         const invalidDescriptor = getMockDescriptor(invalidState);
