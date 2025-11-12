@@ -5,12 +5,14 @@ import {
   EServiceTemplateVersionId,
   InternalError,
   PurposeId,
+  PurposeVersionId,
 } from "pagopa-interop-models";
 
 type M2MEventDispatcherErrorCode =
   | "descriptorNotFoundInEService"
   | "eserviceTemplateVersionNotFoundInEServiceTemplate"
-  | "purposeEServiceNotFound";
+  | "purposeEServiceNotFound"
+  | "purposeVersionNotFoundInPurpose";
 
 export class M2MEventDispatcherError extends InternalError<M2MEventDispatcherErrorCode> {
   constructor({
@@ -39,8 +41,18 @@ export function purposeEServiceNotFound(
   purposeId: PurposeId
 ): M2MEventDispatcherError {
   return new M2MEventDispatcherError({
-    detail: `EService ${eserviceId} Purpose ${purposeId} not found`,
+    detail: `E-Service ${eserviceId} for Purpose ${purposeId} not found`,
     code: "purposeEServiceNotFound",
+  });
+}
+
+export function purposeVersionNotFoundInPurpose(
+  purposeVersionId: PurposeVersionId,
+  purposeId: PurposeId
+): M2MEventDispatcherError {
+  return new M2MEventDispatcherError({
+    detail: `Purpose Version ${purposeVersionId} not found in Purpose ${purposeId}`,
+    code: "purposeVersionNotFoundInPurpose",
   });
 }
 
