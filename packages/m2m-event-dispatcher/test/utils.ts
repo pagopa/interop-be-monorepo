@@ -13,6 +13,7 @@ import {
   producerKeyInM2MEvent,
   producerKeychainInM2MEvent,
   purposeInM2MEvent,
+  tenantInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { afterEach, inject } from "vitest";
 import {
@@ -28,6 +29,7 @@ import {
   ProducerKeyM2MEvent,
   ProducerKeychainM2MEvent,
   PurposeM2MEvent,
+  TenantM2MEvent,
 } from "pagopa-interop-models";
 import {
   delegationReadModelServiceBuilder,
@@ -307,4 +309,16 @@ export async function retrieveAllProducerKeychainM2MEvents({
     .orderBy(desc(producerKeychainInM2MEvent.id));
 
   return sqlEvents.map((e) => ProducerKeychainM2MEvent.parse(e));
+}
+export async function retrieveLastTenantM2MEvent(): Promise<TenantM2MEvent> {
+  return (await retrieveAllTenantM2MEvents())[0];
+}
+
+export async function retrieveAllTenantM2MEvents(): Promise<TenantM2MEvent[]> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(tenantInM2MEvent)
+    .orderBy(desc(tenantInM2MEvent.id));
+
+  return sqlEvents.map((e) => TenantM2MEvent.parse(e));
 }
