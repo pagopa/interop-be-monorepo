@@ -73,7 +73,7 @@ export async function handleProducerKeychainUserDeleted(
         notificationType,
         entityId: producerKeychain.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
-        clientName: producerKeychain.name,
+        producerKeychainName: producerKeychain.name,
         ctaLabel: `Gestisci chiavi`,
       }),
     },

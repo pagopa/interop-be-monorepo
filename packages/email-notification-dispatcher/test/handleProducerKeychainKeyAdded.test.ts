@@ -238,7 +238,7 @@ describe("handleProducerKeychainKeyAdded", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Nuova chiave aggiunta al client &quot;${producerKeychain.name}&quot;`
+        `Nuova chiave aggiunta al portachiavi erogatore &quot;${producerKeychain.name}&quot;`
       );
       match(message.type)
         .with("User", () => {
