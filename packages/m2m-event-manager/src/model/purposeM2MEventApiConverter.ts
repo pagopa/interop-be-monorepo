@@ -73,6 +73,7 @@ function toApiPurposeM2MEvent(
     eventType: toApiPurposeM2MEventType(event.eventType),
     eventTimestamp: event.eventTimestamp.toJSON(),
     purposeId: event.purposeId,
+    purposeVersionId: event.purposeVersionId,
     consumerDelegationId: event.consumerDelegationId,
     producerDelegationId: event.producerDelegationId,
   };
