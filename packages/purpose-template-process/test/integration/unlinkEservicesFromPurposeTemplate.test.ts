@@ -15,7 +15,6 @@ import {
   toPurposeTemplateV2,
   EServiceId,
   PurposeTemplateId,
-  DescriptorState,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -47,13 +46,7 @@ import {
   eserviceNotFound,
   invalidDescriptorStateError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
-
-const ALLOWED_DESCRIPTOR_STATES_FOR_DISASSOCIATION: DescriptorState[] = [
-  descriptorState.published,
-  descriptorState.suspended,
-  descriptorState.deprecated,
-  descriptorState.archived,
-];
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION } from "../../src/services/validators.js";
 
 describe("unlinkEservicesFromPurposeTemplate", () => {
   const tenant: Tenant = {
@@ -344,109 +337,101 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     );
   });
 
-  it.each(ALLOWED_DESCRIPTOR_STATES_FOR_DISASSOCIATION)(
-    "should unlink eservice with descriptor in state %s",
-    async (state) => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
-        version: "1",
-      };
-
-      const eService: EService = {
-        ...getMockEService(),
-        producerId: tenant.id,
-        descriptors: [descriptor],
-        personalData: true,
-      };
-
-      await addOneTenant(tenant);
-      await addOnePurposeTemplate(purposeTemplate);
-      await addOneEService(eService);
-
-      await addOnePurposeTemplateEServiceDescriptor({
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId: eService.id,
-        descriptorId: descriptor.id,
-        createdAt: new Date(),
-      });
-
-      const unlinkResponse =
-        await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
-          purposeTemplate.id,
-          [eService.id],
-          getMockContext({
-            authData: getMockAuthData(tenant.id),
-          })
-        );
-
-      expect(unlinkResponse).toHaveLength(1);
-      expect(unlinkResponse[0]).toMatchObject({
-        data: {
-          purposeTemplateId: purposeTemplate.id,
-          eserviceId: eService.id,
-          descriptorId: descriptor.id,
-          createdAt: new Date(),
-        },
-        metadata: { version: 1 },
-      });
-
-      vi.useRealTimers();
-    }
-  );
-
   it.each(
-    Object.values(descriptorState).filter(
-      (s) => !ALLOWED_DESCRIPTOR_STATES_FOR_DISASSOCIATION.includes(s)
-    )
-  )(
-    "should throw invalidDescriptorStateError when trying to unlink eservice with descriptor in state %s",
-    async (state) => {
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
-        version: "1",
-      };
+    ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+  )("should unlink eservice with descriptor in state %s", async (state) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
 
-      const eService: EService = {
-        ...getMockEService(),
-        producerId: tenant.id,
-        descriptors: [descriptor],
-        personalData: true,
-      };
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(state),
+      version: "1",
+    };
 
-      await addOneTenant(tenant);
-      await addOnePurposeTemplate(purposeTemplate);
-      await addOneEService(eService);
+    const eService: EService = {
+      ...getMockEService(),
+      producerId: tenant.id,
+      descriptors: [descriptor],
+      personalData: true,
+    };
 
-      await addOnePurposeTemplateEServiceDescriptor({
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eService);
+
+    await addOnePurposeTemplateEServiceDescriptor({
+      purposeTemplateId: purposeTemplate.id,
+      eserviceId: eService.id,
+      descriptorId: descriptor.id,
+      createdAt: new Date(),
+    });
+
+    const unlinkResponse =
+      await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+        purposeTemplate.id,
+        [eService.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      );
+
+    expect(unlinkResponse).toHaveLength(1);
+    expect(unlinkResponse[0]).toMatchObject({
+      data: {
         purposeTemplateId: purposeTemplate.id,
         eserviceId: eService.id,
         descriptorId: descriptor.id,
         createdAt: new Date(),
-      });
+      },
+      metadata: { version: 1 },
+    });
 
-      await expect(
-        purposeTemplateService.unlinkEservicesFromPurposeTemplate(
-          purposeTemplate.id,
-          [eService.id],
-          getMockContext({
-            authData: getMockAuthData(tenant.id),
-          })
-        )
-      ).rejects.toThrowError(
-        disassociationEServicesFromPurposeTemplateFailed(
-          [
-            invalidDescriptorStateError(
-              eService.id,
-              ALLOWED_DESCRIPTOR_STATES_FOR_DISASSOCIATION
-            ),
-          ],
-          [eService.id],
-          purposeTemplate.id
-        )
-      );
-    }
-  );
+    vi.useRealTimers();
+  });
+
+  it("should throw invalidDescriptorStateError when trying to unlink eservice with descriptor in invalid state (draft)", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+      version: "1",
+    };
+
+    const eService: EService = {
+      ...getMockEService(),
+      producerId: tenant.id,
+      descriptors: [descriptor],
+      personalData: true,
+    };
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eService);
+
+    await addOnePurposeTemplateEServiceDescriptor({
+      purposeTemplateId: purposeTemplate.id,
+      eserviceId: eService.id,
+      descriptorId: descriptor.id,
+      createdAt: new Date(),
+    });
+
+    await expect(
+      purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+        purposeTemplate.id,
+        [eService.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      disassociationEServicesFromPurposeTemplateFailed(
+        [
+          invalidDescriptorStateError(
+            eService.id,
+            ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+          ),
+        ],
+        [eService.id],
+        purposeTemplate.id
+      )
+    );
+  });
 });

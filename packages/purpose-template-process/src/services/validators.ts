@@ -84,6 +84,17 @@ export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION = [
   descriptorState.deprecated,
 ];
 
+export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION: DescriptorState[] =
+  [descriptorState.published];
+
+export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION: DescriptorState[] =
+  [
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+    descriptorState.archived,
+  ];
+
 export const isRequesterCreator = (
   creatorId: TenantId,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
@@ -547,9 +558,10 @@ function validateEServiceDescriptorsToAssociate(validEservices: EService[]): {
     descriptorId: DescriptorId;
   }>;
 } {
-  return validateEServiceDescriptors(validEservices, [
-    descriptorState.published,
-  ]);
+  return validateEServiceDescriptors(
+    validEservices,
+    ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION
+  );
 }
 
 function validateEServiceDescriptorsToDisassociate(
@@ -561,12 +573,10 @@ function validateEServiceDescriptorsToDisassociate(
     descriptorId: DescriptorId;
   }>;
 } {
-  return validateEServiceDescriptors(validEservices, [
-    descriptorState.published,
-    descriptorState.suspended,
-    descriptorState.deprecated,
-    descriptorState.archived,
-  ]);
+  return validateEServiceDescriptors(
+    validEservices,
+    ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+  );
 }
 
 /**

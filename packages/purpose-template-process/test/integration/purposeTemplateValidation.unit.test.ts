@@ -30,6 +30,8 @@ import {
   unexpectedEServiceError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
+  ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION,
+  ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION,
   validateEservicesAssociations,
   validateEservicesDisassociations,
 } from "../../src/services/validators.js";
@@ -240,36 +242,98 @@ describe("Purpose Template Validation", () => {
       });
     });
 
-    it("should return invalid result when eservice has no valid descriptor states (validateEServiceDescriptors)", async () => {
-      const eserviceIds = [eserviceId1];
-      const invalidDescriptor = getMockDescriptor(descriptorState.suspended);
-      invalidDescriptor.id = descriptorId1;
-      const eserviceWithInvalidDescriptors = {
-        ...getMockEService(eserviceId1, generateId<TenantId>(), [
-          invalidDescriptor,
-        ]),
-        personalData: true,
-      };
+    it.each(
+      Object.values(descriptorState).filter(
+        (state) =>
+          !ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION.includes(
+            state
+          )
+      )
+    )(
+      "should return invalid result (invalidDescriptorStateError) when associating an eservice that only has invalid descriptor state $s (validateEServiceDescriptors)",
+      async (invalidState) => {
+        const eserviceIds = [eserviceId1];
+        const invalidDescriptor = getMockDescriptor(invalidState);
+        invalidDescriptor.id = descriptorId1;
+        const eserviceWithInvalidDescriptors = {
+          ...getMockEService(eserviceId1, generateId<TenantId>(), [
+            invalidDescriptor,
+          ]),
+          personalData: true,
+        };
 
-      mockReadModelService.getEServiceById = vi
-        .fn()
-        .mockResolvedValue(eserviceWithInvalidDescriptors);
-      mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
-        vi.fn().mockResolvedValue(undefined);
+        mockReadModelService.getEServiceById = vi
+          .fn()
+          .mockResolvedValue(eserviceWithInvalidDescriptors);
+        mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+          vi.fn().mockResolvedValue(undefined);
 
-      const result = await validateEservicesAssociations(
-        eserviceIds,
-        purposeTemplate,
-        mockReadModelService
-      );
+        const result = await validateEservicesAssociations(
+          eserviceIds,
+          purposeTemplate,
+          mockReadModelService
+        );
 
-      expect(result).toEqual({
-        type: "invalid",
-        issues: [
-          invalidDescriptorStateError(eserviceId1, [descriptorState.published]),
-        ],
-      });
-    });
+        expect(result).toEqual({
+          type: "invalid",
+          issues: [
+            invalidDescriptorStateError(eserviceId1, [
+              descriptorState.published,
+            ]),
+          ],
+        });
+      }
+    );
+
+    it.each(
+      Object.values(descriptorState).filter(
+        (state) =>
+          !ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION.includes(
+            state
+          )
+      )
+    )(
+      "should return invalid result (invalidDescriptorStateError) when disassociating an eservice that only has invalid descriptor state $s (validateEServiceDescriptors)",
+      async (invalidState) => {
+        const eserviceIds = [eserviceId1];
+        const invalidDescriptor = getMockDescriptor(invalidState);
+        invalidDescriptor.id = descriptorId1;
+        const eserviceWithInvalidDescriptors = {
+          ...getMockEService(eserviceId1, generateId<TenantId>(), [
+            invalidDescriptor,
+          ]),
+          personalData: true,
+        };
+
+        const existingAssociation = {
+          eserviceId: eserviceId1,
+          descriptorId: eserviceWithInvalidDescriptors,
+          purposeTemplateId: purposeTemplate.id,
+        };
+
+        mockReadModelService.getEServiceById = vi
+          .fn()
+          .mockResolvedValue(eserviceWithInvalidDescriptors);
+        mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+          vi.fn().mockResolvedValue(existingAssociation);
+
+        const result = await validateEservicesDisassociations(
+          eserviceIds,
+          purposeTemplate,
+          mockReadModelService
+        );
+
+        expect(result).toEqual({
+          type: "invalid",
+          issues: [
+            invalidDescriptorStateError(
+              eserviceId1,
+              ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+            ),
+          ],
+        });
+      }
+    );
 
     it("should return error when trying to unlink eservice that is not associated", async () => {
       const eserviceIds = [eserviceId1];
