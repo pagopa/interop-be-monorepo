@@ -197,8 +197,8 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
 
   it.each<{
     eventType:
-    | "EServiceDescriptorApprovedByDelegator"
-    | "EServiceDescriptorRejectedByDelegator";
+      | "EServiceDescriptorApprovedByDelegator"
+      | "EServiceDescriptorRejectedByDelegator";
     expectedBody: string;
   }>([
     {
@@ -273,5 +273,4 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   const latestDate = new Date();
   const olderDate = new Date(latestDate);
   olderDate.setDate(olderDate.getDate() - 1);
-
 });
