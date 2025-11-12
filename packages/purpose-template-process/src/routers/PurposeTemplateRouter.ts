@@ -288,10 +288,8 @@ const purposeTemplateRouter = (
 
         return res.status(200).send(
           purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
-            results: results.map((purposeTemplateEServiceDescriptor) =>
-              eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-                purposeTemplateEServiceDescriptor
-              )
+            results: results.map(
+              eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate
             ),
             totalCount,
           })
