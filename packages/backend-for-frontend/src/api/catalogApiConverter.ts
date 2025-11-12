@@ -322,9 +322,7 @@ export async function enhanceRiskAnalysisArray(
             eserviceId,
           },
         });
-      rulesetExpirations[version] = ruleset.expiration
-        ? ruleset.expiration
-        : undefined;
+      rulesetExpirations[version] = ruleset.expiration;
     }
   }
 
