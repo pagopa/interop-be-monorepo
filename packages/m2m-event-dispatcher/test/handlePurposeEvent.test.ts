@@ -18,6 +18,8 @@ import {
   Delegation,
   Purpose,
   purposeVersionState,
+  PurposeVersion,
+  PurposeM2MEvent,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
@@ -89,7 +91,15 @@ describe("handlePurposeEvent test", async () => {
 
             const eventTimestamp = new Date();
 
-            const testCasesData = await match(eventType)
+            const testCasesData = match(eventType)
+              .returnType<
+                Array<{
+                  versions: PurposeVersion[];
+                  expectedVisibility: PurposeM2MEvent["visibility"];
+                  affectedVersion?: number;
+                  eventNotHandled?: boolean;
+                }>
+              >()
               .with(
                 P.union(
                   // Draft Purpose events, owner visibility
@@ -98,7 +108,7 @@ describe("handlePurposeEvent test", async () => {
                   "DraftPurposeDeleted",
                   "PurposeCloned"
                 ),
-                async () => [
+                () => [
                   {
                     versions: [
                       getMockPurposeVersion(
@@ -109,7 +119,6 @@ describe("handlePurposeEvent test", async () => {
                       ),
                       // Visibility based only on event, versions state doesn't matter
                     ],
-                    affectedVersion: undefined,
                     expectedVisibility: m2mEventVisibility.owner,
                   },
                 ]
@@ -121,7 +130,7 @@ describe("handlePurposeEvent test", async () => {
                   "PurposeActivated",
                   "WaitingForApprovalPurposeDeleted"
                 ),
-                async () => [
+                () => [
                   {
                     versions: [
                       getMockPurposeVersion(
@@ -132,7 +141,6 @@ describe("handlePurposeEvent test", async () => {
                       ),
                       // Visibility based only on event, versions state doesn't matter
                     ],
-                    affectedVersion: undefined,
                     expectedVisibility: m2mEventVisibility.restricted,
                   },
                 ]
@@ -154,7 +162,7 @@ describe("handlePurposeEvent test", async () => {
                   "RiskAnalysisSignedDocumentGenerated",
                   "PurposeVersionArchivedByRevokedDelegation"
                 ),
-                async () => [
+                () => [
                   {
                     versions: [
                       getMockPurposeVersion(
@@ -176,7 +184,7 @@ describe("handlePurposeEvent test", async () => {
                   // visibility depends on the state
                   "PurposeDeletedByRevokedDelegation"
                 ),
-                async () => [
+                () => [
                   // All versions in draft / waiting for approval, owner visibility
                   {
                     versions: [
@@ -201,15 +209,28 @@ describe("handlePurposeEvent test", async () => {
                   // Ignored events
                   "RiskAnalysisDocumentGenerated"
                 ),
-                () => []
+                () => [
+                  {
+                    versions: [
+                      getMockPurposeVersion(
+                        purposeVersionState.waitingForApproval
+                      ),
+                    ],
+                    expectedVisibility: m2mEventVisibility.restricted,
+                    eventNotHandled: true,
+                  },
+                ]
               )
               .exhaustive();
 
-            for (const {
-              versions,
-              affectedVersion,
-              expectedVisibility,
-            } of testCasesData) {
+            for (const testCaseData of testCasesData) {
+              const {
+                versions,
+                expectedVisibility,
+                affectedVersion,
+                eventNotHandled,
+              } = testCaseData;
+
               const purpose: Purpose = {
                 ...getMockPurpose(),
                 consumerId,
@@ -231,6 +252,13 @@ describe("handlePurposeEvent test", async () => {
                   versionId,
                 },
               } as PurposeEventEnvelopeV2;
+
+              if (eventNotHandled) {
+                expect(
+                  testM2mEventWriterService.insertPurposeM2MEvent
+                ).not.toHaveBeenCalled();
+                return;
+              }
 
               await handlePurposeEvent(
                 message,

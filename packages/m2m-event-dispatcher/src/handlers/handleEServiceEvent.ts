@@ -55,7 +55,7 @@ export async function handleEServiceEvent(
         },
         async (event) => {
           logger.info(
-            `Creating EService M2M Event - type ${event.type}, eserviceId ${eservice.id}`
+            `Creating E-Service M2M Event - type ${event.type}, eserviceId ${eservice.id}`
           );
           const m2mEvent = await createEServiceM2MEvent(
             eservice,
@@ -73,7 +73,7 @@ export async function handleEServiceEvent(
         }
       )
       /**
-       * Handling events related to the EService Descriptors (with descriptorId).
+       * Handling events related to the E-Service Descriptors (with descriptorId).
        */
       .with(
         {

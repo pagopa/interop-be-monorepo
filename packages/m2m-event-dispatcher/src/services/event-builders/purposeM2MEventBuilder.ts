@@ -3,13 +3,16 @@ import {
   EService,
   Purpose,
   PurposeM2MEvent,
+  PurposeVersion,
   PurposeVersionId,
+  PurposeVersionState,
   m2mEventVisibility,
   purposeVersionState,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { generateM2MEventId } from "../../utils/uuidv7.js";
 import { Delegations } from "../../models/delegations.js";
+import { purposeVersionNotFoundInPurpose } from "../../models/errors.js";
 
 export function createPurposeM2MEvent(
   purpose: Purpose,
@@ -76,7 +79,11 @@ function createPurposeM2MEventHelper(
     consumerDelegationId: delegations.consumerDelegation?.id,
     producerDelegateId: delegations.producerDelegation?.delegateId,
     producerDelegationId: delegations.producerDelegation?.id,
-    visibility: getPurposeM2MEventVisibility(eventType, purpose),
+    visibility: getPurposeM2MEventVisibility(
+      eventType,
+      purpose,
+      purposeVersionId
+    ),
   };
 }
 
@@ -86,7 +93,8 @@ function createPurposeM2MEventHelper(
  */
 function getPurposeM2MEventVisibility(
   eventType: PurposeM2MEvent["eventType"],
-  purpose: Purpose
+  purpose: Purpose,
+  purposeVersionId: PurposeVersionId | undefined
 ): PurposeM2MEvent["visibility"] {
   return match(eventType)
     .with(
@@ -127,17 +135,44 @@ function getPurposeM2MEventVisibility(
         // visibility depends on the state of the Purpose
         "PurposeDeletedByRevokedDelegation"
       ),
-      () => getPurposeM2MEventVisibilityFromPurpose(purpose)
+      () => getPurposeM2MEventVisibilityFromPurpose(purpose, purposeVersionId)
     )
     .exhaustive();
 }
 
+const ownerVisibilityStates: PurposeVersionState[] = [
+  purposeVersionState.draft,
+];
+
 function getPurposeM2MEventVisibilityFromPurpose(
-  purpose: Purpose
+  purpose: Purpose,
+  purposeVersionId: PurposeVersionId | undefined
 ): PurposeM2MEvent["visibility"] {
-  if (purpose.versions.every((v) => v.state === purposeVersionState.draft)) {
+  const purposeVersion = purposeVersionId
+    ? retrievePurposeVersionFromPurpose(purposeVersionId, purpose)
+    : undefined;
+  if (
+    (purposeVersion !== undefined &&
+      ownerVisibilityStates.includes(purposeVersion.state)) ||
+    purpose.versions.every((v) => ownerVisibilityStates.includes(v.state))
+  ) {
     return m2mEventVisibility.owner;
   } else {
     return m2mEventVisibility.restricted;
   }
 }
+
+const retrievePurposeVersionFromPurpose = (
+  purposeVersionId: PurposeVersionId,
+  purpose: Purpose
+): PurposeVersion => {
+  const purposeVersion = purpose.versions.find(
+    (d: PurposeVersion) => d.id === purposeVersionId
+  );
+
+  if (purposeVersion === undefined) {
+    throw purposeVersionNotFoundInPurpose(purposeVersionId, purpose.id);
+  }
+
+  return purposeVersion;
+};
