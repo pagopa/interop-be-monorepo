@@ -1,13 +1,16 @@
+import { fail } from "assert";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import { generateId } from "pagopa-interop-models";
+import { bigIntToDate, generateId } from "pagopa-interop-models";
 import {
   DocumentSignatureReference,
+  DocumentSignatureReferenceSchema,
   SignatureReference,
+  SignatureReferenceSchema,
   signatureServiceBuilder,
 } from "pagopa-interop-commons";
 import {
@@ -17,6 +20,7 @@ import {
 import { getUnixTime } from "date-fns";
 import { dynamoDBClient } from "../utils/utils.js";
 import { config } from "../../src/config/config.js";
+import { FILE_KIND_CONFIG } from "../../src/utils/fileKind.config.js";
 
 describe("signatureServiceBuilder - Integration Tests", () => {
   beforeEach(async () => {
@@ -209,6 +213,75 @@ describe("signatureServiceBuilder - Integration Tests", () => {
     expect(retrievedDocSigRef?.safeStorageId).toBe(docSigRef.safeStorageId);
     expect(retrievedDocSigRef?.fileName).toBe(docSigRef.fileName);
     expect(retrievedDocSigRef?.prettyname).toBe(docSigRef.prettyname);
+
+    expect(retrievedSigRef?.safeStorageId).not.toBe(
+      retrievedDocSigRef?.safeStorageId
+    );
+  });
+
+  it("should save and retrieve both SignatureReference and DocumentSignatureReference with readSignatureReferenceById", async () => {
+    const signatureService = signatureServiceBuilder(dynamoDBClient, config);
+
+    const sigRefId = generateId();
+    const sigRef: SignatureReference = {
+      safeStorageId: sigRefId,
+      fileKind: "VOUCHER_AUDIT",
+      fileName: "signature.pdf",
+      correlationId: generateId(),
+      creationTimestamp: getUnixTime(new Date()),
+    };
+
+    const docSigRefId = generateId();
+    const docSigRef: DocumentSignatureReference = {
+      safeStorageId: docSigRefId,
+      streamId: generateId(),
+      subObjectId: generateId(),
+      fileKind: "RISK_ANALYSIS_DOCUMENT",
+      fileName: "document.pdf",
+      prettyname: "Pretty Document",
+      contentType: "application/pdf",
+      correlationId: generateId(),
+      version: 2,
+      createdAt: BigInt(12345),
+      creationTimestamp: getUnixTime(new Date()),
+      path: "/some/path/document.pdf",
+    };
+
+    await signatureService.saveSignatureReference(sigRef);
+    await signatureService.saveDocumentSignatureReference(docSigRef);
+
+    const retrievedSigRef = await signatureService.readSignatureReferenceById(
+      sigRefId
+    );
+
+    const retrievedDocSigRef =
+      await signatureService.readSignatureReferenceById(docSigRefId);
+
+    const { process } =
+      FILE_KIND_CONFIG[
+        retrievedDocSigRef?.fileKind as keyof typeof FILE_KIND_CONFIG
+      ];
+
+    if (process) {
+      expect(
+        DocumentSignatureReferenceSchema.parse(retrievedDocSigRef)
+      ).toBeTruthy();
+      const docSignature = retrievedDocSigRef as DocumentSignatureReference;
+      expect(docSignature).toBeDefined();
+      expect(docSignature.safeStorageId).toBe(docSigRef.safeStorageId);
+      expect(docSignature.fileName).toBe(docSigRef.fileName);
+      expect(docSignature.createdAt).toBe(docSigRef.createdAt);
+      expect(bigIntToDate(docSignature.createdAt)).toBeInstanceOf(Date);
+      expect(new Date(bigIntToDate(docSignature.createdAt))).toBeInstanceOf(
+        Date
+      );
+    } else {
+      fail("Casting of Document not successfull");
+    }
+    expect(SignatureReferenceSchema.parse(retrievedSigRef)).toBeTruthy();
+    expect(retrievedSigRef).toBeDefined();
+    expect(retrievedSigRef?.safeStorageId).toBe(sigRef.safeStorageId);
+    expect(retrievedSigRef?.fileName).toBe(sigRef.fileName);
 
     expect(retrievedSigRef?.safeStorageId).not.toBe(
       retrievedDocSigRef?.safeStorageId
