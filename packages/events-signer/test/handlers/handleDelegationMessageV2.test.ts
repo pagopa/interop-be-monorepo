@@ -77,7 +77,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         delegationV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -134,7 +134,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         delegationV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -183,7 +183,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         delegationV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 

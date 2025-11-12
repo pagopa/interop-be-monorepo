@@ -6,8 +6,9 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test:unit": "vitest",
     "test:api": "vitest --config vitest.api.config.ts",
+    "test": "pnpm test:unit && pnpm test:api",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
