@@ -37,7 +37,7 @@ export const errorCodes = {
   conflictDuplicatedDocument: "0020",
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
-  invalidAssociatedEServiceForPublishError: "0023",
+  invalidAssociatedEServiceForPublicationError: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -73,12 +73,12 @@ export function purposeTemplateNotFound(
   });
 }
 
-export function invalidAssociatedEServiceForPublishError(
+export function invalidAssociatedEServiceForPublicationError(
   reasons: PurposeTemplateValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Linked e-service descriptors are not valid for publishing. Reasons: ${reasons}`,
-    code: "invalidAssociatedEServiceForPublishError",
+    code: "invalidAssociatedEServiceForPublicationError",
     title: "Linked e-service descriptors are not valid for publishing",
   });
 }

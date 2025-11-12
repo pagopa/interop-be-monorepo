@@ -20,7 +20,7 @@ import {
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
-  invalidAssociatedEServiceForPublishError,
+  invalidAssociatedEServiceForPublicationError,
 } from "../../src/model/domain/errors.js";
 import { PurposeTemplateValidationIssue } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -96,7 +96,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       expectedStatus: 409,
     },
     {
-      error: invalidAssociatedEServiceForPublishError(
+      error: invalidAssociatedEServiceForPublicationError(
         expect.any(Array<PurposeTemplateValidationIssue>)
       ),
       expectedStatus: 409,

@@ -42,7 +42,7 @@ import { match } from "ts-pattern";
 import {
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
-  invalidAssociatedEServiceForPublishError,
+  invalidAssociatedEServiceForPublicationError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
@@ -94,7 +94,7 @@ import {
   isPurposeTemplateDraft,
   isRequesterCreator,
   validateAndTransformRiskAnalysisTemplate,
-  validateAssociatedEserviceForPublish,
+  validateAssociatedEserviceForPublication,
   validateEservicesAssociations,
   validateEservicesDisassociations,
   validateRiskAnalysisAnswerAnnotationOrThrow,
@@ -504,13 +504,13 @@ async function activatePurposeTemplate({
   assertActivatableState(purposeTemplate.data, expectedInitialState);
 
   const eserviceStateValidationIssues =
-    await validateAssociatedEserviceForPublish(
+    await validateAssociatedEserviceForPublication(
       readModelService,
       purposeTemplate.data.id
     );
 
   if (eserviceStateValidationIssues.length > 0) {
-    throw invalidAssociatedEServiceForPublishError(
+    throw invalidAssociatedEServiceForPublicationError(
       eserviceStateValidationIssues
     );
   }

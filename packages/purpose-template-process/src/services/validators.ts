@@ -38,7 +38,7 @@ import {
   eserviceNotAssociatedError,
   eserviceNotFound,
   invalidDescriptorStateError,
-  invalidDescriptorStateForPublishError,
+  invalidDescriptorStateForPublicationError,
   invalidPurposeTemplateResult,
   missingDescriptorError,
   purposeTemplateEServicePersonalDataFlagMismatch,
@@ -76,7 +76,7 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
-export const ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISH = [
+export const ALLOWED_DESCRIPTOR_STATES_FOR_PUBLICATION = [
   descriptorState.published,
   descriptorState.draft,
   descriptorState.waitingForApproval,
@@ -596,23 +596,23 @@ function validateEServiceDescriptors(validEservices: EService[]): {
   return { validationIssues, validEServiceDescriptorPairs };
 }
 
-export const validateAssociatedEserviceForPublish = async (
+export const validateAssociatedEserviceForPublication = async (
   readModelService: ReadModelServiceSQL,
   purposeTemplateId: PurposeTemplateId
 ): Promise<PurposeTemplateValidationIssue[]> => {
   const associatedEservicesWithDescriptorInNotValidState =
     await readModelService.getPurposeTemplateEServiceWithDescriptorState(
       purposeTemplateId,
-      ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISH
+      ALLOWED_DESCRIPTOR_STATES_FOR_PUBLICATION
     );
 
   if (associatedEservicesWithDescriptorInNotValidState.totalCount) {
     return associatedEservicesWithDescriptorInNotValidState.results.reduce(
       (errors, eservice) => [
         ...errors,
-        invalidDescriptorStateForPublishError(
+        invalidDescriptorStateForPublicationError(
           eservice,
-          ALLOWED_DESCRIPTOR_STATES_FOR_PUBLISH
+          ALLOWED_DESCRIPTOR_STATES_FOR_PUBLICATION
         ),
       ],
       [] as PurposeTemplateValidationIssue[]
