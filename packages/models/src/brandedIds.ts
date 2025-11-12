@@ -299,6 +299,9 @@ export const ProducerKeyM2MEventId = z
   .brand("ProducerKeyM2MEventId");
 export type ProducerKeyM2MEventId = z.infer<typeof ProducerKeyM2MEventId>;
 
+export const TenantM2MEventId = z.string().uuid().brand("TenantM2MEventId");
+export type TenantM2MEventId = z.infer<typeof TenantM2MEventId>;
+
 export const IDS = z.union([
   CorrelationId,
   SpanId,
@@ -351,6 +354,7 @@ export const IDS = z.union([
   KeyM2MEventId,
   ProducerKeychainM2MEventId,
   ProducerKeyM2MEventId,
+  TenantM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 
