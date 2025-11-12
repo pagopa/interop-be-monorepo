@@ -18,7 +18,7 @@ import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handleAuthorizationMessageV1 = async (
   eventsWithTimestamp: Array<{
     authV1: AuthorizationEventV1;
-    timestamp: string;
+    timestamp: Date;
   }>,
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
