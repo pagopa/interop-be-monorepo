@@ -105,8 +105,7 @@ describe("updateUserNotificationConfig", () => {
           !userNotificationConfig.inAppConfig
             .purposeQuotaAdjustmentRequestToProducer,
         purposeOverQuotaStateToConsumer:
-          !userNotificationConfig.inAppConfig
-            .purposeOverQuotaStateToConsumer,
+          !userNotificationConfig.inAppConfig.purposeOverQuotaStateToConsumer,
       },
       emailConfig: getMockNotificationConfig(),
     };

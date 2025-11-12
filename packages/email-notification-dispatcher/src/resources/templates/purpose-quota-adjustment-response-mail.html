@@ -77,7 +77,14 @@
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
       <p>
-        L'ente erogatore <strong>{{ producerName }}</strong> ha {{#if isAccepted}}accettato{{else}}rifiutato{{/if}} la richiesta di adeguamento del piano di carico formulata dal tuo ente per la finalità "<strong>{{ purposeTitle }}</strong>", associata all'e-service "<strong>{{ eserviceName }}</strong>".{{#if isAccepted}} La nuova soglia pari a <strong>{{ dailyCalls }}</strong> chiamate giornaliere è ora attiva.{{/if}}
+        L'ente erogatore <strong>{{ producerName }}</strong> ha {{#if
+        isAccepted}}accettato{{else}}rifiutato{{/if}} la richiesta di
+        adeguamento del piano di carico formulata dal tuo ente per la finalità
+        "<strong>{{ purposeTitle }}</strong>", associata all'e-service "<strong
+          >{{ eserviceName }}</strong
+        >".{{#if isAccepted}} La nuova soglia pari a
+        <strong>{{ dailyCalls }}</strong> chiamate giornaliere è ora
+        attiva.{{/if}}
       </p>
     </div>
   </td>
