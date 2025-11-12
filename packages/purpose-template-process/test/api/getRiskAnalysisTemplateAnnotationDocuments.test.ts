@@ -53,7 +53,7 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", 
       }
     );
 
-  const mockQueryParams: purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams =
+  const mockQueryParams: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
     {
       offset: 0,
       limit: 10,
@@ -69,7 +69,7 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", 
   const makeRequest = async (
     token: string,
     purposeTemplateId: PurposeTemplateId = mockPurposeTemplateId,
-    query: purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams = mockQueryParams
+    query: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams = mockQueryParams
   ) =>
     request(api)
       .get(
@@ -160,7 +160,7 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", 
     const res = await makeRequest(
       token,
       mockPurposeTemplateId,
-      query as unknown as purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerIdQueryParams
+      query as unknown as purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams
     );
 
     expect(res.status).toBe(400);
