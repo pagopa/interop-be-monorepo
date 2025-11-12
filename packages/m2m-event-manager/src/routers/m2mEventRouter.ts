@@ -226,19 +226,13 @@ export const m2mEventRouter = (
 
         const { lastEventId, limit } = req.query;
         const events = await service.getKeyM2MEvents(
-          lastEventId
-            ? unsafeBrandId<KeyM2MEventId>(lastEventId)
-            : undefined,
+          lastEventId ? unsafeBrandId<KeyM2MEventId>(lastEventId) : undefined,
           limit,
           ctx
         );
         return res
           .status(200)
-          .send(
-            m2mEventApi.KeyM2MEvents.parse(
-              toApiKeyM2MEvents(events)
-            )
-          );
+          .send(m2mEventApi.KeyM2MEvents.parse(toApiKeyM2MEvents(events)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

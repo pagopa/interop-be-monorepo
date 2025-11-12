@@ -144,7 +144,6 @@ export function m2mEventReaderServiceSQLBuilder(
 
       return sqlEvents.map(fromKeyM2MEventSQL);
     },
-
   };
 }
 

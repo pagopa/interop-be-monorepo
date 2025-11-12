@@ -262,10 +262,7 @@ export const AgreementM2MEventId = z
   .brand("AgreementM2MEventId");
 export type AgreementM2MEventId = z.infer<typeof AgreementM2MEventId>;
 
-export const KeyM2MEventId = z
-  .string()
-  .uuid()
-  .brand("KeyM2MEventId");
+export const KeyM2MEventId = z.string().uuid().brand("KeyM2MEventId");
 export type KeyM2MEventId = z.infer<typeof KeyM2MEventId>;
 
 export const IDS = z.union([

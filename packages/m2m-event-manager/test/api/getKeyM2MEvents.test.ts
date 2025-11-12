@@ -4,30 +4,24 @@ import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { KeyM2MEventType, generateId } from "pagopa-interop-models";
-import {
-  generateM2MEventId,
-  getMockedKeyM2MEvent,
-} from "../mockUtils.js";
+import { generateM2MEventId, getMockedKeyM2MEvent } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../utils.js";
 
 describe("API /events/keys test", () => {
   const mockKeyM2MEvents = KeyM2MEventType.options
-    .map((type) => [
-      getMockedKeyM2MEvent(type),
-      getMockedKeyM2MEvent(type),
-    ])
+    .map((type) => [getMockedKeyM2MEvent(type), getMockedKeyM2MEvent(type)])
     .flat();
 
   const mockKeyM2MEventsResponse: m2mEventApi.KeyM2MEvents = {
     events: mockKeyM2MEvents.map(
       (e) =>
-      ({
-        id: e.id,
-        eventTimestamp: e.eventTimestamp.toJSON(),
-        eventType: testToUpperSnakeCase(e.eventType),
-        kid: e.kid,
-      } as m2mEventApi.KeyM2MEvent)
+        ({
+          id: e.id,
+          eventTimestamp: e.eventTimestamp.toJSON(),
+          eventType: testToUpperSnakeCase(e.eventType),
+          kid: e.kid,
+        } as m2mEventApi.KeyM2MEvent)
     ),
   };
 

@@ -69,9 +69,7 @@ export async function writeAgreementM2MEvent(event: AgreementM2MEvent) {
   ]);
 }
 
-export async function writeKeyM2MEvent(
-  event: KeyM2MEvent
-): Promise<void> {
+export async function writeKeyM2MEvent(event: KeyM2MEvent): Promise<void> {
   await m2mEventDB.insert(keyInM2MEvent).values([
     {
       ...event,
