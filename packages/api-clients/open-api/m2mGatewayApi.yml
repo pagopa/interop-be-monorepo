@@ -16304,7 +16304,7 @@ paths:
       tags:
         - purposeTemplates
       summary: Retrieve a list of Risk Analysis Template Annotation Documents
-      description: Retrieve a list of Risk Analysis Template Annotation Documents for the
+      description: Retrieve a list of Risk Analysis Template Annotation Documents for the specified Purpose Template
       operationId: getRiskAnalysisTemplateAnnotationDocuments
       parameters:
         - in: query
