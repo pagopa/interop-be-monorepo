@@ -73,7 +73,7 @@ export function purposeTemplateNotFound(
   });
 }
 
-export function invalidAssociatedEServiceForPublicationError(
+export function invalidAssociatedEServiceForPublication(
   reasons: PurposeTemplateValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({

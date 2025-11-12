@@ -42,7 +42,7 @@ import { match } from "ts-pattern";
 import {
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
-  invalidAssociatedEServiceForPublicationError,
+  invalidAssociatedEServiceForPublication,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
@@ -510,7 +510,7 @@ async function activatePurposeTemplate({
     );
 
   if (eserviceStateValidationIssues.length > 0) {
-    throw invalidAssociatedEServiceForPublicationError(
+    throw invalidAssociatedEServiceForPublication(
       eserviceStateValidationIssues
     );
   }

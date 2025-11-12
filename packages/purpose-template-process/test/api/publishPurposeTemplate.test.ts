@@ -1,28 +1,28 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import request from "supertest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
 } from "pagopa-interop-models";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PurposeTemplateValidationIssue } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
+  invalidAssociatedEServiceForPublication,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
-  invalidAssociatedEServiceForPublicationError,
 } from "../../src/model/domain/errors.js";
-import { PurposeTemplateValidationIssue } from "../../src/errors/purposeTemplateValidationErrors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /purposeTemplates/{id}/publish", () => {
   const purposeTemplate = getMockPurposeTemplate();
@@ -96,7 +96,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       expectedStatus: 409,
     },
     {
-      error: invalidAssociatedEServiceForPublicationError(
+      error: invalidAssociatedEServiceForPublication(
         expect.any(Array<PurposeTemplateValidationIssue>)
       ),
       expectedStatus: 409,

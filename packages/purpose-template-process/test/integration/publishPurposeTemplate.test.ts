@@ -29,14 +29,14 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { invalidDescriptorStateForPublicationError } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
-  invalidAssociatedEServiceForPublicationError,
+  invalidAssociatedEServiceForPublication,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
-import { ALLOWED_DESCRIPTOR_STATES_FOR_PUBLICATION } from "../../src/services/validators.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION } from "../../src/services/validators.js";
 import {
   addOneEService,
   addOnePurposeTemplate,
@@ -263,7 +263,7 @@ describe("publishPurposeTemplate", () => {
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
     }).rejects.toThrowError(
-      invalidAssociatedEServiceForPublicationError([
+      invalidAssociatedEServiceForPublication([
         invalidDescriptorStateForPublicationError(
           {
             purposeTemplateId: purposeTemplate.id,
@@ -271,7 +271,7 @@ describe("publishPurposeTemplate", () => {
             descriptorId: invalidStateEService.descriptors[0].id,
             createdAt: expect.any(Date),
           },
-          ALLOWED_DESCRIPTOR_STATES_FOR_PUBLICATION
+          ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION
         ),
       ])
     );

@@ -76,7 +76,7 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
-export const ALLOWED_DESCRIPTOR_STATES_FOR_PUBLICATION = [
+export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION = [
   descriptorState.published,
   descriptorState.draft,
   descriptorState.waitingForApproval,
@@ -603,7 +603,7 @@ export const validateAssociatedEserviceForPublication = async (
   const associatedEservicesWithDescriptorInNotValidState =
     await readModelService.getPurposeTemplateEServiceWithDescriptorState(
       purposeTemplateId,
-      ALLOWED_DESCRIPTOR_STATES_FOR_PUBLICATION
+      ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION
     );
 
   if (associatedEservicesWithDescriptorInNotValidState.totalCount) {
@@ -612,7 +612,7 @@ export const validateAssociatedEserviceForPublication = async (
         ...errors,
         invalidDescriptorStateForPublicationError(
           eservice,
-          ALLOWED_DESCRIPTOR_STATES_FOR_PUBLICATION
+          ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION
         ),
       ],
       [] as PurposeTemplateValidationIssue[]
