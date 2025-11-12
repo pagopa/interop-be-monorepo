@@ -4,21 +4,29 @@ import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   agreementInM2MEvent,
   attributeInM2MEvent,
+  clientInM2MEvent,
   consumerDelegationInM2MEvent,
   eserviceInM2MEvent,
   eserviceTemplateInM2MEvent,
+  keyInM2MEvent,
   producerDelegationInM2MEvent,
+  producerKeyInM2MEvent,
+  producerKeychainInM2MEvent,
   purposeInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { afterEach, inject } from "vitest";
 import {
   AgreementM2MEvent,
   AttributeM2MEvent,
+  ClientM2MEvent,
   Delegation,
   DelegationM2MEvent,
   EService,
   EServiceM2MEvent,
   EServiceTemplateM2MEvent,
+  KeyM2MEvent,
+  ProducerKeyM2MEvent,
+  ProducerKeychainM2MEvent,
   PurposeM2MEvent,
 } from "pagopa-interop-models";
 import {
@@ -206,4 +214,60 @@ export async function retrieveAllEServiceTemplateM2MEvents(): Promise<
       eserviceTemplateVersionId: e.eserviceTemplateVersionId ?? undefined,
     })
   );
+}
+
+export async function retrieveLastClientM2MEvent(): Promise<ClientM2MEvent> {
+  return (await retrieveAllClientM2MEvents())[0];
+}
+
+export async function retrieveAllClientM2MEvents(): Promise<ClientM2MEvent[]> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(clientInM2MEvent)
+    .orderBy(desc(clientInM2MEvent.id));
+
+  return sqlEvents.map((e) => ClientM2MEvent.parse(e));
+}
+
+export async function retrieveLastKeyM2MEvent(): Promise<KeyM2MEvent> {
+  return (await retrieveAllKeyM2MEvents())[0];
+}
+
+export async function retrieveAllKeyM2MEvents(): Promise<KeyM2MEvent[]> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(keyInM2MEvent)
+    .orderBy(desc(keyInM2MEvent.id));
+
+  return sqlEvents.map((e) => KeyM2MEvent.parse(e));
+}
+
+export async function retrieveLastProducerKeyM2MEvent(): Promise<ProducerKeyM2MEvent> {
+  return (await retrieveAllProducerKeyM2MEvents())[0];
+}
+
+export async function retrieveAllProducerKeyM2MEvents(): Promise<
+  ProducerKeyM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(producerKeyInM2MEvent)
+    .orderBy(desc(producerKeyInM2MEvent.id));
+
+  return sqlEvents.map((e) => ProducerKeyM2MEvent.parse(e));
+}
+
+export async function retrieveLastProducerKeychainM2MEvent(): Promise<ProducerKeychainM2MEvent> {
+  return (await retrieveAllProducerKeychainM2MEvents())[0];
+}
+
+export async function retrieveAllProducerKeychainM2MEvents(): Promise<
+  ProducerKeychainM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(producerKeychainInM2MEvent)
+    .orderBy(desc(producerKeychainInM2MEvent.id));
+
+  return sqlEvents.map((e) => ProducerKeychainM2MEvent.parse(e));
 }
