@@ -8,11 +8,7 @@ import {
 } from "pagopa-interop-models";
 import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
-import {
-  createDummyStub,
-  getMockAuthData,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import {
   AgreementProcessClient,
@@ -240,7 +236,7 @@ describe("getCatalogEServiceDescriptor", () => {
     },
   ]);
 
-  const mockPurposeProcessClient = createDummyStub<PurposeProcessClient>();
+  const mockPurposeProcessClient = {} as unknown as PurposeProcessClient;
 
   vi.spyOn(delegationService, "getAllDelegations").mockResolvedValue([]);
 

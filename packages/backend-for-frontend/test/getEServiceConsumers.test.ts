@@ -2,11 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
 import { AuthData, formatDateyyyyMMddThhmmss } from "pagopa-interop-commons";
-import {
-  createDummyStub,
-  getMockAuthData,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
 import {
   AgreementProcessClient,
@@ -55,7 +51,7 @@ describe("getEServiceConsumers", () => {
     {} as unknown as EServiceTemplateProcessClient;
   const mockIInAppNotificationManagerClient =
     {} as unknown as InAppNotificationManagerClient;
-  const mockPurposeProcessClient = createDummyStub<PurposeProcessClient>();
+  const mockPurposeProcessClient = {} as unknown as PurposeProcessClient;
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,
