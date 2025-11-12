@@ -72,7 +72,8 @@ export async function handleAgreementMessageV2(
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
             "AgreementArchivedByRevokedDelegation",
-            "AgreementContractGenerated"
+            "AgreementContractGenerated",
+            "AgreementSignedContractGenerated"
           ),
         },
         (msg) => {

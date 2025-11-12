@@ -26,7 +26,6 @@ describe("Check delegation readmodels", () => {
       data: delegation,
       metadata: { version: 1 },
     });
-
     const delegations = await readModelServiceKPI.getAllDelegations();
 
     const postgresDelegations = await readModelServiceSQL.getAllDelegations();
@@ -182,7 +181,6 @@ describe("Check delegation readmodels", () => {
       data: getMockDelegation({ kind: delegationKind.delegatedProducer }),
       metadata: { version: 1 },
     };
-
     const delegation1InPostgresDb: WithMetadata<Delegation> = {
       data: delegation1.data,
       metadata: {

@@ -7,6 +7,7 @@ import {
 import {
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
+  delegationSignedContractDocumentInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
@@ -34,8 +35,12 @@ export function delegationWriterServiceBuilder(readModelDB: DrizzleReturnType) {
           .delete(delegationInReadmodelDelegation)
           .where(eq(delegationInReadmodelDelegation.id, delegation.id));
 
-        const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-          splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+        const {
+          delegationSQL,
+          stampsSQL,
+          contractDocumentsSQL,
+          contractSignedDocumentsSQL,
+        } = splitDelegationIntoObjectsSQL(delegation, metadataVersion);
 
         await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
 
@@ -49,6 +54,11 @@ export function delegationWriterServiceBuilder(readModelDB: DrizzleReturnType) {
           await tx
             .insert(delegationContractDocumentInReadmodelDelegation)
             .values(docSQL);
+        }
+        for (const docSignedSQL of contractSignedDocumentsSQL) {
+          await tx
+            .insert(delegationSignedContractDocumentInReadmodelDelegation)
+            .values(docSignedSQL);
         }
       });
     },

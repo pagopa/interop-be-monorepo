@@ -9,6 +9,7 @@ import {
   getMockPurposeTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   RiskAnalysisFormTemplate,
@@ -140,8 +141,10 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
       },
     };
 
-    expect(annotationDeletionPayload.purposeTemplate).toEqual(
-      toPurposeTemplateV2(expectedPurposeTemplate)
+    expect(
+      sortPurposeTemplate(annotationDeletionPayload.purposeTemplate)
+    ).toEqual(
+      sortPurposeTemplate(toPurposeTemplateV2(expectedPurposeTemplate))
     );
 
     expect(response).toEqual({
@@ -229,7 +232,10 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         }),
       })
     ).rejects.toThrowError(
-      riskAnalysisTemplateAnswerNotFound(purposeTemplate.id, answerId)
+      riskAnalysisTemplateAnswerNotFound({
+        purposeTemplateId: purposeTemplate.id,
+        answerId,
+      })
     );
   });
 
