@@ -678,7 +678,27 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - DRAFT_PURPOSE_DELETED
+            - WAITING_FOR_APPROVAL_PURPOSE_DELETED
+            - PURPOSE_DELETED_BY_REVOKED_DELEGATION
+            - PURPOSE_ADDED
+            - DRAFT_PURPOSE_UPDATED
+            - NEW_PURPOSE_VERSION_ACTIVATED
+            - NEW_PURPOSE_VERSION_WAITING_FOR_APPROVAL
+            - PURPOSE_ACTIVATED
+            - PURPOSE_ARCHIVED
+            - PURPOSE_VERSION_OVER_QUOTA_UNSUSPENDED
+            - PURPOSE_VERSION_REJECTED
+            - PURPOSE_VERSION_SUSPENDED_BY_CONSUMER
+            - PURPOSE_VERSION_SUSPENDED_BY_PRODUCER
+            - PURPOSE_VERSION_UNSUSPENDED_BY_CONSUMER
+            - PURPOSE_VERSION_UNSUSPENDED_BY_PRODUCER
+            - PURPOSE_WAITING_FOR_APPROVAL
+            - WAITING_FOR_APPROVAL_PURPOSE_VERSION_DELETED
+            - PURPOSE_VERSION_ACTIVATED
+            - PURPOSE_CLONED
+            - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
+            - RISK_ANALYSIS_SIGNED_DOCUMENT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
