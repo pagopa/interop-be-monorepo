@@ -23,23 +23,23 @@ describe("API /events/producerDelegations test", () => {
     .flat();
 
   const mockProducerDelegationM2MEventsResponse: m2mEventApi.ProducerDelegationM2MEvents =
-  {
-    events: mockProducerDelegationM2MEvents.map(
-      (e) =>
-      ({
-        id: e.id,
-        eventType: toApiProducerDelegationM2MEventType(e.eventType),
-        eventTimestamp: e.eventTimestamp.toJSON(),
-        delegationId: e.delegationId,
-      } as m2mEventApi.ProducerDelegationM2MEvent)
-    ),
-  };
+    {
+      events: mockProducerDelegationM2MEvents.map(
+        (e) =>
+          ({
+            id: e.id,
+            eventType: toApiProducerDelegationM2MEventType(e.eventType),
+            eventTimestamp: e.eventTimestamp.toJSON(),
+            delegationId: e.delegationId,
+          } as m2mEventApi.ProducerDelegationM2MEvent)
+      ),
+    };
 
   const mockQueryParams: m2mEventApi.GetProducerDelegationM2MEventsQueryParams =
-  {
-    lastEventId: generateM2MEventId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateM2MEventId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,

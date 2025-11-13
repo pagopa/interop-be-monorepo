@@ -7,7 +7,7 @@ export const ConsumerDelegationM2MEventType = z.enum([
   "ConsumerDelegationApproved",
   "ConsumerDelegationRejected",
   "ConsumerDelegationRevoked",
-  "DelegationSignedContractGenerated"
+  "DelegationSignedContractGenerated",
 ]);
 
 export const ProducerDelegationM2MEventType = z.enum([
@@ -15,7 +15,7 @@ export const ProducerDelegationM2MEventType = z.enum([
   "ProducerDelegationApproved",
   "ProducerDelegationRejected",
   "ProducerDelegationRevoked",
-  "DelegationSignedContractGenerated"
+  "DelegationSignedContractGenerated",
 ]);
 
 export const DelegationM2MEventType = z.union([
