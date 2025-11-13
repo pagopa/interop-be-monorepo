@@ -83,11 +83,14 @@ export async function handleAuthorizationEvent(
           type: P.union("ClientKeyAdded", "ClientKeyDeleted"),
         },
         async (event) => {
+          assertClientExistsInEvent(event);
+          const client = fromClientV2(event.data.client);
           logger.info(
             `Creating Key M2M Event - type ${event.type}, clientId ${event.data.kid}`
           );
 
           const m2mEvent = createKeyM2MEvent(
+            client,
             event.data.kid,
             event.version,
             event.type,
@@ -158,11 +161,16 @@ export async function handleAuthorizationEvent(
           ),
         },
         async (event) => {
+          assertProducerKeychainExistsInEvent(event);
+          const producerKeychain = fromProducerKeychainV2(
+            event.data.producerKeychain
+          );
           logger.info(
             `Creating Producer Key M2M Event - type ${event.type}, producerKeyId ${event.data.kid}`
           );
 
           const m2mEvent = createProducerKeyM2MEvent(
+            producerKeychain,
             event.data.kid,
             event.version,
             event.type,
@@ -204,6 +212,7 @@ async function handleClientCascadingKeyDeletions(
 ): Promise<void> {
   for (const key of client.keys) {
     const m2mEvent = createKeyM2MEvent(
+      client,
       key.kid,
       resourceVersion,
       "ClientKeyDeleted",
@@ -222,6 +231,7 @@ async function handleProducerKeychainCascadingKeyDeletions(
 ): Promise<void> {
   for (const key of producerKeychain.keys) {
     const m2mEvent = createProducerKeyM2MEvent(
+      producerKeychain,
       key.kid,
       resourceVersion,
       "ProducerKeychainKeyDeleted",

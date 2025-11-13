@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProducerKeyM2MEventId } from "../brandedIds.js";
+import { ProducerKeychainId, ProducerKeyM2MEventId } from "../brandedIds.js";
 import { AuthorizationEvent } from "../authorization/authorizationEvents.js";
 
 export const ProducerKeyM2MEventType = z.enum([
@@ -19,7 +19,8 @@ export const ProducerKeyM2MEvent = z.object({
   eventType: ProducerKeyM2MEventType,
   eventTimestamp: z.coerce.date(),
   resourceVersion: z.number().int().min(0),
-  kid: z.string(), // There is no brandedId for KeyId
+  kid: z.string(), // There is no brandedId for kid
+  producerKeychainId: ProducerKeychainId,
 });
 
 export type ProducerKeyM2MEvent = z.infer<typeof ProducerKeyM2MEvent>;

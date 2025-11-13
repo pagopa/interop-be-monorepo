@@ -551,6 +551,7 @@ function buildTestCaseData(
           eventTimestamp,
           resourceVersion: 1,
           kid: key.kid,
+          clientId: client.id,
         },
         type: "key",
       }))
@@ -576,6 +577,7 @@ function buildTestCaseData(
             eventTimestamp,
             resourceVersion: 1,
             kid: producerKey.kid,
+            producerKeychainId: producerKeychain.id,
           },
           type: "producerKey",
         })
