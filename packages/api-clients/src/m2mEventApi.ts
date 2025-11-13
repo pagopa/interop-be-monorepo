@@ -3,25 +3,15 @@ import { QueryParametersByAlias } from "./utils.js";
 
 type M2MEventsAPI = typeof m2mEventApi.m2mEventsApi.api;
 
-export type GetAttributeM2MEventsQueryParams = QueryParametersByAlias<
-  M2MEventsAPI,
-  "getAttributeM2MEvents"
->;
+export type GetAttributeM2MEventsQueryParams = QueryParametersByAlias<M2MEventsAPI, "getAttributeM2MEvents">;
 
-export type GetEServiceM2MEventsQueryParams = QueryParametersByAlias<
-  M2MEventsAPI,
-  "getEServiceM2MEvents"
->;
+export type GetEServiceM2MEventsQueryParams = QueryParametersByAlias<M2MEventsAPI, "getEServiceM2MEvents">;
 
-export type GetAgreementM2MEventsQueryParams = QueryParametersByAlias<
-  M2MEventsAPI,
-  "getAgreementM2MEvents"
->;
+export type GetAgreementM2MEventsQueryParams = QueryParametersByAlias<M2MEventsAPI, "getAgreementM2MEvents">;
 
-export type GetPurposeM2MEventsQueryParams = QueryParametersByAlias<
-  M2MEventsAPI,
-  "getPurposeM2MEvents"
->;
+export type GetPurposeM2MEventsQueryParams = QueryParametersByAlias<M2MEventsAPI, "getPurposeM2MEvents">;
+
+export type GetTenantM2MEventsQueryParams = QueryParametersByAlias<M2MEventsAPI, "getTenantM2MEvents">;
 
 export type GetProducerDelegationM2MEventsQueryParams = QueryParametersByAlias<
   M2MEventsAPI,
