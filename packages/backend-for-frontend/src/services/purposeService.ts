@@ -204,6 +204,7 @@ export function purposeServiceBuilder(
     );
 
     const hasNotifications = notifications.includes(purpose.id);
+    const isDocumentReady = currentVersion?.signedContract !== undefined;
 
     return {
       id: purpose.id,
@@ -262,6 +263,7 @@ export function purposeServiceBuilder(
       purposeTemplate: purposeTemplate
         ? toCompactPurposeTemplate(purposeTemplate)
         : undefined,
+      isDocumentReady,
     };
   };
 
