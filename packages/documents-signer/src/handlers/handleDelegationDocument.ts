@@ -8,14 +8,14 @@ import {
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import {
-  DelegationEventV2,
+  DelegationEventEnvelopeV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export async function handleDelegationDocument(
-  decodedMessage: DelegationEventV2,
+  decodedMessage: DelegationEventEnvelopeV2,
   signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService,
   fileManager: FileManager,
@@ -70,7 +70,7 @@ export async function handleDelegationDocument(
             fileName,
             version: msg.event_version,
             createdAt: msg.data.delegation.createdAt,
-            correlationId: "",
+            correlationId: msg.correlation_id ?? "",
           });
         }
       }
