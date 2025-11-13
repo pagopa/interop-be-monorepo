@@ -18967,7 +18967,7 @@ components:
         annotationText:
           type: string
           minLength: 1
-          maxLength: 250
+          maxLength: 2000
         suggestedValues:
           type: array
           items:
