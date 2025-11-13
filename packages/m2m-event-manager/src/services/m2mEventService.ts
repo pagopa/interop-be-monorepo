@@ -26,6 +26,8 @@ import {
   ClientM2MEventId,
   TenantM2MEvent,
   TenantM2MEventId,
+  EServiceTemplateM2MEvent,
+  EServiceTemplateM2MEventId,
 } from "pagopa-interop-models";
 import { DelegationIdParam } from "../model/types.js";
 import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";
@@ -193,11 +195,21 @@ export function m2mEventServiceBuilder(
       return m2mEventReaderService.getProducerKeyM2MEvents(lastEventId, limit);
     },
     async getEServiceTemplateM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: EServiceTemplateM2MEventId | undefined,
+      limit: number,
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<EServiceTemplateM2MEvent[]> {
+      logger.info(
+        `Getting e-service M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getEServiceTemplateM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
   };
 }
