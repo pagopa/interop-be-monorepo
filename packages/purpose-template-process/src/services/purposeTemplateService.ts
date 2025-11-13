@@ -1635,52 +1635,6 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    // async deleteRiskAnalysisTemplateAnnotationDocument({
-    //   purposeTemplateId,
-    //   documentId,
-    //   ctx,
-    // }: {
-    //   purposeTemplateId: PurposeTemplateId;
-    //   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-    //   ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
-    // }): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
-    //   const { logger, correlationId, authData } = ctx;
-
-    //   logger.info(
-    //     `Deleting risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}`
-    //   );
-
-    //   const { updatedPurposeTemplate, removedAnnotationDocument } =
-    //     await updatePurposeTemplateWithoutAnnotationDocument(
-    //       purposeTemplateId,
-    //       answerId,
-    //       documentId,
-    //       authData,
-    //       readModelService
-    //     );
-
-    //   await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-    //     annotationDocumentsToRemove: [removedAnnotationDocument],
-    //     fileManager,
-    //     logger,
-    //   });
-
-    //   const event = await repository.createEvent(
-    //     toCreateEventPurposeTemplateAnnotationDocumentDeleted({
-    //       purposeTemplate: updatedPurposeTemplate.data,
-    //       documentId,
-    //       version: updatedPurposeTemplate.metadata.version,
-    //       correlationId,
-    //     })
-    //   );
-
-    //   return {
-    //     data: removedAnnotationDocument,
-    //     metadata: {
-    //       version: event.newVersion,
-    //     },
-    //   };
-    // },
     async getPublishedPurposeTemplateCreators(
       {
         creatorName,
