@@ -946,6 +946,42 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - purposeTemplate
+      summary: Delete risk analysis form template answer annotation document
+      operationId: deleteRiskAnalysisTemplateAnnotationDocument
+      description: Delete a risk analysis form template answer annotation document
+      responses:
+        "204":
+          description: Risk analysis form template answer annotation document deleted
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis form template answer annotation document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

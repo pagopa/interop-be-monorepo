@@ -316,13 +316,19 @@ const updatePurposeTemplateWithoutAnnotation = async (
   };
 };
 
-const updatePurposeTemplateWithoutAnnotationDocument = async (
-  purposeTemplateId: PurposeTemplateId,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">,
-  readModelService: ReadModelServiceSQL
-): Promise<{
+const updatePurposeTemplateWithoutAnnotationDocument = async ({
+  purposeTemplateId,
+  answerId,
+  documentId,
+  authData,
+  readModelService,
+}: {
+  purposeTemplateId: PurposeTemplateId;
+  answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">;
+  readModelService: ReadModelServiceSQL;
+}): Promise<{
   updatedPurposeTemplate: WithMetadata<PurposeTemplate>;
   removedAnnotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument;
 }> => {
@@ -342,8 +348,8 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
     T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
   >(
     answers: T[],
-    answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-    documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+    documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+    answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
   ): {
     updatedAnswers: T[];
     removedAnnotationDocument:
@@ -360,7 +366,7 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
         },
         answer
       ) => {
-        if (answer.id === answerId) {
+        if (answer.id === answerId || !answerId) {
           const { updatedAnnotationDocs, removedAnnotationDocument } = (
             answer.annotation?.docs || []
           ).reduce(
@@ -417,16 +423,16 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
     removedAnnotationDocument: removedSingleAnswerAnnotationDocument,
   } = removeAnnotationDocument(
     purposeTemplateRiskAnalysisForm.singleAnswers,
-    answerId,
-    documentId
+    documentId,
+    answerId
   );
   const {
     updatedAnswers: updatedMultiAnswers,
     removedAnnotationDocument: removedMultiAnswerAnnotationDocument,
   } = removeAnnotationDocument(
     purposeTemplateRiskAnalysisForm.multiAnswers,
-    answerId,
-    documentId
+    documentId,
+    answerId
   );
 
   const removedAnnotationDocument =
@@ -1588,7 +1594,7 @@ export function purposeTemplateServiceBuilder(
       ctx,
     }: {
       purposeTemplateId: PurposeTemplateId;
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+      answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
       documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
     }): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
@@ -1599,13 +1605,13 @@ export function purposeTemplateServiceBuilder(
       );
 
       const { updatedPurposeTemplate, removedAnnotationDocument } =
-        await updatePurposeTemplateWithoutAnnotationDocument(
+        await updatePurposeTemplateWithoutAnnotationDocument({
           purposeTemplateId,
           answerId,
           documentId,
           authData,
-          readModelService
-        );
+          readModelService,
+        });
 
       await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
         annotationDocumentsToRemove: [removedAnnotationDocument],
@@ -1629,6 +1635,52 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
+    // async deleteRiskAnalysisTemplateAnnotationDocument({
+    //   purposeTemplateId,
+    //   documentId,
+    //   ctx,
+    // }: {
+    //   purposeTemplateId: PurposeTemplateId;
+    //   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+    //   ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
+    // }): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+    //   const { logger, correlationId, authData } = ctx;
+
+    //   logger.info(
+    //     `Deleting risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}`
+    //   );
+
+    //   const { updatedPurposeTemplate, removedAnnotationDocument } =
+    //     await updatePurposeTemplateWithoutAnnotationDocument(
+    //       purposeTemplateId,
+    //       answerId,
+    //       documentId,
+    //       authData,
+    //       readModelService
+    //     );
+
+    //   await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+    //     annotationDocumentsToRemove: [removedAnnotationDocument],
+    //     fileManager,
+    //     logger,
+    //   });
+
+    //   const event = await repository.createEvent(
+    //     toCreateEventPurposeTemplateAnnotationDocumentDeleted({
+    //       purposeTemplate: updatedPurposeTemplate.data,
+    //       documentId,
+    //       version: updatedPurposeTemplate.metadata.version,
+    //       correlationId,
+    //     })
+    //   );
+
+    //   return {
+    //     data: removedAnnotationDocument,
+    //     metadata: {
+    //       version: event.newVersion,
+    //     },
+    //   };
+    // },
     async getPublishedPurposeTemplateCreators(
       {
         creatorName,
