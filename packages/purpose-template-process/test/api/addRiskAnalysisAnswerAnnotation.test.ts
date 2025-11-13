@@ -30,7 +30,7 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
       docs: [],
     };
 
-  const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+  const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
     {
       text: "This is a test annotation",
     };
@@ -48,7 +48,7 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
 
   const makeRequest = async (
     token: string,
-    riskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText
+    riskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed
   ) =>
     request(api)
       .put(
@@ -103,14 +103,14 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText
+      body as purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed
     );
     expect(res.status).toBe(400);
   });
 
   it("Should return 400 if annotation text is longer than 2000 characters", async () => {
     const OVER_2000_CHAR = "O".repeat(2001);
-    const requestWithLongAnnotation: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const requestWithLongAnnotation: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: OVER_2000_CHAR,
       };
@@ -124,7 +124,7 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
   /* it("Should return 400 if annotation text contains hyperlinks", async () => {
     const textWithHyperlink =
       "This text contains a hyperlink: https://example.com";
-    const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: textWithHyperlink,
       };
