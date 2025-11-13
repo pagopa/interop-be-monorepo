@@ -124,7 +124,7 @@ const purposeTemplateRouter = (
       }
     })
     .delete(
-      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId",
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
@@ -132,7 +132,6 @@ const purposeTemplateRouter = (
 
           await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
             unsafeBrandId(req.params.purposeTemplateId),
-            unsafeBrandId(req.params.answerId),
             unsafeBrandId(req.params.documentId),
             ctx
           );
@@ -143,7 +142,7 @@ const purposeTemplateRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error deleting risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
+            `Error deleting risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

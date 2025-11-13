@@ -2,8 +2,6 @@ import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -140,16 +138,15 @@ export function purposeTemplateServiceBuilder(
     },
     async deleteRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
       documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
 
-      await clients.purposeTemplateProcessClient.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+      await clients.purposeTemplateProcessClient.deleteRiskAnalysisTemplateAnnotationDocument(
         undefined,
         {
-          params: { purposeTemplateId, answerId, documentId },
+          params: { purposeTemplateId, documentId },
           headers,
         }
       );

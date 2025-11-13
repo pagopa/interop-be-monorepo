@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   generateId,
   pollingMaxRetriesExceeded,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -25,30 +24,28 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockApiPurposeTemplate = getMockWithMetadata(
     getMockedApiPurposeTemplate()
   );
-  const answerId = generateId<RiskAnalysisSingleAnswerId>();
   const documentId =
     generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>();
 
-  const mockDeleteRiskAnalysisTemplateAnswerAnnotationDocument = vi.fn();
+  const mockDeleteRiskAnalysisTemplateAnnotationDocument = vi.fn();
   const mockGetPurposeTemplate = vi.fn(
     mockDeletionPollingResponse(mockApiPurposeTemplate, 2)
   );
 
   mockInteropBeClients.purposeTemplateProcessClient = {
     getPurposeTemplate: mockGetPurposeTemplate,
-    deleteRiskAnalysisTemplateAnswerAnnotationDocument:
-      mockDeleteRiskAnalysisTemplateAnswerAnnotationDocument,
+    deleteRiskAnalysisTemplateAnnotationDocument:
+      mockDeleteRiskAnalysisTemplateAnnotationDocument,
   } as unknown as PagoPAInteropBeClients["purposeTemplateProcessClient"];
 
   beforeEach(() => {
-    mockDeleteRiskAnalysisTemplateAnswerAnnotationDocument.mockClear();
+    mockDeleteRiskAnalysisTemplateAnnotationDocument.mockClear();
     mockGetPurposeTemplate.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
     await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
       unsafeBrandId(mockApiPurposeTemplate.data.id),
-      answerId,
       documentId,
       getMockM2MAdminAppContext()
     );
@@ -56,8 +53,8 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeTemplateProcessClient
-          .deleteRiskAnalysisTemplateAnswerAnnotationDocument,
-      params: { id: mockApiPurposeTemplate.data.id, answerId, documentId },
+          .deleteRiskAnalysisTemplateAnnotationDocument,
+      params: { purposeTemplateId: mockApiPurposeTemplate.data.id, documentId },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
@@ -80,7 +77,6 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     await expect(
       purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
         unsafeBrandId(mockApiPurposeTemplate.data.id),
-        answerId,
         documentId,
         getMockM2MAdminAppContext()
       )

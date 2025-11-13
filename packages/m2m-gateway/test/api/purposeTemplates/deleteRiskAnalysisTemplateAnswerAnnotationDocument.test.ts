@@ -16,12 +16,11 @@ describe("DELETE /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answ
   const makeRequest = async (
     token: string,
     purposeTemplateId: string = mockApiPurposeTemplate.id,
-    answerId: string = generateId(),
     documentId: string = generateId()
   ) =>
     request(api)
       .delete(
-        `${appBasePath}/purposeTemplates/${purposeTemplateId}/riskAnalysis/answers/${answerId}/annotation/documents/${documentId}`
+        `${appBasePath}/purposeTemplates/${purposeTemplateId}/riskAnalysis/annotationDocuments/${documentId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .send();
