@@ -13,6 +13,7 @@ import { generateMock } from "@anatine/zod-mock";
 import {
   ClientId,
   ProducerKeychainId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   algorithm,
   generateId,
 } from "pagopa-interop-models";
@@ -83,6 +84,27 @@ export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplat
     updatedAt: randomBoolean() ? new Date().toISOString() : undefined,
     purposeFreeOfChargeReason: generateMock(z.string().optional()),
     purposeDailyCalls: mockOptionalDailyCalls(),
+  };
+}
+
+export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
+  id = generateId(),
+  path = "purposeTemplateAnnotationsPath",
+  name = generateMock(z.string()),
+}: {
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  path: string;
+  name: string;
+}): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument {
+  return {
+    id,
+    name,
+    path,
+    prettyName: generateMock(z.string()),
+    contentType: "application/pdf",
+    createdAt: new Date().toISOString(),
+    checksum:
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   };
 }
 

@@ -23,9 +23,8 @@ import {
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}", () => {
+describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments/{documentId}", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
-  const answerId = generateId<RiskAnalysisSingleAnswerId>();
   const riskAnalysisTemplateAnswerAnnotationDocument =
     getMockRiskAnalysisTemplateAnswerAnnotationDocument();
 
@@ -40,29 +39,25 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
     );
 
   beforeEach(() => {
-    purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument = vi
+    purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
 
   type MakeRequestParams = {
     pId?: PurposeTemplateId;
-    aId?: RiskAnalysisSingleAnswerId;
     dId?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
   };
 
   const makeRequest = async (
     token: string,
-    { pId, aId, dId }: MakeRequestParams = {
+    { pId, dId }: MakeRequestParams = {
       pId: purposeTemplateId,
-      aId: answerId,
       dId: riskAnalysisTemplateAnswerAnnotationDocument.id,
     }
   ) =>
     request(api)
-      .get(
-        `/purposeTemplates/${pId}/riskAnalysis/answers/${aId}/annotation/documents/${dId}`
-      )
+      .get(`/purposeTemplates/${pId}/riskAnalysis/annotationDocuments/${dId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -123,8 +118,9 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument =
-        vi.fn().mockRejectedValue(error);
+      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument = vi
+        .fn()
+        .mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token);

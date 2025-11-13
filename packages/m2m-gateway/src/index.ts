@@ -30,7 +30,7 @@ const services: M2MGatewayServices = {
   eserviceService: eserviceServiceBuilder(clients, fileManager),
   eserviceTemplateService: eserviceTemplateServiceBuilder(clients, fileManager),
   purposeService: purposeServiceBuilder(clients, fileManager),
-  purposeTemplateService: purposeTemplateServiceBuilder(clients),
+  purposeTemplateService: purposeTemplateServiceBuilder(clients, fileManager),
   tenantService: tenantServiceBuilder(clients),
   keyService: keyServiceBuilder(clients),
   producerKeychainService: producerKeychainServiceBuilder(clients),

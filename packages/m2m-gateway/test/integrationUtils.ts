@@ -139,8 +139,10 @@ export const purposeService = purposeServiceBuilder(
   mockInteropBeClients,
   fileManager
 );
-export const purposeTemplateService =
-  purposeTemplateServiceBuilder(mockInteropBeClients);
+export const purposeTemplateService = purposeTemplateServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const tenantService = tenantServiceBuilder(mockInteropBeClients);
 export const attributeService = attributeServiceBuilder(mockInteropBeClients);
 export const eserviceTemplateService = eserviceTemplateServiceBuilder(
