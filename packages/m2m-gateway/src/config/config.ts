@@ -114,6 +114,15 @@ export type EServiceTemplateProcessServerConfig = z.infer<
   typeof EServiceTemplateProcessServerConfig
 >;
 
+export const EventManagerServerConfig = z
+  .object({
+    EVENT_MANAGER_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    eventManagerUrl: c.EVENT_MANAGER_URL,
+  }));
+export type EventManagerServerConfig = z.infer<typeof EventManagerServerConfig>;
+
 const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -123,6 +132,7 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
   .and(DelegationProcessServerConfig)
   .and(EServiceTemplateProcessServerConfig)
+  .and(EventManagerServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
   .and(
