@@ -15,6 +15,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
+  DescriptorState,
   descriptorState,
   EService,
   EServiceId,
@@ -82,6 +83,17 @@ export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION = [
   descriptorState.waitingForApproval,
   descriptorState.deprecated,
 ];
+
+export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION: DescriptorState[] =
+  [descriptorState.published];
+
+export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION: DescriptorState[] =
+  [
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+    descriptorState.archived,
+  ];
 
 export const isRequesterCreator = (
   creatorId: TenantId,
@@ -539,17 +551,49 @@ async function validateEServiceDisassociations(
   });
 }
 
+function validateEServiceDescriptorsToAssociate(validEservices: EService[]): {
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEServiceDescriptorPairs: Array<{
+    eservice: EService;
+    descriptorId: DescriptorId;
+  }>;
+} {
+  return validateEServiceDescriptors(
+    validEservices,
+    ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION
+  );
+}
+
+function validateEServiceDescriptorsToDisassociate(
+  validEservices: EService[]
+): {
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEServiceDescriptorPairs: Array<{
+    eservice: EService;
+    descriptorId: DescriptorId;
+  }>;
+} {
+  return validateEServiceDescriptors(
+    validEservices,
+    ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+  );
+}
+
 /**
  * Validate the descriptors for each eservice
  * For each eservice:
  * - If the eservice has no descriptors, return a validation issue with the eservice id
- * - If the eservice has descriptors, return the descriptor id if the descriptor is in the "Published" or "Draft" state
+ * - If the eservice has descriptors, return the descriptor id if the descriptor is in one of the valid states
  * Finally, return the validation issues and the valid eservice descriptor pairs
  *
  * @param validEservices the list of valid eservices
+ * @param validDescriptorStates the list of valid descriptor states
  * @returns the validation issues and the valid eservice descriptor pairs
  */
-function validateEServiceDescriptors(validEservices: EService[]): {
+function validateEServiceDescriptors(
+  validEservices: EService[],
+  validDescriptorStates: DescriptorState[]
+): {
   validationIssues: PurposeTemplateValidationIssue[];
   validEServiceDescriptorPairs: Array<{
     eservice: EService;
@@ -569,19 +613,14 @@ function validateEServiceDescriptors(validEservices: EService[]): {
       return;
     }
 
-    const validDescriptor = eservice.descriptors.find(
-      (descriptor) =>
-        descriptor.state === descriptorState.published ||
-        descriptor.state === descriptorState.draft
+    const validDescriptor = eservice.descriptors.find((descriptor) =>
+      validDescriptorStates.includes(descriptor.state)
     );
 
     if (!validDescriptor) {
       // eslint-disable-next-line functional/immutable-data
       validationIssues.push(
-        invalidDescriptorStateError(eservice.id, [
-          descriptorState.published,
-          descriptorState.draft,
-        ])
+        invalidDescriptorStateError(eservice.id, validDescriptorStates)
       );
       return;
     }
@@ -662,7 +701,7 @@ export async function validateEservicesAssociations(
   const {
     validationIssues: descriptorValidationIssues,
     validEServiceDescriptorPairs,
-  } = validateEServiceDescriptors(validEservices);
+  } = validateEServiceDescriptorsToAssociate(validEservices);
 
   if (descriptorValidationIssues.length > 0) {
     return invalidPurposeTemplateResult(descriptorValidationIssues);
@@ -711,7 +750,7 @@ export async function validateEservicesDisassociations(
   const {
     validationIssues: descriptorValidationIssues,
     validEServiceDescriptorPairs,
-  } = validateEServiceDescriptors(validEservices);
+  } = validateEServiceDescriptorsToDisassociate(validEservices);
 
   if (descriptorValidationIssues.length > 0) {
     return invalidPurposeTemplateResult(descriptorValidationIssues);
