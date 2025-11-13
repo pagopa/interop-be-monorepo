@@ -56,7 +56,7 @@ export async function handlePurposeDocument(
         const checksum = await calculateSha256Base64(Buffer.from(file));
 
         const safeStorageRequest: FileCreationRequest = {
-          contentType: "application/gzip",
+          contentType: "application/pdf",
           documentType: config.safeStorageDocType,
           status: config.safeStorageDocStatus,
           checksumValue: checksum,
@@ -79,7 +79,7 @@ export async function handlePurposeDocument(
           fileKind: "RISK_ANALYSIS_DOCUMENT",
           streamId: msg.data.purpose.id,
           subObjectId: msg.data.versionId,
-          contentType: "application/gzip",
+          contentType: "application/pdf",
           path: s3Key,
           prettyname: "",
           fileName,
@@ -111,7 +111,8 @@ export async function handlePurposeDocument(
           "PurposeVersionUnsuspendedByProducer",
           "PurposeVersionUnsuspendedByConsumer",
           "PurposeVersionRejected",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => Promise.resolve()

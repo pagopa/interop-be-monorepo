@@ -135,58 +135,56 @@ describe("handleAgreementManagementToProducer", () => {
       | "AgreementActivated"
       | "AgreementSubmitted"
       | "AgreementUpgraded";
-    expectedAction: "attivato" | "creato" | "aggiornato";
   }>([
     {
       eventType: "AgreementActivated",
-      expectedAction: "attivato",
     },
     {
       eventType: "AgreementSubmitted",
-      expectedAction: "creato",
     },
     {
       eventType: "AgreementUpgraded",
-      expectedAction: "aggiornato",
     },
-  ])(
-    "should handle $eventType event correctly",
-    async ({ eventType, expectedAction }) => {
-      const producerUsers = [
-        { userId: generateId(), tenantId: producerId },
-        { userId: generateId(), tenantId: producerId },
-      ];
+  ])("should handle $eventType event correctly", async ({ eventType }) => {
+    const producerUsers = [
+      { userId: generateId(), tenantId: producerId },
+      { userId: generateId(), tenantId: producerId },
+    ];
 
-      mockGetNotificationRecipients.mockResolvedValue(producerUsers);
+    mockGetNotificationRecipients.mockResolvedValue(producerUsers);
 
-      const notifications = await handleAgreementManagementToProducer(
-        toAgreementV2(agreement),
-        logger,
-        readModelService,
-        eventType
-      );
+    const notifications = await handleAgreementManagementToProducer(
+      toAgreementV2(agreement),
+      logger,
+      readModelService,
+      eventType
+    );
 
-      expect(notifications).toHaveLength(producerUsers.length);
+    expect(notifications).toHaveLength(producerUsers.length);
 
-      const expectedBody = inAppTemplates.agreementManagementToProducer(
-        consumerTenant.name,
-        eservice.name,
-        expectedAction
-      );
+    // Use the same template function as the implementation for each event type
+    const templateMap = {
+      AgreementActivated: inAppTemplates.agreementActivatedToProducer,
+      AgreementSubmitted: inAppTemplates.agreementSubmittedToProducer,
+      AgreementUpgraded: inAppTemplates.agreementUpgradedToProducer,
+    };
+    const expectedBody = templateMap[eventType](
+      consumerTenant.name,
+      eservice.name
+    );
 
-      const expectedNotifications = producerUsers.map((user) => ({
-        userId: user.userId,
-        tenantId: user.tenantId,
-        body: expectedBody,
-        notificationType: "agreementManagementToProducer",
-        entityId: agreement.id,
-      }));
+    const expectedNotifications = producerUsers.map((user) => ({
+      userId: user.userId,
+      tenantId: user.tenantId,
+      body: expectedBody,
+      notificationType: "agreementManagementToProducer",
+      entityId: agreement.id,
+    }));
 
-      expect(notifications).toEqual(
-        expect.arrayContaining(expectedNotifications)
-      );
-    }
-  );
+    expect(notifications).toEqual(
+      expect.arrayContaining(expectedNotifications)
+    );
+  });
 
   it("should generate notifications for multiple users", async () => {
     const users = [

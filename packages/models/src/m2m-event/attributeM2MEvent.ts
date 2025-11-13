@@ -15,6 +15,7 @@ export const AttributeM2MEvent = z.object({
   id: AttributeM2MEventId,
   eventType: AttributeM2MEventType,
   eventTimestamp: z.coerce.date(),
+  resourceVersion: z.number().int().min(0),
   attributeId: AttributeId,
 });
 

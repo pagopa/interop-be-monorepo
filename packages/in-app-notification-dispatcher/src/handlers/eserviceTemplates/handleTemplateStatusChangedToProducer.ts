@@ -11,6 +11,7 @@ import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
   retrieveLatestPublishedEServiceTemplateVersion,
+  retrieveTenant,
 } from "../handlerCommons.js";
 
 export async function handleTemplateStatusChangedToProducer(
@@ -37,9 +38,13 @@ export async function handleTemplateStatusChangedToProducer(
     readModelService,
     logger
   );
-
+  const creator = await retrieveTenant(
+    eserviceTemplate.creatorId,
+    readModelService
+  );
   const body = inAppTemplates.templateStatusChangedToProducer(
-    eserviceTemplate.name
+    eserviceTemplate.name,
+    creator.name
   );
   const entityId = EServiceTemplateIdEServiceTemplateVersionId.parse(
     `${eserviceTemplate.id}/${

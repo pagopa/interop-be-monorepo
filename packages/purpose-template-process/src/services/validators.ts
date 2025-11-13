@@ -1,55 +1,44 @@
-import {
-  DescriptorId,
-  descriptorState,
-  EService,
-  EServiceId,
-  PurposeTemplateId,
-  PurposeTemplate,
-  purposeTemplateState,
-  PurposeTemplateState,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateAnswer,
-  RiskAnalysisTemplateAnswerAnnotationDocument,
-  TenantId,
-  TenantKind,
-} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
 import {
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
   M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  systemRole,
   UIAuthData,
+  validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
-  validateNoHyperlinks,
 } from "pagopa-interop-commons";
 import {
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
-  associationEServicesForPurposeTemplateFailed,
-  annotationDocumentLimitExceeded,
-  conflictDocumentPrettyNameDuplicate,
-  conflictDuplicatedDocument,
-  hyperlinkDetectionError,
-  missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
-  purposeTemplateNotInExpectedStates,
-  purposeTemplateRiskAnalysisFormNotFound,
-  purposeTemplateStateConflict,
-  riskAnalysisTemplateValidationFailed,
-  tooManyEServicesForPurposeTemplate,
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
-  disassociationEServicesFromPurposeTemplateFailed,
-  tenantNotAllowed,
-} from "../model/domain/errors.js";
+  DescriptorId,
+  descriptorState,
+  EService,
+  EServiceId,
+  PurposeTemplate,
+  PurposeTemplateId,
+  purposeTemplateState,
+  PurposeTemplateState,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  TenantId,
+  TenantKind,
+  userRole,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   eserviceAlreadyAssociatedError,
   eserviceNotAssociatedError,
   eserviceNotFound,
   invalidDescriptorStateError,
+  invalidDescriptorStateForPublicationError,
   invalidPurposeTemplateResult,
   missingDescriptorError,
   purposeTemplateEServicePersonalDataFlagMismatch,
@@ -60,20 +49,46 @@ import {
   unexpectedUnassociationEServiceError,
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
+import {
+  toRiskAnalysisFormTemplateToValidate,
+  toRiskAnalysisTemplateAnswerToValidate,
+} from "../model/domain/apiConverter.js";
+import {
+  annotationDocumentLimitExceeded,
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
+  associationEServicesForPurposeTemplateFailed,
+  conflictDocumentPrettyNameDuplicate,
+  conflictDuplicatedDocument,
+  disassociationEServicesFromPurposeTemplateFailed,
+  hyperlinkDetectionError,
+  missingFreeOfChargeReason,
+  purposeTemplateNameConflict,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
+  purposeTemplateStateConflict,
+  riskAnalysisTemplateAnswerNotFound,
+  riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
+  tooManyEServicesForPurposeTemplate,
+} from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
-const isRequesterCreator = (
+export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION = [
+  descriptorState.published,
+  descriptorState.draft,
+  descriptorState.waitingForApproval,
+  descriptorState.deprecated,
+];
+
+export const isRequesterCreator = (
   creatorId: TenantId,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
 ): boolean => authData.organizationId === creatorId;
 
-const isPurposeTemplatePublished = (
-  currentPurposeTemplateState: PurposeTemplateState
-): boolean => currentPurposeTemplateState === purposeTemplateState.published;
-
-const isPurposeTemplateDraft = (
+export const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
 ): boolean => currentPurposeTemplateState === purposeTemplateState.draft;
 
@@ -125,15 +140,31 @@ export const assertDocumentsLimitsNotReached = (
   }
 };
 
+const assertPrettyNameIsUnique = (
+  docPrettyName: string,
+  newPrettyName: string,
+  answerId: string
+): void => {
+  if (docPrettyName === newPrettyName) {
+    throw conflictDocumentPrettyNameDuplicate(answerId, newPrettyName);
+  }
+};
+
+export const assertAnnotationDocumentPrettyNameIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
+  });
+
 export const assertAnnotationDocumentIsUnique = (
   { answer }: RiskAnalysisTemplateAnswer,
   newPrettyName: string,
   newChecksum: string
 ): void =>
   [...(answer?.annotation?.docs || [])].forEach((doc) => {
-    if (doc.prettyName === newPrettyName) {
-      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
-    }
+    assertPrettyNameIsUnique(doc.prettyName, newPrettyName, answer.id);
 
     if (doc?.checksum === newChecksum) {
       throw conflictDuplicatedDocument(answer.id, newChecksum);
@@ -178,7 +209,7 @@ export function validateRiskAnalysisTemplateOrThrow({
   personalDataInPurposeTemplate: boolean;
 }): RiskAnalysisTemplateValidatedForm {
   const result = validatePurposeTemplateRiskAnalysis(
-    riskAnalysisFormTemplate,
+    toRiskAnalysisFormTemplateToValidate(riskAnalysisFormTemplate),
     tenantKind,
     personalDataInPurposeTemplate
   );
@@ -206,7 +237,7 @@ export function validateRiskAnalysisAnswerOrThrow({
 
   const result = validateRiskAnalysisAnswer(
     riskAnalysisAnswer.answerKey,
-    riskAnalysisAnswer.answerData,
+    toRiskAnalysisTemplateAnswerToValidate(riskAnalysisAnswer.answerData),
     tenantKind
   );
 
@@ -234,18 +265,6 @@ export const assertRequesterIsCreator = (
   authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
 ): void => {
   if (!isRequesterCreator(creatorId, authData)) {
-    throw tenantNotAllowed(authData.organizationId);
-  }
-};
-
-export const assertRequesterCanRetrievePurposeTemplate = async (
-  purposeTemplate: PurposeTemplate,
-  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
-): Promise<void> => {
-  if (
-    !isPurposeTemplatePublished(purposeTemplate.state) &&
-    !isRequesterCreator(purposeTemplate.creatorId, authData)
-  ) {
     throw tenantNotAllowed(authData.organizationId);
   }
 };
@@ -321,6 +340,23 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
 }
+
+export const assertAnswerExistsInRiskAnalysisTemplate = (
+  purposeTemplate: PurposeTemplate,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): void => {
+  const riskAnalysisTemplate = purposeTemplate.purposeRiskAnalysisForm;
+  const answerExists =
+    riskAnalysisTemplate?.singleAnswers.some((a) => a.id === answerId) ||
+    riskAnalysisTemplate?.multiAnswers.some((a) => a.id === answerId);
+
+  if (!answerExists) {
+    throw riskAnalysisTemplateAnswerNotFound({
+      purposeTemplateId: purposeTemplate.id,
+      answerId,
+    });
+  }
+};
 
 /**
  * Validate the existence of the eservices and check that their personal data flag matches the purpose template one
@@ -560,6 +596,32 @@ function validateEServiceDescriptors(validEservices: EService[]): {
   return { validationIssues, validEServiceDescriptorPairs };
 }
 
+export const validateAssociatedEserviceForPublication = async (
+  readModelService: ReadModelServiceSQL,
+  purposeTemplateId: PurposeTemplateId
+): Promise<PurposeTemplateValidationIssue[]> => {
+  const associatedEservicesWithDescriptorInNotValidState =
+    await readModelService.getPurposeTemplateEServiceWithDescriptorState(
+      purposeTemplateId,
+      ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION
+    );
+
+  if (associatedEservicesWithDescriptorInNotValidState.totalCount) {
+    return associatedEservicesWithDescriptorInNotValidState.results.reduce(
+      (errors, eservice) => [
+        ...errors,
+        invalidDescriptorStateForPublicationError(
+          eservice,
+          ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION
+        ),
+      ],
+      [] as PurposeTemplateValidationIssue[]
+    );
+  }
+
+  return [];
+};
+
 export async function validateEservicesAssociations(
   eserviceIds: EServiceId[],
   purposeTemplate: PurposeTemplate,
@@ -656,4 +718,20 @@ export async function validateEservicesDisassociations(
   }
 
   return validPurposeTemplateResult(validEServiceDescriptorPairs);
+}
+
+export function hasRoleToAccessDraftPurposeTemplates(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }

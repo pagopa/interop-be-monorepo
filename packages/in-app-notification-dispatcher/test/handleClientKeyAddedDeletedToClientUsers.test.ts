@@ -239,8 +239,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
 
       const expectedBody = inAppTemplates.clientKeyDeletedToClientUsers(
         client.name,
-        key1.userId,
-        key1.kid
+        key1.userId
       );
 
       const expectedNotifications = [
@@ -493,11 +492,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
       );
 
       expect(notifications[0].body).toBe(
-        inAppTemplates.clientKeyDeletedToClientUsers(
-          client.name,
-          key1.userId,
-          key1.kid
-        )
+        inAppTemplates.clientKeyDeletedToClientUsers(client.name, key1.userId)
       );
     });
 

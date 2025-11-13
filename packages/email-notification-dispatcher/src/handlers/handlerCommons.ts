@@ -39,6 +39,7 @@ import {
   eServiceNotFound,
   purposeNotFound,
 } from "../models/errors.js";
+import { config } from "../config/config.js";
 
 export type AgreementHandlerParams = HandlerCommonParams & {
   agreementV2Msg?: AgreementV2;
@@ -218,6 +219,14 @@ export const getRecipientsForTenants = async ({
   readModelService: ReadModelServiceSQL;
   logger: Logger;
 }): Promise<EmailNotificationRecipient[]> => {
+  if (config.notificationTypeBlocklist.includes(notificationType)) {
+    logger.info(
+      `Notification type ${notificationType} is in the blocklist. Skipping notification for tenants: ${tenants
+        .map((t) => t.id)
+        .join(", ")}`
+    );
+    return [];
+  }
   const tenantUsers =
     await readModelService.getTenantUsersWithNotificationEnabled(
       tenants.map((tenant) => tenant.id),
