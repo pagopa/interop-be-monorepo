@@ -1,0 +1,33 @@
+meta {
+  name: Link Eservices to Purpose Template
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/linkEservices
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "eserviceIds": [
+      "a46948f4-fd24-4383-84dd-6337498dba47"
+    ]
+  }
+}
+
+vars:post-response {
+  linkedEServiceDescriptor1: res.body[0]
+  linkedEServiceDescriptor2: res.body[1]
+}

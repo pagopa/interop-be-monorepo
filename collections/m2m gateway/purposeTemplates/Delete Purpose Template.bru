@@ -1,0 +1,20 @@
+meta {
+  name: Delete Purpose Template
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  X-Correlation-Id: {{correlation-id}}
+}

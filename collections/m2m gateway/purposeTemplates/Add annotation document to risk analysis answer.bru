@@ -1,0 +1,32 @@
+meta {
+  name: Add new e-service template document copy
+  type: http
+  seq: 3
+}
+
+post {                                
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  answerId: 
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  ~Content-Type: application/json
+}
+
+body:json {
+  {
+    "documentId": "8c9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f",
+    "name": "security_measures.pdf",
+    "contentType": "application/pdf",
+    "prettyName": "Misure di sicurezza",
+    "path": "/docs/security/measures.pdf",
+    "checksum": "9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d"
+  }
+}

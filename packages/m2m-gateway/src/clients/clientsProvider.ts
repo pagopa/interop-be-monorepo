@@ -7,6 +7,7 @@ import {
   authorizationApi,
   delegationApi,
   eserviceTemplateApi,
+  purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
@@ -74,6 +75,10 @@ export type EServiceTemplateProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof eserviceTemplateApi.createProcessApiClient>
 >;
 
+export type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
+  ReturnType<typeof purposeTemplateApi.createPurposeTemplateApiClient>
+>;
+
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;
@@ -83,6 +88,7 @@ export type PagoPAInteropBeClients = {
   authorizationClient: AuthorizationProcessClient;
   delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: EServiceTemplateProcessClient;
+  purposeTemplateProcessClient: PurposeTemplateProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -156,6 +162,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     eserviceTemplateProcessClient: createZodiosClientEnhancedWithMetadata(
       eserviceTemplateApi.createProcessApiClient,
       config.eserviceTemplateProcessUrl
+    ),
+    purposeTemplateProcessClient: createZodiosClientEnhancedWithMetadata(
+      purposeTemplateApi.createPurposeTemplateApiClient,
+      config.purposeTemplateProcessUrl
     ),
   };
 }
