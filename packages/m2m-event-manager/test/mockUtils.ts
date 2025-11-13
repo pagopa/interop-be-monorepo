@@ -11,6 +11,10 @@ import {
   EServiceId,
   EServiceM2MEvent,
   EServiceM2MEventId,
+  EServiceTemplateId,
+  EServiceTemplateM2MEvent,
+  EServiceTemplateM2MEventId,
+  EServiceTemplateVersionId,
   TenantId,
   generateId,
   unsafeBrandId,
@@ -19,7 +23,11 @@ import {
 import { v7 as uuidv7 } from "uuid";
 
 export function generateM2MEventId<
-  ID extends AttributeM2MEventId | EServiceM2MEventId | AgreementM2MEventId
+  ID extends
+    | AttributeM2MEventId
+    | EServiceM2MEventId
+    | AgreementM2MEventId
+    | EServiceTemplateM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
@@ -95,5 +103,26 @@ export function getMockedAgreementM2MEvent({
     producerId: producerId ?? generateId<TenantId>(),
     producerDelegateId: producerDelegateId ?? generateId<TenantId>(),
     producerDelegationId: producerDelegationId ?? generateId<DelegationId>(),
+  };
+}
+
+export function getMockedEServiceTemplateM2MEvent({
+  eventType,
+  visibility,
+  creatorId,
+}: {
+  eventType: EServiceTemplateM2MEvent["eventType"];
+  visibility: EServiceTemplateM2MEvent["visibility"];
+  creatorId?: TenantId;
+}): EServiceTemplateM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    eserviceTemplateId: generateId<EServiceTemplateId>(),
+    eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+    visibility,
+    creatorId: creatorId ?? generateId<TenantId>(),
   };
 }
