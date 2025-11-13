@@ -28,6 +28,7 @@ import {
   riskAnalysisValidationFailed,
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegate,
+  purposeTemplateNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", () => {
@@ -96,6 +97,10 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     {
       error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
+      expectedStatus: 404,
+    },
+    {
+      error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
     },
     {

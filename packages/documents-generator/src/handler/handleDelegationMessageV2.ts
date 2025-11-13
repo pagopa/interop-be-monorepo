@@ -135,7 +135,8 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
           "ProducerDelegationSubmitted",
-          "DelegationContractGenerated"
+          "DelegationContractGenerated",
+          "DelegationSignedContractGenerated"
         ),
       },
       () => Promise.resolve()

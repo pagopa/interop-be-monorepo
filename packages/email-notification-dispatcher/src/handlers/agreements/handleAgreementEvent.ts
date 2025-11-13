@@ -27,7 +27,6 @@ export async function handleAgreementEvent(
     logger,
     readModelService,
     templateService,
-    userService,
     correlationId,
   } = params;
   return match(params.decodedMessage)
@@ -37,7 +36,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })),
       ...(await handleAgreementActivatedToConsumer({
@@ -45,7 +43,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })),
     ])
@@ -55,7 +52,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -65,7 +61,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -75,7 +70,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -85,7 +79,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -95,7 +88,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -107,7 +99,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
         ...(await handleAgreementSuspendedByPlatformToProducer({
@@ -115,7 +106,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
       ]
@@ -128,7 +118,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })
     )
@@ -140,7 +129,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })
     )
@@ -150,7 +138,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -162,7 +149,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
         ...(await handleAgreementUnsuspendedByPlatformToConsumer({
@@ -170,7 +156,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
       ]
@@ -188,7 +173,8 @@ export async function handleAgreementEvent(
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
           "AgreementArchivedByRevokedDelegation",
-          "AgreementContractGenerated"
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       () => {

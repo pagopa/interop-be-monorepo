@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -15,6 +15,8 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import {
   AgreementSuspendedUnsuspendedEventType,
   handleAgreementSuspendedUnsuspended,
@@ -27,6 +29,64 @@ import {
   addOneTenant,
   readModelService,
 } from "./utils.js";
+// Helper function to get expected body based on event type and audience
+function getExpectedBodyForEvent(
+  eventType: AgreementSuspendedUnsuspendedEventType,
+  isProducerUser: boolean,
+  eserviceName: string,
+  consumerName: string,
+  producerName: string
+): string {
+  const subjectName = isProducerUser ? consumerName : producerName;
+  return match(eventType)
+    .with("AgreementSuspendedByPlatform", () =>
+      isProducerUser
+        ? inAppTemplates.agreementSuspendedByPlatformToProducer(
+            subjectName,
+            eserviceName
+          )
+        : inAppTemplates.agreementSuspendedByPlatformToConsumer(eserviceName)
+    )
+    .with("AgreementUnsuspendedByPlatform", () =>
+      isProducerUser
+        ? inAppTemplates.agreementUnsuspendedByPlatformToProducer(
+            subjectName,
+            eserviceName
+          )
+        : inAppTemplates.agreementUnsuspendedByPlatformToConsumer(eserviceName)
+    )
+    .with("AgreementSuspendedByConsumer", () =>
+      inAppTemplates.agreementSuspendedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementUnsuspendedByConsumer", () =>
+      inAppTemplates.agreementUnsuspendedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementSuspendedByProducer", () =>
+      inAppTemplates.agreementSuspendedByProducerToConsumer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementUnsuspendedByProducer", () =>
+      inAppTemplates.agreementUnsuspendedByProducerToConsumer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .with("AgreementArchivedByConsumer", () =>
+      inAppTemplates.agreementArchivedByConsumerToProducer(
+        subjectName,
+        eserviceName
+      )
+    )
+    .exhaustive();
+}
 
 describe("handleAgreementSuspendedUnsuspended", () => {
   const producerId = generateId<TenantId>();
@@ -51,7 +111,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
   };
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
@@ -79,11 +142,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       consumerId: unknownTenantId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: producerId },
+    ]);
 
     await expect(() =>
       handleAgreementSuspendedUnsuspended(
@@ -96,10 +158,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleAgreementSuspendedUnsuspended(
       toAgreementV2(agreement),
@@ -114,59 +173,38 @@ describe("handleAgreementSuspendedUnsuspended", () => {
   it.each<{
     eventType: AgreementSuspendedUnsuspendedEventType;
     expectedAudience: "consumer" | "producer" | "both";
-    expectedAction: "sospeso" | "riattivato" | "archiviato";
-    expectedSubject: string;
   }>([
     {
       eventType: "AgreementSuspendedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "sospeso",
-      expectedSubject: consumerTenant.name,
     },
     {
       eventType: "AgreementUnsuspendedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "riattivato",
-      expectedSubject: consumerTenant.name,
     },
     {
       eventType: "AgreementSuspendedByProducer",
       expectedAudience: "consumer",
-      expectedAction: "sospeso",
-      expectedSubject: producerTenant.name,
     },
     {
       eventType: "AgreementUnsuspendedByProducer",
       expectedAudience: "consumer",
-      expectedAction: "riattivato",
-      expectedSubject: producerTenant.name,
     },
     {
       eventType: "AgreementSuspendedByPlatform",
       expectedAudience: "both",
-      expectedAction: "sospeso",
-      expectedSubject: "La piattaforma",
     },
     {
       eventType: "AgreementUnsuspendedByPlatform",
       expectedAudience: "both",
-      expectedAction: "riattivato",
-      expectedSubject: "La piattaforma",
     },
     {
       eventType: "AgreementArchivedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "archiviato",
-      expectedSubject: consumerTenant.name,
     },
   ])(
     "should handle $eventType event correctly",
-    async ({
-      eventType,
-      expectedAudience,
-      expectedAction,
-      expectedSubject,
-    }) => {
+    async ({ eventType, expectedAudience }) => {
       const producerUsers = [
         { userId: generateId(), tenantId: producerId },
         { userId: generateId(), tenantId: producerId },
@@ -176,10 +214,8 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         { userId: generateId(), tenantId: consumerId },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockImplementation(async (_, notificationConfig) => {
+      mockGetNotificationRecipients.mockImplementation(
+        async (_, notificationConfig) => {
           if (
             notificationConfig === "agreementSuspendedUnsuspendedToProducer"
           ) {
@@ -190,7 +226,8 @@ describe("handleAgreementSuspendedUnsuspended", () => {
             return consumerUsers;
           }
           return [];
-        });
+        }
+      );
 
       const notifications = await handleAgreementSuspendedUnsuspended(
         toAgreementV2(agreement),
@@ -210,14 +247,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
 
       expect(notifications).toHaveLength(expectedUsers.length);
 
-      const expectedBody = inAppTemplates.agreementSuspendedUnsuspended(
-        expectedAction,
-        expectedSubject,
-        eservice.name
-      );
-
       const expectedNotifications = expectedUsers.map((user) => {
-        // Determine the notification type based on which audience this user belongs to
         const isProducerUser = producerUsers.some(
           (p) => p.userId === user.userId
         );
@@ -225,10 +255,18 @@ describe("handleAgreementSuspendedUnsuspended", () => {
           ? "agreementSuspendedUnsuspendedToProducer"
           : "agreementSuspendedUnsuspendedToConsumer";
 
+        const body = getExpectedBodyForEvent(
+          eventType,
+          isProducerUser,
+          eservice.name,
+          consumerTenant.name,
+          producerTenant.name
+        );
+
         return {
           userId: user.userId,
           tenantId: user.tenantId,
-          body: expectedBody,
+          body,
           notificationType,
           entityId: agreement.id,
         };
@@ -246,10 +284,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       { userId: generateId(), tenantId: consumerId },
       { userId: generateId(), tenantId: consumerId },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleAgreementSuspendedUnsuspended(
       toAgreementV2(agreement),
