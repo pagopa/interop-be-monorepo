@@ -12,7 +12,7 @@ import {
   getMockedProducerDelegationM2MEvent,
 } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../utils.js";
+import { toApiProducerDelegationM2MEventType } from "../../src/model/delegationM2MEventConverter.js";
 
 describe("API /events/producerDelegations test", () => {
   const mockProducerDelegationM2MEvents = ProducerDelegationM2MEventType.options
@@ -23,23 +23,23 @@ describe("API /events/producerDelegations test", () => {
     .flat();
 
   const mockProducerDelegationM2MEventsResponse: m2mEventApi.ProducerDelegationM2MEvents =
-    {
-      events: mockProducerDelegationM2MEvents.map(
-        (e) =>
-          ({
-            id: e.id,
-            eventType: testToUpperSnakeCase(e.eventType),
-            eventTimestamp: e.eventTimestamp.toJSON(),
-            delegationId: e.delegationId,
-          } as m2mEventApi.ProducerDelegationM2MEvent)
-      ),
-    };
+  {
+    events: mockProducerDelegationM2MEvents.map(
+      (e) =>
+      ({
+        id: e.id,
+        eventType: toApiProducerDelegationM2MEventType(e.eventType),
+        eventTimestamp: e.eventTimestamp.toJSON(),
+        delegationId: e.delegationId,
+      } as m2mEventApi.ProducerDelegationM2MEvent)
+    ),
+  };
 
   const mockQueryParams: m2mEventApi.GetProducerDelegationM2MEventsQueryParams =
-    {
-      lastEventId: generateM2MEventId(),
-      limit: 10,
-    };
+  {
+    lastEventId: generateM2MEventId(),
+    limit: 10,
+  };
 
   const makeRequest = async (
     token: string,
