@@ -7,8 +7,9 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test:unit": "vitest",
     "test:it": "vitest integration",
+    "test": "pnpm test:unit && pnpm test:it",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",

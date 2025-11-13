@@ -4,6 +4,7 @@ import {
   getMockedApiPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -30,17 +31,37 @@ describe("getPurposeTemplate", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    const expectedM2MPurposeTemplate: m2mGatewayApi.PurposeTemplate = {
+      id: mockApiPurposeTemplateResponse.data.id,
+      createdAt: mockApiPurposeTemplateResponse.data.createdAt,
+      state: mockApiPurposeTemplateResponse.data.state,
+      purposeTitle: mockApiPurposeTemplateResponse.data.purposeTitle,
+      targetDescription: mockApiPurposeTemplateResponse.data.targetDescription,
+      targetTenantKind: mockApiPurposeTemplateResponse.data.targetTenantKind,
+      purposeDescription:
+        mockApiPurposeTemplateResponse.data.purposeDescription,
+      purposeIsFreeOfCharge:
+        mockApiPurposeTemplateResponse.data.purposeIsFreeOfCharge,
+      handlesPersonalData:
+        mockApiPurposeTemplateResponse.data.handlesPersonalData,
+      creatorId: mockApiPurposeTemplateResponse.data.creatorId,
+      updatedAt: mockApiPurposeTemplateResponse.data.updatedAt,
+      purposeFreeOfChargeReason:
+        mockApiPurposeTemplateResponse.data.purposeFreeOfChargeReason,
+      purposeDailyCalls: mockApiPurposeTemplateResponse.data.purposeDailyCalls,
+    };
+
     const result = await purposeTemplateService.getPurposeTemplate(
-      unsafeBrandId(mockApiPurposeTemplateResponse.data.id),
+      unsafeBrandId(expectedM2MPurposeTemplate.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(mockApiPurposeTemplateResponse.data);
+    expect(result).toEqual(expectedM2MPurposeTemplate);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,
       params: {
-        id: mockApiPurposeTemplateResponse.data.id,
+        id: expectedM2MPurposeTemplate.id,
       },
     });
   });

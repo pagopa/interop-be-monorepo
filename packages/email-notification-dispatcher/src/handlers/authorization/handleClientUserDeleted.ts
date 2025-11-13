@@ -27,7 +27,6 @@ export async function handleClientUserDeleted(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -47,7 +46,6 @@ export async function handleClientUserDeleted(
       tenants: [consumer],
       notificationType,
       readModelService,
-      userService,
       logger,
       includeTenantContactEmails: false,
     })

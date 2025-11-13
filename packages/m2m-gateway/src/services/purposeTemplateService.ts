@@ -1,4 +1,4 @@
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,
@@ -11,6 +11,10 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { pollResourceUntilDeletion } from "../utils/polling.js";
+import {
+  toGetPurposeTemplatesApiQueryParams,
+  toM2MGatewayApiPurposeTemplate,
+} from "../api/purposeTemplateApiConverter.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -21,7 +25,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
   const retrievePurposeTemplateById = async (
     purposeTemplateId: PurposeTemplateId,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+  ): Promise<WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>> =>
     await clients.purposeTemplateProcessClient.getPurposeTemplate({
       params: {
         id: purposeTemplateId,
@@ -49,7 +53,7 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         headers
       );
 
-      return data;
+      return toM2MGatewayApiPurposeTemplate(data);
     },
     async getPurposeTemplates(
       queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
@@ -61,25 +65,24 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
         eserviceIds,
         states,
         targetTenantKind,
-        excludeExpiredRiskAnalysis,
         handlesPersonalData,
         limit,
         offset,
       } = queryParams;
 
       logger.info(
-        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, excludeExpiredRiskAnalysis ${excludeExpiredRiskAnalysis}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
+        `Retrieving purpose templates with filters: purposeTitle ${purposeTitle}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, states ${states.toString()}, targetTenantKind ${targetTenantKind}, handlesPersonalData ${handlesPersonalData}, limit ${limit}, offset ${offset}`
       );
 
       const {
         data: { results, totalCount },
       } = await clients.purposeTemplateProcessClient.getPurposeTemplates({
-        queries: queryParams,
+        queries: toGetPurposeTemplatesApiQueryParams(queryParams),
         headers,
       });
 
       return {
-        results,
+        results: results.map(toM2MGatewayApiPurposeTemplate),
         pagination: {
           limit,
           offset,

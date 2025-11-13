@@ -32,7 +32,6 @@ export async function handleEServiceTemplateVersionPublished(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = params;
 
@@ -79,7 +78,6 @@ export async function handleEServiceTemplateVersionPublished(
     tenants: instantiators,
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

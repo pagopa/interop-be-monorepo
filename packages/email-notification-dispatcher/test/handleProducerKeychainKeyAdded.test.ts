@@ -4,7 +4,8 @@ import {
   getMockKey,
   getMockProducerKeychain,
   getMockTenant,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   generateId,
@@ -28,11 +29,9 @@ import {
 } from "../src/models/errors.js";
 import {
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleProducerKeychainKeyAdded", async () => {
@@ -73,9 +72,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
 
   beforeEach(async () => {
     await addOneTenant(producerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -91,7 +87,12 @@ describe("handleProducerKeychainKeyAdded", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -102,7 +103,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -133,7 +133,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -149,7 +148,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
         kid: unknownKid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -164,7 +162,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -191,7 +188,12 @@ describe("handleProducerKeychainKeyAdded", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[2].id, tenantId: users[2].tenantId },
+        {
+          userId: users[2].id,
+          tenantId: users[2].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const messages = await handleProducerKeychainKeyAdded({
@@ -199,7 +201,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -228,7 +229,6 @@ describe("handleProducerKeychainKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -238,7 +238,7 @@ describe("handleProducerKeychainKeyAdded", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Nuova chiave aggiunta al client &quot;${producerKeychain.name}&quot;`
+        `Nuova chiave aggiunta al portachiavi erogatore &quot;${producerKeychain.name}&quot;`
       );
       match(message.type)
         .with("User", () => {

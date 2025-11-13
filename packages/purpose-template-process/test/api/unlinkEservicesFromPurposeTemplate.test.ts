@@ -3,10 +3,13 @@
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
+  DescriptorId,
+  EServiceDescriptorPurposeTemplate,
   EServiceId,
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
+  WithMetadata,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -33,6 +36,29 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
     generateId<EServiceId>(),
   ];
 
+  const mockEServiceDescriptorPurposeTemplates: Array<
+    WithMetadata<EServiceDescriptorPurposeTemplate>
+  > = [
+    {
+      data: {
+        purposeTemplateId,
+        eserviceId: eserviceIds[0],
+        descriptorId: generateId<DescriptorId>(),
+        createdAt: new Date(),
+      },
+      metadata: { version: 1 },
+    },
+    {
+      data: {
+        purposeTemplateId,
+        eserviceId: eserviceIds[1],
+        descriptorId: generateId<DescriptorId>(),
+        createdAt: new Date(),
+      },
+      metadata: { version: 1 },
+    },
+  ];
+
   const validUnlinkRequest: purposeTemplateApi.linkEServicesToPurposeTemplate_Body =
     {
       eserviceIds,
@@ -41,7 +67,7 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
   beforeEach(() => {
     purposeTemplateService.unlinkEservicesFromPurposeTemplate = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(mockEServiceDescriptorPurposeTemplates);
   });
 
   const makeRequest = async (
@@ -158,15 +184,7 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
         purposeTemplateState.suspended,
         [purposeTemplateState.draft, purposeTemplateState.published]
       ),
-      expectedStatus: 400,
-    },
-    {
-      error: purposeTemplateNotInExpectedStates(
-        purposeTemplateId,
-        purposeTemplateState.archived,
-        [purposeTemplateState.draft, purposeTemplateState.published]
-      ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     {
       error: tenantNotAllowed(generateId()),
