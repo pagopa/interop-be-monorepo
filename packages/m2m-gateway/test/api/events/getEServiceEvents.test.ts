@@ -80,6 +80,7 @@ describe("GET /events/eservices router test", () => {
     { ...mockQueryParams, limit: 501 },
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, limit: undefined },
+    { ...mockQueryParams, lastEventId: "invalidEventId" },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
