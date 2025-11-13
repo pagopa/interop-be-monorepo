@@ -132,9 +132,9 @@ describe("handleAgreementManagementToProducer", () => {
 
   it.each<{
     eventType:
-    | "AgreementActivated"
-    | "AgreementSubmitted"
-    | "AgreementUpgraded";
+      | "AgreementActivated"
+      | "AgreementSubmitted"
+      | "AgreementUpgraded";
   }>([
     {
       eventType: "AgreementActivated",
