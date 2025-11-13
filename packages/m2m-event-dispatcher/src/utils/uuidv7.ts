@@ -3,6 +3,7 @@ import {
   AttributeM2MEventId,
   DelegationM2MEventId,
   EServiceM2MEventId,
+  EServiceTemplateM2MEventId,
   PurposeM2MEventId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -15,6 +16,7 @@ export function generateM2MEventId<
     | AgreementM2MEventId
     | PurposeM2MEventId
     | DelegationM2MEventId
+    | EServiceTemplateM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
-  EServiceM2MEventId,
   EServiceTemplateId,
+  EServiceTemplateM2MEventId,
   EServiceTemplateVersionId,
   TenantId,
 } from "../brandedIds.js";
@@ -48,7 +48,7 @@ const _: EServiceTemplateEventV2["type"] = {} as EServiceTemplateM2MEventType;
 void _; // avoid unused variable TS error, cannot use ts-ignore for a type check
 
 export const EServiceTemplateM2MEvent = z.object({
-  id: EServiceM2MEventId,
+  id: EServiceTemplateM2MEventId,
   eventType: EServiceTemplateM2MEventType,
   eventTimestamp: z.coerce.date(),
   resourceVersion: z.number().int().min(0),
