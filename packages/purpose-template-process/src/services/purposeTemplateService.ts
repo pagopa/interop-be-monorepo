@@ -720,11 +720,10 @@ export function purposeTemplateServiceBuilder(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}`
       );
 
-      const purposeTemplate = await retrievePurposeTemplate(
-        purposeTemplateId,
-        readModelService
+      applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
       );
-      assertRequesterCanRetrievePurposeTemplate(purposeTemplate.data, authData);
 
       return await retrieveAnswerAnnotationDocument({
         purposeTemplateId,
