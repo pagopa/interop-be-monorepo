@@ -30,17 +30,18 @@ describe("API /events/eserviceTemplates test", () => {
     .flat();
 
   const mockEServiceTemplateM2MEventsResponse: m2mEventApi.EServiceTemplateM2MEvents =
-    {
-      events: mockEServiceTemplateM2MEvents.map(
-        (e) =>
-          ({
-            id: e.id,
-            eventTimestamp: e.eventTimestamp.toJSON(),
-            eventType: testToUpperSnakeCase(e.eventType),
-            eserviceTemplateId: e.eserviceTemplateId,
-          } as m2mEventApi.EServiceTemplateM2MEvent)
-      ),
-    };
+  {
+    events: mockEServiceTemplateM2MEvents.map(
+      (e) =>
+      ({
+        id: e.id,
+        eventTimestamp: e.eventTimestamp.toJSON(),
+        eventType: testToUpperSnakeCase(e.eventType),
+        eserviceTemplateId: e.eserviceTemplateId,
+        eserviceTemplateVersionId: e.eserviceTemplateVersionId,
+      } as m2mEventApi.EServiceTemplateM2MEvent)
+    ),
+  };
 
   const mockQueryParams: m2mEventApi.GetEServiceTemplateM2MEventsQueryParams = {
     lastEventId: generateM2MEventId(),
@@ -99,7 +100,6 @@ describe("API /events/eserviceTemplates test", () => {
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: -1 },
     { ...mockQueryParams, lastEventId: "invalidLastEventId" },
-    { ...mockQueryParams, delegationId: 1 },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
