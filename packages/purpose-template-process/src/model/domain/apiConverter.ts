@@ -11,6 +11,7 @@ import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
@@ -79,6 +80,13 @@ export const purposeTemplateToApiPurposeTemplate = (
         purposeTemplate.purposeRiskAnalysisForm
       )
     : undefined,
+});
+
+export const riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument = (
+  document: RiskAnalysisTemplateDocument
+): purposeTemplateApi.RiskAnalysisTemplateDocument => ({
+  ...document,
+  createdAt: document.createdAt.toJSON(),
 });
 
 export const riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument =

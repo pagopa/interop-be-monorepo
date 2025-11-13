@@ -10,18 +10,18 @@ import {
   PurposeTemplateId,
   RiskAnalysisFormTemplateId,
   RiskAnalysisTemplateDocumentId,
-  RiskAnalysisTemplateSignedDocument,
+  RiskAnalysisTemplateDocument,
   generateId,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
-import { riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument } from "../../src/model/domain/apiConverter.js";
+import { riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument } from "../../src/model/domain/apiConverter.js";
 import {
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
-  purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound,
+  purposeTemplateRiskAnalysisTemplateDocumentNotFound,
 } from "../../src/model/domain/errors.js";
 
 const {
@@ -31,23 +31,22 @@ const {
   HTTP_STATUS_NOT_FOUND,
 } = constants;
 
-describe("API GET /purposeTemplates/:purposeTemplateId/signedDocument test", () => {
+describe("API GET /purposeTemplates/:purposeTemplateId/document test", () => {
   const mockPurposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),
   };
 
-  const mockRiskAnalysisDocument: RiskAnalysisTemplateSignedDocument = {
+  const mockRiskAnalysisDocument: RiskAnalysisTemplateDocument = {
     id: generateId<RiskAnalysisTemplateDocumentId>(),
-    path: "s3://path/to/the/risk/analysis/file/signed.pdf",
+    path: "s3://path/to/the/risk/analysis/file.pdf",
     contentType: "application/pdf",
-    name: "risk_analysis_file_signed.pdf",
-    prettyName: "Risk analysis document signed",
+    name: "risk_analysis_file.pdf",
+    prettyName: "Risk analysis document",
     createdAt: new Date(),
-    signedAt: new Date(),
   };
 
   beforeEach(() => {
-    purposeTemplateService.getRiskAnalysisTemplateSignedDocument = vi
+    purposeTemplateService.getRiskAnalysisTemplateDocument = vi
       .fn()
       .mockResolvedValue(mockRiskAnalysisDocument);
   });
@@ -57,7 +56,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/signedDocument test", () 
     purposeTemplateId: PurposeTemplateId = mockPurposeTemplate.id
   ) =>
     request(api)
-      .get(`/purposeTemplates/${purposeTemplateId}/signedDocument`)
+      .get(`/purposeTemplates/${purposeTemplateId}/document`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
@@ -68,15 +67,15 @@ describe("API GET /purposeTemplates/:purposeTemplateId/signedDocument test", () 
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s on successful risk analysis template signed retrieved",
+    "Should return 200 for user with role %s on successful risk analysis template  retrieved",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(HTTP_STATUS_OK);
       expect(res.body).toEqual(
-        purposeTemplateApi.RiskAnalysisTemplateSignedDocument.parse(
-          riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument(
+        purposeTemplateApi.RiskAnalysisTemplateDocument.parse(
+          riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument(
             mockRiskAnalysisDocument
           )
         )
@@ -107,16 +106,16 @@ describe("API GET /purposeTemplates/:purposeTemplateId/signedDocument test", () 
       description: "purposeTemplateRiskAnalysisFormNotFound",
     },
     {
-      error: purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
+      error: purposeTemplateRiskAnalysisTemplateDocumentNotFound(
         generateId<RiskAnalysisFormTemplateId>()
       ),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
-      description: "purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound",
+      description: "purposeTemplateRiskAnalysisTemplateDocumentNotFound",
     },
   ])(
     "Should return $expectedStatus for $description error",
     async ({ error, expectedStatus }) => {
-      purposeTemplateService.getRiskAnalysisTemplateSignedDocument = vi
+      purposeTemplateService.getRiskAnalysisTemplateDocument = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
