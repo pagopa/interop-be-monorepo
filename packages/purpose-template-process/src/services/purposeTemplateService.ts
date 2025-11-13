@@ -1273,7 +1273,7 @@ export function purposeTemplateServiceBuilder(
     async addRiskAnalysisAnswerAnnotation(
       purposeTemplateId: PurposeTemplateId,
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-      riskAnalysisTemplateAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText,
+      riskAnalysisTemplateAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed,
       {
         logger,
         correlationId,
