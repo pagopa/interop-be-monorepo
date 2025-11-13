@@ -24,7 +24,7 @@ import {
   KeyM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { SQL, eq } from "drizzle-orm";
+import { SQL, eq, and } from "drizzle-orm";
 import { isResourceVersionPresent } from "../utils/m2mEventSQLUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -98,7 +98,10 @@ export function m2mEventWriterServiceSQLBuilder(
       await insertIfResourceVersionNotPresent(
         event,
         keyInM2MEvent,
-        eq(keyInM2MEvent.kid, event.kid)
+        and(
+          eq(keyInM2MEvent.kid, event.kid),
+          eq(keyInM2MEvent.clientId, event.clientId)
+        )
       );
     },
     async insertProducerKeyM2MEvent(
@@ -107,7 +110,10 @@ export function m2mEventWriterServiceSQLBuilder(
       await insertIfResourceVersionNotPresent(
         event,
         producerKeyInM2MEvent,
-        eq(producerKeyInM2MEvent.kid, event.kid)
+        and(
+          eq(producerKeyInM2MEvent.kid, event.kid),
+          eq(producerKeyInM2MEvent.producerKeychainId, event.producerKeychainId)
+        )
       );
     },
     async insertConsumerDelegationM2MEvent(
