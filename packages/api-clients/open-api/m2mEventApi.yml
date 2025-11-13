@@ -807,6 +807,7 @@ components:
             - CONSUMER_DELEGATION_REVOKED
             - CONSUMER_DELEGATION_REJECTED
             - CONSUMER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -842,6 +843,7 @@ components:
             - PRODUCER_DELEGATION_REVOKED
             - PRODUCER_DELEGATION_REJECTED
             - PRODUCER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
