@@ -290,7 +290,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       expectedBody: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
         eservice.name,
         producerTenant.name,
-        eservice.descriptors[0].version,
+        eservice.descriptors[0].version
       ),
     },
     {
@@ -305,7 +305,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       expectedBody: inAppTemplates.eserviceDescriptorActivatedToConsumer(
         eservice.name,
         producerTenant.name,
-        eservice.descriptors[0].version,
+        eservice.descriptors[0].version
       ),
     },
     {

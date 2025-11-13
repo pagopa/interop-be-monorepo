@@ -10,11 +10,11 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import express from "express";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
 import { AgreementService } from "./services/agreementService.js";
-import express from "express";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: AgreementService) {
