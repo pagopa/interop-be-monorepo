@@ -37,7 +37,7 @@ describe("getEServiceTemplateM2MEvents", () => {
 
   const publicEventsCount = EServiceTemplateM2MEventType.options.length;
   const eventsVisibleToCreator =
-    EServiceTemplateM2MEventType.options.length * 3; // public + owned by creator
+    EServiceTemplateM2MEventType.options.length * 2; // public + owned by creator
 
   beforeEach(async () => {
     await Promise.all(
