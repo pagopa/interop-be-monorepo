@@ -70,6 +70,10 @@ function toApiAgreementM2MEventType(
       () => "AGREEMENT_SET_DRAFT_BY_PLATFORM"
     )
     .with("AgreementContractGenerated", () => "AGREEMENT_CONTRACT_GENERATED")
+    .with(
+      "AgreementSignedContractGenerated",
+      () => "AGREEMENT_SIGNED_CONTRACT_GENERATED"
+    )
     .exhaustive();
 }
 

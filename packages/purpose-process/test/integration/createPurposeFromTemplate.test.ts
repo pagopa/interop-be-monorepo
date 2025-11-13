@@ -66,6 +66,7 @@ import {
   addOnePurposeTemplate,
   addOnePurposeTemplateEServiceDescriptor,
   addOneTenant,
+  expectUniqueAswerInRiskAnalysisForm,
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
@@ -244,6 +245,198 @@ describe("createPurposeFromTemplate", () => {
       },
       metadata: { version: 0 },
     });
+  });
+
+  it("should write on event-store for the creation of a purpose when seed have answer not present in template but dependent of editable", async () => {
+    const purposetemplateWithEditableAnswer: PurposeTemplate = {
+      ...mockPurposeTemplateWithValidRiskAnalysis,
+      purposeRiskAnalysisForm: {
+        ...mockPurposeTemplateWithValidRiskAnalysis.purposeRiskAnalysisForm!,
+        singleAnswers: [
+          ...mockPurposeTemplateWithValidRiskAnalysis.purposeRiskAnalysisForm!.singleAnswers.filter(
+            (a) =>
+              a.key !== "isRequestOnBehalfOfThirdParties" &&
+              a.key !== "thirdPartiesRequestDataUsage"
+          ),
+          {
+            id: generateId(),
+            key: "isRequestOnBehalfOfThirdParties",
+            value: undefined,
+            editable: true,
+            suggestedValues: [],
+            annotation: undefined,
+          },
+          {
+            id: generateId(),
+            key: "thirdPartiesRequestDataUsage",
+            value: undefined,
+            editable: true,
+            suggestedValues: [],
+            annotation: undefined,
+          },
+        ],
+      },
+    };
+
+    await addOneTenant(tenant);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
+    await addOnePurposeTemplate(purposetemplateWithEditableAnswer);
+    await addOnePurposeTemplateEServiceDescriptor(
+      purposeTemplateEServiceDescriptor1
+    );
+
+    // this answer is editable, if it's set to YES,thirdPartiesRequestDataUsage becomes required and must be provided in request's seed
+    const editableAnswer = { isRequestOnBehalfOfThirdParties: ["YES"] };
+
+    // thirdPartiesRequestDataUsage depends on isRequestOnBehalfOfThirdParties when it's set to YES
+    const dependentAnswer = {
+      thirdPartiesRequestDataUsage: ["PA_ONLY"],
+    };
+
+    const purposeWithAdditionalAnswers: purposeApi.PurposeFromTemplateSeed = {
+      ...purposeFromTemplateSeed,
+      riskAnalysisForm: {
+        ...purposeFromTemplateSeed.riskAnalysisForm!,
+        answers: {
+          ...purposeFromTemplateSeed.riskAnalysisForm!.answers,
+          ...editableAnswer,
+          ...dependentAnswer,
+        },
+      },
+    };
+
+    const createPurposeResponse =
+      await purposeService.createPurposeFromTemplate(
+        purposetemplateWithEditableAnswer.id,
+        purposeWithAdditionalAnswers,
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
+          ),
+        })
+      );
+
+    const writtenEvent = await readLastPurposeEvent(
+      createPurposeResponse.data.purpose.id
+    );
+
+    if (!writtenEvent) {
+      fail("Update failed: purpose not found in event-store");
+    }
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: createPurposeResponse.data.purpose.id,
+      version: "0",
+      type: "PurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedRiskAnalysisForm: RiskAnalysisForm = {
+      ...mockValidRiskAnalysisForm,
+      id: unsafeBrandId(
+        createPurposeResponse.data.purpose.riskAnalysisForm!.id
+      ),
+      singleAnswers: [
+        ...mockPurposeTemplateWithValidRiskAnalysis
+          .purposeRiskAnalysisForm!.singleAnswers.map((answer) => ({
+            id: expect.any(String),
+            key: answer.key,
+            value:
+              mockValidRiskAnalysisForm.singleAnswers.find(
+                (a) => a.key === answer.key
+              )?.value ?? answer.value,
+          }))
+          .filter(
+            (answer) =>
+              answer.key !== "isRequestOnBehalfOfThirdParties" &&
+              answer.key !== "thirdPartiesRequestDataUsage"
+          ),
+        {
+          id: expect.any(String),
+          key: "isRequestOnBehalfOfThirdParties",
+          value: editableAnswer.isRequestOnBehalfOfThirdParties[0],
+        },
+        {
+          id: expect.any(String),
+          key: "thirdPartiesRequestDataUsage",
+          value: dependentAnswer.thirdPartiesRequestDataUsage[0],
+        },
+      ],
+      multiAnswers:
+        mockPurposeTemplateWithValidRiskAnalysis.purposeRiskAnalysisForm!.multiAnswers.map(
+          (answer, i) => ({
+            id: createPurposeResponse.data.purpose.riskAnalysisForm!
+              .multiAnswers[i].id,
+            key: answer.key,
+            values:
+              mockValidRiskAnalysisForm.multiAnswers.find(
+                (a) => a.key === answer.key
+              )?.values ?? answer.values,
+          })
+        ),
+    };
+
+    const expectdIsRequestOnBehalfOfThirdPartiesAnswers =
+      expectedRiskAnalysisForm.singleAnswers.filter(
+        (a) => a.key === "isRequestOnBehalfOfThirdParties"
+      );
+    expect(expectdIsRequestOnBehalfOfThirdPartiesAnswers.length).toBe(1);
+
+    const expectdThirdPartiesRequestDataUsageAnswers =
+      expectedRiskAnalysisForm.singleAnswers.filter(
+        (a) => a.key === "thirdPartiesRequestDataUsage"
+      );
+    expect(expectdThirdPartiesRequestDataUsageAnswers.length).toBe(1);
+
+    const expectedPurpose: Purpose = {
+      title: purposeFromTemplateSeed.title,
+      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
+      createdAt: new Date(),
+      eserviceId: unsafeBrandId(purposeFromTemplateSeed.eserviceId),
+      consumerId: unsafeBrandId(purposeFromTemplateSeed.consumerId),
+      description: mockPurposeTemplateWithValidRiskAnalysis.purposeDescription,
+      versions: [
+        {
+          id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+          state: purposeVersionState.draft,
+          dailyCalls: purposeFromTemplateSeed.dailyCalls,
+          createdAt: new Date(),
+        },
+      ],
+      isFreeOfCharge:
+        mockPurposeTemplateWithValidRiskAnalysis.purposeIsFreeOfCharge,
+      freeOfChargeReason:
+        mockPurposeTemplateWithValidRiskAnalysis.purposeFreeOfChargeReason,
+      riskAnalysisForm: expectedRiskAnalysisForm,
+      purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
+    };
+
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
+    expect(createPurposeResponse).toEqual({
+      data: {
+        purpose: expectedPurpose,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
+    });
+
+    expectUniqueAswerInRiskAnalysisForm(
+      writtenPayload.purpose!.riskAnalysisForm!,
+      "isRequestOnBehalfOfThirdParties"
+    );
+
+    expectUniqueAswerInRiskAnalysisForm(
+      writtenPayload.purpose!.riskAnalysisForm!,
+      "thirdPartiesRequestDataUsage"
+    );
   });
 
   it("should write on event-store for the creation of a purpose with template with isFreeOfCharge false", async () => {
