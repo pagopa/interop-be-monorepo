@@ -14,7 +14,7 @@ import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiPurposeTemplate } from "../../../src/api/purposeTemplateApiConverter.js";
 
-describe("API GET /purposeTemplates", () => {
+describe("API GET /purposeTemplates router test", () => {
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,
     authRole.M2M_ROLE,

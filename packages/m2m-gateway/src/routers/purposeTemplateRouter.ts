@@ -50,6 +50,29 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/purposeTemplates/:purposeTemplateId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const purposeTemplate = await purposeTemplateService.getPurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeTemplate.parse(purposeTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving purpose template with id ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
       async (req, res) => {
