@@ -14,6 +14,8 @@ import {
 import {
   emptyErrorMapper,
   EServiceId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -515,7 +517,9 @@ const purposeTemplateRouter = (
             await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
               {
                 purposeTemplateId: unsafeBrandId(purposeTemplateId),
-                answerId: unsafeBrandId(answerId),
+                answerId: unsafeBrandId<
+                  RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+                >(answerId),
                 documentId: unsafeBrandId(documentId),
               },
               ctx
@@ -556,7 +560,7 @@ const purposeTemplateRouter = (
 
           const { purposeTemplateId, documentId } = req.params;
           const { data: annotationDocument, metadata } =
-            await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
+            await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
               {
                 purposeTemplateId: unsafeBrandId(purposeTemplateId),
                 documentId: unsafeBrandId(documentId),
