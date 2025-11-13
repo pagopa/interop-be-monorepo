@@ -18,4 +18,9 @@ export type GetAgreementM2MEventsQueryParams = QueryParametersByAlias<
   "getAgreementM2MEvents"
 >;
 
+export type GetTenantM2MEventsQueryParams = QueryParametersByAlias<
+  M2MEventsAPI,
+  "getTenantM2MEvents"
+>;
+
 export * from "./generated/m2mEventApi.js";
