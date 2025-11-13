@@ -35,11 +35,12 @@ import {
   toBffCatalogApiEService,
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiEserviceRiskAnalysisSeed,
-  toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
   toBffEServiceTemplateInstance,
   toCatalogCreateEServiceSeed,
   toCompactProducerDescriptor,
+  enhanceEServiceToBffCatalogApiProducerDescriptorEService,
+  enhanceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
 import {
   AgreementProcessClient,
@@ -48,6 +49,7 @@ import {
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
+  PurposeProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
@@ -325,6 +327,7 @@ export function catalogServiceBuilder(
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: EServiceTemplateProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
+  purposeProcessClient: PurposeProcessClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
@@ -472,10 +475,13 @@ export function catalogServiceBuilder(
         dailyCallsTotal: descriptor.dailyCallsTotal,
         agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
         attributes: descriptorAttributes,
-        eservice: toBffCatalogApiProducerDescriptorEService(
-          eservice,
-          producerTenant
-        ),
+        eservice:
+          await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
+            eservice,
+            producerTenant,
+            purposeProcessClient,
+            headers
+          ),
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
         archivedAt: descriptor.archivedAt,
@@ -544,8 +550,11 @@ export function catalogServiceBuilder(
         description: eservice.description,
         technology: eservice.technology,
         mode: eservice.mode,
-        riskAnalysis: eservice.riskAnalysis.map(
-          toBffCatalogApiEserviceRiskAnalysis
+        riskAnalysis: await enhanceRiskAnalysisArray(
+          eservice.riskAnalysis,
+          unsafeBrandId<EServiceId>(eservice.id),
+          purposeProcessClient,
+          headers
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
@@ -991,13 +1000,15 @@ export function catalogServiceBuilder(
           descriptor.interface &&
           toBffCatalogApiDescriptorDoc(descriptor.interface),
         docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
-        eservice: toBffCatalogDescriptorEService(
+        eservice: await toBffCatalogDescriptorEService(
           eservice,
           descriptor,
           producerTenant,
           agreement,
           requesterTenant,
-          consumerDelegators
+          consumerDelegators,
+          purposeProcessClient,
+          headers
         ),
       };
     },
@@ -1113,8 +1124,19 @@ export function catalogServiceBuilder(
         });
 
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
+      const ruleset =
+        await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion({
+          params: {
+            riskAnalysisVersion: riskAnalysis.riskAnalysisForm.version,
+          },
+          queries: { eserviceId },
+          headers,
+        });
 
-      return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+      return toBffCatalogApiEserviceRiskAnalysis(
+        riskAnalysis,
+        ruleset.expiration
+      );
     },
     getEServiceDocumentById: async (
       eServiceId: EServiceId,
