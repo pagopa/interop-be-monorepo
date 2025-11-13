@@ -23,6 +23,8 @@ export function afterEventIdFilter<
     | typeof producerDelegationInM2MEvent
     | typeof consumerDelegationInM2MEvent
     | typeof keyInM2MEvent
+    | typeof clientInM2MEvent
+    | typeof producerKeychainInM2MEvent
 >(table: T, lastEventId: string | undefined): SQL | undefined {
   return lastEventId ? gt(table.id, lastEventId) : undefined;
   // ^ event ID is a UUIDv7, lexicographical order is the same as chronological order

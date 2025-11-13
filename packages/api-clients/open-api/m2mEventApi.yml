@@ -875,7 +875,10 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - CLIENT_ADDED
+            - CLIENT_DELETED
+            - CLIENT_PURPOSE_ADDED
+            - CLIENT_PURPOSE_REMOVED
         eventTimestamp:
           type: string
           format: date-time
@@ -907,7 +910,10 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - PRODUCER_KEYCHAIN_ADDED
+            - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_ESERVICE_ADDED
+            - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
         eventTimestamp:
           type: string
           format: date-time
@@ -972,7 +978,8 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - PRODUCER_KEYCHAIN_KEY_ADDED
+            - PRODUCER_KEYCHAIN_KEY_DELETED
         eventTimestamp:
           type: string
           format: date-time
