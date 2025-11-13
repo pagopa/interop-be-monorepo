@@ -108,11 +108,11 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 if annotation text is longer than 250 characters", async () => {
-    const OVER_250_CHAR = "Over".repeat(251);
+  it("Should return 400 if annotation text is longer than 2000 characters", async () => {
+    const OVER_2000_CHAR = "O".repeat(2001);
     const requestWithLongAnnotation: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
       {
-        text: OVER_250_CHAR,
+        text: OVER_2000_CHAR,
       };
 
     const token = generateToken(authRole.ADMIN_ROLE);

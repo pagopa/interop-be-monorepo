@@ -26874,7 +26874,7 @@ components:
         text:
           type: string
           minLength: 1
-          maxLength: 250
+          maxLength: 2000
       required:
         - text
     RiskAnalysisTemplateAnswerAnnotationSeed:
