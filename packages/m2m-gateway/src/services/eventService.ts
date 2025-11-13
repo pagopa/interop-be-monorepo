@@ -66,5 +66,16 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events };
     },
+    async getPurposeEvents(
+      {
+        lastEventId: _lastEventId,
+        limit: _limit,
+      }: m2mGatewayApi.GetEventManagerPurposesQueryParams,
+      { headers: _headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeEvents> {
+      logger.info(`Retrieving purpose events`);
+
+      return { events: [] };
+    },
   };
 }
