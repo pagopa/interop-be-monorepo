@@ -50,7 +50,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
       mockPurposeTemplate.purposeRiskAnalysisForm!.singleAnswers[0];
     const answerId = existingAnswer.id;
 
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation for the risk analysis answer",
       };
@@ -150,7 +150,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     expect(existingAnswer.annotation!.text).toBe("Original annotation text");
 
     // Now update the annotation
-    const updatedAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const updatedAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "Updated annotation text",
       };
@@ -190,7 +190,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
 
     const textWithHyperlink =
       "This text contains a hyperlink: https://example.com";
-    const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: textWithHyperlink,
       };
@@ -220,7 +220,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
 
     await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysis);
 
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation",
       };
@@ -252,7 +252,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     await addOnePurposeTemplate(mockPurposeTemplate);
 
     const nonExistentAnswerId = generateId<RiskAnalysisSingleAnswerId>();
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation",
       };
@@ -277,7 +277,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation",
       };
@@ -306,7 +306,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
       mockPurposeTemplate.purposeRiskAnalysisForm!.singleAnswers[0];
     const answerId = existingAnswer.id;
 
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation",
       };

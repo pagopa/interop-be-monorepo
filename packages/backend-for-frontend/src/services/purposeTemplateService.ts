@@ -533,7 +533,7 @@ export function purposeTemplateServiceBuilder(
     async addRiskAnalysisAnswerAnnotation(
       purposeTemplateId: PurposeTemplateId,
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationText,
+      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotation> {
       logger.info(
