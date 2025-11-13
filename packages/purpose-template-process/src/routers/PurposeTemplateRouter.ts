@@ -540,6 +540,49 @@ const purposeTemplateRouter = (
         }
       }
     )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            M2M_ADMIN_ROLE,
+            M2M_ROLE,
+            SECURITY_ROLE,
+            SUPPORT_ROLE,
+          ]);
+
+          const { purposeTemplateId, documentId } = req.params;
+          const { data: annotationDocument, metadata } =
+            await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
+              {
+                purposeTemplateId: unsafeBrandId(purposeTemplateId),
+                documentId: unsafeBrandId(documentId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument.parse(
+                annotationDocumentToApiAnnotationDocument(annotationDocument)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/purposeTemplates/:id/riskAnalysis/answers", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {

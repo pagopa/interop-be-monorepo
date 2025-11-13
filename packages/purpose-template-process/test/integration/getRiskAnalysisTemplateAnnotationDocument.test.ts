@@ -9,7 +9,6 @@ import {
   generateId,
   PurposeTemplate,
   PurposeTemplateId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
 } from "pagopa-interop-models";
@@ -21,13 +20,13 @@ import {
 import {
   purposeTemplateNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
-  riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
+describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
   const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
-  const singleAnswer = riskAnalysisFormTemplate.singleAnswers[0];
+  const annotationDoc =
+    riskAnalysisFormTemplate.singleAnswers[0].annotation!.docs[0];
 
   const purposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -40,16 +39,15 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
 
   it("should get the risk analysis template answer annotation document if it exists", async () => {
     const purposeTemplateResponse =
-      await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+      await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
-          answerId: singleAnswer.id,
-          documentId: singleAnswer.annotation!.docs[0].id,
+          documentId: annotationDoc.id,
         },
         getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
       );
     expect(purposeTemplateResponse).toMatchObject({
-      data: singleAnswer.annotation!.docs[0],
+      data: annotationDoc,
       metadata: { version: 0 },
     });
   });
@@ -59,10 +57,9 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
       generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>();
 
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
-          answerId: singleAnswer.id,
           documentId: notExistingDocumentId,
         },
         getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
@@ -70,8 +67,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplate.id,
-        notExistingDocumentId,
-        singleAnswer.id
+        notExistingDocumentId
       )
     );
   });
@@ -79,11 +75,10 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
   it("should throw tenantNotAllowed if the requester is not the creator and the purpose template is in draft state", async () => {
     const requesterId = generateId<TenantId>();
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
-          answerId: singleAnswer.id,
-          documentId: singleAnswer.annotation!.docs[0].id,
+          documentId: annotationDoc.id,
         },
         getMockContext({
           authData: getMockAuthData(requesterId),
@@ -95,11 +90,10 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
   it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template is in draft state", async () => {
     const notExistentPurposeTemplateId = generateId<PurposeTemplateId>();
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
         {
           purposeTemplateId: notExistentPurposeTemplateId,
-          answerId: singleAnswer.id,
-          documentId: singleAnswer.annotation!.docs[0].id,
+          documentId: annotationDoc.id,
         },
         getMockContext({
           authData: getMockAuthData(purposeTemplate.creatorId),
@@ -107,27 +101,6 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
       )
     ).rejects.toThrowError(
       purposeTemplateNotFound(notExistentPurposeTemplateId)
-    );
-  });
-
-  it("should throw riskAnalysisTemplateAnswerNotFound if the requester is not the creator and the purpose template is in draft state", async () => {
-    const notExistingAnswerId = generateId<RiskAnalysisSingleAnswerId>();
-    await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
-        {
-          purposeTemplateId: purposeTemplate.id,
-          answerId: notExistingAnswerId,
-          documentId: singleAnswer.annotation!.docs[0].id,
-        },
-        getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(
-      riskAnalysisTemplateAnswerNotFound({
-        purposeTemplateId: purposeTemplate.id,
-        answerId: notExistingAnswerId,
-      })
     );
   });
 });

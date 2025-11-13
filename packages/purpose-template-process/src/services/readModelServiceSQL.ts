@@ -59,6 +59,7 @@ import {
 } from "pagopa-interop-commons";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
+import { PgSelect } from "drizzle-orm/pg-core";
 import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {
@@ -310,42 +311,52 @@ export function readModelServiceBuilderSQL({
     },
     async getRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
     ): Promise<
       WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
     > {
-      const queryResult = await readModelDB
-        .select({
-          riskAnalysisAnswerAnnotationDocument:
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-        })
-        .from(
-          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
-        )
-        .innerJoin(
-          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      const addAnswerAnnotationJoin = <T extends PgSelect>(query: T) =>
+        answerId
+          ? query.innerJoin(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+              eq(
+                purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+                purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+              )
+            )
+          : query;
+
+      const queryResult = await addAnswerAnnotationJoin(
+        readModelDB
+          .select({
+            riskAnalysisAnswerAnnotationDocument:
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          })
+          .from(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
           )
-        )
-        .where(
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
-              purposeTemplateId
-            ),
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
-              documentId
-            ),
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+          .where(
+            and(
+              eq(
+                purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateId
+              ),
+              eq(
+                purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
+                documentId
+              ),
               answerId
+                ? eq(
+                    purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+                    answerId
+                  )
+                : undefined
             )
           )
-        );
+          .$dynamic()
+      );
 
       if (queryResult.length === 0) {
         return undefined;
