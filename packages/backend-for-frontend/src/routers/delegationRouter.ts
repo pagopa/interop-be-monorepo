@@ -72,6 +72,7 @@ const delegationRouter = (
           unsafeBrandId(req.params.delegationId),
           ctx
         );
+
         return res.status(200).send(bffApi.Delegation.parse(delegation));
       } catch (error) {
         const errorRes = makeApiProblem(
