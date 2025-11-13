@@ -22,27 +22,24 @@ describe("API /events/consumerDelegations test", () => {
     ])
     .flat();
 
-
-  console.log(mockConsumerDelegationM2MEvents);
-
   const mockConsumerDelegationM2MEventsResponse: m2mEventApi.ConsumerDelegationM2MEvents =
-  {
-    events: mockConsumerDelegationM2MEvents.map(
-      (e) =>
-      ({
-        id: e.id,
-        eventType: toApiConsumerDelegationM2MEventType(e.eventType),
-        eventTimestamp: e.eventTimestamp.toJSON(),
-        delegationId: e.delegationId,
-      } as m2mEventApi.ConsumerDelegationM2MEvent)
-    ),
-  };
+    {
+      events: mockConsumerDelegationM2MEvents.map(
+        (e) =>
+          ({
+            id: e.id,
+            eventType: toApiConsumerDelegationM2MEventType(e.eventType),
+            eventTimestamp: e.eventTimestamp.toJSON(),
+            delegationId: e.delegationId,
+          } as m2mEventApi.ConsumerDelegationM2MEvent)
+      ),
+    };
 
   const mockQueryParams: m2mEventApi.GetConsumerDelegationM2MEventsQueryParams =
-  {
-    lastEventId: generateM2MEventId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateM2MEventId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,

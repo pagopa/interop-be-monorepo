@@ -19,7 +19,10 @@ export function toApiConsumerDelegationM2MEventType(
     .with("ConsumerDelegationRejected", () => "CONSUMER_DELEGATION_REJECTED")
     .with("ConsumerDelegationRevoked", () => "CONSUMER_DELEGATION_REVOKED")
     .with("ConsumerDelegationSubmitted", () => "CONSUMER_DELEGATION_SUBMITTED")
-    .with("DelegationSignedContractGenerated", () => "DELEGATION_CONTRACT_GENERATED")
+    .with(
+      "DelegationSignedContractGenerated",
+      () => "DELEGATION_CONTRACT_GENERATED"
+    )
     .exhaustive();
 }
 
@@ -34,7 +37,10 @@ export function toApiProducerDelegationM2MEventType(
     .with("ProducerDelegationRejected", () => "PRODUCER_DELEGATION_REJECTED")
     .with("ProducerDelegationRevoked", () => "PRODUCER_DELEGATION_REVOKED")
     .with("ProducerDelegationSubmitted", () => "PRODUCER_DELEGATION_SUBMITTED")
-    .with("DelegationSignedContractGenerated", () => "DELEGATION_CONTRACT_GENERATED")
+    .with(
+      "DelegationSignedContractGenerated",
+      () => "DELEGATION_CONTRACT_GENERATED"
+    )
     .exhaustive();
 }
 
