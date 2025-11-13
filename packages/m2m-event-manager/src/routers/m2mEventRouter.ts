@@ -26,7 +26,12 @@ import { toApiAttributeM2MEvents } from "../model/attributeM2MEventApiConverter.
 import { toApiEServiceM2MEvents } from "../model/eserviceM2MEventApiConverter.js";
 import { toApiAgreementM2MEvents } from "../model/agreementM2MEventApiConverter.js";
 import { unsafeBrandDelegationIdParam } from "../model/types.js";
-import { toApiClientM2MEvents, toApiKeyM2MEvents, toApiProducerKeychainM2MEvents, toApiProducerKeyM2MEvents } from "../model/authorizationM2MEventApiConverter.js";
+import {
+  toApiClientM2MEvents,
+  toApiKeyM2MEvents,
+  toApiProducerKeychainM2MEvents,
+  toApiProducerKeyM2MEvents,
+} from "../model/authorizationM2MEventApiConverter.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -197,13 +202,17 @@ export const m2mEventRouter = (
 
         const { lastEventId, limit } = req.query;
         const events = await service.getClientM2MEvents(
-          lastEventId ? unsafeBrandId<ClientM2MEventId>(lastEventId) : undefined,
+          lastEventId
+            ? unsafeBrandId<ClientM2MEventId>(lastEventId)
+            : undefined,
           limit,
           ctx
         );
         return res
           .status(200)
-          .send(m2mEventApi.ClientM2MEvents.parse(toApiClientM2MEvents(events)));
+          .send(
+            m2mEventApi.ClientM2MEvents.parse(toApiClientM2MEvents(events))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -221,13 +230,19 @@ export const m2mEventRouter = (
 
         const { lastEventId, limit } = req.query;
         const events = await service.getProducerKeychainM2MEvents(
-          lastEventId ? unsafeBrandId<ProducerKeychainM2MEventId>(lastEventId) : undefined,
+          lastEventId
+            ? unsafeBrandId<ProducerKeychainM2MEventId>(lastEventId)
+            : undefined,
           limit,
           ctx
         );
         return res
           .status(200)
-          .send(m2mEventApi.ProducerKeychainM2MEvents.parse(toApiProducerKeychainM2MEvents(events)));
+          .send(
+            m2mEventApi.ProducerKeychainM2MEvents.parse(
+              toApiProducerKeychainM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -269,13 +284,19 @@ export const m2mEventRouter = (
 
         const { lastEventId, limit } = req.query;
         const events = await service.getProducerKeyM2MEvents(
-          lastEventId ? unsafeBrandId<ProducerKeyM2MEventId>(lastEventId) : undefined,
+          lastEventId
+            ? unsafeBrandId<ProducerKeyM2MEventId>(lastEventId)
+            : undefined,
           limit,
           ctx
         );
         return res
           .status(200)
-          .send(m2mEventApi.ProducerKeyM2MEvents.parse(toApiProducerKeyM2MEvents(events)));
+          .send(
+            m2mEventApi.ProducerKeyM2MEvents.parse(
+              toApiProducerKeyM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

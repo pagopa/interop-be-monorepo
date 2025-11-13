@@ -109,22 +109,36 @@ export function m2mEventServiceBuilder(
     async getClientM2MEvents(
       lastEventId: ClientM2MEventId | undefined,
       limit: number,
-      { logger, authData }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<ClientM2MEvent[]> {
       logger.info(
         `Getting client M2M events with lastEventId=${lastEventId}, limit=${limit}`
       );
-      return m2mEventReaderService.getClientM2MEvents(lastEventId, limit, authData.organizationId);
+      return m2mEventReaderService.getClientM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
     async getProducerKeychainM2MEvents(
       lastEventId: ProducerKeychainM2MEventId | undefined,
       limit: number,
-      { logger, authData }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<ProducerKeychainM2MEvent[]> {
       logger.info(
         `Getting producerKeychain M2M events with lastEventId=${lastEventId}, limit=${limit}`
       );
-      return m2mEventReaderService.getProducerKeychainM2MEvents(lastEventId, limit, authData.organizationId);
+      return m2mEventReaderService.getProducerKeychainM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
     async getKeyM2MEvents(
       lastEventId: KeyM2MEventId | undefined,

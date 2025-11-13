@@ -1,5 +1,14 @@
 import { m2mEventApi } from "pagopa-interop-api-clients";
-import { ClientM2MEvent, ClientM2MEventType, KeyM2MEvent, KeyM2MEventType, ProducerKeychainM2MEvent, ProducerKeychainM2MEventType, ProducerKeyM2MEvent, ProducerKeyM2MEventType } from "pagopa-interop-models";
+import {
+  ClientM2MEvent,
+  ClientM2MEventType,
+  KeyM2MEvent,
+  KeyM2MEventType,
+  ProducerKeychainM2MEvent,
+  ProducerKeychainM2MEventType,
+  ProducerKeyM2MEvent,
+  ProducerKeyM2MEventType,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 function toApiKeyM2MEventType(
@@ -31,7 +40,9 @@ export function toApiKeyM2MEvents(
 function toApiClientM2MEventType(
   eventType: ClientM2MEventType
 ): m2mEventApi.ClientM2MEvent["eventType"] {
-  return match<ClientM2MEventType, m2mEventApi.ClientM2MEvent["eventType"]>(eventType)
+  return match<ClientM2MEventType, m2mEventApi.ClientM2MEvent["eventType"]>(
+    eventType
+  )
     .with("ClientAdded", () => "CLIENT_ADDED")
     .with("ClientDeleted", () => "CLIENT_DELETED")
     .with("ClientPurposeAdded", () => "CLIENT_PURPOSE_ADDED")
@@ -39,7 +50,9 @@ function toApiClientM2MEventType(
     .exhaustive();
 }
 
-function toApiClientM2MEvent(event: ClientM2MEvent): m2mEventApi.ClientM2MEvent {
+function toApiClientM2MEvent(
+  event: ClientM2MEvent
+): m2mEventApi.ClientM2MEvent {
   return {
     id: event.id,
     eventType: toApiClientM2MEventType(event.eventType),
@@ -59,13 +72,18 @@ export function toApiClientM2MEvents(
 function toApiProducerKeyM2MEventType(
   eventType: ProducerKeyM2MEventType
 ): m2mEventApi.ProducerKeyM2MEvent["eventType"] {
-  return match<ProducerKeyM2MEventType, m2mEventApi.ProducerKeyM2MEvent["eventType"]>(eventType)
+  return match<
+    ProducerKeyM2MEventType,
+    m2mEventApi.ProducerKeyM2MEvent["eventType"]
+  >(eventType)
     .with("ProducerKeychainKeyAdded", () => "PRODUCER_KEYCHAIN_KEY_ADDED")
     .with("ProducerKeychainKeyDeleted", () => "PRODUCER_KEYCHAIN_KEY_DELETED")
     .exhaustive();
 }
 
-function toApiProducerKeyM2MEvent(event: ProducerKeyM2MEvent): m2mEventApi.ProducerKeyM2MEvent {
+function toApiProducerKeyM2MEvent(
+  event: ProducerKeyM2MEvent
+): m2mEventApi.ProducerKeyM2MEvent {
   return {
     id: event.id,
     eventType: toApiProducerKeyM2MEventType(event.eventType),
@@ -82,19 +100,29 @@ export function toApiProducerKeyM2MEvents(
   };
 }
 
-
 function toApiProducerKeychainM2MEventType(
   eventType: ProducerKeychainM2MEventType
 ): m2mEventApi.ProducerKeychainM2MEvent["eventType"] {
-  return match<ProducerKeychainM2MEventType, m2mEventApi.ProducerKeychainM2MEvent["eventType"]>(eventType)
+  return match<
+    ProducerKeychainM2MEventType,
+    m2mEventApi.ProducerKeychainM2MEvent["eventType"]
+  >(eventType)
     .with("ProducerKeychainAdded", () => "PRODUCER_KEYCHAIN_ADDED")
     .with("ProducerKeychainDeleted", () => "PRODUCER_KEYCHAIN_DELETED")
-    .with("ProducerKeychainEServiceAdded", () => "PRODUCER_KEYCHAIN_ESERVICE_ADDED")
-    .with("ProducerKeychainEServiceRemoved", () => "PRODUCER_KEYCHAIN_ESERVICE_REMOVED")
+    .with(
+      "ProducerKeychainEServiceAdded",
+      () => "PRODUCER_KEYCHAIN_ESERVICE_ADDED"
+    )
+    .with(
+      "ProducerKeychainEServiceRemoved",
+      () => "PRODUCER_KEYCHAIN_ESERVICE_REMOVED"
+    )
     .exhaustive();
 }
 
-function toApiProducerKeychainM2MEvent(event: ProducerKeychainM2MEvent): m2mEventApi.ProducerKeychainM2MEvent {
+function toApiProducerKeychainM2MEvent(
+  event: ProducerKeychainM2MEvent
+): m2mEventApi.ProducerKeychainM2MEvent {
   return {
     id: event.id,
     eventType: toApiProducerKeychainM2MEventType(event.eventType),

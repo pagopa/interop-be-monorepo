@@ -5,6 +5,7 @@ import {
   eserviceInM2MEvent,
   keyInM2MEvent,
   producerKeychainInM2MEvent,
+  producerKeyInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -35,7 +36,12 @@ import { fromAttributeM2MEventSQL } from "../model/attributeM2MEventAdapterSQL.j
 import { fromEServiceM2MEventSQL } from "../model/eserviceM2MEventAdapterSQL.js";
 import { fromAgreementM2MEventSQL } from "../model/agreementM2MEventAdapterSQL.js";
 import { DelegationIdParam } from "../model/types.js";
-import { fromClientM2MEventSQL, fromKeyM2MEventSQL, fromProducerKeychainM2MEventSQL, fromProducerKeyM2MEventSQL } from "../model/authorizationM2MEventAdapterSQL.js";
+import {
+  fromClientM2MEventSQL,
+  fromKeyM2MEventSQL,
+  fromProducerKeychainM2MEventSQL,
+  fromProducerKeyM2MEventSQL,
+} from "../model/authorizationM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -182,9 +188,9 @@ export function m2mEventReaderServiceSQLBuilder(
     ): Promise<ProducerKeyM2MEvent[]> {
       const sqlEvents = await m2mEventDB
         .select()
-        .from(keyInM2MEvent)
-        .where(afterEventIdFilter(keyInM2MEvent, lastEventId))
-        .orderBy(asc(keyInM2MEvent.id))
+        .from(producerKeyInM2MEvent)
+        .where(afterEventIdFilter(producerKeyInM2MEvent, lastEventId))
+        .orderBy(asc(producerKeyInM2MEvent.id))
         .limit(limit);
 
       return sqlEvents.map(fromProducerKeyM2MEventSQL);

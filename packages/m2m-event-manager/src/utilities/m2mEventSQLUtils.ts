@@ -7,6 +7,7 @@ import {
   eserviceTemplateInM2MEvent,
   keyInM2MEvent,
   producerKeychainInM2MEvent,
+  producerKeyInM2MEvent,
   purposeInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventVisibility } from "pagopa-interop-models";
@@ -14,12 +15,13 @@ import { DelegationIdParam } from "../model/types.js";
 
 export function afterEventIdFilter<
   T extends
-  | typeof attributeInM2MEvent
-  | typeof eserviceInM2MEvent
-  | typeof agreementInM2MEvent
-  | typeof keyInM2MEvent
-  | typeof clientInM2MEvent
-  | typeof producerKeychainInM2MEvent
+    | typeof attributeInM2MEvent
+    | typeof eserviceInM2MEvent
+    | typeof agreementInM2MEvent
+    | typeof keyInM2MEvent
+    | typeof clientInM2MEvent
+    | typeof producerKeychainInM2MEvent
+    | typeof producerKeyInM2MEvent
 >(table: T, lastEventId: string | undefined): SQL | undefined {
   return lastEventId ? gt(table.id, lastEventId) : undefined;
   // ^ event ID is a UUIDv7, lexicographical order is the same as chronological order
@@ -27,12 +29,12 @@ export function afterEventIdFilter<
 
 export function visibilityFilter<
   T extends
-  | typeof eserviceInM2MEvent
-  | typeof eserviceTemplateInM2MEvent
-  | typeof agreementInM2MEvent
-  | typeof purposeInM2MEvent
-  | typeof clientInM2MEvent
-  | typeof producerKeychainInM2MEvent
+    | typeof eserviceInM2MEvent
+    | typeof eserviceTemplateInM2MEvent
+    | typeof agreementInM2MEvent
+    | typeof purposeInM2MEvent
+    | typeof clientInM2MEvent
+    | typeof producerKeychainInM2MEvent
 >(
   table: T,
   {
@@ -65,9 +67,9 @@ export function visibilityFilter<
 
 export function delegationIdFilter<
   T extends
-  | typeof eserviceInM2MEvent
-  | typeof agreementInM2MEvent
-  | typeof purposeInM2MEvent
+    | typeof eserviceInM2MEvent
+    | typeof agreementInM2MEvent
+    | typeof purposeInM2MEvent
 >(
   table: T,
   delegationId: DelegationIdParam,
@@ -79,12 +81,12 @@ export function delegationIdFilter<
 ): SQL | undefined {
   return delegationId
     ? or(
-      eq(table.producerDelegationId, delegationId),
-      "consumerDelegationId" in table
-        ? eq(table.consumerDelegationId, delegationId)
-        : undefined
-    )
+        eq(table.producerDelegationId, delegationId),
+        "consumerDelegationId" in table
+          ? eq(table.consumerDelegationId, delegationId)
+          : undefined
+      )
     : delegationId === null
-      ? nullFilter
-      : undefined;
+    ? nullFilter
+    : undefined;
 }
