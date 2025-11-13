@@ -18979,18 +18979,6 @@ components:
         - values
         - editable
         - suggestedValues
-    RiskAnalysisTemplateAnswerAnnotation:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        text:
-          type: string
-      required:
-        - text
-        - id
     PurposeTemplateState:
       type: string
       description: Purpose Template State
