@@ -924,7 +924,6 @@ components:
           format: date-time
         kid:
           type: string
-          format: uuid
       required:
         - id
         - eventType
@@ -957,7 +956,6 @@ components:
           format: date-time
         kid:
           type: string
-          format: uuid
       required:
         - id
         - eventType
