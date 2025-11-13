@@ -1303,7 +1303,7 @@ components:
       properties:
         text:
           type: string
-          maxLength: 250
+          maxLength: 2000
       required:
         - text
     RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
