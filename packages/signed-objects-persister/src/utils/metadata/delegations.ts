@@ -9,6 +9,7 @@ import {
   CorrelationId,
   DelegationContractDocument,
 } from "pagopa-interop-models";
+import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addDelegationSignedContract = async (
   contract: DelegationContractDocument,
@@ -30,7 +31,9 @@ export const addDelegationSignedContract = async (
   };
   const token = (await refreshableToken.get()).serialized;
 
-  await delegationApi.delegationApi.addSignedDelegationContractMetadata(
+  const { delegationProcessClient } = getInteropBeClients();
+
+  await delegationProcessClient.delegation.addSignedDelegationContractMetadata(
     contractSigned,
     {
       params: { delegationId },
