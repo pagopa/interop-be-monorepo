@@ -677,7 +677,7 @@ export function purposeTemplateServiceBuilder(
         documentId,
       }: {
         purposeTemplateId: PurposeTemplateId;
-        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
         documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       },
       {
@@ -686,7 +686,9 @@ export function purposeTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       logger.info(
-        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}${
+          answerId ? ` and answer ${answerId}` : ""
+        }`
       );
 
       const purposeTemplate = applyVisibilityToPurposeTemplate(
@@ -694,39 +696,16 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      assertAnswerExistsInRiskAnalysisTemplate(purposeTemplate.data, answerId);
+      if (answerId) {
+        assertAnswerExistsInRiskAnalysisTemplate(
+          purposeTemplate.data,
+          answerId
+        );
+      }
 
       return await retrieveAnswerAnnotationDocument({
         purposeTemplateId,
         answerId,
-        documentId,
-        readModelService,
-      });
-    },
-    async getRiskAnalysisTemplateAnnotationDocument(
-      {
-        purposeTemplateId,
-        documentId,
-      }: {
-        purposeTemplateId: PurposeTemplateId;
-        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
-      },
-      {
-        authData,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
-      logger.info(
-        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}`
-      );
-
-      applyVisibilityToPurposeTemplate(
-        await retrievePurposeTemplate(purposeTemplateId, readModelService),
-        authData
-      );
-
-      return await retrieveAnswerAnnotationDocument({
-        purposeTemplateId,
         documentId,
         readModelService,
       });

@@ -39,7 +39,7 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationD
     );
 
   beforeEach(() => {
-    purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument = vi
+    purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
@@ -118,9 +118,8 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationD
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument = vi
-        .fn()
-        .mockRejectedValue(error);
+      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument =
+        vi.fn().mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token);

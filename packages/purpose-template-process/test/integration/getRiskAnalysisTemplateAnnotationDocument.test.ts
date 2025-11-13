@@ -39,7 +39,7 @@ describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
 
   it("should get the risk analysis template answer annotation document if it exists", async () => {
     const purposeTemplateResponse =
-      await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
+      await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
           documentId: annotationDoc.id,
@@ -57,7 +57,7 @@ describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
       generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>();
 
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
+      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
           documentId: notExistingDocumentId,
@@ -75,7 +75,7 @@ describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
   it("should throw tenantNotAllowed if the requester is not the creator and the purpose template is in draft state", async () => {
     const requesterId = generateId<TenantId>();
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
+      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
           documentId: annotationDoc.id,
@@ -90,7 +90,7 @@ describe("getRiskAnalysisTemplateAnnotationDocument", async () => {
   it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template is in draft state", async () => {
     const notExistentPurposeTemplateId = generateId<PurposeTemplateId>();
     await expect(
-      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocument(
+      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
         {
           purposeTemplateId: notExistentPurposeTemplateId,
           documentId: annotationDoc.id,
