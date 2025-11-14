@@ -11,6 +11,7 @@ type EServiceTemplateApi = typeof m2mGatewayApi.eserviceTemplatesApi.api;
 type ClientApi = typeof m2mGatewayApi.clientsApi.api;
 type ProducerKeychainApi = typeof m2mGatewayApi.producerKeychainsApi.api;
 type PurposeTemplateApi = typeof m2mGatewayApi.purposeTemplatesApi.api;
+type EventManagerApi = typeof m2mGatewayApi.eventsApi.api;
 
 export type GetAgreementsQueryParams = QueryParametersByAlias<
   AgreementApi,
@@ -181,6 +182,11 @@ export type GetEServiceTemplateVersionVerifiedAttributesQueryParams =
 export type GetPurposeTemplatesQueryParams = QueryParametersByAlias<
   PurposeTemplateApi,
   "getPurposeTemplates"
+>;
+
+export type GetEventManagerAttributesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getAttributesEvents"
 >;
 
 export * from "./generated/m2mGatewayApi.js";
