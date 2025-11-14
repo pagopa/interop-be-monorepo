@@ -296,10 +296,10 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
           })
         )
       ).rejects.toThrowError(
-        riskAnalysisTemplateAnswerNotFound(
-          existentPurposeTemplate.id,
-          subjectAnswerId
-        )
+        riskAnalysisTemplateAnswerNotFound({
+          purposeTemplateId: existentPurposeTemplate.id,
+          answerId: subjectAnswerId,
+        })
       );
     }
   );
@@ -467,8 +467,8 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
       ).rejects.toThrowError(
         riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
           existentPurposeTemplate.id,
-          subjectAnswerId,
-          subjectDocumentId
+          subjectDocumentId,
+          subjectAnswerId
         )
       );
     }

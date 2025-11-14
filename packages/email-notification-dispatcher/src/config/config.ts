@@ -5,7 +5,7 @@ import {
   CatalogTopicConfig,
   ReadModelSQLDbConfig,
   KafkaProducerConfig,
-  EmailSenderTopicConfig,
+  EmailDispatchTopicConfig,
   DelegationTopicConfig,
   AuthorizationTopicConfig,
   TenantTopicConfig,
@@ -23,7 +23,7 @@ export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(TenantTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(ReadModelSQLDbConfig)
-  .and(EmailSenderTopicConfig)
+  .and(EmailDispatchTopicConfig)
   .and(NotificationTypeBlocklistConfig);
 
 export type EmailNotificationDispatcherConfig = z.infer<

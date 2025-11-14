@@ -47,6 +47,29 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/purposeTemplates/filter/creators", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result =
+          await purposeTemplateService.getPublishedPurposeTemplateCreators(
+            req.query.q,
+            req.query.offset,
+            req.query.limit,
+            ctx
+          );
+
+        return res.status(200).send(bffApi.CompactOrganizations.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving Purpose Template creators for name ${req.query.q}, offset ${req.query.offset}, limit ${req.query.limit}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/creators/purposeTemplates", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -153,7 +176,7 @@ const purposeTemplateRouter = (
           error,
           getPurposeTemplateEServiceDescriptorsErrorMapper,
           ctx,
-          "Error retrieving purpose template e-services"
+          `Error retrieving purpose template e-services for purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

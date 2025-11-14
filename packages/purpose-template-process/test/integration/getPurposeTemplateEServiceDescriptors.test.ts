@@ -22,7 +22,10 @@ import {
   addOnePurposeTemplateEServiceDescriptor,
   purposeTemplateService,
 } from "../integrationUtils.js";
-import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
+import {
+  purposeTemplateNotFound,
+  tenantNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("getPurposeTemplateEServiceDescriptors", async () => {
   const creatorId = generateId<TenantId>();
@@ -106,7 +109,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
           producerIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(allPurposeTemplateEServiceDescriptors).toEqual({
@@ -126,7 +129,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
           producerIds: [],
         },
         { offset: 1, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -143,7 +146,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
           producerIds: [],
         },
         { offset: 0, limit: 1 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -160,7 +163,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
           producerIds: [eservice2.producerId],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -178,7 +181,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
           producerIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -195,7 +198,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
           producerIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       );
 
     expect(result).toEqual({
@@ -217,5 +220,22 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
         getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
+  });
+
+  it("should throw tenantNotAllowed if the requester is not the creator and the purpose template is in draft state", async () => {
+    const purposeTemplateDraft = getMockPurposeTemplate();
+    await addOnePurposeTemplate(purposeTemplateDraft);
+
+    const requesterId = generateId<TenantId>();
+    await expect(
+      purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+        {
+          purposeTemplateId: purposeTemplateDraft.id,
+          producerIds: [],
+        },
+        { offset: 0, limit: 50 },
+        getMockContext({ authData: getMockAuthData(requesterId) })
+      )
+    ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 });

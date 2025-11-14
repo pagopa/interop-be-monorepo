@@ -216,7 +216,7 @@ export const sortUpdatePurposeReturn = (
 });
 
 export function expectUniqueAswerInRiskAnalysisForm(
-  riskAnalysisForm: PurposeRiskAnalysisForm,
+  riskAnalysisForm: PurposeRiskAnalysisForm | PurposeRiskAnalysisFormV2,
   answerKey: string
 ): void {
   const expectedOneOccurrenceInSingleAnswers =
@@ -224,31 +224,6 @@ export function expectUniqueAswerInRiskAnalysisForm(
 
   const expectedOneOccurrenceInMultiAnswers =
     riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
-
-  if (expectedOneOccurrenceInSingleAnswers.length) {
-    expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
-  }
-
-  if (expectedOneOccurrenceInMultiAnswers.length) {
-    expect(expectedOneOccurrenceInMultiAnswers.length).toBe(1);
-  }
-
-  expect(
-    expectedOneOccurrenceInSingleAnswers.length +
-      expectedOneOccurrenceInMultiAnswers.length
-  ).toBe(1);
-}
-
-export function expectUniqueAswerInRiskAnalysisFormV2(
-  riskAnalysisForm: PurposeRiskAnalysisFormV2,
-  answerKey: string
-): void {
-  const expectedOneOccurrenceInSingleAnswers =
-    riskAnalysisForm.singleAnswers.filter((a) => a.key === answerKey);
-
-  const expectedOneOccurrenceInMultiAnswers =
-    riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
-
   if (expectedOneOccurrenceInSingleAnswers.length) {
     expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
   }
