@@ -68,6 +68,14 @@ export function descriptorStatesNotAllowingDocumentOperations(
     .exhaustive();
 }
 
+export function descriptorStatesNotAllowingInterfaceOperations(
+  descriptor: Descriptor
+): boolean {
+  return match(descriptor.state)
+    .with(descriptorState.draft, () => false)
+    .otherwise(() => true);
+}
+
 export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.draft,
   descriptorState.waitingForApproval,
