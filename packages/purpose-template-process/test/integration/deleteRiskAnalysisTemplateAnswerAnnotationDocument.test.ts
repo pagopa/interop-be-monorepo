@@ -205,7 +205,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 
-  it("should throw riskAnalysisTemplateNotFound if the purpose template doesn't have a risk analysis template", async () => {
+  it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template doesn't have a risk analysis template", async () => {
     const purposeTemplateWithoutRiskAnalysisTemplate = getMockPurposeTemplate();
 
     await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysisTemplate);
@@ -249,8 +249,8 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplate.id,
-        answerId,
-        documentId
+        documentId,
+        answerId
       )
     );
   });

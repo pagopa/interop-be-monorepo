@@ -556,6 +556,58 @@ describe("Risk Analysis Validation", () => {
     }
   );
 
+  it.each([
+    new Date("2024-12-31"),
+    new Date("2025-12-31"),
+    new Date("2026-02-15T23:59"),
+  ])(
+    "should succeed if the risk analysis is PA 3.0 and the current date is within the grace period",
+    (mockDate) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(mockDate);
+
+      expect(
+        validateRiskAnalysis(
+          validRiskAnalysis3_0_Pa,
+          false,
+          "PA",
+          new Date(),
+          undefined
+        )
+      ).toEqual({
+        type: "valid",
+        value: validatedRiskAnalysis3_0_Pa,
+      });
+
+      vi.useRealTimers();
+    }
+  );
+
+  it("should fail if version 3.0 PA has expired", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-02-16"));
+
+    expect(
+      validateRiskAnalysis(
+        validRiskAnalysis3_0_Pa,
+        false,
+        "PA",
+        new Date(),
+        undefined
+      )
+    ).toEqual({
+      type: "invalid",
+      issues: [
+        expiredRulesVersionError(
+          validRiskAnalysis3_0_Pa.version,
+          tenantKind.PA
+        ),
+      ],
+    });
+
+    vi.useRealTimers();
+  });
+
   it("should fail if the risk analysis is PA 3.1 and the eservice has different personalData", () => {
     const riskAnalysisForm: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis3_1_Pa,

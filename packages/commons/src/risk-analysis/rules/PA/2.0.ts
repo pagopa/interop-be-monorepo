@@ -1,6 +1,6 @@
 export const pa2 = {
   version: "2.0",
-  expiration: new Date("2023-07-26"),
+  expiration: new Date("2023-07-26T23:59:59"),
   questions: [
     {
       id: "purpose",

@@ -467,8 +467,8 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
       ).rejects.toThrowError(
         riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
           existentPurposeTemplate.id,
-          subjectAnswerId,
-          subjectDocumentId
+          subjectDocumentId,
+          subjectAnswerId
         )
       );
     }

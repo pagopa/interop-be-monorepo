@@ -12382,7 +12382,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationText"
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationSeed"
       responses:
         "200":
           description: Purpose Template Risk Analysis Answer Annotation added
@@ -24909,6 +24909,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FormConfigQuestion"
+        expiration:
+          type: string
+          format: date-time
       required:
         - version
         - questions
@@ -25531,6 +25534,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        rulesetExpiration:
+          type: string
+          format: date-time
     EServiceTemplateRiskAnalysis:
       type: object
       additionalProperties: false
@@ -25838,6 +25844,8 @@ components:
         suspendedAt:
           type: string
           format: date-time
+        isDocumentReady:
+          type: boolean
       required:
         - id
         - producer
@@ -25852,6 +25860,7 @@ components:
         - consumerDocuments
         - createdAt
         - isContractPresent
+        - isDocumentReady
     Agreements:
       type: object
       additionalProperties: false
@@ -26571,6 +26580,11 @@ components:
           description: Indicates if there are unread notifications for this purpose
         purposeTemplate:
           $ref: "#/components/schemas/CompactPurposeTemplate"
+        isDocumentReady:
+          type: boolean
+        rulesetExpiration:
+          type: string
+          format: date-time
       required:
         - id
         - title
@@ -26584,6 +26598,7 @@ components:
         - dailyCallsPerConsumer
         - dailyCallsTotal
         - hasUnreadNotifications
+        - isDocumentReady
     PurposeAdditionDetailsSeed:
       type: object
       additionalProperties: false
@@ -26867,22 +26882,14 @@ components:
         - text
         - id
         - docs
-    RiskAnalysisTemplateAnswerAnnotationText:
-      type: object
-      additionalProperties: false
-      properties:
-        text:
-          type: string
-          minLength: 1
-          maxLength: 250
-      required:
-        - text
     RiskAnalysisTemplateAnswerAnnotationSeed:
       type: object
       additionalProperties: false
       properties:
         text:
           type: string
+          minLength: 1
+          maxLength: 2000
       required:
         - text
     EServiceDescriptorPurposeTemplate:
@@ -28372,6 +28379,8 @@ components:
           $ref: "#/components/schemas/DelegationState"
         kind:
           $ref: "#/components/schemas/DelegationKind"
+        isDocumentReady:
+          type: boolean
       required:
         - id
         - delegate
@@ -28379,6 +28388,7 @@ components:
         - state
         - kind
         - createdAt
+        - isDocumentReady
     CompactDelegation:
       type: object
       additionalProperties: false

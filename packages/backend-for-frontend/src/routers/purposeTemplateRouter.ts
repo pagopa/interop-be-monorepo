@@ -176,7 +176,7 @@ const purposeTemplateRouter = (
           error,
           getPurposeTemplateEServiceDescriptorsErrorMapper,
           ctx,
-          "Error retrieving purpose template e-services"
+          `Error retrieving purpose template e-services for purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

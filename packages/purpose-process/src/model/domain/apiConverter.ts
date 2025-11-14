@@ -239,6 +239,7 @@ export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
   questions: configuration.questions.map(
     formConfigQuestionToApiFormConfigQuestion
   ),
+  expiration: configuration.expiration?.toJSON(),
 });
 
 export const apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys = (

@@ -10,13 +10,18 @@ import {
   getAllFromPaginated,
   WithLogger,
 } from "pagopa-interop-commons";
-import { DelegationContractId, DelegationId } from "pagopa-interop-models";
+import {
+  DelegationContractId,
+  DelegationId,
+  delegationState,
+} from "pagopa-interop-models";
 import { isAxiosError } from "axios";
 import { match } from "ts-pattern";
 import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
+  toDelegationState,
 } from "../api/delegationApiConverter.js";
 import {
   CatalogProcessClient,
@@ -334,7 +339,7 @@ export function delegationServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
       logger.info(
-        `Retrieving delegation signed contract  from delegation ${delegationId}`
+        `Retrieving delegation signed contract from delegation ${delegationId}`
       );
 
       const delegation: delegationApi.Delegation =
@@ -343,16 +348,10 @@ export function delegationServiceBuilder(
           headers,
         });
 
-      const { signedActivationContract, signedRevocationContract } = delegation;
-
-      const signedContracts = [
-        signedActivationContract,
-        signedRevocationContract,
-      ];
-
-      const foundSignedContract = signedContracts.find(
-        (contract) => contract != null
-      );
+      const foundSignedContract =
+        delegation.state === toDelegationState(delegationState.revoked)
+          ? delegation.signedRevocationContract
+          : delegation.signedActivationContract;
 
       if (!foundSignedContract) {
         throw delegationContractNotFound(delegationId);

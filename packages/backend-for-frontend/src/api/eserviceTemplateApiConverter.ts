@@ -133,7 +133,7 @@ export function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
   riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
 ): bffApi.EServiceTemplateRiskAnalysis {
   return {
-    ...toBffCatalogApiEserviceRiskAnalysis(riskAnalysis),
+    ...toBffCatalogApiEserviceRiskAnalysis(riskAnalysis, undefined), // NOTE we could ignore rulesetExpiration until eservice template in receive mode is not enabled
     tenantKind: riskAnalysis.tenantKind,
   };
 }
