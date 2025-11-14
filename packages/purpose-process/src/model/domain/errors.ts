@@ -10,6 +10,7 @@ import {
   PurposeVersionId,
   PurposeVersionState,
   RiskAnalysisId,
+  TargetTenantKind,
   TenantId,
   TenantKind,
   makeApiProblemBuilder,
@@ -409,7 +410,7 @@ export function purposeTemplateNotFound(
 
 export function invalidPurposeTenantKind(
   purposeTenantKind: TenantKind,
-  templateTenantKind: TenantKind
+  templateTenantKind: TargetTenantKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose Tenant Kind ${purposeTenantKind} does not match template Tenant Kind ${templateTenantKind}`,

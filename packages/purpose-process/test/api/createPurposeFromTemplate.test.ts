@@ -7,6 +7,7 @@ import {
   PurposeTemplateId,
   eserviceMode,
   generateId,
+  targetTenantKind,
   tenantKind,
 } from "pagopa-interop-models";
 import {
@@ -136,7 +137,7 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
       expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
-      error: invalidPurposeTenantKind(tenantKind.PA, tenantKind.GSP),
+      error: invalidPurposeTenantKind(tenantKind.PA, targetTenantKind.PRIVATE),
       expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
