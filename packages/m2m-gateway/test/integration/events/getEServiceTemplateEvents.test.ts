@@ -18,7 +18,7 @@ describe("getEServiceTemplateEvents integration", () => {
     (eventType) => ({
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: eventType as m2mGatewayApi.EServiceTemplateEvent['eventType'],
+      eventType: eventType as m2mGatewayApi.EServiceTemplateEvent["eventType"],
       eserviceTemplateId: generateId(),
     })
   );

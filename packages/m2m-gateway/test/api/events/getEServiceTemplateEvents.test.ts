@@ -17,7 +17,7 @@ describe("GET /events/eserviceTemplates router test", () => {
     (eventType) => ({
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: eventType as m2mGatewayApi.EServiceTemplateEvent['eventType'],
+      eventType: eventType as m2mGatewayApi.EServiceTemplateEvent["eventType"],
       eserviceTemplateId: generateId(),
     })
   );
@@ -27,10 +27,10 @@ describe("GET /events/eserviceTemplates router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams =
-  {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,
