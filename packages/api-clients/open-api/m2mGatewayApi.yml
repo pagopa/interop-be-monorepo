@@ -16885,7 +16885,7 @@ paths:
       description: |
         Retrieve list of Producer Delegation events that occurred after the specified event ID.
         Results are ordered in ascending order (oldest events first).
-      operationId: getProducerDelegationsEvents
+      operationId: getProducerDelegationEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/EventsLimit"
@@ -16963,7 +16963,7 @@ paths:
       description: |
         Retrieve list of Consumer Delegation events that occurred after the specified event ID.
         Results are ordered in ascending order (oldest events first).
-      operationId: getConsumerDelegationsEvents
+      operationId: getConsumerDelegationEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/EventsLimit"
