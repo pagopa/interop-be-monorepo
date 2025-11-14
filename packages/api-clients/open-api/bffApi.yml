@@ -24909,6 +24909,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FormConfigQuestion"
+        expiration:
+          type: string
+          format: date-time
       required:
         - version
         - questions
@@ -25529,6 +25532,9 @@ components:
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisForm"
         createdAt:
+          type: string
+          format: date-time
+        rulesetExpiration:
           type: string
           format: date-time
     EServiceTemplateRiskAnalysis:
@@ -26576,6 +26582,9 @@ components:
           $ref: "#/components/schemas/CompactPurposeTemplate"
         isDocumentReady:
           type: boolean
+        rulesetExpiration:
+          type: string
+          format: date-time
       required:
         - id
         - title

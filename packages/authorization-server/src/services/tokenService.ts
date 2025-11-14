@@ -41,7 +41,7 @@ import {
   AuthServerAppContext,
   FileManager,
   formatDateyyyyMMdd,
-  formatTimehhmmss,
+  formatTimeHHmmss,
   InteropApiToken,
   InteropConsumerToken,
   InteropTokenGenerator,
@@ -465,7 +465,7 @@ export const fallbackAudit = async (
 ): Promise<void> => {
   const date = new Date();
   const ymdDate = formatDateyyyyMMdd(date);
-  const hmsTime = formatTimehhmmss(date);
+  const hmsTime = formatTimeHHmmss(date);
 
   const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
   const filePath = `token-details/${ymdDate}`;
