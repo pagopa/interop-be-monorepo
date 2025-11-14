@@ -69,7 +69,7 @@ export function selfcareOnboardingProcessorBuilder(
 
         if (!allowedOrigins.includes(origin)) {
           loggerInstance.warn(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId}`
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId} InstitutionType: ${institution.institutionType}`
           );
           return;
         }

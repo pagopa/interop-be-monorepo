@@ -45,6 +45,7 @@ export function toBffEServiceTemplateDetails(
     draftVersion: draftVersion
       ? toBffCompactEServiceTemplateVersion(draftVersion)
       : undefined,
+    personalData: eserviceTemplate.personalData,
   };
 }
 
@@ -72,7 +73,8 @@ export function toBffCatalogEServiceTemplate(
 }
 
 export function toBffProducerEServiceTemplate(
-  eserviceTemplate: eserviceTemplateApi.EServiceTemplate
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
+  entityIdsWithUnreadNotifications: string[]
 ): bffApi.ProducerEServiceTemplate {
   const activeVersion = eserviceTemplate.versions.find(
     (v) =>
@@ -97,6 +99,9 @@ export function toBffProducerEServiceTemplate(
     draftVersion: draftVersion
       ? toBffCompactEServiceTemplateVersion(draftVersion)
       : undefined,
+    hasUnreadNotifications: entityIdsWithUnreadNotifications?.includes(
+      eserviceTemplate.id
+    ),
   };
 }
 
@@ -128,7 +133,7 @@ export function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
   riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
 ): bffApi.EServiceTemplateRiskAnalysis {
   return {
-    ...toBffCatalogApiEserviceRiskAnalysis(riskAnalysis),
+    ...toBffCatalogApiEserviceRiskAnalysis(riskAnalysis, undefined), // NOTE we could ignore rulesetExpiration until eservice template in receive mode is not enabled
     tenantKind: riskAnalysis.tenantKind,
   };
 }

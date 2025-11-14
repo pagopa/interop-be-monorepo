@@ -1,6 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
   loggerMiddleware,
   multerMiddleware,
@@ -108,6 +109,8 @@ export async function createApp(
     producerKeychainRouter(zodiosCtx, producerKeychainService),
     keyRouter(zodiosCtx, keyService)
   );
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }

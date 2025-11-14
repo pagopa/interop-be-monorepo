@@ -34,8 +34,12 @@ import {
   getMockAuthData,
   getMockDelegation,
   getMockContext,
+  getMockExpiredRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import {
+  expiredRulesVersionError,
+  rulesVersionNotFoundError,
+} from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
@@ -81,6 +85,9 @@ describe("createPurpose", () => {
   );
 
   const mockValidRiskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
+  const mockExpiredRiskAnalysisForm = getMockExpiredRiskAnalysisForm(
+    tenantKind.PA
+  );
 
   const purposeSeed = getMockPurposeSeed(
     eService1.id,
@@ -162,7 +169,9 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
@@ -173,6 +182,102 @@ describe("createPurpose", () => {
 
     vi.useRealTimers();
   });
+
+  it("should write on event-store for the creation of a purpose with isFreeOfCharge false", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
+
+    const purposeSeedWithFreeOfChargeFalse: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      isFreeOfCharge: false,
+      freeOfChargeReason: undefined,
+    };
+
+    const createPurposeResponse = await purposeService.createPurpose(
+      purposeSeedWithFreeOfChargeFalse,
+      getMockContext({
+        authData: getMockAuthData(
+          unsafeBrandId<TenantId>(purposeSeed.consumerId)
+        ),
+      })
+    );
+
+    const writtenEvent = await readLastPurposeEvent(
+      createPurposeResponse.data.purpose.id
+    );
+
+    if (!writtenEvent) {
+      fail("Update failed: purpose not found in event-store");
+    }
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: createPurposeResponse.data.purpose.id,
+      version: "0",
+      type: "PurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedRiskAnalysisForm: RiskAnalysisForm = {
+      ...mockValidRiskAnalysisForm,
+      id: unsafeBrandId(
+        createPurposeResponse.data.purpose.riskAnalysisForm!.id
+      ),
+      singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
+        (answer, i) => ({
+          ...answer,
+          id: createPurposeResponse.data.purpose.riskAnalysisForm!
+            .singleAnswers[i].id,
+        })
+      ),
+      multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
+        ...answer,
+        id: createPurposeResponse.data.purpose.riskAnalysisForm!.multiAnswers[i]
+          .id,
+      })),
+    };
+
+    const expectedPurpose: Purpose = {
+      title: purposeSeedWithFreeOfChargeFalse.title,
+      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
+      createdAt: new Date(),
+      eserviceId: unsafeBrandId(purposeSeedWithFreeOfChargeFalse.eserviceId),
+      consumerId: unsafeBrandId(purposeSeedWithFreeOfChargeFalse.consumerId),
+      description: purposeSeedWithFreeOfChargeFalse.description,
+      versions: [
+        {
+          id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+          state: purposeVersionState.draft,
+          dailyCalls: purposeSeedWithFreeOfChargeFalse.dailyCalls,
+          createdAt: new Date(),
+        },
+      ],
+      isFreeOfCharge: purposeSeedWithFreeOfChargeFalse.isFreeOfCharge,
+      freeOfChargeReason: purposeSeedWithFreeOfChargeFalse.freeOfChargeReason,
+      riskAnalysisForm: expectedRiskAnalysisForm,
+    };
+
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
+    expect(createPurposeResponse).toEqual({
+      data: {
+        purpose: expectedPurpose,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
+    });
+
+    vi.useRealTimers();
+  });
+
   it("should succeed when requester is Consumer Delegate and the Purpose was created successfully", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -257,9 +362,9 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    expect(writtenPayload.purpose).toEqual(
-      toPurposeV2(createPurposeResponse.data.purpose)
-    );
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
@@ -405,9 +510,9 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    expect(writtenPayload.purpose).toEqual(
-      toPurposeV2(createPurposeResponse.data.purpose)
-    );
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
@@ -473,6 +578,7 @@ describe("createPurpose", () => {
     ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
   });
   it("should throw tenantNotFound if the tenant doesn't exists", async () => {
+    await addOneEService(eService1);
     expect(
       purposeService.createPurpose(
         purposeSeed,
@@ -571,7 +677,36 @@ describe("createPurpose", () => {
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
-        unexpectedRulesVersionError(mockInvalidRiskAnalysisForm.version),
+        rulesVersionNotFoundError(
+          tenant.kind!,
+          mockInvalidRiskAnalysisForm.version
+        ),
+      ])
+    );
+  });
+  it("should throw riskAnalysisValidationFailed if the purpose has an expired risk analysis ", async () => {
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
+
+    const seed: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      riskAnalysisForm: buildRiskAnalysisFormSeed(mockExpiredRiskAnalysisForm),
+    };
+
+    expect(
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([
+        expiredRulesVersionError(
+          mockExpiredRiskAnalysisForm.version,
+          tenant.kind!
+        ),
       ])
     );
   });

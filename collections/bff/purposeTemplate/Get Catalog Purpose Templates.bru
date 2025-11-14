@@ -1,0 +1,26 @@
+meta {
+  name: Get Catalog Purpose Templates
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-bff}}/catalog/purposeTemplates?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: 
+  ~eserviceIds: 
+  ~targetTenantKind: 
+  ~excludeExpiredRiskAnalysis: 
+  ~handlesPersonalData: false
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

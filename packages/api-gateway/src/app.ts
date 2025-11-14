@@ -1,6 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
   initRedisRateLimiter,
   loggerMiddleware,
   rateLimiterMiddleware,
@@ -49,5 +50,7 @@ app.use(
   rateLimiterMiddleware(redisRateLimiter),
   apiGatewayRouter(zodiosCtx, clients)
 );
+
+app.use(errorsToApiProblemsMiddleware);
 
 export default app;

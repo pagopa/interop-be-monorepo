@@ -16,6 +16,7 @@ export const serviceName = {
   IN_APP_NOTIFICATION_MANAGER: "in-app-notification-manager",
   NOTIFICATION_CONFIG_PROCESS: "notification-config-process",
   PURPOSE_TEMPLATE_PROCESS: "purpose-template-process",
+  M2M_EVENT_MANAGER: "m2m-event-manager",
 } as const;
 
 export const ServiceName = z.enum([
@@ -40,4 +41,5 @@ export const serviceErrorCode: Record<ServiceName, string> = {
   [serviceName.IN_APP_NOTIFICATION_MANAGER]: "013",
   [serviceName.NOTIFICATION_CONFIG_PROCESS]: "014",
   [serviceName.PURPOSE_TEMPLATE_PROCESS]: "015",
+  [serviceName.M2M_EVENT_MANAGER]: "016",
 };

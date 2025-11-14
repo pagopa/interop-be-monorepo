@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
-import { AuthData, formatDateyyyyMMddThhmmss } from "pagopa-interop-commons";
+import { AuthData, formatDateyyyyMMddTHHmmss } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
 import {
@@ -10,6 +10,8 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
+  PurposeProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
@@ -47,6 +49,9 @@ describe("getEServiceConsumers", () => {
   const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
   const mockEServiceTemplateProcessClient =
     {} as unknown as EServiceTemplateProcessClient;
+  const mockIInAppNotificationManagerClient =
+    {} as unknown as InAppNotificationManagerClient;
+  const mockPurposeProcessClient = {} as unknown as PurposeProcessClient;
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,
@@ -55,6 +60,8 @@ describe("getEServiceConsumers", () => {
     mockAttributeProcessClient,
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
+    mockIInAppNotificationManagerClient,
+    mockPurposeProcessClient,
     fileManager,
     config
   );
@@ -89,7 +96,7 @@ describe("getEServiceConsumers", () => {
       },
       headers: bffMockContext.headers,
     });
-    const currentDate = formatDateyyyyMMddThhmmss(new Date());
+    const currentDate = formatDateyyyyMMddTHHmmss(new Date());
     const expectedFilename = `${currentDate}-lista-fruitori-${eService.name}.csv`;
     expect(result.filename).toBe(expectedFilename);
 
@@ -107,7 +114,7 @@ describe("getEServiceConsumers", () => {
       bffMockContext
     );
 
-    const currentDate = formatDateyyyyMMddThhmmss(new Date());
+    const currentDate = formatDateyyyyMMddTHHmmss(new Date());
     const expectedFilename = `${currentDate}-lista-fruitori-${eService.name}.csv`;
     expect(result.filename).toBe(expectedFilename);
 

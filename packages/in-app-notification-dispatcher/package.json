@@ -2,6 +2,7 @@
   "name": "pagopa-interop-in-app-notification-dispatcher",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "Pagopa Interop In-App Notification Dispatcher",
   "main": "dist",
   "type": "module",
@@ -19,12 +20,10 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",
-    "axios": "1.8.2",
+    "axios": "1.12.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",

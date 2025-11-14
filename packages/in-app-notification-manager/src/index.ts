@@ -11,6 +11,9 @@ const pool = new pg.Pool({
   user: config.inAppNotificationDBUsername,
   password: config.inAppNotificationDBPassword,
   port: config.inAppNotificationDBPort,
+  ssl: config.inAppNotificationDBUseSSL
+    ? { rejectUnauthorized: false }
+    : undefined,
 });
 const db = drizzle({ client: pool });
 

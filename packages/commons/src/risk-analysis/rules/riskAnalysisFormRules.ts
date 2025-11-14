@@ -75,6 +75,7 @@ export type FormQuestionRules = z.infer<typeof FormQuestionRules>;
 
 export const RiskAnalysisFormRules = z.object({
   version: z.string(),
+  expiration: z.date().optional(),
   questions: z.array(FormQuestionRules),
 });
 export type RiskAnalysisFormRules = z.infer<typeof RiskAnalysisFormRules>;

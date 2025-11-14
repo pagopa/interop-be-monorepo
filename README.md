@@ -37,7 +37,7 @@ First, start a consumer service by running (for example):
 pnpm start:catalog-consumer
 ```
 
-This will start a local instance of Debezium (alongside with its requirements Zookeeper and Kafka) and a local MongoDB instance which will contain the read model.
+This will start a local instance of Debezium (alongside with its requirements Zookeeper and Kafka) and a local PostgreSQL instance which will contain the read model.
 
 Then, start a process service by running (for example):
 
@@ -59,9 +59,7 @@ curl -X POST http://localhost:3000/eservices \
 
 You should see the event being processed by the consumer and the read model being updated.
 
-You can verify this by using Mongo Express, which is being started alongside the consumer and is available at http://localhost:8081/db/readmodel.
-
-Similarly, there is a Postgres web client that can be used to inspect the event stores at http://localhost:8082.
+You can verify this by using PgAdmin, which is being started alongside the consumer and is available at http://localhost:8082. That can be used to inspect the event store.
 
 ## Licensing
 

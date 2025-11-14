@@ -19,6 +19,7 @@ import {
 
 import {
   AppContext,
+  AuthData,
   DB,
   eventRepository,
   FileManager,
@@ -46,8 +47,8 @@ import {
   toCreateEventProducerDelegationRejected,
   toCreateEventProducerDelegationRevoked,
   toCreateEventProducerDelegationSubmitted,
+  toCreateEventDelegationContractGenerated,
 } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   activeDelegationStates,
   assertDelegationNotExists,
@@ -63,6 +64,7 @@ import {
   assertTenantAllowedToReceiveDelegation,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const retrieveDelegationById = async (
   {
@@ -72,7 +74,7 @@ export const retrieveDelegationById = async (
     delegationId: DelegationId;
     kind: DelegationKind | undefined;
   },
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Delegation>> => {
   const delegation = await readModelService.getDelegationById(
     delegationId,
@@ -85,7 +87,7 @@ export const retrieveDelegationById = async (
 };
 
 export const retrieveTenantById = async (
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   tenantId: TenantId
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
@@ -96,7 +98,7 @@ export const retrieveTenantById = async (
 };
 
 export const retrieveEserviceById = async (
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   id: EServiceId
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(id);
@@ -109,7 +111,7 @@ export const retrieveEserviceById = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager
 ) {
@@ -440,6 +442,38 @@ export function delegationServiceBuilder(
     );
   }
 
+  async function internalAddDelegationContract(
+    delegationId: DelegationId,
+    delegationContract: DelegationContractDocument,
+    { logger, correlationId }: WithLogger<AppContext<AuthData>>
+  ): Promise<WithMetadata<Delegation>> {
+    logger.info(`Adding delegation contract ${delegationId}`);
+    const { data: delegation, metadata } = await retrieveDelegationById(
+      {
+        delegationId,
+        kind: undefined,
+      },
+      readModelService
+    );
+
+    const delegationWithContract = {
+      ...delegation,
+      delegationContract,
+    };
+    const event = await repository.createEvent(
+      toCreateEventDelegationContractGenerated(
+        { data: delegationWithContract, metadata },
+        correlationId
+      )
+    );
+    return {
+      data: delegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
+  }
+
   return {
     async getDelegationById(
       delegationId: DelegationId,
@@ -679,6 +713,17 @@ export function delegationServiceBuilder(
         ...filters,
         delegateId: authData.organizationId,
       });
+    },
+    async internalAddDelegationContract(
+      delegationId: DelegationId,
+      delegationContract: DelegationContractDocument,
+      ctx: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return await internalAddDelegationContract(
+        delegationId,
+        delegationContract,
+        ctx
+      );
     },
   };
 }

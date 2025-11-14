@@ -10,6 +10,7 @@ import {
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -35,6 +36,9 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/attributes
     verified: [],
   };
 
+  const mockEserviceTemplateWithMetadata =
+    getMockWithMetadata(mockEserviceTemplate);
+
   const makeRequest = async (
     token: string,
     seedParam = seed,
@@ -53,10 +57,14 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/attributes
   beforeEach(() => {
     eserviceTemplateService.updateEServiceTemplateVersionAttributes = vi
       .fn()
-      .mockResolvedValue(mockEserviceTemplate);
+      .mockResolvedValue(mockEserviceTemplateWithMetadata);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -66,6 +74,9 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/attributes
         eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate)
       );
       expect(res.status).toBe(200);
+      expect(res.headers["x-metadata-version"]).toBe(
+        mockEserviceTemplateWithMetadata.metadata.version.toString()
+      );
     }
   );
 

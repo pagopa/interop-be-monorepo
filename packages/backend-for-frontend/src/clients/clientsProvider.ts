@@ -10,6 +10,9 @@ import {
   selfcareV2UsersClientBuilder,
   delegationApi,
   eserviceTemplateApi,
+  notificationConfigApi,
+  inAppNotificationApi,
+  purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -33,6 +36,10 @@ export type AgreementProcessClient = ReturnType<
 
 export type PurposeProcessClient = ReturnType<
   typeof purposeApi.createPurposeApiClient
+>;
+
+export type PurposeTemplateProcessClient = ReturnType<
+  typeof purposeTemplateApi.createPurposeTemplateApiClient
 >;
 
 export type DelegationProcessClient = {
@@ -64,17 +71,28 @@ export type SelfcareV2UserClient = {
   user: ReturnType<typeof selfcareV2ClientApi.createUserApiClient>;
 };
 
+export type NotificationConfigProcessClient = ReturnType<
+  typeof notificationConfigApi.createProcessApiClient
+>;
+
+export type InAppNotificationManagerClient = ReturnType<
+  typeof inAppNotificationApi.createNotificationApiClient
+>;
+
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;
   catalogProcessClient: CatalogProcessClient;
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
+  purposeTemplateProcessClient: PurposeTemplateProcessClient;
   authorizationClient: AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UserClient;
   delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: EServiceTemplateProcessClient;
+  notificationConfigProcessClient: NotificationConfigProcessClient;
+  inAppNotificationManagerClient: InAppNotificationManagerClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -96,6 +114,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       config.attributeRegistryUrl
     ),
     purposeProcessClient: purposeApi.createPurposeApiClient(config.purposeUrl),
+    purposeTemplateProcessClient:
+      purposeTemplateApi.createPurposeTemplateApiClient(
+        config.purposeTemplateUrl
+      ),
     authorizationClient: {
       client: authorizationApi.createClientApiClient(config.authorizationUrl),
       producerKeychain: authorizationApi.createProducerKeychainApiClient(
@@ -126,5 +148,13 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     eserviceTemplateProcessClient: eserviceTemplateApi.createProcessApiClient(
       config.eserviceTemplateProcessUrl
     ),
+    notificationConfigProcessClient:
+      notificationConfigApi.createProcessApiClient(
+        config.notificationConfigProcessUrl
+      ),
+    inAppNotificationManagerClient:
+      inAppNotificationApi.createNotificationApiClient(
+        config.inAppNotificationManagerUrl
+      ),
   };
 }

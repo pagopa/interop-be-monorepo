@@ -12,6 +12,7 @@ import {
   descriptorState,
   DescriptorState,
   EServiceAttribute,
+  EServiceId,
   Technology,
   technology,
   unsafeBrandId,
@@ -32,6 +33,8 @@ import {
   isRequesterEserviceProducer,
   isValidDescriptor,
 } from "../services/validators.js";
+import { PurposeProcessClient } from "../clients/clientsProvider.js";
+import { BffAppContext } from "../utilities/context.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
@@ -49,6 +52,7 @@ export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
+  hasNotifications: boolean,
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
 ): bffApi.CatalogEService {
@@ -84,17 +88,20 @@ export function toBffCatalogApiEService(
           },
         }
       : {}),
+    hasUnreadNotifications: hasNotifications,
   };
 }
 
-export function toBffCatalogDescriptorEService(
+export async function toBffCatalogDescriptorEService(
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor,
   producerTenant: tenantApi.Tenant,
   agreement: agreementApi.Agreement | undefined,
   requesterTenant: tenantApi.Tenant,
-  consumerDelegators: tenantApi.Tenant[]
-): bffApi.CatalogDescriptorEService {
+  consumerDelegators: tenantApi.Tenant[],
+  purposeProcessClient: PurposeProcessClient,
+  headers: BffAppContext["headers"]
+): Promise<bffApi.CatalogDescriptorEService> {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
     id: eservice.id,
@@ -122,12 +129,16 @@ export function toBffCatalogDescriptorEService(
       : undefined,
     mail: getLatestTenantContactEmail(producerTenant),
     mode: eservice.mode,
-    riskAnalysis: eservice.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+    riskAnalysis: await enhanceRiskAnalysisArray(
+      eservice.riskAnalysis,
+      unsafeBrandId<EServiceId>(eservice.id),
+      purposeProcessClient,
+      headers
     ),
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    personalData: eservice.personalData,
   };
 }
 
@@ -161,7 +172,8 @@ export function toBffCatalogApiDescriptorDoc(
 }
 
 export function toBffCatalogApiEserviceRiskAnalysis(
-  riskAnalysis: catalogApi.EServiceRiskAnalysis
+  riskAnalysis: catalogApi.EServiceRiskAnalysis,
+  rulesetExpiration: string | undefined
 ): bffApi.EServiceRiskAnalysis {
   const answers: bffApi.RiskAnalysisForm["answers"] =
     riskAnalysis.riskAnalysisForm.singleAnswers
@@ -200,6 +212,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
     name: riskAnalysis.name,
     createdAt: riskAnalysis.createdAt,
     riskAnalysisForm,
+    rulesetExpiration,
   };
 }
 
@@ -243,10 +256,12 @@ export function toBffCatalogApiEserviceRiskAnalysisSeed(
   };
 }
 
-export function toBffCatalogApiProducerDescriptorEService(
+export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
-  producer: tenantApi.Tenant
-): bffApi.ProducerDescriptorEService {
+  producer: tenantApi.Tenant,
+  purposeProcessClient: PurposeProcessClient,
+  headers: BffAppContext["headers"]
+): Promise<bffApi.ProducerDescriptorEService> {
   const producerMail = getLatestTenantContactEmail(producer);
 
   const notDraftDecriptors = eservice.descriptors
@@ -272,14 +287,51 @@ export function toBffCatalogApiProducerDescriptorEService(
     draftDescriptor: draftDescriptor
       ? toCompactDescriptor(draftDescriptor)
       : undefined,
-    riskAnalysis: eservice.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+    riskAnalysis: await enhanceRiskAnalysisArray(
+      eservice.riskAnalysis,
+      unsafeBrandId<EServiceId>(eservice.id),
+      purposeProcessClient,
+      headers
     ),
     descriptors: notDraftDecriptors,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    personalData: eservice.personalData,
   };
+}
+
+export async function enhanceRiskAnalysisArray(
+  riskAnalysisArray: catalogApi.EServiceRiskAnalysis[],
+  eserviceId: EServiceId,
+  purposeProcessClient: PurposeProcessClient,
+  headers: BffAppContext["headers"]
+): Promise<bffApi.EServiceRiskAnalysis[]> {
+  const rulesetExpirations: Record<string, string | undefined> = {};
+
+  for (const riskAnalysis of riskAnalysisArray) {
+    const version = riskAnalysis.riskAnalysisForm.version;
+    if (!rulesetExpirations[version]) {
+      const ruleset =
+        await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion({
+          params: {
+            riskAnalysisVersion: version,
+          },
+          headers,
+          queries: {
+            eserviceId,
+          },
+        });
+      rulesetExpirations[version] = ruleset.expiration;
+    }
+  }
+
+  return riskAnalysisArray.map((riskAnalysis) =>
+    toBffCatalogApiEserviceRiskAnalysis(
+      riskAnalysis,
+      rulesetExpirations[riskAnalysis.riskAnalysisForm.version]
+    )
+  );
 }
 
 export function toEserviceAttribute(

@@ -1,5 +1,7 @@
 import {
+  EmailNotificationPreference,
   NotificationConfig,
+  NotificationType,
   stringToDate,
   TenantNotificationConfig,
   unsafeBrandId,
@@ -14,7 +16,6 @@ import {
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
-import { NotificationType } from "./utils.js";
 
 export const aggregateTenantNotificationConfig = (
   tenantNotificationConfigSQL: TenantNotificationConfigSQL
@@ -52,6 +53,9 @@ export const aggregateUserNotificationConfig = ({
     metadataVersion,
     userId,
     tenantId,
+    userRoles: userRolesSQL,
+    inAppNotificationPreference,
+    emailNotificationPreference,
     createdAt,
     updatedAt,
     ...rest
@@ -64,6 +68,7 @@ export const aggregateUserNotificationConfig = ({
   const enabledEmailNotifications = enabledEmailNotificationsSQL.map((r) =>
     NotificationType.parse(r.notificationType)
   );
+  const userRoles = UserNotificationConfig.shape.userRoles.parse(userRolesSQL);
 
   const inAppConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledInAppNotifications.includes(
@@ -128,6 +133,10 @@ export const aggregateUserNotificationConfig = ({
     clientKeyAddedDeletedToClientUsers: enabledInAppNotifications.includes(
       "clientKeyAddedDeletedToClientUsers"
     ),
+    producerKeychainKeyAddedDeletedToClientUsers:
+      enabledInAppNotifications.includes(
+        "producerKeychainKeyAddedDeletedToClientUsers"
+      ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -192,6 +201,10 @@ export const aggregateUserNotificationConfig = ({
     clientKeyAddedDeletedToClientUsers: enabledEmailNotifications.includes(
       "clientKeyAddedDeletedToClientUsers"
     ),
+    producerKeychainKeyAddedDeletedToClientUsers:
+      enabledEmailNotifications.includes(
+        "producerKeychainKeyAddedDeletedToClientUsers"
+      ),
   };
 
   return {
@@ -199,6 +212,11 @@ export const aggregateUserNotificationConfig = ({
       id: unsafeBrandId(id),
       userId: unsafeBrandId(userId),
       tenantId: unsafeBrandId(tenantId),
+      userRoles,
+      inAppNotificationPreference,
+      emailNotificationPreference: EmailNotificationPreference.parse(
+        emailNotificationPreference
+      ),
       inAppConfig,
       emailConfig,
       createdAt: stringToDate(createdAt),

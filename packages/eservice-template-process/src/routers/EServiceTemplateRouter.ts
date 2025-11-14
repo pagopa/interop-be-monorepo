@@ -7,6 +7,7 @@ import {
   fromAppContext,
   authRole,
   validateAuthorization,
+  assertFeatureFlagEnabled,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -41,13 +42,15 @@ import {
   updateDocumentErrorMapper,
   deleteDocumentErrorMapper,
   getEServiceTemplatesErrorMapper,
+  updateEServiceTemplatePersonalDataFlagErrorMapper,
+  deleteEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
-  eserviceTemplateVersionToApiEServiceTemplateVersion,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   documentToApiDocument,
 } from "../model/domain/apiConverter.js";
+import { config } from "../config/config.js";
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext,
@@ -84,6 +87,7 @@ const eserviceTemplatesRouter = (
           creatorsIds,
           eserviceTemplatesIds,
           states,
+          personalData,
           offset,
           limit,
         } = req.query;
@@ -98,6 +102,7 @@ const eserviceTemplatesRouter = (
                 apiEServiceTemplateVersionStateToEServiceTemplateVersionState
               ),
               name,
+              personalData,
             },
             offset,
             limit,
@@ -178,6 +183,26 @@ const eserviceTemplatesRouter = (
         const errorRes = makeApiProblem(
           error,
           getEServiceTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/templates/:templateId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+        await eserviceTemplateService.deleteEServiceTemplate(
+          unsafeBrandId(req.params.templateId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          deleteEServiceTemplateErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
@@ -279,22 +304,24 @@ const eserviceTemplatesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE, ADMIN_ROLE, API_ROLE]);
 
-        const eserviceTemplateVersion =
-          await eserviceTemplateService.createEServiceTemplateVersion(
-            unsafeBrandId(req.params.templateId),
-            ctx
-          );
-        return res
-          .status(200)
-          .send(
-            eserviceTemplateApi.EServiceTemplateVersion.parse(
-              eserviceTemplateVersionToApiEServiceTemplateVersion(
-                eserviceTemplateVersion
-              )
-            )
-          );
+        const {
+          data: { eserviceTemplate, createdEServiceTemplateVersionId },
+          metadata,
+        } = await eserviceTemplateService.createEServiceTemplateVersion(
+          unsafeBrandId(req.params.templateId),
+          req.body,
+          ctx
+        );
+        setMetadataVersionHeader(res, metadata);
+        return res.status(200).send(
+          eserviceTemplateApi.CreatedEServiceTemplateVersion.parse({
+            eserviceTemplate:
+              eserviceTemplateToApiEServiceTemplate(eserviceTemplate),
+            createdEServiceTemplateVersionId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -785,15 +812,16 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEServiceTemplate =
+          const { metadata, data: updatedEServiceTemplate } =
             await eserviceTemplateService.updateEServiceTemplateVersionAttributes(
               unsafeBrandId(req.params.templateId),
               unsafeBrandId(req.params.templateVersionId),
               req.body,
               ctx
             );
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
@@ -811,6 +839,37 @@ const eserviceTemplatesRouter = (
         }
       }
     )
+    .post("/templates/:templateId/personalDataFlag", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
+
+        const updatedEServiceTemplate =
+          await eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
+            unsafeBrandId(req.params.templateId),
+            req.body.personalData,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            eserviceTemplateApi.EServiceTemplate.parse(
+              eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceTemplatePersonalDataFlagErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/creators", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

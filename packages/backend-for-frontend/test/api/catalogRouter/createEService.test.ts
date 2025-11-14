@@ -55,6 +55,7 @@ describe("API POST /eservices", () => {
     { body: { ...mockEServiceSeed, isSignalHubEnabled: "invalid" } },
     { body: { ...mockEServiceSeed, mode: "invalid" } },
     { body: { ...mockEServiceSeed, technology: "invalid" } },
+    { body: { ...mockEServiceSeed, personalData: "invalid" } },
   ])(
     "Should return 400 if passed an invalid parameter: %s",
     async ({ body }) => {

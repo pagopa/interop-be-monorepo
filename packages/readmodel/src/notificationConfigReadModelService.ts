@@ -1,10 +1,12 @@
 import { match } from "ts-pattern";
 import {
+  NotificationType,
   TenantId,
   TenantNotificationConfig,
   UserId,
   UserNotificationConfig,
   WithMetadata,
+  emailNotificationPreference,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -20,7 +22,6 @@ import {
   aggregateUserNotificationConfig,
   toUserNotificationConfigAggregator,
 } from "./notification-config/aggregators.js";
-import { NotificationType } from "./notification-config/utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigReadModelServiceBuilder(
@@ -133,7 +134,20 @@ export function notificationConfigReadModelServiceBuilder(
               userNotificationConfigInReadmodelNotificationConfig.tenantId,
               tenantIds
             ),
-            eq(enabledNotificationTable.notificationType, notificationType)
+            eq(enabledNotificationTable.notificationType, notificationType),
+            match(notificationChannel)
+              .with(
+                "inApp",
+                () =>
+                  userNotificationConfigInReadmodelNotificationConfig.inAppNotificationPreference
+              )
+              .with("email", () =>
+                eq(
+                  userNotificationConfigInReadmodelNotificationConfig.emailNotificationPreference,
+                  emailNotificationPreference.enabled
+                )
+              )
+              .exhaustive()
           )
         );
 

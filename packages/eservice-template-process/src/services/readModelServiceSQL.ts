@@ -2,6 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   withTotalCount,
@@ -12,7 +13,6 @@ import {
   AttributeKind,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateVersionState,
   ListResult,
   Tenant,
   TenantId,
@@ -43,14 +43,9 @@ import {
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import { match } from "ts-pattern";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
-
-export type GetEServiceTemplatesFilters = {
-  name?: string;
-  eserviceTemplatesIds: EServiceTemplateId[];
-  creatorsIds: TenantId[];
-  states: EServiceTemplateVersionState[];
-};
+import { GetEServiceTemplatesFilters } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -112,9 +107,10 @@ export function readModelServiceBuilderSQL({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: UIAuthData | M2MAuthData
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<EServiceTemplate>> {
-      const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
+      const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
+        filters;
 
       const subquery = readModelDB
         .select(
@@ -146,6 +142,26 @@ export function readModelServiceBuilderSQL({
                   eserviceTemplatesIds
                 )
               : undefined,
+            match(personalData)
+              .with("TRUE", () =>
+                eq(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                  true
+                )
+              )
+              .with("FALSE", () =>
+                eq(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                  false
+                )
+              )
+              .with("DEFINED", () =>
+                isNotNull(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData
+                )
+              )
+              .with(undefined, () => undefined)
+              .exhaustive(),
             // CREATORS IDS FILTER
             creatorsIds.length > 0
               ? inArray(

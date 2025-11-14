@@ -2,6 +2,7 @@
   "name": "pagopa-interop-email-sender",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "Pagopa Interop Email Sender",
   "main": "dist",
   "type": "module",
@@ -19,13 +20,11 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
     "@types/nodemailer": "6.4.17",
-    "axios": "1.8.2",
+    "axios": "1.12.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
@@ -40,6 +39,8 @@
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
     "nodemailer": "6.9.14",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8"
