@@ -29,5 +29,45 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events };
     },
+    async getProducerDelegationEvents(
+      {
+        lastEventId,
+        limit,
+      }: m2mGatewayApi.GetEventManagerProducerDelegationsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.ProducerDelegationEvents> {
+      logger.info(`Retrieving producer delegation events`);
+
+      const { events } =
+        await clients.eventManagerClient.getProducerDelegationM2MEvents({
+          queries: {
+            lastEventId,
+            limit,
+          },
+          headers,
+        });
+
+      return { events };
+    },
+    async getConsumerDelegationEvents(
+      {
+        lastEventId,
+        limit,
+      }: m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.ConsumerDelegationEvents> {
+      logger.info(`Retrieving consumer delegation events`);
+
+      const { events } =
+        await clients.eventManagerClient.getConsumerDelegationM2MEvents({
+          queries: {
+            lastEventId,
+            limit,
+          },
+          headers,
+        });
+
+      return { events };
+    },
   };
 }
