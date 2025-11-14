@@ -184,6 +184,17 @@ export type GetPurposeTemplatesQueryParams = QueryParametersByAlias<
   "getPurposeTemplates"
 >;
 
+export type GetPurposeTemplateEServicesQueryParams = QueryParametersByAlias<
+  PurposeTemplateApi,
+  "getPurposeTemplateEServices"
+>;
+
+export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
+  QueryParametersByAlias<
+    PurposeTemplateApi,
+    "getRiskAnalysisTemplateAnnotationDocuments"
+  >;
+
 export type GetEventManagerAttributesQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getAttributesEvents"
