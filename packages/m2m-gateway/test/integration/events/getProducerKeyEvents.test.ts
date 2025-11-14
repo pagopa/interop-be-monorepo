@@ -1,0 +1,66 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
+import {
+  eventService,
+  expectApiClientGetToHaveBeenCalledWith,
+  mockInteropBeClients,
+} from "../../integrationUtils.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+
+describe("getProducerKeyEvents integration", () => {
+  const mockProducerKeyEvent1: m2mEventApi.ProducerKeyM2MEvent = {
+    id: generateId(),
+    eventTimestamp: new Date().toJSON(),
+    eventType: "PRODUCER_KEYCHAIN_KEY_ADDED",
+    kid: generateId(),
+  };
+
+  const mockProducerKeyEvent2: m2mEventApi.ProducerKeyM2MEvent = {
+    id: generateId(),
+    eventTimestamp: new Date().toJSON(),
+    eventType: "PRODUCER_KEYCHAIN_KEY_DELETED",
+    kid: generateId(),
+  };
+
+  const mockEventManagerResponse: m2mEventApi.ProducerKeyM2MEvents = {
+    events: [mockProducerKeyEvent1, mockProducerKeyEvent2],
+  };
+
+  const mockGetProducerKeyM2MEvents = vi
+    .fn()
+    .mockResolvedValue(mockEventManagerResponse);
+
+  mockInteropBeClients.eventManagerClient = {
+    getProducerKeyM2MEvents: mockGetProducerKeyM2MEvents,
+  } as unknown as PagoPAInteropBeClients["eventManagerClient"];
+
+  beforeEach(() => {
+    mockGetProducerKeyM2MEvents.mockClear();
+  });
+
+  it.each([generateId(), undefined])(
+    "Should succeed and perform API clients calls",
+    async (lastEventId) => {
+      const expectedResponse: m2mGatewayApi.ProducerKeyEvents = {
+        events: [mockProducerKeyEvent1, mockProducerKeyEvent2],
+      };
+      const result = await eventService.getProducerKeysEvents(
+        {
+          lastEventId,
+          limit: 10,
+        },
+        getMockM2MAdminAppContext()
+      );
+      expect(result).toEqual(expectedResponse);
+      expectApiClientGetToHaveBeenCalledWith({
+        mockGet: mockGetProducerKeyM2MEvents,
+        queries: {
+          lastEventId,
+          limit: 10,
+        },
+      });
+    }
+  );
+});
