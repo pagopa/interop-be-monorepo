@@ -12382,7 +12382,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationText"
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationSeed"
       responses:
         "200":
           description: Purpose Template Risk Analysis Answer Annotation added
@@ -26867,22 +26867,14 @@ components:
         - text
         - id
         - docs
-    RiskAnalysisTemplateAnswerAnnotationText:
-      type: object
-      additionalProperties: false
-      properties:
-        text:
-          type: string
-          minLength: 1
-          maxLength: 250
-      required:
-        - text
     RiskAnalysisTemplateAnswerAnnotationSeed:
       type: object
       additionalProperties: false
       properties:
         text:
           type: string
+          minLength: 1
+          maxLength: 2000
       required:
         - text
     EServiceDescriptorPurposeTemplate:
