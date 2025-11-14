@@ -15,6 +15,8 @@ import {
   retrievePurposeTemplateRiskAnalysisAnswersAnnotationsDocumentsSQLById,
   retrievePurposeTemplateRiskAnalysisAnswersAnnotationsSQLById,
   retrievePurposeTemplateRiskAnalysisAnswersSQLById,
+  retrievePurposeTemplateRiskAnalysisFormDocumentSQLById,
+  retrievePurposeTemplateRiskAnalysisFormSignedDocumentSQLById,
   retrievePurposeTemplateRiskAnalysisFormSQLById,
   retrievePurposeTemplateSQLById,
 } from "./utils.js";
@@ -48,6 +50,8 @@ describe("Purpose template queries", () => {
         riskAnalysisTemplateAnswersSQL,
         riskAnalysisTemplateAnswersAnnotationsSQL,
         riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+        riskAnalysisTemplateDocumentSQL,
+        riskAnalysisTemplateSignedDocumentSQL,
       } = await checkCompletePurposeTemplate(purposeTemplate);
 
       const retrievedPurposeTemplate = aggregatePurposeTemplate({
@@ -56,6 +60,8 @@ describe("Purpose template queries", () => {
         riskAnalysisTemplateAnswersSQL,
         riskAnalysisTemplateAnswersAnnotationsSQL,
         riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+        riskAnalysisTemplateDocumentSQL,
+        riskAnalysisTemplateSignedDocumentSQL,
       });
       const retrievedPurposeTemplateEServiceDescriptors =
         await purposeTemplateReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
@@ -106,6 +112,16 @@ describe("Purpose template queries", () => {
           readModelDB,
           purposeTemplate.id
         );
+      const retrievedTemplateRiskAnalysisFormDocumentSQL =
+        await retrievePurposeTemplateRiskAnalysisFormDocumentSQLById(
+          readModelDB,
+          purposeTemplate.id
+        );
+      const retrievedTemplateRiskAnalysisFormSignedDocumentSQL =
+        await retrievePurposeTemplateRiskAnalysisFormSignedDocumentSQLById(
+          readModelDB,
+          purposeTemplate.id
+        );
 
       expect(retrievedPurposeTemplateSQL).toBeDefined();
       expect(retrievedRiskAnalysisFormTemplateSQL).toBeUndefined();
@@ -116,6 +132,10 @@ describe("Purpose template queries", () => {
       expect(
         retrievedRiskAnalysisTemplateAnswersAnnotationsDocumentsSQL
       ).toHaveLength(0);
+      expect(retrievedTemplateRiskAnalysisFormDocumentSQL).toBeUndefined();
+      expect(
+        retrievedTemplateRiskAnalysisFormSignedDocumentSQL
+      ).toBeUndefined();
 
       const retrievedPurposeTemplate = aggregatePurposeTemplate({
         purposeTemplateSQL: retrievedPurposeTemplateSQL!,
@@ -125,6 +145,10 @@ describe("Purpose template queries", () => {
           retrievedRiskAnalysisTemplateAnswersAnnotationsSQL,
         riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
           retrievedRiskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+        riskAnalysisTemplateDocumentSQL:
+          retrievedTemplateRiskAnalysisFormDocumentSQL,
+        riskAnalysisTemplateSignedDocumentSQL:
+          retrievedTemplateRiskAnalysisFormSignedDocumentSQL,
       });
 
       expect(retrievedPurposeTemplate).toStrictEqual({
@@ -151,6 +175,8 @@ describe("Purpose template queries", () => {
         riskAnalysisTemplateAnswersSQL,
         riskAnalysisTemplateAnswersAnnotationsSQL,
         riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+        riskAnalysisTemplateDocumentSQL,
+        riskAnalysisTemplateSignedDocumentSQL,
       } = await checkCompletePurposeTemplate(purposeTemplate);
 
       const retrievedPurposeTemplate = aggregatePurposeTemplate({
@@ -159,6 +185,8 @@ describe("Purpose template queries", () => {
         riskAnalysisTemplateAnswersSQL,
         riskAnalysisTemplateAnswersAnnotationsSQL,
         riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+        riskAnalysisTemplateDocumentSQL,
+        riskAnalysisTemplateSignedDocumentSQL,
       });
 
       expect(retrievedPurposeTemplate).toStrictEqual({

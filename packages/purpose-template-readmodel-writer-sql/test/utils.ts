@@ -17,7 +17,11 @@ import {
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   PurposeTemplateRiskAnalysisAnswerSQL,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+  PurposeTemplateRiskAnalysisFormDocumentSQL,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  PurposeTemplateRiskAnalysisFormSignedDocumentSQL,
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateSQL,
 } from "pagopa-interop-readmodel-models";
@@ -79,6 +83,16 @@ export const checkCompletePurposeTemplate = async (
       readModelDB,
       purposeTemplate.id
     );
+  const retrievedTemplateRiskAnalysisFormDocumentSQL =
+    await retrievePurposeTemplateRiskAnalysisFormDocumentSQLById(
+      readModelDB,
+      purposeTemplate.id
+    );
+  const retrievedTemplateRiskAnalysisFormSignedDocumentSQL =
+    await retrievePurposeTemplateRiskAnalysisFormSignedDocumentSQLById(
+      readModelDB,
+      purposeTemplate.id
+    );
 
   const answersLength =
     purposeTemplate.purposeRiskAnalysisForm!.singleAnswers.length +
@@ -92,6 +106,8 @@ export const checkCompletePurposeTemplate = async (
   expect(
     retrievedRiskAnalysisTemplateAnswersAnnotationsDocumentsSQL
   ).toHaveLength(answersLength);
+  expect(retrievedTemplateRiskAnalysisFormDocumentSQL).toBeDefined();
+  expect(retrievedTemplateRiskAnalysisFormSignedDocumentSQL).toBeDefined();
 
   return {
     purposeTemplateSQL: retrievedPurposeTemplateSQL!,
@@ -101,6 +117,10 @@ export const checkCompletePurposeTemplate = async (
       retrievedRiskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
       retrievedRiskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+    riskAnalysisTemplateDocumentSQL:
+      retrievedTemplateRiskAnalysisFormDocumentSQL!,
+    riskAnalysisTemplateSignedDocumentSQL:
+      retrievedTemplateRiskAnalysisFormSignedDocumentSQL!,
   };
 };
 
@@ -180,3 +200,39 @@ export const retrievePurposeTemplateRiskAnalysisAnswersAnnotationsDocumentsSQLBy
           purposeTemplateId
         )
       );
+
+export const retrievePurposeTemplateRiskAnalysisFormDocumentSQLById = async (
+  readModelDB: DrizzleReturnType,
+  purposeTemplateId: PurposeTemplateId
+): Promise<PurposeTemplateRiskAnalysisFormDocumentSQL | undefined> => {
+  const result = await readModelDB
+    .select()
+    .from(purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate)
+    .where(
+      eq(
+        purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+        purposeTemplateId
+      )
+    );
+  return result[0];
+};
+
+export const retrievePurposeTemplateRiskAnalysisFormSignedDocumentSQLById =
+  async (
+    readModelDB: DrizzleReturnType,
+    purposeTemplateId: PurposeTemplateId
+  ): Promise<PurposeTemplateRiskAnalysisFormSignedDocumentSQL | undefined> => {
+    const result = await readModelDB
+      .select()
+      .from(
+        purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate
+      )
+      .where(
+        eq(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+          purposeTemplateId
+        )
+      );
+
+    return result[0];
+  };

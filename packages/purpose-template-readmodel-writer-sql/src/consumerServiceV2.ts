@@ -23,6 +23,8 @@ export async function handleMessageV2(
       { type: "PurposeTemplateAnnotationDocumentAdded" },
       { type: "PurposeTemplateAnnotationDocumentDeleted" },
       { type: "PurposeTemplateAnnotationDocumentUpdated" },
+      { type: "RiskAnalysisTemplateDocumentAdded" },
+      { type: "RiskAnalysisTemplateSignedDocumentAdded" },
       async (msg) => {
         if (!msg.data.purposeTemplate) {
           throw missingKafkaMessageDataError("purposeTemplate", msg.type);

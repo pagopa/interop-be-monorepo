@@ -14,6 +14,8 @@ import {
 import {
   emptyErrorMapper,
   EServiceId,
+  RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateSignedDocument,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -38,6 +40,7 @@ import {
   addPurposeTemplateAnswerAnnotationErrorMapper,
   createRiskAnalysisAnswerErrorMapper,
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+  addRiskAnalysisTemplateDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
@@ -66,6 +69,7 @@ const purposeTemplateRouter = (
     M2M_ROLE,
     SECURITY_ROLE,
     SUPPORT_ROLE,
+    INTERNAL_ROLE,
   } = authRole;
 
   purposeTemplateRouter
@@ -686,6 +690,60 @@ const purposeTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/purposeTemplates/:purposeTemplateId/riskAnalysisDocument",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const { purposeTemplateId } = req.params;
+          const riskAnalysisTemplateDocument =
+            RiskAnalysisTemplateDocument.parse(req.body);
+
+          await purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata(
+            unsafeBrandId(purposeTemplateId),
+            riskAnalysisTemplateDocument,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addRiskAnalysisTemplateDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const { purposeTemplateId } = req.params;
+          const riskAnalysisTemplateSignedDocument =
+            RiskAnalysisTemplateSignedDocument.parse(req.body);
+
+          await purposeTemplateService.internalAddSignedRiskAnalysisTemplateDocumentMetadata(
+            unsafeBrandId(purposeTemplateId),
+            riskAnalysisTemplateSignedDocument,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addRiskAnalysisTemplateDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

@@ -33,6 +33,8 @@ describe("Purpose template aggregator", () => {
       riskAnalysisTemplateAnswersSQL,
       riskAnalysisTemplateAnswersAnnotationsSQL,
       riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+      riskAnalysisTemplateDocumentSQL,
+      riskAnalysisTemplateSignedDocumentSQL,
     } = splitPurposeTemplateIntoObjectsSQL(purposeTemplate.data, 1);
 
     const aggregatedPurposeTemplate = aggregatePurposeTemplate({
@@ -41,6 +43,8 @@ describe("Purpose template aggregator", () => {
       riskAnalysisTemplateAnswersSQL,
       riskAnalysisTemplateAnswersAnnotationsSQL,
       riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+      riskAnalysisTemplateDocumentSQL,
+      riskAnalysisTemplateSignedDocumentSQL,
     });
 
     expect(aggregatedPurposeTemplate).toStrictEqual(purposeTemplate);
@@ -65,6 +69,8 @@ describe("Purpose template aggregator", () => {
       riskAnalysisTemplateAnswersSQL,
       riskAnalysisTemplateAnswersAnnotationsSQL,
       riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+      riskAnalysisTemplateDocumentSQL,
+      riskAnalysisTemplateSignedDocumentSQL,
     } = splitPurposeTemplateIntoObjectsSQL(
       purposeTemplate.data,
       metadataVersion
@@ -76,6 +82,8 @@ describe("Purpose template aggregator", () => {
       riskAnalysisTemplateAnswersSQL,
       riskAnalysisTemplateAnswersAnnotationsSQL,
       riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+      riskAnalysisTemplateDocumentSQL,
+      riskAnalysisTemplateSignedDocumentSQL,
     });
 
     expect(aggregatedPurposeTemplate).toStrictEqual(purposeTemplate);
