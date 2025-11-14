@@ -188,5 +188,17 @@ export type GetEventManagerAttributesQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getAttributesEvents"
 >;
+export type GetEventManagerKeysQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getKeyEvents"
+>;
+export type GetEventManagerClientQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getClientEvents"
+>;
+export type GetEventManagerProducerKeyEventsQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getProducerKeyEvents">;
+export type GetEventManagerProducerKeychainEventsQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getProducerKeychainEvents">;
 
 export * from "./generated/m2mGatewayApi.js";
