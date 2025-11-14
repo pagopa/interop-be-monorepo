@@ -11,6 +11,7 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
 } from "pagopa-interop-models";
+import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addPurposeRiskAnalysisSignedDocument = async (
   purposeId: PurposeId,
@@ -31,7 +32,10 @@ export const addPurposeRiskAnalysisSignedDocument = async (
     createdAt: new Date(document.createdAt).toISOString(),
     signedAt: new Date().toISOString(),
   };
-  await purposeApi.purposeApi.addSignedRiskAnalysisDocumentMetadata(
+
+  const { purposeProcessClient } = getInteropBeClients();
+
+  await purposeProcessClient.addSignedRiskAnalysisDocumentMetadata(
     documentSigned,
     {
       params: { purposeId, versionId },

@@ -5,6 +5,7 @@ import {
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { CorrelationId, AgreementDocument } from "pagopa-interop-models";
+import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addAgreementSignedContract = async (
   contract: AgreementDocument,
@@ -22,7 +23,10 @@ export const addAgreementSignedContract = async (
     signedAt: new Date().toISOString(),
   };
   const token = (await refreshableToken.get()).serialized;
-  await agreementApi.agreementApi.addSignedAgreementContractMetadata(
+
+  const { agreementProcessClient } = getInteropBeClients();
+
+  await agreementProcessClient.addSignedAgreementContractMetadata(
     contractSigned,
     {
       params: { agreementId },
