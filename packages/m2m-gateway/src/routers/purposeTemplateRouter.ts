@@ -13,6 +13,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
+import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 import { getPurposeTemplateRiskAnalysisErrorMapper } from "../utils/errorMappers.js";
 
 const purposeTemplateRouter = (
@@ -134,6 +135,34 @@ const purposeTemplateRouter = (
             ctx,
             `Error retrieving annotation documents for purpose template ${req.params.purposeTemplateId}`
           );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const file =
+            await purposeTemplateService.downloadRiskAnalysisTemplateAnswerAnnotationDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+
+          return sendDownloadedDocumentAsFormData(file, res);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error retrieving risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId}`
+          );
+
           return res.status(errorRes.status).send(errorRes);
         }
       }

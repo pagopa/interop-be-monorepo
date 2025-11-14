@@ -70,8 +70,8 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplate.id,
-        singleAnswer.id,
-        notExistingDocumentId
+        notExistingDocumentId,
+        singleAnswer.id
       )
     );
   });
