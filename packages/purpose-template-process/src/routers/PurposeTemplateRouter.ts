@@ -39,10 +39,12 @@ import {
   updatePurposeTemplateErrorMapper,
   addPurposeTemplateAnswerAnnotationErrorMapper,
   createRiskAnalysisAnswerErrorMapper,
+  getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
+  annotationDocumentToApiAnnotationDocumentWithAnswerId,
   apiPurposeTemplateStateToPurposeTemplateState,
   eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
   purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
@@ -113,8 +115,8 @@ const purposeTemplateRouter = (
           );
         return res.status(200).send(
           purposeTemplateApi.PurposeTemplates.parse({
-            results: purposeTemplates.results.map((purposeTemplate) =>
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            results: purposeTemplates.results.map(
+              purposeTemplateToApiPurposeTemplate
             ),
             totalCount: purposeTemplates.totalCount,
           })
@@ -275,7 +277,7 @@ const purposeTemplateRouter = (
         ]);
 
         const { producerIds, eserviceName, offset, limit } = req.query;
-        const purposeTemplateEServicesDescriptors =
+        const { results, totalCount } =
           await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
             {
               purposeTemplateId: unsafeBrandId(req.params.id),
@@ -288,13 +290,10 @@ const purposeTemplateRouter = (
 
         return res.status(200).send(
           purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
-            results: purposeTemplateEServicesDescriptors.results.map(
-              (purposeTemplateEServiceDescriptor) =>
-                eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-                  purposeTemplateEServiceDescriptor
-                )
+            results: results.map(
+              eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate
             ),
-            totalCount: purposeTemplateEServicesDescriptors.totalCount,
+            totalCount,
           })
         );
       } catch (error) {
@@ -733,6 +732,48 @@ const purposeTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            M2M_ROLE,
+          ]);
+
+          const { results, totalCount } =
+            await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.query,
+              ctx
+            );
+
+          return res.status(200).send(
+            purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerId.parse(
+              {
+                results: results.map(
+                  annotationDocumentToApiAnnotationDocumentWithAnswerId
+                ),
+                totalCount,
+              }
+            )
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

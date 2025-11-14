@@ -12,7 +12,10 @@ import { config } from "../config/config.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
+  toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
 } from "../api/purposeTemplateApiConverter.js";
+import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
+import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -82,6 +85,66 @@ export function purposeTemplateServiceBuilder(
       );
 
       return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async getPurposeTemplateRiskAnalysis(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisFormTemplate> {
+      logger.info(
+        `Retrieving risk analysis of purpose template with id ${purposeTemplateId}`
+      );
+
+      const { data } = await retrievePurposeTemplateById(
+        purposeTemplateId,
+        headers
+      );
+
+      if (!data.purposeRiskAnalysisForm) {
+        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
+      }
+
+      return toM2MGatewayApiRiskAnalysisFormTemplate(
+        data.purposeRiskAnalysisForm
+      );
+    },
+    async getRiskAnalysisTemplateAnnotationDocuments(
+      purposeTemplateId: PurposeTemplateId,
+      {
+        offset,
+        limit,
+      }: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisTemplateAnnotationDocuments> {
+      logger.info(
+        `Retrieving annotation documents for purpose template ${purposeTemplateId}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnnotationDocuments(
+          {
+            params: {
+              purposeTemplateId,
+            },
+            queries: {
+              offset,
+              limit,
+            },
+            headers,
+          }
+        );
+
+      return {
+        results: results.map(
+          toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
     },
     async downloadRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,

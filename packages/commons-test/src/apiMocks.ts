@@ -108,6 +108,32 @@ export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
   };
 }
 
+export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
+  id = generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
+  answerId = generateId(),
+}: {
+  id?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  name?: string;
+  path?: string;
+  contentType?: string;
+  answerId?: string;
+} = {}): purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentWithAnswerId {
+  return {
+    answerId,
+    document: {
+      ...getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
+        id,
+        path,
+        name,
+      }),
+      contentType,
+    },
+  };
+}
+
 export function getMockedApiDelegation({
   kind,
   eserviceId,
