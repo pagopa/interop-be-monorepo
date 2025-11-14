@@ -6,7 +6,6 @@ import {
   TenantId,
 } from "../brandedIds.js";
 import { RiskAnalysisFormTemplate } from "../risk-analysis-template/riskAnalysisTemplate.js";
-import { TenantKind } from "../tenant/tenant.js";
 
 export const purposeTemplateState = {
   draft: "Draft",
@@ -30,10 +29,22 @@ export type EServiceDescriptorPurposeTemplate = z.infer<
   typeof EServiceDescriptorPurposeTemplate
 >;
 
+export const targetTenantKind = {
+  PA: "PA",
+  PRIVATE: "PRIVATE",
+} as const;
+
+export const TargetTenantKind = z.enum([
+  Object.values(targetTenantKind)[0],
+  ...Object.values(targetTenantKind).slice(1),
+]);
+
+export type TargetTenantKind = z.infer<typeof TargetTenantKind>;
+
 export const PurposeTemplate = z.object({
   id: PurposeTemplateId,
   targetDescription: z.string(),
-  targetTenantKind: TenantKind,
+  targetTenantKind: TargetTenantKind,
   creatorId: TenantId,
   state: PurposeTemplateState,
   createdAt: z.coerce.date(),

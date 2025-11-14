@@ -26,6 +26,8 @@ import {
   RiskAnalysisForm,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
+  targetTenantKind,
+  TargetTenantKind,
   TenantId,
   tenantKind,
   TenantKind,
@@ -513,23 +515,24 @@ export const getOrganizationRole = async ({
 };
 
 export function assertValidPurposeTenantKind(
-  purposeTenantKind: TenantKind,
-  templateTargetTenantKind: TenantKind
+  consumerTenantKind: TenantKind,
+  templateTargetTenantKind: TargetTenantKind
 ): void {
-  const privateTenantKinds: TenantKind[] = [
-    tenantKind.GSP,
-    tenantKind.SCP,
-    tenantKind.PRIVATE,
-  ];
-  const valid = match(purposeTenantKind)
-    .with(tenantKind.PA, () => templateTargetTenantKind === tenantKind.PA)
-    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
-      privateTenantKinds.includes(templateTargetTenantKind)
+  const valid = match(consumerTenantKind)
+    .with(tenantKind.PA, () => templateTargetTenantKind === targetTenantKind.PA)
+    .with(
+      tenantKind.PRIVATE,
+      tenantKind.GSP,
+      tenantKind.SCP,
+      () => templateTargetTenantKind === targetTenantKind.PRIVATE
     )
     .exhaustive();
 
   if (!valid) {
-    throw invalidPurposeTenantKind(purposeTenantKind, templateTargetTenantKind);
+    throw invalidPurposeTenantKind(
+      consumerTenantKind,
+      templateTargetTenantKind
+    );
   }
 }
 

@@ -2,6 +2,7 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  targetTenantKind,
   tenantKind,
 } from "pagopa-interop-models";
 import { getMockValidRiskAnalysisFormTemplate } from "pagopa-interop-commons-test";
@@ -73,10 +74,10 @@ export const getMockPurposeTemplateSeed = (
   riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed = buildRiskAnalysisFormTemplateSeed(
     getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
   ),
-  targetTenantKind: purposeTemplateApi.TenantKind = tenantKind.PA
+  templateTargetTenantKind: purposeTemplateApi.TargetTenantKind = targetTenantKind.PA
 ): purposeTemplateApi.PurposeTemplateSeed => ({
   targetDescription: "Test target description",
-  targetTenantKind,
+  targetTenantKind: templateTargetTenantKind,
   purposeTitle: "Test purpose title",
   purposeDescription: "Test purpose description",
   purposeRiskAnalysisForm: riskAnalysisFormTemplate,
