@@ -199,4 +199,8 @@ export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
     "getRiskAnalysisTemplateAnnotationDocuments"
   >;
 
+export type GetEventManagerKeysQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getKeysEvents"
+>;
 export * from "./generated/m2mGatewayApi.js";
