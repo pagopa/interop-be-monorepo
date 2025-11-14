@@ -132,21 +132,24 @@ function retrieveRiskAnalysisFormTemplate(
 function retrieveRiskAnalysisTemplateDocument(
   formTemplate: RiskAnalysisFormTemplate
 ): RiskAnalysisTemplateDocument {
-  if (!formTemplate.riskAnalysisTemplateDocument) {
+  const templateDocument = formTemplate.riskAnalysisTemplateDocument;
+  if (!templateDocument) {
     throw purposeTemplateRiskAnalysisTemplateDocumentNotFound(formTemplate.id);
   }
-  return formTemplate.riskAnalysisTemplateDocument;
+  return templateDocument;
 }
 
 function retrieveRiskAnalysisTemplateSignedDocument(
   formTemplate: RiskAnalysisFormTemplate
 ): RiskAnalysisTemplateSignedDocument {
-  if (!formTemplate.riskAnalysisTemplateSignedDocument) {
+  const templateSignedDocument =
+    formTemplate.riskAnalysisTemplateSignedDocument;
+  if (!templateSignedDocument) {
     throw purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
       formTemplate.id
     );
   }
-  return formTemplate.riskAnalysisTemplateSignedDocument;
+  return templateSignedDocument;
 }
 
 function retrieveRiskAnalysisTemplateAnswer(

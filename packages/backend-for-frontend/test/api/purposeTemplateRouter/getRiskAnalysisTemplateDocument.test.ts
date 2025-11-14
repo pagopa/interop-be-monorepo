@@ -35,7 +35,7 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/document test", () => {
     expect(res.body).toEqual(mockDocumentResponse);
   });
 
-  it("Should return 400 if passed invalid data: %s", async () => {
+  it("Should return 400 if passed invalid PurposeTemplateId", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as PurposeTemplateId);
     expect(res.status).toBe(400);
