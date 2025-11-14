@@ -27,7 +27,6 @@ export async function handlePurposeVersionRejected(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -50,9 +49,8 @@ export async function handlePurposeVersionRejected(
     tenants: [consumer],
     notificationType,
     readModelService,
-    userService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {

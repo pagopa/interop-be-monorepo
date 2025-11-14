@@ -7,7 +7,10 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { retrieveEservice } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
@@ -26,11 +29,12 @@ export async function handleAgreementActivatedRejectedToConsumer(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [agreement.consumerId],
-      "agreementActivatedRejectedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [agreement.consumerId],
+    "agreementActivatedRejectedToConsumer",
+    readModelService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(
@@ -45,14 +49,14 @@ export async function handleAgreementActivatedRejectedToConsumer(
   );
   const producer = await retrieveTenant(agreement.producerId, readModelService);
 
-  const body = inAppTemplates.agreementActivatedRejectedToConsumer(
-    producer.name,
-    eservice.name,
-    match(eventType)
-      .with("AgreementActivated", () => "attivato" as const)
-      .with("AgreementRejected", () => "rifiutato" as const)
-      .exhaustive()
-  );
+  const body = match(eventType)
+    .with("AgreementActivated", () =>
+      inAppTemplates.agreementActivatedToConsumer(producer.name, eservice.name)
+    )
+    .with("AgreementRejected", () =>
+      inAppTemplates.agreementRejectedToConsumer(eservice.name)
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
