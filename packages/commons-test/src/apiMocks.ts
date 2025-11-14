@@ -86,6 +86,33 @@ export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplat
   };
 }
 
+export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
+  id = generateId(),
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
+  answerId = generateId(),
+}: {
+  id?: string;
+  name?: string;
+  path?: string;
+  contentType?: string;
+  answerId?: string;
+} = {}): purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentWithAnswerId {
+  return {
+    answerId,
+    document: {
+      id,
+      name,
+      contentType,
+      prettyName: generateMock(z.string()),
+      path,
+      checksum: generateMock(z.string()),
+      createdAt: new Date().toISOString(),
+    },
+  };
+}
+
 export function getMockedApiDelegation({
   kind,
   eserviceId,
