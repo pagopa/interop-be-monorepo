@@ -1,0 +1,26 @@
+meta {
+  name: List Purpose Templates
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-m2m-gw}}/purposeTemplates
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~states: ["DRAFT", "PUBLISHED"]
+  ~eserviceIds: ["{{eserviceId}}"]
+  ~creatorIds: ["{{tenantId}}"]
+  ~purposeTitle: title
+  ~targetTenantKind: PA
+  ~handlesPersonalData: false
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

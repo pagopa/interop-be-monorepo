@@ -14,6 +14,7 @@ import {
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
@@ -54,6 +55,7 @@ export const errorCodes = {
   eserviceTemplateVersionAttributeNotFound: "0035",
   eserviceDescriptorAttributeGroupNotFound: "0036",
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
+  purposeTemplateRiskAnalysisFormNotFound: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -410,5 +412,15 @@ export function eserviceTemplateVersionAttributeGroupNotFound(
     detail: `${kind} Attribute group with index ${groupIndex} not found for e-service template version ${versionId} of template ${templateId}`,
     code: "eserviceTemplateVersionAttributeGroupNotFound",
     title: "E-Service Template Version Attribute Group Not Found",
+  });
+}
+
+export function purposeTemplateRiskAnalysisFormNotFound(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Template Form found for Purpose Template ${purposeTemplateId}`,
+    code: "purposeTemplateRiskAnalysisFormNotFound",
+    title: "Purpose Template Risk Analysis Form Not Found",
   });
 }

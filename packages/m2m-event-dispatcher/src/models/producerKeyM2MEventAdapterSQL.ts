@@ -10,5 +10,6 @@ export function toProducerKeyM2MEventSQL(
     eventTimestamp: dateToString(event.eventTimestamp),
     resourceVersion: event.resourceVersion,
     kid: event.kid,
+    producerKeychainId: event.producerKeychainId,
   };
 }
