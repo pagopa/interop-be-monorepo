@@ -528,6 +528,7 @@ describe("integration tests V2 events", async () => {
         log_date: new Date(),
       };
 
+      // platform-states
       const platformsStatesCatalogEntryPK =
         makePlatformStatesEServiceDescriptorPK({
           eserviceId: eservice.id,
@@ -546,6 +547,7 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
+      // token-generation-states
       const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: eservice.id,
         descriptorId: newerDescriptor.id,
@@ -628,6 +630,7 @@ describe("integration tests V2 events", async () => {
         genericLogger
       );
 
+      // platform-states
       const retrievedPlatformStatesCatalogEntry = await readCatalogEntry(
         platformsStatesCatalogEntryPK,
         dynamoDBClient
