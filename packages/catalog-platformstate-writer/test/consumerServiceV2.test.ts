@@ -43,6 +43,7 @@ import {
   writePlatformCatalogEntry,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { readCatalogEntry } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { dynamoDBClient } from "./utils.js";
@@ -586,7 +587,47 @@ describe("integration tests V2 events", async () => {
         dynamoDBClient
       );
 
-      await handleMessageV2(message, dynamoDBClient, genericLogger);
+      const oldGSIPKEServiceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: archivedDescriptor.id,
+      });
+
+      // Mocking the query to get the token-generation-states records using the old GSIPK_eserviceId_descriptorId
+      const mockDynamoDBClient = {
+        send: vi.fn().mockImplementation((command) => {
+          if (command instanceof QueryCommand) {
+            return Promise.resolve({
+              Items: [
+                {
+                  PK: {
+                    S: tokenGenStatesConsumerClient1.PK,
+                  },
+                  GSIPK_eserviceId_descriptorId: {
+                    S: oldGSIPKEServiceIdDescriptorId,
+                  },
+                },
+                {
+                  PK: {
+                    S: tokenGenStatesConsumerClient2.PK,
+                  },
+                  GSIPK_eserviceId_descriptorId: {
+                    S: oldGSIPKEServiceIdDescriptorId,
+                  },
+                },
+              ],
+              LastEvaluatedKey: undefined,
+            });
+          }
+
+          return dynamoDBClient.send(command);
+        }),
+      };
+
+      await handleMessageV2(
+        message,
+        mockDynamoDBClient as unknown as DynamoDBClient,
+        genericLogger
+      );
 
       const retrievedPlatformStatesCatalogEntry = await readCatalogEntry(
         platformsStatesCatalogEntryPK,

@@ -206,16 +206,6 @@ export async function handleMessageV2(
         descriptorId,
       });
 
-      const isTheNewestDescriptor = eservice.descriptors.every(
-        (d) => Number(d.version) <= Number(descriptor.version)
-      );
-      if (!isTheNewestDescriptor) {
-        logger.info(
-          `Token-generation-states. Skipping processing of entry with GSIPK_eserviceId_descriptorId ${eserviceId_descriptorId}. Reason: not the newest descriptor.`
-        );
-        return;
-      }
-
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
         descriptorStateToItemState(descriptor.state),
