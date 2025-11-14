@@ -13,6 +13,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
+import { getPurposeTemplateRiskAnalysisErrorMapper } from "../utils/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -72,7 +73,38 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const riskAnalysisFormTemplate =
+            await purposeTemplateService.getPurposeTemplateRiskAnalysis(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.RiskAnalysisFormTemplate.parse(
+                riskAnalysisFormTemplate
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeTemplateRiskAnalysisErrorMapper,
+            ctx,
+            `Error retrieving risk analysis for purpose template with id ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };

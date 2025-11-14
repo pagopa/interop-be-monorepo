@@ -8,6 +8,8 @@ import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
 } from "../api/purposeTemplateApiConverter.js";
+import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
+import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -74,6 +76,27 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async getPurposeTemplateRiskAnalysis(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisFormTemplate> {
+      logger.info(
+        `Retrieving risk analysis of purpose template with id ${purposeTemplateId}`
+      );
+
+      const { data } = await retrievePurposeTemplateById(
+        purposeTemplateId,
+        headers
+      );
+
+      if (!data.purposeRiskAnalysisForm) {
+        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
+      }
+
+      return toM2MGatewayApiRiskAnalysisFormTemplate(
+        data.purposeRiskAnalysisForm
+      );
     },
   };
 }
