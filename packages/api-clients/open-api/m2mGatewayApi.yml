@@ -16877,6 +16877,84 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /events/eserviceTemplates:
+    get:
+      tags:
+        - events
+      summary: Get EServiceTemplate events
+      description: |
+        Retrieve list of EServiceTemplate events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getEServiceTemplateEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: EServiceTemplate events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
 components:
   parameters:
     LastEventId:
@@ -16932,6 +17010,64 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AttributeEvent"
+    EServiceTemplateEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - ESERVICE_TEMPLATE_DELETED
+            - ESERVICE_TEMPLATE_VERSION_ACTIVATED
+            - ESERVICE_TEMPLATE_ADDED
+            - ESERVICE_TEMPLATE_INTENDED_TARGET_UPDATED
+            - ESERVICE_TEMPLATE_DESCRIPTION_UPDATED
+            - ESERVICE_TEMPLATE_DRAFT_VERSION_DELETED
+            - ESERVICE_TEMPLATE_DRAFT_VERSION_UPDATED
+            - ESERVICE_TEMPLATE_DRAFT_UPDATED
+            - ESERVICE_TEMPLATE_NAME_UPDATED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_ADDED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_DELETED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_SUSPENDED
+            - ESERVICE_TEMPLATE_VERSION_ADDED
+            - ESERVICE_TEMPLATE_VERSION_ATTRIBUTES_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_ADDED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_DELETED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_PUBLISHED
+            - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
+            - ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
+        eventTimestamp:
+          type: string
+          format: date-time
+        eserviceTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateVersionId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - eserviceTemplateId
+    EServiceTemplateEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateEvent"
     Agreement:
       type: object
       additionalProperties: false
