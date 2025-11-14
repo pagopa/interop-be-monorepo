@@ -130,6 +130,7 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    });
 
   return purposeTemplateRouter;
 };
