@@ -13,6 +13,7 @@ import { generateMock } from "@anatine/zod-mock";
 import {
   ClientId,
   ProducerKeychainId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   algorithm,
   generateId,
 } from "pagopa-interop-models";
@@ -86,14 +87,35 @@ export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplat
   };
 }
 
-export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
+export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
   id = generateId(),
+  path = "purposeTemplateAnnotationsPath",
+  name = generateMock(z.string()),
+}: {
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  path: string;
+  name: string;
+}): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument {
+  return {
+    id,
+    name,
+    path,
+    prettyName: generateMock(z.string()),
+    contentType: "application/pdf",
+    createdAt: new Date().toISOString(),
+    checksum:
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  };
+}
+
+export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
+  id = generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
   name = "doc.txt",
   path = `mock/path/${id}/doc.txt`,
   contentType = "text/plain",
   answerId = generateId(),
 }: {
-  id?: string;
+  id?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
   name?: string;
   path?: string;
   contentType?: string;
@@ -102,13 +124,12 @@ export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
   return {
     answerId,
     document: {
-      id,
-      name,
+      ...getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
+        id,
+        path,
+        name,
+      }),
       contentType,
-      prettyName: generateMock(z.string()),
-      path,
-      checksum: generateMock(z.string()),
-      createdAt: new Date().toISOString(),
     },
   };
 }

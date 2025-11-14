@@ -1,9 +1,14 @@
 import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
-import { PurposeTemplateId } from "pagopa-interop-models";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
+import {
+  PurposeTemplateId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import { config } from "../config/config.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
@@ -17,7 +22,10 @@ export type PurposeTemplateService = ReturnType<
 >;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
+export function purposeTemplateServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
+) {
   const retrievePurposeTemplateById = async (
     purposeTemplateId: PurposeTemplateId,
     headers: M2MGatewayAppContext["headers"]
@@ -137,6 +145,33 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
+    },
+    async downloadRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}`
+      );
+
+      const { data: document } =
+        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnnotationDocument(
+          {
+            params: {
+              purposeTemplateId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      return downloadDocument(
+        document,
+        fileManager,
+        config.purposeTemplateDocumentsContainer,
+        logger
+      );
     },
   };
 }
