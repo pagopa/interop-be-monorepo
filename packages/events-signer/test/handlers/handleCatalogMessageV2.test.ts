@@ -83,7 +83,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         eserviceV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -136,7 +136,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         eserviceV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -191,7 +191,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         eserviceV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 

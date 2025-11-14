@@ -6,7 +6,7 @@ import { encodeEmailEvent } from "./utils.js";
 
 const producer = await initProducer(
   config,
-  config.emailSenderTopic,
+  config.emailDispatchTopic,
   config.producerKafkaTransactionalId
 );
 

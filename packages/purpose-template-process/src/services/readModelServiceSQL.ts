@@ -1,4 +1,28 @@
 import {
+  and,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNull,
+  ne,
+  notInArray,
+  or,
+  SQL,
+} from "drizzle-orm";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+  getValidFormRulesVersions,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+  withTotalCount,
+} from "pagopa-interop-commons";
+import {
+  DescriptorState,
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
@@ -14,19 +38,21 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
   TenantKind,
+  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeTemplateArray,
   aggregatePurposeTemplateEServiceDescriptor,
   aggregatePurposeTemplateEServiceDescriptorArray,
   CatalogReadModelService,
   PurposeTemplateReadModelService,
-  aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
@@ -36,28 +62,6 @@ import {
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  and,
-  eq,
-  getTableColumns,
-  ilike,
-  inArray,
-  isNull,
-  ne,
-  or,
-  SQL,
-} from "drizzle-orm";
-import {
-  ascLower,
-  createListResult,
-  escapeRegExp,
-  getValidFormRulesVersions,
-  M2MAdminAuthData,
-  M2MAuthData,
-  UIAuthData,
-  withTotalCount,
-} from "pagopa-interop-commons";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
@@ -316,10 +320,11 @@ export function readModelServiceBuilderSQL({
       WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
     > {
       const queryResult = await readModelDB
-        .select({
-          riskAnalysisAnswerAnnotationDocument:
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-        })
+        .select(
+          getTableColumns(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+          )
+        )
         .from(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
         )
@@ -351,15 +356,74 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
 
-      const { riskAnalysisAnswerAnnotationDocument } = queryResult[0];
       return {
-        data: toRiskAnalysisTemplateAnswerAnnotationDocument(
-          riskAnalysisAnswerAnnotationDocument
-        ),
+        data: toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]),
         metadata: {
-          version: riskAnalysisAnswerAnnotationDocument.metadataVersion,
+          version: queryResult[0].metadataVersion,
         },
       };
+    },
+    async getRiskAnalysisTemplateAnnotationDocuments(
+      purposeTemplateId: PurposeTemplateId,
+      { limit, offset }: { limit: number; offset: number }
+    ): Promise<
+      ListResult<{
+        answerId: RiskAnalysisMultiAnswerId | RiskAnalysisSingleAnswerId;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }>
+    > {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount({
+            answerId:
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+            ...getTableColumns(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+            ),
+          })
+        )
+        .from(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .innerJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+            )
+          )
+        )
+        .orderBy(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.createdAt
+        )
+        .limit(limit)
+        .offset(offset);
+
+      const results: Array<{
+        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }> = queryResult.map((r) => {
+        const { answerId, ...document } = r;
+        return {
+          answerId: unsafeBrandId<
+            RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+          >(answerId),
+          document: toRiskAnalysisTemplateAnswerAnnotationDocument(document),
+        };
+      });
+
+      return createListResult(results, queryResult[0]?.totalCount);
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,
@@ -439,6 +503,49 @@ export function readModelServiceBuilderSQL({
         )
         .limit(limit)
         .offset(offset);
+
+      const purposeTemplateEServiceDescriptors =
+        aggregatePurposeTemplateEServiceDescriptorArray(queryResult);
+
+      return createListResult(
+        purposeTemplateEServiceDescriptors.map(
+          (eserviceDescriptor) => eserviceDescriptor.data
+        ),
+        queryResult[0]?.totalCount
+      );
+    },
+    async getPurposeTemplateEServiceWithDescriptorState(
+      purposeTemplateId: PurposeTemplateId,
+      allowedDescriptorStates: DescriptorState[]
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+            )
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
+            eserviceDescriptorInReadmodelCatalog.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            notInArray(
+              eserviceDescriptorInReadmodelCatalog.state,
+              allowedDescriptorStates
+            )
+          )
+        );
 
       const purposeTemplateEServiceDescriptors =
         aggregatePurposeTemplateEServiceDescriptorArray(queryResult);
