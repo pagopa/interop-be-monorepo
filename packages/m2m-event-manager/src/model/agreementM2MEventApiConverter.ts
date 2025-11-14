@@ -71,7 +71,7 @@ function toApiAgreementM2MEventType(
     )
     .with(
       "AgreementSignedContractGenerated",
-      () => "AGREEMENT_SIGNED_CONTRACT_GENERATED"
+      () => "AGREEMENT_CONTRACT_GENERATED"
     )
     .exhaustive();
 }
