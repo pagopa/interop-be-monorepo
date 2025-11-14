@@ -7,6 +7,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
+  toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
 } from "../api/purposeTemplateApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
@@ -97,6 +98,45 @@ export function purposeTemplateServiceBuilder(clients: PagoPAInteropBeClients) {
       return toM2MGatewayApiRiskAnalysisFormTemplate(
         data.purposeRiskAnalysisForm
       );
+    },
+    async getRiskAnalysisTemplateAnnotationDocuments(
+      purposeTemplateId: PurposeTemplateId,
+      {
+        offset,
+        limit,
+      }: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisTemplateAnnotationDocuments> {
+      logger.info(
+        `Retrieving annotation documents for purpose template ${purposeTemplateId}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnnotationDocuments(
+          {
+            params: {
+              purposeTemplateId,
+            },
+            queries: {
+              offset,
+              limit,
+            },
+            headers,
+          }
+        );
+
+      return {
+        results: results.map(
+          toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
     },
   };
 }
