@@ -29,5 +29,26 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events };
     },
+
+    async getEServiceTemplateEvents(
+      {
+        lastEventId,
+        limit,
+      }: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateEvents> {
+      logger.info(`Retrieving eservice template events`);
+
+      const { events } =
+        await clients.eventManagerClient.getEServiceTemplateM2MEvents({
+          queries: {
+            lastEventId,
+            limit,
+          },
+          headers,
+        });
+
+      return { events };
+    },
   };
 }
