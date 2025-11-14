@@ -200,4 +200,9 @@ export type GetEventManagerAttributesQueryParams = QueryParametersByAlias<
   "getAttributesEvents"
 >;
 
+export type GetEventManagerPurposesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getPurposeEvents"
+>;
+
 export * from "./generated/m2mGatewayApi.js";

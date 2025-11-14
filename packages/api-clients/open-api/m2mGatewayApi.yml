@@ -16877,6 +16877,84 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /events/purposes:
+    get:
+      tags:
+        - events
+      summary: Get Purpose events
+      description: |
+        Retrieve list of Purpose events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getPurposeEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Purpose events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
 components:
   parameters:
     LastEventId:
@@ -16932,6 +17010,67 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AttributeEvent"
+    PurposeEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - DRAFT_PURPOSE_DELETED
+            - WAITING_FOR_APPROVAL_PURPOSE_DELETED
+            - PURPOSE_DELETED_BY_REVOKED_DELEGATION
+            - PURPOSE_ADDED
+            - DRAFT_PURPOSE_UPDATED
+            - NEW_PURPOSE_VERSION_ACTIVATED
+            - NEW_PURPOSE_VERSION_WAITING_FOR_APPROVAL
+            - PURPOSE_ACTIVATED
+            - PURPOSE_ARCHIVED
+            - PURPOSE_VERSION_OVER_QUOTA_UNSUSPENDED
+            - PURPOSE_VERSION_REJECTED
+            - PURPOSE_VERSION_SUSPENDED_BY_CONSUMER
+            - PURPOSE_VERSION_SUSPENDED_BY_PRODUCER
+            - PURPOSE_VERSION_UNSUSPENDED_BY_CONSUMER
+            - PURPOSE_VERSION_UNSUSPENDED_BY_PRODUCER
+            - PURPOSE_WAITING_FOR_APPROVAL
+            - WAITING_FOR_APPROVAL_PURPOSE_VERSION_DELETED
+            - PURPOSE_VERSION_ACTIVATED
+            - PURPOSE_CLONED
+            - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
+            - RISK_ANALYSIS_SIGNED_DOCUMENT_GENERATED
+        eventTimestamp:
+          type: string
+          format: date-time
+        purposeId:
+          type: string
+          format: uuid
+        purposeVersionId:
+          type: string
+          format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - purposeId
+    PurposeEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeEvent"
     Agreement:
       type: object
       additionalProperties: false
