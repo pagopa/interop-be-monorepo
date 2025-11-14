@@ -9,7 +9,7 @@ import {
   zodiosValidationErrorToApiProblem,
   validateAuthorization,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
@@ -27,30 +27,52 @@ const purposeTemplateRouter = (
     }
   );
 
-  purposeTemplateRouter.get("/purposeTemplates", async (req, res) => {
-    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+  purposeTemplateRouter
+    .get("/purposeTemplates", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
-    try {
-      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-      const purposeTemplates = await purposeTemplateService.getPurposeTemplates(
-        req.query,
-        ctx
-      );
+        const purposeTemplates =
+          await purposeTemplateService.getPurposeTemplates(req.query, ctx);
 
-      return res
-        .status(200)
-        .send(m2mGatewayApi.PurposeTemplates.parse(purposeTemplates));
-    } catch (error) {
-      const errorRes = makeApiProblem(
-        error,
-        emptyErrorMapper,
-        ctx,
-        `Error retrieving purpose templates`
-      );
-      return res.status(errorRes.status).send(errorRes);
-    }
-  });
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeTemplates.parse(purposeTemplates));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving purpose templates`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposeTemplates/:purposeTemplateId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const purposeTemplate = await purposeTemplateService.getPurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeTemplate.parse(purposeTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving purpose template with id ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return purposeTemplateRouter;
 };
