@@ -35,19 +35,6 @@ export function purposeTemplateServiceBuilder(
     });
 
   return {
-    async getPurposeTemplate(
-      purposeTemplateId: PurposeTemplateId,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.PurposeTemplate> {
-      logger.info(`Retrieving purpose template with id ${purposeTemplateId}`);
-
-      const { data } = await retrievePurposeTemplateById(
-        purposeTemplateId,
-        headers
-      );
-
-      return toM2MGatewayApiPurposeTemplate(data);
-    },
     async getPurposeTemplates(
       queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -82,6 +69,19 @@ export function purposeTemplateServiceBuilder(
           totalCount,
         },
       };
+    },
+    async getPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Retrieving purpose template with id ${purposeTemplateId}`);
+
+      const { data } = await retrievePurposeTemplateById(
+        purposeTemplateId,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
     },
     async downloadRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
