@@ -744,6 +744,64 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - purposeTemplate
+      summary: Retrieve a list of Risk Analysis Template Annotation Documents
+      description: Retrieve a list of Risk Analysis Template Annotation Documents for the specified Purpose Template
+      operationId: getRiskAnalysisTemplateAnnotationDocuments
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Risk Analysis Template Annotation Documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentsWithAnswerId"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1321,6 +1379,32 @@ components:
         - contentType
         - prettyName
         - path
+    RiskAnalysisTemplateAnnotationDocumentsWithAnswerId:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentWithAnswerId"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    RiskAnalysisTemplateAnnotationDocumentWithAnswerId:
+      type: object
+      additionalProperties: false
+      properties:
+        document:
+          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+        answerId:
+          type: string
+          format: uuid
+      required:
+        - document
+        - answerId
     UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed:
       required:
         - prettyName

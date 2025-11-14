@@ -1,0 +1,20 @@
+meta {
+  name: Get Risk Analysis Template Annotation Documents
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

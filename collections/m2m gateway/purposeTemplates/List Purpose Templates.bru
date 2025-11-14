@@ -1,11 +1,11 @@
 meta {
-  name: Get Purpose Templates
+  name: List Purpose Templates
   type: http
-  seq: 3
+  seq: 1
 }
 
 get {
-  url: {{host-purpose-template}}/purposeTemplates
+  url: {{host-m2m-gw}}/purposeTemplates
   body: none
   auth: none
 }
@@ -18,11 +18,9 @@ params:query {
   ~creatorIds: ["{{tenantId}}"]
   ~purposeTitle: title
   ~targetTenantKind: PA
-  ~excludeExpiredRiskAnalysis: false
   ~handlesPersonalData: false
 }
 
 headers {
-  Authorization: {{JWT}}
-  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT-M2M}}
 }

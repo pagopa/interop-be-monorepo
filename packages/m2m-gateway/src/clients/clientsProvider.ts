@@ -7,6 +7,7 @@ import {
   authorizationApi,
   delegationApi,
   eserviceTemplateApi,
+  purposeTemplateApi,
   m2mEventApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
@@ -78,6 +79,10 @@ export type EventManagerClient = ReturnType<
   typeof m2mEventApi.createM2mEventsApiClient
 >;
 
+export type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
+  ReturnType<typeof purposeTemplateApi.createPurposeTemplateApiClient>
+>;
+
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;
@@ -87,6 +92,7 @@ export type PagoPAInteropBeClients = {
   authorizationClient: AuthorizationProcessClient;
   delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: EServiceTemplateProcessClient;
+  purposeTemplateProcessClient: PurposeTemplateProcessClient;
   eventManagerClient: EventManagerClient;
 };
 
@@ -161,6 +167,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     eserviceTemplateProcessClient: createZodiosClientEnhancedWithMetadata(
       eserviceTemplateApi.createProcessApiClient,
       config.eserviceTemplateProcessUrl
+    ),
+    purposeTemplateProcessClient: createZodiosClientEnhancedWithMetadata(
+      purposeTemplateApi.createPurposeTemplateApiClient,
+      config.purposeTemplateProcessUrl
     ),
     eventManagerClient: m2mEventApi.createM2mEventsApiClient(
       config.eventManagerUrl
