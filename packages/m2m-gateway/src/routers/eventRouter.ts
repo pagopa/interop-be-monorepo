@@ -48,6 +48,56 @@ const eventRouter = (
     }
   });
 
+  eventRouter.get("/events/producerDelegations", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getProducerDelegationEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res.status(200).send(events);
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving producer delegation events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
+  eventRouter.get("/events/consumerDelegations", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getConsumerDelegationEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res.status(200).send(events);
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving consumer delegation events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
   return eventRouter;
 };
 
