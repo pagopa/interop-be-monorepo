@@ -4,6 +4,7 @@ import {
   eserviceInM2MEvent,
   agreementInM2MEvent,
   attributeInM2MEvent,
+  purposeInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { DrizzleTransactionType } from "pagopa-interop-readmodel-models";
@@ -13,6 +14,7 @@ export async function isResourceVersionPresent<
     | typeof attributeInM2MEvent
     | typeof eserviceInM2MEvent
     | typeof agreementInM2MEvent
+    | typeof purposeInM2MEvent
 >(
   tx: DrizzleTransactionType,
   resourceVersion: number,

@@ -144,3 +144,4 @@ export * from "./m2m-event/m2mEventVisibility.js";
 export * from "./m2m-event/attributeM2MEvent.js";
 export * from "./m2m-event/eserviceM2MEvent.js";
 export * from "./m2m-event/agreementM2MEvent.js";
+export * from "./m2m-event/purposeM2MEvent.js";
