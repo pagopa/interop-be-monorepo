@@ -80,7 +80,7 @@ export async function handleProducerKeychainKeyDeleted(
         entityId: producerKeychain.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         userName: key.userId,
-        clientName: producerKeychain.name,
+        producerKeychainName: producerKeychain.name,
       }),
     },
     tenantId: t.tenantId,

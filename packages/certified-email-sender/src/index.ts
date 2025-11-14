@@ -104,7 +104,8 @@ export async function processMessage({
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementArchivedByRevokedDelegation",
           "AgreementDeletedByRevokedDelegation",
-          "AgreementContractGenerated"
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       handleMessageToSkip

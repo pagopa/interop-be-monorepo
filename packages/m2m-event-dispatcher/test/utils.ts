@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { desc } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
@@ -41,7 +42,7 @@ export const testReadModelService = readModelServiceBuilderSQL({
 
 export const getMockEventEnvelopeCommons = () => ({
   sequence_num: 1,
-  version: 1,
+  version: randomInt(1, 1000),
   event_version: 2,
   log_date: new Date(),
 });
@@ -53,42 +54,61 @@ export const addOneDelegationToReadModel = async (
 };
 
 export async function retrieveLastAttributeM2MEvent(): Promise<AttributeM2MEvent> {
+  return (await retrieveAllAttributeM2MEvents())[0];
+}
+
+export async function retrieveAllAttributeM2MEvents(): Promise<
+  AttributeM2MEvent[]
+> {
   const sqlEvents = await m2mEventDB
     .select()
     .from(attributeInM2MEvent)
-    .orderBy(desc(attributeInM2MEvent.id))
-    .limit(1);
+    .orderBy(desc(attributeInM2MEvent.id));
 
-  return AttributeM2MEvent.parse(sqlEvents[0]);
+  return sqlEvents.map((e) => AttributeM2MEvent.parse(e));
 }
 
 export async function retrieveLastEServiceM2MEvent(): Promise<EServiceM2MEvent> {
+  return (await retrieveAllEServiceM2MEvents())[0];
+}
+
+export async function retrieveAllEServiceM2MEvents(): Promise<
+  EServiceM2MEvent[]
+> {
   const sqlEvents = await m2mEventDB
     .select()
     .from(eserviceInM2MEvent)
-    .orderBy(desc(eserviceInM2MEvent.id))
-    .limit(1);
+    .orderBy(desc(eserviceInM2MEvent.id));
 
-  return EServiceM2MEvent.parse({
-    ...sqlEvents[0],
-    descriptorId: sqlEvents[0].descriptorId ?? undefined,
-    producerDelegationId: sqlEvents[0].producerDelegationId ?? undefined,
-    producerDelegateId: sqlEvents[0].producerDelegateId ?? undefined,
-  });
+  return sqlEvents.map((e) =>
+    EServiceM2MEvent.parse({
+      ...e,
+      descriptorId: e.descriptorId ?? undefined,
+      producerDelegationId: e.producerDelegationId ?? undefined,
+      producerDelegateId: e.producerDelegateId ?? undefined,
+    })
+  );
 }
 
 export async function retrieveLastAgreementM2MEvent(): Promise<AgreementM2MEvent> {
+  return (await retrieveAllAgreementM2MEvents())[0];
+}
+
+export async function retrieveAllAgreementM2MEvents(): Promise<
+  AgreementM2MEvent[]
+> {
   const sqlEvents = await m2mEventDB
     .select()
     .from(agreementInM2MEvent)
-    .orderBy(desc(agreementInM2MEvent.id))
-    .limit(1);
+    .orderBy(desc(agreementInM2MEvent.id));
 
-  return AgreementM2MEvent.parse({
-    ...sqlEvents[0],
-    consumerDelegationId: sqlEvents[0].consumerDelegationId ?? undefined,
-    consumerDelegateId: sqlEvents[0].consumerDelegateId ?? undefined,
-    producerDelegationId: sqlEvents[0].producerDelegationId ?? undefined,
-    producerDelegateId: sqlEvents[0].producerDelegateId ?? undefined,
-  });
+  return sqlEvents.map((e) =>
+    AgreementM2MEvent.parse({
+      ...e,
+      consumerDelegationId: e.consumerDelegationId ?? undefined,
+      consumerDelegateId: e.consumerDelegateId ?? undefined,
+      producerDelegationId: e.producerDelegationId ?? undefined,
+      producerDelegateId: e.producerDelegateId ?? undefined,
+    })
+  );
 }

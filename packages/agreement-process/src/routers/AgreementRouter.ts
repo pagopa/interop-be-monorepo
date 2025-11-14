@@ -22,6 +22,7 @@ import { agreementApi } from "pagopa-interop-api-clients";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
+  apiAgreementSignedDocumentToAgreementSignedDocument,
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
@@ -45,6 +46,7 @@ import {
   verifyTenantCertifiedAttributesErrorMapper,
   getAgreementConsumerDocumentsErrorMapper,
   generateAgreementDocumentsErrorMapper,
+  generateAgreementSignedDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -574,13 +576,11 @@ const agreementRouter = (
 
         const { agreementId } = req.params;
         const agreementContract = AgreementDocument.parse(req.body);
-        const { metadata } =
-          await agreementService.internalAddAgreementContract(
-            unsafeBrandId(agreementId),
-            agreementContract,
-            ctx
-          );
-        setMetadataVersionHeader(res, metadata);
+        await agreementService.internalAddAgreementContract(
+          unsafeBrandId(agreementId),
+          agreementContract,
+          ctx
+        );
 
         return res.status(204).send();
       } catch (error) {
@@ -592,6 +592,35 @@ const agreementRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/internal/agreement/:agreementId/signedContract",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { agreementId } = req.params;
+          const agreementContract =
+            apiAgreementSignedDocumentToAgreementSignedDocument(req.body);
+
+          await agreementService.internalAddAgreementSignedContract(
+            unsafeBrandId(agreementId),
+            agreementContract,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateAgreementSignedDocumentsErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
 
     .post("/agreements/:agreementId/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);

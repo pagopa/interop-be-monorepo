@@ -80,6 +80,8 @@ import {
   purposeTemplateChildTables,
   DrizzleTransactionType,
   purposeTemplateTables,
+  agreementSignedContractInReadmodelAgreement,
+  delegationSignedContractDocumentInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -163,6 +165,7 @@ export const upsertAgreement = async (
     attributesSQL,
     consumerDocumentsSQL,
     contractSQL,
+    signedContractSQL,
   } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
 
   await readModelDB.transaction(async (tx) => {
@@ -202,6 +205,11 @@ export const upsertAgreement = async (
       await tx
         .insert(agreementContractInReadmodelAgreement)
         .values(contractSQL);
+    }
+    if (signedContractSQL !== undefined) {
+      await tx
+        .insert(agreementSignedContractInReadmodelAgreement)
+        .values(signedContractSQL);
     }
   });
 };
@@ -428,8 +436,12 @@ export const upsertDelegation = async (
       .delete(delegationInReadmodelDelegation)
       .where(eq(delegationInReadmodelDelegation.id, delegation.id));
 
-    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-      splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+    const {
+      delegationSQL,
+      stampsSQL,
+      contractDocumentsSQL,
+      contractSignedDocumentsSQL,
+    } = splitDelegationIntoObjectsSQL(delegation, metadataVersion);
 
     await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
 
@@ -441,6 +453,11 @@ export const upsertDelegation = async (
       await tx
         .insert(delegationContractDocumentInReadmodelDelegation)
         .values(docSQL);
+    }
+    for (const docSignedSQL of contractSignedDocumentsSQL) {
+      await tx
+        .insert(delegationSignedContractDocumentInReadmodelDelegation)
+        .values(docSignedSQL);
     }
   });
 };
@@ -644,6 +661,7 @@ export const upsertPurpose = async (
       versionsSQL,
       versionDocumentsSQL,
       versionStampsSQL,
+      versionSignedDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
     await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -676,6 +694,11 @@ export const upsertPurpose = async (
       await tx
         .insert(purposeVersionStampInReadmodelPurpose)
         .values(versionStampSQL);
+    }
+    for (const versionSignedDocumentSQL of versionSignedDocumentsSQL) {
+      await tx
+        .insert(purposeVersionDocumentInReadmodelPurpose)
+        .values(versionSignedDocumentSQL);
     }
   });
 };

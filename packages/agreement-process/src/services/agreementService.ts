@@ -41,6 +41,7 @@ import {
   CompactTenant,
   CorrelationId,
   DelegationId,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -87,6 +88,7 @@ import {
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
   toCreateEventAgreementDocumentGenerated,
+  toCreateEventAgreementSignedContractGenerated,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -1571,10 +1573,16 @@ export function agreementServiceBuilder(
       agreementDocument: AgreementDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Adding agreement contract ${agreementId}`);
+      logger.info(`Adding agreement contract to agreement ${agreementId}`);
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
+      );
+
+      assertExpectedState(
+        agreementId,
+        agreement.state,
+        agreementUpgradableStates
       );
 
       const agreementWithDocument = {
@@ -1583,6 +1591,40 @@ export function agreementServiceBuilder(
       };
       const event = await repository.createEvent(
         toCreateEventAgreementDocumentGenerated(
+          { data: agreementWithDocument, metadata },
+          correlationId
+        )
+      );
+      return {
+        data: agreement,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async internalAddAgreementSignedContract(
+      agreementId: AgreementId,
+      agreementContract: AgreementSignedContract,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(`Adding signed contract to agreement ${agreementId}`);
+      const { data: agreement, metadata } = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+
+      assertExpectedState(
+        agreementId,
+        agreement.state,
+        agreementUpgradableStates
+      );
+
+      const agreementWithDocument: Agreement = {
+        ...agreement,
+        signedContract: agreementContract,
+      };
+      const event = await repository.createEvent(
+        toCreateEventAgreementSignedContractGenerated(
           { data: agreementWithDocument, metadata },
           correlationId
         )

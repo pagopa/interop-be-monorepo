@@ -39,6 +39,7 @@ describe("API GET /purposeTemplates", () => {
     states: `${purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED},${purposeTemplateApi.PurposeTemplateState.Enum.DRAFT}`,
     excludeExpiredRiskAnalysis: false,
     targetTenantKind: tenantKind.PA,
+    handlesPersonalData: false,
   };
 
   const purposeTemplates: ListResult<PurposeTemplate> = {

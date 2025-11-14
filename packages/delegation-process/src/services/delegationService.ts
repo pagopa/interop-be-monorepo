@@ -15,6 +15,7 @@ import {
   ListResult,
   TenantId,
   WithMetadata,
+  DelegationSignedContractDocument,
 } from "pagopa-interop-models";
 
 import {
@@ -49,6 +50,7 @@ import {
   toCreateEventProducerDelegationRevoked,
   toCreateEventProducerDelegationSubmitted,
   toCreateEventDelegationContractGenerated,
+  toCreateEventDelegationSignedContractGenerated,
 } from "../model/domain/toEvent.js";
 import {
   activeDelegationStates,
@@ -480,7 +482,49 @@ export function delegationServiceBuilder(
     delegationContract: DelegationContractDocument,
     { logger, correlationId }: WithLogger<AppContext<AuthData>>
   ): Promise<WithMetadata<Delegation>> {
-    logger.info(`Adding delegation contract ${delegationId}`);
+    logger.info(`Adding delegation contract to delegation ${delegationId}`);
+    const { data: delegation, metadata } = await retrieveDelegationById(
+      {
+        delegationId,
+        kind: undefined,
+      },
+      readModelService
+    );
+    const delegationWithContract: Delegation = ((): Delegation => {
+      if (delegation.state === delegationState.revoked) {
+        return {
+          ...delegation,
+          revocationContract: delegationContract,
+        };
+      } else {
+        return {
+          ...delegation,
+          activationContract: delegationContract,
+        };
+      }
+    })();
+
+    const event = await repository.createEvent(
+      toCreateEventDelegationContractGenerated(
+        { data: delegationWithContract, metadata },
+        correlationId
+      )
+    );
+    return {
+      data: delegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
+  }
+  async function internalAddDelegationSignedContract(
+    delegationId: DelegationId,
+    delegationContract: DelegationSignedContractDocument,
+    { logger, correlationId }: WithLogger<AppContext<AuthData>>
+  ): Promise<WithMetadata<Delegation>> {
+    logger.info(
+      `Adding delegation signed contract to delegation ${delegationId}`
+    );
     const { data: delegation, metadata } = await retrieveDelegationById(
       {
         delegationId,
@@ -489,12 +533,22 @@ export function delegationServiceBuilder(
       readModelService
     );
 
-    const delegationWithContract = {
+    assertIsState(
+      [delegationState.active, delegationState.revoked],
+      delegation
+    );
+
+    const delegationWithContract: Delegation = {
       ...delegation,
-      delegationContract,
+      ...(delegation.activationSignedContract
+        ? { activationContract: delegationContract }
+        : delegation.revocationSignedContract
+        ? { revocationContract: delegationContract }
+        : {}),
     };
+
     const event = await repository.createEvent(
-      toCreateEventDelegationContractGenerated(
+      toCreateEventDelegationSignedContractGenerated(
         { data: delegationWithContract, metadata },
         correlationId
       )
@@ -753,6 +807,17 @@ export function delegationServiceBuilder(
       ctx: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return await internalAddDelegationContract(
+        delegationId,
+        delegationContract,
+        ctx
+      );
+    },
+    async internalAddDelegationSignedContract(
+      delegationId: DelegationId,
+      delegationContract: DelegationSignedContractDocument,
+      ctx: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return await internalAddDelegationSignedContract(
         delegationId,
         delegationContract,
         ctx

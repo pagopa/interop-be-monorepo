@@ -18,6 +18,7 @@ import {
   purposeRiskAnalysisFormInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
@@ -35,6 +36,7 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
       purposeVersionInReadmodelPurpose,
       purposeVersionDocumentInReadmodelPurpose,
       purposeVersionStampInReadmodelPurpose,
+      purposeVersionSignedDocumentInReadmodelPurpose,
     ];
 
     for (const table of purposeTables) {
@@ -78,6 +80,7 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
           versionsSQL,
           versionDocumentsSQL,
           versionStampsSQL,
+          versionSignedDocumentsSQL,
         } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
         await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -110,6 +113,12 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(purposeVersionStampInReadmodelPurpose)
             .values(versionStampSQL);
+        }
+
+        for (const versionSignedDocumentSQL of versionSignedDocumentsSQL) {
+          await tx
+            .insert(purposeVersionSignedDocumentInReadmodelPurpose)
+            .values(versionSignedDocumentSQL);
         }
       });
     },

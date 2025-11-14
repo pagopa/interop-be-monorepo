@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import {
   AgreementId,
   AgreementM2MEvent,
@@ -30,6 +31,7 @@ export function getMockedAttributeM2MEvent(
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
     attributeId: generateId<AttributeId>(),
   };
 }
@@ -51,6 +53,7 @@ export function getMockedEServiceM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
     eserviceId: generateId<EServiceId>(),
     descriptorId: generateId<DescriptorId>(),
     visibility,
@@ -83,6 +86,7 @@ export function getMockedAgreementM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
     agreementId: generateId<AgreementId>(),
     visibility,
     consumerId: consumerId ?? generateId<TenantId>(),

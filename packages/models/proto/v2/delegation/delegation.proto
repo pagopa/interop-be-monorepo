@@ -16,6 +16,8 @@ message DelegationV2 {
   optional DelegationContractDocumentV2 activationContract = 14;
   optional DelegationContractDocumentV2 revocationContract = 15;
   optional int64 updatedAt = 16;
+  optional DelegationContractDocumentV2 activationSignedContract = 17;
+  optional DelegationContractDocumentV2 revocationSignedContract = 18;
 }
 
 message DelegationContractDocumentV2 {
@@ -37,6 +39,16 @@ message DelegationStampsV2 {
   optional DelegationStampV2 activation = 2;
   optional DelegationStampV2 rejection = 3;
   optional DelegationStampV2 revocation = 4;
+}
+
+message DelegationSignedContractDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+  optional int64 signedAt = 7;
 }
 
 enum DelegationStateV2 {

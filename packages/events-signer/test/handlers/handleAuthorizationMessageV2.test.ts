@@ -85,7 +85,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         authV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -144,9 +144,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { authV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ authV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -200,9 +198,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { authV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ authV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -256,9 +252,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { authV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ authV2: message, timestamp: new Date() }];
 
     const safeStorageCreateFileSpy = vi.spyOn(safeStorageService, "createFile");
     const safeStorageUploadFileSpy = vi.spyOn(
@@ -308,9 +302,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { authV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ authV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockRejectedValue(
       new Error("Safe Storage API error")

@@ -35,7 +35,8 @@ export async function handlePurposeEvent(
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisDocumentGenerated"
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => Promise.resolve(void 0)

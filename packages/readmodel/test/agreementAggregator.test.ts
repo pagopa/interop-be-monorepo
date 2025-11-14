@@ -73,6 +73,7 @@ describe("Agreement Aggregator", () => {
       contractSQL,
       attributesSQL,
       stampsSQL,
+      signedContractSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
       agreement.metadata.version
@@ -84,6 +85,7 @@ describe("Agreement Aggregator", () => {
       consumerDocumentsSQL,
       contractSQL,
       attributesSQL,
+      signedContractSQL,
     });
 
     expect(aggregatedAgreement).toStrictEqual(agreement);
@@ -132,6 +134,7 @@ describe("Agreement Aggregator", () => {
       contractSQL,
       attributesSQL,
       stampsSQL,
+      signedContractSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
       agreement.metadata.version
@@ -143,6 +146,7 @@ describe("Agreement Aggregator", () => {
       consumerDocumentsSQL,
       contractSQL,
       attributesSQL,
+      signedContractSQL,
     });
 
     expect(aggregatedAgreement).toStrictEqual(agreement);

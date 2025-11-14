@@ -814,13 +814,14 @@ const eserviceTemplatesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEServiceTemplate =
+          const { metadata, data: updatedEServiceTemplate } =
             await eserviceTemplateService.updateEServiceTemplateVersionAttributes(
               unsafeBrandId(req.params.templateId),
               unsafeBrandId(req.params.templateVersionId),
               req.body,
               ctx
             );
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(

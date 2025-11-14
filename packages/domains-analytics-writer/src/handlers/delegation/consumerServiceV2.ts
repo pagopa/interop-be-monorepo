@@ -32,7 +32,8 @@ export async function handleDelegationMessageV2(
             "ConsumerDelegationApproved",
             "ConsumerDelegationRejected",
             "ConsumerDelegationRevoked",
-            "DelegationContractGenerated"
+            "DelegationContractGenerated",
+            "DelegationSignedContractGenerated"
           ),
         },
         async (msg) => {
@@ -52,6 +53,8 @@ export async function handleDelegationMessageV2(
               delegationSQL: splitResult.delegationSQL,
               stampsSQL: splitResult.stampsSQL,
               contractDocumentsSQL: splitResult.contractDocumentsSQL,
+              contractSignedDocumentsSQL:
+                splitResult.contractSignedDocumentsSQL,
             } as z.input<typeof DelegationItemsSchema>)
           );
         }

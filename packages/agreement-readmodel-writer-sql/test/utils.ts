@@ -93,5 +93,6 @@ export const getCustomMockAgreement = (): Agreement => {
   delete agreement.contract;
   delete agreement.rejectionReason;
   delete agreement.suspendedAt;
+  delete agreement.signedContract;
   return agreement;
 };

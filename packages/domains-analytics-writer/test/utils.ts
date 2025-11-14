@@ -68,6 +68,7 @@ export const agreementTables: AgreementDbTable[] = [
   AgreementDbTable.agreement_consumer_document,
   AgreementDbTable.agreement_contract,
   AgreementDbTable.agreement_stamp,
+  AgreementDbTable.agreement_signed_contract,
 ];
 
 export const purposeTables: PurposeDbTable[] = [
@@ -77,12 +78,14 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose_version_stamp,
   PurposeDbTable.purpose_risk_analysis_form,
   PurposeDbTable.purpose_risk_analysis_answer,
+  PurposeDbTable.purpose_version_signed_document,
 ];
 
 export const delegationTables: DelegationDbTable[] = [
   DelegationDbTable.delegation,
   DelegationDbTable.delegation_stamp,
   DelegationDbTable.delegation_contract_document,
+  DelegationDbTable.delegation_signed_contract_document,
 ];
 
 export const tenantTables: TenantDbTable[] = [

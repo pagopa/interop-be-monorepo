@@ -25,6 +25,7 @@ import {
   retrievePurposeRiskAnalysisFormSQLById,
   retrievePurposeSQLById,
   retrievePurposeVersionDocumentsSQLById,
+  retrievePurposeVersionSignedDocumentsSQLById,
   retrievePurposeVersionsSQLById,
   retrievePurposeVersionStampsSQLById,
 } from "./utils.js";
@@ -81,6 +82,7 @@ describe("Purpose queries", () => {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -90,6 +92,7 @@ describe("Purpose queries", () => {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -124,6 +127,12 @@ describe("Purpose queries", () => {
       const retrievedPurposeVersionStampSQL =
         await retrievePurposeVersionStampsSQLById(purpose.id, readModelDB);
 
+      const retrievedPurposeVersionSignedDocumentSQL =
+        await retrievePurposeVersionSignedDocumentsSQLById(
+          purpose.id,
+          readModelDB
+        );
+
       expect(retrievedPurposeSQL).toBeDefined();
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
       expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(0);
@@ -138,6 +147,7 @@ describe("Purpose queries", () => {
         versionsSQL: retrievedPurposeVersionsSQL,
         versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
         versionStampsSQL: retrievedPurposeVersionStampSQL,
+        versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -197,6 +207,7 @@ describe("Purpose queries", () => {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -206,6 +217,7 @@ describe("Purpose queries", () => {
         versionsSQL,
         versionDocumentsSQL,
         versionStampsSQL,
+        versionSignedDocumentsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({

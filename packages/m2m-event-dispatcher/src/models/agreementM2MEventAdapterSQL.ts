@@ -8,6 +8,7 @@ export function toAgreementM2MEventSQL(
     id: event.id,
     eventType: event.eventType,
     eventTimestamp: dateToString(event.eventTimestamp),
+    resourceVersion: event.resourceVersion,
     agreementId: event.agreementId,
     consumerId: event.consumerId,
     producerId: event.producerId,
