@@ -1,7 +1,8 @@
-/* eslint-disable no-console */
+/* eslint-disable max-params */
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   getInteropHeaders,
+  Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import {
@@ -10,21 +11,31 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
 } from "pagopa-interop-models";
+import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addPurposeRiskAnalysisSignedDocument = async (
   purposeId: PurposeId,
   versionId: PurposeVersionDocumentId,
   document: PurposeVersionDocument,
   refreshableToken: RefreshableInteropToken,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  logger: Logger
 ): Promise<void> => {
+  logger.info(
+    `addPurposeRiskAnalysisSignedDocument: Risk Analysis Document ${JSON.stringify(
+      document
+    )}`
+  );
   const token = (await refreshableToken.get()).serialized;
   const documentSigned: purposeApi.PurposeVersionSignedDocument = {
     ...document,
-    createdAt: document.createdAt.toISOString(),
+    createdAt: new Date(document.createdAt).toISOString(),
     signedAt: new Date().toISOString(),
   };
-  await purposeApi.purposeApi.addSignedRiskAnalysisDocumentMetadata(
+
+  const { purposeProcessClient } = getInteropBeClients();
+
+  await purposeProcessClient.addSignedRiskAnalysisDocumentMetadata(
     documentSigned,
     {
       params: { purposeId, versionId },

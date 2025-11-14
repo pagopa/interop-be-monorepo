@@ -141,7 +141,7 @@ describe("sqsMessageHandler", () => {
     );
 
     expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
-      sqsMessageBody.id
+      sqsMessageBody.detail.key
     );
   });
 
