@@ -249,8 +249,8 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplate.id,
-        answerId,
-        documentId
+        documentId,
+        answerId
       )
     );
   });

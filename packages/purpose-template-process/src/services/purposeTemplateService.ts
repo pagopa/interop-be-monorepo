@@ -160,24 +160,29 @@ function retrieveAnswerAnnotation(
   return answer.annotation;
 }
 
-async function retrieveAnswerAnnotationDocument(
-  purposeTemplateId: PurposeTemplateId,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  readModelService: ReadModelServiceSQL
-): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+async function retrieveAnswerAnnotationDocument({
+  purposeTemplateId,
+  answerId,
+  documentId,
+  readModelService,
+}: {
+  purposeTemplateId: PurposeTemplateId;
+  answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  readModelService: ReadModelServiceSQL;
+}): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
   const annotationDocument =
     await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
 
   if (!annotationDocument) {
     throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
       purposeTemplateId,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
   }
 
@@ -432,8 +437,8 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
   if (!removedAnnotationDocument) {
     throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
       purposeTemplate.data.id,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
   }
 
@@ -686,7 +691,7 @@ export function purposeTemplateServiceBuilder(
         documentId,
       }: {
         purposeTemplateId: PurposeTemplateId;
-        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
         documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       },
       {
@@ -695,7 +700,9 @@ export function purposeTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       logger.info(
-        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}${
+          answerId ? ` and answer ${answerId}` : ""
+        }`
       );
 
       const purposeTemplate = applyVisibilityToPurposeTemplate(
@@ -703,13 +710,48 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      assertAnswerExistsInRiskAnalysisTemplate(purposeTemplate.data, answerId);
+      if (answerId) {
+        assertAnswerExistsInRiskAnalysisTemplate(
+          purposeTemplate.data,
+          answerId
+        );
+      }
 
-      return await retrieveAnswerAnnotationDocument(
+      return await retrieveAnswerAnnotationDocument({
         purposeTemplateId,
         answerId,
         documentId,
-        readModelService
+        readModelService,
+      });
+    },
+    async getRiskAnalysisTemplateAnnotationDocuments(
+      purposeTemplateId: PurposeTemplateId,
+      {
+        offset,
+        limit,
+      }: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
+    ): Promise<
+      ListResult<{
+        answerId: string;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }>
+    > {
+      logger.info(
+        `Retrieving risk analysis template annotation documents for purpose template ${purposeTemplateId}`
+      );
+
+      applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
+      );
+
+      return readModelService.getRiskAnalysisTemplateAnnotationDocuments(
+        purposeTemplateId,
+        { offset, limit }
       );
     },
     async getPurposeTemplateEServiceDescriptors(
@@ -1205,12 +1247,12 @@ export function purposeTemplateServiceBuilder(
         purposeTemplate.data.id
       );
 
-      const oldAnnotationDocument = await retrieveAnswerAnnotationDocument(
+      const oldAnnotationDocument = await retrieveAnswerAnnotationDocument({
         purposeTemplateId,
         answerId,
         documentId,
-        readModelService
-      );
+        readModelService,
+      });
 
       const newAnnotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument =
         {
