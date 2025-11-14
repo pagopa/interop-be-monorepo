@@ -29,5 +29,25 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events };
     },
+
+    async getTenantEvents(
+      {
+        lastEventId,
+        limit,
+      }: m2mGatewayApi.GetEventManagerTenantEventsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantEvents> {
+      logger.info(`Retrieving tenant events`);
+
+      const { events } = await clients.eventManagerClient.getTenantM2MEvents({
+        queries: {
+          lastEventId,
+          limit,
+        },
+        headers,
+      });
+
+      return { events };
+    },
   };
 }
