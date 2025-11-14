@@ -23,9 +23,8 @@ import {
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}", () => {
-  const mockPurposeTemplateId = generateId<PurposeTemplateId>();
-  const mockAnswerId = generateId<RiskAnalysisSingleAnswerId>();
+describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments/{documentId}", () => {
+  const purposeTemplateId = generateId<PurposeTemplateId>();
   const riskAnalysisTemplateAnswerAnnotationDocument =
     getMockRiskAnalysisTemplateAnswerAnnotationDocument();
 
@@ -45,16 +44,20 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
       .mockResolvedValue(serviceResponse);
   });
 
+  type MakeRequestParams = {
+    pId?: PurposeTemplateId;
+    dId?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  };
+
   const makeRequest = async (
     token: string,
-    purposeTemplateId: PurposeTemplateId = mockPurposeTemplateId,
-    answerId: RiskAnalysisSingleAnswerId = mockAnswerId,
-    documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId = riskAnalysisTemplateAnswerAnnotationDocument.id
+    { pId, dId }: MakeRequestParams = {
+      pId: purposeTemplateId,
+      dId: riskAnalysisTemplateAnswerAnnotationDocument.id,
+    }
   ) =>
     request(api)
-      .get(
-        `/purposeTemplates/${purposeTemplateId}/riskAnalysis/answers/${answerId}/annotation/documents/${documentId}`
-      )
+      .get(`/purposeTemplates/${pId}/riskAnalysis/annotationDocuments/${dId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -90,7 +93,7 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
 
   it.each([
     {
-      error: purposeTemplateNotFound(generateId()),
+      error: purposeTemplateNotFound(purposeTemplateId),
       expectedStatus: 404,
     },
     {
@@ -125,33 +128,9 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
     }
   );
 
-  it.each([
-    {
-      purposeTemplateId: "invalid" as PurposeTemplateId,
-      answerId: mockAnswerId,
-      documentId: riskAnalysisTemplateAnswerAnnotationDocument.id,
-    },
-    {
-      purposeTemplateId: mockPurposeTemplateId,
-      answerId: "invalid" as RiskAnalysisSingleAnswerId,
-      documentId: riskAnalysisTemplateAnswerAnnotationDocument.id,
-    },
-    {
-      purposeTemplateId: mockPurposeTemplateId,
-      answerId: mockAnswerId,
-      documentId: "invalid" as RiskAnalysisTemplateAnswerAnnotationDocumentId,
-    },
-  ])(
-    "Should return 400 if passed an invalid purpose template id",
-    async ({ purposeTemplateId, answerId, documentId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        purposeTemplateId,
-        answerId,
-        documentId
-      );
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed an invalid purpose template id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid" as MakeRequestParams);
+    expect(res.status).toBe(400);
+  });
 });
