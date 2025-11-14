@@ -1,12 +1,12 @@
 ## Issue
 
-- PIN-123
+-
 
 ## Context/Why
 
 ## Impacted Services
 
-- authorization-process, authorization-server-node
+-
 
 ## Traceability Checklist
 
