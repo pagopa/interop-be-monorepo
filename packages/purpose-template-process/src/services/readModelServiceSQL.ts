@@ -334,10 +334,11 @@ export function readModelServiceBuilderSQL({
 
       const queryResult = await addAnswerAnnotationJoin(
         readModelDB
-          .select({
-            riskAnalysisAnswerAnnotationDocument:
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          })
+          .select(
+            getTableColumns(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+            )
+          )
           .from(
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
           )
