@@ -6,7 +6,7 @@ import {
   generateToken,
   getMockPurpose,
   getMockWithMetadata,
-  mockAvailableDailysCalls,
+  mockAvailableDailyCalls,
 } from "pagopa-interop-commons-test";
 import { Purpose, PurposeTemplateId, generateId } from "pagopa-interop-models";
 import request from "supertest";
@@ -41,7 +41,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
   const mockPatchUpdateFromTemplateContent: purposeApi.PatchPurposeUpdateFromTemplateContent =
     {
       title: "Updated Purpose Title",
-      dailyCalls: mockAvailableDailysCalls(),
+      dailyCalls: mockAvailableDailyCalls(),
     };
 
   const serviceResponse = getMockWithMetadata(mockPurpose, 2);
