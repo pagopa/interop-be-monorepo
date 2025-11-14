@@ -427,8 +427,7 @@ describe("upload Document", () => {
 
   it.each(
     Object.values(descriptorState).filter(
-      (state) =>
-        !statesToExclude.includes(state)
+      (state) => !statesToExclude.includes(state)
     )
   )(
     "should throw notValidDescriptorState when uploading a document for a Descriptor in in %s state",

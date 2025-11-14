@@ -92,7 +92,6 @@ describe("update Document", () => {
         event_version: 2,
       });
 
-
       const writtenPayload = decodeProtobufPayload({
         messageType: EServiceDescriptorDocumentUpdatedV2,
         payload: writtenEvent.data,
@@ -402,8 +401,7 @@ describe("update Document", () => {
 
   it.each(
     Object.values(descriptorState).filter(
-      (state) =>
-        !statesToExclude.includes(state)
+      (state) => !statesToExclude.includes(state)
     )
   )(
     "should throw notValidDescriptorState if the descriptor is in s% state for document update",
