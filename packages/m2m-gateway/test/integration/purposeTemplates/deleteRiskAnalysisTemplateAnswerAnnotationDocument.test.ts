@@ -12,13 +12,14 @@ import {
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
-  mockDeletionPollingResponse,
   mockInteropBeClients,
+  mockPollingResponse,
   purposeTemplateService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 
 describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockApiPurposeTemplate = getMockWithMetadata(
@@ -27,9 +28,11 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const documentId =
     generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>();
 
-  const mockDeleteRiskAnalysisTemplateAnnotationDocument = vi.fn();
+  const mockDeleteRiskAnalysisTemplateAnnotationDocument = vi
+    .fn()
+    .mockResolvedValue(mockApiPurposeTemplate);
   const mockGetPurposeTemplate = vi.fn(
-    mockDeletionPollingResponse(mockApiPurposeTemplate, 2)
+    mockPollingResponse(mockApiPurposeTemplate, 2)
   );
 
   mockInteropBeClients.purposeTemplateProcessClient = {
@@ -66,9 +69,38 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
+  it("Should throw missingMetadata in case the purpose returned by the DELETE call has no metadata", async () => {
+    mockDeleteRiskAnalysisTemplateAnnotationDocument.mockResolvedValueOnce({
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+        unsafeBrandId(mockApiPurposeTemplate.data.id),
+        unsafeBrandId(documentId),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the purpose returned by the polling GET call has no metadata", async () => {
+    mockGetPurposeTemplate.mockResolvedValueOnce({
+      data: mockApiPurposeTemplate.data,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+        unsafeBrandId(mockApiPurposeTemplate.data.id),
+        unsafeBrandId(documentId),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetPurposeTemplate.mockImplementation(
-      mockDeletionPollingResponse(
+      mockPollingResponse(
         mockApiPurposeTemplate,
         config.defaultPollingMaxRetries + 1
       )
