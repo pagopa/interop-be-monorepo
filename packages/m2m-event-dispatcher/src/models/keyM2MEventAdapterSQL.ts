@@ -8,5 +8,6 @@ export function toKeyM2MEventSQL(event: KeyM2MEvent): KeyM2MEventSQL {
     eventTimestamp: dateToString(event.eventTimestamp),
     resourceVersion: event.resourceVersion,
     kid: event.kid,
+    clientId: event.clientId,
   };
 }

@@ -7,6 +7,7 @@ import {
   KeyM2MEventId,
   ProducerKeychainM2MEventId,
   ProducerKeyM2MEventId,
+  EServiceTemplateM2MEventId,
   PurposeM2MEventId,
   unsafeBrandId,
   TenantM2MEventId,
@@ -25,6 +26,7 @@ export function generateM2MEventId<
     | ProducerKeychainM2MEventId
     | ProducerKeyM2MEventId
     | TenantM2MEventId
+    | EServiceTemplateM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
