@@ -192,14 +192,14 @@ export function signatureServiceBuilder(
 
         const normalized = unmarshall(data.Item);
 
-        const sigParse = SignatureReferenceSchema.safeParse(normalized);
-        if (sigParse.success) {
-          return sigParse.data;
-        }
-
         const docParse = DocumentSignatureReferenceSchema.safeParse(normalized);
         if (docParse.success) {
           return docParse.data;
+        }
+
+        const sigParse = SignatureReferenceSchema.safeParse(normalized);
+        if (sigParse.success) {
+          return sigParse.data;
         }
 
         throw new Error(

@@ -224,7 +224,6 @@ export function expectUniqueAswerInRiskAnalysisForm(
 
   const expectedOneOccurrenceInMultiAnswers =
     riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
-
   if (expectedOneOccurrenceInSingleAnswers.length) {
     expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
   }

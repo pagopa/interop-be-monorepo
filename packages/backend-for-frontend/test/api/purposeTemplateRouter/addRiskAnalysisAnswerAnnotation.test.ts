@@ -14,7 +14,7 @@ import { api, clients } from "../../vitest.api.setup.js";
 describe("API PUT /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation", () => {
   const mockPurposeTemplateId = generateId();
   const mockAnswerId = generateId<RiskAnalysisSingleAnswerId>();
-  const mockRiskAnalysisAnswerAnnotationRequest: bffApi.RiskAnalysisTemplateAnswerAnnotationText =
+  const mockRiskAnalysisAnswerAnnotationRequest: bffApi.RiskAnalysisTemplateAnswerAnnotationSeed =
     {
       text: "This is a new annotation text for the risk analysis answer",
     };
@@ -35,7 +35,7 @@ describe("API PUT /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotatio
     token: string,
     purposeTemplateId: string = mockPurposeTemplateId,
     answerId: string = mockAnswerId,
-    body: bffApi.RiskAnalysisTemplateAnswerAnnotationText = mockRiskAnalysisAnswerAnnotationRequest
+    body: bffApi.RiskAnalysisTemplateAnswerAnnotationSeed = mockRiskAnalysisAnswerAnnotationRequest
   ): Promise<request.Response> =>
     request(api)
       .put(
@@ -70,13 +70,19 @@ describe("API PUT /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotatio
         text: "",
       },
     },
-  ])("Should return 400 for %s", async ({ body }) => {
+    {
+      description: "more than 2000 characters",
+      body: {
+        text: "T".repeat(2001),
+      },
+    },
+  ])("Should return 400 for $description", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
       mockPurposeTemplateId,
       mockAnswerId,
-      body as unknown as bffApi.RiskAnalysisTemplateAnswerAnnotationText
+      body as unknown as bffApi.RiskAnalysisTemplateAnswerAnnotationSeed
     );
     expect(res.status).toBe(400);
   });
