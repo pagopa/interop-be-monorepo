@@ -177,30 +177,36 @@ describe("handleAuthorizationEvent test", async () => {
               testM2mEventWriterService.insertClientM2MEvent
             ).toHaveBeenCalledTimes(3);
 
-            expect(await retrieveAllClientM2MEvents()).toHaveLength(2);
+            expect(
+              await retrieveAllClientM2MEvents({ limit: 10 })
+            ).toHaveLength(2);
           })
           .with({ type: "producerKeychain" }, async () => {
             expect(
               testM2mEventWriterService.insertProducerKeychainM2MEvent
             ).toHaveBeenCalledTimes(3);
 
-            expect(await retrieveAllProducerKeychainM2MEvents()).toHaveLength(
-              2
-            );
+            expect(
+              await retrieveAllProducerKeychainM2MEvents({ limit: 10 })
+            ).toHaveLength(2);
           })
           .with({ type: "key" }, async () => {
             expect(
               testM2mEventWriterService.insertKeyM2MEvent
             ).toHaveBeenCalledTimes(3);
 
-            expect(await retrieveAllKeyM2MEvents()).toHaveLength(2);
+            expect(await retrieveAllKeyM2MEvents({ limit: 10 })).toHaveLength(
+              2
+            );
           })
           .with({ type: "producerKey" }, async () => {
             expect(
               testM2mEventWriterService.insertProducerKeyM2MEvent
             ).toHaveBeenCalledTimes(3);
 
-            expect(await retrieveAllProducerKeyM2MEvents()).toHaveLength(2);
+            expect(
+              await retrieveAllProducerKeyM2MEvents({ limit: 10 })
+            ).toHaveLength(2);
           })
           .with({ type: "not-handled" }, async () => {
             expect(
