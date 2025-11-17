@@ -1,0 +1,20 @@
+meta {
+  name: Get Risk Analysis Template Answer Annotation Document
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

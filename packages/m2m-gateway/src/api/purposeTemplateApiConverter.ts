@@ -35,3 +35,18 @@ export function toM2MGatewayApiPurposeTemplate(
     purposeDailyCalls: purposeTemplate.purposeDailyCalls,
   };
 }
+
+export function toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument(
+  documentWithAnswerId: purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentWithAnswerId
+): m2mGatewayApi.RiskAnalysisTemplateAnnotationDocument {
+  return {
+    answerId: documentWithAnswerId.answerId,
+    document: {
+      id: documentWithAnswerId.document.id,
+      name: documentWithAnswerId.document.name,
+      prettyName: documentWithAnswerId.document.prettyName,
+      createdAt: documentWithAnswerId.document.createdAt,
+      contentType: documentWithAnswerId.document.contentType,
+    },
+  };
+}

@@ -97,6 +97,16 @@ export const purposeVersionDocumentToApiPurposeVersionDocument = (
   createdAt: document.createdAt.toJSON(),
 });
 
+export const purposeVersionSignedDocumentToApiPurposeVersionSignedDocument = (
+  document: PurposeVersionSignedDocument
+): purposeApi.PurposeVersionSignedDocument => ({
+  id: document.id,
+  contentType: document.contentType,
+  path: document.path,
+  createdAt: document.createdAt.toJSON(),
+  signedAt: document.signedAt?.toJSON(),
+});
+
 export const purposeVersionToApiPurposeVersion = (
   version: PurposeVersion
 ): purposeApi.PurposeVersion => ({
@@ -229,6 +239,7 @@ export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
   questions: configuration.questions.map(
     formConfigQuestionToApiFormConfigQuestion
   ),
+  expiration: configuration.expiration?.toJSON(),
 });
 
 export const apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys = (
