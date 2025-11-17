@@ -2,6 +2,8 @@ import {
   AgreementEventEnvelopeV2,
   AgreementV2,
   EService,
+  DelegationEventEnvelopeV2,
+  DelegationV2,
   EServiceEventEnvelopeV2,
   EServiceId,
   EServiceV2,
@@ -49,5 +51,15 @@ export function assertPurposeEServiceExists(
 ): asserts eservice is EService {
   if (!eservice) {
     throw purposeEServiceNotFound(eserviceId, purposeId);
+  }
+}
+
+export function assertDelegationExistsInEvent(
+  event: DelegationEventEnvelopeV2
+): asserts event is DelegationEventEnvelopeV2 & {
+  data: { delegation: DelegationV2 };
+} {
+  if (!event.data.delegation) {
+    throw missingKafkaMessageDataError("delegation", event.type);
   }
 }
