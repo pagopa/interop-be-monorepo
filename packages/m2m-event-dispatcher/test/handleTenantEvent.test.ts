@@ -106,6 +106,6 @@ describe("handleTenantEvent test", async () => {
       testM2mEventWriterService.insertTenantM2MEvent
     ).toHaveBeenCalledTimes(3);
 
-    expect(await retrieveAllTenantM2MEvents()).toHaveLength(2);
+    expect(await retrieveAllTenantM2MEvents({ limit: 10 })).toHaveLength(2);
   });
 });

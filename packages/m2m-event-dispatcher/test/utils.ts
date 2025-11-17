@@ -310,14 +310,20 @@ export async function retrieveAllProducerKeychainM2MEvents({
 
   return sqlEvents.map((e) => ProducerKeychainM2MEvent.parse(e));
 }
+
 export async function retrieveLastTenantM2MEvent(): Promise<TenantM2MEvent> {
-  return (await retrieveAllTenantM2MEvents())[0];
+  return (await retrieveAllTenantM2MEvents({ limit: 1 }))[0];
 }
 
-export async function retrieveAllTenantM2MEvents(): Promise<TenantM2MEvent[]> {
+export async function retrieveAllTenantM2MEvents({
+  limit,
+}: {
+  limit: number;
+}): Promise<TenantM2MEvent[]> {
   const sqlEvents = await m2mEventDB
     .select()
     .from(tenantInM2MEvent)
+    .limit(limit)
     .orderBy(desc(tenantInM2MEvent.id));
 
   return sqlEvents.map((e) => TenantM2MEvent.parse(e));
