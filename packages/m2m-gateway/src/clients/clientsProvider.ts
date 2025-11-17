@@ -83,10 +83,6 @@ export type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof purposeTemplateApi.createPurposeTemplateApiClient>
 >;
 
-export type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
-  ReturnType<typeof purposeTemplateApi.createPurposeTemplateApiClient>
->;
-
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;
