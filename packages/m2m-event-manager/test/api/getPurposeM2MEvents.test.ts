@@ -10,7 +10,7 @@ import {
 } from "pagopa-interop-models";
 import { generateM2MEventId, getMockedPurposeM2MEvent } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../utils.js";
+import { toApiPurposeM2MEventType } from "../../src/model/purposeM2MEventApiConverter.js";
 
 describe("API /events/purposes test", () => {
   const mockPurposeM2MEvents = PurposeM2MEventType.options
@@ -32,7 +32,7 @@ describe("API /events/purposes test", () => {
         ({
           id: e.id,
           eventTimestamp: e.eventTimestamp.toJSON(),
-          eventType: testToUpperSnakeCase(e.eventType),
+          eventType: toApiPurposeM2MEventType(e.eventType),
           purposeId: e.purposeId,
           purposeVersionId: e.purposeVersionId,
           consumerDelegationId: e.consumerDelegationId,

@@ -2,7 +2,7 @@ import { m2mEventApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { PurposeM2MEvent, PurposeM2MEventType } from "pagopa-interop-models";
 
-function toApiPurposeM2MEventType(
+export function toApiPurposeM2MEventType(
   eventType: PurposeM2MEventType
 ): m2mEventApi.PurposeM2MEvent["eventType"] {
   return match<PurposeM2MEventType, m2mEventApi.PurposeM2MEvent["eventType"]>(
@@ -60,7 +60,7 @@ function toApiPurposeM2MEventType(
     )
     .with(
       "RiskAnalysisSignedDocumentGenerated",
-      () => "RISK_ANALYSIS_SIGNED_DOCUMENT_GENERATED"
+      () => "RISK_ANALYSIS_DOCUMENT_GENERATED"
     )
     .exhaustive();
 }
