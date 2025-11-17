@@ -90,16 +90,17 @@ export function validateAuthorization<
     .with(
       {
         systemRole: P.union(
-          systemRole.M2M_ROLE,
+          systemRole.M2M_ADMIN_ROLE,
           systemRole.INTERNAL_ROLE,
           systemRole.MAINTENANCE_ROLE,
-          systemRole.M2M_ADMIN_ROLE
+          systemRole.M2M_ROLE
         ),
       },
       ({ systemRole }) => {
         const admittedSystemRoles: SystemRole[] =
           admittedAuthRoles.filter(isSystemRole);
         if (!admittedSystemRoles.includes(systemRole)) {
+          checkIsM2MAdminPermittedForM2M(authData, admittedSystemRoles);
           throw unauthorizedError(
             `Invalid role "${systemRole}" for this operation`
           );
@@ -198,4 +199,18 @@ function isUserRole(role: AuthRole): role is UserRole {
       () => false
     )
     .exhaustive();
+}
+
+function checkIsM2MAdminPermittedForM2M(
+  authData: AuthData,
+  permittedRoles: AuthRole[]
+): void {
+  if (
+    authData.systemRole === authRole.M2M_ROLE &&
+    permittedRoles.includes(authRole.M2M_ADMIN_ROLE)
+  ) {
+    throw unauthorizedError(
+      `Admin user not set for Client ${authData.clientId} with M2M role`
+    );
+  }
 }
