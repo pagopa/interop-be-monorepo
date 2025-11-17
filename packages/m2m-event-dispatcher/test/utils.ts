@@ -6,6 +6,7 @@ import {
   attributeInM2MEvent,
   consumerDelegationInM2MEvent,
   eserviceInM2MEvent,
+  eserviceTemplateInM2MEvent,
   producerDelegationInM2MEvent,
   purposeInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
@@ -17,6 +18,7 @@ import {
   DelegationM2MEvent,
   EService,
   EServiceM2MEvent,
+  EServiceTemplateM2MEvent,
   PurposeM2MEvent,
 } from "pagopa-interop-models";
 import {
@@ -184,4 +186,24 @@ export async function retrieveAllProducerDelegationM2MEvents(): Promise<
 
 export async function retrieveLastProducerDelegationM2MEvent(): Promise<DelegationM2MEvent> {
   return (await retrieveAllProducerDelegationM2MEvents())[0];
+}
+
+export async function retrieveLastEServiceTemplateM2MEvent(): Promise<EServiceTemplateM2MEvent> {
+  return (await retrieveAllEServiceTemplateM2MEvents())[0];
+}
+
+export async function retrieveAllEServiceTemplateM2MEvents(): Promise<
+  EServiceTemplateM2MEvent[]
+> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(eserviceTemplateInM2MEvent)
+    .orderBy(desc(eserviceTemplateInM2MEvent.id));
+
+  return sqlEvents.map((e) =>
+    EServiceTemplateM2MEvent.parse({
+      ...e,
+      eserviceTemplateVersionId: e.eserviceTemplateVersionId ?? undefined,
+    })
+  );
 }
