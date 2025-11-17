@@ -10,7 +10,11 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { pollResourceUntilDeletion } from "../utils/polling.js";
+import {
+  isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceUntilDeletion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
@@ -38,6 +42,17 @@ export function purposeTemplateServiceBuilder(
         id: purposeTemplateId,
       },
       headers,
+    });
+
+  const pollPurposeTemplateById = (
+    purposeTemplateId: PurposeTemplateId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(purposeTemplateId, headers)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
   const pollPurposeTemplateUntilDeletion = (
@@ -241,6 +256,24 @@ export function purposeTemplateServiceBuilder(
       );
 
       await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.deleteRiskAnalysisTemplateAnnotationDocument(
+          undefined,
+          {
+            params: { purposeTemplateId, documentId },
+            headers,
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
     },
   };
 }

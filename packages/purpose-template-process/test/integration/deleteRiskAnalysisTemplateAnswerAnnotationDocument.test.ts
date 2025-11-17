@@ -213,7 +213,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
         {
           purposeTemplateId: purposeTemplateWithoutRiskAnalysisTemplate.id,
-          answerId: generateId(),
+          answerId: generateId<RiskAnalysisMultiAnswerId>(),
           documentId: generateId(),
           ctx: getMockContext({
             authData: getMockAuthData(
