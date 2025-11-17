@@ -16291,6 +16291,97 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+    post:
+      tags:
+        - purposeTemplates
+      summary: Create a new Purpose Template
+      description: Create a new Purpose Template in Draft state
+      operationId: createPurposeTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeTemplateSeed"
+        required: true
+      responses:
+        "201":
+          description: Purpose Template created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /purposeTemplates/{purposeTemplateId}:
     parameters:
       - name: purposeTemplateId
@@ -19385,6 +19476,43 @@ components:
         - creatorId
         - state
         - createdAt
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
+        - handlesPersonalData
+    PurposeTemplateSeed:
+      type: object
+      additionalProperties: false
+      description: contains the expected payload for purpose template creation
+      properties:
+        targetDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        targetTenantKind:
+          $ref: "#/components/schemas/TenantKind"
+        purposeTitle:
+          type: string
+          minLength: 5
+          maxLength: 60
+        purposeDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
+      required:
+        - targetDescription
+        - targetTenantKind
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
