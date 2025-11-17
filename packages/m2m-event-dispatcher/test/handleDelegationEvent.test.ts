@@ -6,10 +6,20 @@ import {
   toDelegationV2,
   DelegationEventEnvelopeV2,
   delegationKind,
+  generateId,
+  DelegationId,
+  TenantId,
+  m2mEventVisibility,
+  AgreementM2MEvent,
+  PurposeM2MEvent,
+  EServiceM2MEvent,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { handleDelegationEvent } from "../src/handlers/handleDelegationEvent.js";
+import { toPurposeM2MEventSQL } from "../src/models/purposeM2MEventAdapterSQL.js";
+import { toAgreementM2MEventSQL } from "../src/models/agreementM2MEventAdapterSQL.js";
+import { toEServiceM2MEventSQL } from "../src/models/eserviceM2MEventAdapterSQL.js";
 import {
   getMockEventEnvelopeCommons,
   retrieveAllConsumerDelegationM2MEvents,
@@ -17,11 +27,16 @@ import {
   retrieveAllProducerDelegationM2MEvents,
   retrieveLastProducerDelegationM2MEvent,
   testM2mEventWriterService,
+  retrieveLastAgreementM2MEvent,
+  retrieveLastPurposeM2MEvent,
+  retrieveLastEServiceM2MEvent,
 } from "./utils.js";
 
 describe("handleDelegationEvent test", async () => {
   vi.spyOn(testM2mEventWriterService, "insertConsumerDelegationM2MEvent");
   vi.spyOn(testM2mEventWriterService, "insertProducerDelegationM2MEvent");
+  vi.spyOn(testM2mEventWriterService, "removeConsumerDelegationVisibility");
+  vi.spyOn(testM2mEventWriterService, "removeProducerDelegationVisibility");
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -217,5 +232,164 @@ describe("handleDelegationEvent test", async () => {
         })
         .exhaustive();
     });
+  });
+
+  it("should clear consumer delegation fields in existing events after ConsumerDelegationRevoked", async () => {
+    const delegationId = generateId<DelegationId>();
+    const delegateId = generateId<TenantId>();
+
+    const agreementEvent: AgreementM2MEvent = {
+      id: generateId(),
+      agreementId: generateId(),
+      eventType: "DraftAgreementUpdated",
+      eventTimestamp: new Date(),
+      visibility: m2mEventVisibility.owner,
+      resourceVersion: 1,
+      consumerDelegationId: delegationId,
+      consumerDelegateId: delegateId,
+      producerId: generateId(),
+      consumerId: generateId(),
+    };
+
+    const purposeEvent: PurposeM2MEvent = {
+      id: generateId(),
+      purposeId: generateId(),
+      eventType: "DraftPurposeUpdated",
+      eventTimestamp: new Date(),
+      visibility: "Restricted",
+      resourceVersion: 1,
+      consumerDelegationId: delegationId,
+      consumerDelegateId: delegateId,
+      consumerId: generateId(),
+      producerId: generateId(),
+    };
+
+    await testM2mEventWriterService.insertAgreementM2MEvent(
+      toAgreementM2MEventSQL(agreementEvent)
+    );
+    await testM2mEventWriterService.insertPurposeM2MEvent(
+      toPurposeM2MEventSQL(purposeEvent)
+    );
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      id: delegationId,
+    });
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: delegation.id,
+      type: "ConsumerDelegationRevoked",
+      data: { delegation: toDelegationV2(delegation) },
+    } as DelegationEventEnvelopeV2;
+
+    await handleDelegationEvent(
+      message,
+      new Date(),
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    expect(
+      testM2mEventWriterService.removeConsumerDelegationVisibility
+    ).toHaveBeenCalledTimes(1);
+
+    const agreementM2MEvent = await retrieveLastAgreementM2MEvent();
+    const purposeM2MEvent = await retrieveLastPurposeM2MEvent();
+
+    expect(agreementM2MEvent.consumerDelegationId).toBeUndefined();
+    expect(agreementM2MEvent.consumerDelegateId).toBeUndefined();
+
+    expect(purposeM2MEvent.consumerDelegationId).toBeUndefined();
+    expect(purposeM2MEvent.consumerDelegateId).toBeUndefined();
+  });
+
+  it("should clear producer delegation fields in existing events after ProducerDelegationRevoked", async () => {
+    const delegationId = generateId<DelegationId>();
+    const delegateId = generateId<TenantId>();
+
+    const eserviceEvent: EServiceM2MEvent = {
+      id: generateId(),
+      eserviceId: generateId(),
+      eventType: "DraftEServiceUpdated",
+      eventTimestamp: new Date(),
+      visibility: m2mEventVisibility.owner,
+      resourceVersion: 1,
+      producerDelegationId: delegationId,
+      producerDelegateId: delegateId,
+      producerId: generateId(),
+    };
+
+    const agreementEvent: AgreementM2MEvent = {
+      id: generateId(),
+      agreementId: generateId(),
+      eventType: "DraftAgreementUpdated",
+      eventTimestamp: new Date(),
+      visibility: m2mEventVisibility.owner,
+      resourceVersion: 1,
+      producerDelegationId: delegationId,
+      producerDelegateId: delegateId,
+      producerId: generateId(),
+      consumerId: generateId(),
+    };
+
+    const purposeEvent: PurposeM2MEvent = {
+      id: generateId(),
+      purposeId: generateId(),
+      eventType: "DraftPurposeUpdated",
+      eventTimestamp: new Date(),
+      visibility: "Restricted",
+      resourceVersion: 1,
+      producerDelegationId: delegationId,
+      producerDelegateId: delegateId,
+      consumerId: generateId(),
+      producerId: generateId(),
+    };
+
+    await testM2mEventWriterService.insertEServiceM2MEvent(
+      toEServiceM2MEventSQL(eserviceEvent)
+    );
+    await testM2mEventWriterService.insertAgreementM2MEvent(
+      toAgreementM2MEventSQL(agreementEvent)
+    );
+    await testM2mEventWriterService.insertPurposeM2MEvent(
+      toPurposeM2MEventSQL(purposeEvent)
+    );
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      id: delegationId,
+    });
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: delegation.id,
+      type: "ProducerDelegationRevoked",
+      data: { delegation: toDelegationV2(delegation) },
+    } as DelegationEventEnvelopeV2;
+
+    await handleDelegationEvent(
+      message,
+      new Date(),
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    expect(
+      testM2mEventWriterService.removeProducerDelegationVisibility
+    ).toHaveBeenCalledTimes(1);
+
+    const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
+    const agreementM2MEvent = await retrieveLastAgreementM2MEvent();
+    const purposeM2MEvent = await retrieveLastPurposeM2MEvent();
+
+    expect(eserviceM2MEvent.producerDelegationId).toBeUndefined();
+    expect(eserviceM2MEvent.producerDelegateId).toBeUndefined();
+
+    expect(agreementM2MEvent.producerDelegationId).toBeUndefined();
+    expect(agreementM2MEvent.producerDelegateId).toBeUndefined();
+
+    expect(purposeM2MEvent.producerDelegationId).toBeUndefined();
+    expect(purposeM2MEvent.producerDelegateId).toBeUndefined();
   });
 });
