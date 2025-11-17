@@ -1,64 +1,108 @@
 import {
-  PurposeEventEnvelopeV2,
-  PurposeVersionV2,
-  PurposeV2,
-  PurposeVersionStampsV2,
-  PurposeVersionStampV2,
+  EServiceDescriptorV2,
+  EServiceDocumentV2,
+  EServiceTemplateVersionRefV2,
+  EServiceV2,
+  PurposeTemplateEventEnvelopeV2,
+  PurposeTemplateV2,
+  TemplateInstanceInterfaceMetadataV2,
 } from "pagopa-interop-models";
 import {
   PurposeTemplateEvent as OutboundPurposeTemplateEvent,
-  PurposeTemplateVersionV2 as OutboundPurposeTemplateVersionV2,
   PurposeTemplateV2 as OutboundPurposeTemplateV2,
-  PurposeTemplateVersionStampsV2 as OutboundPurposeTemplateVersionStampsV2,
-  PurposeTemplateVersionStampV2 as OutboundPurposeTemplateVersionStampV2,
+  EServiceV2 as OutboundEServiceV2,
+  EServiceDescriptorV2 as OutboundEServiceDescriptorV2,
+  EServiceDocumentV2 as OutboundEServiceDocumentV2,
+  EServiceTemplateVersionRefV2 as OutboundEServiceTemplateVersionRefV2,
+  TemplateInstanceInterfaceMetadataV2 as OutboundTemplateInstanceInterfaceMetadataV2,
 } from "@pagopa/interop-outbound-models";
 import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
 
-function toOutboundPurposeTemplateVersionStampV2(
-  stamp: PurposeVersionStampV2
-): Exact<OutboundPurposeTemplateVersionStampV2, PurposeVersionStampV2> {
+function toOutboundEServiceDocumentV2(
+  document: EServiceDocumentV2
+): Exact<OutboundEServiceDocumentV2, EServiceDocumentV2> {
   return {
-    ...stamp,
-    who: undefined,
+    ...document,
+    path: undefined,
   };
 }
 
-function toOutboundPurposeTemplateVersionStampsV2(
-  stamps: PurposeVersionStampsV2
-): Exact<OutboundPurposeTemplateVersionStampsV2, PurposeVersionStampsV2> {
+function toOutboundTemplateInstanceInterfaceMetadataV2(
+  interfaceMetadata: TemplateInstanceInterfaceMetadataV2
+): Exact<
+  OutboundTemplateInstanceInterfaceMetadataV2,
+  TemplateInstanceInterfaceMetadataV2
+> {
   return {
-    creation:
-      stamps.creation &&
-      toOutboundPurposeTemplateVersionStampV2(stamps.creation),
+    contactEmail: interfaceMetadata.contactEmail,
+    contactName: interfaceMetadata.contactName,
+    contactUrl: interfaceMetadata.contactUrl,
+    termsAndConditionsUrl: interfaceMetadata.termsAndConditionsUrl,
   };
 }
 
-function toOutboundPurposeTemplateVersionV2(
-  purposeVersion: PurposeVersionV2
-): Exact<OutboundPurposeTemplateVersionV2, PurposeVersionV2> {
+function toOutboundEServiceTemplateVersionRefV2(
+  templateVersionRef: EServiceTemplateVersionRefV2
+): Exact<OutboundEServiceTemplateVersionRefV2, EServiceTemplateVersionRefV2> {
   return {
-    ...purposeVersion,
+    id: templateVersionRef.id,
+    interfaceMetadata:
+      templateVersionRef.interfaceMetadata &&
+      toOutboundTemplateInstanceInterfaceMetadataV2(
+        templateVersionRef.interfaceMetadata
+      ),
+  };
+}
+
+function toOutboundDescriptorV2(
+  descriptor: EServiceDescriptorV2
+): Exact<OutboundEServiceDescriptorV2, EServiceDescriptorV2> {
+  return {
+    ...descriptor,
+    interface:
+      descriptor.interface &&
+      toOutboundEServiceDocumentV2(descriptor.interface),
+    docs: descriptor.docs.map(toOutboundEServiceDocumentV2),
+    templateVersionRef:
+      descriptor.templateVersionRef &&
+      toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+  };
+}
+
+function toOutboundEServiceV2(
+  eservice: EServiceV2
+): Exact<OutboundEServiceV2, EServiceV2> {
+  return {
+    ...eservice,
     riskAnalysis: undefined,
-    stamps:
-      purposeVersion.stamps &&
-      toOutboundPurposeTemplateVersionStampsV2(purposeVersion.stamps),
+    descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
+    templateId: eservice.templateId,
   };
 }
 
 function toOutboundPurposeTemplateV2(
-  purpose: PurposeV2
-): Exact<OutboundPurposeTemplateV2, PurposeV2> {
+  purpose: PurposeTemplateV2
+): Exact<OutboundPurposeTemplateV2, PurposeTemplateV2> {
   return {
-    ...purpose,
-    versions: purpose.versions.map(toOutboundPurposeTemplateVersionV2),
-    riskAnalysisForm: undefined,
-    purposeTemplateId: undefined,
+    id: purpose.id,
+    targetDescription: purpose.targetDescription,
+    targetTenantKind: purpose.targetTenantKind,
+    creatorId: purpose.creatorId,
+    state: purpose.state,
+    createdAt: purpose.createdAt,
+    updatedAt: purpose.updatedAt,
+    purposeTitle: purpose.purposeTitle,
+    purposeDescription: purpose.purposeDescription,
+    purposeIsFreeOfCharge: purpose.purposeIsFreeOfCharge,
+    purposeFreeOfChargeReason: purpose.purposeFreeOfChargeReason,
+    purposeDailyCalls: purpose.purposeDailyCalls,
+    handlesPersonalData: purpose.handlesPersonalData,
   };
 }
 
 export function toOutboundEventV2(
-  message: PurposeEventEnvelopeV2
+  message: PurposeTemplateEventEnvelopeV2
 ): OutboundPurposeTemplateEvent {
   return match(message)
     .returnType<OutboundPurposeTemplateEvent>()
@@ -80,10 +124,24 @@ export function toOutboundEventV2(
             toOutboundPurposeTemplateV2(msg.data.purposeTemplate),
         },
         stream_id: msg.stream_id,
-        streamVersion: msg.version,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       })
     )
+    .with({ type: "PurposeTemplateAnnotationDocumentUpdated" }, (msg) => ({
+      event_version: msg.event_version,
+      type: msg.type,
+      version: msg.version,
+      data: {
+        purposeTemplate:
+          msg.data.purposeTemplate &&
+          toOutboundPurposeTemplateV2(msg.data.purposeTemplate),
+        documentId: msg.data.documentId,
+        answerId: msg.data.answerId,
+      },
+      stream_id: msg.stream_id,
+      timestamp: new Date().toISOString(),
+    }))
+
     .with(
       { type: "PurposeTemplateAnnotationDocumentDeleted" },
       { type: "PurposeTemplateAnnotationDocumentAdded" },
@@ -98,8 +156,7 @@ export function toOutboundEventV2(
           documentId: msg.data.documentId,
         },
         stream_id: msg.stream_id,
-        streamVersion: msg.version,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       })
     )
     .with({ type: "PurposeTemplateEServiceLinked" }, (msg) => ({
@@ -110,13 +167,12 @@ export function toOutboundEventV2(
         purposeTemplate:
           msg.data.purposeTemplate &&
           toOutboundPurposeTemplateV2(msg.data.purposeTemplate),
-        eservice: msg.data.eservice && toOutboundEserviceV2(msg.data.eservice),
+        eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
         descriptorId: msg.data.descriptorId,
         createdAt: msg.data.createdAt,
       },
       stream_id: msg.stream_id,
-      streamVersion: msg.version,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     }))
     .with({ type: "PurposeTemplateEServiceUnlinked" }, (msg) => ({
       event_version: msg.event_version,
@@ -126,12 +182,11 @@ export function toOutboundEventV2(
         purposeTemplate:
           msg.data.purposeTemplate &&
           toOutboundPurposeTemplateV2(msg.data.purposeTemplate),
-        eservice: msg.data.eservice && toOutboundEserviceV2(msg.data.eservice),
+        eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
         descriptorId: msg.data.descriptorId,
       },
       stream_id: msg.stream_id,
-      streamVersion: msg.version,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     }))
     .exhaustive();
 }

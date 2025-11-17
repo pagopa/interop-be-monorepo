@@ -3,26 +3,28 @@ import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import { initProducer, runConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import {
-  encodeOutboundPurposeEvent,
-  PurposeTemplateEvent as PurposeTemplateOutboundEvent,
+  encodeOutboundPurposeTemplateEvent,
+  PurposeTemplateEventV2 as PurposeTemplateOutboundEvent,
 } from "@pagopa/interop-outbound-models";
 import {
   CorrelationId,
   generateId,
-  PurposeEvent,
+  PurposeTemplateEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { config } from "./config/config.js";
-import { toOutboundEventV1 } from "./converters/toOutboundEventV1.js";
 import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 
-const producer = await initProducer(config, config.purposeOutboundTopic);
+const producer = await initProducer(
+  config,
+  config.purposeTemplateOutboundTopic
+);
 
 async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  const msg = decodeKafkaMessage(message, PurposeEvent);
+  const msg = decodeKafkaMessage(message, PurposeTemplateEvent);
 
   const loggerInstance = logger({
     serviceName: "purpose-outbound-writer",
@@ -44,7 +46,7 @@ async function processMessage({
       messages: [
         {
           key: outboundEvent.stream_id,
-          value: encodeOutboundPurposeEvent(outboundEvent),
+          value: encodeOutboundPurposeTemplateEvent(outboundEvent),
         },
       ],
     });
@@ -57,7 +59,7 @@ async function processMessage({
 
 await runConsumer(
   config,
-  [config.purposeTopic],
+  [config.purposeTemplateOutboundTopic],
   processMessage,
   "purpose-outbound-writer"
 );

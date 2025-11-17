@@ -4940,8 +4940,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.7.0
-        version: 1.7.0
+        specifier: 1.8.1
+        version: 1.8.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
