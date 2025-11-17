@@ -69,7 +69,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         agreementV2: addMsg,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -114,7 +114,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         agreementV2: addMsg,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -154,7 +154,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         agreementV2: addMsg,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
