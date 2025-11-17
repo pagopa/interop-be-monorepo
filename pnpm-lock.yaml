@@ -1464,8 +1464,8 @@ importers:
         specifier: 2.2.4
         version: 2.2.4
       nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
+        specifier: 7.0.7
+        version: 7.0.7
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1747,8 +1747,8 @@ importers:
         specifier: 2.0.2
         version: 2.0.2
       nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
+        specifier: 7.0.7
+        version: 7.0.7
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -2666,8 +2666,8 @@ importers:
         specifier: 2.2.4
         version: 2.2.4
       nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
+        specifier: 7.0.7
+        version: 7.0.7
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2745,8 +2745,8 @@ importers:
         specifier: 2.2.4
         version: 2.2.4
       nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
+        specifier: 7.0.7
+        version: 7.0.7
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -4153,8 +4153,8 @@ importers:
         specifier: 2.2.4
         version: 2.2.4
       nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
+        specifier: 7.0.7
+        version: 7.0.7
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -4461,8 +4461,8 @@ importers:
         specifier: 0.39.3
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       nodemailer:
-        specifier: 6.9.9
-        version: 6.9.9
+        specifier: 7.0.7
+        version: 7.0.7
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -10172,12 +10172,8 @@ packages:
     resolution: {integrity: sha512-Pzr3rol8fvhG/oJjIq2NTVB0vmdNNlz22FENhhPojYRZ4/ee08CfK4YuKmuL54V9MLhI1kpzxfOJ/63LzmZzDg==}
     engines: {node: '>=14'}
 
-  nodemailer@6.9.14:
-    resolution: {integrity: sha512-Dobp/ebDKBvz91sbtRKhcznLThrKxKt97GI2FAlAyy+fk19j73Uz3sBXolVtmcXjaorivqsbbbjDY+Jkt4/bQA==}
-    engines: {node: '>=6.0.0'}
-
-  nodemailer@6.9.9:
-    resolution: {integrity: sha512-dexTll8zqQoVJEZPwQAKzxxtFn0qTnjdQTchoU6Re9BUUGBJiOy3YMn/0ShTW6J5M0dfQ1NeDeRTTl4oIWgQMA==}
+  nodemailer@7.0.7:
+    resolution: {integrity: sha512-jGOaRznodf62TVzdyhKt/f1Q/c3kYynk8629sgJHpRzGZj01ezbgMMWJSAjHADcwTKxco3B68/R+KHJY2T5BaA==}
     engines: {node: '>=6.0.0'}
 
   normalize-path@3.0.0:
@@ -10567,6 +10563,7 @@ packages:
   puppeteer@22.11.2:
     resolution: {integrity: sha512-8fjdQSgW0sq7471ftca24J7sXK+jXZ7OW7Gx+NEBFNyXrcTiBfukEI46gNq6hiMhbLEDT30NeylK/1ZoPdlKSA==}
     engines: {node: '>=18'}
+    deprecated: < 24.15.0 is no longer supported
     hasBin: true
 
   qs@6.11.0:
@@ -17991,9 +17988,7 @@ snapshots:
       '@types/sarif': 2.1.7
       fs-extra: 10.1.0
 
-  nodemailer@6.9.14: {}
-
-  nodemailer@6.9.9: {}
+  nodemailer@7.0.7: {}
 
   normalize-path@3.0.0: {}
 

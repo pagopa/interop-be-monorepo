@@ -44,7 +44,7 @@
     "kafkajs": "2.2.4",
     "mime": "4.0.7",
     "multer": "2.0.2",
-    "nodemailer": "6.9.14",
+    "nodemailer": "7.0.7",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.8.0",
     "puppeteer": "22.11.2",
