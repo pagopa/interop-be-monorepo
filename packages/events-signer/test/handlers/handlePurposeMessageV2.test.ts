@@ -75,9 +75,7 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { purposeV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -134,9 +132,7 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { purposeV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -195,9 +191,7 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { purposeV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -241,9 +235,7 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { purposeV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
 
     const safeStorageCreateFileSpy = vi.spyOn(safeStorageService, "createFile");
     const safeStorageUploadFileSpy = vi.spyOn(
@@ -284,9 +276,7 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { purposeV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockRejectedValue(
       new Error("Safe Storage API error")
