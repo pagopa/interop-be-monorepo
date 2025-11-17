@@ -6,7 +6,6 @@ import {
   PurposeVersionId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
-  InternalError,
 } from "pagopa-interop-models";
 
 type M2MEventDispatcherErrorCode =
