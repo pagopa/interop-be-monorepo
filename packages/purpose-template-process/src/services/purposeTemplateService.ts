@@ -366,10 +366,20 @@ const updatePurposeTemplateWithoutAnnotationDocument = async ({
         },
         answer
       ) => {
-        if (answer.id === answerId || !answerId) {
-          const { updatedAnnotationDocs, removedAnnotationDocument } = (
-            answer.annotation?.docs || []
-          ).reduce(
+        if (
+          (answerId && answer.id !== answerId) ||
+          acc.removedAnnotationDocument
+        ) {
+          return {
+            updatedAnswers: [...acc.updatedAnswers, answer],
+            removedAnnotationDocument: acc.removedAnnotationDocument,
+          };
+        }
+
+        const docs = answer.annotation?.docs ?? [];
+
+        const { updatedAnnotationDocs, removedAnnotationDocument } =
+          docs.reduce(
             (
               acc: {
                 updatedAnnotationDocs: RiskAnalysisTemplateAnswerAnnotationDocument[];
@@ -391,25 +401,20 @@ const updatePurposeTemplateWithoutAnnotationDocument = async ({
             }
           );
 
-          return {
-            updatedAnswers: [
-              ...acc.updatedAnswers,
-              {
-                ...answer,
-                annotation: {
-                  ...answer.annotation,
-                  docs: updatedAnnotationDocs,
-                },
+        return {
+          updatedAnswers: [
+            ...acc.updatedAnswers,
+            {
+              ...answer,
+              annotation: {
+                ...answer.annotation,
+                docs: updatedAnnotationDocs,
               },
-            ],
-            removedAnnotationDocument,
-          };
-        } else {
-          return {
-            ...acc,
-            updatedAnswers: [...acc.updatedAnswers, answer],
-          };
-        }
+            },
+          ],
+          removedAnnotationDocument:
+            acc.removedAnnotationDocument ?? removedAnnotationDocument,
+        };
       },
       {
         updatedAnswers: [],
