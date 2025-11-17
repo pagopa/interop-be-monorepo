@@ -803,7 +803,11 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - CONSUMER_DELEGATION_APPROVED
+            - CONSUMER_DELEGATION_REVOKED
+            - CONSUMER_DELEGATION_REJECTED
+            - CONSUMER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -835,7 +839,11 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - PRODUCER_DELEGATION_APPROVED
+            - PRODUCER_DELEGATION_REVOKED
+            - PRODUCER_DELEGATION_REJECTED
+            - PRODUCER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time

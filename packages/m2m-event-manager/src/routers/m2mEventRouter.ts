@@ -11,6 +11,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   AgreementM2MEventId,
   AttributeM2MEventId,
+  DelegationM2MEventId,
   emptyErrorMapper,
   EServiceM2MEventId,
   PurposeM2MEventId,
@@ -24,6 +25,10 @@ import { toApiEServiceM2MEvents } from "../model/eserviceM2MEventApiConverter.js
 import { toApiAgreementM2MEvents } from "../model/agreementM2MEventApiConverter.js";
 import { unsafeBrandDelegationIdParam } from "../model/types.js";
 import { toApiPurposeM2MEvents } from "../model/purposeM2MEventApiConverter.js";
+import {
+  toApiConsumerDelegationM2MEvents,
+  toApiProducerDelegationM2MEvents,
+} from "../model/delegationM2MEventConverter.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -174,7 +179,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getConsumerDelegationM2MEvents(
+          lastEventId
+            ? unsafeBrandId<DelegationM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.ConsumerDelegationM2MEvents.parse(
+              toApiConsumerDelegationM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -190,7 +209,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getProducerDelegationM2MEvents(
+          lastEventId
+            ? unsafeBrandId<DelegationM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.ProducerDelegationM2MEvents.parse(
+              toApiProducerDelegationM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
