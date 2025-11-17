@@ -51,7 +51,7 @@ describe("Check delegation readmodels", () => {
     await upsertDelegation(
       readModelDB,
       delegation.data,
-      delegation.metadata.version,
+      delegation.metadata.version
     );
 
     const delegations = await readModelServiceKPI.getAllDelegations();
@@ -85,7 +85,7 @@ describe("Check delegation readmodels", () => {
     await upsertDelegation(
       readModelDB,
       delegation2.data,
-      delegation2.metadata.version,
+      delegation2.metadata.version
     );
 
     const delegations = await readModelServiceKPI.getAllDelegations();
@@ -118,12 +118,12 @@ describe("Check delegation readmodels", () => {
     await upsertDelegation(
       readModelDB,
       delegation1.data,
-      delegation1.metadata.version,
+      delegation1.metadata.version
     );
     await upsertDelegation(
       readModelDB,
       delegation2.data,
-      delegation2.metadata.version,
+      delegation2.metadata.version
     );
 
     const delegations = await readModelServiceKPI.getAllDelegations();
@@ -159,7 +159,7 @@ describe("Check delegation readmodels", () => {
     await upsertDelegation(
       readModelDB,
       delegation1InPostgresDb.data,
-      delegation1InPostgresDb.metadata.version,
+      delegation1InPostgresDb.metadata.version
     );
 
     const delegations = await readModelServiceKPI.getAllDelegations();
@@ -193,7 +193,7 @@ describe("Check delegation readmodels", () => {
     await upsertDelegation(
       readModelDB,
       delegation1InPostgresDb.data,
-      delegation1InPostgresDb.metadata.version,
+      delegation1InPostgresDb.metadata.version
     );
 
     const delegations = await readModelServiceKPI.getAllDelegations();

@@ -134,7 +134,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
         purposeTemplateState.published,
         [purposeTemplateState.draft]
       ),
-      expectedStatus: HTTP_STATUS_BAD_REQUEST,
+      expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {
       error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId),
@@ -143,8 +143,8 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
     {
       error: riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplateId,
-        answerId,
-        documentId
+        documentId,
+        answerId
       ),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
