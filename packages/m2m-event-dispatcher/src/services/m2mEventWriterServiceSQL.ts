@@ -22,6 +22,7 @@ import {
   ProducerKeychainM2MEventSQL,
   ProducerKeyM2MEventSQL,
   KeyM2MEventSQL,
+  TenantM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { SQL, eq, and } from "drizzle-orm";
@@ -43,7 +44,8 @@ export function m2mEventWriterServiceSQLBuilder(
       | ClientM2MEventSQL
       | ProducerKeychainM2MEventSQL
       | ProducerKeyM2MEventSQL
-      | KeyM2MEventSQL,
+      | KeyM2MEventSQL
+      | TenantM2MEventSQL,
     table:
       | typeof eserviceInM2MEvent
       | typeof agreementInM2MEvent
@@ -55,7 +57,8 @@ export function m2mEventWriterServiceSQLBuilder(
       | typeof clientInM2MEvent
       | typeof producerKeychainInM2MEvent
       | typeof producerKeyInM2MEvent
-      | typeof keyInM2MEvent,
+      | typeof keyInM2MEvent
+      | typeof tenantInM2MEvent,
     resourceIdFilter: SQL | undefined
   ): Promise<void> {
     return m2mEventDB.transaction(async (tx) => {
@@ -165,8 +168,12 @@ export function m2mEventWriterServiceSQLBuilder(
         )
       );
     },
-    async insertTenantM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(tenantInM2MEvent).values([]);
+    async insertTenantM2MEvent(event: TenantM2MEventSQL): Promise<void> {
+      await insertIfResourceVersionNotPresent(
+        event,
+        tenantInM2MEvent,
+        eq(tenantInM2MEvent.tenantId, event.tenantId)
+      );
     },
     async insertAttributeM2MEvent(event: AttributeM2MEventSQL): Promise<void> {
       await insertIfResourceVersionNotPresent(
