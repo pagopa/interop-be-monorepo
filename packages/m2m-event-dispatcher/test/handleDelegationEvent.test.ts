@@ -27,9 +27,9 @@ import {
   retrieveAllProducerDelegationM2MEvents,
   retrieveLastProducerDelegationM2MEvent,
   testM2mEventWriterService,
-  retrieveAllAgreementM2MEvents,
-  retrieveAllPurposeM2MEvents,
-  retrieveAllEServiceM2MEvents,
+  retrieveLastAgreementM2MEvent,
+  retrieveLastPurposeM2MEvent,
+  retrieveLastEServiceM2MEvent,
 } from "./utils.js";
 
 describe("handleDelegationEvent test", async () => {
@@ -294,14 +294,14 @@ describe("handleDelegationEvent test", async () => {
       testM2mEventWriterService.removeConsumerDelegationVisibility
     ).toHaveBeenCalledTimes(1);
 
-    const agreements = await retrieveAllAgreementM2MEvents();
-    const purposes = await retrieveAllPurposeM2MEvents();
+    const agreementM2MEvent = await retrieveLastAgreementM2MEvent();
+    const purposeM2MEvent = await retrieveLastPurposeM2MEvent();
 
-    expect(agreements[0].consumerDelegationId).toBeUndefined();
-    expect(agreements[0].consumerDelegateId).toBeUndefined();
+    expect(agreementM2MEvent.consumerDelegationId).toBeUndefined();
+    expect(agreementM2MEvent.consumerDelegateId).toBeUndefined();
 
-    expect(purposes[0].consumerDelegationId).toBeUndefined();
-    expect(purposes[0].consumerDelegateId).toBeUndefined();
+    expect(purposeM2MEvent.consumerDelegationId).toBeUndefined();
+    expect(purposeM2MEvent.consumerDelegateId).toBeUndefined();
   });
 
   it("should clear producer delegation fields in existing events after ProducerDelegationRevoked", async () => {
@@ -379,17 +379,17 @@ describe("handleDelegationEvent test", async () => {
       testM2mEventWriterService.removeProducerDelegationVisibility
     ).toHaveBeenCalledTimes(1);
 
-    const eservices = await retrieveAllEServiceM2MEvents();
-    const agreements = await retrieveAllAgreementM2MEvents();
-    const purposes = await retrieveAllPurposeM2MEvents();
+    const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
+    const agreementM2MEvent = await retrieveLastAgreementM2MEvent();
+    const purposeM2MEvent = await retrieveLastPurposeM2MEvent();
 
-    expect(eservices[0].producerDelegationId).toBeUndefined();
-    expect(eservices[0].producerDelegateId).toBeUndefined();
+    expect(eserviceM2MEvent.producerDelegationId).toBeUndefined();
+    expect(eserviceM2MEvent.producerDelegateId).toBeUndefined();
 
-    expect(agreements[0].producerDelegationId).toBeUndefined();
-    expect(agreements[0].producerDelegateId).toBeUndefined();
+    expect(agreementM2MEvent.producerDelegationId).toBeUndefined();
+    expect(agreementM2MEvent.producerDelegateId).toBeUndefined();
 
-    expect(purposes[0].producerDelegationId).toBeUndefined();
-    expect(purposes[0].producerDelegateId).toBeUndefined();
+    expect(purposeM2MEvent.producerDelegationId).toBeUndefined();
+    expect(purposeM2MEvent.producerDelegateId).toBeUndefined();
   });
 });
