@@ -19,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
@@ -58,9 +59,11 @@ interface TopicNames {
 const readModelDB = makeDrizzleConnection(config);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
+  catalogReadModelServiceSQL,
 });
 
 const m2mEventDB = drizzle(
