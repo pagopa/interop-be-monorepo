@@ -20,7 +20,7 @@ import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handleCatalogMessageV2 = async (
   eventsWithTimestamp: Array<{
     eserviceV2: EServiceEventV2;
-    timestamp: string;
+    timestamp: Date;
   }>,
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,

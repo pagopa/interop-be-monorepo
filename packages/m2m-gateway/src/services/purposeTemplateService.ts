@@ -18,7 +18,11 @@ import {
 import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
+  toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
 } from "../api/purposeTemplateApiConverter.js";
+import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
+import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
+import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -60,19 +64,6 @@ export function purposeTemplateServiceBuilder(
     )({});
 
   return {
-    async getPurposeTemplate(
-      purposeTemplateId: PurposeTemplateId,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.PurposeTemplate> {
-      logger.info(`Retrieving purpose template with id ${purposeTemplateId}`);
-
-      const { data } = await retrievePurposeTemplateById(
-        purposeTemplateId,
-        headers
-      );
-
-      return toM2MGatewayApiPurposeTemplate(data);
-    },
     async getPurposeTemplates(
       queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -101,6 +92,121 @@ export function purposeTemplateServiceBuilder(
 
       return {
         results: results.map(toM2MGatewayApiPurposeTemplate),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
+    },
+    async getPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Retrieving purpose template with id ${purposeTemplateId}`);
+
+      const { data } = await retrievePurposeTemplateById(
+        purposeTemplateId,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async getPurposeTemplateRiskAnalysis(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisFormTemplate> {
+      logger.info(
+        `Retrieving risk analysis of purpose template with id ${purposeTemplateId}`
+      );
+
+      const { data } = await retrievePurposeTemplateById(
+        purposeTemplateId,
+        headers
+      );
+
+      if (!data.purposeRiskAnalysisForm) {
+        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
+      }
+
+      return toM2MGatewayApiRiskAnalysisFormTemplate(
+        data.purposeRiskAnalysisForm
+      );
+    },
+    async getRiskAnalysisTemplateAnnotationDocuments(
+      purposeTemplateId: PurposeTemplateId,
+      {
+        offset,
+        limit,
+      }: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisTemplateAnnotationDocuments> {
+      logger.info(
+        `Retrieving annotation documents for purpose template ${purposeTemplateId}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.purposeTemplateProcessClient.getRiskAnalysisTemplateAnnotationDocuments(
+          {
+            params: {
+              purposeTemplateId,
+            },
+            queries: {
+              offset,
+              limit,
+            },
+            headers,
+          }
+        );
+
+      return {
+        results: results.map(
+          toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
+    },
+    async getPurposeTemplateEServices(
+      purposeTemplateId: PurposeTemplateId,
+      queryParams: m2mGatewayApi.GetPurposeTemplateEServicesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServices> {
+      const { producerIds, eserviceName, limit, offset } = queryParams;
+
+      logger.info(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with filters: producerIds ${producerIds.toString()}, eserviceName ${eserviceName}, limit ${limit}, offset ${offset}`
+      );
+
+      const {
+        data: { results: processResults, totalCount },
+      } =
+        await clients.purposeTemplateProcessClient.getPurposeTemplateEServices({
+          params: { id: purposeTemplateId },
+          queries: {
+            producerIds,
+            eserviceName,
+            limit,
+            offset,
+          },
+          headers,
+        });
+
+      const eserviceIds = processResults.map(({ eserviceId }) => eserviceId);
+      const eservices = await clients.catalogProcessClient
+        .getEServices({
+          queries: { eservicesIds: eserviceIds, offset: 0, limit },
+          headers,
+        })
+        .then(({ data: eService }) => eService.results);
+
+      return {
+        results: eservices.map(toM2MGatewayApiEService),
         pagination: {
           limit,
           offset,

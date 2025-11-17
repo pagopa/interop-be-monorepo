@@ -641,7 +641,6 @@ components:
             - AGREEMENT_SET_MISSING_CERTIFIED_ATTRIBUTES_BY_PLATFORM
             - AGREEMENT_SET_DRAFT_BY_PLATFORM
             - AGREEMENT_CONTRACT_GENERATED
-            - AGREEMENT_SIGNED_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time

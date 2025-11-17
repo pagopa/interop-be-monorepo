@@ -1,7 +1,7 @@
 import {
   FileManager,
   formatDateyyyyMMdd,
-  formatTimehhmmss,
+  formatTimeHHmmss,
   Logger,
 } from "pagopa-interop-commons";
 import { KafkaMessage } from "kafkajs";
@@ -17,7 +17,7 @@ export async function handleMessages(
 
   const date = new Date();
   const ymdDate = formatDateyyyyMMdd(date);
-  const hmsTime = formatTimehhmmss(date);
+  const hmsTime = formatTimeHHmmss(date);
 
   const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
   const filePath = `token-details/${ymdDate}`;
