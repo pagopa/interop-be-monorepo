@@ -285,6 +285,8 @@ describe("handleEServiceTemplateEvent test", async () => {
       testM2mEventWriterService.insertEServiceTemplateM2MEvent
     ).toHaveBeenCalledTimes(3);
 
-    expect(await retrieveAllEServiceTemplateM2MEvents()).toHaveLength(2);
+    expect(
+      await retrieveAllEServiceTemplateM2MEvents({ limit: 10 })
+    ).toHaveLength(2);
   });
 });

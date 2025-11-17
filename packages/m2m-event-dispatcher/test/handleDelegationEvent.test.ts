@@ -202,18 +202,18 @@ describe("handleDelegationEvent test", async () => {
             testM2mEventWriterService.insertConsumerDelegationM2MEvent
           ).toHaveBeenCalledTimes(3);
 
-          expect(await retrieveAllConsumerDelegationM2MEvents()).toHaveLength(
-            2
-          );
+          expect(
+            await retrieveAllConsumerDelegationM2MEvents({ limit: 10 })
+          ).toHaveLength(2);
         })
         .with(delegationKind.delegatedProducer, async () => {
           expect(
             testM2mEventWriterService.insertProducerDelegationM2MEvent
           ).toHaveBeenCalledTimes(3);
 
-          expect(await retrieveAllProducerDelegationM2MEvents()).toHaveLength(
-            2
-          );
+          expect(
+            await retrieveAllProducerDelegationM2MEvents({ limit: 10 })
+          ).toHaveLength(2);
         })
         .exhaustive();
     });
