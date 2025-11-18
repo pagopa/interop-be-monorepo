@@ -27,6 +27,8 @@ import {
   ProducerKeychainM2MEvent,
   ProducerKeychainM2MEventId,
   TenantId,
+  TenantM2MEvent,
+  TenantM2MEventId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -46,6 +48,7 @@ export function generateM2MEventId<
     | ProducerKeyM2MEventId
     | ClientM2MEventId
     | ProducerKeychainM2MEventId
+    | TenantM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
@@ -251,5 +254,17 @@ export function getMockedProducerKeychainM2MEvent({
     producerId: producerId ?? generateId(),
     producerKeychainId: generateId(),
     visibility,
+  };
+}
+
+export function getMockedTenantM2MEvent(
+  eventType: TenantM2MEvent["eventType"]
+): TenantM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    tenantId: generateId<TenantId>(),
   };
 }

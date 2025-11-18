@@ -11,6 +11,7 @@ import {
   KeyM2MEvent,
   ProducerKeyM2MEvent,
   ProducerKeychainM2MEvent,
+  TenantM2MEvent,
   dateToString,
 } from "pagopa-interop-models";
 import {
@@ -24,6 +25,7 @@ import {
   keyInM2MEvent,
   producerKeychainInM2MEvent,
   producerKeyInM2MEvent,
+  tenantInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventServiceBuilder } from "../src/services/m2mEventService.js";
 import { m2mEventReaderServiceSQLBuilder } from "../src/services/m2mEventReaderServiceSQL.js";
@@ -152,6 +154,17 @@ export async function writeProducerKeychainM2MEvent(
   event: ProducerKeychainM2MEvent
 ): Promise<void> {
   await m2mEventDB.insert(producerKeychainInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeTenantM2MEvent(
+  event: TenantM2MEvent
+): Promise<void> {
+  await m2mEventDB.insert(tenantInM2MEvent).values([
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
