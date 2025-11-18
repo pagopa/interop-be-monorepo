@@ -2,9 +2,13 @@ import {
   agreementInM2MEvent,
   attributeInM2MEvent,
   consumerDelegationInM2MEvent,
+  clientInM2MEvent,
   eserviceInM2MEvent,
   purposeInM2MEvent,
   producerDelegationInM2MEvent,
+  keyInM2MEvent,
+  producerKeychainInM2MEvent,
+  producerKeyInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -14,11 +18,19 @@ import {
   AttributeM2MEventId,
   ConsumerDelegationM2MEvent,
   DelegationM2MEventId,
+  ClientM2MEvent,
+  ClientM2MEventId,
   EServiceM2MEvent,
   EServiceM2MEventId,
   PurposeM2MEvent,
   PurposeM2MEventId,
   ProducerDelegationM2MEvent,
+  KeyM2MEvent,
+  KeyM2MEventId,
+  ProducerKeyM2MEvent,
+  ProducerKeyM2MEventId,
+  ProducerKeychainM2MEvent,
+  ProducerKeychainM2MEventId,
   TenantId,
   m2mEventVisibility,
 } from "pagopa-interop-models";
@@ -37,6 +49,12 @@ import {
   fromConsumerDelegationM2MEventSQL,
   fromProducerDelegationM2MEventSQL,
 } from "../model/delegationM2MEventAdapterSQL.js";
+import {
+  fromClientM2MEventSQL,
+  fromKeyM2MEventSQL,
+  fromProducerKeychainM2MEventSQL,
+  fromProducerKeyM2MEventSQL,
+} from "../model/authorizationM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -203,6 +221,79 @@ export function m2mEventReaderServiceSQLBuilder(
         .limit(limit);
 
       return sqlEvents.map(fromConsumerDelegationM2MEventSQL);
+    },
+    async getKeyM2MEvents(
+      lastEventId: KeyM2MEventId | undefined,
+      limit: number
+    ): Promise<KeyM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(keyInM2MEvent)
+        .where(afterEventIdFilter(keyInM2MEvent, lastEventId))
+        .orderBy(asc(keyInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromKeyM2MEventSQL);
+    },
+
+    async getClientM2MEvents(
+      lastEventId: ClientM2MEventId | undefined,
+      limit: number,
+      requester: TenantId
+    ): Promise<ClientM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(clientInM2MEvent)
+        .where(
+          and(
+            afterEventIdFilter(clientInM2MEvent, lastEventId),
+            visibilityFilter(clientInM2MEvent, {
+              ownerFilter: eq(clientInM2MEvent.consumerId, requester),
+              restrictedFilter: undefined,
+            })
+          )
+        )
+        .orderBy(asc(clientInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromClientM2MEventSQL);
+    },
+
+    async getProducerKeyM2MEvents(
+      lastEventId: ProducerKeyM2MEventId | undefined,
+      limit: number
+    ): Promise<ProducerKeyM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(producerKeyInM2MEvent)
+        .where(afterEventIdFilter(producerKeyInM2MEvent, lastEventId))
+        .orderBy(asc(producerKeyInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromProducerKeyM2MEventSQL);
+    },
+
+    async getProducerKeychainM2MEvents(
+      lastEventId: ProducerKeychainM2MEventId | undefined,
+      limit: number,
+      requester: TenantId
+    ): Promise<ProducerKeychainM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(producerKeychainInM2MEvent)
+        .where(
+          and(
+            afterEventIdFilter(producerKeychainInM2MEvent, lastEventId),
+            visibilityFilter(producerKeychainInM2MEvent, {
+              ownerFilter: eq(producerKeychainInM2MEvent.producerId, requester),
+              restrictedFilter: undefined,
+            })
+          )
+        )
+        .orderBy(asc(producerKeychainInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromProducerKeychainM2MEventSQL);
     },
   };
 }

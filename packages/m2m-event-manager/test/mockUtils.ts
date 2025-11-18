@@ -7,6 +7,8 @@ import {
   AttributeM2MEvent,
   AttributeM2MEventId,
   ConsumerDelegationM2MEvent,
+  ClientM2MEvent,
+  ClientM2MEventId,
   DelegationId,
   DelegationM2MEventId,
   DescriptorId,
@@ -18,11 +20,16 @@ import {
   PurposeM2MEventId,
   PurposeVersionId,
   ProducerDelegationM2MEvent,
+  KeyM2MEvent,
+  KeyM2MEventId,
+  ProducerKeyM2MEvent,
+  ProducerKeyM2MEventId,
+  ProducerKeychainM2MEvent,
+  ProducerKeychainM2MEventId,
   TenantId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-
 import { v7 as uuidv7 } from "uuid";
 
 export function generateM2MEventId<
@@ -35,6 +42,10 @@ export function generateM2MEventId<
     | EServiceM2MEventId
     | AgreementM2MEventId
     | DelegationM2MEventId
+    | KeyM2MEventId
+    | ProducerKeyM2MEventId
+    | ClientM2MEventId
+    | ProducerKeychainM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
@@ -174,5 +185,71 @@ function getMockedDelegationM2MEvent(
     eventTimestamp: new Date(),
     resourceVersion: randomInt(1, 1000),
     delegationId: generateId<DelegationId>(),
+  };
+}
+
+export function getMockedKeyM2MEvent(
+  eventType: KeyM2MEvent["eventType"]
+): KeyM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    kid: generateId(),
+    clientId: generateId(),
+  };
+}
+
+export function getMockedProducerKeyM2MEvent(
+  eventType: ProducerKeyM2MEvent["eventType"]
+): ProducerKeyM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    kid: generateId(),
+    producerKeychainId: generateId(),
+  };
+}
+
+export function getMockedClientM2MEvent({
+  eventType,
+  visibility,
+  consumerId,
+}: {
+  eventType: ClientM2MEvent["eventType"];
+  visibility: ClientM2MEvent["visibility"];
+  consumerId?: TenantId;
+}): ClientM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    consumerId: consumerId ?? generateId(),
+    clientId: generateId(),
+    visibility,
+  };
+}
+
+export function getMockedProducerKeychainM2MEvent({
+  eventType,
+  visibility,
+  producerId,
+}: {
+  eventType: ProducerKeychainM2MEvent["eventType"];
+  visibility: ProducerKeychainM2MEvent["visibility"];
+  producerId?: TenantId;
+}): ProducerKeychainM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    producerId: producerId ?? generateId(),
+    producerKeychainId: generateId(),
+    visibility,
   };
 }
