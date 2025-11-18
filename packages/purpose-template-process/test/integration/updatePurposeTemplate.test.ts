@@ -23,6 +23,7 @@ import {
   PurposeTemplateAddedV2,
   purposeTemplateState,
   RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateSingleAnswer,
@@ -580,6 +581,105 @@ describe("updatePurposeTemplate", () => {
       );
     expect(answerUpdatedWithDocs).toBeDefined();
     const docs = answerUpdatedWithDocs?.annotation?.docs;
+
+    expect(docs).toBeDefined();
+    expect(docs?.length).toBe(annotationDocsNotAffectedNum);
+
+    const filePaths = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+
+    // Expect that remains only valid annotation documents in S3
+    expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
+  });
+
+  it("Should update purpose template, all existent annotations documents for each answer still remain in S3 and document references are returned if no risk analysis form is provided by the user", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    // Risk Analysis Form must be defined in existing purpose template for this test
+    const purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplate =
+      existingPurposeTemplate.purposeRiskAnalysisForm!;
+
+    // Annotation and their documents for an answer not affected by update
+    const annotationDocsNotAffectedNum = 2;
+    const annotationDocsNotAffected = Array.from({
+      length: annotationDocsNotAffectedNum,
+    }).map((_, i) =>
+      getMockRiskAnalysisTemplateAnswerAnnotationDocument(
+        generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
+        existingPurposeTemplate.id,
+        config.purposeTemplateDocumentsPath,
+        `Document-Annotation-${i}`
+      )
+    );
+    const notAffectedAnnotation =
+      getMockRiskAnalysisTemplateAnswerAnnotationWithDocs(
+        generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
+        annotationDocsNotAffected
+      );
+
+    // Existing Risk Analysis Form contains answers with annotation and documents
+    const existingPurposeTemplateWithAnnotations: PurposeTemplate = {
+      ...existingPurposeTemplate,
+      purposeRiskAnalysisForm: {
+        ...purposeTemplateRiskAnalysisForm,
+        singleAnswers: [
+          {
+            ...purposeTemplateRiskAnalysisForm.singleAnswers[0],
+            annotation: notAffectedAnnotation,
+          },
+        ],
+      },
+    };
+
+    // Seeding DB and File storage for the tests
+    await addOneTenant(creator);
+    await addOnePurposeTemplate(existingPurposeTemplateWithAnnotations);
+    const uploadPromises = notAffectedAnnotation.docs.map((d) =>
+      uploadDocument(existingPurposeTemplate.id, d.id, d.name)
+    );
+
+    // wait for all asynchronous uploads to complete
+    await Promise.all(uploadPromises);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { purposeRiskAnalysisForm, ...seedWithoutRiskAnalysis } =
+      purposeTemplateSeed;
+    // Prepare test seed input
+    const purposeTemplateSeedWithoutRiskAnalysis: purposeTemplateApi.PurposeTemplateSeed =
+      {
+        ...seedWithoutRiskAnalysis,
+        purposeTitle: "New purpose title",
+      };
+
+    const actualPurposeTemplate =
+      await purposeTemplateService.updatePurposeTemplate(
+        existingPurposeTemplateWithAnnotations.id,
+        purposeTemplateSeedWithoutRiskAnalysis,
+        getMockContext({
+          authData: getMockAuthData(creatorId),
+        })
+      );
+
+    expect(actualPurposeTemplate.data.purposeTitle).toEqual(
+      purposeTemplateSeedWithoutRiskAnalysis.purposeTitle
+    );
+
+    const existingRiskAnalysis =
+      actualPurposeTemplate.data.purposeRiskAnalysisForm;
+    expect(existingRiskAnalysis).toBeDefined();
+
+    const docs = [
+      ...(existingRiskAnalysis?.singleAnswers || []),
+      ...(existingRiskAnalysis?.multiAnswers || []),
+    ].reduce((acc, answer) => {
+      if (!answer.annotation?.docs) {
+        return acc;
+      }
+
+      return [...acc, ...answer.annotation.docs];
+    }, [] as RiskAnalysisTemplateAnswerAnnotationDocument[]);
 
     expect(docs).toBeDefined();
     expect(docs?.length).toBe(annotationDocsNotAffectedNum);

@@ -994,12 +994,15 @@ export function purposeTemplateServiceBuilder(
         }),
       };
 
-      await cleanupAnnotationDocsForRemovedAnswers(
-        purposeTemplateSeed,
-        purposeTemplate.data,
-        fileManager,
-        logger
-      );
+      // Only cleanup annotation docs for removed answers if user edited riskAnalysis form (i.e. purposeRiskAnalysisForm is defined in request)
+      if (purposeTemplateSeed.purposeRiskAnalysisForm) {
+        await cleanupAnnotationDocsForRemovedAnswers(
+          purposeTemplateSeed,
+          purposeTemplate.data,
+          fileManager,
+          logger
+        );
+      }
 
       const event = await repository.createEvent(
         toCreateEventPurposeTemplateDraftUpdated(
