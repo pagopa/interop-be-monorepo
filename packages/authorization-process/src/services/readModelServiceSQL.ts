@@ -1,5 +1,10 @@
-import { and, eq, ilike, inArray } from "drizzle-orm";
-import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
+import { and, countDistinct, eq, ilike, inArray } from "drizzle-orm";
+import { PgSelect } from "drizzle-orm/pg-core";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+} from "pagopa-interop-commons";
 import {
   Client,
   WithMetadata,
@@ -107,85 +112,128 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Client>> {
       const { name, userIds, consumerId, purposeId, kind } = filters;
 
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            clientId: clientInReadmodelClient.id,
+      return await readModelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(clientInReadmodelClient.id),
           })
-        )
-        .from(clientInReadmodelClient)
-        .leftJoin(
-          clientUserInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
-        )
-        .leftJoin(
-          clientPurposeInReadmodelClient,
-          eq(
-            clientInReadmodelClient.id,
-            clientPurposeInReadmodelClient.clientId
-          )
-        )
-        .where(
-          and(
-            // NAME FILTER
-            name
-              ? ilike(clientInReadmodelClient.name, `%${escapeRegExp(name)}%`)
-              : undefined,
-            // USERS FILTER
-            userIds.length > 0
-              ? inArray(clientUserInReadmodelClient.userId, userIds)
-              : undefined,
-            // CONSUMER FILTER
-            consumerId
-              ? eq(clientInReadmodelClient.consumerId, consumerId)
-              : undefined,
-            // PURPOSE FILTER
-            purposeId
-              ? eq(clientPurposeInReadmodelClient.purposeId, purposeId)
-              : undefined,
-            // KIND FILTER
-            kind ? eq(clientInReadmodelClient.kind, kind) : undefined
-          )
-        )
-        .groupBy(clientInReadmodelClient.id)
-        .orderBy(ascLower(clientInReadmodelClient.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+          .from(clientInReadmodelClient)
+          .$dynamic();
 
-      const queryResult = await readModelDB
-        .select({
-          client: clientInReadmodelClient,
-          clientUser: clientUserInReadmodelClient,
-          clientPurpose: clientPurposeInReadmodelClient,
-          clientKey: clientKeyInReadmodelClient,
-          totalCount: subquery.totalCount,
-        })
-        .from(clientInReadmodelClient)
-        .innerJoin(subquery, eq(clientInReadmodelClient.id, subquery.clientId))
-        .leftJoin(
-          clientUserInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
-        )
-        .leftJoin(
-          clientPurposeInReadmodelClient,
-          eq(
-            clientInReadmodelClient.id,
-            clientPurposeInReadmodelClient.clientId
-          )
-        )
-        .leftJoin(
-          clientKeyInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
-        )
-        .orderBy(ascLower(clientInReadmodelClient.name));
+        const idsQuery = tx
+          .select({ id: clientInReadmodelClient.id })
+          .from(clientInReadmodelClient)
+          .$dynamic();
 
-      return {
-        results: aggregateClientArray(toClientAggregatorArray(queryResult)).map(
-          (c) => c.data
-        ),
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithFilters = tx
+            .selectDistinctOn([clientInReadmodelClient.id], {
+              id: clientInReadmodelClient.id,
+            })
+            .from(clientInReadmodelClient)
+            .leftJoin(
+              clientUserInReadmodelClient,
+              eq(
+                clientInReadmodelClient.id,
+                clientUserInReadmodelClient.clientId
+              )
+            )
+            .leftJoin(
+              clientPurposeInReadmodelClient,
+              eq(
+                clientInReadmodelClient.id,
+                clientPurposeInReadmodelClient.clientId
+              )
+            )
+            .where(
+              and(
+                // NAME FILTER
+                name
+                  ? ilike(
+                      clientInReadmodelClient.name,
+                      `%${escapeRegExp(name)}%`
+                    )
+                  : undefined,
+                // USERS FILTER
+                userIds.length > 0
+                  ? inArray(clientUserInReadmodelClient.userId, userIds)
+                  : undefined,
+                // CONSUMER FILTER
+                consumerId
+                  ? eq(clientInReadmodelClient.consumerId, consumerId)
+                  : undefined,
+                // PURPOSE FILTER
+                purposeId
+                  ? eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+                  : undefined,
+                // KIND FILTER
+                kind ? eq(clientInReadmodelClient.kind, kind) : undefined
+              )
+            )
+            .groupBy(clientInReadmodelClient.id)
+            .as("subquery");
+
+          return query
+            .innerJoin(
+              subqueryWithFilters,
+              eq(subqueryWithFilters.id, clientInReadmodelClient.id)
+            )
+            .$dynamic();
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
+          .groupBy(clientInReadmodelClient.id)
+          .orderBy(ascLower(clientInReadmodelClient.name))
+          .limit(limit)
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              client: clientInReadmodelClient,
+              clientUser: clientUserInReadmodelClient,
+              clientPurpose: clientPurposeInReadmodelClient,
+              clientKey: clientKeyInReadmodelClient,
+            })
+            .from(clientInReadmodelClient)
+            .where(inArray(clientInReadmodelClient.id, ids))
+            .leftJoin(
+              clientUserInReadmodelClient,
+              eq(
+                clientInReadmodelClient.id,
+                clientUserInReadmodelClient.clientId
+              )
+            )
+            .leftJoin(
+              clientPurposeInReadmodelClient,
+              eq(
+                clientInReadmodelClient.id,
+                clientPurposeInReadmodelClient.clientId
+              )
+            )
+            .leftJoin(
+              clientKeyInReadmodelClient,
+              eq(
+                clientInReadmodelClient.id,
+                clientKeyInReadmodelClient.clientId
+              )
+            )
+            .orderBy(ascLower(clientInReadmodelClient.name)),
+          buildQuery(totalCountQuery),
+        ]);
+
+        const clients = aggregateClientArray(
+          toClientAggregatorArray(queryResult)
+        );
+
+        return createListResult(
+          clients.map((c) => c.data),
+          totalCount[0]?.count
+        );
+      });
     },
     async getClientsRelatedToPurpose(
       purposeId: PurposeId
@@ -294,111 +342,145 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<ProducerKeychain>> {
       const { name, userIds, producerId, eserviceId } = filters;
 
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
+      return await readModelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(
+              producerKeychainInReadmodelProducerKeychain.id
+            ),
           })
-        )
-        .from(producerKeychainInReadmodelProducerKeychain)
-        .leftJoin(
-          producerKeychainUserInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          producerKeychainEserviceInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .where(
-          and(
-            // NAME FILTER
-            name
-              ? ilike(
-                  producerKeychainInReadmodelProducerKeychain.name,
-                  `%${escapeRegExp(name)}%`
-                )
-              : undefined,
-            // USERS FILTER
-            userIds.length > 0
-              ? inArray(
-                  producerKeychainUserInReadmodelProducerKeychain.userId,
-                  userIds
-                )
-              : undefined,
-            // PRODUCER FILTER
-            producerId
-              ? eq(
-                  producerKeychainInReadmodelProducerKeychain.producerId,
-                  producerId
-                )
-              : undefined,
-            // E-SERVICE FILTER
-            eserviceId
-              ? eq(
-                  producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
-                  eserviceId
-                )
-              : undefined
-          )
-        )
-        .groupBy(producerKeychainInReadmodelProducerKeychain.id)
-        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+          .from(producerKeychainInReadmodelProducerKeychain)
+          .$dynamic();
 
-      const queryResult = await readModelDB
-        .select({
-          producerKeychain: producerKeychainInReadmodelProducerKeychain,
-          producerKeychainUser: producerKeychainUserInReadmodelProducerKeychain,
-          producerKeychainEService:
-            producerKeychainEserviceInReadmodelProducerKeychain,
-          producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
-          totalCount: subquery.totalCount,
-        })
-        .from(producerKeychainInReadmodelProducerKeychain)
-        .innerJoin(
-          subquery,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            subquery.producerKeychainId
-          )
-        )
-        .leftJoin(
-          producerKeychainUserInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          producerKeychainEserviceInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          producerKeychainKeyInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name));
+        const idsQuery = tx
+          .select({ id: producerKeychainInReadmodelProducerKeychain.id })
+          .from(producerKeychainInReadmodelProducerKeychain)
+          .$dynamic();
 
-      return {
-        results: aggregateProducerKeychainArray(
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithFilters = tx
+            .selectDistinctOn(
+              [producerKeychainInReadmodelProducerKeychain.id],
+              { id: producerKeychainInReadmodelProducerKeychain.id }
+            )
+            .from(producerKeychainInReadmodelProducerKeychain)
+            .leftJoin(
+              producerKeychainUserInReadmodelProducerKeychain,
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
+              )
+            )
+            .leftJoin(
+              producerKeychainEserviceInReadmodelProducerKeychain,
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+              )
+            )
+            .where(
+              and(
+                // NAME FILTER
+                name
+                  ? ilike(
+                      producerKeychainInReadmodelProducerKeychain.name,
+                      `%${escapeRegExp(name)}%`
+                    )
+                  : undefined,
+                // USERS FILTER
+                userIds.length > 0
+                  ? inArray(
+                      producerKeychainUserInReadmodelProducerKeychain.userId,
+                      userIds
+                    )
+                  : undefined,
+                // PRODUCER FILTER
+                producerId
+                  ? eq(
+                      producerKeychainInReadmodelProducerKeychain.producerId,
+                      producerId
+                    )
+                  : undefined,
+                // E-SERVICE FILTER
+                eserviceId
+                  ? eq(
+                      producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
+                      eserviceId
+                    )
+                  : undefined
+              )
+            )
+            .as("subqueryWithFilters");
+
+          return query
+            .innerJoin(
+              subqueryWithFilters,
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                subqueryWithFilters.id
+              )
+            )
+            .$dynamic();
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
+          .groupBy(producerKeychainInReadmodelProducerKeychain.id)
+          .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
+          .limit(limit)
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              producerKeychain: producerKeychainInReadmodelProducerKeychain,
+              producerKeychainUser:
+                producerKeychainUserInReadmodelProducerKeychain,
+              producerKeychainEService:
+                producerKeychainEserviceInReadmodelProducerKeychain,
+              producerKeychainKey:
+                producerKeychainKeyInReadmodelProducerKeychain,
+            })
+            .from(producerKeychainInReadmodelProducerKeychain)
+            .where(inArray(producerKeychainInReadmodelProducerKeychain.id, ids))
+            .leftJoin(
+              producerKeychainUserInReadmodelProducerKeychain,
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
+              )
+            )
+            .leftJoin(
+              producerKeychainEserviceInReadmodelProducerKeychain,
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+              )
+            )
+            .leftJoin(
+              producerKeychainKeyInReadmodelProducerKeychain,
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
+              )
+            )
+            .orderBy(
+              ascLower(producerKeychainInReadmodelProducerKeychain.name)
+            ),
+          buildQuery(totalCountQuery),
+        ]);
+
+        const producerKeychains = aggregateProducerKeychainArray(
           toProducerKeychainAggregatorArray(queryResult)
-        ).map((p) => p.data),
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+        );
+
+        return createListResult(
+          producerKeychains.map((p) => p.data),
+          totalCount[0]?.count
+        );
+      });
     },
     async getProducerKeychainById(
       id: ProducerKeychainId
