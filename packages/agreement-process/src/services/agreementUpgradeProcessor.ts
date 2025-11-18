@@ -116,7 +116,7 @@ export async function createUpgradeOrNewDraft({
       },
     };
 
-    if (isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder")) {
+    if (!isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder")) {
       const contract = await contractBuilder.createContract(
         upgraded,
         eservice,

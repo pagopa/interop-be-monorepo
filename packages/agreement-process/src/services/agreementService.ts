@@ -1786,7 +1786,7 @@ async function addContractOnFirstActivation(
   activeDelegations: ActiveDelegations
 ): Promise<Agreement> {
   if (
-    isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
+    !isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
     isFirstActivation
   ) {
     const contract = await contractBuilder.createContract(
