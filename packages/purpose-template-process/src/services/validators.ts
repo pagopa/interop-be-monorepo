@@ -523,17 +523,28 @@ async function validateEServiceAssociations(
  *
  * @param validEservices the list of valid eservices
  * @param purposeTemplateId the purpose template id
- * @param eServiceAssociationResults the association results to validate
- * @returns the validation issues
+ * @param readModelService the read model service to use
+ * @returns the validation issues and the valid eservice descriptor purpose templates retrieved
  */
 async function validateEServiceDisassociations(
   validEservices: EService[],
   purposeTemplateId: PurposeTemplateId,
-  eServiceAssociationResults: Array<
-    PromiseSettledResult<EServiceDescriptorPurposeTemplate | undefined>
-  >
-): Promise<PurposeTemplateValidationIssue[]> {
-  return eServiceAssociationResults.flatMap((result, index) => {
+  readModelService: ReadModelServiceSQL
+): Promise<{
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[];
+}> {
+  const validationIssues: PurposeTemplateValidationIssue[] = [];
+  const validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[] =
+    [];
+
+  const eServiceAssociationResults = await getEServiceAssociationResults(
+    validEservices,
+    purposeTemplateId,
+    readModelService
+  );
+
+  eServiceAssociationResults.forEach((result, index) => {
     if (result.status === "rejected") {
       throw unexpectedUnassociationEServiceError(
         result.reason.message,
@@ -541,13 +552,19 @@ async function validateEServiceDisassociations(
       );
     }
 
-    if (result.status === "fulfilled" && result.value === undefined) {
-      return [
-        eserviceNotAssociatedError(validEservices[index].id, purposeTemplateId),
-      ];
+    if (result.value === undefined) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        eserviceNotAssociatedError(validEservices[index].id, purposeTemplateId)
+      );
+      return;
     }
-    return [];
+
+    // eslint-disable-next-line functional/immutable-data
+    validEServiceDescriptorPurposeTemplates.push(result.value);
   });
+
+  return { validationIssues, validEServiceDescriptorPurposeTemplates };
 }
 
 /**
@@ -615,14 +632,12 @@ function validateEServiceDescriptorsToAssociate(validEservices: EService[]): {
  * Finally, return the validation issues and the valid eservice descriptor pairs
  *
  * @param validEservices the list of valid eservices
- * @param eServiceAssociationResults the association results used to validate the eservice descriptors
+ * @param validEServiceDescriptorPurposeTemplates the list of valid eservice descriptor purpose templates
  * @returns the validation issues and the valid eservice descriptor pairs
  */
 function validateEServiceDescriptorsToDisassociate(
   validEservices: EService[],
-  eServiceAssociationResults: Array<
-    PromiseSettledResult<EServiceDescriptorPurposeTemplate | undefined>
-  >
+  validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[]
 ): {
   validationIssues: PurposeTemplateValidationIssue[];
   validEServiceDescriptorPairs: Array<{
@@ -635,16 +650,6 @@ function validateEServiceDescriptorsToDisassociate(
     eservice: EService;
     descriptorId: DescriptorId;
   }> = [];
-
-  const validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[] =
-    eServiceAssociationResults.reduce((acc, result) => {
-      // This should never happen, since we validate the existence of the eservices and the associations in the steps before
-      if (result.status === "rejected" || result.value === undefined) {
-        return acc;
-      }
-
-      return [...acc, result.value];
-    }, [] as EServiceDescriptorPurposeTemplate[]);
 
   // Get the eservice from the eservice id.
   // If the eservice is not found, return a validation issue.
@@ -825,16 +830,13 @@ export async function validateEservicesDisassociations(
     );
   }
 
-  const eServiceAssociationResults = await getEServiceAssociationResults(
+  const {
+    validationIssues: disassociationValidationIssues,
+    validEServiceDescriptorPurposeTemplates,
+  } = await validateEServiceDisassociations(
     validEservices,
     purposeTemplate.id,
     readModelService
-  );
-
-  const disassociationValidationIssues = await validateEServiceDisassociations(
-    validEservices,
-    purposeTemplate.id,
-    eServiceAssociationResults
   );
 
   if (disassociationValidationIssues.length > 0) {
@@ -850,7 +852,7 @@ export async function validateEservicesDisassociations(
     validEServiceDescriptorPairs,
   } = validateEServiceDescriptorsToDisassociate(
     validEservices,
-    eServiceAssociationResults
+    validEServiceDescriptorPurposeTemplates
   );
 
   if (descriptorValidationIssues.length > 0) {
