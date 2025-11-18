@@ -7,8 +7,11 @@ import {
   eserviceInM2MEvent,
   eserviceTemplateInM2MEvent,
   producerDelegationInM2MEvent,
+  keyInM2MEvent,
   producerKeychainInM2MEvent,
   purposeInM2MEvent,
+  producerKeyInM2MEvent,
+  tenantInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventVisibility } from "pagopa-interop-models";
 import { DelegationIdParam } from "../model/types.js";
@@ -21,6 +24,11 @@ export function afterEventIdFilter<
     | typeof purposeInM2MEvent
     | typeof producerDelegationInM2MEvent
     | typeof consumerDelegationInM2MEvent
+    | typeof keyInM2MEvent
+    | typeof producerKeyInM2MEvent
+    | typeof clientInM2MEvent
+    | typeof producerKeychainInM2MEvent
+    | typeof tenantInM2MEvent
 >(table: T, lastEventId: string | undefined): SQL | undefined {
   return lastEventId ? gt(table.id, lastEventId) : undefined;
   // ^ event ID is a UUIDv7, lexicographical order is the same as chronological order

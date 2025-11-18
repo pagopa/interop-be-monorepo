@@ -739,7 +739,26 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - MAINTENANCE_TENANT_DELETED
+            - TENANT_PROMOTED_TO_CERTIFIER
+            - MAINTENANCE_TENANT_UPDATED
+            - TENANT_CERTIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_CERTIFIED_ATTRIBUTE_REVOKED
+            - TENANT_DECLARED_ATTRIBUTE_ASSIGNED
+            - TENANT_DECLARED_ATTRIBUTE_REVOKED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_ADDED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_REMOVED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_ADDED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_REMOVED
+            - TENANT_KIND_UPDATED
+            - TENANT_MAIL_ADDED
+            - TENANT_MAIL_DELETED
+            - TENANT_ONBOARD_DETAILS_UPDATED
+            - TENANT_ONBOARDED
+            - TENANT_VERIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_VERIFIED_ATTRIBUTE_EXPIRATION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_REVOKED
         eventTimestamp:
           type: string
           format: date-time
@@ -875,7 +894,10 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - CLIENT_ADDED
+            - CLIENT_DELETED
+            - CLIENT_PURPOSE_ADDED
+            - CLIENT_PURPOSE_REMOVED
         eventTimestamp:
           type: string
           format: date-time
@@ -907,7 +929,10 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - PRODUCER_KEYCHAIN_ADDED
+            - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_ESERVICE_ADDED
+            - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
         eventTimestamp:
           type: string
           format: date-time
@@ -939,11 +964,14 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - CLIENT_KEY_ADDED
+            - CLIENT_KEY_DELETED
         eventTimestamp:
           type: string
           format: date-time
         kid:
+          type: string
+        clientId:
           type: string
           format: uuid
       required:
@@ -951,6 +979,7 @@ components:
         - eventType
         - eventTimestamp
         - kid
+        - clientId
     KeyM2MEvents:
       type: object
       additionalProperties: false
@@ -971,11 +1000,14 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - PRODUCER_KEYCHAIN_KEY_ADDED
+            - PRODUCER_KEYCHAIN_KEY_DELETED
         eventTimestamp:
           type: string
           format: date-time
         kid:
+          type: string
+        producerKeychainId:
           type: string
           format: uuid
       required:
@@ -983,6 +1015,7 @@ components:
         - eventType
         - eventTimestamp
         - kid
+        - producerKeychainId
     ProducerKeyM2MEvents:
       type: object
       additionalProperties: false
