@@ -9,6 +9,7 @@ import {
   keyInM2MEvent,
   producerKeychainInM2MEvent,
   producerKeyInM2MEvent,
+  tenantInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -32,6 +33,8 @@ import {
   ProducerKeychainM2MEvent,
   ProducerKeychainM2MEventId,
   TenantId,
+  TenantM2MEvent,
+  TenantM2MEventId,
   m2mEventVisibility,
 } from "pagopa-interop-models";
 import { and, asc, eq, or } from "drizzle-orm";
@@ -55,6 +58,7 @@ import {
   fromProducerKeychainM2MEventSQL,
   fromProducerKeyM2MEventSQL,
 } from "../model/authorizationM2MEventAdapterSQL.js";
+import { fromTenantM2MEventSQL } from "../model/tenantM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -294,6 +298,19 @@ export function m2mEventReaderServiceSQLBuilder(
         .limit(limit);
 
       return sqlEvents.map(fromProducerKeychainM2MEventSQL);
+    },
+    async getTenantM2MEvents(
+      lastEventId: TenantM2MEventId | undefined,
+      limit: number
+    ): Promise<TenantM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(tenantInM2MEvent)
+        .where(afterEventIdFilter(tenantInM2MEvent, lastEventId))
+        .orderBy(asc(tenantInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromTenantM2MEventSQL);
     },
   };
 }
