@@ -2,7 +2,6 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -51,6 +50,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   and,
+  countDistinct,
   eq,
   ilike,
   inArray,
@@ -246,132 +246,145 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Purpose>> {
       const { producersIds, consumersIds, ...otherFilters } = filters;
 
-      const subquery = addDelegationJoins(
-        readModelDB
-          .select(
-            withTotalCount({
-              purposeId: purposeInReadmodelPurpose.id,
-            })
-          )
+      return await readModelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(purposeInReadmodelPurpose.id),
+          })
           .from(purposeInReadmodelPurpose)
-          .leftJoin(
-            purposeVersionInReadmodelPurpose,
-            eq(
-              purposeInReadmodelPurpose.id,
-              purposeVersionInReadmodelPurpose.purposeId
-            )
+          .$dynamic();
+
+        const idsQuery = tx
+          .select({ id: purposeInReadmodelPurpose.id })
+          .from(purposeInReadmodelPurpose)
+          .$dynamic();
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithFilters = addDelegationJoins(
+            tx
+              .selectDistinctOn([purposeInReadmodelPurpose.id], {
+                id: purposeInReadmodelPurpose.id,
+              })
+              .from(purposeInReadmodelPurpose)
+              .leftJoin(
+                purposeVersionInReadmodelPurpose,
+                eq(
+                  purposeInReadmodelPurpose.id,
+                  purposeVersionInReadmodelPurpose.purposeId
+                )
+              )
+              .leftJoin(
+                eserviceInReadmodelCatalog,
+                eq(
+                  purposeInReadmodelPurpose.eserviceId,
+                  eserviceInReadmodelCatalog.id
+                )
+              )
+              .$dynamic()
           )
-          .leftJoin(
-            eserviceInReadmodelCatalog,
-            eq(
-              purposeInReadmodelPurpose.eserviceId,
-              eserviceInReadmodelCatalog.id
+            .where(
+              and(
+                getProducerIdsFilter(producersIds),
+                getConsumerIdsFilter(consumersIds),
+                getVisibilityFilter(requesterId),
+                ...getPurposesFilters(readModelDB, otherFilters)
+              )
             )
-          )
-          .where(
-            and(
-              getProducerIdsFilter(producersIds),
-              getConsumerIdsFilter(consumersIds),
-              getVisibilityFilter(requesterId),
-              ...getPurposesFilters(readModelDB, otherFilters)
+            .as("subqueryWithFilters");
+
+          return query
+            .innerJoin(
+              subqueryWithFilters,
+              eq(subqueryWithFilters.id, purposeInReadmodelPurpose.id)
             )
-          )
+            .$dynamic();
+        };
+        const idsSQLquery = buildQuery(idsQuery)
           .groupBy(purposeInReadmodelPurpose.id)
           .orderBy(ascLower(purposeInReadmodelPurpose.title))
           .limit(limit)
-          .offset(offset)
-          .$dynamic()
-      ).as("subquery");
+          .offset(offset);
 
-      const queryResult = await readModelDB
-        .select({
-          purpose: purposeInReadmodelPurpose,
-          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
-          purposeRiskAnalysisAnswer:
-            purposeRiskAnalysisAnswerInReadmodelPurpose,
-          purposeVersion: purposeVersionInReadmodelPurpose,
-          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
-          purposeVersionSignedDocument:
-            purposeVersionSignedDocumentInReadmodelPurpose,
-          totalCount: subquery.totalCount,
-        })
-        .from(purposeInReadmodelPurpose)
-        .innerJoin(
-          subquery,
-          eq(purposeInReadmodelPurpose.id, subquery.purposeId)
-        )
-        .leftJoin(
-          purposeRiskAnalysisFormInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          purposeRiskAnalysisAnswerInReadmodelPurpose,
-          and(
-            eq(
-              purposeInReadmodelPurpose.id,
-              purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId
-            ),
-            eq(
-              purposeRiskAnalysisFormInReadmodelPurpose.id,
-              purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              purpose: purposeInReadmodelPurpose,
+              purposeRiskAnalysisForm:
+                purposeRiskAnalysisFormInReadmodelPurpose,
+              purposeRiskAnalysisAnswer:
+                purposeRiskAnalysisAnswerInReadmodelPurpose,
+              purposeVersion: purposeVersionInReadmodelPurpose,
+              purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+              purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
+              purposeVersionSignedDocument:
+                purposeVersionSignedDocumentInReadmodelPurpose,
+            })
+            .from(purposeInReadmodelPurpose)
+            .where(inArray(purposeInReadmodelPurpose.id, ids))
+            .leftJoin(
+              purposeRiskAnalysisFormInReadmodelPurpose,
+              eq(
+                purposeInReadmodelPurpose.id,
+                purposeRiskAnalysisFormInReadmodelPurpose.purposeId
+              )
             )
-          )
-        )
-        .leftJoin(
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeVersionInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          purposeVersionDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
-          purposeVersionStampInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionStampInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
-          purposeVersionSignedDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
-          delegationInReadmodelDelegation,
-          eq(
-            purposeInReadmodelPurpose.eserviceId,
-            delegationInReadmodelDelegation.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceInReadmodelCatalog,
-          eq(
-            purposeInReadmodelPurpose.eserviceId,
-            eserviceInReadmodelCatalog.id
-          )
-        )
-        .orderBy(ascLower(purposeInReadmodelPurpose.title));
+            .leftJoin(
+              purposeRiskAnalysisAnswerInReadmodelPurpose,
+              and(
+                eq(
+                  purposeInReadmodelPurpose.id,
+                  purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId
+                ),
+                eq(
+                  purposeRiskAnalysisFormInReadmodelPurpose.id,
+                  purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+                )
+              )
+            )
+            .leftJoin(
+              purposeVersionInReadmodelPurpose,
+              eq(
+                purposeInReadmodelPurpose.id,
+                purposeVersionInReadmodelPurpose.purposeId
+              )
+            )
+            .leftJoin(
+              purposeVersionDocumentInReadmodelPurpose,
+              eq(
+                purposeVersionInReadmodelPurpose.id,
+                purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+              )
+            )
+            .leftJoin(
+              purposeVersionStampInReadmodelPurpose,
+              eq(
+                purposeVersionInReadmodelPurpose.id,
+                purposeVersionStampInReadmodelPurpose.purposeVersionId
+              )
+            )
+            // What is the point of these two joins? They are left joins and are not selected
+            .leftJoin(
+              purposeVersionSignedDocumentInReadmodelPurpose,
+              eq(
+                purposeVersionInReadmodelPurpose.id,
+                purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+              )
+            )
+            .orderBy(ascLower(purposeInReadmodelPurpose.title)),
+          buildQuery(totalCountQuery),
+        ]);
 
-      const purposes = aggregatePurposeArray(
-        toPurposeAggregatorArray(queryResult)
-      );
-      return createListResult(
-        purposes.map((p) => p.data),
-        queryResult[0]?.totalCount
-      );
+        const purposes = aggregatePurposeArray(
+          toPurposeAggregatorArray(queryResult)
+        );
+        return createListResult(
+          purposes.map((p) => p.data),
+          totalCount[0]?.count
+        );
+      });
     },
     async getActiveAgreement(
       eserviceId: EServiceId,
