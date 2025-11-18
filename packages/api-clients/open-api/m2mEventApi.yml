@@ -952,12 +952,15 @@ components:
           format: date-time
         kid:
           type: string
+        clientId:
+          type: string
           format: uuid
       required:
         - id
         - eventType
         - eventTimestamp
         - kid
+        - clientId
     KeyM2MEvents:
       type: object
       additionalProperties: false
@@ -985,12 +988,15 @@ components:
           format: date-time
         kid:
           type: string
+        producerKeychainId:
+          type: string
           format: uuid
       required:
         - id
         - eventType
         - eventTimestamp
         - kid
+        - producerKeychainId
     ProducerKeyM2MEvents:
       type: object
       additionalProperties: false

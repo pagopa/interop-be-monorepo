@@ -22,6 +22,8 @@ import {
   ProducerKeychainM2MEventId,
   ProducerKeyM2MEvent,
   ProducerKeyM2MEventId,
+  ClientM2MEvent,
+  ClientM2MEventId,
 } from "pagopa-interop-models";
 import { DelegationIdParam } from "../model/types.js";
 import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";

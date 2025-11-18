@@ -26,6 +26,7 @@ function toApiKeyM2MEvent(event: KeyM2MEvent): m2mEventApi.KeyM2MEvent {
     eventType: toApiKeyM2MEventType(event.eventType),
     eventTimestamp: event.eventTimestamp.toJSON(),
     kid: event.kid,
+    clientId: event.clientId,
   };
 }
 
@@ -89,6 +90,7 @@ function toApiProducerKeyM2MEvent(
     eventType: toApiProducerKeyM2MEventType(event.eventType),
     eventTimestamp: event.eventTimestamp.toJSON(),
     kid: event.kid,
+    producerKeychainId: event.producerKeychainId,
   };
 }
 

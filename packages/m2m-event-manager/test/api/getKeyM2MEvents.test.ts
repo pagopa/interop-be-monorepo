@@ -21,6 +21,7 @@ describe("API /events/keys test", () => {
           eventTimestamp: e.eventTimestamp.toJSON(),
           eventType: testToUpperSnakeCase(e.eventType),
           kid: e.kid,
+          clientId: e.clientId,
         } as m2mEventApi.KeyM2MEvent)
     ),
   };

@@ -10,6 +10,7 @@ import {
   keyInM2MEvent,
   producerKeychainInM2MEvent,
   purposeInM2MEvent,
+  producerKeyInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventVisibility } from "pagopa-interop-models";
 import { DelegationIdParam } from "../model/types.js";
@@ -23,6 +24,7 @@ export function afterEventIdFilter<
     | typeof producerDelegationInM2MEvent
     | typeof consumerDelegationInM2MEvent
     | typeof keyInM2MEvent
+    | typeof producerKeyInM2MEvent
     | typeof clientInM2MEvent
     | typeof producerKeychainInM2MEvent
 >(table: T, lastEventId: string | undefined): SQL | undefined {

@@ -8,6 +8,7 @@ import {
   producerDelegationInM2MEvent,
   keyInM2MEvent,
   producerKeychainInM2MEvent,
+  producerKeyInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -264,9 +265,9 @@ export function m2mEventReaderServiceSQLBuilder(
     ): Promise<ProducerKeyM2MEvent[]> {
       const sqlEvents = await m2mEventDB
         .select()
-        .from(keyInM2MEvent)
-        .where(afterEventIdFilter(keyInM2MEvent, lastEventId))
-        .orderBy(asc(keyInM2MEvent.id))
+        .from(producerKeyInM2MEvent)
+        .where(afterEventIdFilter(producerKeyInM2MEvent, lastEventId))
+        .orderBy(asc(producerKeyInM2MEvent.id))
         .limit(limit);
 
       return sqlEvents.map(fromProducerKeyM2MEventSQL);
