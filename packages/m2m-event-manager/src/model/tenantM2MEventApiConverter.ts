@@ -2,7 +2,7 @@ import { m2mEventApi } from "pagopa-interop-api-clients";
 import { TenantM2MEvent, TenantM2MEventType } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-function toApiTenantM2MEventType(
+export function toApiTenantM2MEventType(
   eventType: TenantM2MEventType
 ): m2mEventApi.TenantM2MEvent["eventType"] {
   return match<TenantM2MEventType, m2mEventApi.TenantM2MEvent["eventType"]>(
@@ -11,7 +11,7 @@ function toApiTenantM2MEventType(
     .with("MaintenanceTenantDeleted", () => "MAINTENANCE_TENANT_DELETED")
     .with(
       "MaintenanceTenantPromotedToCertifier",
-      () => "MAINTENANCE_TENANT_PROMOTED_TO_CERTIFIER"
+      () => "TENANT_PROMOTED_TO_CERTIFIER"
     )
     .with("MaintenanceTenantUpdated", () => "MAINTENANCE_TENANT_UPDATED")
     .with(

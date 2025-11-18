@@ -6,7 +6,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { TenantM2MEventType, generateId } from "pagopa-interop-models";
 import { generateM2MEventId, getMockedTenantM2MEvent } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../utils.js";
+import { toApiTenantM2MEventType } from "../../src/model/tenantM2MEventApiConverter.js";
 
 describe("API /events/tenants test", () => {
   const mockTenantM2MEvents = TenantM2MEventType.options
@@ -22,7 +22,7 @@ describe("API /events/tenants test", () => {
         ({
           id: e.id,
           eventTimestamp: e.eventTimestamp.toJSON(),
-          eventType: testToUpperSnakeCase(e.eventType),
+          eventType: toApiTenantM2MEventType(e.eventType),
           tenantId: e.tenantId,
         } as m2mEventApi.TenantM2MEvent)
     ),
