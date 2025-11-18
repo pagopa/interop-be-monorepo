@@ -615,12 +615,14 @@ function validateEServiceDescriptorsToAssociate(validEservices: EService[]): {
  * Finally, return the validation issues and the valid eservice descriptor pairs
  *
  * @param validEservices the list of valid eservices
- * @param validEServiceDescriptorPurposeTemplate the list of valid eservice descriptor and purpose template associations
+ * @param eServiceAssociationResults the association results used to validate the eservice descriptors
  * @returns the validation issues and the valid eservice descriptor pairs
  */
 function validateEServiceDescriptorsToDisassociate(
   validEservices: EService[],
-  validEServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate[]
+  eServiceAssociationResults: Array<
+    PromiseSettledResult<EServiceDescriptorPurposeTemplate | undefined>
+  >
 ): {
   validationIssues: PurposeTemplateValidationIssue[];
   validEServiceDescriptorPairs: Array<{
@@ -634,10 +636,20 @@ function validateEServiceDescriptorsToDisassociate(
     descriptorId: DescriptorId;
   }> = [];
 
+  const validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[] =
+    eServiceAssociationResults.reduce((acc, result) => {
+      // This should never happen, since we validate the existence of the eservices and the associations in the steps before
+      if (result.status === "rejected" || result.value === undefined) {
+        return acc;
+      }
+
+      return [...acc, result.value];
+    }, [] as EServiceDescriptorPurposeTemplate[]);
+
   // Get the eservice from the eservice id.
   // If the eservice is not found, return a validation issue.
   const eserviceDisassociationData =
-    validEServiceDescriptorPurposeTemplate.reduce(
+    validEServiceDescriptorPurposeTemplates.reduce(
       (acc, { eserviceId, descriptorId, purposeTemplateId }) => {
         const eservice = validEservices.find(
           (eservice) => eservice.id === eserviceId
@@ -651,11 +663,14 @@ function validateEServiceDescriptorsToDisassociate(
           return acc;
         }
 
-        return acc.concat({
-          eservice,
-          descriptorId,
-          purposeTemplateId,
-        });
+        return [
+          ...acc,
+          {
+            eservice,
+            descriptorId,
+            purposeTemplateId,
+          },
+        ];
       },
       [] as Array<{
         eservice: EService;
@@ -830,22 +845,12 @@ export async function validateEservicesDisassociations(
     );
   }
 
-  const validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[] =
-    eServiceAssociationResults.reduce((acc, result) => {
-      // This will never happen, since we validate the existence of the eservices and the associations
-      if (result.status === "rejected" || result.value === undefined) {
-        return acc;
-      }
-
-      return acc.concat(result.value);
-    }, [] as EServiceDescriptorPurposeTemplate[]);
-
   const {
     validationIssues: descriptorValidationIssues,
     validEServiceDescriptorPairs,
   } = validateEServiceDescriptorsToDisassociate(
     validEservices,
-    validEServiceDescriptorPurposeTemplates
+    eServiceAssociationResults
   );
 
   if (descriptorValidationIssues.length > 0) {
