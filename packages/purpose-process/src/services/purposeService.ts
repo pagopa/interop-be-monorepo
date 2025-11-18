@@ -998,7 +998,7 @@ export function purposeServiceBuilder(
 
       const riskAnalysisDocument = !isFeatureFlagEnabled(
         config,
-        "featureFlagPurposesContractBuilder"
+        "featureFlagDisableDocumentGenerationInPurposeProcess"
       )
         ? await generateRiskAnalysisDocument({
             eservice,
@@ -2363,7 +2363,7 @@ async function activatePurposeLogic({
 
   const riskAnalysis = !isFeatureFlagEnabled(
     config,
-    "featureFlagPurposesContractBuilder"
+    "featureFlagDisableDocumentGenerationInPurposeProcess"
   )
     ? await generateRiskAnalysisDocument({
         eservice,
