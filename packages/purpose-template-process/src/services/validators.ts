@@ -706,12 +706,11 @@ function validateEServiceDescriptorsToDisassociate(
       return;
     }
 
-    const descriptorIsValid =
-      ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION.includes(
+    if (
+      !ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION.includes(
         descriptor.state
-      );
-
-    if (!descriptorIsValid) {
+      )
+    ) {
       // eslint-disable-next-line functional/immutable-data
       validationIssues.push(
         invalidDescriptorStateError(
