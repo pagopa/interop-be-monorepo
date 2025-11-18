@@ -2,7 +2,6 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   AttributeKind,
@@ -22,7 +21,14 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, getTableColumns, ilike, inArray } from "drizzle-orm";
+import {
+  and,
+  countDistinct,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+} from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -44,20 +50,28 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const queryResult = await readModelDB
-        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
-        .from(attributeInReadmodelAttribute)
-        .where(inArray(attributeInReadmodelAttribute.id, ids))
-        .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .limit(limit)
-        .offset(offset);
+      return await readModelDB.transaction(async (tx) => {
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select(getTableColumns(attributeInReadmodelAttribute))
+            .from(attributeInReadmodelAttribute)
+            .where(inArray(attributeInReadmodelAttribute.id, ids))
+            .orderBy(ascLower(attributeInReadmodelAttribute.name))
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({ count: countDistinct(attributeInReadmodelAttribute.id) })
+            .from(attributeInReadmodelAttribute)
+            .where(inArray(attributeInReadmodelAttribute.id, ids)),
+        ]);
 
-      const attributes = aggregateAttributeArray(queryResult);
+        const attributes = aggregateAttributeArray(queryResult);
 
-      return createListResult(
-        attributes.map((attr) => attr.data),
-        queryResult[0]?.totalCount
-      );
+        return createListResult(
+          attributes.map((attr) => attr.data),
+          totalCount[0]?.count
+        );
+      });
     },
     async getAttributesByKindsNameOrigin({
       kinds,
@@ -72,35 +86,41 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const queryResult = await readModelDB
-        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
-        .from(attributeInReadmodelAttribute)
-        .where(
-          and(
-            kinds.length > 0
-              ? inArray(attributeInReadmodelAttribute.kind, kinds)
-              : undefined,
-            name
-              ? ilike(
-                  attributeInReadmodelAttribute.name,
-                  `%${escapeRegExp(name)}%`
-                )
-              : undefined,
-            origin
-              ? eq(attributeInReadmodelAttribute.origin, origin)
-              : undefined
-          )
-        )
-        .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .limit(limit)
-        .offset(offset);
+      return await readModelDB.transaction(async (tx) => {
+        const filters = and(
+          kinds.length > 0
+            ? inArray(attributeInReadmodelAttribute.kind, kinds)
+            : undefined,
+          name
+            ? ilike(
+                attributeInReadmodelAttribute.name,
+                `%${escapeRegExp(name)}%`
+              )
+            : undefined,
+          origin ? eq(attributeInReadmodelAttribute.origin, origin) : undefined
+        );
 
-      const attributes = aggregateAttributeArray(queryResult);
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select(getTableColumns(attributeInReadmodelAttribute))
+            .from(attributeInReadmodelAttribute)
+            .where(filters)
+            .orderBy(ascLower(attributeInReadmodelAttribute.name))
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({ count: countDistinct(attributeInReadmodelAttribute.id) })
+            .from(attributeInReadmodelAttribute)
+            .where(filters),
+        ]);
 
-      return createListResult(
-        attributes.map((attr) => attr.data),
-        queryResult[0]?.totalCount
-      );
+        const attributes = aggregateAttributeArray(queryResult);
+
+        return createListResult(
+          attributes.map((attr) => attr.data),
+          totalCount[0]?.count
+        );
+      });
     },
     async getAttributeById(
       id: AttributeId
