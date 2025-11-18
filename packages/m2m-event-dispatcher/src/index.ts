@@ -3,21 +3,20 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, Logger, logger } from "pagopa-interop-commons";
 import {
-  AgreementEventV2,
+  AgreementEvent,
   AttributeEvent,
-  AuthorizationEventV2,
+  AuthorizationEvent,
   CorrelationId,
-  DelegationEventV2,
-  EServiceEventV2,
-  EServiceTemplateEventV2,
+  DelegationEvent,
+  EServiceEvent,
+  EServiceTemplateEvent,
   EventEnvelope,
   generateId,
   genericInternalError,
-  PurposeEventV2,
-  TenantEventV2,
+  PurposeEvent,
+  TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
@@ -92,22 +91,97 @@ function processMessage(topicNames: TopicNames) {
       eserviceTemplateTopic,
     } = topicNames;
 
+    //     const handleWith = <T extends z.ZodType>(
+    //       decodedMessage: EventEnvelope<z.infer<T>>,
+    //       handler: (
+    //         eventTimestamp: Date,
+    //         logger: Logger,
+    //         m2mEventWriterService: M2MEventWriterServiceSQL,
+    //         readModelService: ReadModelServiceSQL
+    //       ) => Promise<void>
+    //     ): Promise<void> => {
+    //       const loggerInstance = logger({
+    //         serviceName: "m2m-event-dispatcher",
+    //         eventType: decodedMessage.type,
+    //         eventVersion: decodedMessage.event_version,
+    //         streamId: decodedMessage.stream_id,
+    //         streamVersion: decodedMessage.version,
+    //         correlationId: decodedMessage.correlation_id
+    //           ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+    //           : generateId<CorrelationId>(),
+    //       });
+
+    //       loggerInstance.info(
+    //         `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+    //       );
+    //       return handler(
+    //         getEventTimestamp(messagePayload),
+    //         loggerInstance,
+    //         m2mEventService,
+    //         readModelService
+    //       );
+    //     };
+
+    //     await match(messagePayload.topic)
+    //       .with(catalogTopic, async () => {
+    //         const decodedMessage = decodeKafkaMessage(
+    //           messagePayload.message,
+    //           EServiceEvent
+    //         )
+    //         await match(decodedMessage)
+    //           .with(
+    //             { event_version: 1 }, () => Promise.resolve() // Skip EServiceEvent v1
+    //           )
+    //           .with(
+    //             { event_version: 2 }, async () =>
+    //             handleWith(EServiceEventV2, handleEServiceEvent)
+    //           )
+    //           .exhaustive();
+    //       })
+
+    //       .with(agreementTopic, async () =>
+    //         handleWith(AgreementEventV2, handleAgreementEvent)
+    //       )
+    //   }
+    //           .with (purposeTopic, async () =>
+    //     handleWith(PurposeEventV2, handlePurposeEvent)
+    //   )
+    //           .with(delegationTopic, async () =>
+    //     handleWith(DelegationEventV2, handleDelegationEvent)
+    //   )
+    //     .with(authorizationTopic, async () =>
+    //       handleWith(AuthorizationEventV2, handleAuthorizationEvent)
+    //     )
+    //     .with(attributeTopic, async () =>
+    //       handleWith(AttributeEvent, handleAttributeEvent)
+    //     )
+    //     .with(tenantTopic, async () =>
+    //       handleWith(TenantEventV2, handleTenantEvent)
+    //     )
+    //     .with(eserviceTemplateTopic, async () =>
+    //       handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
+    //     )
+    //     .otherwise(() => {
+    //       throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
+    //     });
+    // };
+    // }
+
+
+    type HandlerContext<T extends z.ZodType> = (
+      decodedMessage: EventEnvelope<z.infer<T>>,
+      eventTimestamp: Date,
+      logger: Logger,
+      m2mEventWriterService: M2MEventWriterServiceSQL,
+      readModelService: ReadModelServiceSQL
+    ) => Promise<void>;
+
     const handleWith = <T extends z.ZodType>(
-      eventType: T,
-      handler: (
-        decodedMessage: EventEnvelope<z.infer<T>>,
-        eventTimestamp: Date,
-        logger: Logger,
-        m2mEventWriterService: M2MEventWriterServiceSQL,
-        readModelService: ReadModelServiceSQL
-      ) => Promise<void>
+      decodedMessage: EventEnvelope<z.infer<T>>,
+      handler: HandlerContext<T>,
     ): Promise<void> => {
-      const decodedMessage = decodeKafkaMessage(
-        messagePayload.message,
-        eventType
-      );
       const loggerInstance = logger({
-        serviceName: "m2m-event-dispatcher",
+        serviceName: 'm2m-event-dispatcher',
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,
         streamId: decodedMessage.stream_id,
@@ -120,6 +194,7 @@ function processMessage(topicNames: TopicNames) {
       loggerInstance.info(
         `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
       );
+
       return handler(
         decodedMessage,
         getEventTimestamp(messagePayload),
@@ -129,36 +204,34 @@ function processMessage(topicNames: TopicNames) {
       );
     };
 
-    await match(messagePayload.topic)
-      .with(catalogTopic, async () =>
-        handleWith(EServiceEventV2, handleEServiceEvent)
-      )
-      .with(agreementTopic, async () =>
-        handleWith(AgreementEventV2, handleAgreementEvent)
-      )
-      .with(purposeTopic, async () =>
-        handleWith(PurposeEventV2, handlePurposeEvent)
-      )
-      .with(delegationTopic, async () =>
-        handleWith(DelegationEventV2, handleDelegationEvent)
-      )
-      .with(authorizationTopic, async () =>
-        handleWith(AuthorizationEventV2, handleAuthorizationEvent)
-      )
-      .with(attributeTopic, async () =>
-        handleWith(AttributeEvent, handleAttributeEvent)
-      )
-      .with(tenantTopic, async () =>
-        handleWith(TenantEventV2, handleTenantEvent)
-      )
-      .with(eserviceTemplateTopic, async () =>
-        handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
-      )
-      .otherwise(() => {
-        throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
-      });
+    const topicEventMap = {
+      [catalogTopic]: { schema: EServiceEvent, handler: handleEServiceEvent },
+      [agreementTopic]: { schema: AgreementEvent, handler: handleAgreementEvent },
+      [purposeTopic]: { schema: PurposeEvent, handler: handlePurposeEvent },
+      [delegationTopic]: { schema: DelegationEvent, handler: handleDelegationEvent },
+      [authorizationTopic]: { schema: AuthorizationEvent, handler: handleAuthorizationEvent },
+      [attributeTopic]: { schema: AttributeEvent, handler: handleAttributeEvent },
+      [tenantTopic]: { schema: TenantEvent, handler: handleTenantEvent },
+      [eserviceTemplateTopic]: { schema: EServiceTemplateEvent, handler: handleEServiceTemplateEvent },
+    };
+
+    const eventConfig = topicEventMap[messagePayload.topic];
+
+    if (!eventConfig) {
+      throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
+    }
+
+    const { schema, handler } = eventConfig;
+
+    const decodedMessage = decodeKafkaMessage(messagePayload.message, schema);
+
+    if (decodedMessage.event_version === 1) {
+      return Promise.resolve();
+    }
+
+    return handleWith(decodedMessage, handler);
   };
-}
+};
 
 await runConsumer(
   config,
