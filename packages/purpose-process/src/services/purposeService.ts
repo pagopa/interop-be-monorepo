@@ -996,7 +996,7 @@ export function purposeServiceBuilder(
         },
       };
 
-      const riskAnalysisDocument = isFeatureFlagEnabled(
+      const riskAnalysisDocument = !isFeatureFlagEnabled(
         config,
         "featureFlagPurposesContractBuilder"
       )
@@ -2361,7 +2361,7 @@ async function activatePurposeLogic({
     .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
     .exhaustive();
 
-  const riskAnalysis = isFeatureFlagEnabled(
+  const riskAnalysis = !isFeatureFlagEnabled(
     config,
     "featureFlagPurposesContractBuilder"
   )
