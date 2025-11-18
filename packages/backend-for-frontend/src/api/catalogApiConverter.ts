@@ -98,9 +98,7 @@ export async function toBffCatalogDescriptorEService(
   producerTenant: tenantApi.Tenant,
   agreement: agreementApi.Agreement | undefined,
   requesterTenant: tenantApi.Tenant,
-  consumerDelegators: tenantApi.Tenant[],
-  purposeProcessClient: PurposeProcessClient,
-  headers: BffAppContext["headers"]
+  consumerDelegators: tenantApi.Tenant[]
 ): Promise<bffApi.CatalogDescriptorEService> {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
@@ -129,11 +127,8 @@ export async function toBffCatalogDescriptorEService(
       : undefined,
     mail: getLatestTenantContactEmail(producerTenant),
     mode: eservice.mode,
-    riskAnalysis: await enhanceRiskAnalysisArray(
-      eservice.riskAnalysis,
-      unsafeBrandId<EServiceId>(eservice.id),
-      purposeProcessClient,
-      headers
+    riskAnalysis: eservice.riskAnalysis.map((ra) =>
+      toBffCatalogApiEserviceRiskAnalysis(ra, undefined)
     ),
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,

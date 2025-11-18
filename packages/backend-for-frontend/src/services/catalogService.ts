@@ -1006,9 +1006,7 @@ export function catalogServiceBuilder(
           producerTenant,
           agreement,
           requesterTenant,
-          consumerDelegators,
-          purposeProcessClient,
-          headers
+          consumerDelegators
         ),
       };
     },
