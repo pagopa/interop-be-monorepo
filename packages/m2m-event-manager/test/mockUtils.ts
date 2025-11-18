@@ -53,7 +53,9 @@ export function generateM2MEventId<
   return unsafeBrandId<ID>(uuidv7());
 }
 
-export function getMockedAttributeM2MEvent(eventType: AttributeM2MEvent["eventType"]): AttributeM2MEvent {
+export function getMockedAttributeM2MEvent(
+  eventType: AttributeM2MEvent["eventType"]
+): AttributeM2MEvent {
   return {
     id: generateM2MEventId(),
     eventType,
@@ -176,7 +178,9 @@ export function getMockedConsumerDelegationM2MEvent(
 }
 
 function getMockedDelegationM2MEvent(
-  eventType: ConsumerDelegationM2MEvent["eventType"] | ProducerDelegationM2MEvent["eventType"]
+  eventType:
+    | ConsumerDelegationM2MEvent["eventType"]
+    | ProducerDelegationM2MEvent["eventType"]
 ): ConsumerDelegationM2MEvent | ProducerDelegationM2MEvent {
   return {
     id: generateM2MEventId(),
@@ -187,31 +191,9 @@ function getMockedDelegationM2MEvent(
   };
 }
 
-export function getMockedProducerDelegationM2MEvent(
-  eventType: ProducerDelegationM2MEvent["eventType"]
-): ProducerDelegationM2MEvent {
-  return getMockedDelegationM2MEvent(eventType) as ProducerDelegationM2MEvent;
-}
-
-export function getMockedConsumerDelegationM2MEvent(
-  eventType: ConsumerDelegationM2MEvent["eventType"]
-): ConsumerDelegationM2MEvent {
-  return getMockedDelegationM2MEvent(eventType) as ConsumerDelegationM2MEvent;
-}
-
-function getMockedDelegationM2MEvent(
-  eventType: ConsumerDelegationM2MEvent["eventType"] | ProducerDelegationM2MEvent["eventType"]
-): ConsumerDelegationM2MEvent | ProducerDelegationM2MEvent {
-  return {
-    id: generateM2MEventId(),
-    eventType,
-    eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
-    delegationId: generateId<DelegationId>(),
-  };
-}
-
-export function getMockedKeyM2MEvent(eventType: KeyM2MEvent["eventType"]): KeyM2MEvent {
+export function getMockedKeyM2MEvent(
+  eventType: KeyM2MEvent["eventType"]
+): KeyM2MEvent {
   return {
     id: generateM2MEventId(),
     eventType,
@@ -222,7 +204,9 @@ export function getMockedKeyM2MEvent(eventType: KeyM2MEvent["eventType"]): KeyM2
   };
 }
 
-export function getMockedProducerKeyM2MEvent(eventType: ProducerKeyM2MEvent["eventType"]): ProducerKeyM2MEvent {
+export function getMockedProducerKeyM2MEvent(
+  eventType: ProducerKeyM2MEvent["eventType"]
+): ProducerKeyM2MEvent {
   return {
     id: generateM2MEventId(),
     eventType,
@@ -273,7 +257,9 @@ export function getMockedProducerKeychainM2MEvent({
   };
 }
 
-export function getMockedTenantM2MEvent(eventType: TenantM2MEvent["eventType"]): TenantM2MEvent {
+export function getMockedTenantM2MEvent(
+  eventType: TenantM2MEvent["eventType"]
+): TenantM2MEvent {
   return {
     id: generateM2MEventId(),
     eventType,
