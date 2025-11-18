@@ -30,6 +30,8 @@ export const eventV2TypeMapper = (
       "AgreementArchivedByUpgrade",
       "AgreementArchivedByConsumer",
       "AgreementArchivedByRevokedDelegation",
+      "AgreementContractGenerated",
+      "AgreementSignedContractGenerated",
       () => "agreement_updated"
     )
     .with(

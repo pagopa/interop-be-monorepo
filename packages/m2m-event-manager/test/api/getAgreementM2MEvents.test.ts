@@ -13,7 +13,7 @@ import {
   getMockedAgreementM2MEvent,
 } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../utils.js";
+import { toApiAgreementM2MEventType } from "../../src/model/agreementM2MEventApiConverter.js";
 
 describe("API /events/agreements test", () => {
   const mockAgreementM2MEvents = AgreementM2MEventType.options
@@ -35,7 +35,7 @@ describe("API /events/agreements test", () => {
         ({
           id: e.id,
           eventTimestamp: e.eventTimestamp.toJSON(),
-          eventType: testToUpperSnakeCase(e.eventType),
+          eventType: toApiAgreementM2MEventType(e.eventType),
           agreementId: e.agreementId,
           consumerDelegationId: e.consumerDelegationId,
           producerDelegationId: e.producerDelegationId,

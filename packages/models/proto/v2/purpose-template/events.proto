@@ -55,3 +55,9 @@ message PurposeTemplateAnnotationDocumentDeletedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
   string documentId = 2;
 }
+
+message PurposeTemplateAnnotationDocumentUpdatedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  string documentId = 2;
+  string answerId = 3;
+}

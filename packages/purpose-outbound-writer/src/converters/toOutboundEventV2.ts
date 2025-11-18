@@ -42,6 +42,7 @@ function toOutboundPurposeVersionV2(
     stamps:
       purposeVersion.stamps &&
       toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
+    signedContract: undefined,
   };
 }
 
@@ -52,6 +53,7 @@ function toOutboundPurposeV2(
     ...purpose,
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
+    purposeTemplateId: purpose.purposeTemplateId,
   };
 }
 
@@ -91,6 +93,8 @@ export function toOutboundEventV2(
       { type: "PurposeArchived" },
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeVersionRejected" },
+      { type: "RiskAnalysisDocumentGenerated" },
+      { type: "RiskAnalysisSignedDocumentGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

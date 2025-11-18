@@ -38,7 +38,7 @@ describe("archivePurposeTemplate", () => {
     purposeRiskAnalysisForm: riskAnalysisFormTemplate,
     purposeFreeOfChargeReason: "Free of charge reason",
     purposeDailyCalls: 100,
-    state: purposeTemplateState.active,
+    state: purposeTemplateState.published,
     creatorId,
   };
 

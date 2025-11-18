@@ -129,6 +129,24 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
     expect(res.status).toBe(400);
   });
 
+  it("Should return 400 if annotation text contains more than 2000 characters", async () => {
+    const textWithMoreThan2000 = "T".repeat(2001);
+    const requestWithMoreThan2000: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
+      {
+        ...validRiskAnalysisAnswerRequest,
+        answerData: {
+          ...validRiskAnalysisAnswerRequest.answerData,
+          annotation: {
+            text: textWithMoreThan2000,
+          },
+        },
+      };
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, requestWithMoreThan2000);
+    expect(res.status).toBe(400);
+  });
+
   it("Should return 400 if annotation text contains hyperlinks", async () => {
     const textWithHyperlink =
       "This text contains a hyperlink: https://example.com";
@@ -139,7 +157,6 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
           ...validRiskAnalysisAnswerRequest.answerData,
           annotation: {
             text: textWithHyperlink,
-            docs: [],
           },
         },
       };
