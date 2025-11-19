@@ -1,7 +1,6 @@
 import {
   EService,
   Descriptor,
-  descriptorState,
   Attribute,
   AttributeId,
   Tenant,
@@ -9,17 +8,16 @@ import {
   EServiceId,
   PurposeId,
   Purpose,
-  EServiceTemplate,
-  EServiceTemplateVersion,
   NotificationType,
   UserId,
+  descriptorState,
 } from "pagopa-interop-models";
 import { Logger, notificationAdmittedRoles } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
   attributeNotFound,
   certifierTenantNotFound,
-  descriptorPublishedNotFound,
+  descriptorNotFound,
   eserviceNotFound,
   purposeNotFound,
   tenantNotFound,
@@ -71,30 +69,22 @@ export async function retrieveTenant(
   return tenant;
 }
 
-export function retrieveLatestPublishedDescriptor(
-  eservice: EService
-): Descriptor {
-  const latestDescriptor = eservice.descriptors
-    .filter((d) => d.state === descriptorState.published)
-    .sort((a, b) => Number(a.version) - Number(b.version))
+export function retrieveLatestDescriptor(eservice: EService): Descriptor {
+  const latestDescriptor = [...eservice.descriptors]
+    .sort((a, b) => {
+      if (a.state === descriptorState.published) {
+        return 1;
+      }
+      if (b.state === descriptorState.published) {
+        return -1;
+      }
+      return Number(a.version) - Number(b.version);
+    })
     .at(-1);
   if (!latestDescriptor) {
-    throw descriptorPublishedNotFound(eservice.id);
+    throw descriptorNotFound(eservice.id);
   }
   return latestDescriptor;
-}
-
-export function retrieveLatestPublishedEServiceTemplateVersion(
-  eserviceTemplate: EServiceTemplate
-): EServiceTemplateVersion {
-  const latestVersion = eserviceTemplate.versions
-    .filter((d) => d.state === descriptorState.published)
-    .sort((a, b) => Number(a.version) - Number(b.version))
-    .at(-1);
-  if (!latestVersion) {
-    throw descriptorPublishedNotFound(eserviceTemplate.id);
-  }
-  return latestVersion;
 }
 
 export async function retrieveEservice(
