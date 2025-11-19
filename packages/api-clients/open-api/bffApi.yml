@@ -23105,6 +23105,11 @@ paths:
           schema:
             type: string
         - in: query
+          name: unread
+          required: false
+          schema:
+            type: boolean
+        - in: query
           name: category
           description: Category to filter notifications
           schema:

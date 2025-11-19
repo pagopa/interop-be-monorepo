@@ -85,7 +85,6 @@ paths:
           required: false
           schema:
             type: boolean
-            default: false
         - in: query
           name: offset
           required: true
