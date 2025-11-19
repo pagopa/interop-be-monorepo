@@ -3,12 +3,14 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
+import { pollResourceUntilDeletion } from "../utils/polling.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
@@ -37,6 +39,14 @@ export function purposeTemplateServiceBuilder(
       },
       headers,
     });
+
+  const pollPurposeTemplateUntilDeletion = (
+    purposeTemplateId: PurposeTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
+    )({});
 
   return {
     async getPurposeTemplates(
@@ -215,6 +225,22 @@ export function purposeTemplateServiceBuilder(
         config.purposeTemplateDocumentsContainer,
         logger
       );
+    },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      await clients.purposeTemplateProcessClient.deletePurposeTemplate(
+        undefined,
+        {
+          params: { id: purposeTemplateId },
+          headers,
+        }
+      );
+
+      await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
     },
   };
 }
