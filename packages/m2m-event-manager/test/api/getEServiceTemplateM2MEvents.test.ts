@@ -30,18 +30,18 @@ describe("API /events/eserviceTemplates test", () => {
     .flat();
 
   const mockEServiceTemplateM2MEventsResponse: m2mEventApi.EServiceTemplateM2MEvents =
-  {
-    events: mockEServiceTemplateM2MEvents.map(
-      (e) =>
-      ({
-        id: e.id,
-        eventTimestamp: e.eventTimestamp.toJSON(),
-        eventType: testToUpperSnakeCase(e.eventType),
-        eserviceTemplateId: e.eserviceTemplateId,
-        eserviceTemplateVersionId: e.eserviceTemplateVersionId,
-      } as m2mEventApi.EServiceTemplateM2MEvent)
-    ),
-  };
+    {
+      events: mockEServiceTemplateM2MEvents.map(
+        (e) =>
+          ({
+            id: e.id,
+            eventTimestamp: e.eventTimestamp.toJSON(),
+            eventType: testToUpperSnakeCase(e.eventType),
+            eserviceTemplateId: e.eserviceTemplateId,
+            eserviceTemplateVersionId: e.eserviceTemplateVersionId,
+          } as m2mEventApi.EServiceTemplateM2MEvent)
+      ),
+    };
 
   const mockQueryParams: m2mEventApi.GetEServiceTemplateM2MEventsQueryParams = {
     lastEventId: generateM2MEventId(),

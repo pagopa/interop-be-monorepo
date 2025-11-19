@@ -290,7 +290,6 @@ export function m2mEventReaderServiceSQLBuilder(
       return sqlEvents.map(fromEServiceTemplateM2MEventSQL);
     },
 
-
     async getProducerKeyM2MEvents(
       lastEventId: ProducerKeyM2MEventId | undefined,
       limit: number
