@@ -177,6 +177,12 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
+      "purposeTemplateNotInExpectedStates",
+      "purposeTemplateStateConflict",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
       "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR
     )
