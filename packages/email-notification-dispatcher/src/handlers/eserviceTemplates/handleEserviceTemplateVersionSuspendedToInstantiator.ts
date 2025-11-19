@@ -11,7 +11,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -94,7 +94,7 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
           title: `Sospensione del template "${eserviceTemplate.name}"`,
           notificationType,
           entityId: EServiceIdDescriptorId.parse(
-            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+            `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
           ),
           ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
           creatorName: creator.name,

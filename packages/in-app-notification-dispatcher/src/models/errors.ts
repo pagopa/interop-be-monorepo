@@ -5,14 +5,14 @@ type InAppNotificationDispatcherErrorCode =
   | "eserviceNotFound"
   | "activeProducerDelegationNotFound"
   | "purposeNotFound"
-  | "descriptorNotFound"
   | "purposeNotFound"
   | "clientKeyNotFound"
   | "producerKeychainKeyNotFound"
   | "attributeNotFound"
   | "certifierTenantNotFound"
   | "attributeOriginUndefined"
-  | "attributeNotFoundInTenant";
+  | "attributeNotFoundInTenant"
+  | "eserviceWithoutDescriptors";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
@@ -53,12 +53,12 @@ export function activeProducerDelegationNotFound(
   });
 }
 
-export function descriptorNotFound(
-  descriptorId: string
+export function eserviceWithoutDescriptors(
+  eServiceId: EServiceId
 ): InAppNotificationDispatcherError {
   return new InternalError({
-    detail: `Descriptor ${descriptorId} not found`,
-    code: "descriptorNotFound",
+    detail: `EService ${eServiceId} does not have any descriptor`,
+    code: "eserviceWithoutDescriptors",
   });
 }
 

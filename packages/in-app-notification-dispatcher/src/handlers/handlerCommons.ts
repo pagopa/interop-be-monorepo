@@ -17,8 +17,8 @@ import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
   attributeNotFound,
   certifierTenantNotFound,
-  descriptorNotFound,
   eserviceNotFound,
+  eserviceWithoutDescriptors,
   purposeNotFound,
   tenantNotFound,
 } from "../models/errors.js";
@@ -82,7 +82,7 @@ export function retrieveLatestDescriptor(eservice: EService): Descriptor {
     })
     .at(-1);
   if (!latestDescriptor) {
-    throw descriptorNotFound(eservice.id);
+    throw eserviceWithoutDescriptors(eservice.id);
   }
   return latestDescriptor;
 }

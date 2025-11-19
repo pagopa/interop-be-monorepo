@@ -19,8 +19,8 @@ import {
   activeProducerDelegationNotFound,
   agreementStampDateNotFound,
   descriptorNotFound,
-  descriptorPublishedNotFound,
   eServiceNotFound,
+  eserviceWithoutDescriptors,
   htmlTemplateNotFound,
   tenantNotFound,
 } from "../models/errors.js";
@@ -199,15 +199,20 @@ export function getFormattedAgreementStampDate(
   return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
-export function retrieveLatestPublishedDescriptor(
-  eservice: EService
-): Descriptor {
-  const latestDescriptor = eservice.descriptors
-    .filter((d) => d.state === descriptorState.published)
-    .sort((a, b) => Number(a.version) - Number(b.version))
+export function retrieveLatestDescriptor(eservice: EService): Descriptor {
+  const latestDescriptor = [...eservice.descriptors]
+    .sort((a, b) => {
+      if (a.state === descriptorState.published) {
+        return 1;
+      }
+      if (b.state === descriptorState.published) {
+        return -1;
+      }
+      return Number(a.version) - Number(b.version);
+    })
     .at(-1);
   if (!latestDescriptor) {
-    throw descriptorPublishedNotFound(eservice.id);
+    throw eserviceWithoutDescriptors(eservice.id);
   }
   return latestDescriptor;
 }
