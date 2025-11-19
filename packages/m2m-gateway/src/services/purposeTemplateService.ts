@@ -18,12 +18,14 @@ import {
 
 import {
   toGetPurposeTemplatesApiQueryParams,
+  toM2MGatewayApiDocument,
   toM2MGatewayApiPurposeTemplate,
   toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
 } from "../api/purposeTemplateApiConverter.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
+import { uploadAnswerAnnotationDocument } from "../utils/fileUpload.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -174,6 +176,30 @@ export function purposeTemplateServiceBuilder(
           totalCount,
         },
       };
+    },
+    async uploadRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      fileUpload: m2mGatewayApi.AnnotationDocumentUploadMultipart,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Document> {
+      logger.info(
+        `Adding document ${fileUpload.file.name} to annotation documents for purpose template ${purposeTemplateId} for answer ${fileUpload.answerId}`
+      );
+
+      const { data: document, metadata } = await uploadAnswerAnnotationDocument(
+        {
+          purposeTemplateId,
+          fileUpload,
+          purposeTemplateProcessClient: clients.purposeTemplateProcessClient,
+          fileManager,
+          logger,
+          headers,
+        }
+      );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+
+      return toM2MGatewayApiDocument(document);
     },
     async getPurposeTemplateEServices(
       purposeTemplateId: PurposeTemplateId,
