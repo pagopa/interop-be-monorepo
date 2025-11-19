@@ -12,6 +12,7 @@ import {
   ProducerKeyM2MEvent,
   ProducerKeychainM2MEvent,
   TenantM2MEvent,
+  EServiceTemplateM2MEvent,
   dateToString,
 } from "pagopa-interop-models";
 import {
@@ -26,6 +27,7 @@ import {
   producerKeychainInM2MEvent,
   producerKeyInM2MEvent,
   tenantInM2MEvent,
+  eserviceTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventServiceBuilder } from "../src/services/m2mEventService.js";
 import { m2mEventReaderServiceSQLBuilder } from "../src/services/m2mEventReaderServiceSQL.js";
@@ -168,6 +170,17 @@ export async function writeTenantM2MEvent(
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+export async function writeEServiceTemplateM2MEvent(
+  event: EServiceTemplateM2MEvent
+) {
+  await m2mEventDB.insert(eserviceTemplateInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+      eserviceTemplateVersionId: event.eserviceTemplateVersionId ?? null,
     },
   ]);
 }

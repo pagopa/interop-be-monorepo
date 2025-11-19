@@ -26,6 +26,10 @@ import {
   ProducerKeyM2MEventId,
   ProducerKeychainM2MEvent,
   ProducerKeychainM2MEventId,
+  EServiceTemplateId,
+  EServiceTemplateM2MEvent,
+  EServiceTemplateM2MEventId,
+  EServiceTemplateVersionId,
   TenantId,
   TenantM2MEvent,
   TenantM2MEventId,
@@ -49,6 +53,7 @@ export function generateM2MEventId<
     | ClientM2MEventId
     | ProducerKeychainM2MEventId
     | TenantM2MEventId
+    | EServiceTemplateM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
@@ -266,5 +271,26 @@ export function getMockedTenantM2MEvent(
     eventTimestamp: new Date(),
     resourceVersion: randomInt(1, 1000),
     tenantId: generateId<TenantId>(),
+  };
+}
+
+export function getMockedEServiceTemplateM2MEvent({
+  eventType,
+  visibility,
+  creatorId,
+}: {
+  eventType: EServiceTemplateM2MEvent["eventType"];
+  visibility: EServiceTemplateM2MEvent["visibility"];
+  creatorId?: TenantId;
+}): EServiceTemplateM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    eserviceTemplateId: generateId<EServiceTemplateId>(),
+    eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+    visibility,
+    creatorId: creatorId ?? generateId<TenantId>(),
   };
 }
