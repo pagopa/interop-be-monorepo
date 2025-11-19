@@ -3,6 +3,7 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -17,6 +18,10 @@ import {
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -36,6 +41,16 @@ export function purposeTemplateServiceBuilder(
         id: purposeTemplateId,
       },
       headers,
+    });
+
+  const pollPurposeTemplate = (
+    response: WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(unsafeBrandId(response.data.id), headers)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {
@@ -215,6 +230,37 @@ export function purposeTemplateServiceBuilder(
         config.purposeTemplateDocumentsContainer,
         logger
       );
+    },
+    async createPurposeTemplate(
+      purposeTemplateSeed: m2mGatewayApi.PurposeTemplateSeed,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(
+        `Creating purpose template for creator ${authData.organizationId}`
+      );
+
+      const purposeResponse =
+        await clients.purposeTemplateProcessClient.createPurposeTemplate(
+          {
+            targetDescription: purposeTemplateSeed.targetDescription,
+            targetTenantKind: purposeTemplateSeed.targetTenantKind,
+            purposeTitle: purposeTemplateSeed.purposeTitle,
+            purposeDescription: purposeTemplateSeed.purposeDescription,
+            purposeIsFreeOfCharge: purposeTemplateSeed.purposeIsFreeOfCharge,
+            purposeFreeOfChargeReason:
+              purposeTemplateSeed.purposeFreeOfChargeReason,
+            purposeDailyCalls: purposeTemplateSeed.purposeDailyCalls,
+            handlesPersonalData: purposeTemplateSeed.handlesPersonalData,
+          },
+          { headers }
+        );
+
+      const polledResource = await pollPurposeTemplate(
+        purposeResponse,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(polledResource.data);
     },
   };
 }
