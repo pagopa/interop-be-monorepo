@@ -13,7 +13,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
 } from "../handlerCommons.js";
 
 export async function handleEserviceTemplateNameChangedToInstantiator(
@@ -67,7 +67,7 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
       const entityId = EServiceIdDescriptorId.parse(
-        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+        `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
       );
       return {
         userId,

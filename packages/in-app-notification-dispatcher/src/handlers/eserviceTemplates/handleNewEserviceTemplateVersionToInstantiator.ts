@@ -12,7 +12,7 @@ import { EServiceTemplateV2 } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   getNotificationRecipients,
   retrieveTenant,
 } from "../handlerCommons.js";
@@ -76,8 +76,12 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
   return usersWithNotifications.flatMap(({ userId, tenantId }) => {
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
+      const descriptor =
+        eservice.descriptors.find(
+          (d) => d.templateVersionRef?.id === eserviceTemplateVersionId
+        ) || retrieveLatestDescriptor(eservice);
       const entityId = EServiceIdDescriptorId.parse(
-        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+        `${eservice.id}/${descriptor?.id}`
       );
       return {
         userId,

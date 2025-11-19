@@ -14,7 +14,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../handlerCommons.js";
 
@@ -84,7 +84,7 @@ export async function handleEserviceStateChangedToConsumer(
 
   const descriptorId = descriptorIdFromEvent
     ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
-    : retrieveLatestPublishedDescriptor(eservice).id;
+    : retrieveLatestDescriptor(eservice).id;
 
   const entityId = EServiceIdDescriptorId.parse(
     `${eservice.id}/${descriptorId}`
@@ -136,7 +136,7 @@ function getBodyAndDescriptorId(
         ),
       },
       () => {
-        const latestDescriptor = retrieveLatestPublishedDescriptor(eservice);
+        const latestDescriptor = retrieveLatestDescriptor(eservice);
         return {
           body: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
             eservice.name,
