@@ -58,4 +58,9 @@ export type GetProducerKeyM2MEventsQueryParams = QueryParametersByAlias<
   "getProducerKeyM2MEvents"
 >;
 
+export type GetEServiceTemplateM2MEventsQueryParams = QueryParametersByAlias<
+  M2MEventsAPI,
+  "getEServiceTemplateM2MEvents"
+>;
+
 export * from "./generated/m2mEventApi.js";
