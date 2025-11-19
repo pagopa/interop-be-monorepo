@@ -14,31 +14,28 @@ import {
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
-export async function handlePurposeActivatedRejectedToConsumer(
+type PurposeQuotaAdjustmentRequestToProducerType =
+  | "NewPurposeVersionWaitingForApproval"
+  | "PurposeWaitingForApproval";
+
+export async function handlePurposeQuotaAdjustmentRequestToProducer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  type: "PurposeVersionActivated" | "PurposeVersionRejected"
+  type: PurposeQuotaAdjustmentRequestToProducerType
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
     throw missingKafkaMessageDataError("purpose", type);
   }
   logger.info(
-    `Sending in-app notification for handlePurposeActivatedRejectedToConsumer ${purposeV2Msg.id}`
+    `Sending in-app notification for handlePurposeQuotaAdjustmentRequestToProducer ${purposeV2Msg.id}`
   );
   const purpose = fromPurposeV2(purposeV2Msg);
-
-  // Only send notification if there is only one version (version count = 1)
-  if (purpose.versions.length !== 1) {
-    logger.info(
-      `Purpose ${purpose.id} has more than one version, skipping purposeActivatedRejectedToConsumer notification`
-    );
-    return [];
-  }
+  const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
 
   const usersWithNotifications = await getNotificationRecipients(
-    [purpose.consumerId],
-    "purposeActivatedRejectedToConsumer",
+    [eservice.producerId],
+    "purposeQuotaAdjustmentRequestToProducer",
     readModelService,
     logger
   );
@@ -49,21 +46,20 @@ export async function handlePurposeActivatedRejectedToConsumer(
     return [];
   }
 
-  const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
-  const producer = await retrieveTenant(eservice.producerId, readModelService);
+  const consumer = await retrieveTenant(purpose.consumerId, readModelService);
 
   const body = match(type)
-    .with("PurposeVersionActivated", () =>
-      inAppTemplates.purposeActivatedToConsumer(
+    .with("NewPurposeVersionWaitingForApproval", () =>
+      inAppTemplates.purposeQuotaAdjustmentNewVersionToProducer(
+        consumer.name,
         purpose.title,
-        producer.name,
         eservice.name
       )
     )
-    .with("PurposeVersionRejected", () =>
-      inAppTemplates.purposeRejectedToConsumer(
+    .with("PurposeWaitingForApproval", () =>
+      inAppTemplates.purposeQuotaAdjustmentFirstVersionToProducer(
+        consumer.name,
         purpose.title,
-        producer.name,
         eservice.name
       )
     )
@@ -73,7 +69,7 @@ export async function handlePurposeActivatedRejectedToConsumer(
     userId,
     tenantId,
     body,
-    notificationType: "purposeActivatedRejectedToConsumer",
+    notificationType: "purposeQuotaAdjustmentRequestToProducer",
     entityId: purpose.id,
   }));
 }

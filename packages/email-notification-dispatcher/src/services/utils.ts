@@ -111,6 +111,13 @@ export const eventMailTemplateType = {
     "producer-keychain-user-deleted-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
+  newPurposeVersionQuotaAdjustmentRequestMailTemplate:
+    "new-purpose-version-quota-adjustment-request-mail",
+  purposeQuotaAdjustmentRequestMailTemplate:
+    "purpose-quota-adjustment-request-mail",
+  purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
+  purposeQuotaAdjustmentResponseMailTemplate:
+    "purpose-quota-adjustment-response-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([

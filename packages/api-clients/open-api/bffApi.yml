@@ -29048,6 +29048,8 @@ components:
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
+        - purposeOverQuotaStateToConsumer
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -29086,6 +29088,10 @@ components:
         certifiedVerifiedAttributeAssignedRevokedToAssignee:
           type: boolean
         clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+          type: boolean
+        purposeQuotaAdjustmentRequestToProducer:
+          type: boolean
+        purposeOverQuotaStateToConsumer:
           type: boolean
     TenantNotificationConfig:
       type: object

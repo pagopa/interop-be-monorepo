@@ -17,9 +17,9 @@ import {
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 
-const notificationType: NotificationType = "purposeActivatedRejectedToConsumer";
+const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
-export async function handlePurposeVersionRejected(
+export async function handlePurposeVersionRejectedOtherVersion(
   data: PurposeHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -35,22 +35,32 @@ export async function handlePurposeVersionRejected(
   }
   const purpose = fromPurposeV2(purposeV2Msg);
 
-  const [htmlTemplate, eservice, consumer] = await Promise.all([
+  // Only send notification if there are multiple versions (version count > 1)
+  if (purpose.versions.length <= 1) {
+    logger.info(
+      `Purpose ${purpose.id} has only one version, skipping purposeVersionRejectedOtherVersion notification`
+    );
+    return [];
+  }
+
+  const [htmlTemplate, eservice] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.purposeVersionActivatedMailTemplate
+      eventMailTemplateType.purposeQuotaAdjustmentResponseMailTemplate
     ),
     retrieveEService(purpose.eserviceId, readModelService),
-    retrieveTenant(purpose.consumerId, readModelService),
   ]);
 
-  const producer = await retrieveTenant(eservice.producerId, readModelService);
+  const [consumer, producer] = await Promise.all([
+    retrieveTenant(purpose.consumerId, readModelService),
+    retrieveTenant(eservice.producerId, readModelService),
+  ]);
 
   const targets = await getRecipientsForTenants({
     tenants: [consumer],
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: true,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {
@@ -63,15 +73,16 @@ export async function handlePurposeVersionRejected(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `La tua finalità "${purpose.title}" è stata rifiutata`,
+      subject: `Richiesta di adeguamento piano di carico rifiutata per la finalità "${purpose.title}"`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `La tua finalità "${purpose.title}" è stata rifiutata`,
+        title: `Richiesta di adeguamento piano di carico rifiutata per la finalità "${purpose.title}"`,
         notificationType,
         entityId: purpose.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         producerName: producer.name,
-        eserviceName: eservice.name,
         purposeTitle: purpose.title,
+        eserviceName: eservice.name,
+        isAccepted: false,
         ctaLabel: `Visualizza finalità`,
       }),
     },
