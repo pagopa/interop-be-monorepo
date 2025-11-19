@@ -132,8 +132,21 @@ function processMessage(topicNames: TopicNames) {
         await match(decodedMessage)
           .with({ event_version: 1 }, () => Promise.resolve())
           .with({ event_version: 2 }, (msg) =>
-            handleWith(msg, (eventTimestamp, logger, m2mEventWriterService, readModelService) =>
-              handleEServiceEvent(msg, eventTimestamp, logger, m2mEventWriterService, readModelService)
+            handleWith(
+              msg,
+              (
+                eventTimestamp,
+                logger,
+                m2mEventWriterService,
+                readModelService
+              ) =>
+                handleEServiceEvent(
+                  msg,
+                  eventTimestamp,
+                  logger,
+                  m2mEventWriterService,
+                  readModelService
+                )
             )
           )
           .exhaustive();
@@ -146,8 +159,21 @@ function processMessage(topicNames: TopicNames) {
         await match(decodedMessage)
           .with({ event_version: 1 }, () => Promise.resolve())
           .with({ event_version: 2 }, (msg) =>
-            handleWith(msg, (eventTimestamp, logger, m2mEventWriterService, readModelService) =>
-              handleAgreementEvent(msg, eventTimestamp, logger, m2mEventWriterService, readModelService)
+            handleWith(
+              msg,
+              (
+                eventTimestamp,
+                logger,
+                m2mEventWriterService,
+                readModelService
+              ) =>
+                handleAgreementEvent(
+                  msg,
+                  eventTimestamp,
+                  logger,
+                  m2mEventWriterService,
+                  readModelService
+                )
             )
           )
           .exhaustive();
@@ -160,8 +186,21 @@ function processMessage(topicNames: TopicNames) {
         await match(decodedMessage)
           .with({ event_version: 1 }, () => Promise.resolve())
           .with({ event_version: 2 }, (msg) =>
-            handleWith(msg, (eventTimestamp, logger, m2mEventWriterService, readModelService) =>
-              handlePurposeEvent(msg, eventTimestamp, logger, m2mEventWriterService, readModelService)
+            handleWith(
+              msg,
+              (
+                eventTimestamp,
+                logger,
+                m2mEventWriterService,
+                readModelService
+              ) =>
+                handlePurposeEvent(
+                  msg,
+                  eventTimestamp,
+                  logger,
+                  m2mEventWriterService,
+                  readModelService
+                )
             )
           )
           .exhaustive();
@@ -174,7 +213,12 @@ function processMessage(topicNames: TopicNames) {
         await match(decodedMessage)
           .with({ event_version: 2 }, (msg) =>
             handleWith(msg, (eventTimestamp, logger, m2mEventWriterService) =>
-              handleDelegationEvent(msg, eventTimestamp, logger, m2mEventWriterService)
+              handleDelegationEvent(
+                msg,
+                eventTimestamp,
+                logger,
+                m2mEventWriterService
+              )
             )
           )
           .exhaustive();
@@ -188,7 +232,12 @@ function processMessage(topicNames: TopicNames) {
           .with({ event_version: 1 }, () => Promise.resolve())
           .with({ event_version: 2 }, (msg) =>
             handleWith(msg, (eventTimestamp, logger, m2mEventWriterService) =>
-              handleAuthorizationEvent(msg, eventTimestamp, logger, m2mEventWriterService)
+              handleAuthorizationEvent(
+                msg,
+                eventTimestamp,
+                logger,
+                m2mEventWriterService
+              )
             )
           )
           .exhaustive();
@@ -198,8 +247,15 @@ function processMessage(topicNames: TopicNames) {
           messagePayload.message,
           AttributeEvent
         );
-        await handleWith(decodedMessage, (eventTimestamp, logger, m2mEventWriterService) =>
-          handleAttributeEvent(decodedMessage, eventTimestamp, logger, m2mEventWriterService)
+        await handleWith(
+          decodedMessage,
+          (eventTimestamp, logger, m2mEventWriterService) =>
+            handleAttributeEvent(
+              decodedMessage,
+              eventTimestamp,
+              logger,
+              m2mEventWriterService
+            )
         );
       })
       .with(tenantTopic, async () => {
@@ -211,7 +267,12 @@ function processMessage(topicNames: TopicNames) {
           .with({ event_version: 1 }, () => Promise.resolve())
           .with({ event_version: 2 }, (msg) =>
             handleWith(msg, (eventTimestamp, logger, m2mEventWriterService) =>
-              handleTenantEvent(msg, eventTimestamp, logger, m2mEventWriterService)
+              handleTenantEvent(
+                msg,
+                eventTimestamp,
+                logger,
+                m2mEventWriterService
+              )
             )
           )
           .exhaustive();
@@ -224,7 +285,12 @@ function processMessage(topicNames: TopicNames) {
         await match(decodedMessage)
           .with({ event_version: 2 }, (msg) =>
             handleWith(msg, (eventTimestamp, logger, m2mEventWriterService) =>
-              handleEServiceTemplateEvent(msg, eventTimestamp, logger, m2mEventWriterService)
+              handleEServiceTemplateEvent(
+                msg,
+                eventTimestamp,
+                logger,
+                m2mEventWriterService
+              )
             )
           )
           .exhaustive();
