@@ -94,6 +94,7 @@ export async function handleAgreementMessageV2(
               attributesSQL: result.attributesSQL,
               consumerDocumentsSQL: result.consumerDocumentsSQL,
               contractSQL: result.contractSQL,
+              signedContractSQL: result.signedContractSQL,
               stampsSQL: result.stampsSQL,
             } satisfies z.input<typeof AgreementItemsSchema>)
           );
