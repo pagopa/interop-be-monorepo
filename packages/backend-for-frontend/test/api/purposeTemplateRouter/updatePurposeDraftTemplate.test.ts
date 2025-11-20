@@ -13,7 +13,7 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
   const purposeTemplateId = generateId();
   const mockPurposeTemplate200Response: purposeTemplateApi.PurposeTemplate = {
     ...getMockPurposeTemplate(),
