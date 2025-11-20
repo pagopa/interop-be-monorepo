@@ -16551,7 +16551,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/keys:
+  /eventsKeys:
     get:
       tags:
         - events
@@ -16629,7 +16629,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/clients:
+  /eventsClients:
     get:
       tags:
         - events
@@ -16707,7 +16707,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/producerKeys:
+  /eventsProducerKeys:
     get:
       tags:
         - events
@@ -16785,7 +16785,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/producerKeychains:
+  /eventsProducerKeychains:
     get:
       tags:
         - events

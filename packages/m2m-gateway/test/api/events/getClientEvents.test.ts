@@ -7,7 +7,7 @@ import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /events/clients router test", () => {
+describe("GET /eventsClients router test", () => {
   const mockClientEvents: m2mGatewayApi.ClientEvents = {
     events: [
       {
