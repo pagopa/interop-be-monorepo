@@ -7,7 +7,7 @@ import { generateId, TenantM2MEventType } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /events/tenants router test", () => {
+describe("GET /eventsTenants router test", () => {
   const eventTypes = TenantM2MEventType.options;
   const events: m2mGatewayApi.TenantEvent[] = eventTypes.map((eventType) => ({
     id: generateId(),
