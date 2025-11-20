@@ -111,15 +111,15 @@ export type FeatureFlagEServicePersonalDataConfig = z.infer<
 
 export const FeatureFlagDelegationsProcessContractBuilderConfig = z
   .object({
-    FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
+    FEATURE_FLAG_DISABLE_DOCUMENT_GENERATION_IN_DELEGATION_PROCESS: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true")
       .optional(),
   })
   .transform((c) => ({
-    featureFlagDelegationsContractBuilder:
-      c.FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER ?? false,
+    featureFlagDisableDocumentGenerationInDelegationProcess:
+      c.FEATURE_FLAG_DISABLE_DOCUMENT_GENERATION_IN_DELEGATION_PROCESS ?? false,
   }));
 export type FeatureFlagDelegationsProcessContractBuilderConfig = z.infer<
   typeof FeatureFlagDelegationsProcessContractBuilderConfig
@@ -127,15 +127,15 @@ export type FeatureFlagDelegationsProcessContractBuilderConfig = z.infer<
 
 export const FeatureFlagAgreementsProcessContractBuilderConfig = z
   .object({
-    FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER: z
+    FEATURE_FLAG_DISABLE_DOCUMENT_GENERATION_IN_AGREEMENT_PROCESS: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true")
       .optional(),
   })
   .transform((c) => ({
-    featureFlagAgreementsContractBuilder:
-      c.FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER ?? false,
+    featureFlagDisableDocumentGenerationInAgreementProcess:
+      c.FEATURE_FLAG_DISABLE_DOCUMENT_GENERATION_IN_AGREEMENT_PROCESS ?? false,
   }));
 export type FeatureFlagAgreementsProcessContractBuilderConfig = z.infer<
   typeof FeatureFlagAgreementsProcessContractBuilderConfig
@@ -143,15 +143,15 @@ export type FeatureFlagAgreementsProcessContractBuilderConfig = z.infer<
 
 export const FeatureFlagPurposesProcessContractBuilderConfig = z
   .object({
-    FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER: z
+    FEATURE_FLAG_DISABLE_DOCUMENT_GENERATION_IN_PURPOSE_PROCESS: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true")
       .optional(),
   })
   .transform((c) => ({
-    featureFlagPurposesContractBuilder:
-      c.FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER ?? false,
+    featureFlagDisableDocumentGenerationInPurposeProcess:
+      c.FEATURE_FLAG_DISABLE_DOCUMENT_GENERATION_IN_PURPOSE_PROCESS ?? false,
   }));
 export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
   typeof FeatureFlagPurposesProcessContractBuilderConfig

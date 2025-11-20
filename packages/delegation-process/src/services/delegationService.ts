@@ -257,7 +257,12 @@ export function delegationServiceBuilder(
       },
     };
 
-    if (isFeatureFlagEnabled(config, "featureFlagDelegationsContractBuilder")) {
+    if (
+      !isFeatureFlagEnabled(
+        config,
+        "featureFlagDisableDocumentGenerationInDelegationProcess"
+      )
+    ) {
       const activationContract = await contractBuilder.createActivationContract(
         {
           delegation: approvedDelegationWithoutContract,
@@ -434,7 +439,12 @@ export function delegationServiceBuilder(
       },
     };
 
-    if (isFeatureFlagEnabled(config, "featureFlagDelegationsContractBuilder")) {
+    if (
+      !isFeatureFlagEnabled(
+        config,
+        "featureFlagDisableDocumentGenerationInDelegationProcess"
+      )
+    ) {
       const revocationContract = await contractBuilder.createRevocationContract(
         {
           delegation: revokedDelegationWithoutContract,
