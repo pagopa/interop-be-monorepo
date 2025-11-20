@@ -117,6 +117,9 @@ export async function createUpgradeOrNewDraft({
     };
 
     if (isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder")) {
+      logger.info(
+        "featureFlagAgreementsContractBuilder is true: processing document generation"
+      );
       const contract = await contractBuilder.createContract(
         upgraded,
         eservice,
@@ -144,6 +147,9 @@ export async function createUpgradeOrNewDraft({
     }
 
     // If the contract-builder feature is disabled, return the upgraded agreement without a contract
+    logger.info(
+      "featureFlagAgreementsContractBuilder is false: skipping document generation"
+    );
     return [
       upgraded,
       [

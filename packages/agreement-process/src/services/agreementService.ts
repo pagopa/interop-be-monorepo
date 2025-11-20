@@ -629,7 +629,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreement,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const agreementEvent =
@@ -1392,7 +1393,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreementWithoutContract,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const suspendedByPlatformChanged =
@@ -1783,12 +1785,16 @@ async function addContractOnFirstActivation(
   consumer: Tenant,
   producer: Tenant,
   agreement: Agreement,
-  activeDelegations: ActiveDelegations
+  activeDelegations: ActiveDelegations,
+  logger: Logger
 ): Promise<Agreement> {
   if (
     isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
     isFirstActivation
   ) {
+    logger.info(
+      "featureFlagAgreementsContractBuilder is true: processing document generation"
+    );
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
@@ -1802,7 +1808,9 @@ async function addContractOnFirstActivation(
       contract,
     };
   }
-
+  logger.info(
+    "featureFlagAgreementsContractBuilder is false: skipping document generation"
+  );
   return agreement;
 }
 
