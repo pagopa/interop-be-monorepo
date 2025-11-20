@@ -16,11 +16,13 @@ import {
   RiskAnalysisFormRules,
   UIAuthData,
   WithLogger,
+  authRole,
   eventRepository,
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
+  hasAtLeastOneUserRole,
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -351,7 +353,17 @@ export function purposeServiceBuilder(
         : true;
 
       return {
-        data: { purpose: purpose.data, isRiskAnalysisValid },
+        data: {
+          purpose: {
+            ...purpose.data,
+            riskAnalysisForm: hasAtLeastOneUserRole(authData, [
+              authRole.ADMIN_ROLE,
+            ])
+              ? purpose.data.riskAnalysisForm
+              : undefined,
+          },
+          isRiskAnalysisValid,
+        },
         metadata: purpose.metadata,
       };
     },

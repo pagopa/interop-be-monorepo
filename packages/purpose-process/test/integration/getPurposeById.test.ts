@@ -30,6 +30,7 @@ import {
   purposeVersionState,
   DelegationId,
   PurposeTemplateId,
+  userRole,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -751,5 +752,51 @@ describe("getPurposeById", () => {
         getMockContext({ authData: getMockAuthData(mockTenant.id) })
       )
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
+  });
+
+  it("should get the purpose without riskAnalysisForm if the requester is not an admin", async () => {
+    const consumer = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+    };
+    const mockPurpose1: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      consumerId: consumer.id,
+      riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+    };
+
+    await addOnePurpose(mockPurpose1);
+    await addOneEService(mockEService);
+    await addOneTenant(consumer);
+
+    const purposeResponse = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      getMockContext({
+        authData: getMockAuthData(consumer.id, undefined, [
+          userRole.SECURITY_ROLE,
+        ]),
+      })
+    );
+    expect({
+      ...purposeResponse,
+      data: {
+        ...purposeResponse.data,
+        purpose: sortPurpose(purposeResponse.data.purpose),
+      },
+    } satisfies typeof purposeResponse).toMatchObject({
+      data: {
+        purpose: {
+          ...sortPurpose(mockPurpose1),
+          riskAnalysisForm: undefined,
+        },
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
+    });
   });
 });
