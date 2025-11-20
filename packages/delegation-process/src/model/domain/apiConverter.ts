@@ -32,16 +32,6 @@ export const delegationToApiDelegation = (
     ? delegationContractToApiDelegationContract(delegation.revocationContract)
     : undefined,
   stamps: delegationStampsToApiDelegationStamps(delegation.stamps),
-  signedActivationContract: delegation.activationSignedContract
-    ? delegationSignedContractToApiDelegationSignedContract(
-        delegation.activationSignedContract
-      )
-    : undefined,
-  signedRevocationContract: delegation.revocationSignedContract
-    ? delegationSignedContractToApiDelegationSignedContract(
-        delegation.revocationSignedContract
-      )
-    : undefined,
 });
 
 export const delegationStateToApiDelegationState = (
@@ -103,18 +93,6 @@ export const delegationContractToApiDelegationContract = (
   contentType: contract.contentType,
   path: contract.path,
   createdAt: contract.createdAt.toJSON(),
-});
-
-export const delegationSignedContractToApiDelegationSignedContract = (
-  contract: DelegationSignedContractDocument
-): delegationApi.DelegationSignedContractDocument => ({
-  id: contract.id,
-  name: contract.name,
-  prettyName: contract.prettyName,
-  contentType: contract.contentType,
-  path: contract.path,
-  createdAt: contract.createdAt.toJSON(),
-  signedAt: contract.signedAt?.toJSON(),
 });
 
 export const delegationStampsToApiDelegationStamps = (
