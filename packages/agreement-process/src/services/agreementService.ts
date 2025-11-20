@@ -1793,7 +1793,7 @@ async function addContractOnFirstActivation(
     isFirstActivation
   ) {
     logger.info(
-      "featureFlagAgreementsContractBuilder is true: processing document generation"
+      `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
     );
     const contract = await contractBuilder.createContract(
       agreement,
@@ -1809,7 +1809,7 @@ async function addContractOnFirstActivation(
     };
   }
   logger.info(
-    "featureFlagAgreementsContractBuilder is false: skipping document generation"
+    `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: skipping document generation`
   );
   return agreement;
 }
