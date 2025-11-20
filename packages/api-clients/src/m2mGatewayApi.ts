@@ -182,6 +182,10 @@ export type GetEventManagerAttributesQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getAttributesEvents"
 >;
+export type GetEventManagerAgreementsQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getAgreementsEvents"
+>;
 export type GetEventManagerEServicesQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getEServicesEvents"
