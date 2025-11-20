@@ -7,7 +7,7 @@ import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /events/agreements router test", () => {
+describe("GET /eventsAgreements router test", () => {
   const mockAgreementEvents: m2mGatewayApi.AgreementEvents = {
     events: [
       {
@@ -35,7 +35,7 @@ describe("GET /events/agreements router test", () => {
     query: m2mGatewayApi.GetEventManagerAgreementsQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/events/agreements`)
+      .get(`${appBasePath}/eventsAgreements`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
