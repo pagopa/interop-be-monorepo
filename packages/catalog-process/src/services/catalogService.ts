@@ -906,14 +906,11 @@ export function catalogServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: eService,
-        metadata: { version: newVersion },
+        metadata: {
+          version: createdEvents.latestNewVersion.get(events[0].streamId) ?? 0,
+        },
       };
     },
 
@@ -1386,17 +1383,14 @@ export function catalogServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: {
           eservice: updatedEServiceWithDocs,
           createdDescriptorId: newDescriptor.id,
         },
-        metadata: { version: newVersion },
+        metadata: {
+          version: createdEvents.latestNewVersion.get(events[0].streamId) ?? 0,
+        },
       };
     },
 
@@ -2546,14 +2540,12 @@ export function catalogServiceBuilder(
       if (events) {
         const createdEvents = await repository.createEvents(events);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedEservice,
-          metadata: { version: newVersion },
+          metadata: {
+            version:
+              createdEvents.latestNewVersion.get(events[0].streamId) ?? 0,
+          },
         };
       }
       return eservice;

@@ -84,10 +84,17 @@ describe("EventRepository tests", async () => {
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual([
-      { streamId: eservice.id, newVersion: 1 },
-      { streamId: eservice.id, newVersion: 2 },
-    ]);
+    ).toStrictEqual({
+      events: [
+        { streamId: eservice.id, newVersion: 1 },
+        { streamId: eservice.id, newVersion: 2 },
+      ],
+      latestNewVersion: new Map(
+        Object.entries({
+          [eservice.id]: 2,
+        })
+      ),
+    });
   });
 
   it("should not save event for the same streamId with the same version number", async () => {
@@ -127,7 +134,7 @@ describe("EventRepository tests", async () => {
       ])
     ).rejects.toThrowError(
       genericInternalError(
-        `Error creating event: error: duplicate key value violates unique constraint "events_stream_id_version_key"`
+        `Error creating multiple events: error: duplicate key value violates unique constraint "events_stream_id_version_key"`
       )
     );
   });
@@ -156,17 +163,23 @@ describe("EventRepository tests", async () => {
       descriptor2.id,
       correlationId
     );
-
     expect(
       await repository.createEvents([
         eserviceCreationEvent,
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual([
-      { streamId: eservice.id, newVersion: 0 },
-      { streamId: eservice.id, newVersion: 1 },
-      { streamId: eservice.id, newVersion: 2 },
-    ]);
+    ).toStrictEqual({
+      events: [
+        { streamId: eservice.id, newVersion: 0 },
+        { streamId: eservice.id, newVersion: 1 },
+        { streamId: eservice.id, newVersion: 2 },
+      ],
+      latestNewVersion: new Map(
+        Object.entries({
+          [eservice.id]: 2,
+        })
+      ),
+    });
   });
 });

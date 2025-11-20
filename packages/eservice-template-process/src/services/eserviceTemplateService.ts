@@ -1521,16 +1521,14 @@ export function eserviceTemplateServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
       return {
         data: {
           eserviceTemplate: updatedEServiceTemplateWithDocs,
           createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
         },
-        metadata: { version: newVersion },
+        metadata: {
+          version: createdEvents.latestNewVersion.get(events[0].streamId) ?? 0,
+        },
       };
     },
     async getEServiceTemplates(
