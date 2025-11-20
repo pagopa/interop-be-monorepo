@@ -48,7 +48,7 @@ const eventRouter = (
     }
   });
 
-  eventRouter.get("/events/eserviceTemplates", async (req, res) => {
+  eventRouter.get("/eventsEserviceTemplates", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
