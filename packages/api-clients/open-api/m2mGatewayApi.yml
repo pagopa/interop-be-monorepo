@@ -16877,7 +16877,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/producerDelegations:
+  /eventsProducerDelegations:
     get:
       tags:
         - events
@@ -16955,7 +16955,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/consumerDelegations:
+  /eventsConsumerDelegations:
     get:
       tags:
         - events

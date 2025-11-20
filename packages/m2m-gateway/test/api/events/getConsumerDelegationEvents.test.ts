@@ -10,7 +10,7 @@ import {
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /events/consumerDelegations router test", () => {
+describe("GET /eventsConsumerDelegations router test", () => {
   const eventTypes = ConsumerDelegationM2MEventType.options;
   const events: m2mGatewayApi.ConsumerDelegationEvent[] = eventTypes.map(
     (eventType) => ({
@@ -37,7 +37,7 @@ describe("GET /events/consumerDelegations router test", () => {
     query: m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/events/consumerDelegations`)
+      .get(`${appBasePath}/eventsConsumerDelegations`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
