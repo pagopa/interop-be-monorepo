@@ -222,7 +222,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator and the purpose template is in draft state", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template is in draft state", async () => {
     const purposeTemplateDraft = getMockPurposeTemplate();
     await addOnePurposeTemplate(purposeTemplateDraft);
 
@@ -236,6 +236,6 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
         { offset: 0, limit: 50 },
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplateDraft.id));
   });
 });
