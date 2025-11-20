@@ -132,7 +132,6 @@ export const createRiskAnalysisAnswerErrorMapper = (
   match(error.code)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with(
-      "riskAnalysisTemplateValidationFailed",
       "hyperlinkDetectionError",
       "riskAnalysisTemplateValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
