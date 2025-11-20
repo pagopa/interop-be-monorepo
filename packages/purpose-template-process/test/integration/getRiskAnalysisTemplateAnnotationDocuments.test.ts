@@ -129,7 +129,7 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
     }
   );
 
-  it("should throw tenantNotAllowed if the requester is not the creator and the purpose template state is draft", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template state is draft", async () => {
     const requesterId = generateId<TenantId>();
     await expect(
       purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
@@ -137,7 +137,7 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
         { offset: 0, limit: 10 },
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw purposeTemplateNotFound if the purpose template doesn't exist", async () => {
