@@ -13,6 +13,7 @@ import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
   toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
+  toPurposeTemplateApiRiskAnalysisFormTemplateSeed,
 } from "../api/purposeTemplateApiConverter.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
@@ -215,6 +216,30 @@ export function purposeTemplateServiceBuilder(
         config.purposeTemplateDocumentsContainer,
         logger
       );
+    },
+    async updatePurposeTemplateRiskAnalysis(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisFormSeed: m2mGatewayApi.RiskAnalysisFormTemplateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisFormTemplate> {
+      logger.info(
+        `Updating risk analysis form for purpose template ${purposeTemplateId}`
+      );
+
+      const { data: riskAnalysisForm } =
+        await clients.purposeTemplateProcessClient.updatePurposeTemplateRiskAnalysis(
+          toPurposeTemplateApiRiskAnalysisFormTemplateSeed(
+            riskAnalysisFormSeed
+          ),
+          {
+            params: {
+              purposeTemplateId,
+            },
+            headers,
+          }
+        );
+
+      return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
     },
   };
 }
