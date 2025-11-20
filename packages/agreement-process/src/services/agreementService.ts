@@ -1585,9 +1585,9 @@ export function agreementServiceBuilder(
         agreementUpgradableStates
       );
 
-      const agreementWithDocument = {
+      const agreementWithDocument: Agreement = {
         ...agreement,
-        agreementDocument,
+        contract: agreementDocument,
       };
       const event = await repository.createEvent(
         toCreateEventAgreementDocumentGenerated(
