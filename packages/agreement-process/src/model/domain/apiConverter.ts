@@ -64,18 +64,6 @@ export const agreementDocumentToApiAgreementDocument = (
   createdAt: input.createdAt?.toJSON(),
 });
 
-export const agreementSignedDocumentToApiAgreementSignedDocument = (
-  input: AgreementSignedContract
-): agreementApi.SignedDocument => ({
-  id: input.id,
-  name: input.name,
-  prettyName: input.prettyName,
-  contentType: input.contentType,
-  path: input.path,
-  createdAt: input.createdAt?.toJSON(),
-  signedAt: input.signedAt?.toJSON(),
-});
-
 export const agreementToApiAgreement = (
   agreement: Agreement
 ): agreementApi.Agreement => ({
@@ -103,11 +91,6 @@ export const agreementToApiAgreement = (
     : undefined,
   suspendedAt: agreement.suspendedAt?.toJSON(),
   stamps: agreementStampsToApiAgreementStamps(agreement.stamps),
-  signedContract: agreement.signedContract
-    ? agreementSignedDocumentToApiAgreementSignedDocument(
-        agreement.signedContract
-      )
-    : undefined,
 });
 
 export const apiAgreementDocumentToAgreementDocument = (
