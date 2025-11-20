@@ -42,8 +42,19 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  countDistinct,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  ne,
+  or,
+} from "drizzle-orm";
 import { match } from "ts-pattern";
+import { PgSelect } from "drizzle-orm/pg-core";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
 
@@ -326,66 +337,120 @@ export function readModelServiceBuilderSQL({
       limit: number,
       offset: number
     ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
+      return await readModelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(tenantInReadmodelTenant.id),
           })
-        )
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          eserviceTemplateInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-            tenantInReadmodelTenant.id
-          )
-        )
-        .innerJoin(
-          eserviceTemplateVersionInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .where(
-          // E-SERVICE TEMPLATE FILTER
-          and(
-            eq(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-              eserviceTemplateVersionState.published
-            ),
-            // TENANT FILTER
-            name
-              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
-              : undefined
-          )
-        )
-        .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(ascLower(tenantInReadmodelTenant.name))
-        .limit(limit)
-        .offset(offset);
+          .from(tenantInReadmodelTenant)
+          .$dynamic();
 
-      const data: eserviceTemplateApi.CompactOrganization[] = queryResult.map(
-        (d) => ({
-          id: d.id,
-          name: d.name,
-        })
-      );
+        const idsQuery = tx
+          .select({ id: tenantInReadmodelTenant.id })
+          .from(tenantInReadmodelTenant)
+          .$dynamic();
 
-      const result = z
-        .array(eserviceTemplateApi.CompactOrganization)
-        .safeParse(data);
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithFilters = tx
+            .selectDistinctOn([tenantInReadmodelTenant.id], {
+              id: tenantInReadmodelTenant.id,
+            })
+            .from(tenantInReadmodelTenant)
+            .innerJoin(
+              eserviceTemplateInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+                tenantInReadmodelTenant.id
+              )
+            )
+            .innerJoin(
+              eserviceTemplateVersionInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+              )
+            )
+            .where(
+              // E-SERVICE TEMPLATE FILTER
+              and(
+                eq(
+                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                  eserviceTemplateVersionState.published
+                ),
+                // TENANT FILTER
+                name
+                  ? ilike(
+                      tenantInReadmodelTenant.name,
+                      `%${escapeRegExp(name)}%`
+                    )
+                  : undefined
+              )
+            )
+            .as("subqueryWithFilters");
 
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse compact organization items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+          return query
+            .innerJoin(
+              subqueryWithFilters,
+              eq(tenantInReadmodelTenant.id, subqueryWithFilters.id)
+            )
+            .$dynamic();
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
+          .orderBy(ascLower(tenantInReadmodelTenant.name))
+          .limit(limit)
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              id: tenantInReadmodelTenant.id,
+              name: tenantInReadmodelTenant.name,
+            })
+            .from(tenantInReadmodelTenant)
+            .where(inArray(tenantInReadmodelTenant.id, ids))
+            .innerJoin(
+              eserviceTemplateInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+                tenantInReadmodelTenant.id
+              )
+            )
+            .innerJoin(
+              eserviceTemplateVersionInReadmodelEserviceTemplate,
+              eq(
+                eserviceTemplateInReadmodelEserviceTemplate.id,
+                eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+              )
+            )
+            .orderBy(ascLower(tenantInReadmodelTenant.name)),
+          buildQuery(totalCountQuery),
+        ]);
+
+        const data: eserviceTemplateApi.CompactOrganization[] = queryResult.map(
+          (d) => ({
+            id: d.id,
+            name: d.name,
+          })
         );
-      }
 
-      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
+        const tenants = z
+          .array(eserviceTemplateApi.CompactOrganization)
+          .safeParse(data);
+
+        if (!tenants.success) {
+          throw genericInternalError(
+            `Unable to parse compact organization items: result ${JSON.stringify(
+              tenants
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+
+        return createListResult(tenants.data, totalCount[0]?.count);
+      });
     },
   };
 }
