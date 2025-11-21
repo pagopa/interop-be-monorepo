@@ -1,6 +1,7 @@
 import {
   fromTenantV2,
   missingKafkaMessageDataError,
+  TenantEventEnvelope,
   TenantEventEnvelopeV2,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
@@ -10,6 +11,20 @@ import { toTenantM2MEventSQL } from "../models/tenantM2MEventAdapterSQL.js";
 import { createTenantM2MEvent } from "../services/event-builders/tenantM2MEventBuilder.js";
 
 export async function handleTenantEvent(
+  agreementEvent: TenantEventEnvelope,
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterServiceSQL
+): Promise<void> {
+  await match(agreementEvent)
+    .with({ event_version: 1 }, () => Promise.resolve())
+    .with({ event_version: 2 }, (msg) =>
+      handleTenantEventV2(msg, eventTimestamp, logger, m2mEventWriterService)
+    )
+    .exhaustive();
+}
+
+async function handleTenantEventV2(
   decodedMessage: TenantEventEnvelopeV2,
   eventTimestamp: Date,
   logger: Logger,

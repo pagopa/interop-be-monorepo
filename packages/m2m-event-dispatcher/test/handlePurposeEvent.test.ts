@@ -22,23 +22,20 @@ import {
   PurposeVersion,
   PurposeM2MEvent,
   PurposeEventEnvelopeV1,
+  PurposeEventV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { EachMessagePayload, KafkaMessage } from "kafkajs";
 import { handlePurposeEvent } from "../src/handlers/handlePurposeEvent.js";
 import { purposeEServiceNotFound } from "../src/models/errors.js";
 import {
   addOneDelegationToReadModel,
   addOneEServiceToReadModel,
-  bigIntReplacer,
   getMockEventEnvelopeCommons,
-  mockProcessMessage,
   retrieveAllPurposeM2MEvents,
   retrieveLastPurposeM2MEvent,
   testM2mEventWriterService,
   testReadModelService,
-  TopicNames,
 } from "./utils.js";
 
 describe("handlePurposeEvent test", async () => {
@@ -299,6 +296,37 @@ describe("handlePurposeEvent test", async () => {
       )
   );
 
+  it.each(PurposeEventV1.options.map((o) => o.shape.type.value))(
+    "should ignore purpose %s v1 event",
+    async (eventType: PurposeEventV1["type"]) => {
+      const purpose = getMockPurpose();
+
+      const message = {
+        ...getMockEventEnvelopeCommons(),
+        stream_id: purpose.id,
+        type: eventType,
+        event_version: 1,
+        data: {
+          purpose: toPurposeV1(purpose),
+        },
+      } as PurposeEventEnvelopeV1;
+
+      const eventTimestamp = new Date();
+
+      await handlePurposeEvent(
+        message,
+        eventTimestamp,
+        genericLogger,
+        testM2mEventWriterService,
+        testReadModelService
+      );
+
+      expect(
+        testM2mEventWriterService.insertPurposeM2MEvent
+      ).not.toHaveBeenCalled();
+    }
+  );
+
   it("should not write the event if the same resource version is already present", async () => {
     const eservice = getMockEService();
     const purpose: Purpose = {
@@ -383,57 +411,6 @@ describe("handlePurposeEvent test", async () => {
     expect(
       testM2mEventWriterService.insertPurposeM2MEvent
     ).toHaveBeenCalledTimes(0);
-
-    expect(await retrieveAllPurposeM2MEvents({ limit: 10 })).toHaveLength(0);
-  });
-});
-
-describe("V1 Event Skipping", () => {
-  it("should skip V1 events by not calling insertPurposeM2MEvent and resolving", async () => {
-    vi.clearAllMocks();
-
-    const purpose = getMockPurpose();
-    const message: PurposeEventEnvelopeV1 = {
-      ...getMockEventEnvelopeCommons(),
-      stream_id: purpose.id,
-      type: "PurposeCreated",
-      event_version: 1,
-      data: {
-        purpose: toPurposeV1(purpose),
-      },
-    };
-
-    const jsonString = JSON.stringify(message, bigIntReplacer);
-
-    const kafkaMessage: KafkaMessage = {
-      key: null,
-      value: Buffer.from(jsonString),
-      timestamp: "0",
-      size: 0,
-      attributes: 0,
-      offset: "0",
-      headers: undefined,
-    };
-
-    const eachMessagePayload: EachMessagePayload = {
-      topic: "event-store.purpose.events",
-      partition: 0,
-      message: kafkaMessage,
-      heartbeat: async () => {
-        /* no-op in mock */
-      },
-      pause: () => () => {
-        /* no-op in mock */
-      },
-    };
-
-    await mockProcessMessage({
-      purposeTopic: "event-store.purpose.events",
-    } as TopicNames)(eachMessagePayload);
-
-    expect(
-      testM2mEventWriterService.insertPurposeM2MEvent
-    ).not.toHaveBeenCalled();
 
     expect(await retrieveAllPurposeM2MEvents({ limit: 10 })).toHaveLength(0);
   });

@@ -1,4 +1,5 @@
 import {
+  AuthorizationEventEnvelope,
   AuthorizationEventEnvelopeV2,
   Client,
   fromClientV2,
@@ -22,6 +23,25 @@ import { createClientM2MEvent } from "../services/event-builders/clientM2MEventB
 import { createProducerKeychainM2MEvent } from "../services/event-builders/producerKeychainM2MEventBuilder.js";
 
 export async function handleAuthorizationEvent(
+  agreementEvent: AuthorizationEventEnvelope,
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterServiceSQL
+): Promise<void> {
+  await match(agreementEvent)
+    .with({ event_version: 1 }, () => Promise.resolve())
+    .with({ event_version: 2 }, (msg) =>
+      handleAuthorizationEventV2(
+        msg,
+        eventTimestamp,
+        logger,
+        m2mEventWriterService
+      )
+    )
+    .exhaustive();
+}
+
+async function handleAuthorizationEventV2(
   decodedMessage: AuthorizationEventEnvelopeV2,
   eventTimestamp: Date,
   logger: Logger,

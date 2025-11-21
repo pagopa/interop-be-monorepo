@@ -1,5 +1,6 @@
 import {
   fromPurposeV2,
+  PurposeEventEnvelope,
   PurposeEventEnvelopeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -18,6 +19,27 @@ import {
 import { toPurposeM2MEventSQL } from "../models/purposeM2MEventAdapterSQL.js";
 
 export async function handlePurposeEvent(
+  agreementEvent: PurposeEventEnvelope,
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterServiceSQL,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  await match(agreementEvent)
+    .with({ event_version: 1 }, () => Promise.resolve())
+    .with({ event_version: 2 }, (msg) =>
+      handlePurposeEventV2(
+        msg,
+        eventTimestamp,
+        logger,
+        m2mEventWriterService,
+        readModelService
+      )
+    )
+    .exhaustive();
+}
+
+async function handlePurposeEventV2(
   decodedMessage: PurposeEventEnvelopeV2,
   eventTimestamp: Date,
   logger: Logger,

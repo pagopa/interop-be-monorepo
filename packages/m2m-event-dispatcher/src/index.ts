@@ -145,126 +145,42 @@ function processMessage(topicNames: TopicNames) {
           messagePayload.message,
           PurposeEvent
         );
-        await match(decodedMessage)
-          .with({ event_version: 1 }, () => Promise.resolve())
-          .with({ event_version: 2 }, (msg) =>
-            handleWith(
-              msg,
-              (
-                decodedMessage,
-                eventTimestamp,
-                logger,
-                m2mEventWriterService,
-                readModelService
-              ) =>
-                handlePurposeEvent(
-                  decodedMessage,
-                  eventTimestamp,
-                  logger,
-                  m2mEventWriterService,
-                  readModelService
-                )
-            )
-          )
-          .exhaustive();
+        await handleWith(decodedMessage, handlePurposeEvent);
       })
       .with(delegationTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
           DelegationEvent
         );
-        await match(decodedMessage)
-          .with({ event_version: 2 }, (msg) =>
-            handleWith(
-              msg,
-              (decodedMessage, eventTimestamp, logger, m2mEventWriterService) =>
-                handleDelegationEvent(
-                  decodedMessage,
-                  eventTimestamp,
-                  logger,
-                  m2mEventWriterService
-                )
-            )
-          )
-          .exhaustive();
+        await handleWith(decodedMessage, handleDelegationEvent);
       })
       .with(authorizationTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
           AuthorizationEvent
         );
-        await match(decodedMessage)
-          .with({ event_version: 1 }, () => Promise.resolve())
-          .with({ event_version: 2 }, (msg) =>
-            handleWith(
-              msg,
-              (decodedMessage, eventTimestamp, logger, m2mEventWriterService) =>
-                handleAuthorizationEvent(
-                  decodedMessage,
-                  eventTimestamp,
-                  logger,
-                  m2mEventWriterService
-                )
-            )
-          )
-          .exhaustive();
+        await handleWith(decodedMessage, handleAuthorizationEvent);
       })
       .with(attributeTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
           AttributeEvent
         );
-        await handleWith(
-          decodedMessage,
-          (decodedMessage, eventTimestamp, logger, m2mEventWriterService) =>
-            handleAttributeEvent(
-              decodedMessage,
-              eventTimestamp,
-              logger,
-              m2mEventWriterService
-            )
-        );
+        await handleWith(decodedMessage, handleAttributeEvent);
       })
       .with(tenantTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
           TenantEvent
         );
-        await match(decodedMessage)
-          .with({ event_version: 1 }, () => Promise.resolve())
-          .with({ event_version: 2 }, (msg) =>
-            handleWith(
-              msg,
-              (decodedMessage, eventTimestamp, logger, m2mEventWriterService) =>
-                handleTenantEvent(
-                  decodedMessage,
-                  eventTimestamp,
-                  logger,
-                  m2mEventWriterService
-                )
-            )
-          )
-          .exhaustive();
+        await handleWith(decodedMessage, handleTenantEvent);
       })
       .with(eserviceTemplateTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
           EServiceTemplateEvent
         );
-        await match(decodedMessage)
-          .with({ event_version: 2 }, (msg) =>
-            handleWith(
-              msg,
-              (decodedMessage, eventTimestamp, logger, m2mEventWriterService) =>
-                handleEServiceTemplateEvent(
-                  decodedMessage,
-                  eventTimestamp,
-                  logger,
-                  m2mEventWriterService
-                )
-            )
-          )
-          .exhaustive();
+        await handleWith(decodedMessage, handleEServiceTemplateEvent);
       })
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);

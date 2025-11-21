@@ -40,7 +40,6 @@ import {
   upsertDelegation,
   upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
-import { EachMessagePayload } from "kafkajs";
 import { m2mEventWriterServiceSQLBuilder } from "../src/services/m2mEventWriterServiceSQL.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -330,37 +329,3 @@ export async function retrieveAllTenantM2MEvents({
 
   return sqlEvents.map((e) => TenantM2MEvent.parse(e));
 }
-
-const decodeKafkaMessageMock = (message: any) => {
-  const messageString = message.value.toString();
-  return JSON.parse(messageString);
-};
-
-export const bigIntReplacer = (value: any): any => {
-  if (typeof value === "bigint") {
-    return value.toString();
-  }
-  return value;
-};
-
-export interface TopicNames {
-  catalogTopic: string;
-  agreementTopic: string;
-  purposeTopic: string;
-  authorizationTopic: string;
-  tenantTopic: string;
-}
-
-export const mockProcessMessage =
-  (topicNames: TopicNames) =>
-  async (messagePayload: EachMessagePayload): Promise<void> => {
-    const validTopics = Object.values(topicNames);
-    const currentTopic = messagePayload.topic;
-    if (!validTopics.includes(currentTopic)) {
-      throw new Error(`Unknown topic: ${currentTopic}`);
-    }
-    const decodedMessage = decodeKafkaMessageMock(messagePayload.message);
-    if (decodedMessage.event_version === 1) {
-      return Promise.resolve();
-    }
-  };

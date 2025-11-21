@@ -6,18 +6,15 @@ import {
   TenantEventV2,
   TenantEventEnvelopeV2,
   TenantEventEnvelopeV1,
+  TenantEventV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
-import { EachMessagePayload, KafkaMessage } from "kafkajs";
 import { handleTenantEvent } from "../src/handlers/handleTenantEvent.js";
 import {
-  bigIntReplacer,
   getMockEventEnvelopeCommons,
-  mockProcessMessage,
   retrieveAllTenantM2MEvents,
   retrieveLastTenantM2MEvent,
   testM2mEventWriterService,
-  TopicNames,
 } from "./utils.js";
 
 describe("handleTenantEvent test", async () => {
@@ -71,6 +68,36 @@ describe("handleTenantEvent test", async () => {
     }
   );
 
+  it.each(TenantEventV1.options.map((o) => o.shape.type.value))(
+    "should ignore tenant %s v1 event",
+    async (eventType: TenantEventV1["type"]) => {
+      const tenant = getMockTenant();
+
+      const message = {
+        ...getMockEventEnvelopeCommons(),
+        stream_id: tenant.id,
+        type: eventType,
+        event_version: 1,
+        data: {
+          tenant: toTenantV1(tenant),
+        },
+      } as TenantEventEnvelopeV1;
+
+      const eventTimestamp = new Date();
+
+      await handleTenantEvent(
+        message,
+        eventTimestamp,
+        genericLogger,
+        testM2mEventWriterService
+      );
+
+      expect(
+        testM2mEventWriterService.insertTenantM2MEvent
+      ).not.toHaveBeenCalled();
+    }
+  );
+
   it("should not write the event if the same resource version is already present", async () => {
     const message = {
       ...getMockEventEnvelopeCommons(),
@@ -112,56 +139,5 @@ describe("handleTenantEvent test", async () => {
     ).toHaveBeenCalledTimes(3);
 
     expect(await retrieveAllTenantM2MEvents({ limit: 10 })).toHaveLength(2);
-  });
-});
-
-describe("V1 Event Skipping", () => {
-  it("should skip V1 events by not calling insertTenantM2MEvent and resolving", async () => {
-    vi.clearAllMocks();
-
-    const tenant = getMockTenant();
-    const message: TenantEventEnvelopeV1 = {
-      ...getMockEventEnvelopeCommons(),
-      stream_id: tenant.id,
-      type: "TenantCreated",
-      event_version: 1,
-      data: {
-        tenant: toTenantV1(tenant),
-      },
-    };
-
-    const jsonString = JSON.stringify(message, bigIntReplacer);
-
-    const kafkaMessage: KafkaMessage = {
-      key: null,
-      value: Buffer.from(jsonString),
-      timestamp: "0",
-      size: 0,
-      attributes: 0,
-      offset: "0",
-      headers: undefined,
-    };
-
-    const eachMessagePayload: EachMessagePayload = {
-      topic: "event-store.tenant.events",
-      partition: 0,
-      message: kafkaMessage,
-      heartbeat: async () => {
-        /* no-op in mock */
-      },
-      pause: () => () => {
-        /* no-op in mock */
-      },
-    };
-
-    await mockProcessMessage({
-      tenantTopic: "event-store.tenant.events",
-    } as TopicNames)(eachMessagePayload);
-
-    expect(
-      testM2mEventWriterService.insertTenantM2MEvent
-    ).not.toHaveBeenCalled();
-
-    expect(await retrieveAllTenantM2MEvents({ limit: 10 })).toHaveLength(0);
   });
 });
