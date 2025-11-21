@@ -543,9 +543,9 @@ export function delegationServiceBuilder(
     const delegationWithContract: Delegation = {
       ...delegation,
       ...(delegation.activationSignedContract
-        ? { activationContract: delegationContract }
+        ? { activationSignedContract: delegationContract }
         : delegation.revocationSignedContract
-        ? { revocationContract: delegationContract }
+        ? { revocationSignedContract: delegationContract }
         : {}),
     };
 
