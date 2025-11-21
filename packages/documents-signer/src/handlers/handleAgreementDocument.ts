@@ -45,7 +45,8 @@ export async function handleAgreementDocument(
         };
 
         const { uploadUrl, secret, key } = await safeStorageService.createFile(
-          safeStorageRequest
+          safeStorageRequest,
+          logger
         );
 
         await safeStorageService.uploadFileContent(
@@ -53,22 +54,26 @@ export async function handleAgreementDocument(
           Buffer.from(file),
           "application/pdf",
           secret,
-          checksum
+          checksum,
+          logger
         );
 
-        await signatureService.saveDocumentSignatureReference({
-          safeStorageId: key,
-          fileKind: "AGREEMENT_CONTRACT",
-          streamId: msg.data.agreement.id,
-          subObjectId: "",
-          contentType: "application/pdf",
-          path: msg.data.agreement.contract.path,
-          prettyname: msg.data.agreement.contract.prettyName,
-          fileName,
-          version: msg.event_version,
-          correlationId: msg.correlation_id ?? "",
-          createdAt: msg.data.agreement.createdAt,
-        });
+        await signatureService.saveDocumentSignatureReference(
+          {
+            safeStorageId: key,
+            fileKind: "AGREEMENT_CONTRACT",
+            streamId: msg.data.agreement.id,
+            subObjectId: "",
+            contentType: "application/pdf",
+            path: msg.data.agreement.contract.path,
+            prettyname: msg.data.agreement.contract.prettyName,
+            fileName,
+            version: msg.event_version,
+            correlationId: msg.correlation_id ?? "",
+            createdAt: msg.data.agreement.createdAt,
+          },
+          logger
+        );
       }
     })
     .with(

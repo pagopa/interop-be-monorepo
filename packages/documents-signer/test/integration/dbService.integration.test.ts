@@ -10,11 +10,12 @@ import {
 import {
   signatureServiceBuilder,
   DocumentSignatureReference,
+  Logger,
 } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { config } from "../../src/config/config.js";
 import { dynamoDBClient } from "../utils.js";
-
+let logger: Logger;
 describe("dbServiceBuilder integration with DynamoDB", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -45,7 +46,7 @@ describe("dbServiceBuilder integration with DynamoDB", () => {
       correlationId: generateId(),
     };
 
-    await signatureService.saveDocumentSignatureReference(doc);
+    await signatureService.saveDocumentSignatureReference(doc, logger);
 
     const resp = await dynamoDBClient.send(
       new GetItemCommand({
