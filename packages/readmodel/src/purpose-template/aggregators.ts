@@ -14,7 +14,7 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
   stringToDate,
-  TenantKind,
+  TargetTenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -117,7 +117,9 @@ export const aggregatePurposeTemplate = ({
   const purposeTemplate: PurposeTemplate = {
     id: unsafeBrandId(purposeTemplateSQL.id),
     targetDescription: purposeTemplateSQL.targetDescription,
-    targetTenantKind: TenantKind.parse(purposeTemplateSQL.targetTenantKind),
+    targetTenantKind: TargetTenantKind.parse(
+      purposeTemplateSQL.targetTenantKind
+    ),
     creatorId: unsafeBrandId(purposeTemplateSQL.creatorId),
     state: PurposeTemplateState.parse(purposeTemplateSQL.state),
     createdAt: stringToDate(purposeTemplateSQL.createdAt),

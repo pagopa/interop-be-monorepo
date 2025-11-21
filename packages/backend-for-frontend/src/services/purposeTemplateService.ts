@@ -17,7 +17,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  TenantKind,
+  TargetTenantKind,
 } from "pagopa-interop-models";
 import {
   CatalogProcessClient,
@@ -180,7 +180,7 @@ export function purposeTemplateServiceBuilder(
       ctx,
     }: {
       purposeTitle: string | undefined;
-      targetTenantKind: TenantKind | undefined;
+      targetTenantKind: TargetTenantKind | undefined;
       creatorIds: string[];
       eserviceIds: string[];
       excludeExpiredRiskAnalysis: boolean;

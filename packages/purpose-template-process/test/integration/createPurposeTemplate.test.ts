@@ -13,7 +13,7 @@ import {
   PurposeTemplate,
   PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
-  TenantKind,
+  TargetTenantKind,
   purposeTemplateState,
   tenantKind,
   toPurposeTemplateV2,
@@ -371,7 +371,7 @@ describe("createPurposeTemplate", () => {
   });
 
   it("should throw ruleSetNotFoundError if not exists rules for provided target tenant kind", async () => {
-    const invalidTenantKind = "INVALID" as TenantKind;
+    const invalidTenantKind = "INVALID" as TargetTenantKind;
     const seedWithInvalidTargetTenantKind: purposeTemplateApi.PurposeTemplateSeed =
       {
         ...purposeTemplateSeed,

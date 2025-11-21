@@ -5,18 +5,20 @@ import {
   RiskAnalysisFormTemplateV2,
   RiskAnalysisTemplateAnswerAnnotationDocumentV2,
   RiskAnalysisTemplateAnswerAnnotationV2,
+  TargetTenantKindV2,
 } from "../gen/v2/purpose-template/purpose-template.js";
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
 } from "../risk-analysis-template/riskAnalysisTemplate.js";
-import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import { bigIntToDate } from "../utils.js";
 import {
   PurposeTemplate,
   purposeTemplateState,
   PurposeTemplateState,
+  targetTenantKind,
+  TargetTenantKind,
 } from "./purposeTemplate.js";
 
 export const fromPurposeTemplateStateV2 = (
@@ -31,6 +33,17 @@ export const fromPurposeTemplateStateV2 = (
       return purposeTemplateState.suspended;
     case PurposeTemplateStateV2.ARCHIVED:
       return purposeTemplateState.archived;
+  }
+};
+
+export const fromTargetTenantKindV2 = (
+  input: TargetTenantKindV2
+): TargetTenantKind => {
+  switch (input) {
+    case TargetTenantKindV2.PA:
+      return targetTenantKind.PA;
+    case TargetTenantKindV2.PRIVATE:
+      return targetTenantKind.PRIVATE;
   }
 };
 
@@ -77,7 +90,7 @@ export const fromPurposeTemplateV2 = (
 ): PurposeTemplate => ({
   ...input,
   id: unsafeBrandId(input.id),
-  targetTenantKind: fromTenantKindV2(input.targetTenantKind),
+  targetTenantKind: fromTargetTenantKindV2(input.targetTenantKind),
   creatorId: unsafeBrandId(input.creatorId),
   state: fromPurposeTemplateStateV2(input.state),
   createdAt: bigIntToDate(input.createdAt),
