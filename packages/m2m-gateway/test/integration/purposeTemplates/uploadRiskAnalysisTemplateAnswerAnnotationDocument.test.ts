@@ -39,7 +39,11 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     }
   );
 
-  const mockPurposeTemplateProcessResponse = getMockWithMetadata(mockDocument);
+  const mockVersion = 2;
+  const mockPurposeTemplateProcessResponse = getMockWithMetadata(
+    mockDocument,
+    mockVersion
+  );
 
   const mockFileBuffer = Buffer.from("test content");
   const mockFileUpload: m2mGatewayApi.AnnotationDocumentUploadMultipart = {
@@ -60,8 +64,10 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
 
   const mockPollRetries = 2;
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
-  const mockGetPurposeTemplateResponse =
-    getMockWithMetadata(mockPurposeTemplate);
+  const mockGetPurposeTemplateResponse = getMockWithMetadata(
+    mockPurposeTemplate,
+    mockVersion
+  );
   const mockGetPurposeTemplate = vi.fn(
     mockPollingResponse(mockGetPurposeTemplateResponse, mockPollRetries)
   );
