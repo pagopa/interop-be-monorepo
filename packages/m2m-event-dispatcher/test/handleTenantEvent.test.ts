@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { getMockTenant, toTenantV1 } from "pagopa-interop-commons-test";
 import {
   toTenantV2,
   TenantEvent,
   TenantEventV2,
   TenantEventEnvelopeV2,
+  TenantEventEnvelopeV1,
+  TenantEventV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { handleTenantEvent } from "../src/handlers/handleTenantEvent.js";
@@ -63,6 +65,36 @@ describe("handleTenantEvent test", async () => {
         const actualM2MEvent = await retrieveLastTenantM2MEvent();
         expect(actualM2MEvent).toEqual(expectedM2MEvent);
       }
+    }
+  );
+
+  it.each(TenantEventV1.options.map((o) => o.shape.type.value))(
+    "should ignore tenant %s v1 event",
+    async (eventType: TenantEventV1["type"]) => {
+      const tenant = getMockTenant();
+
+      const message = {
+        ...getMockEventEnvelopeCommons(),
+        stream_id: tenant.id,
+        type: eventType,
+        event_version: 1,
+        data: {
+          tenant: toTenantV1(tenant),
+        },
+      } as TenantEventEnvelopeV1;
+
+      const eventTimestamp = new Date();
+
+      await handleTenantEvent(
+        message,
+        eventTimestamp,
+        genericLogger,
+        testM2mEventWriterService
+      );
+
+      expect(
+        testM2mEventWriterService.insertTenantM2MEvent
+      ).not.toHaveBeenCalled();
     }
   );
 

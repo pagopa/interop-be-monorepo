@@ -1,4 +1,5 @@
 import {
+  AgreementEventEnvelope,
   AgreementEventEnvelopeV2,
   fromAgreementV2,
 } from "pagopa-interop-models";
@@ -11,6 +12,27 @@ import { toAgreementM2MEventSQL } from "../models/agreementM2MEventAdapterSQL.js
 import { createAgreementM2MEvent } from "../services/event-builders/agreementM2MEventBuilder.js";
 
 export async function handleAgreementEvent(
+  agreementEvent: AgreementEventEnvelope,
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterServiceSQL,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  await match(agreementEvent)
+    .with({ event_version: 1 }, () => Promise.resolve())
+    .with({ event_version: 2 }, (msg) =>
+      handleAgreementEventV2(
+        msg,
+        eventTimestamp,
+        logger,
+        m2mEventWriterService,
+        readModelService
+      )
+    )
+    .exhaustive();
+}
+
+async function handleAgreementEventV2(
   decodedMessage: AgreementEventEnvelopeV2,
   eventTimestamp: Date,
   logger: Logger,
