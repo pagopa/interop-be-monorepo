@@ -26,6 +26,10 @@ import {
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
+import {
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastMetadataTargetVersion,
+} from "../utils/polling.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -420,7 +424,7 @@ export function purposeTemplateServiceBuilder(
         `Updating risk analysis form for purpose template ${purposeTemplateId}`
       );
 
-      const { data: riskAnalysisForm } =
+      const { data: riskAnalysisForm, metadata } =
         await clients.purposeTemplateProcessClient.updatePurposeTemplateRiskAnalysis(
           toPurposeTemplateApiRiskAnalysisFormTemplateSeed(
             riskAnalysisFormSeed
@@ -432,6 +436,8 @@ export function purposeTemplateServiceBuilder(
             headers,
           }
         );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
 
       return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
     },
