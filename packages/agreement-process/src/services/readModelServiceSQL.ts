@@ -194,6 +194,44 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
         )
       )
     );
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const addAgreementJoins = <T extends PgSelect>(query: T) =>
+  query
+    .leftJoin(
+      agreementAttributeInReadmodelAgreement,
+      eq(
+        agreementInReadmodelAgreement.id,
+        agreementAttributeInReadmodelAgreement.agreementId
+      )
+    )
+    .leftJoin(
+      agreementConsumerDocumentInReadmodelAgreement,
+      eq(
+        agreementInReadmodelAgreement.id,
+        agreementConsumerDocumentInReadmodelAgreement.agreementId
+      )
+    )
+    .leftJoin(
+      agreementContractInReadmodelAgreement,
+      eq(
+        agreementInReadmodelAgreement.id,
+        agreementContractInReadmodelAgreement.agreementId
+      )
+    )
+    .leftJoin(
+      agreementStampInReadmodelAgreement,
+      eq(
+        agreementInReadmodelAgreement.id,
+        agreementStampInReadmodelAgreement.agreementId
+      )
+    )
+    .leftJoin(
+      agreementSignedContractInReadmodelAgreement,
+      eq(
+        agreementInReadmodelAgreement.id,
+        agreementSignedContractInReadmodelAgreement.agreementId
+      )
+    );
 
 const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
   or(
@@ -452,58 +490,26 @@ export function readModelServiceBuilderSQL(
         const ids = (await idsSQLquery).map((result) => result.id);
 
         const [queryResult, totalCount] = await Promise.all([
-          tx
-            .select({
-              eserviceName: eserviceInReadmodelCatalog.name,
-              agreement: agreementInReadmodelAgreement,
-              attribute: agreementAttributeInReadmodelAgreement,
-              consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
-              contract: agreementContractInReadmodelAgreement,
-              stamp: agreementStampInReadmodelAgreement,
-              signedContract: agreementSignedContractInReadmodelAgreement,
-            })
-            .from(agreementInReadmodelAgreement)
-            .where(inArray(agreementInReadmodelAgreement.id, ids))
+          addAgreementJoins(
+            tx
+              .select({
+                eserviceName: eserviceInReadmodelCatalog.name,
+                agreement: agreementInReadmodelAgreement,
+                attribute: agreementAttributeInReadmodelAgreement,
+                consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+                contract: agreementContractInReadmodelAgreement,
+                stamp: agreementStampInReadmodelAgreement,
+                signedContract: agreementSignedContractInReadmodelAgreement,
+              })
+              .from(agreementInReadmodelAgreement)
+              .where(inArray(agreementInReadmodelAgreement.id, ids))
+              .$dynamic()
+          )
             .leftJoin(
               eserviceInReadmodelCatalog,
               eq(
                 agreementInReadmodelAgreement.eserviceId,
                 eserviceInReadmodelCatalog.id
-              )
-            )
-            .leftJoin(
-              agreementAttributeInReadmodelAgreement,
-              eq(
-                agreementInReadmodelAgreement.id,
-                agreementAttributeInReadmodelAgreement.agreementId
-              )
-            )
-            .leftJoin(
-              agreementConsumerDocumentInReadmodelAgreement,
-              eq(
-                agreementInReadmodelAgreement.id,
-                agreementConsumerDocumentInReadmodelAgreement.agreementId
-              )
-            )
-            .leftJoin(
-              agreementContractInReadmodelAgreement,
-              eq(
-                agreementInReadmodelAgreement.id,
-                agreementContractInReadmodelAgreement.agreementId
-              )
-            )
-            .leftJoin(
-              agreementStampInReadmodelAgreement,
-              eq(
-                agreementInReadmodelAgreement.id,
-                agreementStampInReadmodelAgreement.agreementId
-              )
-            )
-            .leftJoin(
-              agreementSignedContractInReadmodelAgreement,
-              eq(
-                agreementInReadmodelAgreement.id,
-                agreementSignedContractInReadmodelAgreement.agreementId
               )
             )
             .orderBy(
@@ -577,61 +583,28 @@ export function readModelServiceBuilderSQL(
         )
         .as("queryAgreementIds");
 
-      const resultSet = await readmodelDB
-        .select({
-          eserviceName: queryAgreementIds.eserviceName,
-          agreement: agreementInReadmodelAgreement,
-          attribute: agreementAttributeInReadmodelAgreement,
-          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
-          contract: agreementContractInReadmodelAgreement,
-          stamp: agreementStampInReadmodelAgreement,
-          totalCount: queryAgreementIds.totalCount,
-          signedContract: agreementSignedContractInReadmodelAgreement,
-        })
-        .from(agreementInReadmodelAgreement)
-        .innerJoin(
-          queryAgreementIds,
-          eq(agreementInReadmodelAgreement.id, queryAgreementIds.id)
-        )
-        .leftJoin(
-          agreementAttributeInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementAttributeInReadmodelAgreement.agreementId
+      const resultSet = await addAgreementJoins(
+        readmodelDB
+          .select({
+            eserviceName: queryAgreementIds.eserviceName,
+            agreement: agreementInReadmodelAgreement,
+            attribute: agreementAttributeInReadmodelAgreement,
+            consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+            contract: agreementContractInReadmodelAgreement,
+            stamp: agreementStampInReadmodelAgreement,
+            totalCount: queryAgreementIds.totalCount,
+            signedContract: agreementSignedContractInReadmodelAgreement,
+          })
+          .from(agreementInReadmodelAgreement)
+          .innerJoin(
+            queryAgreementIds,
+            eq(agreementInReadmodelAgreement.id, queryAgreementIds.id)
           )
-        )
-        .leftJoin(
-          agreementConsumerDocumentInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementConsumerDocumentInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          agreementContractInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementContractInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          agreementStampInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementStampInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          agreementSignedContractInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementSignedContractInReadmodelAgreement.agreementId
-          )
-        )
-        .orderBy(
-          ascLower(queryAgreementIds.eserviceName),
-          agreementInReadmodelAgreement.id
-        );
+          .$dynamic()
+      ).orderBy(
+        ascLower(queryAgreementIds.eserviceName),
+        agreementInReadmodelAgreement.id
+      );
 
       return aggregateAgreementArray(toAgreementAggregatorArray(resultSet));
     },
