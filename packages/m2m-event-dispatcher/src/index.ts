@@ -131,56 +131,14 @@ function processMessage(topicNames: TopicNames) {
           messagePayload.message,
           EServiceEvent
         );
-        await match(decodedMessage)
-          .with({ event_version: 1 }, () => Promise.resolve())
-          .with({ event_version: 2 }, (msg) =>
-            handleWith(
-              msg,
-              (
-                decodedMessage,
-                eventTimestamp,
-                logger,
-                m2mEventWriterService,
-                readModelService
-              ) =>
-                handleEServiceEvent(
-                  decodedMessage,
-                  eventTimestamp,
-                  logger,
-                  m2mEventWriterService,
-                  readModelService
-                )
-            )
-          )
-          .exhaustive();
+        await handleWith(decodedMessage, handleEServiceEvent);
       })
       .with(agreementTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
           AgreementEvent
         );
-        await match(decodedMessage)
-          .with({ event_version: 1 }, () => Promise.resolve())
-          .with({ event_version: 2 }, (msg) =>
-            handleWith(
-              msg,
-              (
-                decodedMessage,
-                eventTimestamp,
-                logger,
-                m2mEventWriterService,
-                readModelService
-              ) =>
-                handleAgreementEvent(
-                  decodedMessage,
-                  eventTimestamp,
-                  logger,
-                  m2mEventWriterService,
-                  readModelService
-                )
-            )
-          )
-          .exhaustive();
+        await handleWith(decodedMessage, handleAgreementEvent);
       })
       .with(purposeTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
