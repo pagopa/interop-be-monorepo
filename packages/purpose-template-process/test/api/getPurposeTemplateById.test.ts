@@ -5,7 +5,7 @@ import {
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { PurposeTemplateId, generateId } from "pagopa-interop-models";
+import { PurposeTemplateId, TenantId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
