@@ -63,7 +63,8 @@ export async function handlePurposeDocument(
         };
 
         const { uploadUrl, secret, key } = await safeStorageService.createFile(
-          safeStorageRequest
+          safeStorageRequest,
+          logger
         );
 
         await safeStorageService.uploadFileContent(
@@ -71,22 +72,26 @@ export async function handlePurposeDocument(
           Buffer.from(file),
           "application/pdf",
           secret,
-          checksum
+          checksum,
+          logger
         );
 
-        await signatureService.saveDocumentSignatureReference({
-          safeStorageId: key,
-          fileKind: "RISK_ANALYSIS_DOCUMENT",
-          streamId: msg.data.purpose.id,
-          subObjectId: msg.data.versionId,
-          contentType: "application/pdf",
-          path: s3Key,
-          prettyname: "",
-          fileName,
-          version: msg.event_version,
-          createdAt: msg.data.purpose.createdAt,
-          correlationId: msg.correlation_id ?? "",
-        });
+        await signatureService.saveDocumentSignatureReference(
+          {
+            safeStorageId: key,
+            fileKind: "RISK_ANALYSIS_DOCUMENT",
+            streamId: msg.data.purpose.id,
+            subObjectId: msg.data.versionId,
+            contentType: "application/pdf",
+            path: s3Key,
+            prettyname: "",
+            fileName,
+            version: msg.event_version,
+            createdAt: msg.data.purpose.createdAt,
+            correlationId: msg.correlation_id ?? "",
+          },
+          logger
+        );
       }
     })
     .with(

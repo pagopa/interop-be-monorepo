@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-let */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
@@ -18,6 +19,7 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
+  Logger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -30,6 +32,7 @@ import { dynamoDBClient } from "../utils/utils.js";
 import { handleAuthorizationMessageV2 } from "../../src/handlers/handleAuthorizationMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
+let logger: Logger;
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
 const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
@@ -106,7 +109,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      logger
     );
 
     expect(retrievedReference).toEqual({
@@ -163,7 +167,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      logger
     );
 
     expect(retrievedReference).toEqual({
@@ -217,7 +222,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      logger
     );
 
     expect(retrievedReference).toEqual({
@@ -271,7 +277,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      logger
     );
     expect(retrievedReference).toBeUndefined();
   });

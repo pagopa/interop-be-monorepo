@@ -1,14 +1,16 @@
+/* eslint-disable functional/no-let */
+
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { generateId } from "pagopa-interop-models";
-import { signatureServiceBuilder } from "pagopa-interop-commons";
+import { Logger, signatureServiceBuilder } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
 } from "pagopa-interop-commons-test";
 import { dynamoDBClient } from "../utils/utils.js";
 import { config } from "../../src/config/config.js";
-
+let logger: Logger;
 describe("signatureServiceBuilder - Integration Tests", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -30,10 +32,11 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       creationTimestamp: expect.any(Number),
     };
 
-    await signatureService.saveSignatureReference(mockReference);
+    await signatureService.saveSignatureReference(mockReference, logger);
 
     const retrievedItem = await signatureService.readSignatureReference(
-      mockReference.safeStorageId
+      mockReference.safeStorageId,
+      logger
     );
 
     expect(retrievedItem).toEqual({
@@ -46,7 +49,8 @@ describe("signatureServiceBuilder - Integration Tests", () => {
     const nonExistentId = generateId();
     const signatureService = signatureServiceBuilder(dynamoDBClient, config);
     const retrievedItem = await signatureService.readSignatureReference(
-      nonExistentId
+      nonExistentId,
+      logger
     );
 
     expect(retrievedItem).toBeUndefined();
@@ -66,7 +70,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       config
     );
     await expect(
-      signatureService.readSignatureReference(generateId())
+      signatureService.readSignatureReference(generateId(), logger)
     ).rejects.toThrow();
   });
 });

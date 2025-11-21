@@ -5,12 +5,14 @@ import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import {
   signatureServiceBuilder,
   SignatureReference,
+  Logger,
 } from "pagopa-interop-commons";
 import { config } from "../../../src/config/config.js";
 
 describe("signatureServiceBuilder", () => {
   let dynamoClient: DynamoDBClient;
   let signatureService: ReturnType<typeof signatureServiceBuilder>;
+  let logger: Logger;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,7 +28,7 @@ describe("signatureServiceBuilder", () => {
       correlationId: "correlation-1",
     };
 
-    await signatureService.saveSignatureReference(mockReference);
+    await signatureService.saveSignatureReference(mockReference, logger);
 
     const sentCommand = (dynamoClient.send as unknown as Mock).mock.calls[0][0];
     expect(sentCommand).toBeInstanceOf(PutItemCommand);
@@ -51,7 +53,7 @@ describe("signatureServiceBuilder", () => {
     (dynamoClient.send as unknown as Mock).mockRejectedValue(sendError);
 
     await expect(
-      signatureService.saveSignatureReference(mockReference)
+      signatureService.saveSignatureReference(mockReference, logger)
     ).rejects.toThrow("Error saving record on table");
   });
 });
