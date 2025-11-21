@@ -65,23 +65,29 @@ describe("updatePurposeTemplateRiskAnalysis", () => {
       answers: newAnswer,
     };
 
-  const mockPurposeTemplateProcessUpdateResponse = getMockWithMetadata({
-    ...mockRiskAnalysisFormTemplate,
-    answers: {
-      purpose: {
-        ...newAnswer.purpose,
-        id: generateId(),
+  const mockVersion = 2;
+  const mockPurposeTemplateProcessUpdateResponse = getMockWithMetadata(
+    {
+      ...mockRiskAnalysisFormTemplate,
+      answers: {
+        purpose: {
+          ...newAnswer.purpose,
+          id: generateId(),
+        },
       },
     },
-  });
+    mockVersion
+  );
 
   const mockUpdatePurposeTemplateRiskAnalysis = vi
     .fn()
     .mockResolvedValue(mockPurposeTemplateProcessUpdateResponse);
 
   const mockPollRetries = 2;
-  const mockGetPurposeTemplateResponse =
-    getMockWithMetadata(mockPurposeTemplate);
+  const mockGetPurposeTemplateResponse = getMockWithMetadata(
+    mockPurposeTemplate,
+    mockVersion
+  );
   const mockGetPurposeTemplate = vi.fn(
     mockPollingResponse(mockGetPurposeTemplateResponse, mockPollRetries)
   );
