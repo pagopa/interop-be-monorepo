@@ -1575,7 +1575,9 @@ export function agreementServiceBuilder(
       agreementDocument: AgreementDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Adding agreement contract to agreement ${agreementId}`);
+      logger.info(
+        `Adding agreement contract to agreement ${agreementId} - document id ${agreementDocument.id}`
+      );
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
