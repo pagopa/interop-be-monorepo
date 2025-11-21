@@ -40,9 +40,10 @@ export async function handleDelegationDocument(
 
           const fileName = path.basename(s3Key);
           const checksum = await calculateSha256Base64(Buffer.from(file));
+          const contentType = "application/pdf";
 
           const safeStorageRequest: FileCreationRequest = {
-            contentType: "application/pdf",
+            contentType,
             documentType: config.safeStorageDocType,
             status: config.safeStorageDocStatus,
             checksumValue: checksum,
@@ -54,7 +55,7 @@ export async function handleDelegationDocument(
           await safeStorageService.uploadFileContent(
             uploadUrl,
             Buffer.from(file),
-            "application/pdf",
+            contentType,
             secret,
             checksum,
             logger
@@ -66,7 +67,7 @@ export async function handleDelegationDocument(
               fileKind: "DELEGATION_CONTRACT",
               streamId: msg.data.delegation.id,
               subObjectId: "",
-              contentType: "application/pdf",
+              contentType,
               path: msg.data.delegation.activationContract.path,
               prettyname: msg.data.delegation.activationContract.prettyName,
               fileName,

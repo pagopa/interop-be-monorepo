@@ -36,9 +36,10 @@ export async function handleAgreementDocument(
 
         const fileName = path.basename(s3Key);
         const checksum = await calculateSha256Base64(Buffer.from(file));
+        const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
-          contentType: "application/pdf",
+          contentType,
           documentType: config.safeStorageDocType,
           status: config.safeStorageDocStatus,
           checksumValue: checksum,
@@ -52,7 +53,7 @@ export async function handleAgreementDocument(
         await safeStorageService.uploadFileContent(
           uploadUrl,
           Buffer.from(file),
-          "application/pdf",
+          contentType,
           secret,
           checksum,
           logger
@@ -64,7 +65,7 @@ export async function handleAgreementDocument(
             fileKind: "AGREEMENT_CONTRACT",
             streamId: msg.data.agreement.id,
             subObjectId: "",
-            contentType: "application/pdf",
+            contentType,
             path: msg.data.agreement.contract.path,
             prettyname: msg.data.agreement.contract.prettyName,
             fileName,

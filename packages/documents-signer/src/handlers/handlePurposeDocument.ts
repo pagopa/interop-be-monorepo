@@ -54,9 +54,10 @@ export async function handlePurposeDocument(
 
         const fileName = path.basename(s3Key);
         const checksum = await calculateSha256Base64(Buffer.from(file));
+        const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
-          contentType: "application/pdf",
+          contentType,
           documentType: config.safeStorageDocType,
           status: config.safeStorageDocStatus,
           checksumValue: checksum,
@@ -70,7 +71,7 @@ export async function handlePurposeDocument(
         await safeStorageService.uploadFileContent(
           uploadUrl,
           Buffer.from(file),
-          "application/pdf",
+          contentType,
           secret,
           checksum,
           logger
@@ -82,7 +83,7 @@ export async function handlePurposeDocument(
             fileKind: "RISK_ANALYSIS_DOCUMENT",
             streamId: msg.data.purpose.id,
             subObjectId: msg.data.versionId,
-            contentType: "application/pdf",
+            contentType,
             path: s3Key,
             prettyname: "",
             fileName,
