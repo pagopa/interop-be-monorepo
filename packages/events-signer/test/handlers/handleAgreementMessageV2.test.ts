@@ -9,7 +9,11 @@ import {
   AgreementEventEnvelopeV2,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { FileManager, Logger, initFileManager } from "pagopa-interop-commons";
+import {
+  FileManager,
+  genericLogger,
+  initFileManager,
+} from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -26,7 +30,6 @@ import { dynamoDBClient } from "../utils/utils.js";
 import { handleAgreementMessageV2 } from "../../src/handlers/handleAgreementMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
-let logger: Logger;
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
 const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
@@ -91,7 +94,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
 
     const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId,
-      logger
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -139,7 +142,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
 
     const retrievedReference = await signatureService.readSignatureReference(
       generateId(),
-      logger
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

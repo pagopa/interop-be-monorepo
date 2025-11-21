@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -10,12 +9,11 @@ import {
 import {
   signatureServiceBuilder,
   DocumentSignatureReference,
-  Logger,
+  genericLogger,
 } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { config } from "../../src/config/config.js";
 import { dynamoDBClient } from "../utils.js";
-let logger: Logger;
 describe("dbServiceBuilder integration with DynamoDB", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -46,7 +44,7 @@ describe("dbServiceBuilder integration with DynamoDB", () => {
       correlationId: generateId(),
     };
 
-    await signatureService.saveDocumentSignatureReference(doc, logger);
+    await signatureService.saveDocumentSignatureReference(doc, genericLogger);
 
     const resp = await dynamoDBClient.send(
       new GetItemCommand({

@@ -19,7 +19,7 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
-  Logger,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -32,7 +32,6 @@ import { dynamoDBClient } from "../utils/utils.js";
 import { handleAuthorizationMessageV2 } from "../../src/handlers/handleAuthorizationMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
-let logger: Logger;
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
 const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
@@ -110,7 +109,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
 
     const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId,
-      logger
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -168,7 +167,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
 
     const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId,
-      logger
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -223,7 +222,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
 
     const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId,
-      logger
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -278,7 +277,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
 
     const retrievedReference = await signatureService.readSignatureReference(
       generateId(),
-      logger
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

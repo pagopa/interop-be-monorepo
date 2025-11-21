@@ -18,7 +18,7 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
-  Logger,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -31,7 +31,6 @@ import { dynamoDBClient } from "../utils/utils.js";
 import { handleCatalogMessageV2 } from "../../src/handlers/handleCatalogMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
-let logger: Logger;
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
 const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
@@ -110,7 +109,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
 
     const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId,
-      logger
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -163,7 +162,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
 
     const retrievedReference = await signatureService.readSignatureReference(
       generateId(),
-      logger
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

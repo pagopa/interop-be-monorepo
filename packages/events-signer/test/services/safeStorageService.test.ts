@@ -1,11 +1,13 @@
 /* eslint-disable functional/no-let */
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import axios from "axios";
-import { Logger, createSafeStorageApiClient } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  createSafeStorageApiClient,
+} from "pagopa-interop-commons";
 import { config } from "../../src/config/config.js";
 
 vi.mock("axios");
-let logger: Logger;
 const mockedAxios = axios as unknown as {
   create: Mock;
   put: Mock;
@@ -45,7 +47,7 @@ describe("SafeStorageApiClient", () => {
         status: "PRELOADED",
         checksumValue: "mock-checksum",
       },
-      logger
+      genericLogger
     );
 
     expect(mockAxiosInstance.post).toHaveBeenCalledWith(
@@ -79,7 +81,7 @@ describe("SafeStorageApiClient", () => {
       "application/pdf",
       "mock-secret",
       "mock-checksum",
-      logger
+      genericLogger
     );
 
     expect(putSpy).toHaveBeenCalledWith(
@@ -113,7 +115,7 @@ describe("SafeStorageApiClient", () => {
     mockAxiosInstance.get.mockResolvedValue({ data: mockResponse });
 
     const client = createSafeStorageApiClient(config);
-    const result = await client.getFile("mock/key.pdf", false, logger);
+    const result = await client.getFile("mock/key.pdf", false, genericLogger);
 
     expect(mockAxiosInstance.get).toHaveBeenCalledWith(
       "/safe-storage/v1/files/mock/key.pdf",
@@ -138,7 +140,7 @@ describe("SafeStorageApiClient", () => {
     const client = createSafeStorageApiClient(config);
     const result = await client.downloadFileContent(
       "https://download.example.com/file",
-      logger
+      genericLogger
     );
 
     expect(getSpy).toHaveBeenCalledWith("https://download.example.com/file", {
