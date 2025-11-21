@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_FORBIDDEN,
 } = constants;
 
 export const getTenantNotificationConfigErrorMapper = (
@@ -45,6 +46,10 @@ export const updateUserNotificationConfigErrorMapper = (
 ): number =>
   match(error.code)
     .with("userNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "notificationConfigNotAllowedForUserRoles",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteTenantNotificationConfigErrorMapper = (

@@ -27,7 +27,6 @@ export async function handleProducerKeychainEserviceAdded(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -61,7 +60,6 @@ export async function handleProducerKeychainEserviceAdded(
     tenants,
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

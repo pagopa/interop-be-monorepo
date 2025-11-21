@@ -24,7 +24,10 @@ export const toPurposeTemplateStateV2 = (
 ): PurposeTemplateStateV2 =>
   match(input)
     .with(purposeTemplateState.draft, () => PurposeTemplateStateV2.DRAFT)
-    .with(purposeTemplateState.active, () => PurposeTemplateStateV2.ACTIVE)
+    .with(
+      purposeTemplateState.published,
+      () => PurposeTemplateStateV2.PUBLISHED
+    )
     .with(
       purposeTemplateState.suspended,
       () => PurposeTemplateStateV2.SUSPENDED

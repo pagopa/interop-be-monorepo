@@ -21,6 +21,12 @@ import {
   Delegation,
   PurposeId,
   ListResult,
+  PurposeTemplate,
+  EServiceDescriptorPurposeTemplate,
+  PurposeTemplateEvent,
+  toPurposeTemplateV2,
+  PurposeRiskAnalysisForm,
+  PurposeRiskAnalysisFormV2,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
@@ -29,6 +35,7 @@ import {
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
+  purposeTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
@@ -36,6 +43,8 @@ import {
   upsertDelegation,
   upsertEService,
   upsertPurpose,
+  upsertPurposeTemplate,
+  upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import {
@@ -66,6 +75,8 @@ export const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
+export const purposeTemplateReadModelServiceSQL =
+  purposeTemplateReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -74,6 +85,7 @@ export const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
 });
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
@@ -119,6 +131,23 @@ export const addOneDelegation = async (
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
+export const addOnePurposeTemplate = async (
+  purposeTemplate: PurposeTemplate
+): Promise<void> => {
+  await writePurposeTemplateInEventstore(purposeTemplate);
+  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+};
+
+export const addOnePurposeTemplateEServiceDescriptor = async (
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate
+): Promise<void> => {
+  await upsertPurposeTemplateEServiceDescriptor(
+    readModelDB,
+    purposeTemplateEServiceDescriptor,
+    0
+  );
+};
+
 export const writePurposeInEventstore = async (
   purpose: Purpose
 ): Promise<void> => {
@@ -135,6 +164,26 @@ export const writePurposeInEventstore = async (
   };
 
   await writeInEventstore(eventToWrite, "purpose", postgresDB);
+};
+
+export const writePurposeTemplateInEventstore = async (
+  purposeTemplate: PurposeTemplate
+): Promise<void> => {
+  const purposeTemplateEvent: PurposeTemplateEvent = {
+    type: "PurposeTemplateAdded",
+    event_version: 2,
+    data: {
+      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+    },
+  };
+
+  const eventToWrite: StoredEvent<PurposeTemplateEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: purposeTemplateEvent.data.purposeTemplate!.id,
+    version: 0,
+    event: purposeTemplateEvent,
+  };
+  await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
 };
 
 export const readLastPurposeEvent = async (
@@ -165,3 +214,26 @@ export const sortUpdatePurposeReturn = (
     purpose: sortPurpose(updatePurposeReturn.data.purpose),
   },
 });
+
+export function expectUniqueAswerInRiskAnalysisForm(
+  riskAnalysisForm: PurposeRiskAnalysisForm | PurposeRiskAnalysisFormV2,
+  answerKey: string
+): void {
+  const expectedOneOccurrenceInSingleAnswers =
+    riskAnalysisForm.singleAnswers.filter((a) => a.key === answerKey);
+
+  const expectedOneOccurrenceInMultiAnswers =
+    riskAnalysisForm.multiAnswers.filter((a) => a.key === answerKey);
+  if (expectedOneOccurrenceInSingleAnswers.length) {
+    expect(expectedOneOccurrenceInSingleAnswers.length).toBe(1);
+  }
+
+  if (expectedOneOccurrenceInMultiAnswers.length) {
+    expect(expectedOneOccurrenceInMultiAnswers.length).toBe(1);
+  }
+
+  expect(
+    expectedOneOccurrenceInSingleAnswers.length +
+      expectedOneOccurrenceInMultiAnswers.length
+  ).toBe(1);
+}

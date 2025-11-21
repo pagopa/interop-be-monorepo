@@ -283,6 +283,37 @@ export function agreementServiceBuilder(
 
       return Buffer.from(documentBytes);
     },
+    async getAgreementSignedContract(
+      agreementId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(`Retrieving signed contract for agreement ${agreementId}`);
+
+      const agreement = await agreementProcessClient.getAgreementById({
+        params: { agreementId },
+        headers,
+      });
+      if (!agreement.signedContract) {
+        if (
+          agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
+          agreement.state === agreementApi.AgreementState.Values.SUSPENDED ||
+          agreement.state === agreementApi.AgreementState.Values.ARCHIVED
+        ) {
+          throw contractException(agreementId);
+        }
+        throw contractNotFound(agreementId);
+      }
+
+      const path = agreement.signedContract.path;
+
+      const documentBytes = await fileManager.get(
+        config.consumerDocumentsContainer,
+        path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
 
     async removeConsumerDocument(
       agreementId: string,
@@ -833,6 +864,7 @@ export async function enrichAgreement(
     suspendedAt: agreement.suspendedAt,
     consumerNotes: agreement.consumerNotes,
     rejectionReason: agreement.rejectionReason,
+    isDocumentReady: agreement.signedContract !== undefined,
   };
 }
 

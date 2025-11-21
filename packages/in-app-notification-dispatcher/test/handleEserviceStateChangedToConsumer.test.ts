@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -19,6 +19,7 @@ import {
   EServiceId,
   AttributeId,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -30,9 +31,12 @@ import {
 } from "./utils.js";
 
 describe("handleEserviceStateChangedToConsumer", async () => {
+  const producerTenant = getMockTenant();
+  const consumerTenant = getMockTenant();
+
   const eservice = {
     ...getMockEService(),
-    producerId: generateId<TenantId>(),
+    producerId: producerTenant.id,
     descriptors: [
       {
         ...getMockDescriptorPublished(),
@@ -42,7 +46,13 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     ],
   };
   const { logger } = getMockContext({});
+
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
   await addOneEService(eservice);
+
+  beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
+  });
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     const msg: EServiceEventV2 = {
@@ -62,6 +72,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   });
 
   it("should return empty array when no agreements exist for the eservice", async () => {
+    await addOneTenant(producerTenant);
     const msg: EServiceEventV2 = {
       event_version: 2,
       type: "EServiceDescriptorPublished",
@@ -80,6 +91,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   });
 
   it("should throw tenantNotFound when tenant is not found", async () => {
+    await addOneTenant(producerTenant);
     const consumerId = generateId<TenantId>();
     const agreement = getMockAgreement(
       eservice.id,
@@ -97,6 +109,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       } satisfies EServiceDescriptorPublishedV2,
     };
 
+    // eslint-disable-next-line sonarjs/no-identical-functions
     await expect(() =>
       handleEserviceStateChangedToConsumer(msg, logger, readModelService)
     ).rejects.toThrow(tenantNotFound(consumerId));
@@ -117,7 +130,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     async ({ state, isNotified }) => {
       const eservice = {
         ...getMockEService(),
-        producerId: generateId<TenantId>(),
+        producerId: producerTenant.id,
         descriptors: [
           {
             ...getMockDescriptorPublished(),
@@ -126,23 +139,18 @@ describe("handleEserviceStateChangedToConsumer", async () => {
           },
         ],
       };
+      await addOneTenant(producerTenant);
+      await addOneTenant(consumerTenant);
       await addOneEService(eservice);
 
-      const consumerId = generateId<TenantId>();
-      const consumerTenant = getMockTenant(consumerId);
-      await addOneTenant(consumerTenant);
-
-      const agreement = getMockAgreement(eservice.id, consumerId, state);
+      const agreement = getMockAgreement(eservice.id, consumerTenant.id, state);
       await addOneAgreement(agreement);
 
       const users = [
-        { userId: generateId(), tenantId: consumerId },
-        { userId: generateId(), tenantId: consumerId },
+        { userId: generateId(), tenantId: consumerTenant.id },
+        { userId: generateId(), tenantId: consumerTenant.id },
       ];
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(users);
+      mockGetNotificationRecipients.mockResolvedValue(users);
 
       const msg: EServiceEventV2 = {
         event_version: 2,
@@ -163,11 +171,13 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       expect(notifications).toHaveLength(expectedNotifications);
       if (isNotified) {
         const body = inAppTemplates.eserviceDescriptorPublishedToConsumer(
-          eservice.name
+          eservice.name,
+          eservice.descriptors[0].version,
+          producerTenant.name
         );
         const expectedNotifications = users.map((user) => ({
           userId: user.userId,
-          tenantId: consumerId,
+          tenantId: consumerTenant.id,
           body,
           notificationType: "eserviceStateChangedToConsumer",
           entityId: `${eservice.id}/${eservice.descriptors[0].id}`,
@@ -217,7 +227,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         },
       },
       expectedBody: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
-        eservice.name
+        eservice.name,
+        eservice.descriptors[0].version,
+        producerTenant.name
       ),
     },
     {
@@ -229,7 +241,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         },
       },
       expectedBody: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
-        eservice.name
+        eservice.name,
+        eservice.descriptors[0].version,
+        producerTenant.name
       ),
     },
     {
@@ -244,7 +258,8 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody:
         inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerTenant.name
         ),
     },
     {
@@ -259,7 +274,8 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody:
         inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerTenant.name
         ),
     },
     {
@@ -272,7 +288,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         },
       },
       expectedBody: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
-        eservice.name
+        eservice.name,
+        producerTenant.name,
+        eservice.descriptors[0].version
       ),
     },
     {
@@ -285,7 +303,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         },
       },
       expectedBody: inAppTemplates.eserviceDescriptorActivatedToConsumer(
-        eservice.name
+        eservice.name,
+        producerTenant.name,
+        eservice.descriptors[0].version
       ),
     },
     {
@@ -298,7 +318,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         },
       },
       expectedBody: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
-        eservice.name
+        eservice.name,
+        eservice.descriptors[0].version,
+        producerTenant.name
       ),
     },
     {
@@ -311,36 +333,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         },
       },
       expectedBody: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
-        eservice.name
-      ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorAgreementApprovalPolicyUpdated",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-        },
-      },
-      expectedBody:
-        inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
-          eservice.name
-        ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorInterfaceAdded",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-          documentId: eservice.descriptors[0].interface.id,
-        },
-      },
-      expectedBody: inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
         eservice.name,
-        eservice.descriptors[0].interface.prettyName
+        eservice.descriptors[0].version,
+        producerTenant.name
       ),
     },
     {
@@ -355,7 +350,8 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
         eservice.name,
-        eservice.descriptors[0].docs[0].prettyName
+        "1",
+        producerTenant.name
       ),
     },
     {
@@ -370,52 +366,8 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
         eservice.name,
-        eservice.descriptors[0].docs[0].prettyName
-      ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorDocumentDeleted",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-          documentId: eservice.descriptors[0].docs[0].id,
-        },
-      },
-      expectedBody: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
-        eservice.name,
-        eservice.descriptors[0].docs[0].prettyName
-      ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-          documentId: eservice.descriptors[0].docs[0].id,
-        },
-      },
-      expectedBody: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
-        eservice.name,
-        eservice.descriptors[0].docs[0].prettyName
-      ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorInterfaceUpdated",
-        data: {
-          eservice: toEServiceV2(eservice),
-          descriptorId: eservice.descriptors[0].id,
-          documentId: eservice.descriptors[0].interface.id,
-        },
-      },
-      expectedBody: inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
-        eservice.name,
-        eservice.descriptors[0].interface.prettyName
+        "1",
+        producerTenant.name
       ),
     },
     {
@@ -430,7 +382,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
         eservice.name,
-        eservice.descriptors[0].docs[0].prettyName
+        eservice.descriptors[0].docs[0].prettyName,
+        eservice.descriptors[0].version,
+        producerTenant.name
       ),
     },
     {
@@ -445,7 +399,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
         eservice.name,
-        eservice.descriptors[0].docs[0].prettyName
+        eservice.descriptors[0].docs[0].prettyName,
+        eservice.descriptors[0].version,
+        producerTenant.name
       ),
     },
   ] as const)(
@@ -473,10 +429,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         { userId: generateId(), tenantId: consumerId },
         { userId: generateId(), tenantId: consumerId },
       ];
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(users);
+      mockGetNotificationRecipients.mockResolvedValue(users);
 
       const notifications = await handleEserviceStateChangedToConsumer(
         msg,
@@ -508,10 +461,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     await addOneAgreement(agreement);
     await addOneTenant(consumerTenant);
 
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const msg: EServiceEventV2 = {
       event_version: 2,

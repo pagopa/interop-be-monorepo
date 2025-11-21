@@ -1,14 +1,18 @@
 import {
+  CorrelationId,
   eserviceMode,
   fromPurposeV2,
+  generateId,
   missingKafkaMessageDataError,
   PurposeEventEnvelopeV2,
   Tenant,
   TenantKind,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
   FileManager,
+  getInteropHeaders,
   getIpaCode,
   Logger,
   PDFGenerator,
@@ -24,6 +28,9 @@ import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
 import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
 import { eServiceNotFound, tenantKindNotFound } from "../model/errors.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
+import { getInteropBeClients } from "../clients/clientProvider.js";
+
+const { purposeProcessClient } = getInteropBeClients();
 
 // eslint-disable-next-line max-params
 export async function handlePurposeMessageV2(
@@ -31,7 +38,7 @@ export async function handlePurposeMessageV2(
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
-  _refreshableToken: RefreshableInteropToken,
+  refreshableToken: RefreshableInteropToken,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -47,6 +54,11 @@ export async function handlePurposeMessageV2(
         if (!msg.data.purpose) {
           throw missingKafkaMessageDataError("purpose", msg.type);
         }
+
+        const correlationId = msg.correlation_id
+          ? unsafeBrandId<CorrelationId>(msg.correlation_id)
+          : generateId<CorrelationId>();
+
         const purpose = fromPurposeV2(msg.data.purpose);
         const purposeVersion = purpose.versions[purpose.versions.length - 1];
 
@@ -103,7 +115,7 @@ export async function handlePurposeMessageV2(
           .with(eserviceMode.receive, () => getTenantKind(producer))
           .exhaustive();
 
-        await riskAnalysisDocumentBuilder(
+        const contract = await riskAnalysisDocumentBuilder(
           pdfGenerator,
           fileManager,
           config,
@@ -115,6 +127,21 @@ export async function handlePurposeMessageV2(
           purposeVersion.stamps?.creation.who,
           tenantKind,
           "it"
+        );
+        const contractWithIsoString = {
+          ...contract,
+          createdAt: contract.createdAt.toISOString(),
+        };
+        const token = (await refreshableToken.get()).serialized;
+        await purposeProcessClient.addUnsignedRiskAnalysisDocumentMetadata(
+          contractWithIsoString,
+          {
+            params: { purposeId: purpose.id, versionId: purposeVersion.id },
+            headers: getInteropHeaders({
+              token,
+              correlationId,
+            }),
+          }
         );
       }
     )
@@ -137,7 +164,9 @@ export async function handlePurposeMessageV2(
           "PurposeVersionUnsuspendedByProducer",
           "PurposeVersionOverQuotaUnsuspended",
           "PurposeArchived",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => Promise.resolve()

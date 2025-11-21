@@ -21,6 +21,7 @@ import { handleAgreementEvent } from "../src/handlers/handleAgreementEvent.js";
 import {
   addOneDelegationToReadModel,
   getMockEventEnvelopeCommons,
+  retrieveAllAgreementM2MEvents,
   retrieveLastAgreementM2MEvent,
   testM2mEventWriterService,
   testReadModelService,
@@ -118,7 +119,8 @@ describe("handleAgreementEvent test", async () => {
                     "AgreementUnsuspendedByPlatform",
                     "AgreementArchivedByConsumer",
                     "AgreementArchivedByUpgrade",
-                    "AgreementArchivedByRevokedDelegation"
+                    "AgreementArchivedByRevokedDelegation",
+                    "AgreementSignedContractGenerated"
                   ),
                   async () => m2mEventVisibility.restricted
                 )
@@ -146,6 +148,10 @@ describe("handleAgreementEvent test", async () => {
                       )
                       .exhaustive()
                 )
+                /**
+                 * Not handled events
+                 */
+                .with("AgreementContractGenerated", () => undefined)
                 .exhaustive();
 
               await handleAgreementEvent(
@@ -155,6 +161,14 @@ describe("handleAgreementEvent test", async () => {
                 testM2mEventWriterService,
                 testReadModelService
               );
+
+              if (expectedVisibility === undefined) {
+                expect(
+                  testM2mEventWriterService.insertAgreementM2MEvent
+                ).not.toHaveBeenCalled();
+                return;
+              }
+
               expect(
                 testM2mEventWriterService.insertAgreementM2MEvent
               ).toHaveBeenCalledTimes(1);
@@ -163,6 +177,7 @@ describe("handleAgreementEvent test", async () => {
                 id: expect.any(String),
                 eventType: message.type,
                 eventTimestamp,
+                resourceVersion: message.version,
                 agreementId: agreement.id,
                 consumerId: agreement.consumerId,
                 producerId: agreement.producerId,
@@ -176,4 +191,52 @@ describe("handleAgreementEvent test", async () => {
           )
       )
   );
+
+  it("should not write the event if the same resource version is already present", async () => {
+    const agreement = getMockAgreement();
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: agreement.id,
+      type: "AgreementAdded",
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    } as AgreementEventEnvelopeV2;
+
+    const eventTimestamp = new Date();
+
+    // Insert the event for the first time
+    await handleAgreementEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    // Try to insert the same event again: should be skipped
+    await handleAgreementEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    // Try to insert one with a further resource version: should be inserted
+    await handleAgreementEvent(
+      { ...message, version: message.version + 1 },
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    expect(
+      testM2mEventWriterService.insertAgreementM2MEvent
+    ).toHaveBeenCalledTimes(3);
+
+    expect(await retrieveAllAgreementM2MEvents({ limit: 10 })).toHaveLength(2);
+  });
 });

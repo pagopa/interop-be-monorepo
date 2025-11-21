@@ -1,21 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import request from "supertest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
 } from "pagopa-interop-models";
-import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PurposeTemplateValidationIssue } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
+  invalidAssociatedEServiceForPublication,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
@@ -23,14 +22,11 @@ import {
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /purposeTemplates/{id}/publish", () => {
   const purposeTemplate = getMockPurposeTemplate();
   const serviceResponse = getMockWithMetadata(purposeTemplate);
-
-  const apiResponse = purposeTemplateApi.PurposeTemplate.parse(
-    purposeTemplateToApiPurposeTemplate(purposeTemplate)
-  );
 
   beforeEach(() => {
     purposeTemplateService.publishPurposeTemplate = vi
@@ -53,12 +49,12 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
+      expect(res.status).toBe(204);
+      expect(res.body).toEqual({});
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
@@ -85,7 +81,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
         purposeTemplateState.suspended,
         [purposeTemplateState.draft]
       ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
@@ -95,7 +91,13 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
     {
       error: purposeTemplateStateConflict(
         generateId(),
-        purposeTemplateState.active
+        purposeTemplateState.published
+      ),
+      expectedStatus: 409,
+    },
+    {
+      error: invalidAssociatedEServiceForPublication(
+        expect.any(Array<PurposeTemplateValidationIssue>)
       ),
       expectedStatus: 409,
     },

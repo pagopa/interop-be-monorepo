@@ -33,7 +33,6 @@ export async function handleTenantVerifiedAttributeAssigned(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -57,7 +56,6 @@ export async function handleTenantVerifiedAttributeAssigned(
     tenants: [tenant],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

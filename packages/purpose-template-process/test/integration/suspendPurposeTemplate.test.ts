@@ -37,7 +37,7 @@ describe("suspendPurposeTemplate", () => {
     purposeRiskAnalysisForm: riskAnalysisFormTemplate,
     purposeFreeOfChargeReason: "Free of charge reason",
     purposeDailyCalls: 100,
-    state: purposeTemplateState.active,
+    state: purposeTemplateState.published,
     creatorId,
   };
 
@@ -50,7 +50,7 @@ describe("suspendPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the suspending of a purpose template in active state", async () => {
+  it("should write on event-store for the suspending of a purpose template in published state", async () => {
     const metadataVersion = 1;
     await addOnePurposeTemplate(purposeTemplate, metadataVersion);
 
@@ -117,7 +117,7 @@ describe("suspendPurposeTemplate", () => {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
         purposeTemplateState.archived,
-        [purposeTemplateState.active]
+        [purposeTemplateState.published]
       ),
       state: purposeTemplateState.archived,
     },
@@ -125,7 +125,7 @@ describe("suspendPurposeTemplate", () => {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
         purposeTemplateState.draft,
-        [purposeTemplateState.active]
+        [purposeTemplateState.published]
       ),
       state: purposeTemplateState.draft,
     },

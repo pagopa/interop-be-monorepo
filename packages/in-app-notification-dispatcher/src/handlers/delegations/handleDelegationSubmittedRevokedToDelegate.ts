@@ -4,10 +4,15 @@ import {
   fromDelegationV2,
   DelegationV2,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveEservice,
+  retrieveTenant,
+} from "../handlerCommons.js";
 
 export type DelegationSubmittedRevokedToDelegateEventType =
   | "ProducerDelegationSubmitted"
@@ -30,11 +35,12 @@ export async function handleDelegationSubmittedRevokedToDelegate(
 
   const delegation = fromDelegationV2(delegationV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [delegation.delegateId],
-      "delegationSubmittedRevokedToDelegate"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [delegation.delegateId],
+    "delegationSubmittedRevokedToDelegate",
+    readModelService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(
@@ -47,11 +53,33 @@ export async function handleDelegationSubmittedRevokedToDelegate(
     delegation.delegatorId,
     readModelService
   );
-
-  const body = inAppTemplates.delegationSubmittedRevokedToDelegate(
-    delegator.name,
-    eventType
+  const eservice = await retrieveEservice(
+    delegation.eserviceId,
+    readModelService
   );
+
+  const body = match(eventType)
+    .with(
+      "ProducerDelegationSubmitted",
+      "ConsumerDelegationSubmitted",
+      (eventType) =>
+        inAppTemplates.delegationSubmittedToDelegate(
+          eservice.name,
+          delegator.name,
+          eventType
+        )
+    )
+    .with(
+      "ProducerDelegationRevoked",
+      "ConsumerDelegationRevoked",
+      (eventType) =>
+        inAppTemplates.delegationRevokedToDelegate(
+          eservice.name,
+          delegator.name,
+          eventType
+        )
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,

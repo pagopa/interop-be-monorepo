@@ -28,7 +28,6 @@ export async function handleAgreementUnsuspendedByConsumer(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -54,7 +53,6 @@ export async function handleAgreementUnsuspendedByConsumer(
     tenants: [producer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

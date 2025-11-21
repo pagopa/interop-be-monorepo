@@ -30,7 +30,6 @@ export async function handleTenantCertifiedAttributeAssigned(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -61,7 +60,6 @@ export async function handleTenantCertifiedAttributeAssigned(
     tenants: [tenant],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

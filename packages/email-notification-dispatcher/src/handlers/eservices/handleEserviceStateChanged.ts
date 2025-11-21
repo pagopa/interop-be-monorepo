@@ -55,13 +55,7 @@ const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 export async function handleEserviceStateChanged(
   params: EServiceUpdatedHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
-  const {
-    readModelService,
-    logger,
-    templateService,
-    userService,
-    correlationId,
-  } = params;
+  const { readModelService, logger, templateService, correlationId } = params;
 
   const eserviceV2Msg = params.payload.data.eservice;
 
@@ -91,7 +85,6 @@ export async function handleEserviceStateChanged(
     tenants: consumers,
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

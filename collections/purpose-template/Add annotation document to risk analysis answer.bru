@@ -1,23 +1,23 @@
 meta {
-  name: Add new e-service template document copy
+  name: Add Document to Risk Analysis Answer Annotation
   type: http
   seq: 3
 }
 
-post {                                
+post {
   url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents
-  body: multipartForm
+  body: json
   auth: none
 }
 
 params:path {
-  answerId: 
   purposeTemplateId: {{purposeTemplateId}}
+  answerId: {{answerId}}
 }
 
 headers {
+  X-Correlation-Id: {{correlation-id}}
   Authorization: {{JWT}}
-  ~Content-Type: application/json
 }
 
 body:json {

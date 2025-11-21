@@ -27,7 +27,6 @@ export async function handleAgreementUpgraded(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -49,7 +48,6 @@ export async function handleAgreementUpgraded(
     notificationType,
     readModelService,
     logger,
-    userService,
     includeTenantContactEmails: false,
   });
 

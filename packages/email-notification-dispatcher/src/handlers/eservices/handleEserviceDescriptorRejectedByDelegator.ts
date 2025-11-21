@@ -28,7 +28,6 @@ export async function handleEserviceDescriptorRejectedByDelegator(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -57,7 +56,6 @@ export async function handleEserviceDescriptorRejectedByDelegator(
     tenants: [delegate],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

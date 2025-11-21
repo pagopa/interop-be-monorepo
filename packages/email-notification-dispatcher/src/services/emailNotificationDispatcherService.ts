@@ -4,7 +4,11 @@ import { logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { encodeEmailEvent } from "./utils.js";
 
-const producer = await initProducer(config, config.emailSenderTopic);
+const producer = await initProducer(
+  config,
+  config.emailDispatchTopic,
+  config.producerKafkaTransactionalId
+);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function emailNotificationDispatcherServiceBuilder() {

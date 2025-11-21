@@ -27,7 +27,6 @@ export async function handlePurposeArchived(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -48,7 +47,6 @@ export async function handlePurposeArchived(
     tenants: [producer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

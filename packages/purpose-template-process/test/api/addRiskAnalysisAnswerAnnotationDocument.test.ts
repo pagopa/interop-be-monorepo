@@ -34,14 +34,11 @@ import {
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-const {
-  HTTP_STATUS_CONFLICT,
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_FORBIDDEN,
-  HTTP_STATUS_NOT_FOUND,
-} = constants;
+const { HTTP_STATUS_CONFLICT, HTTP_STATUS_FORBIDDEN, HTTP_STATUS_NOT_FOUND } =
+  constants;
 
 describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents", () => {
   const mockDate = new Date();
@@ -153,17 +150,20 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
     {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
         [purposeTemplateState.draft]
       ),
-      expectedStatus: HTTP_STATUS_BAD_REQUEST,
+      expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {
       error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
-      error: riskAnalysisTemplateAnswerNotFound(purposeTemplateId, answerId),
+      error: riskAnalysisTemplateAnswerNotFound({
+        purposeTemplateId,
+        answerId,
+      }),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
@@ -190,6 +190,10 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
     {
       error: annotationDocumentLimitExceeded(answerId),
       expectedStatus: HTTP_STATUS_CONFLICT,
+    },
+    {
+      error: tenantNotAllowed(generateId()),
+      expectedStatus: HTTP_STATUS_FORBIDDEN,
     },
   ])(
     "Should return $expectedStatus for $error.code",

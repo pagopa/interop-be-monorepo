@@ -14,7 +14,7 @@ export const SqsSafeStorageBodySchema = z.object({
     versionId: z.string(),
     documentType: z.literal("INTEROP_LEGAL_FACTS"),
     documentStatus: z.literal("SAVED"),
-    contentType: z.literal("application/pdf"),
+    contentType: z.string(),
     checksum: z.string(),
     retentionUntil: z.string().datetime(),
     tags: z.nullable(z.any()),

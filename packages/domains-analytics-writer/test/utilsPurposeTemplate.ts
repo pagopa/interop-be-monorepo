@@ -1,48 +1,13 @@
 import {
-  getMockValidRiskAnalysisFormTemplate,
-  getMockRiskAnalysisTemplateAnswerAnnotation,
-  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockPurposeTemplate,
+  getMockCompleteRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test/index.js";
-import {
-  PurposeTemplate,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
-  tenantKind,
-} from "pagopa-interop-models";
+import { PurposeTemplate } from "pagopa-interop-models";
 
-export const getCompleteMockPurposeTemplate = (): PurposeTemplate => {
-  const incompleteRiskAnalysisFormTemplate =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
-  const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
-    ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: ["a", "b"],
-      })
-    ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
-    ),
-  };
-
-  return {
-    ...getMockPurposeTemplate(),
-    updatedAt: new Date(),
-    purposeRiskAnalysisForm: riskAnalysisFormTemplate,
-    purposeFreeOfChargeReason: "Free of charge reason",
-    purposeDailyCalls: 100,
-  };
-};
+export const getCompleteMockPurposeTemplate = (): PurposeTemplate => ({
+  ...getMockPurposeTemplate(),
+  updatedAt: new Date(),
+  purposeRiskAnalysisForm: getMockCompleteRiskAnalysisFormTemplate(),
+  purposeFreeOfChargeReason: "Free of charge reason",
+  purposeDailyCalls: 100,
+});

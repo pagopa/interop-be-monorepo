@@ -28,7 +28,6 @@ export async function handleEserviceDescriptorApprovedByDelegator(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -57,7 +56,6 @@ export async function handleEserviceDescriptorApprovedByDelegator(
     tenants: [delegate],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

@@ -57,7 +57,6 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
           suggestedValues: [],
           annotation: {
             text: "Risk analysis template answer annotation text",
-            docs: [],
           },
         },
       };
@@ -125,7 +124,6 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
           suggestedValues: [],
           annotation: {
             text: textWithHyperlink,
-            docs: [],
           },
         },
       };
@@ -160,7 +158,6 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
           suggestedValues: [],
           annotation: {
             text: textWithHyperlink,
-            docs: [],
           },
         },
       };

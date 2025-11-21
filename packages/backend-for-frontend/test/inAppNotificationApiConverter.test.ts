@@ -69,7 +69,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         "api-e-service": 3,
         totalCount: 3,
       },
-      totalCount: 100,
+      notifiche: {
+        totalCount: 100,
+      },
     };
 
     expect(result).toEqual(expected);
@@ -109,7 +111,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         "api-e-service": 0,
         totalCount: 0,
       },
-      totalCount: 0,
+      notifiche: {
+        totalCount: 0,
+      },
     };
 
     expect(result).toEqual(expected);
@@ -149,7 +153,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         "api-e-service": 0,
         totalCount: 0,
       },
-      totalCount: 0,
+      notifiche: {
+        totalCount: 0,
+      },
     };
 
     expect(result).toEqual(expected);
@@ -195,7 +201,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         "api-e-service": 0,
         totalCount: 0,
       },
-      totalCount: 25,
+      notifiche: {
+        totalCount: 25,
+      },
     };
 
     expect(result).toEqual(expected);
@@ -241,7 +249,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         "api-e-service": 0,
         totalCount: 0,
       },
-      totalCount: 15,
+      notifiche: {
+        totalCount: 15,
+      },
     };
 
     expect(result).toEqual(expected);

@@ -4,6 +4,7 @@ import {
   TenantId,
   InternalError,
   AgreementId,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 
 type EmailNotificationDispatcherErrorCode =
@@ -100,7 +101,7 @@ export function descriptorNotFound(
 }
 
 export function descriptorPublishedNotFound(
-  eServiceId: EServiceId
+  eServiceId: EServiceId | EServiceTemplateId
 ): EmailNotificationDispatcherError {
   return new InternalError({
     detail: `Published descriptor not found in EService ${eServiceId}`,

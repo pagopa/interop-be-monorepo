@@ -13,6 +13,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   retrieveLatestPublishedDescriptor,
+  getNotificationRecipients,
   retrieveTenant,
 } from "../handlerCommons.js";
 
@@ -46,14 +47,15 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     return acc;
   }, {});
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      Object.keys(instantiatorEserviceMap).map((tenantId) =>
-        unsafeBrandId(tenantId)
-      ),
-      "eserviceTemplateStatusChangedToInstantiator"
-    );
-  if (!userNotificationConfigs) {
+  const usersWithNotifications = await getNotificationRecipients(
+    Object.keys(instantiatorEserviceMap).map((tenantId) =>
+      unsafeBrandId(tenantId)
+    ),
+    "eserviceTemplateStatusChangedToInstantiator",
+    readModelService,
+    logger
+  );
+  if (usersWithNotifications.length === 0) {
     logger.info(
       `No user notification configs found for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplate.id}`
     );
@@ -65,7 +67,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     readModelService
   );
 
-  return userNotificationConfigs.flatMap(({ userId, tenantId }) => {
+  return usersWithNotifications.flatMap(({ userId, tenantId }) => {
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
       const entityId = EServiceIdDescriptorId.parse(

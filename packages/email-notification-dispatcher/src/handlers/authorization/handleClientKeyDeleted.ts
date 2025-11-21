@@ -28,7 +28,6 @@ export async function handleClientKeyDeleted(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -53,7 +52,6 @@ export async function handleClientKeyDeleted(
       tenants: [consumer],
       notificationType,
       readModelService,
-      userService,
       logger,
       includeTenantContactEmails: false,
     })

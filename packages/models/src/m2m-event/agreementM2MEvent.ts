@@ -33,6 +33,7 @@ export const AgreementM2MEventType = z.enum([
   "AgreementSetMissingCertifiedAttributesByPlatform",
   "AgreementDeletedByRevokedDelegation",
   "AgreementArchivedByRevokedDelegation",
+  "AgreementSignedContractGenerated",
 ]);
 export type AgreementM2MEventType = z.infer<typeof AgreementM2MEventType>;
 
@@ -46,6 +47,7 @@ export const AgreementM2MEvent = z.object({
   id: AgreementM2MEventId,
   eventType: AgreementM2MEventType,
   eventTimestamp: z.coerce.date(),
+  resourceVersion: z.number().int().min(0),
   agreementId: AgreementId,
   consumerId: TenantId,
   producerId: TenantId,

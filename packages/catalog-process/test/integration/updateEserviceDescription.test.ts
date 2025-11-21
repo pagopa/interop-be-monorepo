@@ -26,6 +26,7 @@ import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
   templateInstanceNotAllowed,
+  eServiceUpdateSameDescriptionConflict,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -229,5 +230,24 @@ describe("update eService description", () => {
         getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
+  it("should throw eServiceDescriptionUpdateConflict if the new description is the same as the current one", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEServiceDescription(
+        eservice.id,
+        eservice.description,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(eServiceUpdateSameDescriptionConflict(eservice.id));
   });
 });

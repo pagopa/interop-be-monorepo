@@ -20,6 +20,7 @@ import {
   addSomeRandomDelegations,
   getMockContext,
   sortPurpose,
+  getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -46,6 +47,8 @@ import {
   TenantId,
   DelegationId,
   UserId,
+  purposeTemplateState,
+  PurposeTemplate,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -66,6 +69,7 @@ import {
   tenantNotAllowed,
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegate,
+  purposeTemplateNotFound,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import { RiskAnalysisDocumentPDFPayload } from "../../src/model/domain/models.js";
@@ -74,6 +78,7 @@ import {
   addOneDelegation,
   addOneEService,
   addOnePurpose,
+  addOnePurposeTemplate,
   addOneTenant,
   fileManager,
   pdfGenerator,
@@ -1846,5 +1851,35 @@ describe("activatePurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
     }).rejects.toThrowError(tenantIsNotTheDelegate(delegation.delegateId));
+  });
+  it("should throw purposeTemplateNotFound if the purpose was created from a purpose template but the template is not active", async () => {
+    const mockPurposeTemplate: PurposeTemplate = getMockPurposeTemplate(
+      mockConsumer.id,
+      purposeTemplateState.draft
+    );
+
+    const purpose: Purpose = {
+      ...mockPurpose,
+      purposeTemplateId: mockPurposeTemplate.id,
+    };
+
+    await addOneTenant(mockConsumer);
+    await addOnePurpose(purpose);
+    await addOnePurposeTemplate(mockPurposeTemplate);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+
+    expect(async () => {
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: mockPurposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      );
+    }).rejects.toThrowError(
+      purposeTemplateNotFound(purpose.purposeTemplateId!)
+    );
   });
 });

@@ -6,6 +6,7 @@ import { PurposeRiskAnalysisAnswerSchema } from "./purposeRiskAnalysisAnswer.js"
 import { PurposeVersionSchema } from "./purposeVersion.js";
 import { PurposeVersionDocumentSchema } from "./purposeVersionDocument.js";
 import { PurposeVersionStampSchema } from "./purposeVersionStamp.js";
+import { PurposeVersionSignedDocumentSchema } from "./purposeVersionSignedDocument.js";
 
 export const PurposeSchema = createSelectSchema(
   purposeInReadmodelPurpose
@@ -27,5 +28,6 @@ export const PurposeItemsSchema = z.object({
   versionsSQL: z.array(PurposeVersionSchema),
   versionDocumentsSQL: z.array(PurposeVersionDocumentSchema),
   versionStampsSQL: z.array(PurposeVersionStampSchema),
+  versionSignedDocumentsSQL: z.array(PurposeVersionSignedDocumentSchema),
 });
 export type PurposeItemsSchema = z.infer<typeof PurposeItemsSchema>;

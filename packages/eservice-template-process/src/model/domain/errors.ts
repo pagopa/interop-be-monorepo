@@ -38,6 +38,8 @@ export const errorCodes = {
   tenantNotFound: "0028",
   missingPersonalDataFlag: "0029",
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
+  eServiceTemplateUpdateSameNameConflict: "0031",
+  eServiceTemplateUpdateSameDescriptionConflict: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -329,5 +331,25 @@ export function eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
     detail: `PersonalData flag has already been set for eService Template ${eserviceTemplateId}`,
     code: "eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce",
     title: "EService Template personalData can only be set once",
+  });
+}
+
+export function eServiceTemplateUpdateSameNameConflict(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The name provided is the same as the current one for EService template ${eserviceTemplateId}`,
+    code: "eServiceTemplateUpdateSameNameConflict",
+    title: "Same EService template name update conflict",
+  });
+}
+
+export function eServiceTemplateUpdateSameDescriptionConflict(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The description provided is the same as the current one for EService template ${eserviceTemplateId}`,
+    code: "eServiceTemplateUpdateSameDescriptionConflict",
+    title: "Same eService template description update conflict",
   });
 }

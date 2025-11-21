@@ -11,7 +11,14 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  emptyErrorMapper,
+  EServiceId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -32,9 +39,12 @@ import {
   updatePurposeTemplateErrorMapper,
   addPurposeTemplateAnswerAnnotationErrorMapper,
   createRiskAnalysisAnswerErrorMapper,
+  getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
+  updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
+  annotationDocumentToApiAnnotationDocumentWithAnswerId,
   apiPurposeTemplateStateToPurposeTemplateState,
   eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
   purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
@@ -105,8 +115,8 @@ const purposeTemplateRouter = (
           );
         return res.status(200).send(
           purposeTemplateApi.PurposeTemplates.parse({
-            results: purposeTemplates.results.map((purposeTemplate) =>
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            results: purposeTemplates.results.map(
+              purposeTemplateToApiPurposeTemplate
             ),
             totalCount: purposeTemplates.totalCount,
           })
@@ -138,6 +148,36 @@ const purposeTemplateRouter = (
           createPurposeTemplateErrorMapper,
           ctx
         );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/creators", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const { creatorName, offset, limit } = req.query;
+
+        const { results, totalCount } =
+          await purposeTemplateService.getPublishedPurposeTemplateCreators(
+            { creatorName, limit, offset },
+            ctx
+          );
+
+        return res.status(200).send(
+          purposeTemplateApi.CompactOrganizations.parse({
+            results,
+            totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -213,6 +253,7 @@ const purposeTemplateRouter = (
           unsafeBrandId(req.params.id),
           ctx
         );
+
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -235,26 +276,24 @@ const purposeTemplateRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { producerIds, eserviceIds, offset, limit } = req.query;
-        const purposeTemplateEServicesDescriptors =
+        const { producerIds, eserviceName, offset, limit } = req.query;
+        const { results, totalCount } =
           await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
             {
               purposeTemplateId: unsafeBrandId(req.params.id),
               producerIds: producerIds?.map(unsafeBrandId<TenantId>),
-              eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
+              eserviceName,
             },
             { offset, limit },
             ctx
           );
+
         return res.status(200).send(
           purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
-            results: purposeTemplateEServicesDescriptors.results.map(
-              (purposeTemplateEServiceDescriptor) =>
-                eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-                  purposeTemplateEServiceDescriptor
-                )
+            results: results.map(
+              eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate
             ),
-            totalCount: purposeTemplateEServicesDescriptors.totalCount,
+            totalCount,
           })
         );
       } catch (error) {
@@ -278,13 +317,20 @@ const purposeTemplateRouter = (
             ctx
           );
 
+        if (eserviceDescriptorPurposeTemplates.length !== 0) {
+          setMetadataVersionHeader(
+            res,
+            eserviceDescriptorPurposeTemplates[0].metadata
+          );
+        }
+
         return res
           .status(200)
           .send(
             eserviceDescriptorPurposeTemplates.map(
               (eserviceDescriptorPurposeTemplate) =>
                 eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
-                  eserviceDescriptorPurposeTemplate
+                  eserviceDescriptorPurposeTemplate.data
                 )
             )
           );
@@ -302,11 +348,20 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
-          unsafeBrandId(req.params.id),
-          req.body.eserviceIds.map(unsafeBrandId<EServiceId>),
-          ctx
-        );
+        const eserviceDescriptorPurposeTemplates =
+          await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            req.body.eserviceIds.map(unsafeBrandId<EServiceId>),
+            ctx
+          );
+
+        if (eserviceDescriptorPurposeTemplates.length !== 0) {
+          setMetadataVersionHeader(
+            res,
+            eserviceDescriptorPurposeTemplates[0].metadata
+          );
+        }
+
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -323,7 +378,7 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
+        const { metadata } =
           await purposeTemplateService.suspendPurposeTemplate(
             unsafeBrandId(req.params.id),
             ctx
@@ -331,13 +386,7 @@ const purposeTemplateRouter = (
 
         setMetadataVersionHeader(res, metadata);
 
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
-            )
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -353,7 +402,7 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
+        const { metadata } =
           await purposeTemplateService.unsuspendPurposeTemplate(
             unsafeBrandId(req.params.id),
             ctx
@@ -361,13 +410,7 @@ const purposeTemplateRouter = (
 
         setMetadataVersionHeader(res, metadata);
 
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
-            )
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -383,7 +426,7 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
+        const { metadata } =
           await purposeTemplateService.archivePurposeTemplate(
             unsafeBrandId(req.params.id),
             ctx
@@ -391,13 +434,7 @@ const purposeTemplateRouter = (
 
         setMetadataVersionHeader(res, metadata);
 
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
-            )
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -413,7 +450,7 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
+        const { metadata } =
           await purposeTemplateService.publishPurposeTemplate(
             unsafeBrandId(req.params.id),
             ctx
@@ -421,13 +458,7 @@ const purposeTemplateRouter = (
 
         setMetadataVersionHeader(res, metadata);
 
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
-            )
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -462,7 +493,7 @@ const purposeTemplateRouter = (
             addPurposeTemplateAnswerAnnotationErrorMapper,
             ctx
           );
-          return res.status(errorRes.status).send();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -485,7 +516,52 @@ const purposeTemplateRouter = (
             await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
               {
                 purposeTemplateId: unsafeBrandId(purposeTemplateId),
-                answerId: unsafeBrandId(answerId),
+                answerId: unsafeBrandId<
+                  RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+                >(answerId),
+                documentId: unsafeBrandId(documentId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument.parse(
+                annotationDocumentToApiAnnotationDocument(annotationDocument)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            M2M_ADMIN_ROLE,
+            M2M_ROLE,
+            SECURITY_ROLE,
+            SUPPORT_ROLE,
+          ]);
+
+          const { purposeTemplateId, documentId } = req.params;
+          const { data: annotationDocument, metadata } =
+            await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+              {
+                purposeTemplateId: unsafeBrandId(purposeTemplateId),
                 documentId: unsafeBrandId(documentId),
               },
               ctx
@@ -578,13 +654,17 @@ const purposeTemplateRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
-            {
-              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-              answerId: unsafeBrandId(req.params.answerId),
-              ctx,
-            }
-          );
+          const { metadata } =
+            await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
+              {
+                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+                answerId: unsafeBrandId(req.params.answerId),
+                ctx,
+              }
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -604,19 +684,96 @@ const purposeTemplateRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-            {
-              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-              answerId: unsafeBrandId(req.params.answerId),
-              documentId: unsafeBrandId(req.params.documentId),
-              ctx,
-            }
-          );
+          const { metadata } =
+            await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+              {
+                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+                answerId: unsafeBrandId(req.params.answerId),
+                documentId: unsafeBrandId(req.params.documentId),
+                ctx,
+              }
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId/update",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const { data: updatedDocument, metadata } =
+            await purposeTemplateService.updateRiskAnalysisTemplateAnswerAnnotationDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.answerId),
+              unsafeBrandId(req.params.documentId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(annotationDocumentToApiAnnotationDocument(updatedDocument));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            M2M_ROLE,
+          ]);
+
+          const { results, totalCount } =
+            await purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.query,
+              ctx
+            );
+
+          return res.status(200).send(
+            purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerId.parse(
+              {
+                results: results.map(
+                  annotationDocumentToApiAnnotationDocumentWithAnswerId
+                ),
+                totalCount,
+              }
+            )
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

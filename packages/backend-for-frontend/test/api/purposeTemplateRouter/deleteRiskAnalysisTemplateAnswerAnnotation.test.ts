@@ -54,23 +54,20 @@ describe("API DELETE /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/
 
   it.each([
     {
-      name: "purpose template id",
-      run: (token: string) =>
-        makeRequest(token, "invalid" as PurposeTemplateId),
+      purposeTemplateId: "invalid-id" as PurposeTemplateId,
+      answerId: generateId<RiskAnalysisSingleAnswerId>(),
     },
     {
-      name: "answer id",
-      run: (token: string) =>
-        makeRequest(
-          token,
-          generateId<PurposeTemplateId>(),
-          "invalid" as RiskAnalysisSingleAnswerId
-        ),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+      answerId: "invalid-id" as RiskAnalysisSingleAnswerId,
     },
-  ])("Should return 400 if an invalid $name is passed", async ({ run }) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await run(token);
+  ])(
+    "Should return 400 if invalid parameters are passed: %s",
+    async ({ purposeTemplateId, answerId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, purposeTemplateId, answerId);
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

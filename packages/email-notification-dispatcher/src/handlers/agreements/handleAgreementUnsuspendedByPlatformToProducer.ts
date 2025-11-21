@@ -28,7 +28,6 @@ export async function handleAgreementUnsuspendedByPlatformToProducer(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -54,7 +53,6 @@ export async function handleAgreementUnsuspendedByPlatformToProducer(
     tenants: [producer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

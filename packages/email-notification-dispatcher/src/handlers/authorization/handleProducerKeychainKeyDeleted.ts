@@ -29,7 +29,6 @@ export async function handleProducerKeychainKeyDeleted(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -59,7 +58,6 @@ export async function handleProducerKeychainKeyDeleted(
       tenants: [producer],
       notificationType,
       readModelService,
-      userService,
       logger,
       includeTenantContactEmails: false,
     })
@@ -82,7 +80,7 @@ export async function handleProducerKeychainKeyDeleted(
         entityId: producerKeychain.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         userName: key.userId,
-        clientName: producerKeychain.name,
+        producerKeychainName: producerKeychain.name,
       }),
     },
     tenantId: t.tenantId,

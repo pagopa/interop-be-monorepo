@@ -433,3 +433,44 @@ export const toCreateEventPurposeVersionOverQuotaUnsuspended = ({
   },
   correlationId,
 });
+
+export const toCreateEventRiskAnalysisDocumentGenerated = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "RiskAnalysisDocumentGenerated",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});
+export const toCreateEventRiskAnalysisSignedDocumentGenerated = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "RiskAnalysisSignedDocumentGenerated",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});

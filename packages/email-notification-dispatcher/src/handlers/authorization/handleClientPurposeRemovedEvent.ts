@@ -26,7 +26,6 @@ export async function handleClientPurposeRemoved(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -46,7 +45,6 @@ export async function handleClientPurposeRemoved(
     tenants: [producer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

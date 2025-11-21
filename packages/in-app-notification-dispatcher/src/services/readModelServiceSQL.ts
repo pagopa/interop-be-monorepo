@@ -1,4 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
+import { UserRole } from "pagopa-interop-commons";
 import {
   Agreement,
   Attribute,
@@ -7,9 +8,9 @@ import {
   EService,
   EServiceId,
   EServiceTemplateId,
-  NotificationConfig,
   Purpose,
   PurposeId,
+  NotificationType,
   Tenant,
   TenantId,
   UserId,
@@ -75,11 +76,13 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationName: keyof NotificationConfig
-    ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+      notificationType: NotificationType
+    ): Promise<
+      Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
+    > {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
-        notificationName,
+        notificationType,
         "inApp"
       );
     },

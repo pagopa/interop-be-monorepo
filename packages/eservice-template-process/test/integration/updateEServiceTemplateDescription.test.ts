@@ -19,6 +19,7 @@ import { expect, describe, it } from "vitest";
 import {
   eserviceTemplateWithoutPublishedVersion,
   eserviceTemplateNotFound,
+  eServiceTemplateUpdateSameDescriptionConflict,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -131,6 +132,29 @@ describe("updateEServiceTemplateDescription", () => {
       )
     ).rejects.toThrowError(
       eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id)
+    );
+  });
+  it("should throw eServiceTemplateUpdateSameDescriptionConflict if the eservice template has only suspended versions", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.suspended,
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    expect(
+      eserviceTemplateService.updateEServiceTemplateDescription(
+        eserviceTemplate.id,
+        eserviceTemplate.description,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      eServiceTemplateUpdateSameDescriptionConflict(eserviceTemplate.id)
     );
   });
 });

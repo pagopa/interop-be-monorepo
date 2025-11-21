@@ -1,17 +1,12 @@
-import { describe, beforeAll, vi, afterEach, it, expect } from "vitest";
-import {
-  logger,
-  EmailManagerSES,
-  HtmlTemplateService,
-} from "pagopa-interop-commons";
+import { describe, vi, afterEach, it, expect } from "vitest";
+import { logger } from "pagopa-interop-commons";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import { TenantReadModelService } from "pagopa-interop-readmodel";
 import { generateId, UserId, TenantId } from "pagopa-interop-models";
-import { emailSenderProcessorBuilder } from "../src/services/emailSenderProcessor.js";
+import { getUserFromSelfcare } from "../src/services/emailSenderProcessor.js";
 
 describe("getUserFromSelfcare", () => {
   // eslint-disable-next-line functional/no-let
-  let emailSenderProcessor: ReturnType<typeof emailSenderProcessorBuilder>;
   const mockSelfcareV2InstitutionClient = {
     getInstitutionUsersByProductUsingGET: vi.fn().mockResolvedValue([
       {
@@ -32,25 +27,6 @@ describe("getUserFromSelfcare", () => {
   const tenantId: TenantId = generateId<TenantId>();
   const loggerInstance = logger({ serviceName: "email-sender-test" });
 
-  beforeAll(async () => {
-    const mockSESEmailManager = {
-      kind: "SES",
-      send: vi.fn().mockResolvedValue(undefined),
-    } as EmailManagerSES;
-
-    const mockTemplateService = {
-      compileHtml: vi.fn((body: string) => body),
-    } as unknown as HtmlTemplateService;
-
-    emailSenderProcessor = emailSenderProcessorBuilder(
-      { label: "mock sender", mail: "sender@mock.com" },
-      mockSESEmailManager,
-      mockSelfcareV2InstitutionClient,
-      mockTenantReadModelService,
-      mockTemplateService
-    );
-  });
-
   afterEach(async () => {
     vi.clearAllMocks();
   });
@@ -59,7 +35,13 @@ describe("getUserFromSelfcare", () => {
     expectedError: string
   ): Promise<void> => {
     await expect(() =>
-      emailSenderProcessor.getUserFromSelfcare(userId, tenantId, loggerInstance)
+      getUserFromSelfcare(
+        userId,
+        tenantId,
+        loggerInstance,
+        mockSelfcareV2InstitutionClient,
+        mockTenantReadModelService
+      )
     ).rejects.toThrowError(expectedError);
   };
 
@@ -100,10 +82,12 @@ describe("getUserFromSelfcare", () => {
       .fn()
       .mockResolvedValueOnce([]);
 
-    const result = await emailSenderProcessor.getUserFromSelfcare(
+    const result = await getUserFromSelfcare(
       userId,
       tenantId,
-      loggerInstance
+      loggerInstance,
+      mockSelfcareV2InstitutionClient,
+      mockTenantReadModelService
     );
 
     expect(result).toBeUndefined();
@@ -124,10 +108,12 @@ describe("getUserFromSelfcare", () => {
         { email: "user2@mock.com" },
       ]);
 
-    const result = await emailSenderProcessor.getUserFromSelfcare(
+    const result = await getUserFromSelfcare(
       userId,
       tenantId,
-      loggerInstance
+      loggerInstance,
+      mockSelfcareV2InstitutionClient,
+      mockTenantReadModelService
     );
 
     expect(result).toBeUndefined();
@@ -145,10 +131,12 @@ describe("getUserFromSelfcare", () => {
       .fn()
       .mockResolvedValueOnce([{ email: undefined }]);
 
-    const result = await emailSenderProcessor.getUserFromSelfcare(
+    const result = await getUserFromSelfcare(
       userId,
       tenantId,
-      loggerInstance
+      loggerInstance,
+      mockSelfcareV2InstitutionClient,
+      mockTenantReadModelService
     );
 
     expect(result).toBeUndefined();
@@ -166,10 +154,12 @@ describe("getUserFromSelfcare", () => {
       .fn()
       .mockRejectedValueOnce({ status: 404 });
 
-    const result = await emailSenderProcessor.getUserFromSelfcare(
+    const result = await getUserFromSelfcare(
       userId,
       tenantId,
-      loggerInstance
+      loggerInstance,
+      mockSelfcareV2InstitutionClient,
+      mockTenantReadModelService
     );
 
     expect(result).toBeUndefined();
@@ -207,10 +197,12 @@ describe("getUserFromSelfcare", () => {
         { email: expectedEmail, name: "Jhon", surname: "Doe" },
       ]);
 
-    const result = await emailSenderProcessor.getUserFromSelfcare(
+    const result = await getUserFromSelfcare(
       userId,
       tenantId,
-      loggerInstance
+      loggerInstance,
+      mockSelfcareV2InstitutionClient,
+      mockTenantReadModelService
     );
 
     expect(result).toEqual({

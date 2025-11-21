@@ -5,7 +5,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveEservice,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
 export async function handleEserviceStateChangedToConsumer(
@@ -37,18 +41,19 @@ export async function handleEserviceStateChangedToConsumer(
       retrieveTenant(agreement.consumerId, readModelService)
     )
   );
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      consumers.map((consumer) => consumer.id),
-      "eserviceStateChangedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    consumers.map((consumer) => consumer.id),
+    "eserviceStateChangedToConsumer",
+    readModelService,
+    logger
+  );
 
   const body = inAppTemplates.producerKeychainEServiceAddedToConsumer(
     producer.name,
     eservice.name
   );
 
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,

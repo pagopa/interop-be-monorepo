@@ -159,7 +159,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 if purpose template is not in draft state", async () => {
+  it("Should return 409 if purpose template is not in draft state", async () => {
     purposeTemplateService.updatePurposeTemplate = vi
       .fn()
       .mockRejectedValue(
@@ -171,7 +171,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
       );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, validPurposeTemplateSeed);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(409);
   });
 
   it("Should return 404 if purpose template not found", async () => {

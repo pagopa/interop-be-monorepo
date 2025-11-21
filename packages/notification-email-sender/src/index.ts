@@ -237,7 +237,9 @@ export async function handlePurposeMessage(
           "NewPurposeVersionActivated",
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => {
@@ -305,7 +307,9 @@ export async function handleAgreementMessage(
           "AgreementSetDraftByPlatform",
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
-          "AgreementArchivedByRevokedDelegation"
+          "AgreementArchivedByRevokedDelegation",
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       () => {

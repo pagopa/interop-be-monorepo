@@ -5,6 +5,7 @@ import {
   getMockKey,
   getMockTenant,
 } from "pagopa-interop-commons-test/index.js";
+import { authRole } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
@@ -25,11 +26,9 @@ import { handleClientKeyAdded } from "../src/handlers/authorization/handleClient
 import { clientKeyNotFound, tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleClientKeyAdded", async () => {
@@ -72,9 +71,6 @@ describe("handleClientKeyAdded", async () => {
 
   beforeEach(async () => {
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -90,7 +86,12 @@ describe("handleClientKeyAdded", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -101,7 +102,6 @@ describe("handleClientKeyAdded", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -127,7 +127,6 @@ describe("handleClientKeyAdded", async () => {
         kid: key1.kid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -143,7 +142,6 @@ describe("handleClientKeyAdded", async () => {
         kid: unknownKid,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -156,7 +154,6 @@ describe("handleClientKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -183,7 +180,12 @@ describe("handleClientKeyAdded", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[2].id, tenantId: users[2].tenantId },
+        {
+          userId: users[2].id,
+          tenantId: users[2].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const messages = await handleClientKeyAdded({
@@ -191,7 +193,6 @@ describe("handleClientKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -220,7 +221,6 @@ describe("handleClientKeyAdded", async () => {
       kid: key1.kid,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

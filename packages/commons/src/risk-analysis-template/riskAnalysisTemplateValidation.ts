@@ -9,6 +9,10 @@ import {
   getLatestVersionFormRules,
 } from "../risk-analysis/riskAnalysisValidation.js";
 import {
+  buildLabel,
+  formRules,
+} from "../risk-analysis/rules/riskAnalysisFormRulesProvider.js";
+import {
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,
   RiskAnalysisTemplateValidatedForm,
@@ -29,6 +33,7 @@ import {
   unexpectedRiskAnalysisTemplateRulesVersionError,
   validTemplateResult,
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
+  incompatiblePurposeTemplatePersonalDataError,
 } from "./riskAnalysisTemplateValidationErrors.js";
 
 /* 
@@ -51,7 +56,8 @@ validatePurposeTemplateRiskAnalysis
 */
 export function validatePurposeTemplateRiskAnalysis(
   riskAnalysisFormTemplate: RiskAnalysisFormTemplateToValidate,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  personalDataInPurposeTemplate: boolean
 ): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedForm> {
   const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
 
@@ -106,6 +112,24 @@ export function validatePurposeTemplateRiskAnalysis(
       multiAnswers: [],
     }
   );
+
+  const personalDataInRiskAnalysisTemplate = match(
+    singleAnswers.find((a) => a.key === "usesPersonalData")?.value
+  )
+    .with("YES", () => true)
+    .with("NO", () => false)
+    .otherwise(() => undefined);
+
+  const personalDataFlagValidation = validatePersonalDataFlag({
+    tenantKind,
+    version: latestVersionFormRules.version,
+    personalDataInRiskAnalysisTemplate,
+    personalDataInPurposeTemplate,
+  });
+
+  if (personalDataFlagValidation.length > 0) {
+    return invalidTemplateResult(personalDataFlagValidation);
+  }
 
   return validTemplateResult({
     version: latestVersionFormRules.version,
@@ -254,22 +278,14 @@ function validateAnswerValue(
   const hasSuggestions = answer.suggestedValues.length > 0;
   const hasValues = answer.values.length > 0;
 
-  if (answer.editable) {
-    const hasAnyContent = hasValues || hasSuggestions;
-    return hasAnyContent
-      ? [
-          malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
-            rule.fieldName
-          ),
-        ]
-      : [];
-  }
-
   return match(rule)
-    .with(P.nullish, () => [])
-
     .with({ dataType: "freeText" }, (freeTextRule) =>
-      validateFreeTextAnswer(freeTextRule, hasValues, hasSuggestions)
+      validateFreeTextAnswer(
+        freeTextRule,
+        hasValues,
+        hasSuggestions,
+        answer.editable
+      )
     )
 
     .with({ dataType: P.not("freeText") }, (nonFreeTextRule) =>
@@ -277,7 +293,8 @@ function validateAnswerValue(
         nonFreeTextRule,
         answer,
         hasValues,
-        hasSuggestions
+        hasSuggestions,
+        answer.editable
       )
     )
 
@@ -287,20 +304,28 @@ function validateAnswerValue(
 function validateFreeTextAnswer(
   rule: ValidationRule,
   hasValues: boolean,
-  hasSuggestions: boolean
+  hasSuggestions: boolean,
+  isEditable: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
-  if (!hasValues && !hasSuggestions) {
+  if (isEditable) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
   }
 
-  if (hasValues && hasSuggestions) {
+  if (hasValues) {
     return [
       malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
   }
 
+  if (!hasSuggestions) {
+    return [
+      malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
+  }
+
+  // Free text answers must have suggested values, not be editable and not have values
   return [];
 }
 
@@ -308,24 +333,44 @@ function validateNonFreeTextAnswer(
   rule: ValidationRule,
   answer: RiskAnalysisTemplateAnswerToValidate,
   hasValues: boolean,
-  hasSuggestions: boolean
+  hasSuggestions: boolean,
+  isEditable: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
-  if (
-    rule.allowedValues &&
-    answer.values.some((e) => !rule.allowedValues?.has(e))
-  ) {
-    return [
-      unexpectedRiskAnalysisTemplateFieldValueError(
-        rule.fieldName,
-        rule.allowedValues
-      ),
-    ];
-  }
-
-  if (hasSuggestions || !hasValues) {
+  // Non free text answers cannot have suggested values
+  if (hasSuggestions) {
     return [
       unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
     ];
+  }
+
+  // If answer is editable, it must NOT have values
+  if (isEditable && hasValues) {
+    return [
+      malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
+  }
+
+  if (!isEditable) {
+    // If answer is not editable, it must have values
+    if (!hasValues) {
+      return [
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          rule.fieldName
+        ),
+      ];
+    }
+    // If answer is not editable and has values, those values must be allowed
+    if (
+      rule.allowedValues &&
+      answer.values.some((e) => !rule.allowedValues?.has(e))
+    ) {
+      return [
+        unexpectedRiskAnalysisTemplateFieldValueError(
+          rule.fieldName,
+          rule.allowedValues
+        ),
+      ];
+    }
   }
 
   return [];
@@ -403,3 +448,39 @@ function formContainsDependency(
     .with(P.nullish, () => false)
     .exhaustive();
 }
+
+const validatePersonalDataFlag = ({
+  tenantKind,
+  version,
+  personalDataInRiskAnalysisTemplate,
+  personalDataInPurposeTemplate,
+}: {
+  tenantKind: TenantKind;
+  version: string;
+  personalDataInRiskAnalysisTemplate: boolean | undefined;
+  personalDataInPurposeTemplate: boolean;
+}): RiskAnalysisTemplateValidationIssue[] => {
+  const label = buildLabel(tenantKind, version);
+  return match(label)
+    .with(
+      formRules.PA_1_0,
+      formRules.PA_2_0,
+      formRules.PA_3_0,
+      formRules.PRIVATE_1_0,
+      () => []
+    )
+    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () => {
+      if (
+        personalDataInPurposeTemplate !== personalDataInRiskAnalysisTemplate
+      ) {
+        return [
+          incompatiblePurposeTemplatePersonalDataError(
+            personalDataInRiskAnalysisTemplate,
+            personalDataInPurposeTemplate
+          ),
+        ];
+      }
+      return [];
+    })
+    .exhaustive();
+};

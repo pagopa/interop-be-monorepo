@@ -30,6 +30,7 @@ export async function handleAttributeEvent(
         );
         const m2mEvent = createAttributeM2MEvent(
           attribute,
+          event.version,
           event.type,
           eventTimestamp
         );

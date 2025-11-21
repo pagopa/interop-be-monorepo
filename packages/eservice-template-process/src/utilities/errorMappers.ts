@@ -84,6 +84,7 @@ export const updateEServiceTemplateNameErrorMapper = (
     .with(
       "eserviceTemplateWithoutPublishedVersion",
       "eserviceTemplateDuplicate",
+      "eServiceTemplateUpdateSameNameConflict",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -103,7 +104,11 @@ export const updateEServiceTemplateDescriptionErrorMapper = (
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("eserviceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eserviceTemplateWithoutPublishedVersion",
+      "eServiceTemplateUpdateSameDescriptionConflict",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceTemplateVersionQuotasErrorMapper = (

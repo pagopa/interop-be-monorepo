@@ -1,5 +1,6 @@
 import {
   Agreement,
+  AgreementSignedContract,
   AgreementDocument,
   AgreementId,
   AgreementStamp,
@@ -14,6 +15,7 @@ import {
   AgreementConsumerDocumentSQL,
   AgreementContractSQL,
   AgreementItemsSQL,
+  AgreementSignedContractSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitAgreementIntoObjectsSQL = (
@@ -38,6 +40,7 @@ export const splitAgreementIntoObjectsSQL = (
     stamps,
     rejectionReason,
     suspendedAt,
+    signedContract,
     ...rest
   }: Agreement,
   metadataVersion: number
@@ -93,6 +96,13 @@ export const splitAgreementIntoObjectsSQL = (
   const consumerDocumentsSQL = consumerDocuments.map((doc) =>
     agreementDocumentToAgreementDocumentSQL(doc, id, metadataVersion)
   );
+  const signedContractSQL = signedContract
+    ? agreementSignedDocumentToAgreementSignedDocumentSQL(
+        signedContract,
+        id,
+        metadataVersion
+      )
+    : undefined;
 
   const attributesSQL: AgreementAttributeSQL[] = [
     ...certifiedAttributes.map((attr) => ({
@@ -121,6 +131,7 @@ export const splitAgreementIntoObjectsSQL = (
     consumerDocumentsSQL,
     contractSQL,
     attributesSQL,
+    signedContractSQL,
   };
 };
 
@@ -147,5 +158,33 @@ export const agreementDocumentToAgreementDocumentSQL = (
     contentType,
     path,
     createdAt: dateToString(createdAt),
+  };
+};
+
+export const agreementSignedDocumentToAgreementSignedDocumentSQL = (
+  {
+    id,
+    name,
+    prettyName,
+    contentType,
+    path,
+    createdAt,
+    signedAt,
+    ...rest
+  }: AgreementSignedContract,
+  agreementId: AgreementId,
+  metadataVersion: number
+): AgreementSignedContractSQL => {
+  void (rest satisfies Record<string, never>);
+  return {
+    id,
+    agreementId,
+    metadataVersion,
+    name,
+    prettyName,
+    contentType,
+    path,
+    createdAt: dateToString(createdAt),
+    signedAt: dateToString(signedAt),
   };
 };

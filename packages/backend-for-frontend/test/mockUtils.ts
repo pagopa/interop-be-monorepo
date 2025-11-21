@@ -40,6 +40,7 @@ export const getMockBffApiDelegation = (): bffApi.Delegation & {
   state: generateMock(bffApi.DelegationState),
   kind: generateMock(bffApi.DelegationKind),
   rejectionReason: generateMock(z.string().optional()),
+  isDocumentReady: generateMock(z.boolean()),
 });
 
 export const getMockBffApiAttributeSeed = (): bffApi.AttributeSeed => ({
@@ -498,6 +499,7 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
   hasUnreadNotifications: generateMock(z.boolean()),
   purposeTemplate: generateMock(bffApi.CompactPurposeTemplate.optional()),
+  isDocumentReady: generateMock(z.boolean()),
 });
 
 export const getMockBffApiRiskAnalysisFormConfig =
@@ -512,6 +514,12 @@ export const getMockBffApiPurposeUpdateContent =
     description: generateMock(z.string()),
     isFreeOfCharge: generateMock(z.boolean()),
     freeOfChargeReason: generateMock(z.string().optional()),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+  });
+
+export const getMockBffApiPatchPurposeUpdateFromTemplateContent =
+  (): bffApi.PatchPurposeUpdateFromTemplateContent => ({
+    title: generateMock(z.string()),
     dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
   });
 
@@ -536,6 +544,14 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
   dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
 });
 
+export const getMockPurposeFromTemplateSeed =
+  (): bffApi.PurposeFromTemplateSeed => ({
+    eserviceId: generateId(),
+    consumerId: generateId(),
+    title: generateMock(z.string()),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+  });
+
 export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   targetDescription:
     "This is a valid target description that meets the minimum length requirement",
@@ -547,7 +563,7 @@ export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   purposeIsFreeOfCharge: false,
   purposeFreeOfChargeReason: undefined,
   purposeDailyCalls: 1000,
-  handlesPersonalData: false,
+  handlesPersonalData: true,
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
@@ -988,6 +1004,7 @@ export const getMockBffApiAgreement = (): bffApi.Agreement & {
   createdAt: generateMock(z.string().datetime({ offset: true })),
   updatedAt: generateMock(z.string().datetime({ offset: true }).optional()),
   suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+  isDocumentReady: generateMock(z.boolean()),
 });
 
 export const getMockBffApiAddAgreementConsumerDocumentBody =
@@ -1147,7 +1164,9 @@ export const getMockBffApiNotificationsCountBySection =
       "api-e-service": generateMock(z.number().int()),
       totalCount: generateMock(z.number().int()),
     },
-    totalCount: generateMock(z.number().int()),
+    notifiche: {
+      totalCount: generateMock(z.number().int()),
+    },
   });
 
 export const getMockBffApiCreatorPurposeTemplate =

@@ -27,6 +27,8 @@ import {
   eserviceTemplateDuplicate,
   missingRiskAnalysis,
   riskAnalysisValidationFailed,
+  eServiceTemplateUpdateSameNameConflict,
+  eServiceTemplateUpdateSameDescriptionConflict,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -172,4 +174,22 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisValidationFailed(result.issues);
     }
   });
+}
+
+export function assertUpdatedNameDiffersFromCurrent(
+  newName: string,
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (newName === eserviceTemplate.name) {
+    throw eServiceTemplateUpdateSameNameConflict(eserviceTemplate.id);
+  }
+}
+
+export function assertUpdatedDescriptionDiffersFromCurrent(
+  newDescription: string,
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (newDescription === eserviceTemplate.description) {
+    throw eServiceTemplateUpdateSameDescriptionConflict(eserviceTemplate.id);
+  }
 }

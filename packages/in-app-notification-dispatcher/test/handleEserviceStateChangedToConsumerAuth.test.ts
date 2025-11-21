@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -13,6 +13,7 @@ import {
   TenantId,
   EServiceId,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/authorizations/handleEserviceStateChangedToConsumer.js";
 import { eserviceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -38,8 +39,14 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   const producer = getMockTenant(eservice.producerId);
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   await addOneEService(eservice);
   await addOneTenant(producer);
+
+  beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
+  });
 
   it("should throw eserviceNotFound when eservice does not exist", async () => {
     const nonExistentEServiceId = generateId<EServiceId>();
@@ -173,10 +180,9 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         { userId: generateId(), tenantId: consumerId },
         { userId: generateId(), tenantId: consumerId },
       ];
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(shouldNotify ? users : []);
+      mockGetNotificationRecipients.mockResolvedValue(
+        shouldNotify ? users : []
+      );
 
       const notifications = await handleEserviceStateChangedToConsumer(
         testEservice.id,
@@ -252,10 +258,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
     const users2 = [{ userId: generateId(), tenantId: consumer2Id }];
     const allUsers = [...users1, ...users2];
 
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(allUsers);
+    mockGetNotificationRecipients.mockResolvedValue(allUsers);
 
     const notifications = await handleEserviceStateChangedToConsumer(
       testEservice.id,
@@ -310,10 +313,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
     );
     await addOneAgreement(agreement);
 
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleEserviceStateChangedToConsumer(
       testEservice.id,
@@ -380,10 +380,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
     ];
     const notifiableUsers = [...activeUsers, ...pendingUsers];
 
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(notifiableUsers);
+    mockGetNotificationRecipients.mockResolvedValue(notifiableUsers);
 
     const notifications = await handleEserviceStateChangedToConsumer(
       testEservice.id,
@@ -450,10 +447,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
     await addOneAgreement(agreement);
 
     const users = [{ userId: generateId(), tenantId: consumerId }];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleEserviceStateChangedToConsumer(
       testEservice.id,

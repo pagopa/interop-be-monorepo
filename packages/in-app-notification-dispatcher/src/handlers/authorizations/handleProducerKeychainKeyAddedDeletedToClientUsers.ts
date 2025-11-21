@@ -9,6 +9,7 @@ import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { producerKeychainKeyNotFound } from "../../models/errors.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
+import { getNotificationRecipients } from "../handlerCommons.js";
 
 type ProducerKeychainKeyAddedDeletedToClientUsersEventType =
   | "ProducerKeychainKeyAdded"
@@ -36,12 +37,13 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   const producerKeychain = fromProducerKeychainV2(
     decodedMessage.data.producerKeychain
   );
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [producerKeychain.producerId],
-      "producerKeychainKeyAddedDeletedToClientUsers"
-    );
-  if (userNotificationConfigs.length === 0) {
+  const usersWithNotifications = await getNotificationRecipients(
+    [producerKeychain.producerId],
+    "producerKeychainKeyAddedDeletedToClientUsers",
+    readModelService,
+    logger
+  );
+  if (usersWithNotifications.length === 0) {
     logger.info(
       `No users with notifications enabled for producerKeychainKeyAddedDeletedToClientUsers message`
     );
@@ -55,15 +57,14 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
         throw producerKeychainKeyNotFound(producerKeychain.id, kid);
       }
 
-      return userNotificationConfigs
+      return usersWithNotifications
         .filter(({ userId }) => userId !== key.userId) // Send to all other users
         .map(({ userId, tenantId }) => ({
           userId,
           tenantId,
           body: inAppTemplates.producerKeychainKeyDeletedToClientUsers(
             producerKeychain.name,
-            key.userId,
-            key.kid
+            key.userId
           ),
           notificationType:
             "producerKeychainKeyAddedDeletedToClientUsers" as const,
@@ -71,7 +72,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
         }));
     })
     .with({ type: "ProducerKeychainKeyAdded" }, () =>
-      userNotificationConfigs.map(({ userId, tenantId }) => ({
+      usersWithNotifications.map(({ userId, tenantId }) => ({
         userId,
         tenantId,
         body: inAppTemplates.producerKeychainKeyAddedToClientUsers(
@@ -83,7 +84,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
       }))
     )
     .with({ type: "ProducerKeychainUserDeleted" }, ({ data: { userId } }) =>
-      userNotificationConfigs
+      usersWithNotifications
         .filter(({ userId: uid }) => uid !== userId) // Send to all other users
         .map(({ userId, tenantId }) => ({
           userId,

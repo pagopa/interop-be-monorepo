@@ -4,23 +4,28 @@ import {
   Delegation,
   EService,
   EServiceId,
+  Purpose,
   TenantId,
   delegationKind,
   delegationState,
 } from "pagopa-interop-models";
-import { DelegationReadModelService } from "pagopa-interop-readmodel";
+import {
+  DelegationReadModelService,
+  CatalogReadModelService,
+} from "pagopa-interop-readmodel";
 import { delegationInReadmodelDelegation } from "pagopa-interop-readmodel-models";
 import { Delegations } from "../models/delegations.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
+  catalogReadModelServiceSQL,
 }: {
   delegationReadModelServiceSQL: DelegationReadModelService;
+  catalogReadModelServiceSQL: CatalogReadModelService;
 }) {
   async function getActiveProducerDelegation(
-    eserviceId: EServiceId,
-    delegatorId: TenantId
+    eserviceId: EServiceId
   ): Promise<Delegation | undefined> {
     const delegation =
       await delegationReadModelServiceSQL.getDelegationByFilter(
@@ -30,8 +35,7 @@ export function readModelServiceBuilderSQL({
           eq(
             delegationInReadmodelDelegation.kind,
             delegationKind.delegatedProducer
-          ),
-          eq(delegationInReadmodelDelegation.delegatorId, delegatorId)
+          )
         )
       );
     return delegation?.data;
@@ -60,21 +64,26 @@ export function readModelServiceBuilderSQL({
     async getActiveProducerDelegationForEService(
       eservice: EService
     ): Promise<Delegation | undefined> {
-      return getActiveProducerDelegation(eservice.id, eservice.producerId);
+      return getActiveProducerDelegation(eservice.id);
     },
-    async getActiveDelegationsForAgreement(
-      agreement: Agreement
+    async getActiveDelegationsForAgreementOrPurpose(
+      agreementOrPurpose: Agreement | Purpose
     ): Promise<Delegations> {
       return {
         producerDelegation: await getActiveProducerDelegation(
-          agreement.eserviceId,
-          agreement.producerId
+          agreementOrPurpose.eserviceId
         ),
         consumerDelegation: await getActiveConsumerDelegation(
-          agreement.eserviceId,
-          agreement.consumerId
+          agreementOrPurpose.eserviceId,
+          agreementOrPurpose.consumerId
         ),
       };
+    },
+    async getEServiceById(
+      eserviceId: EServiceId
+    ): Promise<EService | undefined> {
+      return (await catalogReadModelServiceSQL.getEServiceById(eserviceId))
+        ?.data;
     },
   };
 }

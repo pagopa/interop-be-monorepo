@@ -27,7 +27,6 @@ export async function handleAgreementActivatedToProducer(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = params;
 
@@ -49,7 +48,6 @@ export async function handleAgreementActivatedToProducer(
     tenants: [producer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });

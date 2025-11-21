@@ -5,7 +5,6 @@ import {
   M2MEventSQLDbConfig,
   ReadModelSQLDbConfig,
   S3Config,
-  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
@@ -207,26 +206,3 @@ export const m2mEventDBContainer = (
       },
     ])
     .withExposedPorts(TEST_M2M_EVENT_DB_PORT);
-
-/**
- * Starts a PostgreSQL container for testing purposes.
- *
- * @param config - The configuration for the User PostgreSQL DB container.
- * @returns A promise that resolves to the started test container.
- */
-export const postgreSQLUserContainer = (
-  config: UserSQLDbConfig
-): GenericContainer =>
-  new GenericContainer(TEST_POSTGRES_DB_IMAGE)
-    .withEnvironment({
-      POSTGRES_DB: config.userSQLDbName,
-      POSTGRES_USER: config.userSQLDbUsername,
-      POSTGRES_PASSWORD: config.userSQLDbPassword,
-    })
-    .withCopyDirectoriesToContainer([
-      {
-        source: "../../docker/user-db",
-        target: "/docker-entrypoint-initdb.d",
-      },
-    ])
-    .withExposedPorts(TEST_POSTGRES_DB_PORT);

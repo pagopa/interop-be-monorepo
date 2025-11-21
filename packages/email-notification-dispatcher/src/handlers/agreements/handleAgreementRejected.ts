@@ -28,7 +28,6 @@ export async function handleAgreementRejected(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -48,7 +47,6 @@ export async function handleAgreementRejected(
     tenants: [consumer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: true,
   });

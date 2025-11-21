@@ -4,6 +4,7 @@ import {
   getMockContext,
   getMockTenant,
 } from "pagopa-interop-commons-test/index.js";
+import { authRole } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
@@ -23,11 +24,9 @@ import { handleClientUserDeleted } from "../src/handlers/authorization/handleCli
 import { tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleClientUserDeleted", async () => {
@@ -57,9 +56,6 @@ describe("handleClientUserDeleted", async () => {
 
   beforeEach(async () => {
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -75,7 +71,12 @@ describe("handleClientUserDeleted", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -86,7 +87,6 @@ describe("handleClientUserDeleted", async () => {
         userId: userId1,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -113,7 +113,6 @@ describe("handleClientUserDeleted", async () => {
         userId: userId1,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -126,7 +125,6 @@ describe("handleClientUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -153,7 +151,12 @@ describe("handleClientUserDeleted", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[2].id, tenantId: users[2].tenantId },
+        {
+          userId: users[2].id,
+          tenantId: users[2].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const messages = await handleClientUserDeleted({
@@ -161,7 +164,6 @@ describe("handleClientUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -190,7 +192,6 @@ describe("handleClientUserDeleted", async () => {
       userId: userId1,
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
