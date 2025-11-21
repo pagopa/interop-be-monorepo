@@ -540,14 +540,19 @@ export function delegationServiceBuilder(
       delegation
     );
 
-    const delegationWithContract: Delegation = {
-      ...delegation,
-      ...(delegation.activationSignedContract
-        ? { activationSignedContract: delegationContract }
-        : delegation.revocationSignedContract
-        ? { revocationSignedContract: delegationContract }
-        : {}),
-    };
+    const delegationWithContract: Delegation = ((): Delegation => {
+      if (delegation.state === delegationState.revoked) {
+        return {
+          ...delegation,
+          revocationSignedContract: delegationContract,
+        };
+      } else {
+        return {
+          ...delegation,
+          activationSignedContract: delegationContract,
+        };
+      }
+    })();
 
     const event = await repository.createEvent(
       toCreateEventDelegationSignedContractGenerated(
