@@ -49,33 +49,29 @@ export async function handleDelegationDocument(
           };
 
           const { uploadUrl, secret, key } =
-            await safeStorageService.createFile(safeStorageRequest, logger);
+            await safeStorageService.createFile(safeStorageRequest);
 
           await safeStorageService.uploadFileContent(
             uploadUrl,
             Buffer.from(file),
             "application/pdf",
             secret,
-            checksum,
-            logger
+            checksum
           );
 
-          await signatureService.saveDocumentSignatureReference(
-            {
-              safeStorageId: key,
-              fileKind: "DELEGATION_CONTRACT",
-              streamId: msg.data.delegation.id,
-              subObjectId: "",
-              contentType: "application/pdf",
-              path: msg.data.delegation.activationContract.path,
-              prettyname: msg.data.delegation.activationContract.prettyName,
-              fileName,
-              version: msg.event_version,
-              createdAt: msg.data.delegation.createdAt,
-              correlationId: msg.correlation_id ?? "",
-            },
-            logger
-          );
+          await signatureService.saveDocumentSignatureReference({
+            safeStorageId: key,
+            fileKind: "DELEGATION_CONTRACT",
+            streamId: msg.data.delegation.id,
+            subObjectId: "",
+            contentType: "application/pdf",
+            path: msg.data.delegation.activationContract.path,
+            prettyname: msg.data.delegation.activationContract.prettyName,
+            fileName,
+            version: msg.event_version,
+            createdAt: msg.data.delegation.createdAt,
+            correlationId: msg.correlation_id ?? "",
+          });
         }
       }
     )

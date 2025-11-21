@@ -47,8 +47,7 @@ async function processMessage(
     };
 
     const { uploadUrl, secret, key } = await safeStorageService.createFile(
-      safeStorageRequest,
-      logger
+      safeStorageRequest
     );
 
     await safeStorageService.uploadFileContent(
@@ -56,19 +55,15 @@ async function processMessage(
       zipped,
       "application/gzip",
       secret,
-      checksum,
-      logger
+      checksum
     );
 
-    await signatureService.saveSignatureReference(
-      {
-        safeStorageId: key,
-        fileKind: "VOUCHER_AUDIT",
-        fileName,
-        correlationId,
-      },
-      logger
-    );
+    await signatureService.saveSignatureReference({
+      safeStorageId: key,
+      fileKind: "VOUCHER_AUDIT",
+      fileName,
+      correlationId,
+    });
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);
     throw error;

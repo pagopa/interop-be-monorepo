@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
-
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   DelegationEventEnvelopeV2,
@@ -19,7 +17,6 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
-  Logger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -31,7 +28,6 @@ import { dynamoDBClient } from "../utils/utils.js";
 import { handleDelegationMessageV2 } from "../../src/handlers/handleDelegationMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
-let logger: Logger;
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
 const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
@@ -103,8 +99,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId,
-      logger
+      mockSafeStorageId
     );
 
     expect(retrievedReference).toEqual({
@@ -160,8 +155,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId(),
-      logger
+      generateId()
     );
     expect(retrievedReference).toBeUndefined();
   });

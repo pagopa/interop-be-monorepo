@@ -53,8 +53,7 @@ async function processMessage(
     const { key: fileKey, client_short_code: clientCode } = detail;
 
     const signature = await signatureService.readSignatureReferenceById(
-      fileKey,
-      logger
+      fileKey
     );
 
     if (!signature) {
@@ -67,13 +66,12 @@ async function processMessage(
       throw new Error(`Unknown fileKind: ${fileKind}`);
     }
 
-    const fileRef = await safeStorageService.getFile(fileKey, false, logger);
+    const fileRef = await safeStorageService.getFile(fileKey);
     if (!fileRef.download?.url) {
       throw new Error(`Missing download URL for fileKey: ${fileKey}`);
     }
     const fileContent = await safeStorageService.downloadFileContent(
-      fileRef.download.url,
-      logger
+      fileRef.download.url
     );
 
     const { bucket, process } =
@@ -192,7 +190,7 @@ async function processMessage(
         .exhaustive();
     }
 
-    await signatureService.deleteSignatureReference(fileKey, logger);
+    await signatureService.deleteSignatureReference(fileKey);
     logger.info(
       `Record ${id} deleted from DynamoDB table ${config.signatureReferencesTableName}`
     );
