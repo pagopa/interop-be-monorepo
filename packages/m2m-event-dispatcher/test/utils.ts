@@ -353,14 +353,14 @@ export interface TopicNames {
 
 export const mockProcessMessage =
   (topicNames: TopicNames) =>
-    async (messagePayload: EachMessagePayload): Promise<void> => {
-      const validTopics = Object.values(topicNames);
-      const currentTopic = messagePayload.topic;
-      if (!validTopics.includes(currentTopic)) {
-        throw new Error(`Unknown topic: ${currentTopic}`);
-      }
-      const decodedMessage = decodeKafkaMessageMock(messagePayload.message);
-      if (decodedMessage.event_version === 1) {
-        return Promise.resolve();
-      }
-    };
+  async (messagePayload: EachMessagePayload): Promise<void> => {
+    const validTopics = Object.values(topicNames);
+    const currentTopic = messagePayload.topic;
+    if (!validTopics.includes(currentTopic)) {
+      throw new Error(`Unknown topic: ${currentTopic}`);
+    }
+    const decodedMessage = decodeKafkaMessageMock(messagePayload.message);
+    if (decodedMessage.event_version === 1) {
+      return Promise.resolve();
+    }
+  };
