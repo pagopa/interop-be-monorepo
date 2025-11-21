@@ -277,3 +277,13 @@ export const updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
     )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updatePurposeTemplateRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+  // eslint-disable-next-line sonarjs/no-identical-functions
+): number =>
+  match(error.code)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

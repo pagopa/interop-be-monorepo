@@ -13,10 +13,15 @@ import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
   toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
+  toPurposeTemplateApiRiskAnalysisFormTemplateSeed,
 } from "../api/purposeTemplateApiConverter.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
+import {
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastMetadataTargetVersion,
+} from "../utils/polling.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -36,6 +41,17 @@ export function purposeTemplateServiceBuilder(
         id: purposeTemplateId,
       },
       headers,
+    });
+
+  const pollPurposeTemplateById = (
+    purposeTemplateId: PurposeTemplateId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(purposeTemplateId, headers)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
   return {
@@ -215,6 +231,32 @@ export function purposeTemplateServiceBuilder(
         config.purposeTemplateDocumentsContainer,
         logger
       );
+    },
+    async updatePurposeTemplateRiskAnalysis(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisFormSeed: m2mGatewayApi.RiskAnalysisFormTemplateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.RiskAnalysisFormTemplate> {
+      logger.info(
+        `Updating risk analysis form for purpose template ${purposeTemplateId}`
+      );
+
+      const { data: riskAnalysisForm, metadata } =
+        await clients.purposeTemplateProcessClient.updatePurposeTemplateRiskAnalysis(
+          toPurposeTemplateApiRiskAnalysisFormTemplateSeed(
+            riskAnalysisFormSeed
+          ),
+          {
+            params: {
+              purposeTemplateId,
+            },
+            headers,
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+
+      return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
     },
   };
 }

@@ -25,7 +25,7 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.M2M_ADMIN_ROLE,

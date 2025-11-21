@@ -16,6 +16,38 @@ export function toGetPurposeTemplatesApiQueryParams(
   };
 }
 
+export function toPurposeTemplateApiRiskAnalysisTemplateAnswersSeed(
+  answers: Record<string, m2mGatewayApi.RiskAnalysisTemplateAnswerSeed>
+): Record<string, purposeTemplateApi.RiskAnalysisTemplateAnswerSeed> {
+  return Object.entries(answers).reduce<
+    Record<string, purposeTemplateApi.RiskAnalysisTemplateAnswerSeed>
+  >((map, [key, answer]) => {
+    if (!answer) {
+      return map;
+    }
+    return {
+      ...map,
+      [key]: {
+        values: answer.values,
+        editable: answer.editable,
+        suggestedValues: answer.suggestedValues,
+        annotation: answer.annotationText
+          ? { text: answer.annotationText }
+          : undefined,
+      } satisfies purposeTemplateApi.RiskAnalysisTemplateAnswerSeed,
+    };
+  }, {});
+}
+
+export function toPurposeTemplateApiRiskAnalysisFormTemplateSeed(
+  seed: m2mGatewayApi.RiskAnalysisFormTemplateSeed
+): purposeTemplateApi.RiskAnalysisFormTemplateSeed {
+  return {
+    ...seed,
+    answers: toPurposeTemplateApiRiskAnalysisTemplateAnswersSeed(seed.answers),
+  };
+}
+
 export function toM2MGatewayApiPurposeTemplate(
   purposeTemplate: purposeTemplateApi.PurposeTemplate
 ): m2mGatewayApi.PurposeTemplate {

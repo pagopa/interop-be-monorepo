@@ -41,6 +41,7 @@ import {
   createRiskAnalysisAnswerErrorMapper,
   getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+  updatePurposeTemplateRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
@@ -50,6 +51,7 @@ import {
   purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
   purposeTemplateToApiPurposeTemplate,
   riskAnalysisAnswerToApiRiskAnalysisAnswer,
+  riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate,
 } from "../model/domain/apiConverter.js";
 
 const purposeTemplateRouter = (
@@ -494,6 +496,41 @@ const purposeTemplateRouter = (
             ctx
           );
           return res.status(errorRes.status).send();
+        }
+      }
+    )
+    .put(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const { data: riskAnalysisFormTemplate, metadata } =
+            await purposeTemplateService.updatePurposeTemplateRiskAnalysis(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              riskAnalysisFormTemplate
+                ? riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
+                    riskAnalysisFormTemplate
+                  )
+                : undefined
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updatePurposeTemplateRiskAnalysisErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
