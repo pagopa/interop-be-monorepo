@@ -1,6 +1,7 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
+  getMockedApiPurposeTemplate,
   getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
@@ -58,8 +59,11 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     .mockResolvedValue(mockPurposeTemplateProcessResponse);
 
   const mockPollRetries = 2;
+  const mockPurposeTemplate = getMockedApiPurposeTemplate();
+  const mockGetPurposeTemplateResponse =
+    getMockWithMetadata(mockPurposeTemplate);
   const mockGetPurposeTemplate = vi.fn(
-    mockPollingResponse(mockPurposeTemplateProcessResponse, mockPollRetries)
+    mockPollingResponse(mockGetPurposeTemplateResponse, mockPollRetries)
   );
 
   mockInteropBeClients.purposeTemplateProcessClient = {
@@ -164,7 +168,7 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
 
   it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
     mockGetPurposeTemplate.mockResolvedValueOnce({
-      ...mockPurposeTemplateProcessResponse,
+      ...mockGetPurposeTemplateResponse,
       metadata: undefined,
     });
 
@@ -180,7 +184,7 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetPurposeTemplate.mockImplementation(
       mockPollingResponse(
-        mockPurposeTemplateProcessResponse,
+        mockGetPurposeTemplateResponse,
         config.defaultPollingMaxRetries + 1
       )
     );
