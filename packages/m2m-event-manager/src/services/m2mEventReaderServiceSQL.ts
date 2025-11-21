@@ -10,6 +10,7 @@ import {
   producerKeychainInM2MEvent,
   producerKeyInM2MEvent,
   tenantInM2MEvent,
+  eserviceTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -32,6 +33,8 @@ import {
   ProducerKeyM2MEventId,
   ProducerKeychainM2MEvent,
   ProducerKeychainM2MEventId,
+  EServiceTemplateM2MEvent,
+  EServiceTemplateM2MEventId,
   TenantId,
   TenantM2MEvent,
   TenantM2MEventId,
@@ -59,6 +62,7 @@ import {
   fromProducerKeyM2MEventSQL,
 } from "../model/authorizationM2MEventAdapterSQL.js";
 import { fromTenantM2MEventSQL } from "../model/tenantM2MEventAdapterSQL.js";
+import { fromEServiceTemplateM2MEventSQL } from "../model/eserviceTemplateM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -261,6 +265,29 @@ export function m2mEventReaderServiceSQLBuilder(
         .limit(limit);
 
       return sqlEvents.map(fromClientM2MEventSQL);
+    },
+
+    async getEServiceTemplateM2MEvents(
+      lastEventId: EServiceTemplateM2MEventId | undefined,
+      limit: number,
+      requester: TenantId
+    ): Promise<EServiceTemplateM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(eserviceTemplateInM2MEvent)
+        .where(
+          and(
+            afterEventIdFilter(eserviceTemplateInM2MEvent, lastEventId),
+            visibilityFilter(eserviceTemplateInM2MEvent, {
+              ownerFilter: eq(eserviceTemplateInM2MEvent.creatorId, requester),
+              restrictedFilter: undefined,
+            })
+          )
+        )
+        .orderBy(asc(eserviceTemplateInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromEServiceTemplateM2MEventSQL);
     },
 
     async getProducerKeyM2MEvents(

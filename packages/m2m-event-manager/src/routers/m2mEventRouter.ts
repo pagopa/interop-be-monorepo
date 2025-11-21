@@ -20,6 +20,7 @@ import {
   ProducerKeychainM2MEventId,
   ProducerKeyM2MEventId,
   TenantM2MEventId,
+  EServiceTemplateM2MEventId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { m2mEventApi } from "pagopa-interop-api-clients";
@@ -41,6 +42,7 @@ import {
   toApiProducerKeyM2MEvents,
 } from "../model/authorizationM2MEventApiConverter.js";
 import { toApiTenantM2MEvents } from "../model/tenantM2MEventApiConverter.js";
+import { toApiEServiceTemplateM2MEvents } from "../model/eserviceTemplateM2MEventApiConverter.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -376,7 +378,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getEServiceTemplateM2MEvents(
+          lastEventId
+            ? unsafeBrandId<EServiceTemplateM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.EServiceTemplateM2MEvents.parse(
+              toApiEServiceTemplateM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

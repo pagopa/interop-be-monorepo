@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { constants } from "http2";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -7,6 +8,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
+  PurposeTemplateId,
+  purposeTemplateState,
   RiskAnalysisTemplateAnswerAnnotation,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -14,6 +17,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation } from "../../src/model/domain/apiConverter.js";
+import {
+  purposeTemplateNotFound,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
+  purposeTemplateStateConflict,
+  riskAnalysisTemplateAnswerNotFound,
+  riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
+  hyperlinkDetectionError,
+} from "../../src/model/domain/errors.js";
+
+const {
+  HTTP_STATUS_OK,
+  HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_CONFLICT,
+} = constants;
 
 describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation", () => {
   const authorizedRoles: AuthRole[] = [
@@ -21,7 +43,7 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
     authRole.M2M_ADMIN_ROLE,
   ];
 
-  const purposeTemplateId = generateId();
+  const purposeTemplateId = generateId<PurposeTemplateId>();
   const answerId = generateId();
   const mockRiskAnalysisAnswerAnnotation: RiskAnalysisTemplateAnswerAnnotation =
     {
@@ -66,7 +88,7 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
         token,
         validRiskAnalysisAnswerAnnotationRequest
       );
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(HTTP_STATUS_OK);
       expect(res.body).toEqual(
         purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation(
           mockRiskAnalysisAnswerAnnotation
@@ -86,7 +108,7 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
       token,
       validRiskAnalysisAnswerAnnotationRequest
     );
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(HTTP_STATUS_FORBIDDEN);
   });
 
   it.each([
@@ -105,7 +127,7 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
       token,
       body as purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed
     );
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(HTTP_STATUS_BAD_REQUEST);
   });
 
   it("Should return 400 if annotation text is longer than 2000 characters", async () => {
@@ -117,24 +139,69 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
 
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, requestWithLongAnnotation);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(HTTP_STATUS_BAD_REQUEST);
   });
 
-  // todo disabled until hyperlinks validation rules are defined
-  /* it("Should return 400 if annotation text contains hyperlinks", async () => {
-    const textWithHyperlink =
-      "This text contains a hyperlink: https://example.com";
-    const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
-      {
-        text: textWithHyperlink,
-      };
+  it.each([
+    {
+      error: riskAnalysisTemplateValidationFailed([]),
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
+    },
+    {
+      error: hyperlinkDetectionError(
+        "This text contains a hyperlink: https://example.com"
+      ),
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
+    },
+    {
+      error: purposeTemplateNotFound(purposeTemplateId),
+      expectedStatus: HTTP_STATUS_NOT_FOUND,
+    },
+    {
+      error: riskAnalysisTemplateAnswerNotFound({
+        purposeTemplateId,
+        answerId: generateId(),
+      }),
+      expectedStatus: HTTP_STATUS_NOT_FOUND,
+    },
+    {
+      error: purposeTemplateNotInExpectedStates(
+        purposeTemplateId,
+        purposeTemplateState.archived,
+        [purposeTemplateState.published]
+      ),
+      expectedStatus: HTTP_STATUS_CONFLICT,
+    },
+    {
+      error: purposeTemplateStateConflict(
+        purposeTemplateId,
+        purposeTemplateState.archived
+      ),
+      expectedStatus: HTTP_STATUS_CONFLICT,
+    },
+    {
+      error: tenantNotAllowed(generateId()),
+      expectedStatus: HTTP_STATUS_FORBIDDEN,
+    },
+    {
+      error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId),
+      expectedStatus: HTTP_STATUS_INTERNAL_SERVER_ERROR,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
 
-    purposeTemplateService.addRiskAnalysisAnswerAnnotation = vi
-      .fn()
-      .mockRejectedValue(hyperlinkDetectionError(textWithHyperlink));
+      purposeTemplateService.addRiskAnalysisAnswerAnnotation = vi
+        .fn()
+        .mockRejectedValue(error);
 
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, requestWithHyperlink);
-    expect(res.status).toBe(400);
-  }); */
+      const res = await makeRequest(
+        token,
+        validRiskAnalysisAnswerAnnotationRequest
+      );
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

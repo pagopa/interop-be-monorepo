@@ -121,6 +121,11 @@ export const purposeVersionToApiPurposeVersion = (
   dailyCalls: version.dailyCalls,
   suspendedAt: version.suspendedAt?.toJSON(),
   rejectionReason: version.rejectionReason,
+  signedContract: version.signedContract
+    ? purposeVersionSignedDocumentToApiPurposeVersionSignedDocument(
+        version.signedContract
+      )
+    : undefined,
 });
 
 export const purposeToApiPurpose = (
