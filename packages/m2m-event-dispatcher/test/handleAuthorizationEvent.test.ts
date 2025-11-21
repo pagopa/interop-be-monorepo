@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomInt } from "crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -18,12 +19,20 @@ import {
   generateId,
   Client,
   ProducerKeychain,
+  toClientV1,
+  AuthorizationEventEnvelopeV1,
+  toKeyV1,
+  KeysAddedV1,
+  Key,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { EachMessagePayload, KafkaMessage } from "kafkajs";
 import { handleAuthorizationEvent } from "../src/handlers/handleAuthorizationEvent.js";
 import {
+  bigIntReplacer,
   getMockEventEnvelopeCommons,
+  mockProcessMessage,
   retrieveAllClientM2MEvents,
   retrieveAllKeyM2MEvents,
   retrieveAllProducerKeychainM2MEvents,
@@ -33,6 +42,7 @@ import {
   retrieveLastProducerKeychainM2MEvent,
   retrieveLastProducerKeyM2MEvent,
   testM2mEventWriterService,
+  TopicNames,
 } from "./utils.js";
 
 describe("handleAuthorizationEvent test", async () => {
@@ -616,3 +626,125 @@ function buildTestCaseData(
       .exhaustive()
   );
 }
+describe("V1 Event Skipping", () => {
+  it("should skip V1 events by not calling insertClientM2MEvent and resolving", async () => {
+    vi.clearAllMocks();
+
+    const bigIntReplacer = (value: any): any => {
+      if (typeof value === "bigint") {
+        return value.toString();
+      }
+      return value;
+    };
+
+    const client = getMockClient();
+    const message: AuthorizationEventEnvelopeV1 = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: client.id,
+      type: "ClientAdded",
+      event_version: 1,
+      data: {
+        client: toClientV1(client),
+      },
+    };
+
+    const jsonString = JSON.stringify(message, bigIntReplacer);
+
+    const kafkaMessage: KafkaMessage = {
+      key: null,
+      value: Buffer.from(jsonString),
+      timestamp: "0",
+      size: 0,
+      attributes: 0,
+      offset: "0",
+      headers: undefined,
+    };
+
+    const eachMessagePayload: EachMessagePayload = {
+      topic: "event-store.authorization.events",
+      partition: 0,
+      message: kafkaMessage,
+      heartbeat: async () => {
+        /* no-op in mock */
+      },
+      pause: () => () => {
+        /* no-op in mock */
+      },
+    };
+
+    await mockProcessMessage({
+      authorizationTopic: "event-store.authorization.events",
+    } as TopicNames)(eachMessagePayload);
+
+    expect(
+      testM2mEventWriterService.insertClientM2MEvent
+    ).not.toHaveBeenCalled();
+
+    expect(await retrieveAllClientM2MEvents({ limit: 10 })).toHaveLength(0);
+  });
+
+  it("should skip V1 events by not calling insertKeyM2MEvent and resolving", async () => {
+    vi.clearAllMocks();
+
+    const addedKey: Key = getMockKey();
+
+    const updatedClient: Client = {
+      ...getMockClient(),
+      keys: [
+        {
+          ...addedKey,
+        },
+      ],
+    };
+    const payload: KeysAddedV1 = {
+      clientId: updatedClient.id,
+      keys: [
+        {
+          keyId: addedKey.kid,
+          value: {
+            ...toKeyV1(addedKey),
+          },
+        },
+      ],
+    };
+    const message: AuthorizationEventEnvelopeV1 = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: updatedClient.id,
+      type: "KeysAdded",
+      event_version: 1,
+      data: payload,
+    };
+
+    const jsonString = JSON.stringify(message, bigIntReplacer);
+
+    const kafkaMessage: KafkaMessage = {
+      key: null,
+      value: Buffer.from(jsonString),
+      timestamp: "0",
+      size: 0,
+      attributes: 0,
+      offset: "0",
+      headers: undefined,
+    };
+
+    const eachMessagePayload: EachMessagePayload = {
+      topic: "event-store.authorization.events",
+      partition: 0,
+      message: kafkaMessage,
+      heartbeat: async () => {
+        /* no-op in mock */
+      },
+      pause: () => () => {
+        /* no-op in mock */
+      },
+    };
+
+    await mockProcessMessage({
+      authorizationTopic: "event-store.authorization.events",
+    } as TopicNames)(eachMessagePayload);
+
+    expect(testM2mEventWriterService.insertKeyM2MEvent).not.toHaveBeenCalled();
+
+    expect(await retrieveAllKeyM2MEvents({ limit: 10 })).toHaveLength(0);
+  });
+});

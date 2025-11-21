@@ -4,6 +4,7 @@ import {
   getMockDescriptor,
   getMockEService,
   randomArrayItem,
+  toEServiceV1,
 } from "pagopa-interop-commons-test";
 import {
   toEServiceV2,
@@ -17,17 +18,22 @@ import {
   TenantId,
   Delegation,
   EServiceId,
+  EServiceEventEnvelopeV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { EachMessagePayload, KafkaMessage } from "kafkajs";
 import { handleEServiceEvent } from "../src/handlers/handleEServiceEvent.js";
 import {
   addOneDelegationToReadModel,
+  bigIntReplacer,
   getMockEventEnvelopeCommons,
+  mockProcessMessage,
   retrieveAllEServiceM2MEvents,
   retrieveLastEServiceM2MEvent,
   testM2mEventWriterService,
   testReadModelService,
+  TopicNames,
 } from "./utils.js";
 
 describe("handleEServiceEvent test", async () => {
@@ -363,5 +369,56 @@ describe("handleEServiceEvent test", async () => {
     ).toHaveBeenCalledTimes(3);
 
     expect(await retrieveAllEServiceM2MEvents({ limit: 10 })).toHaveLength(2);
+  });
+});
+
+describe("V1 Event Skipping", () => {
+  it("should skip V1 events by not calling insertEServiceM2MEvent and resolving", async () => {
+    vi.clearAllMocks();
+
+    const eservice = getMockEService();
+    const message: EServiceEventEnvelopeV1 = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: eservice.id,
+      type: "EServiceAdded",
+      event_version: 1,
+      data: {
+        eservice: toEServiceV1(eservice),
+      },
+    };
+
+    const jsonString = JSON.stringify(message, bigIntReplacer);
+
+    const kafkaMessage: KafkaMessage = {
+      key: null,
+      value: Buffer.from(jsonString),
+      timestamp: "0",
+      size: 0,
+      attributes: 0,
+      offset: "0",
+      headers: undefined,
+    };
+
+    const eachMessagePayload: EachMessagePayload = {
+      topic: "event-store.eservice.events",
+      partition: 0,
+      message: kafkaMessage,
+      heartbeat: async () => {
+        /* no-op in mock */
+      },
+      pause: () => () => {
+        /* no-op in mock */
+      },
+    };
+
+    await mockProcessMessage({
+      catalogTopic: "event-store.eservice.events",
+    } as TopicNames)(eachMessagePayload);
+
+    expect(
+      testM2mEventWriterService.insertEServiceM2MEvent
+    ).not.toHaveBeenCalled();
+
+    expect(await retrieveAllEServiceM2MEvents({ limit: 10 })).toHaveLength(0);
   });
 });

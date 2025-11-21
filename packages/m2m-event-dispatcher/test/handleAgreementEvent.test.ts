@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getMockDelegation,
   getMockAgreement,
+  toAgreementV1,
 } from "pagopa-interop-commons-test";
 import {
   toAgreementV2,
@@ -14,17 +15,22 @@ import {
   TenantId,
   delegationState,
   Delegation,
+  AgreementEventEnvelopeV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { EachMessagePayload, KafkaMessage } from "kafkajs";
 import { handleAgreementEvent } from "../src/handlers/handleAgreementEvent.js";
 import {
   addOneDelegationToReadModel,
+  bigIntReplacer,
   getMockEventEnvelopeCommons,
+  mockProcessMessage,
   retrieveAllAgreementM2MEvents,
   retrieveLastAgreementM2MEvent,
   testM2mEventWriterService,
   testReadModelService,
+  TopicNames,
 } from "./utils.js";
 
 describe("handleAgreementEvent test", async () => {
@@ -238,5 +244,56 @@ describe("handleAgreementEvent test", async () => {
     ).toHaveBeenCalledTimes(3);
 
     expect(await retrieveAllAgreementM2MEvents({ limit: 10 })).toHaveLength(2);
+  });
+});
+
+describe("V1 Event Skipping", () => {
+  it("should skip V1 events by not calling insertAgreementM2MEvent and resolving", async () => {
+    vi.clearAllMocks();
+
+    const agreement = getMockAgreement();
+    const message: AgreementEventEnvelopeV1 = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: agreement.id,
+      type: "AgreementAdded",
+      event_version: 1,
+      data: {
+        agreement: toAgreementV1(agreement),
+      },
+    };
+
+    const jsonString = JSON.stringify(message, bigIntReplacer);
+
+    const kafkaMessage: KafkaMessage = {
+      key: null,
+      value: Buffer.from(jsonString),
+      timestamp: "0",
+      size: 0,
+      attributes: 0,
+      offset: "0",
+      headers: undefined,
+    };
+
+    const eachMessagePayload: EachMessagePayload = {
+      topic: "event-store.agreement.events",
+      partition: 0,
+      message: kafkaMessage,
+      heartbeat: async () => {
+        /* no-op in mock */
+      },
+      pause: () => () => {
+        /* no-op in mock */
+      },
+    };
+
+    await mockProcessMessage({
+      agreementTopic: "event-store.agreement.events",
+    } as TopicNames)(eachMessagePayload);
+
+    expect(
+      testM2mEventWriterService.insertAgreementM2MEvent
+    ).not.toHaveBeenCalled();
+
+    expect(await retrieveAllAgreementM2MEvents({ limit: 10 })).toHaveLength(0);
   });
 });
