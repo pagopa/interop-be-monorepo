@@ -40,38 +40,43 @@ export async function handleDelegationDocument(
 
           const fileName = path.basename(s3Key);
           const checksum = await calculateSha256Base64(Buffer.from(file));
+          const contentType = "application/pdf";
 
           const safeStorageRequest: FileCreationRequest = {
-            contentType: "application/pdf",
+            contentType,
             documentType: config.safeStorageDocType,
             status: config.safeStorageDocStatus,
             checksumValue: checksum,
           };
 
           const { uploadUrl, secret, key } =
-            await safeStorageService.createFile(safeStorageRequest);
+            await safeStorageService.createFile(safeStorageRequest, logger);
 
           await safeStorageService.uploadFileContent(
             uploadUrl,
             Buffer.from(file),
-            "application/pdf",
+            contentType,
             secret,
-            checksum
+            checksum,
+            logger
           );
 
-          await signatureService.saveDocumentSignatureReference({
-            safeStorageId: key,
-            fileKind: "DELEGATION_CONTRACT",
-            streamId: msg.data.delegation.id,
-            subObjectId: "",
-            contentType: "application/pdf",
-            path: msg.data.delegation.activationContract.path,
-            prettyname: msg.data.delegation.activationContract.prettyName,
-            fileName,
-            version: msg.event_version,
-            createdAt: msg.data.delegation.createdAt,
-            correlationId: msg.correlation_id ?? "",
-          });
+          await signatureService.saveDocumentSignatureReference(
+            {
+              safeStorageId: key,
+              fileKind: "DELEGATION_CONTRACT",
+              streamId: msg.data.delegation.id,
+              subObjectId: "",
+              contentType,
+              path: msg.data.delegation.activationContract.path,
+              prettyname: msg.data.delegation.activationContract.prettyName,
+              fileName,
+              version: msg.event_version,
+              createdAt: msg.data.delegation.createdAt,
+              correlationId: msg.correlation_id ?? "",
+            },
+            logger
+          );
         }
       }
     )

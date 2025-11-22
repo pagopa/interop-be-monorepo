@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
@@ -8,7 +9,11 @@ import {
   AgreementEventEnvelopeV2,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { FileManager, initFileManager } from "pagopa-interop-commons";
+import {
+  FileManager,
+  genericLogger,
+  initFileManager,
+} from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -88,7 +93,8 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -135,7 +141,8 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

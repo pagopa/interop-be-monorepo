@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
+
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   DelegationEventEnvelopeV2,
@@ -17,6 +18,7 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -99,7 +101,8 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -155,7 +158,8 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

@@ -11,6 +11,7 @@ import {
   DocumentSignatureReferenceSchema,
   SignatureReference,
   SignatureReferenceSchema,
+  genericLogger,
   signatureServiceBuilder,
 } from "pagopa-interop-commons";
 import {
@@ -43,14 +44,16 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       creationTimestamp: getUnixTime(new Date()),
     };
 
-    await signatureService.saveSignatureReference(mockReference);
+    await signatureService.saveSignatureReference(mockReference, genericLogger);
 
     await signatureService.deleteSignatureReference(
-      mockReference.safeStorageId
+      mockReference.safeStorageId,
+      genericLogger
     );
 
     const retrievedItem = await signatureService.readSignatureReference(
-      mockReference.safeStorageId
+      mockReference.safeStorageId,
+      genericLogger
     );
 
     expect(retrievedItem).toEqual({
@@ -63,7 +66,8 @@ describe("signatureServiceBuilder - Integration Tests", () => {
     const nonExistentId = generateId();
     const signatureService = signatureServiceBuilder(dynamoDBClient, config);
     const retrievedItem = await signatureService.readSignatureReference(
-      nonExistentId
+      nonExistentId,
+      genericLogger
     );
 
     expect(retrievedItem).toBeUndefined();
@@ -83,7 +87,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       config
     );
     await expect(
-      signatureService.readSignatureReference(generateId())
+      signatureService.readSignatureReference(generateId(), genericLogger)
     ).rejects.toThrow();
   });
 
@@ -98,10 +102,11 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       creationTimestamp: getUnixTime(new Date()),
     };
 
-    await signatureService.saveSignatureReference(mockReference);
+    await signatureService.saveSignatureReference(mockReference, genericLogger);
 
     const retrieved = await signatureService.readSignatureReference(
-      safeStorageId
+      safeStorageId,
+      genericLogger
     );
 
     expect(retrieved).toBeDefined();
@@ -130,7 +135,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
     const expectedMessage = `Error reading signature reference with id='${malformedId}' from table 'SignatureReferencesTable': Error: Malformed item in table 'SignatureReferencesTable' for id='${malformedId}'`;
 
     await expect(
-      signatureService.readSignatureReference(malformedId)
+      signatureService.readSignatureReference(malformedId, genericLogger)
     ).rejects.toThrow(expectedMessage);
   });
 
@@ -144,10 +149,11 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       correlationId: generateId(),
     };
 
-    await signatureService.saveSignatureReference(mockReference);
+    await signatureService.saveSignatureReference(mockReference, genericLogger);
 
     await signatureService.deleteSignatureReference(
-      mockReference.safeStorageId
+      mockReference.safeStorageId,
+      genericLogger
     );
 
     // Read raw item from DynamoDB
@@ -193,17 +199,24 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       version: 2,
       createdAt: BigInt(12345),
       creationTimestamp: getUnixTime(new Date()),
-      path: "/some/path/document.pdf", // campo obbligatorio per l'assert
+      path: "/some/path/document.pdf",
     };
 
-    await signatureService.saveSignatureReference(sigRef);
-    await signatureService.saveDocumentSignatureReference(docSigRef);
+    await signatureService.saveSignatureReference(sigRef, genericLogger);
+    await signatureService.saveDocumentSignatureReference(
+      docSigRef,
+      genericLogger
+    );
 
     const retrievedSigRef = await signatureService.readSignatureReference(
-      sigRefId
+      sigRefId,
+      genericLogger
     );
     const retrievedDocSigRef =
-      await signatureService.readDocumentSignatureReference(docSigRefId);
+      await signatureService.readDocumentSignatureReference(
+        docSigRefId,
+        genericLogger
+      );
 
     expect(retrievedSigRef).toBeDefined();
     expect(retrievedSigRef?.safeStorageId).toBe(sigRef.safeStorageId);
@@ -247,15 +260,22 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       path: "/some/path/document.pdf",
     };
 
-    await signatureService.saveSignatureReference(sigRef);
-    await signatureService.saveDocumentSignatureReference(docSigRef);
+    await signatureService.saveSignatureReference(sigRef, genericLogger);
+    await signatureService.saveDocumentSignatureReference(
+      docSigRef,
+      genericLogger
+    );
 
     const retrievedSigRef = await signatureService.readSignatureReferenceById(
-      sigRefId
+      sigRefId,
+      genericLogger
     );
 
     const retrievedDocSigRef =
-      await signatureService.readSignatureReferenceById(docSigRefId);
+      await signatureService.readSignatureReferenceById(
+        docSigRefId,
+        genericLogger
+      );
 
     const { process } =
       FILE_KIND_CONFIG[

@@ -36,39 +36,45 @@ export async function handleAgreementDocument(
 
         const fileName = path.basename(s3Key);
         const checksum = await calculateSha256Base64(Buffer.from(file));
+        const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
-          contentType: "application/pdf",
+          contentType,
           documentType: config.safeStorageDocType,
           status: config.safeStorageDocStatus,
           checksumValue: checksum,
         };
 
         const { uploadUrl, secret, key } = await safeStorageService.createFile(
-          safeStorageRequest
+          safeStorageRequest,
+          logger
         );
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
           Buffer.from(file),
-          "application/pdf",
+          contentType,
           secret,
-          checksum
+          checksum,
+          logger
         );
 
-        await signatureService.saveDocumentSignatureReference({
-          safeStorageId: key,
-          fileKind: "AGREEMENT_CONTRACT",
-          streamId: msg.data.agreement.id,
-          subObjectId: "",
-          contentType: "application/pdf",
-          path: msg.data.agreement.contract.path,
-          prettyname: msg.data.agreement.contract.prettyName,
-          fileName,
-          version: msg.event_version,
-          correlationId: msg.correlation_id ?? "",
-          createdAt: msg.data.agreement.createdAt,
-        });
+        await signatureService.saveDocumentSignatureReference(
+          {
+            safeStorageId: key,
+            fileKind: "AGREEMENT_CONTRACT",
+            streamId: msg.data.agreement.id,
+            subObjectId: "",
+            contentType,
+            path: msg.data.agreement.contract.path,
+            prettyname: msg.data.agreement.contract.prettyName,
+            fileName,
+            version: msg.event_version,
+            correlationId: msg.correlation_id ?? "",
+            createdAt: msg.data.agreement.createdAt,
+          },
+          logger
+        );
       }
     })
     .with(
