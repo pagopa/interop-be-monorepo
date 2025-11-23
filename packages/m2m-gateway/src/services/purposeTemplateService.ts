@@ -548,6 +548,32 @@ export function purposeTemplateServiceBuilder(
 
       return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
     },
+    async linkEServicesToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceIds: string[],
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorPurposeTemplate[]> {
+      logger.info(
+        `Linking e-services ${eserviceIds} to purpose template ${purposeTemplateId}`
+      );
+
+      const { data: eserviceDescriptorPurposeTemplates, metadata } =
+        await clients.purposeTemplateProcessClient.linkEServicesToPurposeTemplate(
+          {
+            eserviceIds,
+          },
+          {
+            headers,
+            params: {
+              id: purposeTemplateId,
+            },
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+
+      return eserviceDescriptorPurposeTemplates;
+    },
     async removePurposeTemplateEService(
       purposeTemplateId: PurposeTemplateId,
       eserviceId: EServiceId,
