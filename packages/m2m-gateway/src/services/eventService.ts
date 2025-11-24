@@ -49,6 +49,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       {
         lastEventId,
         limit,
+        delegationId,
       }: m2mGatewayApi.GetEventManagerAgreementsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.AgreementEvents> {
@@ -59,6 +60,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
           queries: {
             lastEventId,
             limit,
+            delegationId,
           },
           headers,
         }
