@@ -469,7 +469,7 @@ export function purposeTemplateServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
       logger.info(
-        `Adding annotation document to purpose template with id ${purposeTemplateId}`
+        `Adding annotation document to purpose template ${purposeTemplateId} and answer ${answerId}`
       );
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
@@ -533,7 +533,7 @@ export function purposeTemplateServiceBuilder(
     async addRiskAnalysisAnswerAnnotation(
       purposeTemplateId: PurposeTemplateId,
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationText,
+      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotation> {
       logger.info(

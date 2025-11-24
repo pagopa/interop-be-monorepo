@@ -130,6 +130,7 @@ export function purposeServiceBuilder(
     producers: tenantApi.Tenant[],
     consumers: tenantApi.Tenant[],
     purposeTemplate: purposeTemplateApi.PurposeTemplate | undefined,
+    riskAnalysisRuleset: purposeApi.RiskAnalysisFormConfigResponse | undefined,
     headers: Headers,
     correlationId: CorrelationId,
     notifications: string[]
@@ -204,6 +205,7 @@ export function purposeServiceBuilder(
     );
 
     const hasNotifications = notifications.includes(purpose.id);
+    const isDocumentReady = currentVersion?.signedContract !== undefined;
 
     return {
       id: purpose.id,
@@ -262,6 +264,8 @@ export function purposeServiceBuilder(
       purposeTemplate: purposeTemplate
         ? toCompactPurposeTemplate(purposeTemplate)
         : undefined,
+      isDocumentReady,
+      rulesetExpiration: riskAnalysisRuleset?.expiration,
     };
   };
 
@@ -357,6 +361,7 @@ export function purposeServiceBuilder(
           producers,
           consumers,
           purposeTemplate,
+          undefined, // NOTE: if we need the rulesetExpiration when retrieving the purposes list, we have to fetch it here
           headers,
           correlationId,
           notifications
@@ -810,6 +815,23 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
+      // retrieve risk analysis ruleset only if the requester is the consumer
+      const riskAnalysisRuleset =
+        purpose.riskAnalysisForm?.version &&
+        authData.organizationId === purpose.consumerId
+          ? await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion(
+              {
+                params: {
+                  riskAnalysisVersion: purpose.riskAnalysisForm.version,
+                },
+                headers,
+                queries: {
+                  eserviceId: purpose.eserviceId,
+                },
+              }
+            )
+          : undefined;
+
       return await enhancePurpose(
         authData,
         purpose,
@@ -817,6 +839,7 @@ export function purposeServiceBuilder(
         [producer],
         [consumer],
         purposeTemplate,
+        riskAnalysisRuleset,
         headers,
         correlationId,
         notification
