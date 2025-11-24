@@ -52,7 +52,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerAgreementsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.AgreementEvents> {
-      logger.info(`Retrieving agreement events`);
+      logger.info(`Retrieving agreement events with lastEventId: ${lastEventId} and limit: ${limit}`);
 
       const { events } = await clients.eventManagerClient.getAgreementM2MEvents(
         {

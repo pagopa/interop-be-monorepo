@@ -17110,6 +17110,9 @@ components:
         agreementId:
           type: string
           format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
