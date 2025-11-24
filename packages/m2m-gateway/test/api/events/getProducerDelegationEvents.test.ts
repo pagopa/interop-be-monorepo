@@ -10,7 +10,7 @@ import {
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /eventsProducerDelegations router test", () => {
+describe("GET /producerDelegationEvents router test", () => {
   const eventTypes = ProducerDelegationM2MEventType.options;
   const events: m2mGatewayApi.ProducerDelegationEvent[] = eventTypes.map(
     (eventType) => ({
@@ -27,17 +27,17 @@ describe("GET /eventsProducerDelegations router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerProducerDelegationsQueryParams =
-    {
-      lastEventId: generateId(),
-      limit: 10,
-    };
+  {
+    lastEventId: generateId(),
+    limit: 10,
+  };
 
   const makeRequest = async (
     token: string,
     query: m2mGatewayApi.GetEventManagerProducerDelegationsQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/eventsProducerDelegations`)
+      .get(`${appBasePath}/producerDelegationEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();

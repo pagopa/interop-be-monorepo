@@ -48,7 +48,7 @@ const eventRouter = (
     }
   });
 
-  eventRouter.get("/eventsProducerDelegations", async (req, res) => {
+  eventRouter.get("/producerDelegationEvents", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
@@ -73,7 +73,7 @@ const eventRouter = (
     }
   });
 
-  eventRouter.get("/eventsConsumerDelegations", async (req, res) => {
+  eventRouter.get("/consumerDelegationEvents", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
