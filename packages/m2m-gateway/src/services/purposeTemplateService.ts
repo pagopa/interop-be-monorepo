@@ -3,6 +3,7 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -17,6 +18,10 @@ import {
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
+import {
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastResponseVersion,
+} from "../utils/polling.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -36,6 +41,15 @@ export function purposeTemplateServiceBuilder(
         id: purposeTemplateId,
       },
       headers,
+    });
+  const pollPurposeTemplate = (
+    response: WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(unsafeBrandId(response.data.id), headers)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {
@@ -215,6 +229,26 @@ export function purposeTemplateServiceBuilder(
         config.purposeTemplateDocumentsContainer,
         logger
       );
+    },
+    async updateDraftPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      seed: m2mGatewayApi.PurposeTemplateDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(
+        `Updating draft Purpose Template with id ${purposeTemplateId}`
+      );
+
+      const response =
+        await clients.purposeTemplateProcessClient.patchUpdateDraftPurposeTemplateById(
+          seed,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+      const polledResource = await pollPurposeTemplate(response, headers);
+      return toM2MGatewayApiPurposeTemplate(polledResource.data);
     },
   };
 }
