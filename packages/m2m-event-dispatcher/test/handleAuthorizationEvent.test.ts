@@ -167,7 +167,7 @@ describe("handleAuthorizationEvent test", async () => {
             message,
             eventTimestamp,
             genericLogger,
-            testM2mEventWriterService,
+            testM2mEventWriterService
           );
 
           expect(
@@ -442,25 +442,25 @@ function buildTestCaseData(
       .returnType<
         { message: AuthorizationEventEnvelopeV2 } & (
           | {
-            type: "client";
-            expectedM2MEvent: ClientM2MEvent;
-          }
+              type: "client";
+              expectedM2MEvent: ClientM2MEvent;
+            }
           | {
-            type: "key";
-            expectedM2MEvent: KeyM2MEvent;
-          }
+              type: "key";
+              expectedM2MEvent: KeyM2MEvent;
+            }
           | {
-            type: "producerKeychain";
-            expectedM2MEvent: ProducerKeychainM2MEvent;
-          }
+              type: "producerKeychain";
+              expectedM2MEvent: ProducerKeychainM2MEvent;
+            }
           | {
-            type: "producerKey";
-            expectedM2MEvent: ProducerKeyM2MEvent;
-          }
+              type: "producerKey";
+              expectedM2MEvent: ProducerKeyM2MEvent;
+            }
           | {
-            type: "not-handled";
-            expectedM2MEvent: undefined;
-          }
+              type: "not-handled";
+              expectedM2MEvent: undefined;
+            }
         )
       >()
       /**
