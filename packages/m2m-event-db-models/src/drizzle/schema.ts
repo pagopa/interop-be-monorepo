@@ -153,6 +153,7 @@ export const keyInM2MEvent = m2mEvent.table("key", {
   }).notNull(),
   resourceVersion: integer("resource_version").notNull(),
   kid: varchar().notNull(),
+  clientId: uuid("client_id").notNull(),
 });
 
 export const producerKeyInM2MEvent = m2mEvent.table("producer_key", {
@@ -164,4 +165,5 @@ export const producerKeyInM2MEvent = m2mEvent.table("producer_key", {
   }).notNull(),
   resourceVersion: integer("resource_version").notNull(),
   kid: varchar().notNull(),
+  producerKeychainId: uuid("producer_keychain_id").notNull(),
 });

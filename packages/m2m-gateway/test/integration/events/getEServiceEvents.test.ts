@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { EServiceM2MEventType, generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,24 +10,16 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEServiceEvents integration", () => {
-  const mockEServiceEvent1: m2mEventApi.EServiceM2MEvent = {
+  const eventTypes = EServiceM2MEventType.options;
+  const events: m2mGatewayApi.EServiceEvent[] = eventTypes.map((eventType) => ({
     id: generateId(),
     eventTimestamp: new Date().toJSON(),
-    eventType: "ESERVICE_ADDED",
+    eventType: eventType as m2mGatewayApi.EServiceEvent["eventType"],
     eserviceId: generateId(),
-    descriptorId: generateId(),
-  };
-
-  const mockEServiceEvent2: m2mEventApi.EServiceM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "ESERVICE_UPDATED",
-    eserviceId: generateId(),
-    descriptorId: generateId(),
-  };
+  }));
 
   const mockEventManagerResponse: m2mEventApi.EServiceM2MEvents = {
-    events: [mockEServiceEvent1, mockEServiceEvent2],
+    events,
   };
 
   const mockGetEServiceM2MEvents = vi
@@ -44,7 +36,7 @@ describe("getEServiceEvents integration", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const expectedResponse: m2mGatewayApi.EServiceEvents = {
-      events: [mockEServiceEvent1, mockEServiceEvent2],
+      events,
     };
 
     const result = await eventService.getEServiceEvents(
@@ -66,7 +58,7 @@ describe("getEServiceEvents integration", () => {
 
   it("Should succeed without lastEventId", async () => {
     const expectedResponse: m2mGatewayApi.EServiceEvents = {
-      events: [mockEServiceEvent1, mockEServiceEvent2],
+      events,
     };
 
     const result = await eventService.getEServiceEvents(

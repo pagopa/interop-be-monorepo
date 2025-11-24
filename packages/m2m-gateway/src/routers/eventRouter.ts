@@ -23,7 +23,7 @@ const eventRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  eventRouter.get("/events/eservices", async (req, res) => {
+  eventRouter.get("/eserviceEvents", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
@@ -48,7 +48,7 @@ const eventRouter = (
     }
   });
 
-  eventRouter.get("/events/attributes", async (req, res) => {
+  eventRouter.get("/eventsAttributes", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
