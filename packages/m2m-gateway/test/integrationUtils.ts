@@ -15,6 +15,7 @@ import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
 import { keyServiceBuilder } from "../src/services/keyService.js";
 import { producerKeychainServiceBuilder } from "../src/services/producerKeychainService.js";
 import { eventServiceBuilder } from "../src/services/eventService.js";
+import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 export const { cleanup, fileManager } = await setupTestContainersVitest(
@@ -136,6 +137,10 @@ export const mockInteropBeClients = {} as PagoPAInteropBeClients;
 
 export const delegationService = delegationServiceBuilder(mockInteropBeClients);
 export const purposeService = purposeServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
+export const purposeTemplateService = purposeTemplateServiceBuilder(
   mockInteropBeClients,
   fileManager
 );

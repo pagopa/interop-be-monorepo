@@ -1579,9 +1579,15 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const agreementWithDocument = {
+      assertExpectedState(
+        agreementId,
+        agreement.state,
+        agreementUpgradableStates
+      );
+
+      const agreementWithDocument: Agreement = {
         ...agreement,
-        agreementDocument,
+        contract: agreementDocument,
       };
       const event = await repository.createEvent(
         toCreateEventAgreementDocumentGenerated(
@@ -1610,7 +1616,7 @@ export function agreementServiceBuilder(
       assertExpectedState(
         agreementId,
         agreement.state,
-        agreementUpdatableStates
+        agreementUpgradableStates
       );
 
       const agreementWithDocument: Agreement = {

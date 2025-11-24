@@ -7,20 +7,28 @@ import {
   tenantApi,
   authorizationApi,
   eserviceTemplateApi,
+  purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import {
   ClientId,
   ProducerKeychainId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   algorithm,
   generateId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
-import { getMockClientJWKKey, getMockProducerJWKKey } from "./testUtils.js";
+import {
+  getMockClientJWKKey,
+  getMockProducerJWKKey,
+  randomBoolean,
+} from "./testUtils.js";
 
-export const mockAvailableDailysCalls = (): number =>
+export const mockAvailableDailyCalls = (): number =>
   generateMock(z.number().min(1).max(1000000000));
+const mockOptionalDailyCalls = (): number | undefined =>
+  randomBoolean() ? mockAvailableDailyCalls() : undefined;
 
 export function getMockedApiPurposeVersion({
   state,
@@ -32,7 +40,7 @@ export function getMockedApiPurposeVersion({
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
-    dailyCalls: mockAvailableDailysCalls(),
+    dailyCalls: mockAvailableDailyCalls(),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
     riskAnalysis,
   };
@@ -55,6 +63,83 @@ export function getMockedApiPurpose({
     isFreeOfCharge: true,
     freeOfChargeReason: generateMock(z.string()),
     purposeTemplateId: generateMock(z.string().uuid().optional()),
+  };
+}
+
+export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplate {
+  return {
+    id: generateId(),
+    targetDescription: generateMock(z.string()),
+    targetTenantKind: generateMock(purposeTemplateApi.TenantKind),
+    creatorId: generateId(),
+    state: generateMock(purposeTemplateApi.PurposeTemplateState),
+    createdAt: new Date().toISOString(),
+    purposeTitle: generateMock(z.string()),
+    purposeDescription: generateMock(z.string()),
+    purposeRiskAnalysisForm: generateMock(
+      purposeTemplateApi.RiskAnalysisFormTemplate
+    ),
+    purposeIsFreeOfCharge: randomBoolean(),
+    handlesPersonalData: randomBoolean(),
+    updatedAt: randomBoolean() ? new Date().toISOString() : undefined,
+    purposeFreeOfChargeReason: generateMock(z.string().optional()),
+    purposeDailyCalls: mockOptionalDailyCalls(),
+  };
+}
+
+export function getMockedApiEServiceDescriptorPurposeTemplate(): purposeTemplateApi.EServiceDescriptorPurposeTemplate {
+  return {
+    purposeTemplateId: generateId(),
+    eserviceId: generateId(),
+    descriptorId: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
+  id = generateId(),
+  path = "purposeTemplateAnnotationsPath",
+  name = generateMock(z.string()),
+}: {
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  path: string;
+  name: string;
+}): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument {
+  return {
+    id,
+    name,
+    path,
+    prettyName: generateMock(z.string()),
+    contentType: "application/pdf",
+    createdAt: new Date().toISOString(),
+    checksum:
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  };
+}
+
+export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
+  id = generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
+  answerId = generateId(),
+}: {
+  id?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  name?: string;
+  path?: string;
+  contentType?: string;
+  answerId?: string;
+} = {}): purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentWithAnswerId {
+  return {
+    answerId,
+    document: {
+      ...getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
+        id,
+        path,
+        name,
+      }),
+      contentType,
+    },
   };
 }
 
@@ -324,10 +409,8 @@ export function getMockedApiEserviceDescriptor({
     description: generateMock(z.string().length(10)),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
-    dailyCallsPerConsumer: generateMock(
-      z.number().int().gte(1).lte(1000000000)
-    ),
-    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
+    dailyCallsPerConsumer: mockAvailableDailyCalls(),
+    dailyCallsTotal: mockAvailableDailyCalls(),
     interface: interfaceDoc ?? generateMock(catalogApi.EServiceDoc),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: state ?? generateMock(catalogApi.EServiceDescriptorState),
