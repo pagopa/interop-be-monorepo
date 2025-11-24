@@ -174,6 +174,6 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     purposeTemplateProcessClient: createZodiosClientEnhancedWithMetadata(
       purposeTemplateApi.createPurposeTemplateApiClient,
       config.purposeTemplateProcessUrl
-    )
+    ),
   };
 }
