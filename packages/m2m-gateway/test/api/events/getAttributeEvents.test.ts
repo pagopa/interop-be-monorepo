@@ -9,12 +9,14 @@ import { api, mockEventService } from "../../vitest.api.setup.js";
 
 describe("GET /attributeEvents router test", () => {
   const eventTypes = AttributeM2MEventType.options;
-  const events: m2mGatewayApi.AttributeEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.AttributeEvent["eventType"],
-    attributeId: generateId(),
-  }));
+  const events: m2mGatewayApi.AttributeEvent[] = eventTypes.map(
+    (eventType) => ({
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: eventType as m2mGatewayApi.AttributeEvent["eventType"],
+      attributeId: generateId(),
+    })
+  );
 
   const mockAttributeEvents: m2mGatewayApi.AttributeEvents = {
     events,
