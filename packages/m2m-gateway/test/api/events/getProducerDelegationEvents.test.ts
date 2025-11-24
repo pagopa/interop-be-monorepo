@@ -27,10 +27,10 @@ describe("GET /producerDelegationEvents router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerProducerDelegationsQueryParams =
-  {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,
