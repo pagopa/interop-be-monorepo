@@ -1337,18 +1337,15 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateState.draft,
       ]);
 
-      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+      validateRiskAnalysisAnswerAnnotationOrThrow(
+        riskAnalysisTemplateAnswerAnnotationRequest.text
+      );
 
+      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
       const answerAndAnnotation = findAnswerAndAnnotation(
         riskAnalysisForm,
         answerId
       );
-
-      if (answerAndAnnotation.annotation) {
-        validateRiskAnalysisAnswerAnnotationOrThrow(
-          answerAndAnnotation.annotation.text
-        );
-      }
 
       const newAnnotation: RiskAnalysisTemplateAnswerAnnotation =
         answerAndAnnotation.annotation
