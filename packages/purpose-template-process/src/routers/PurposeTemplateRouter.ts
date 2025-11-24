@@ -247,7 +247,7 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const { data: updatedPurposeTemplate, metadata } =
           await purposeTemplateService.patchUpdatePurposeTemplate(

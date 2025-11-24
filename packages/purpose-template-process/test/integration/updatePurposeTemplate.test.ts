@@ -184,7 +184,7 @@ describe("updatePurposeTemplate", () => {
         purposeDailyCalls: validPurposeTemplateSeed.purposeDailyCalls,
         purposeIsFreeOfCharge: validPurposeTemplateSeed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason:
-          validPurposeTemplateSeed.purposeFreeOfChargeReason,
+          validPurposeTemplateSeed.purposeFreeOfChargeReason || undefined,
         purposeRiskAnalysisForm: {
           id: expect.anything(),
           version: riskAnalysisVersion,

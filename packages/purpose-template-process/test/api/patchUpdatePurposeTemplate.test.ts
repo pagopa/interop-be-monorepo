@@ -30,6 +30,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
   const {
     HTTP_STATUS_BAD_REQUEST,
     HTTP_STATUS_NOT_FOUND,
+    HTTP_STATUS_OK,
     HTTP_STATUS_CONFLICT,
     HTTP_STATUS_FORBIDDEN,
   } = constants;
@@ -132,7 +133,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockPurposeTemplate.id, seed);
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(HTTP_STATUS_OK);
     }
   );
 
@@ -142,7 +143,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     [{ purposeTitle: null }, mockPurposeTemplate.id],
     [{ purposeDescription: null }, mockPurposeTemplate.id],
     [{ purposeIsFreeOfCharge: "notABoolean" }, mockPurposeTemplate.id],
-    [{ purposeFreeOfChargeReason: null }, mockPurposeTemplate.id],
+    [{ purposeFreeOfChargeReason: -5 }, mockPurposeTemplate.id],
     [{ purposeDailyCalls: -5 }, mockPurposeTemplate.id],
     [{ handlesPersonalData: "notABoolean" }, mockPurposeTemplate.id],
     [{ ...purposeTemplateSeed }, "invalidId"],
@@ -156,7 +157,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
         body as purposeTemplateApi.PatchUpdatePurposeTemplateSeed
       );
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(HTTP_STATUS_BAD_REQUEST);
     }
   );
 
@@ -166,7 +167,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token, mockPurposeTemplate.id);
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(HTTP_STATUS_FORBIDDEN);
   });
 
   it.each([

@@ -69,7 +69,7 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: undefined,
+      purposeFreeOfChargeReason: null,
     },
     {
       targetDescription: "updated target description",
@@ -77,7 +77,7 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: undefined,
+      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
     },
     {
@@ -86,7 +86,7 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: undefined,
+      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
       handlesPersonalData: true,
     },
@@ -127,6 +127,9 @@ describe("patch update purpose template", () => {
           seed.purposeDescription ?? purposeTemplate.purposeDescription,
         purposeIsFreeOfCharge:
           seed.purposeIsFreeOfCharge ?? purposeTemplate.purposeIsFreeOfCharge,
+        ...(seed.purposeIsFreeOfCharge === false && {
+          purposeFreeOfChargeReason: undefined,
+        }),
         purposeDailyCalls:
           seed.purposeDailyCalls ?? purposeTemplate.purposeDailyCalls,
         handlesPersonalData:

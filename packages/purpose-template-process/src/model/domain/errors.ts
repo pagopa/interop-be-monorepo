@@ -38,6 +38,7 @@ export const errorCodes = {
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
   invalidAssociatedEServiceForPublicationError: "0023",
+  invalidFreeOfChargeReason: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -296,5 +297,16 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function invalidFreeOfChargeReason(
+  purposeIsFreeOfCharge: boolean,
+  purposeFreeOfChargeReason: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid purposeFreeOfChargeReason: "${purposeFreeOfChargeReason}" for purposeIsFreeOfCharge: "${purposeIsFreeOfCharge}"`,
+    code: "invalidFreeOfChargeReason",
+    title: "Invalid free of charge reason",
   });
 }

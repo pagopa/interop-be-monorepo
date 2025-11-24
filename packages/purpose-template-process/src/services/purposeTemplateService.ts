@@ -590,13 +590,10 @@ async function updateDraftPurposeTemplate(
   const purposeTemplateWithRiskAnalysisForm = purposeTemplate.data;
 
   const {
-    targetDescription,
     targetTenantKind,
     purposeTitle,
-    purposeDescription,
     purposeIsFreeOfCharge,
     purposeFreeOfChargeReason,
-    purposeDailyCalls,
     handlesPersonalData,
   } = typeAndSeed.seed;
 
@@ -614,13 +611,16 @@ async function updateDraftPurposeTemplate(
   const updatedTargetTenantKind =
     targetTenantKind ?? purposeTemplate.data.targetTenantKind;
 
-  const updatedPurposeIsFreeOfCharge =
-    purposeIsFreeOfCharge !== undefined
-      ? purposeIsFreeOfCharge
-      : purposeTemplate.data.purposeIsFreeOfCharge;
+  const updatedIsFreeOfCharge =
+    purposeIsFreeOfCharge ?? purposeTemplate.data.purposeIsFreeOfCharge;
+  const updatedFreeOfChargeReason =
+    purposeFreeOfChargeReason ??
+    (purposeFreeOfChargeReason === null
+      ? undefined
+      : purposeTemplate.data.purposeFreeOfChargeReason);
   assertConsistentFreeOfCharge(
-    updatedPurposeIsFreeOfCharge,
-    purposeFreeOfChargeReason
+    updatedIsFreeOfCharge,
+    updatedFreeOfChargeReason
   );
 
   const updatedHandlesPersonalData =
@@ -661,21 +661,11 @@ async function updateDraftPurposeTemplate(
 
   const updatedPurposeTemplate: PurposeTemplate = {
     ...purposeTemplate.data,
-    targetDescription:
-      targetDescription ?? purposeTemplate.data.targetDescription,
-    targetTenantKind: updatedTargetTenantKind,
-    updatedAt: new Date(),
-    purposeTitle: purposeTitle ?? purposeTemplate.data.purposeTitle,
-    purposeDescription:
-      purposeDescription ?? purposeTemplate.data.purposeDescription,
+    ...typeAndSeed.seed,
+    purposeIsFreeOfCharge: updatedIsFreeOfCharge,
+    purposeFreeOfChargeReason: updatedFreeOfChargeReason,
     purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
-    purposeIsFreeOfCharge: updatedPurposeIsFreeOfCharge,
-    ...(!purposeIsFreeOfCharge && {
-      purposeFreeOfChargeReason: undefined,
-    }),
-    purposeDailyCalls:
-      purposeDailyCalls ?? purposeTemplate.data.purposeDailyCalls,
-    handlesPersonalData: updatedHandlesPersonalData,
+    updatedAt: new Date(),
   };
 
   const event = await repository.createEvent(
@@ -769,7 +759,7 @@ export function purposeTemplateServiceBuilder(
         purposeDescription: seed.purposeDescription,
         purposeRiskAnalysisForm: validatedPurposeRiskAnalysisFormSeed,
         purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
-        purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
+        purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason || undefined,
         purposeDailyCalls: seed.purposeDailyCalls,
         handlesPersonalData: seed.handlesPersonalData,
       };
