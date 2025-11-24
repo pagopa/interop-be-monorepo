@@ -759,7 +759,7 @@ export function purposeTemplateServiceBuilder(
         purposeDescription: seed.purposeDescription,
         purposeRiskAnalysisForm: validatedPurposeRiskAnalysisFormSeed,
         purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
-        purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason || undefined,
+        purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
         purposeDailyCalls: seed.purposeDailyCalls,
         handlesPersonalData: seed.handlesPersonalData,
       };
