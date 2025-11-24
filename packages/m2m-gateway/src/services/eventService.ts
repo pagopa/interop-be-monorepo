@@ -15,7 +15,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerAttributesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.AttributeEvents> {
-      logger.info(`Retrieving attribute events`);
+      logger.info(
+        `Retrieving attribute events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } = await clients.eventManagerClient.getAttributeM2MEvents(
         {
