@@ -14,8 +14,8 @@ import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
 import { keyServiceBuilder } from "../src/services/keyService.js";
 import { producerKeychainServiceBuilder } from "../src/services/producerKeychainService.js";
-import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 import { eventServiceBuilder } from "../src/services/eventService.js";
+import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 export const { cleanup, fileManager } = await setupTestContainersVitest(
