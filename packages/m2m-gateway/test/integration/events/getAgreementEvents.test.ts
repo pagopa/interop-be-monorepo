@@ -11,12 +11,14 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getAgreementEvents integration", () => {
   const eventTypes = AgreementM2MEventType.options;
-  const events: m2mGatewayApi.AgreementEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.AgreementEvent["eventType"],
-    agreementId: generateId(),
-  }));
+  const events: m2mGatewayApi.AgreementEvent[] = eventTypes.map(
+    (eventType) => ({
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: eventType as m2mGatewayApi.AgreementEvent["eventType"],
+      agreementId: generateId(),
+    })
+  );
 
   const mockEventManagerResponse: m2mEventApi.AgreementM2MEvents = {
     events,
