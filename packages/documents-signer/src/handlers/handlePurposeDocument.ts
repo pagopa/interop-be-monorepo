@@ -38,6 +38,12 @@ export async function handlePurposeDocument(
           );
         }
 
+        if (!purposeVersion.riskAnalysis?.id) {
+          throw genericInternalError(
+            `Handle Purpose Document - purposeVersion riskAnalysis id not defined for id: ${msg.data.versionId}`
+          );
+        }
+
         const s3Key = purposeVersion.riskAnalysis?.path;
 
         if (!s3Key) {
@@ -78,7 +84,7 @@ export async function handlePurposeDocument(
           safeStorageId: key,
           fileKind: "RISK_ANALYSIS_DOCUMENT",
           streamId: msg.data.purpose.id,
-          subObjectId: msg.data.versionId,
+          subObjectId: purposeVersion.riskAnalysis.id,
           contentType: "application/pdf",
           path: s3Key,
           prettyname: "",
