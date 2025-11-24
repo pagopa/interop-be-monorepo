@@ -8,6 +8,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getAttributeEvents integration", () => {
   const eventTypes = AttributeM2MEventType.options;
@@ -15,9 +16,9 @@ describe("getAttributeEvents integration", () => {
     (eventType) => ({
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: eventType as m2mGatewayApi.AttributeEvent["eventType"],
+      eventType: testToUpperSnakeCase(eventType),
       attributeId: generateId(),
-    })
+    }) as m2mGatewayApi.AttributeEvent
   );
 
   const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {

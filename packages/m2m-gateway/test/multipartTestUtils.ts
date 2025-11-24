@@ -48,11 +48,11 @@ export async function testExpectedMultipartResponse(
     id,
     ...(prettyName
       ? [
-          `--${boundary}`,
-          `Content-Disposition: form-data; name="prettyName"`,
-          ``,
-          prettyName,
-        ]
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="prettyName"`,
+        ``,
+        prettyName,
+      ]
       : []),
     `--${boundary}--`,
     CRLF,
@@ -124,4 +124,12 @@ export async function expectDownloadedDocumentToBeEqual(
   expect(doc1.id).toEqual(doc2.id);
   expect(doc1.prettyName).toEqual(doc2.prettyName);
   await expectFilesToBeEqual(doc1.file, doc2.file);
+}
+
+export function testToUpperSnakeCase(str: string): string {
+  return str
+    .replace("EService", "Eservice") // special case for EService
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2") // insert _ between lower->Upper
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1_$2") // insert _ between consecutive uppers
+    .toUpperCase();
 }
