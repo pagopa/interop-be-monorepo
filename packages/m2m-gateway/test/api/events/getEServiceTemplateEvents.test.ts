@@ -11,7 +11,7 @@ import {
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /eventsEserviceTemplates router test", () => {
+describe("GET /eserviceTemplateEvents router test", () => {
   const eventTypes = EServiceTemplateM2MEventType.options;
   const events: m2mGatewayApi.EServiceTemplateEvent[] = eventTypes.map(
     (eventType) => ({
@@ -27,17 +27,17 @@ describe("GET /eventsEserviceTemplates router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams =
-    {
-      lastEventId: generateId(),
-      limit: 10,
-    };
+  {
+    lastEventId: generateId(),
+    limit: 10,
+  };
 
   const makeRequest = async (
     token: string,
     query: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/eventsEserviceTemplates`)
+      .get(`${appBasePath}/eserviceTemplateEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
