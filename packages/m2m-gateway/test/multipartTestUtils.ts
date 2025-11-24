@@ -48,11 +48,11 @@ export async function testExpectedMultipartResponse(
     id,
     ...(prettyName
       ? [
-        `--${boundary}`,
-        `Content-Disposition: form-data; name="prettyName"`,
-        ``,
-        prettyName,
-      ]
+          `--${boundary}`,
+          `Content-Disposition: form-data; name="prettyName"`,
+          ``,
+          prettyName,
+        ]
       : []),
     `--${boundary}--`,
     CRLF,
