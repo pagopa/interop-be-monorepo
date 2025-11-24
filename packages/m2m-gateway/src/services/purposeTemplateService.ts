@@ -497,5 +497,28 @@ export function purposeTemplateServiceBuilder(
 
       return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
     },
+    async unlinkEServicesFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceIds: string[],
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-services ${eserviceIds} from purpose template ${purposeTemplateId}`
+      );
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.unlinkEServicesFromPurposeTemplate(
+          {
+            eserviceIds,
+          },
+          {
+            headers,
+            params: {
+              id: purposeTemplateId,
+            },
+          }
+        );
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+    },
   };
 }

@@ -1,0 +1,27 @@
+meta {
+  name: Unlink Eservice to Purpose Template
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/unlinkEservices
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "eserviceIds": [
+      ""
+    ]
+  }
+}
