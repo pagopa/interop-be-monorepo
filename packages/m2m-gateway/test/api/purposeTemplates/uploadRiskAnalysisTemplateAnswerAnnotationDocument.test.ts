@@ -94,7 +94,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocum
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for incorrect value for eservice template id", async () => {
+  it("Should return 400 for incorrect value for purpose template id", async () => {
     mockPurposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument =
       vi.fn().mockResolvedValue(mockM2MAnswerAnnotationDocumentResponse);
 
