@@ -16877,7 +16877,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /eventsPurposes:
+  /purposeEvents:
     get:
       tags:
         - events

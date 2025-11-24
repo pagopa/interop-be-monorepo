@@ -7,7 +7,7 @@ import { generateId, PurposeM2MEventType } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /eventsPurposes router test", () => {
+describe("GET /purposeEvents router test", () => {
   const eventTypes = PurposeM2MEventType.options;
   const events: m2mGatewayApi.PurposeEvent[] = eventTypes.map((eventType) => ({
     id: generateId(),
@@ -30,7 +30,7 @@ describe("GET /eventsPurposes router test", () => {
     query: m2mGatewayApi.GetEventManagerPurposesQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/eventsPurposes`)
+      .get(`${appBasePath}/purposeEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
