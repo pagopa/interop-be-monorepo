@@ -216,6 +216,34 @@ describe("FileManager tests", async () => {
       expect(files).toContain("test/test/testCopy");
     });
 
+    it("should copy a file in the bucket (source file contains a special character)", async () => {
+      await fileManager.storeBytes(
+        {
+          bucket: s3Bucket,
+          path: "test",
+          resourceId: "test",
+          name: "test-à",
+          content: Buffer.from("test"),
+        },
+        genericLogger
+      );
+
+      const copyResult = await fileManager.copy(
+        s3Bucket,
+        "test/test/test-à",
+        "test",
+        "test",
+        "testCopy-à",
+        genericLogger
+      );
+
+      expect(copyResult).toBe("test/test/testCopy-à");
+      const files = await fileManager.listFiles(s3Bucket, genericLogger);
+      expect(files.length).toBe(2);
+      expect(files).toContain("test/test/test-à");
+      expect(files).toContain("test/test/testCopy-à");
+    });
+
     it("should fail if the bucket does not exist", async () => {
       await expect(
         fileManager.copy(
