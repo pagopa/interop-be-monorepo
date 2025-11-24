@@ -46,7 +46,10 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
           versions: [
             {
               id: "version-123",
-              riskAnalysis: { path: "risk-analysis/file.pdf" },
+              riskAnalysis: {
+                path: "risk-analysis/file.pdf",
+                id: "version-123",
+              },
             },
           ],
           createdAt: BigInt(120323424),
