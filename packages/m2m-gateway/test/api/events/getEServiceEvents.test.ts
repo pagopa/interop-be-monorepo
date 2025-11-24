@@ -3,28 +3,21 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { EServiceM2MEventType, generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
 describe("GET /eserviceEvents router test", () => {
+  const eventTypes = EServiceM2MEventType.options;
+  const events: m2mGatewayApi.EServiceEvent[] = eventTypes.map((eventType) => ({
+    id: generateId(),
+    eventTimestamp: new Date().toJSON(),
+    eventType: eventType as m2mGatewayApi.EServiceEvent["eventType"],
+    eserviceId: generateId(),
+  }));
+
   const mockEServiceEvents: m2mGatewayApi.EServiceEvents = {
-    events: [
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "ESERVICE_ADDED",
-        eserviceId: generateId(),
-        descriptorId: generateId(),
-      },
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "ESERVICE_UPDATED",
-        eserviceId: generateId(),
-        descriptorId: generateId(),
-      },
-    ],
+    events,
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerEServicesQueryParams = {
