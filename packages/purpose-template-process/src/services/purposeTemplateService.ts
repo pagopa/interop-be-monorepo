@@ -1342,17 +1342,17 @@ export function purposeTemplateServiceBuilder(
       );
 
       const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
-      const answerAndAnnotation = findAnswerAndAnnotation(
+      const existingAnswerAndAnnotation = findAnswerAndAnnotation(
         riskAnalysisForm,
         answerId
       );
 
       const newAnnotation: RiskAnalysisTemplateAnswerAnnotation =
-        answerAndAnnotation.annotation
+        existingAnswerAndAnnotation.annotation
           ? {
-              id: answerAndAnnotation.annotation.id,
+              id: existingAnswerAndAnnotation.annotation.id,
               text: riskAnalysisTemplateAnswerAnnotationRequest.text,
-              docs: answerAndAnnotation.annotation.docs,
+              docs: existingAnswerAndAnnotation.annotation.docs,
             }
           : {
               id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
