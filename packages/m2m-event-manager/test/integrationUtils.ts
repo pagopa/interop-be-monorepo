@@ -4,18 +4,30 @@ import {
   AgreementM2MEvent,
   AttributeM2MEvent,
   ConsumerDelegationM2MEvent,
+  ClientM2MEvent,
   EServiceM2MEvent,
   PurposeM2MEvent,
   ProducerDelegationM2MEvent,
+  KeyM2MEvent,
+  ProducerKeyM2MEvent,
+  ProducerKeychainM2MEvent,
+  TenantM2MEvent,
+  EServiceTemplateM2MEvent,
   dateToString,
 } from "pagopa-interop-models";
 import {
   agreementInM2MEvent,
   attributeInM2MEvent,
   consumerDelegationInM2MEvent,
+  clientInM2MEvent,
   eserviceInM2MEvent,
   purposeInM2MEvent,
   producerDelegationInM2MEvent,
+  keyInM2MEvent,
+  producerKeychainInM2MEvent,
+  producerKeyInM2MEvent,
+  tenantInM2MEvent,
+  eserviceTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventServiceBuilder } from "../src/services/m2mEventService.js";
 import { m2mEventReaderServiceSQLBuilder } from "../src/services/m2mEventReaderServiceSQL.js";
@@ -105,6 +117,70 @@ export async function writeConsumerDelegationM2MEvent(
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeKeyM2MEvent(event: KeyM2MEvent): Promise<void> {
+  await m2mEventDB.insert(keyInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeProducerKeyM2MEvent(
+  event: ProducerKeyM2MEvent
+): Promise<void> {
+  await m2mEventDB.insert(producerKeyInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeClientM2MEvent(
+  event: ClientM2MEvent
+): Promise<void> {
+  await m2mEventDB.insert(clientInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeProducerKeychainM2MEvent(
+  event: ProducerKeychainM2MEvent
+): Promise<void> {
+  await m2mEventDB.insert(producerKeychainInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeTenantM2MEvent(
+  event: TenantM2MEvent
+): Promise<void> {
+  await m2mEventDB.insert(tenantInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+export async function writeEServiceTemplateM2MEvent(
+  event: EServiceTemplateM2MEvent
+) {
+  await m2mEventDB.insert(eserviceTemplateInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+      eserviceTemplateVersionId: event.eserviceTemplateVersionId ?? null,
     },
   ]);
 }

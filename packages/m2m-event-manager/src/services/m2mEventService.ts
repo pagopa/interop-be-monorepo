@@ -16,6 +16,18 @@ import {
   ConsumerDelegationM2MEvent,
   DelegationM2MEventId,
   ProducerDelegationM2MEvent,
+  KeyM2MEvent,
+  KeyM2MEventId,
+  ProducerKeychainM2MEvent,
+  ProducerKeychainM2MEventId,
+  ProducerKeyM2MEvent,
+  ProducerKeyM2MEventId,
+  ClientM2MEvent,
+  ClientM2MEventId,
+  TenantM2MEvent,
+  TenantM2MEventId,
+  EServiceTemplateM2MEvent,
+  EServiceTemplateM2MEventId,
 } from "pagopa-interop-models";
 import { DelegationIdParam } from "../model/types.js";
 import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";
@@ -83,11 +95,14 @@ export function m2mEventServiceBuilder(
       );
     },
     async getTenantM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: TenantM2MEventId | undefined,
+      limit: number,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<TenantM2MEvent[]> {
+      logger.info(
+        `Getting tenant M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getTenantM2MEvents(lastEventId, limit);
     },
     async getAttributeM2MEvents(
       lastEventId: AttributeM2MEventId | undefined,
@@ -126,39 +141,75 @@ export function m2mEventServiceBuilder(
       );
     },
     async getClientM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: ClientM2MEventId | undefined,
+      limit: number,
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ClientM2MEvent[]> {
+      logger.info(
+        `Getting client M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getClientM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
     async getProducerKeychainM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: ProducerKeychainM2MEventId | undefined,
+      limit: number,
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ProducerKeychainM2MEvent[]> {
+      logger.info(
+        `Getting producerKeychain M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getProducerKeychainM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
     async getKeyM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: KeyM2MEventId | undefined,
+      limit: number,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<KeyM2MEvent[]> {
+      logger.info(
+        `Getting key M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getKeyM2MEvents(lastEventId, limit);
     },
     async getProducerKeyM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: ProducerKeyM2MEventId | undefined,
+      limit: number,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ProducerKeyM2MEvent[]> {
+      logger.info(
+        `Getting producerKey M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getProducerKeyM2MEvents(lastEventId, limit);
     },
     async getEServiceTemplateM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: EServiceTemplateM2MEventId | undefined,
+      limit: number,
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<EServiceTemplateM2MEvent[]> {
+      logger.info(
+        `Getting e-service M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getEServiceTemplateM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
   };
 }
