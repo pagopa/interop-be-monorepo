@@ -17040,7 +17040,7 @@ components:
             - PURPOSE_VERSION_ACTIVATED
             - PURPOSE_CLONED
             - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
-            - RISK_ANALYSIS_SIGNED_DOCUMENT_GENERATED
+            - RISK_ANALYSIS_DOCUMENT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
