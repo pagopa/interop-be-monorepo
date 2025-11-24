@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { AttributeM2MEventType, generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,22 +10,16 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getAttributeEvents integration", () => {
-  const mockAttributeEvent1: m2mEventApi.AttributeM2MEvent = {
+  const eventTypes = AttributeM2MEventType.options;
+  const events: m2mGatewayApi.AttributeEvent[] = eventTypes.map((eventType) => ({
     id: generateId(),
     eventTimestamp: new Date().toJSON(),
-    eventType: "ATTRIBUTE_ADDED",
+    eventType: eventType as m2mGatewayApi.AttributeEvent["eventType"],
     attributeId: generateId(),
-  };
-
-  const mockAttributeEvent2: m2mEventApi.AttributeM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "ATTRIBUTE_ADDED",
-    attributeId: generateId(),
-  };
+  }));
 
   const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {
-    events: [mockAttributeEvent1, mockAttributeEvent2],
+    events,
   };
 
   const mockGetAttributeM2MEvents = vi
@@ -44,7 +38,7 @@ describe("getAttributeEvents integration", () => {
     "Should succeed and perform API clients calls",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApi.AttributeEvents = {
-        events: [mockAttributeEvent1, mockAttributeEvent2],
+        events,
       };
       const result = await eventService.getAttributeEvents(
         {
