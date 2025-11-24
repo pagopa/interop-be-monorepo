@@ -434,6 +434,11 @@ export function delegationServiceBuilder(
       },
     };
 
+    // eslint-disable-next-line functional/no-let
+    let revokedDelegation: Delegation = {
+      ...revokedDelegationWithoutContract,
+    };
+
     if (isFeatureFlagEnabled(config, "featureFlagDelegationsContractBuilder")) {
       const revocationContract = await contractBuilder.createRevocationContract(
         {
@@ -448,8 +453,8 @@ export function delegationServiceBuilder(
         }
       );
 
-      const revokedDelegation = {
-        ...revokedDelegationWithoutContract,
+      revokedDelegation = {
+        ...revokedDelegation,
         revocationContract,
       };
       await repository.createEvent(
