@@ -3,26 +3,21 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { AgreementM2MEventType, generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /eventsAgreements router test", () => {
+describe("GET /agreementEvents router test", () => {
+  const eventTypes = AgreementM2MEventType.options;
+  const events: m2mGatewayApi.AgreementEvent[] = eventTypes.map((eventType) => ({
+    id: generateId(),
+    eventTimestamp: new Date().toJSON(),
+    eventType: eventType as m2mGatewayApi.AgreementEvent["eventType"],
+    agreementId: generateId(),
+  }));
+
   const mockAgreementEvents: m2mGatewayApi.AgreementEvents = {
-    events: [
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "AGREEMENT_ADDED",
-        agreementId: generateId(),
-      },
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "DRAFT_AGREEMENT_UPDATED",
-        agreementId: generateId(),
-      },
-    ],
+    events,
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerAgreementsQueryParams = {
@@ -35,7 +30,7 @@ describe("GET /eventsAgreements router test", () => {
     query: m2mGatewayApi.GetEventManagerAgreementsQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/eventsAgreements`)
+      .get(`${appBasePath}/agreementEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { AgreementM2MEventType, generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,22 +10,16 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getAgreementEvents integration", () => {
-  const mockAgreementEvent1: m2mEventApi.AgreementM2MEvent = {
+  const eventTypes = AgreementM2MEventType.options;
+  const events: m2mGatewayApi.AgreementEvent[] = eventTypes.map((eventType) => ({
     id: generateId(),
     eventTimestamp: new Date().toJSON(),
-    eventType: "AGREEMENT_ADDED",
+    eventType: eventType as m2mGatewayApi.AgreementEvent["eventType"],
     agreementId: generateId(),
-  };
-
-  const mockAgreementEvent2: m2mEventApi.AgreementM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "DRAFT_AGREEMENT_UPDATED",
-    agreementId: generateId(),
-  };
+  }));
 
   const mockEventManagerResponse: m2mEventApi.AgreementM2MEvents = {
-    events: [mockAgreementEvent1, mockAgreementEvent2],
+    events,
   };
 
   const mockGetAgreementM2MEvents = vi
@@ -44,7 +38,7 @@ describe("getAgreementEvents integration", () => {
     "Should succeed and perform API clients calls",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApi.AgreementEvents = {
-        events: [mockAgreementEvent1, mockAgreementEvent2],
+        events,
       };
       const result = await eventService.getAgreementEvents(
         {
