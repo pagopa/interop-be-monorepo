@@ -19,13 +19,13 @@ import {
 import { toPurposeM2MEventSQL } from "../models/purposeM2MEventAdapterSQL.js";
 
 export async function handlePurposeEvent(
-  agreementEvent: PurposeEventEnvelope,
+  purposeEvent: PurposeEventEnvelope,
   eventTimestamp: Date,
   logger: Logger,
   m2mEventWriterService: M2MEventWriterServiceSQL,
   readModelService: ReadModelServiceSQL
 ): Promise<void> {
-  await match(agreementEvent)
+  await match(purposeEvent)
     .with({ event_version: 1 }, () => Promise.resolve())
     .with({ event_version: 2 }, (msg) =>
       handlePurposeEventV2(

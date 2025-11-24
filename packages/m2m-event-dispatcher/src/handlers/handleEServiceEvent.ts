@@ -16,13 +16,13 @@ import { toEServiceM2MEventSQL } from "../models/eserviceM2MEventAdapterSQL.js";
 import { assertEServiceExistsInEvent } from "../services/validators.js";
 
 export async function handleEServiceEvent(
-  agreementEvent: EServiceEventEnvelope,
+  eserviceEvent: EServiceEventEnvelope,
   eventTimestamp: Date,
   logger: Logger,
   m2mEventWriterService: M2MEventWriterServiceSQL,
   readModelService: ReadModelServiceSQL
 ): Promise<void> {
-  await match(agreementEvent)
+  await match(eserviceEvent)
     .with({ event_version: 1 }, () => Promise.resolve())
     .with({ event_version: 2 }, (msg) =>
       handleEServiceEventV2(

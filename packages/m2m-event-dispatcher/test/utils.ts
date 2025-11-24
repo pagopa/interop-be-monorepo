@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomInt } from "crypto";
 import { desc } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";

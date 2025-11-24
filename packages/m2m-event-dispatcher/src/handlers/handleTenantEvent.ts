@@ -11,12 +11,12 @@ import { toTenantM2MEventSQL } from "../models/tenantM2MEventAdapterSQL.js";
 import { createTenantM2MEvent } from "../services/event-builders/tenantM2MEventBuilder.js";
 
 export async function handleTenantEvent(
-  agreementEvent: TenantEventEnvelope,
+  tenantEvent: TenantEventEnvelope,
   eventTimestamp: Date,
   logger: Logger,
   m2mEventWriterService: M2MEventWriterServiceSQL
 ): Promise<void> {
-  await match(agreementEvent)
+  await match(tenantEvent)
     .with({ event_version: 1 }, () => Promise.resolve())
     .with({ event_version: 2 }, (msg) =>
       handleTenantEventV2(msg, eventTimestamp, logger, m2mEventWriterService)
