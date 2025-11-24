@@ -74,7 +74,6 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockPurposeTemplate.id);
-      // console.log("🚀 ~ res:", res);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiPurposeTemplate);
       expect(res.headers["x-metadata-version"]).toBe(
