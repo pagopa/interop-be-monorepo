@@ -65,8 +65,8 @@ describe("deleteOldNotifications", () => {
   it("should delete all notifications when all are older than specified days", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 
-    const userId = generateId();
-    const tenantId = generateId();
+    const userId = generateId<UserId>();
+    const tenantId = generateId<TenantId>();
 
     const oldNotification1 = getMockNotification({
       userId,
@@ -100,8 +100,8 @@ describe("deleteOldNotifications", () => {
   it("should not delete any notifications when all are newer than specified days", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 
-    const userId = generateId();
-    const tenantId = generateId();
+    const userId = generateId<UserId>();
+    const tenantId = generateId<TenantId>();
 
     const recentNotification1 = getMockNotification({
       userId,
@@ -145,8 +145,8 @@ describe("deleteOldNotifications", () => {
   it("should respect custom retention period", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 
-    const userId = generateId();
-    const tenantId = generateId();
+    const userId = generateId<UserId>();
+    const tenantId = generateId<TenantId>();
 
     const notification30DaysOld = getMockNotification({
       userId,
@@ -192,8 +192,8 @@ describe("deleteOldNotifications", () => {
   it("should delete notifications regardless of read status", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 
-    const userId = generateId();
-    const tenantId = generateId();
+    const userId = generateId<UserId>();
+    const tenantId = generateId<TenantId>();
 
     const oldReadNotification = getMockNotification({
       userId,
@@ -229,10 +229,10 @@ describe("deleteOldNotifications", () => {
   it("should delete notifications for different users and tenants", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 
-    const user1 = generateId();
-    const user2 = generateId();
-    const tenant1 = generateId();
-    const tenant2 = generateId();
+    const user1 = generateId<UserId>();
+    const user2 = generateId<UserId>();
+    const tenant1 = generateId<TenantId>();
+    const tenant2 = generateId<TenantId>();
 
     const oldNotificationUser1 = getMockNotification({
       userId: user1,
@@ -278,8 +278,8 @@ describe("deleteOldNotifications", () => {
   it("should handle edge case at exact cutoff date", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 
-    const userId = generateId();
-    const tenantId = generateId();
+    const userId = generateId<UserId>();
+    const tenantId = generateId<TenantId>();
 
     // Notification created exactly 90 days ago
     const notificationAtCutoff = getMockNotification({
