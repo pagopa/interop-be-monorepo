@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -8,21 +7,21 @@ import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /eserviceTemplateEvents router test", () => {
-  const events: m2mGatewayApi.EServiceTemplateEvent[] = [
+describe("GET /consumerDelegationEvents router test", () => {
+  const events: m2mGatewayApi.ConsumerDelegationEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "ESERVICE_TEMPLATE_ADDED",
-      eserviceTemplateId: generateId(),
+      eventType: "CONSUMER_DELEGATION_APPROVED",
+      delegationId: generateId(),
     },
   ];
 
-  const mockEServiceTemplateEvents: m2mGatewayApi.EServiceTemplateEvents = {
+  const mockConsumerDelegationEvents: m2mGatewayApi.ConsumerDelegationEvents = {
     events,
   };
 
-  const mockQueryParams: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams =
+  const mockQueryParams: m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams =
     {
       lastEventId: generateId(),
       limit: 10,
@@ -30,10 +29,10 @@ describe("GET /eserviceTemplateEvents router test", () => {
 
   const makeRequest = async (
     token: string,
-    query: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams
+    query: m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/eserviceTemplateEvents`)
+      .get(`${appBasePath}/consumerDelegationEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
@@ -46,16 +45,16 @@ describe("GET /eserviceTemplateEvents router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEventService.getEServiceTemplateEvents = vi
+      mockEventService.getConsumerDelegationEvents = vi
         .fn()
-        .mockResolvedValue(mockEServiceTemplateEvents);
+        .mockResolvedValue(mockConsumerDelegationEvents);
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockEServiceTemplateEvents);
-      expect(mockEventService.getEServiceTemplateEvents).toHaveBeenCalledWith(
+      expect(res.body).toEqual(mockConsumerDelegationEvents);
+      expect(mockEventService.getConsumerDelegationEvents).toHaveBeenCalledWith(
         mockQueryParams,
         expect.any(Object)
       );
@@ -81,7 +80,7 @@ describe("GET /eserviceTemplateEvents router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams
+      query as unknown as m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams
     );
 
     expect(res.status).toBe(400);

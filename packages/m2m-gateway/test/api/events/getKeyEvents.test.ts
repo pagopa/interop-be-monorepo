@@ -3,24 +3,21 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { KeyM2MEventType, generateId } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /keyEvents router test", () => {
-  const eventTypes = KeyM2MEventType.options;
   const mockKeyEvents: m2mGatewayApi.KeyEvents = {
-    events: eventTypes.map(
-      (eventType) =>
-        ({
-          id: generateId(),
-          eventTimestamp: new Date().toJSON(),
-          eventType: testToUpperSnakeCase(eventType),
-          kid: generateId(),
-          clientId: generateId(),
-        } as m2mGatewayApi.KeyEvent)
-    ),
+    events: [
+      {
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: "CLIENT_KEY_ADDED",
+        kid: generateId(),
+        clientId: generateId(),
+      },
+    ],
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerKeysQueryParams = {

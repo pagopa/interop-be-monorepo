@@ -3,26 +3,20 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import {
-  ProducerKeychainM2MEventType,
-  generateId,
-} from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /producerKeychainEvents router test", () => {
-  const eventTypes = ProducerKeychainM2MEventType.options;
   const mockProducerKeychainEvents: m2mGatewayApi.ProducerKeychainEvents = {
-    events: eventTypes.map(
-      (eventType) =>
-        ({
-          id: generateId(),
-          eventTimestamp: new Date().toJSON(),
-          eventType: testToUpperSnakeCase(eventType),
-          producerKeychainId: generateId(),
-        } as m2mGatewayApi.ProducerKeychainEvent)
-    ),
+    events: [
+      {
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: "PRODUCER_KEYCHAIN_ADDED",
+        producerKeychainId: generateId(),
+      },
+    ],
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerProducerKeychainEventsQueryParams =

@@ -9,38 +9,39 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getProducerKeychainEvents integration", () => {
-  const events: m2mEventApi.ProducerKeychainM2MEvent[] = [
+describe("getConsumerDelegationEvents integration", () => {
+  const events: m2mEventApi.ConsumerDelegationM2MEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "PRODUCER_KEYCHAIN_ADDED",
-      producerKeychainId: generateId(),
+      eventType: "CONSUMER_DELEGATION_APPROVED",
+      delegationId: generateId(),
     },
   ];
-  const mockEventManagerResponse: m2mEventApi.ProducerKeychainM2MEvents = {
+
+  const mockEventManagerResponse: m2mEventApi.ConsumerDelegationM2MEvents = {
     events,
   };
 
-  const mockGetProducerKeychainM2MEvents = vi
+  const mockGetConsumerDelegationM2MEvents = vi
     .fn()
     .mockResolvedValue(mockEventManagerResponse);
 
   mockInteropBeClients.eventManagerClient = {
-    getProducerKeychainM2MEvents: mockGetProducerKeychainM2MEvents,
+    getConsumerDelegationM2MEvents: mockGetConsumerDelegationM2MEvents,
   } as unknown as PagoPAInteropBeClients["eventManagerClient"];
 
   beforeEach(() => {
-    mockGetProducerKeychainM2MEvents.mockClear();
+    mockGetConsumerDelegationM2MEvents.mockClear();
   });
 
   it.each([generateId(), undefined])(
     "Should succeed and perform API clients calls",
     async (lastEventId) => {
-      const expectedResponse: m2mGatewayApi.ProducerKeychainEvents = {
+      const expectedResponse: m2mGatewayApi.ConsumerDelegationEvents = {
         events,
       };
-      const result = await eventService.getProducerKeychainEvents(
+      const result = await eventService.getConsumerDelegationEvents(
         {
           lastEventId,
           limit: 10,
@@ -49,7 +50,7 @@ describe("getProducerKeychainEvents integration", () => {
       );
       expect(result).toEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
-        mockGet: mockGetProducerKeychainM2MEvents,
+        mockGet: mockGetConsumerDelegationM2MEvents,
         queries: {
           lastEventId,
           limit: 10,
