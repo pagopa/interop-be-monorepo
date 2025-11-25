@@ -592,7 +592,6 @@ async function updateDraftPurposeTemplate(
   const {
     targetTenantKind,
     purposeTitle,
-    purposeIsFreeOfCharge,
     purposeFreeOfChargeReason,
     handlesPersonalData,
   } = typeAndSeed.seed;
@@ -610,18 +609,6 @@ async function updateDraftPurposeTemplate(
 
   const updatedTargetTenantKind =
     targetTenantKind ?? purposeTemplate.data.targetTenantKind;
-
-  const updatedIsFreeOfCharge =
-    purposeIsFreeOfCharge ?? purposeTemplate.data.purposeIsFreeOfCharge;
-  const updatedFreeOfChargeReason =
-    purposeFreeOfChargeReason ??
-    (purposeFreeOfChargeReason === null
-      ? undefined
-      : purposeTemplate.data.purposeFreeOfChargeReason);
-  assertConsistentFreeOfCharge(
-    updatedIsFreeOfCharge,
-    updatedFreeOfChargeReason
-  );
 
   const updatedHandlesPersonalData =
     handlesPersonalData !== undefined
@@ -662,11 +649,19 @@ async function updateDraftPurposeTemplate(
   const updatedPurposeTemplate: PurposeTemplate = {
     ...purposeTemplate.data,
     ...typeAndSeed.seed,
-    purposeIsFreeOfCharge: updatedIsFreeOfCharge,
-    purposeFreeOfChargeReason: updatedFreeOfChargeReason,
+    purposeFreeOfChargeReason:
+      purposeFreeOfChargeReason ??
+      (purposeFreeOfChargeReason === null
+        ? undefined
+        : purposeTemplate.data.purposeFreeOfChargeReason),
     purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
     updatedAt: new Date(),
   };
+
+  assertConsistentFreeOfCharge(
+    updatedPurposeTemplate.purposeIsFreeOfCharge,
+    updatedPurposeTemplate.purposeFreeOfChargeReason
+  );
 
   const event = await repository.createEvent(
     toCreateEventPurposeTemplateDraftUpdated(
