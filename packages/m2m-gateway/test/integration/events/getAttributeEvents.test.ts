@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { AttributeM2MEventType, generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -8,24 +8,22 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getAttributeEvents integration", () => {
-  const mockAttributeEvent1: m2mEventApi.AttributeM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "ATTRIBUTE_ADDED",
-    attributeId: generateId(),
-  };
-
-  const mockAttributeEvent2: m2mEventApi.AttributeM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "ATTRIBUTE_ADDED",
-    attributeId: generateId(),
-  };
+  const eventTypes = AttributeM2MEventType.options;
+  const events: m2mEventApi.AttributeM2MEvent[] = eventTypes.map(
+    (eventType) =>
+    ({
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: testToUpperSnakeCase(eventType),
+      attributeId: generateId(),
+    } as m2mEventApi.AttributeM2MEvent)
+  );
 
   const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {
-    events: [mockAttributeEvent1, mockAttributeEvent2],
+    events,
   };
 
   const mockGetAttributeM2MEvents = vi
@@ -41,10 +39,10 @@ describe("getAttributeEvents integration", () => {
   });
 
   it.each([generateId(), undefined])(
-    "Should succeed and perform API clients calls",
+    "Should succeed and perform API clients calls with lastEventId: %s",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApi.AttributeEvents = {
-        events: [mockAttributeEvent1, mockAttributeEvent2],
+        events,
       };
       const result = await eventService.getAttributeEvents(
         {
