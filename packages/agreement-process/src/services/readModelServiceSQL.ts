@@ -961,45 +961,56 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<AgreementDocument>> {
-      const resultsSet = await readmodelDB
-        .select(
-          withTotalCount({
-            id: agreementConsumerDocumentInReadmodelAgreement.id,
-            path: agreementConsumerDocumentInReadmodelAgreement.path,
-            name: agreementConsumerDocumentInReadmodelAgreement.name,
-            prettyName:
-              agreementConsumerDocumentInReadmodelAgreement.prettyName,
-            contentType:
-              agreementConsumerDocumentInReadmodelAgreement.contentType,
-            createdAt: agreementConsumerDocumentInReadmodelAgreement.createdAt,
-          })
-        )
-        .from(agreementConsumerDocumentInReadmodelAgreement)
-        .where(
-          eq(
-            agreementConsumerDocumentInReadmodelAgreement.agreementId,
-            agreementId
-          )
-        )
-        .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
-        .limit(limit)
-        .offset(offset)
-        .$dynamic();
+      return await readmodelDB.transaction(async (tx) => {
+        const filters = eq(
+          agreementConsumerDocumentInReadmodelAgreement.agreementId,
+          agreementId
+        );
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              id: agreementConsumerDocumentInReadmodelAgreement.id,
+              path: agreementConsumerDocumentInReadmodelAgreement.path,
+              name: agreementConsumerDocumentInReadmodelAgreement.name,
+              prettyName:
+                agreementConsumerDocumentInReadmodelAgreement.prettyName,
+              contentType:
+                agreementConsumerDocumentInReadmodelAgreement.contentType,
+              createdAt:
+                agreementConsumerDocumentInReadmodelAgreement.createdAt,
+            })
+            .from(agreementConsumerDocumentInReadmodelAgreement)
+            .where(filters)
+            .orderBy(
+              asc(agreementConsumerDocumentInReadmodelAgreement.createdAt)
+            )
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({
+              count: countDistinct(
+                agreementConsumerDocumentInReadmodelAgreement.id
+              ),
+            })
+            .from(agreementConsumerDocumentInReadmodelAgreement)
+            .where(filters),
+        ]);
 
-      return createListResult(
-        resultsSet.map(
-          (doc) =>
-            ({
-              id: unsafeBrandId<AgreementDocumentId>(doc.id),
-              path: doc.path,
-              name: doc.name,
-              prettyName: doc.prettyName,
-              contentType: doc.contentType,
-              createdAt: stringToDate(doc.createdAt),
-            } satisfies AgreementDocument)
-        ),
-        resultsSet[0]?.totalCount
-      );
+        return createListResult(
+          queryResult.map(
+            (doc) =>
+              ({
+                id: unsafeBrandId<AgreementDocumentId>(doc.id),
+                path: doc.path,
+                name: doc.name,
+                prettyName: doc.prettyName,
+                contentType: doc.contentType,
+                createdAt: stringToDate(doc.createdAt),
+              } satisfies AgreementDocument)
+          ),
+          totalCount[0].count
+        );
+      });
     },
   };
 }
