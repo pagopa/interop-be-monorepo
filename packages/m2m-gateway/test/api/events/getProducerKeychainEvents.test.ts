@@ -55,7 +55,6 @@ describe("GET /producerKeychainEvents router test", () => {
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockQueryParams);
-      console.log(res.body);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockProducerKeychainEvents);
       expect(mockEventService.getProducerKeychainsEvents).toHaveBeenCalledWith(
