@@ -74,6 +74,30 @@ const eventRouter = (
     }
   });
 
+  eventRouter.get("/tenantEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getTenantEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+      return res.status(200).send(m2mGatewayApi.TenantEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving tenant events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
   eventRouter.get("/eserviceTemplateEvents", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {

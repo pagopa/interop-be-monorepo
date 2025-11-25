@@ -17035,6 +17035,84 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /tenantEvents:
+    get:
+      tags:
+        - events
+      summary: Get Tenant events
+      description: |
+        Retrieve list of Tenant events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getTenantEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Tenant events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eserviceTemplateEvents:
     get:
       tags:
@@ -17710,6 +17788,57 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AttributeEvent"
+    TenantEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - MAINTENANCE_TENANT_DELETED
+            - TENANT_PROMOTED_TO_CERTIFIER
+            - MAINTENANCE_TENANT_UPDATED
+            - TENANT_CERTIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_CERTIFIED_ATTRIBUTE_REVOKED
+            - TENANT_DECLARED_ATTRIBUTE_ASSIGNED
+            - TENANT_DECLARED_ATTRIBUTE_REVOKED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_ADDED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_REMOVED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_ADDED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_REMOVED
+            - TENANT_KIND_UPDATED
+            - TENANT_MAIL_ADDED
+            - TENANT_MAIL_DELETED
+            - TENANT_ONBOARD_DETAILS_UPDATED
+            - TENANT_ONBOARDED
+            - TENANT_VERIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_VERIFIED_ATTRIBUTE_EXPIRATION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_REVOKED
+        eventTimestamp:
+          type: string
+          format: date-time
+        tenantId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - tenantId
+    TenantEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantEvent"
     EServiceEvent:
       type: object
       additionalProperties: false
