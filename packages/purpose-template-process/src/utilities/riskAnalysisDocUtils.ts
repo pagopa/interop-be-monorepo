@@ -81,35 +81,43 @@ export function addAnnotationDocumentToUpdatedAnswerIfNeeded(
   }
 
   const updatedSingleAnswers: RiskAnalysisTemplateSingleAnswer[] =
-    newFormTemplate.singleAnswers.map((answer) => {
-      const docs = answerWithAnnotationDocs[answer.key];
+    newFormTemplate.singleAnswers.map(
+      (answer): RiskAnalysisTemplateSingleAnswer => {
+        const docs: RiskAnalysisTemplateAnswerAnnotationDocument[] =
+          answerWithAnnotationDocs[answer.key];
 
-      return docs
-        ? {
-            ...answer,
-            suggestedValues: answer.suggestedValues,
-            annotation: answer.annotation && {
-              ...answer.annotation,
-              docs,
-            },
-          }
-        : answer;
-    });
+        return docs
+          ? {
+              ...answer,
+              suggestedValues: answer.suggestedValues,
+              annotation: answer.annotation && {
+                ...answer.annotation,
+                docs,
+              },
+            }
+          : answer;
+      }
+    );
 
   const updatedMultiAnswer: RiskAnalysisTemplateMultiAnswer[] =
-    newFormTemplate.multiAnswers.map((answer) => {
-      const docs = answerWithAnnotationDocs[answer.key];
+    newFormTemplate.multiAnswers.map(
+      (
+        answer: RiskAnalysisTemplateMultiAnswer
+      ): RiskAnalysisTemplateMultiAnswer => {
+        const docs: RiskAnalysisTemplateAnswerAnnotationDocument[] =
+          answerWithAnnotationDocs[answer.key];
 
-      return docs
-        ? {
-            ...answer,
-            annotation: answer.annotation && {
-              ...answer.annotation,
-              docs,
-            },
-          }
-        : answer;
-    });
+        return docs
+          ? {
+              ...answer,
+              annotation: answer.annotation && {
+                ...answer.annotation,
+                docs,
+              },
+            }
+          : answer;
+      }
+    );
 
   return {
     ...newFormTemplate,

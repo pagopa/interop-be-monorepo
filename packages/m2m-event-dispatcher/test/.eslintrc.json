@@ -7,6 +7,7 @@
     "functional/no-let": "off",
     "sonarjs/no-identical-functions": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-non-null-assertion": "off"
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "local-rules/no-unsafe-object-spread": "off"
   }
 }

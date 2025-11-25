@@ -201,7 +201,17 @@ async function getUsersWithNotificationsEnabled(
       notificationType,
       readModelService,
       logger
-    ).then((config) => config.map((c) => ({ ...c, notificationType })));
+    ).then((config) =>
+      config.map(
+        (
+          c
+        ): {
+          userId: UserId;
+          tenantId: TenantId;
+          notificationType: NotificationType;
+        } => ({ ...c, notificationType })
+      )
+    );
   });
 
   const results = await Promise.all(configPromises);

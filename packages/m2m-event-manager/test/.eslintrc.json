@@ -4,6 +4,7 @@
   ],
   "rules": {
     "functional/immutable-data": "off",
-    "@typescript-eslint/explicit-function-return-type": "off"
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "local-rules/no-unsafe-object-spread": "off"
   }
 }

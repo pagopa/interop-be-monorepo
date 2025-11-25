@@ -302,7 +302,7 @@ export function inAppNotificationServiceBuilder(
       ]);
 
       const results = groupedResult.reduce<Record<NotificationType, number>>(
-        (acc, row) => {
+        (acc, row): Record<NotificationType, number> => {
           const notificationType = row.notificationType;
           if (NotificationType.safeParse(notificationType).success) {
             return {

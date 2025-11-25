@@ -86,23 +86,25 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
       return [];
     }
 
-    return eservices.map((eservice) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Sospensione del template "${eserviceTemplate.name}"`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: `Sospensione del template "${eserviceTemplate.name}"`,
-          notificationType,
-          entityId: EServiceIdDescriptorId.parse(
-            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
-          ),
-          ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-          creatorName: creator.name,
-          templateName: eserviceTemplate.name,
-        }),
-      },
-      tenantId: t.tenantId,
-      ...mapRecipientToEmailPayload(t),
-    }));
+    return eservices.map(
+      (eservice): EmailNotificationMessagePayload => ({
+        correlationId: correlationId ?? generateId(),
+        email: {
+          subject: `Sospensione del template "${eserviceTemplate.name}"`,
+          body: templateService.compileHtml(htmlTemplate, {
+            title: `Sospensione del template "${eserviceTemplate.name}"`,
+            notificationType,
+            entityId: EServiceIdDescriptorId.parse(
+              `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+            ),
+            ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
+            creatorName: creator.name,
+            templateName: eserviceTemplate.name,
+          }),
+        },
+        tenantId: t.tenantId,
+        ...mapRecipientToEmailPayload(t),
+      })
+    );
   });
 }

@@ -14,6 +14,7 @@ const EServiceTemplateOutboundWriterConfig = KafkaConsumerConfig.and(
       ESERVICE_TEMPLATE_OUTBOUND_TOPIC: z.string(),
     })
   )
+  /* eslint-disable local-rules/no-unsafe-object-spread */
   .transform((c) => ({
     ...c,
     eserviceTemplateOutboundTopic: c.ESERVICE_TEMPLATE_OUTBOUND_TOPIC,

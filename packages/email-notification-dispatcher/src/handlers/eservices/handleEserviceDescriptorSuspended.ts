@@ -99,7 +99,7 @@ export async function handleEserviceDescriptorSuspended(
         },
         tenantId: producer.id,
         ...mapRecipientToEmailPayload(t),
-      },
+      } satisfies EmailNotificationMessagePayload,
     ];
   });
 }

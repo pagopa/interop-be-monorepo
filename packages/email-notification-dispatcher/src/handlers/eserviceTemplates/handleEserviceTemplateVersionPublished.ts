@@ -97,24 +97,29 @@ export async function handleEServiceTemplateVersionPublished(
       return [];
     }
 
-    return tenantEServices.map((eservice) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Nuova versione del template "${eserviceTemplate.name}"`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: `Nuova versione del template "${eserviceTemplate.name}"`,
-          notificationType,
-          entityId: EServiceIdDescriptorId.parse(
-            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
-          ),
-          ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-          creatorName: creator.name,
-          version: eserviceTemplateVersion.version,
-          templateName: eserviceTemplate.name,
-        }),
-      },
-      tenantId: t.tenantId,
-      ...mapRecipientToEmailPayload(t),
-    }));
+    return tenantEServices.map(
+      (eservice) =>
+        ({
+          correlationId: correlationId ?? generateId(),
+          email: {
+            subject: `Nuova versione del template "${eserviceTemplate.name}"`,
+            body: templateService.compileHtml(htmlTemplate, {
+              title: `Nuova versione del template "${eserviceTemplate.name}"`,
+              notificationType,
+              entityId: EServiceIdDescriptorId.parse(
+                `${eservice.id}/${
+                  retrieveLatestPublishedDescriptor(eservice).id
+                }`
+              ),
+              ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
+              creatorName: creator.name,
+              version: eserviceTemplateVersion.version,
+              templateName: eserviceTemplate.name,
+            }),
+          },
+          tenantId: t.tenantId,
+          ...mapRecipientToEmailPayload(t),
+        } satisfies EmailNotificationMessagePayload)
+    );
   });
 }

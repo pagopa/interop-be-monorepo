@@ -255,7 +255,10 @@ const updatePurposeTemplateWithoutAnnotation = async (
         answer
       ) => {
         if (answer.id === answerId) {
-          const updatedAnswer = { ...answer, annotation: undefined };
+          const updatedAnswer = {
+            ...answer,
+            annotation: undefined,
+          } satisfies T;
 
           return {
             updatedAnswers: [...acc.updatedAnswers, updatedAnswer],
@@ -266,7 +269,7 @@ const updatePurposeTemplateWithoutAnnotation = async (
           return {
             ...acc,
             updatedAnswers: [...acc.updatedAnswers, answer],
-          };
+          } satisfies typeof acc;
         }
       },
       {
@@ -396,14 +399,24 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
                   ...answer.annotation,
                   docs: updatedAnnotationDocs,
                 },
-              },
+              } satisfies T,
             ],
             removedAnnotationDocument,
+          } as {
+            updatedAnswers: T[];
+            removedAnnotationDocument:
+              | RiskAnalysisTemplateAnswerAnnotationDocument
+              | undefined;
           };
         } else {
           return {
             ...acc,
             updatedAnswers: [...acc.updatedAnswers, answer],
+          } satisfies typeof acc as {
+            updatedAnswers: T[];
+            removedAnnotationDocument:
+              | RiskAnalysisTemplateAnswerAnnotationDocument
+              | undefined;
           };
         }
       },
@@ -1059,8 +1072,11 @@ export function purposeTemplateServiceBuilder(
             purposeRiskAnalysisForm: {
               ...riskAnalysisForm,
               singleAnswers: [...riskAnalysisForm.singleAnswers, singleAnswer],
-            },
+            } satisfies RiskAnalysisFormTemplate,
             answer: singleAnswer,
+          } as {
+            purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+            answer: RiskAnalysisTemplateSingleAnswer;
           };
         })
         .with({ type: "multi" }, (a) => {
@@ -1070,8 +1086,11 @@ export function purposeTemplateServiceBuilder(
             purposeRiskAnalysisForm: {
               ...riskAnalysisForm,
               multiAnswers: [...riskAnalysisForm.multiAnswers, multiAnswer],
-            },
+            } satisfies RiskAnalysisFormTemplate,
             answer: multiAnswer,
+          } as {
+            purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+            answer: RiskAnalysisTemplateMultiAnswer;
           };
         })
         .exhaustive();

@@ -99,7 +99,7 @@ export async function handleEserviceDescriptorActivated(
         },
         tenantId: producer.id,
         ...mapRecipientToEmailPayload(t),
-      },
+      } satisfies EmailNotificationMessagePayload,
     ];
   });
 }

@@ -22,7 +22,7 @@ export function toM2MGatewayApiRiskAnalysisAnswers(
   multiAnswers: eserviceTemplateApi.EServiceRiskAnalysisMultiAnswer[]
 ): Record<string, string[]> {
   const singleAnswersMap = singleAnswers.reduce<Record<string, string[]>>(
-    (map, { key, value }) => {
+    (map, { key, value }): Record<string, string[]> => {
       if (!value) {
         return map;
       }
@@ -32,7 +32,7 @@ export function toM2MGatewayApiRiskAnalysisAnswers(
   );
 
   const multiAnswersMap = multiAnswers.reduce<Record<string, string[]>>(
-    (map, { key, values }) => {
+    (map, { key, values }): Record<string, string[]> => {
       if (values.length === 0) {
         return map;
       }

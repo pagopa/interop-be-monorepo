@@ -398,7 +398,14 @@ async function validateEServiceExistence(
   );
 
   return eserviceResults.reduce(
-    (acc, result, index) =>
+    (
+      acc,
+      result,
+      index
+    ): {
+      validationIssues: PurposeTemplateValidationIssue[];
+      validEservices: EService[];
+    } =>
       match(result)
         .with({ status: "fulfilled" }, (res) => {
           if (!res.value) {
@@ -408,6 +415,9 @@ async function validateEServiceExistence(
                 ...acc.validationIssues,
                 eserviceNotFound(eserviceIds[index]),
               ],
+            } as {
+              validationIssues: PurposeTemplateValidationIssue[];
+              validEservices: EService[];
             };
           }
 
@@ -421,12 +431,18 @@ async function validateEServiceExistence(
                   purposeTemplate
                 ),
               ],
+            } as {
+              validationIssues: PurposeTemplateValidationIssue[];
+              validEservices: EService[];
             };
           }
 
           return {
             ...acc,
             validEservices: [...acc.validEservices, res.value],
+          } satisfies {
+            validationIssues: PurposeTemplateValidationIssue[];
+            validEservices: EService[];
           };
         })
         .with({ status: "rejected" }, (res) => ({

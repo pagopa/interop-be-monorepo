@@ -26,7 +26,8 @@ import { handleAgreementDocument } from "./handlers/handleAgreementDocument.js";
 import { handleDelegationDocument } from "./handlers/handleDelegationDocument.js";
 import { handlePurposeDocument } from "./handlers/handlePurposeDocument.js";
 
-const fileManager = initFileManager({
+const fileManager: ReturnType<typeof initFileManager> = initFileManager({
+  // eslint-disable-next-line local-rules/no-unsafe-object-spread
   ...config,
   s3CustomServer: false,
 });

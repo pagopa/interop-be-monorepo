@@ -51,14 +51,17 @@ function convertAttribute(
       createdAt: attribute.creationTime,
     };
     return match(attributeKind)
-      .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED, () => {
-        assertAttributeOriginAndCodeAreDefined(attribute);
-        return {
-          ...baseFields,
-          code: attribute.code,
-          origin: attribute.origin,
-        };
-      })
+      .with(
+        attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+        (): m2mGatewayApi.CertifiedAttribute => {
+          assertAttributeOriginAndCodeAreDefined(attribute);
+          return {
+            ...baseFields,
+            code: attribute.code,
+            origin: attribute.origin,
+          };
+        }
+      )
       .with(
         attributeRegistryApi.AttributeKind.Values.DECLARED,
         attributeRegistryApi.AttributeKind.Values.VERIFIED,

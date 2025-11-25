@@ -1,3 +1,5 @@
+/* eslint-disable local-rules/no-unsafe-object-spread */
+
 import {
   DelegationTopicConfig,
   KafkaConsumerConfig,

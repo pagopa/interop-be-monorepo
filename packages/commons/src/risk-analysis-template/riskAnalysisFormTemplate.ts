@@ -147,16 +147,18 @@ export function riskAnalysisValidatedAnswerToRiskAnalysisAnswer(
   validatedAnswer: RiskAnalysisTemplateValidatedSingleOrMultiAnswer
 ): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer {
   return match(validatedAnswer) // This match help to distinguish properly brandedtype for Answer Id
-    .with({ type: "single" }, (a) => {
-      const { annotation, ...data } = a.answer;
+    .with({ type: "single" }, (a): RiskAnalysisTemplateSingleAnswer => {
+      const { annotation, ...data }: RiskAnalysisTemplateValidatedSingleAnswer =
+        a.answer;
       return {
         ...data,
         id: generateId<RiskAnalysisSingleAnswerId>(),
         ...(annotation ? { annotation: mapAnnotation(annotation) } : {}),
       };
     })
-    .with({ type: "multi" }, (a) => {
-      const { annotation, ...data } = a.answer;
+    .with({ type: "multi" }, (a): RiskAnalysisTemplateMultiAnswer => {
+      const { annotation, ...data }: RiskAnalysisTemplateValidatedMultiAnswer =
+        a.answer;
       return {
         ...data,
         id: generateId<RiskAnalysisMultiAnswerId>(),

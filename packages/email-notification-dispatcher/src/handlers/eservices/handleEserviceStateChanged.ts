@@ -135,7 +135,7 @@ export async function handleEserviceStateChanged(
         },
         tenantId: producer.id,
         ...mapRecipientToEmailPayload(t),
-      },
+      } satisfies EmailNotificationMessagePayload,
     ];
   });
 }

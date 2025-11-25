@@ -41,7 +41,7 @@ export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
   return {
     ...baseEvent,
     eventType,
-  };
+  } satisfies typeof baseEvent & { eventType: typeof eventType };
 });
 
 export type UsersEventPayload = z.infer<typeof UsersEventPayload>;

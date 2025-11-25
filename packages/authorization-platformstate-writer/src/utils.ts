@@ -1238,6 +1238,7 @@ const convertToExpressionAttributeValues = (
       const value = updatedFields[key as keyof typeof updatedFields];
       if (value !== undefined) {
         const dynamoKey = `:${key}`;
+        // eslint-disable-next-line local-rules/no-unsafe-object-spread
         return {
           ...acc,
           [dynamoKey]: convertValueToAttributeValue(value),

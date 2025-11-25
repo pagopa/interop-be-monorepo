@@ -95,11 +95,11 @@ export async function handleEserviceDescriptorPublished(
             eserviceVersion: descriptor.version,
             producerName: producer.name,
             ctaLabel: `Visualizza e-service`,
-          }),
+          } satisfies Record<string, unknown>),
         },
         tenantId: producer.id,
         ...mapRecipientToEmailPayload(t),
-      },
+      } satisfies EmailNotificationMessagePayload,
     ];
   });
 }

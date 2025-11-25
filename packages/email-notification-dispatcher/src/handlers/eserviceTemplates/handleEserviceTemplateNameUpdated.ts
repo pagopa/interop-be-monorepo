@@ -84,23 +84,28 @@ export async function handleEServiceTemplateNameUpdated(
       return [];
     }
 
-    return tenantEServices.map((eservice) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Aggiornamento nome del template "${oldName}"`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: `Aggiornamento nome del template "${oldName}"`,
-          notificationType,
-          entityId: EServiceIdDescriptorId.parse(
-            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
-          ),
-          ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-          oldName: oldName ?? eserviceTemplate.id,
-          newName: eserviceTemplate.name,
-        }),
-      },
-      tenantId: t.tenantId,
-      ...mapRecipientToEmailPayload(t),
-    }));
+    return tenantEServices.map(
+      (eservice) =>
+        ({
+          correlationId: correlationId ?? generateId(),
+          email: {
+            subject: `Aggiornamento nome del template "${oldName}"`,
+            body: templateService.compileHtml(htmlTemplate, {
+              title: `Aggiornamento nome del template "${oldName}"`,
+              notificationType,
+              entityId: EServiceIdDescriptorId.parse(
+                `${eservice.id}/${
+                  retrieveLatestPublishedDescriptor(eservice).id
+                }`
+              ),
+              ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
+              oldName: oldName ?? eserviceTemplate.id,
+              newName: eserviceTemplate.name,
+            }),
+          },
+          tenantId: t.tenantId,
+          ...mapRecipientToEmailPayload(t),
+        } satisfies EmailNotificationMessagePayload)
+    );
   });
 }

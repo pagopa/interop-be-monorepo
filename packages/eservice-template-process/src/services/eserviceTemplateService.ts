@@ -276,7 +276,7 @@ async function parseAndCheckAttributesOfKind(
 ): Promise<EServiceAttribute[][]> {
   const parsedAttributesSeed = attributesSeedForKind.map((group) => {
     const groupAttributesIdsFound: Set<AttributeId> = new Set();
-    return group.map((att) => {
+    return group.map((att): EServiceAttribute => {
       const id = unsafeBrandId<AttributeId>(att.id);
       if (groupAttributesIdsFound.has(id)) {
         throw attributeDuplicatedInGroup(id);

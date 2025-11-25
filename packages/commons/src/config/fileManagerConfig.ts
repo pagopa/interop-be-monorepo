@@ -4,7 +4,8 @@ const S3CustomServerConfig = z.preprocess(
   (c) =>
     (c as { S3_CUSTOM_SERVER: string | undefined }).S3_CUSTOM_SERVER ===
     undefined
-      ? { ...(c as object), S3_CUSTOM_SERVER: "false" }
+      ? // eslint-disable-next-line local-rules/no-unsafe-object-spread
+        { ...(c as object), S3_CUSTOM_SERVER: "false" }
       : c,
 
   z

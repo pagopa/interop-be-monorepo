@@ -1,3 +1,5 @@
+/* eslint-disable local-rules/no-unsafe-object-spread */
+
 import { unauthorizedError } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z } from "zod";

@@ -2,6 +2,7 @@
   "extends": ["../../../.eslintrc.cjs"],
   "rules": {
     "functional/immutable-data": "off",
-    "sonarjs/no-identical-functions": "off"
+    "sonarjs/no-identical-functions": "off",
+    "local-rules/no-unsafe-object-spread": "off"
   }
 }

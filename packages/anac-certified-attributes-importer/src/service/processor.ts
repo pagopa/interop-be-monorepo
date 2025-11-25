@@ -101,7 +101,7 @@ async function processFileContent(
     );
 
     const paOrgs: PaRow[] = batchResult.records
-      .map((org: CsvRow) => {
+      .map((org: CsvRow): PaRow | null => {
         if ("codice_ipa" in org) {
           return {
             ...org,

@@ -1,6 +1,7 @@
 {
   "extends": ["../../../.eslintrc.cjs"],
   "rules": {
-    "functional/immutable-data": "off"
+    "functional/immutable-data": "off",
+    "local-rules/no-unsafe-object-spread": "off"
   }
 }
