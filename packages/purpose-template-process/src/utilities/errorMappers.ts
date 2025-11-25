@@ -280,9 +280,9 @@ export const updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
 
 export const updatePurposeTemplateRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
-  // eslint-disable-next-line sonarjs/no-identical-functions
 ): number =>
   match(error.code)
+    .with("riskAnalysisTemplateValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
     .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
