@@ -365,7 +365,6 @@ export function readModelServiceBuilderSQL({
                 purposeVersionStampInReadmodelPurpose.purposeVersionId
               )
             )
-            // What is the point of these two joins? They are left joins and are not selected
             .leftJoin(
               purposeVersionSignedDocumentInReadmodelPurpose,
               eq(
