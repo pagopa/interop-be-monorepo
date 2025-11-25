@@ -17223,7 +17223,6 @@ components:
           type: string
           enum:
             - ATTRIBUTE_ADDED
-            - ATTRIBUTE_SIGNED_ADDED
         eventTimestamp:
           type: string
           format: date-time
