@@ -115,3 +115,14 @@ export function toM2MGatewayApiAgreementEvent(
     consumerDelegationId: agreementEvent.consumerDelegationId,
   };
 }
+
+export function toM2MGatewayApiTenantEvent(
+  tenantEvent: m2mEventApi.TenantM2MEvent
+): m2mGatewayApi.TenantEvent {
+  return {
+    id: tenantEvent.id,
+    tenantId: tenantEvent.tenantId,
+    eventType: tenantEvent.eventType,
+    eventTimestamp: tenantEvent.eventTimestamp,
+  };
+}

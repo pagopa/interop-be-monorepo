@@ -13,6 +13,7 @@ import {
   toM2MGatewayApiProducerKeychainsEvent,
   toM2MGatewayApiProducerKeysEvent,
   toM2MGatewayApiEServiceTemplateEvent,
+  toM2MGatewayApiTenantEvent,
 } from "../api/eventApiConverter.js";
 
 export type EventService = ReturnType<typeof eventServiceBuilder>;
@@ -74,7 +75,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerTenantEventsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantEvents> {
-      logger.info(`Retrieving tenant events`);
+      logger.info(
+        `Retrieving tenant events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } = await clients.eventManagerClient.getTenantM2MEvents({
         queries: {
@@ -85,11 +88,14 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       });
       return { events: events.map(toM2MGatewayApiTenantEvent) };
     },
+
     async getKeyEvents(
       { lastEventId, limit }: m2mGatewayApi.GetEventManagerKeysQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.KeyEvents> {
-      logger.info(`Retrieving key events`);
+      logger.info(
+        `Retrieving key events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } = await clients.eventManagerClient.getKeyM2MEvents({
         queries: {
@@ -124,7 +130,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerProducerKeyEventsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ProducerKeyEvents> {
-      logger.info(`Retrieving producer key events`);
+      logger.info(
+        `Retrieving producer key events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } =
         await clients.eventManagerClient.getProducerKeyM2MEvents({
@@ -144,7 +152,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerProducerKeychainEventsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ProducerKeychainEvents> {
-      logger.info(`Retrieving producer keychain events`);
+      logger.info(
+        `Retrieving producer keychain events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } =
         await clients.eventManagerClient.getProducerKeychainM2MEvents({

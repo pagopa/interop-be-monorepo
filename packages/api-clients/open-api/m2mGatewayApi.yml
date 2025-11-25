@@ -17049,7 +17049,7 @@ paths:
         - $ref: "#/components/parameters/EventsLimit"
       responses:
         "200":
-          description: Attribute events retrieved
+          description: Tenant events retrieved
           content:
             application/json:
               schema:
@@ -17681,7 +17681,6 @@ components:
         format: int32
         minimum: 1
         maximum: 500
-  schemas:
     EventsDelegationId:
       in: query
       name: delegationId
@@ -17697,7 +17696,7 @@ components:
           - type: "null"
           - type: string
             format: uuid
-
+  schemas:
     AgreementEvent:
       type: object
       additionalProperties: false

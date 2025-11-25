@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import { generateId, TenantM2MEventType } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,13 +10,14 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getTenantEvents integration", () => {
-  const eventTypes = TenantM2MEventType.options;
-  const events: m2mGatewayApi.TenantEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.TenantEvent["eventType"],
-    tenantId: generateId(),
-  }));
+  const events: m2mGatewayApi.TenantEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "TENANT_ONBOARDED",
+      tenantId: generateId(),
+    },
+  ];
 
   const mockEventManagerResponse: m2mEventApi.TenantM2MEvents = {
     events,

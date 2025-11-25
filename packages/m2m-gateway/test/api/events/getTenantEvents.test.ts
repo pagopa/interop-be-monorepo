@@ -3,19 +3,19 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId, TenantM2MEventType } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
 describe("GET /tenantEvents router test", () => {
-  const eventTypes = TenantM2MEventType.options;
-  const events: m2mGatewayApi.TenantEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.TenantEvent["eventType"],
-    tenantId: generateId(),
-  }));
-
+  const events: m2mGatewayApi.TenantEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "TENANT_ONBOARDED",
+      tenantId: generateId(),
+    },
+  ];
   const mockTenantEvents: m2mGatewayApi.TenantEvents = {
     events,
   };

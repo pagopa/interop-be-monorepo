@@ -86,7 +86,6 @@ const eventRouter = (
         },
         ctx
       );
-
       return res.status(200).send(m2mGatewayApi.TenantEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
@@ -98,6 +97,7 @@ const eventRouter = (
       return res.status(errorRes.status).send();
     }
   });
+
   eventRouter.get("/eserviceTemplateEvents", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {
