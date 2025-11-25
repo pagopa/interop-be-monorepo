@@ -32,3 +32,14 @@ export function toM2MGatewayApiConsumerDelegationEvent(
     delegationId: consumerDelegationEvent.delegationId,
   };
 }
+export function toM2MGatewayApiEServiceTemplateEvent(
+  eserviceTemplateEvent: m2mEventApi.EServiceTemplateM2MEvent
+): m2mGatewayApi.EServiceTemplateEvent {
+  return {
+    id: eserviceTemplateEvent.id,
+    eventTimestamp: eserviceTemplateEvent.eventTimestamp,
+    eventType: eserviceTemplateEvent.eventType,
+    eserviceTemplateId: eserviceTemplateEvent.eserviceTemplateId,
+    eserviceTemplateVersionId: eserviceTemplateEvent.eserviceTemplateVersionId,
+  };
+}
