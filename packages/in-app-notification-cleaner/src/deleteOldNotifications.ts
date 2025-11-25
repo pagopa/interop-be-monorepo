@@ -8,8 +8,9 @@ export const deleteOldNotifications = async (
   deleteOlderThanDays: number,
   loggerInstance: Logger
 ): Promise<number> => {
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - deleteOlderThanDays);
+  const cutoffDate = new Date(
+    Date.now() - deleteOlderThanDays * 24 * 60 * 60 * 1000
+  );
 
   loggerInstance.info(
     `Deleting notifications older than ${deleteOlderThanDays} days (cutoff: ${cutoffDate.toISOString()})`
