@@ -38,47 +38,34 @@ describe("getEServiceEvents integration", () => {
     mockGetEServiceM2MEvents.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const expectedResponse: m2mGatewayApi.EServiceEvents = {
-      events,
-    };
-
-    const result = await eventService.getEServiceEvents(
-      {
-        lastEventId: generateId(),
-        limit: 10,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result).toEqual(expectedResponse);
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockGetEServiceM2MEvents,
-      queries: {
-        lastEventId: expect.any(String),
-        limit: 10,
-      },
-    });
-  });
-
-  it("Should succeed without lastEventId", async () => {
-    const expectedResponse: m2mGatewayApi.EServiceEvents = {
-      events,
-    };
-
-    const result = await eventService.getEServiceEvents(
-      {
-        limit: 20,
-      },
-      getMockM2MAdminAppContext()
-    );
-
-    expect(result).toEqual(expectedResponse);
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockGetEServiceM2MEvents,
-      queries: {
-        lastEventId: undefined,
-        limit: 20,
-      },
-    });
-  });
+  it.each([
+    { lastEventId: generateId(), delegationId: generateId() },
+    { lastEventId: generateId(), delegationId: undefined },
+    { lastEventId: generateId(), delegationId: generateId() },
+    { lastEventId: undefined, delegationId: undefined },
+  ])(
+    "Should succeed and perform API clients calls",
+    async ({ lastEventId, delegationId }) => {
+      const expectedResponse: m2mGatewayApi.EServiceEvents = {
+        events,
+      };
+      const result = await eventService.getEServiceEvents(
+        {
+          lastEventId,
+          delegationId,
+          limit: 10,
+        },
+        getMockM2MAdminAppContext()
+      );
+      expect(result).toEqual(expectedResponse);
+      expectApiClientGetToHaveBeenCalledWith({
+        mockGet: mockGetEServiceM2MEvents,
+        queries: {
+          lastEventId,
+          delegationId,
+          limit: 10,
+        },
+      });
+    }
+  );
 });
