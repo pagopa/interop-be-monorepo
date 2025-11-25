@@ -23,6 +23,32 @@ const eventRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
+  eventRouter.get("/eserviceEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getEServiceEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+          delegationId: req.query.delegationId,
+        },
+        ctx
+      );
+
+      return res.status(200).send(m2mGatewayApi.EServiceEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving eservice events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
   eventRouter.get("/attributeEvents", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {
@@ -73,6 +99,31 @@ const eventRouter = (
       return res.status(errorRes.status).send();
     }
   });
+  eventRouter.get("/agreementEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getAgreementEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+          delegationId: req.query.delegationId,
+        },
+        ctx
+      );
+
+      return res.status(200).send(m2mGatewayApi.AgreementEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving agreement events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
 
   eventRouter.get("/keyEvents", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
@@ -104,7 +155,7 @@ const eventRouter = (
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-      const events = await eventService.getClientsEvents(
+      const events = await eventService.getClientEvents(
         {
           lastEventId: req.query.lastEventId,
           limit: req.query.limit,
@@ -129,7 +180,7 @@ const eventRouter = (
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-      const events = await eventService.getProducerKeysEvents(
+      const events = await eventService.getProducerKeyEvents(
         {
           lastEventId: req.query.lastEventId,
           limit: req.query.limit,
@@ -156,7 +207,7 @@ const eventRouter = (
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-      const events = await eventService.getProducerKeychainsEvents(
+      const events = await eventService.getProducerKeychainEvents(
         {
           lastEventId: req.query.lastEventId,
           limit: req.query.limit,

@@ -43,7 +43,7 @@ describe("GET /producerKeychainEvents router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEventService.getProducerKeychainsEvents = vi
+      mockEventService.getProducerKeychainEvents = vi
         .fn()
         .mockResolvedValue(mockProducerKeychainEvents);
 
@@ -51,7 +51,7 @@ describe("GET /producerKeychainEvents router test", () => {
       const res = await makeRequest(token, mockQueryParams);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockProducerKeychainEvents);
-      expect(mockEventService.getProducerKeychainsEvents).toHaveBeenCalledWith(
+      expect(mockEventService.getProducerKeychainEvents).toHaveBeenCalledWith(
         mockQueryParams,
         expect.any(Object)
       );

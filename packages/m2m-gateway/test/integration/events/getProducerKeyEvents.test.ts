@@ -42,7 +42,7 @@ describe("getProducerKeyEvents integration", () => {
       const expectedResponse: m2mGatewayApi.ProducerKeyEvents = {
         events,
       };
-      const result = await eventService.getProducerKeysEvents(
+      const result = await eventService.getProducerKeyEvents(
         {
           lastEventId,
           limit: 10,

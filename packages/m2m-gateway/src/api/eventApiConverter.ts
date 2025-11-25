@@ -89,3 +89,29 @@ export function toM2MGatewayApiProducerKeychainsEvent(
     producerKeychainId: producerKeychainEvent.producerKeychainId,
   };
 }
+
+export function toM2MGatewayApiEServiceEvent(
+  eserviceEvent: m2mEventApi.EServiceM2MEvent
+): m2mGatewayApi.EServiceEvent {
+  return {
+    id: eserviceEvent.id,
+    eserviceId: eserviceEvent.eserviceId,
+    eventType: eserviceEvent.eventType,
+    eventTimestamp: eserviceEvent.eventTimestamp,
+    descriptorId: eserviceEvent.descriptorId,
+    producerDelegationId: eserviceEvent.producerDelegationId,
+  };
+}
+
+export function toM2MGatewayApiAgreementEvent(
+  agreementEvent: m2mEventApi.AgreementM2MEvent
+): m2mGatewayApi.AgreementEvent {
+  return {
+    id: agreementEvent.id,
+    agreementId: agreementEvent.agreementId,
+    eventType: agreementEvent.eventType,
+    eventTimestamp: agreementEvent.eventTimestamp,
+    producerDelegationId: agreementEvent.producerDelegationId,
+    consumerDelegationId: agreementEvent.consumerDelegationId,
+  };
+}

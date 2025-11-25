@@ -42,7 +42,7 @@ describe("GET /clientEvents router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEventService.getClientsEvents = vi
+      mockEventService.getClientEvents = vi
         .fn()
         .mockResolvedValue(mockClientEvents);
 
@@ -51,7 +51,7 @@ describe("GET /clientEvents router test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockClientEvents);
-      expect(mockEventService.getClientsEvents).toHaveBeenCalledWith(
+      expect(mockEventService.getClientEvents).toHaveBeenCalledWith(
         mockQueryParams,
         expect.any(Object)
       );

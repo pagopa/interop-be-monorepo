@@ -3,7 +3,9 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
+  toM2MGatewayApiAgreementEvent,
   toM2MGatewayApiAttributeEvent,
+  toM2MGatewayApiEServiceEvent,
   toM2MGatewayApiConsumerDelegationEvent,
   toM2MGatewayApiProducerDelegationEvent,
   toM2MGatewayApiClientEvent,
@@ -18,6 +20,29 @@ export type EventService = ReturnType<typeof eventServiceBuilder>;
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
+    async getEServiceEvents(
+      {
+        lastEventId,
+        limit,
+        delegationId,
+      }: m2mGatewayApi.GetEventManagerEServicesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceEvents> {
+      logger.info(
+        `Retrieving eservice events with lastEventId ${lastEventId}, limit ${limit} and delegationId ${delegationId}`
+      );
+
+      const { events } = await clients.eventManagerClient.getEServiceM2MEvents({
+        queries: {
+          lastEventId,
+          limit,
+          delegationId,
+        },
+        headers,
+      });
+
+      return { events: events.map(toM2MGatewayApiEServiceEvent) };
+    },
     async getAttributeEvents(
       {
         lastEventId,
@@ -57,7 +82,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events: events.map(toM2MGatewayApiKeyEvent) };
     },
-    async getClientsEvents(
+    async getClientEvents(
       { lastEventId, limit }: m2mGatewayApi.GetEventManagerClientQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ClientEvents> {
@@ -73,7 +98,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events: events.map(toM2MGatewayApiClientEvent) };
     },
-    async getProducerKeysEvents(
+    async getProducerKeyEvents(
       {
         lastEventId,
         limit,
@@ -93,7 +118,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events: events.map(toM2MGatewayApiProducerKeysEvent) };
     },
-    async getProducerKeychainsEvents(
+    async getProducerKeychainEvents(
       {
         lastEventId,
         limit,
@@ -133,6 +158,31 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
       return { events: events.map(toM2MGatewayApiEServiceTemplateEvent) };
+    },
+    async getAgreementEvents(
+      {
+        lastEventId,
+        limit,
+        delegationId,
+      }: m2mGatewayApi.GetEventManagerAgreementsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.AgreementEvents> {
+      logger.info(
+        `Retrieving agreement events with lastEventId: ${lastEventId}, limit: ${limit} and delegationId: ${delegationId}`
+      );
+
+      const { events } = await clients.eventManagerClient.getAgreementM2MEvents(
+        {
+          queries: {
+            lastEventId,
+            limit,
+            delegationId,
+          },
+          headers,
+        }
+      );
+
+      return { events: events.map(toM2MGatewayApiAgreementEvent) };
     },
 
     async getProducerDelegationEvents(
