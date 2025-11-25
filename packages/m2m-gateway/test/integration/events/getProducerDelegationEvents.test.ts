@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import {
-  ProducerDelegationM2MEventType,
-  generateId,
-} from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -11,19 +8,16 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getProducerDelegationEvents integration", () => {
-  const eventTypes = ProducerDelegationM2MEventType.options;
-  const events: m2mEventApi.ProducerDelegationM2MEvent[] = eventTypes.map(
-    (eventType) =>
-      ({
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: testToUpperSnakeCase(eventType),
-        delegationId: generateId(),
-      } as m2mEventApi.ProducerDelegationM2MEvent)
-  );
+  const events: m2mEventApi.ProducerDelegationM2MEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "PRODUCER_DELEGATION_APPROVED",
+      delegationId: generateId(),
+    },
+  ];
 
   const mockEventManagerResponse: m2mEventApi.ProducerDelegationM2MEvents = {
     events,

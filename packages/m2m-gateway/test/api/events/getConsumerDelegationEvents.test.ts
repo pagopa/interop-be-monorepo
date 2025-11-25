@@ -3,25 +3,19 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import {
-  ConsumerDelegationM2MEventType,
-  generateId,
-} from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /consumerDelegationEvents router test", () => {
-  const eventTypes = ConsumerDelegationM2MEventType.options;
-  const events: m2mGatewayApi.ConsumerDelegationEvent[] = eventTypes.map(
-    (eventType) =>
-      ({
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: testToUpperSnakeCase(eventType),
-        delegationId: generateId(),
-      } as m2mGatewayApi.ConsumerDelegationEvent)
-  );
+  const events: m2mGatewayApi.ConsumerDelegationEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "CONSUMER_DELEGATION_APPROVED",
+      delegationId: generateId(),
+    },
+  ];
 
   const mockConsumerDelegationEvents: m2mGatewayApi.ConsumerDelegationEvents = {
     events,

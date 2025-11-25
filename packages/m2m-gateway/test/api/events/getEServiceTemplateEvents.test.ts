@@ -4,25 +4,19 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import {
-  EServiceTemplateM2MEventType,
-  generateId,
-} from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /eserviceTemplateEvents router test", () => {
-  const eventTypes = EServiceTemplateM2MEventType.options;
-  const events: m2mGatewayApi.EServiceTemplateEvent[] = eventTypes.map(
-    (eventType) =>
-      ({
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: testToUpperSnakeCase(eventType),
-        eserviceTemplateId: generateId(),
-      } as m2mGatewayApi.EServiceTemplateEvent)
-  );
+  const events: m2mGatewayApi.EServiceTemplateEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "ESERVICE_TEMPLATE_ADDED",
+      eserviceTemplateId: generateId(),
+    },
+  ];
 
   const mockEServiceTemplateEvents: m2mGatewayApi.EServiceTemplateEvents = {
     events,
