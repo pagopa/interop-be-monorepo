@@ -2,6 +2,7 @@ import { WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import { toM2MGatewayApiAttributeEvent } from "../api/eventApiConverter.js";
 
 export type EventService = ReturnType<typeof eventServiceBuilder>;
 
@@ -31,7 +32,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerAttributesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.AttributeEvents> {
-      logger.info(`Retrieving attribute events`);
+      logger.info(
+        `Retrieving attribute events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } = await clients.eventManagerClient.getAttributeM2MEvents(
         {
@@ -43,7 +46,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         }
       );
 
-      return { events };
+      return { events: events.map(toM2MGatewayApiAttributeEvent) };
     },
   };
 }
