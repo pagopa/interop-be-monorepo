@@ -9,17 +9,18 @@ import {
 } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /consumerDelegationEvents router test", () => {
   const eventTypes = ConsumerDelegationM2MEventType.options;
   const events: m2mGatewayApi.ConsumerDelegationEvent[] = eventTypes.map(
-    (eventType) => ({
-      id: generateId(),
-      eventTimestamp: new Date().toJSON(),
-      eventType:
-        eventType as m2mGatewayApi.ConsumerDelegationEvent["eventType"],
-      delegationId: generateId(),
-    })
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        delegationId: generateId(),
+      } as m2mGatewayApi.ConsumerDelegationEvent)
   );
 
   const mockConsumerDelegationEvents: m2mGatewayApi.ConsumerDelegationEvents = {

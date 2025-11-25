@@ -12,12 +12,12 @@ describe("GET /attributeEvents router test", () => {
   const eventTypes = AttributeM2MEventType.options;
   const events: m2mGatewayApi.AttributeEvent[] = eventTypes.map(
     (eventType) =>
-    ({
-      id: generateId(),
-      eventTimestamp: new Date().toJSON(),
-      eventType: testToUpperSnakeCase(eventType),
-      attributeId: generateId(),
-    } as m2mGatewayApi.AttributeEvent)
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        attributeId: generateId(),
+      } as m2mGatewayApi.AttributeEvent)
   );
 
   const mockAttributeEvents: m2mGatewayApi.AttributeEvents = {

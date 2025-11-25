@@ -11,17 +11,18 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getConsumerDelegationEvents integration", () => {
   const eventTypes = ConsumerDelegationM2MEventType.options;
-  const events: m2mGatewayApi.ConsumerDelegationEvent[] = eventTypes.map(
-    (eventType) => ({
-      id: generateId(),
-      eventTimestamp: new Date().toJSON(),
-      eventType:
-        eventType as m2mGatewayApi.ConsumerDelegationEvent["eventType"],
-      delegationId: generateId(),
-    })
+  const events: m2mEventApi.ConsumerDelegationM2MEvent[] = eventTypes.map(
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        delegationId: generateId(),
+      } as m2mEventApi.ConsumerDelegationM2MEvent)
   );
 
   const mockEventManagerResponse: m2mEventApi.ConsumerDelegationM2MEvents = {
