@@ -6,6 +6,10 @@ import {
   toM2MGatewayApiAttributeEvent,
   toM2MGatewayApiConsumerDelegationEvent,
   toM2MGatewayApiProducerDelegationEvent,
+  toM2MGatewayApiClientEvent,
+  toM2MGatewayApiKeyEvent,
+  toM2MGatewayApiProducerKeychainsEvent,
+  toM2MGatewayApiProducerKeysEvent,
   toM2MGatewayApiEServiceTemplateEvent,
 } from "../api/eventApiConverter.js";
 
@@ -37,7 +41,78 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events: events.map(toM2MGatewayApiAttributeEvent) };
     },
+    async getKeyEvents(
+      { lastEventId, limit }: m2mGatewayApi.GetEventManagerKeysQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.KeyEvents> {
+      logger.info(`Retrieving key events`);
 
+      const { events } = await clients.eventManagerClient.getKeyM2MEvents({
+        queries: {
+          lastEventId,
+          limit,
+        },
+        headers,
+      });
+
+      return { events: events.map(toM2MGatewayApiKeyEvent) };
+    },
+    async getClientsEvents(
+      { lastEventId, limit }: m2mGatewayApi.GetEventManagerClientQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.ClientEvents> {
+      logger.info(`Retrieving client events`);
+
+      const { events } = await clients.eventManagerClient.getClientM2MEvents({
+        queries: {
+          lastEventId,
+          limit,
+        },
+        headers,
+      });
+
+      return { events: events.map(toM2MGatewayApiClientEvent) };
+    },
+    async getProducerKeysEvents(
+      {
+        lastEventId,
+        limit,
+      }: m2mGatewayApi.GetEventManagerProducerKeyEventsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.ProducerKeyEvents> {
+      logger.info(`Retrieving producer key events`);
+
+      const { events } =
+        await clients.eventManagerClient.getProducerKeyM2MEvents({
+          queries: {
+            lastEventId,
+            limit,
+          },
+          headers,
+        });
+
+      return { events: events.map(toM2MGatewayApiProducerKeysEvent) };
+    },
+    async getProducerKeychainsEvents(
+      {
+        lastEventId,
+        limit,
+      }: m2mGatewayApi.GetEventManagerProducerKeychainEventsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.ProducerKeychainEvents> {
+      logger.info(`Retrieving producer keychain events`);
+
+      const { events } =
+        await clients.eventManagerClient.getProducerKeychainM2MEvents({
+          queries: {
+            lastEventId,
+            limit,
+          },
+          headers,
+        });
+
+      return { events: events.map(toM2MGatewayApiProducerKeychainsEvent) };
+    },
     async getEServiceTemplateEvents(
       {
         lastEventId,
@@ -67,7 +142,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerProducerDelegationsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ProducerDelegationEvents> {
-      logger.info(`Retrieving producer delegation events with lastEventId: ${lastEventId} and limit: ${limit}`);
+      logger.info(
+        `Retrieving producer delegation events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } =
         await clients.eventManagerClient.getProducerDelegationM2MEvents({
@@ -87,7 +164,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegationEvents> {
-      logger.info(`Retrieving consumer delegation events with lastEventId: ${lastEventId} and limit: ${limit}`);
+      logger.info(
+        `Retrieving consumer delegation events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } =
         await clients.eventManagerClient.getConsumerDelegationM2MEvents({
