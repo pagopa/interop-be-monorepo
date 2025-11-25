@@ -22,7 +22,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("linkEServicesToPurposeTemplate", () => {
+describe("unlinkEServicesFromPurposeTemplate", () => {
   const eserviceId1 = generateId<EServiceId>();
   const eserviceId2 = generateId<EServiceId>();
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
@@ -40,7 +40,7 @@ describe("linkEServicesToPurposeTemplate", () => {
   };
 
   const mockVersion = 2;
-  const mockLinkEServicesToPurposeTemplateResponse = getMockWithMetadata(
+  const mockUnlinkEServicesFromPurposeTemplateResponse = getMockWithMetadata(
     [
       mockApiEServiceDescriptorPurposeTemplate1,
       mockApiEServiceDescriptorPurposeTemplate2,
@@ -48,9 +48,9 @@ describe("linkEServicesToPurposeTemplate", () => {
     mockVersion
   );
 
-  const mockUnlinkEServicesToPurposeTemplate = vi
+  const mockUnlinkEServicesFromPurposeTemplate = vi
     .fn()
-    .mockResolvedValue(mockLinkEServicesToPurposeTemplateResponse);
+    .mockResolvedValue(mockUnlinkEServicesFromPurposeTemplateResponse);
 
   const mockPollRetries = 2;
   const mockGetPurposeTemplateResponse = getMockWithMetadata(
@@ -62,13 +62,13 @@ describe("linkEServicesToPurposeTemplate", () => {
   );
 
   mockInteropBeClients.purposeTemplateProcessClient = {
-    unlinkEServicesFromPurposeTemplate: mockUnlinkEServicesToPurposeTemplate,
+    unlinkEServicesFromPurposeTemplate: mockUnlinkEServicesFromPurposeTemplate,
     getPurposeTemplate: mockGetPurposeTemplate,
   } as unknown as PagoPAInteropBeClients["purposeTemplateProcessClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockUnlinkEServicesToPurposeTemplate.mockClear();
+    mockUnlinkEServicesFromPurposeTemplate.mockClear();
     mockGetPurposeTemplate.mockClear();
   });
 
@@ -90,7 +90,7 @@ describe("linkEServicesToPurposeTemplate", () => {
         eserviceIds: mockEserviceIds,
       },
     });
-    expect(mockUnlinkEServicesToPurposeTemplate).toHaveBeenCalledOnce();
+    expect(mockUnlinkEServicesFromPurposeTemplate).toHaveBeenCalledOnce();
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
