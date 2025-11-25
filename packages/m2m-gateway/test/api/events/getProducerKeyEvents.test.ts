@@ -18,6 +18,7 @@ describe("GET /producerKeyEvents router test", () => {
           eventTimestamp: new Date().toJSON(),
           eventType: testToUpperSnakeCase(eventType),
           kid: generateId(),
+          producerKeychainId: generateId(),
         } as m2mGatewayApi.ProducerKeyEvent)
     ),
   };
