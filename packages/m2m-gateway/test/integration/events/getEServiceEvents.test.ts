@@ -9,50 +9,57 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getAttributeEvents integration", () => {
-  const events: m2mEventApi.AttributeM2MEvent[] = [
+describe("getEServiceEvents integration", () => {
+  const events: m2mEventApi.EServiceM2MEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "ATTRIBUTE_ADDED",
-      attributeId: generateId(),
+      eventType: "ESERVICE_ADDED",
+      eserviceId: generateId(),
+      producerDelegationId: generateId(),
     },
   ];
-
-  const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {
+  const mockEventManagerResponse: m2mEventApi.EServiceM2MEvents = {
     events,
   };
 
-  const mockGetAttributeM2MEvents = vi
+  const mockGetEServiceM2MEvents = vi
     .fn()
     .mockResolvedValue(mockEventManagerResponse);
 
   mockInteropBeClients.eventManagerClient = {
-    getAttributeM2MEvents: mockGetAttributeM2MEvents,
+    getEServiceM2MEvents: mockGetEServiceM2MEvents,
   } as unknown as PagoPAInteropBeClients["eventManagerClient"];
 
   beforeEach(() => {
-    mockGetAttributeM2MEvents.mockClear();
+    mockGetEServiceM2MEvents.mockClear();
   });
 
-  it.each([generateId(), undefined])(
-    "Should succeed and perform API clients calls with lastEventId: %s",
-    async (lastEventId) => {
-      const expectedResponse: m2mGatewayApi.AttributeEvents = {
+  it.each([
+    { lastEventId: generateId(), delegationId: generateId() },
+    { lastEventId: generateId(), delegationId: undefined },
+    { lastEventId: generateId(), delegationId: generateId() },
+    { lastEventId: undefined, delegationId: undefined },
+  ])(
+    "Should succeed and perform API clients calls",
+    async ({ lastEventId, delegationId }) => {
+      const expectedResponse: m2mGatewayApi.EServiceEvents = {
         events,
       };
-      const result = await eventService.getAttributeEvents(
+      const result = await eventService.getEServiceEvents(
         {
           lastEventId,
+          delegationId,
           limit: 10,
         },
         getMockM2MAdminAppContext()
       );
       expect(result).toEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
-        mockGet: mockGetAttributeM2MEvents,
+        mockGet: mockGetEServiceM2MEvents,
         queries: {
           lastEventId,
+          delegationId,
           limit: 10,
         },
       });

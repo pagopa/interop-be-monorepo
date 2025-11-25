@@ -16799,7 +16799,165 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /eventsAttributes:
+  /eserviceEvents:
+    get:
+      tags:
+        - events
+      summary: Get E-Service events
+      description: |
+        Retrieve list of E-Service events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getEServicesEvents
+      parameters:
+        - $ref: "#/components/parameters/EventsDelegationId"
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: E-Service events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /agreementEvents:
+    get:
+      tags:
+        - events
+      summary: Get Agreement events
+      description: |
+        Retrieve list of Agreement events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getAgreementsEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+        - $ref: "#/components/parameters/EventsDelegationId"
+      responses:
+        "200":
+          description: Agreement events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgreementEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /attributeEvents:
     get:
       tags:
         - events
@@ -16955,6 +17113,630 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /tenantEvents:
+    get:
+      tags:
+        - events
+      summary: Get Tenant events
+      description: |
+        Retrieve list of Tenant events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getTenantEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Tenant events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eserviceTemplateEvents:
+    get:
+      tags:
+        - events
+      summary: Get EServiceTemplate events
+      description: |
+        Retrieve list of EServiceTemplate events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getEServiceTemplateEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: EServiceTemplate events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /keyEvents:
+    get:
+      tags:
+        - events
+      summary: Get Key events
+      description: |
+        Retrieve list of Key events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getKeyEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Key events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeyEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /clientEvents:
+    get:
+      tags:
+        - events
+      summary: Get Client events
+      description: |
+        Retrieve list of Client events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getClientEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Client events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /producerKeyEvents:
+    get:
+      tags:
+        - events
+      summary: Get Producer Key events
+      description: |
+        Retrieve list of Producer Key events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getProducerKeyEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Producer Key events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeyEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /producerKeychainEvents:
+    get:
+      tags:
+        - events
+      summary: Get Producer Keychain events
+      description: |
+        Retrieve list of Producer Keychain events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getProducerKeychainEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Producer Keychain events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeychainEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /producerDelegationEvents:
+    get:
+      tags:
+        - events
+      summary: Get Producer Delegations events
+      description: |
+        Retrieve list of Producer Delegation events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getProducerDelegationEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Producer Delegation events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDelegationEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /consumerDelegationEvents:
+    get:
+      tags:
+        - events
+      summary: Get Consumer Delegations events
+      description: |
+        Retrieve list of Consumer Delegation events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getConsumerDelegationEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Consumer Delegation events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumerDelegationEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
 components:
   parameters:
     LastEventId:
@@ -16977,7 +17759,81 @@ components:
         format: int32
         minimum: 1
         maximum: 500
+    EventsDelegationId:
+      in: query
+      name: delegationId
+      description: |
+        Filter events by delegation ID.
+        - Omitted: Return all events, both for delegated and non-delegated resources.
+        - Delegation UUID: Return only events for resources related to the specified delegation.
+        - null: Return only events for resources accessible without delegation
+            (public resources, resources accessible as consumer/producer, owned resources, etc.)
+      required: false
+      schema:
+        oneOf:
+          - type: "null"
+          - type: string
+            format: uuid
   schemas:
+    AgreementEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - AGREEMENT_ADDED
+            - DRAFT_AGREEMENT_UPDATED
+            - AGREEMENT_DELETED
+            - AGREEMENT_ACTIVATED
+            - AGREEMENT_REJECTED
+            - AGREEMENT_UPGRADED
+            - AGREEMENT_SUBMITTED
+            - AGREEMENT_ARCHIVED_BY_CONSUMER
+            - AGREEMENT_SUSPENDED_BY_CONSUMER
+            - AGREEMENT_UNSUSPENDED_BY_CONSUMER
+            - AGREEMENT_SUSPENDED_BY_PRODUCER
+            - AGREEMENT_UNSUSPENDED_BY_PRODUCER
+            - AGREEMENT_SUSPENDED_BY_PLATFORM
+            - AGREEMENT_UNSUSPENDED_BY_PLATFORM
+            - AGREEMENT_ARCHIVED_BY_UPGRADE
+            - AGREEMENT_CONSUMER_DOCUMENT_ADDED
+            - AGREEMENT_CONSUMER_DOCUMENT_REMOVED
+            - AGREEMENT_ARCHIVED_BY_REVOKED_DELEGATION
+            - AGREEMENT_DELETED_BY_REVOKED_DELEGATION
+            - AGREEMENT_SET_MISSING_CERTIFIED_ATTRIBUTES_BY_PLATFORM
+            - AGREEMENT_SET_DRAFT_BY_PLATFORM
+            - AGREEMENT_CONTRACT_GENERATED
+        eventTimestamp:
+          type: string
+          format: date-time
+        agreementId:
+          type: string
+          format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - agreementId
+    AgreementEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgreementEvent"
     AttributeEvent:
       type: object
       additionalProperties: false
@@ -17071,6 +17927,409 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PurposeEvent"
+    TenantEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - MAINTENANCE_TENANT_DELETED
+            - TENANT_PROMOTED_TO_CERTIFIER
+            - MAINTENANCE_TENANT_UPDATED
+            - TENANT_CERTIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_CERTIFIED_ATTRIBUTE_REVOKED
+            - TENANT_DECLARED_ATTRIBUTE_ASSIGNED
+            - TENANT_DECLARED_ATTRIBUTE_REVOKED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_ADDED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_REMOVED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_ADDED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_REMOVED
+            - TENANT_KIND_UPDATED
+            - TENANT_MAIL_ADDED
+            - TENANT_MAIL_DELETED
+            - TENANT_ONBOARD_DETAILS_UPDATED
+            - TENANT_ONBOARDED
+            - TENANT_VERIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_VERIFIED_ATTRIBUTE_EXPIRATION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_REVOKED
+        eventTimestamp:
+          type: string
+          format: date-time
+        tenantId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - tenantId
+    TenantEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantEvent"
+    EServiceEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - ESERVICE_ADDED
+            - DRAFT_ESERVICE_UPDATED
+            - ESERVICE_CLONED
+            - ESERVICE_DELETED
+            - ESERVICE_DESCRIPTOR_PUBLISHED
+            - ESERVICE_DESCRIPTOR_ACTIVATED
+            - ESERVICE_DESCRIPTOR_APPROVED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_SUSPENDED
+            - ESERVICE_DESCRIPTOR_ARCHIVED
+            - ESERVICE_DESCRIPTOR_ADDED
+            - ESERVICE_DRAFT_DESCRIPTOR_DELETED
+            - ESERVICE_DRAFT_DESCRIPTOR_UPDATED
+            - ESERVICE_DESCRIPTOR_SUBMITTED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_REJECTED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_DOCUMENT_ADDED
+            - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED
+            - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED
+            - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
+            - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
+            - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
+            - ESERVICE_RISK_ANALYSIS_ADDED
+            - ESERVICE_RISK_ANALYSIS_UPDATED
+            - ESERVICE_RISK_ANALYSIS_DELETED
+            - ESERVICE_NAME_UPDATED
+            - ESERVICE_DESCRIPTION_UPDATED
+            - ESERVICE_IS_CONSUMER_DELEGABLE_ENABLED
+            - ESERVICE_IS_CONSUMER_DELEGABLE_DISABLED
+            - ESERVICE_IS_CLIENT_ACCESS_DELEGABLE_ENABLED
+            - ESERVICE_IS_CLIENT_ACCESS_DELEGABLE_DISABLED
+            - ESERVICE_SIGNAL_HUB_ENABLED
+            - ESERVICE_SIGNAL_HUB_DISABLED
+            - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED
+            - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED
+            - ESERVICE_DESCRIPTOR_AGREEMENT_APPROVAL_POLICY_UPDATED
+            - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
+            - ESERVICE_NAME_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTION_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_ADDED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
+        eventTimestamp:
+          type: string
+          format: date-time
+        eserviceId:
+          type: string
+          format: uuid
+        descriptorId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - eserviceId
+    EServiceEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceEvent"
+    EServiceTemplateEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - ESERVICE_TEMPLATE_DELETED
+            - ESERVICE_TEMPLATE_VERSION_ACTIVATED
+            - ESERVICE_TEMPLATE_ADDED
+            - ESERVICE_TEMPLATE_INTENDED_TARGET_UPDATED
+            - ESERVICE_TEMPLATE_DESCRIPTION_UPDATED
+            - ESERVICE_TEMPLATE_DRAFT_VERSION_DELETED
+            - ESERVICE_TEMPLATE_DRAFT_VERSION_UPDATED
+            - ESERVICE_TEMPLATE_DRAFT_UPDATED
+            - ESERVICE_TEMPLATE_NAME_UPDATED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_ADDED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_DELETED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_SUSPENDED
+            - ESERVICE_TEMPLATE_VERSION_ADDED
+            - ESERVICE_TEMPLATE_VERSION_ATTRIBUTES_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_ADDED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_DELETED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_PUBLISHED
+            - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
+            - ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
+        eventTimestamp:
+          type: string
+          format: date-time
+        eserviceTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateVersionId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+          - eserviceTemplateId
+    EServiceTemplateEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateEvent"
+    KeyEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - CLIENT_KEY_ADDED
+            - CLIENT_KEY_DELETED
+        eventTimestamp:
+          type: string
+          format: date-time
+        kid:
+          type: string
+        clientId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - kid
+        - clientId
+    KeyEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/KeyEvent"
+    ClientEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - CLIENT_ADDED
+            - CLIENT_DELETED
+            - CLIENT_PURPOSE_ADDED
+            - CLIENT_PURPOSE_REMOVED
+        eventTimestamp:
+          type: string
+          format: date-time
+        clientId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - clientId
+    ClientEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientEvent"
+    ProducerKeyEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - PRODUCER_KEYCHAIN_KEY_ADDED
+            - PRODUCER_KEYCHAIN_KEY_DELETED
+        eventTimestamp:
+          type: string
+          format: date-time
+        kid:
+          type: string
+        producerKeychainId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - kid
+        - producerKeychainId
+    ProducerKeyEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerKeyEvent"
+    ProducerKeychainEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - PRODUCER_KEYCHAIN_ADDED
+            - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_ESERVICE_ADDED
+            - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
+        eventTimestamp:
+          type: string
+          format: date-time
+        producerKeychainId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - producerKeychainId
+    ProducerKeychainEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerKeychainEvent"
+    ConsumerDelegationEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - CONSUMER_DELEGATION_APPROVED
+            - CONSUMER_DELEGATION_REVOKED
+            - CONSUMER_DELEGATION_REJECTED
+            - CONSUMER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
+        eventTimestamp:
+          type: string
+          format: date-time
+        delegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - delegationId
+    ConsumerDelegationEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsumerDelegationEvent"
+    ProducerDelegationEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - PRODUCER_DELEGATION_APPROVED
+            - PRODUCER_DELEGATION_REVOKED
+            - PRODUCER_DELEGATION_REJECTED
+            - PRODUCER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
+        eventTimestamp:
+          type: string
+          format: date-time
+        delegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - delegationId
+    ProducerDelegationEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerDelegationEvent"
     Agreement:
       type: object
       additionalProperties: false

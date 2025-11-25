@@ -9,39 +9,39 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getAttributeEvents integration", () => {
-  const events: m2mEventApi.AttributeM2MEvent[] = [
+describe("getTenantEvents integration", () => {
+  const events: m2mGatewayApi.TenantEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "ATTRIBUTE_ADDED",
-      attributeId: generateId(),
+      eventType: "TENANT_ONBOARDED",
+      tenantId: generateId(),
     },
   ];
 
-  const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {
+  const mockEventManagerResponse: m2mEventApi.TenantM2MEvents = {
     events,
   };
 
-  const mockGetAttributeM2MEvents = vi
+  const mockGetTenantM2MEvents = vi
     .fn()
     .mockResolvedValue(mockEventManagerResponse);
 
   mockInteropBeClients.eventManagerClient = {
-    getAttributeM2MEvents: mockGetAttributeM2MEvents,
+    getTenantM2MEvents: mockGetTenantM2MEvents,
   } as unknown as PagoPAInteropBeClients["eventManagerClient"];
 
   beforeEach(() => {
-    mockGetAttributeM2MEvents.mockClear();
+    mockGetTenantM2MEvents.mockClear();
   });
 
   it.each([generateId(), undefined])(
-    "Should succeed and perform API clients calls with lastEventId: %s",
+    "Should succeed and perform API clients calls",
     async (lastEventId) => {
-      const expectedResponse: m2mGatewayApi.AttributeEvents = {
+      const expectedResponse: m2mGatewayApi.TenantEvents = {
         events,
       };
-      const result = await eventService.getAttributeEvents(
+      const result = await eventService.getTenantEvents(
         {
           lastEventId,
           limit: 10,
@@ -50,7 +50,7 @@ describe("getAttributeEvents integration", () => {
       );
       expect(result).toEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
-        mockGet: mockGetAttributeM2MEvents,
+        mockGet: mockGetTenantM2MEvents,
         queries: {
           lastEventId,
           limit: 10,

@@ -9,39 +9,38 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getAttributeEvents integration", () => {
-  const events: m2mEventApi.AttributeM2MEvent[] = [
+describe("getClientEvents integration", () => {
+  const events: m2mEventApi.ClientM2MEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "ATTRIBUTE_ADDED",
-      attributeId: generateId(),
+      eventType: "CLIENT_ADDED",
+      clientId: generateId(),
     },
   ];
-
-  const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {
+  const mockEventManagerResponse: m2mEventApi.ClientM2MEvents = {
     events,
   };
 
-  const mockGetAttributeM2MEvents = vi
+  const mockGetClientM2MEvents = vi
     .fn()
     .mockResolvedValue(mockEventManagerResponse);
 
   mockInteropBeClients.eventManagerClient = {
-    getAttributeM2MEvents: mockGetAttributeM2MEvents,
+    getClientM2MEvents: mockGetClientM2MEvents,
   } as unknown as PagoPAInteropBeClients["eventManagerClient"];
 
   beforeEach(() => {
-    mockGetAttributeM2MEvents.mockClear();
+    mockGetClientM2MEvents.mockClear();
   });
 
   it.each([generateId(), undefined])(
-    "Should succeed and perform API clients calls with lastEventId: %s",
+    "Should succeed and perform API clients calls",
     async (lastEventId) => {
-      const expectedResponse: m2mGatewayApi.AttributeEvents = {
+      const expectedResponse: m2mGatewayApi.ClientEvents = {
         events,
       };
-      const result = await eventService.getAttributeEvents(
+      const result = await eventService.getClientEvents(
         {
           lastEventId,
           limit: 10,
@@ -50,7 +49,7 @@ describe("getAttributeEvents integration", () => {
       );
       expect(result).toEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
-        mockGet: mockGetAttributeM2MEvents,
+        mockGet: mockGetClientM2MEvents,
         queries: {
           lastEventId,
           limit: 10,
