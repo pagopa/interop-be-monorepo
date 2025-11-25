@@ -2,6 +2,7 @@ import { WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import { toM2MGatewayApiAttributeEvent } from "../api/eventApiConverter.js";
 
 export type EventService = ReturnType<typeof eventServiceBuilder>;
 
@@ -29,7 +30,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         }
       );
 
-      return { events };
+      return { events: events.map(toM2MGatewayApiAttributeEvent) };
     },
   };
 }
