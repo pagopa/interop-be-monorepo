@@ -1,9 +1,8 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
-import { lt } from "drizzle-orm";
-import { notification } from "pagopa-interop-in-app-notification-db-models";
 import { logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
+import { deleteOldNotifications } from "./deleteOldNotifications.js";
 
 const run = async (): Promise<void> => {
   const loggerInstance = logger({
@@ -27,18 +26,11 @@ const run = async (): Promise<void> => {
 
   const db = drizzle(pool);
 
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - config.DELETE_OLDER_THAN_DAYS);
-
   try {
-    const result = await db
-      .delete(notification)
-      .where(lt(notification.createdAt, cutoffDate.toISOString()));
-
-    loggerInstance.info(
-      `Successfully deleted ${
-        result.rowCount
-      } notifications older than ${cutoffDate.toISOString()}`
+    await deleteOldNotifications(
+      db,
+      config.DELETE_OLDER_THAN_DAYS,
+      loggerInstance
     );
   } catch (error) {
     loggerInstance.error(

@@ -21,6 +21,7 @@
     "@types/node": "20.14.2",
     "@types/pg": "8.11.11",
     "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
@@ -31,6 +32,7 @@
     "drizzle-orm": "0.39.3",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-in-app-notification-db-models": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
     "pg": "8.13.1",
     "zod": "3.23.8"
   }
