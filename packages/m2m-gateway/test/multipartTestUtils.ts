@@ -125,7 +125,9 @@ export async function expectDownloadedDocumentToBeEqual(
   expect(doc1.prettyName).toEqual(doc2.prettyName);
   await expectFilesToBeEqual(doc1.file, doc2.file);
 }
-
+/**
+ *  for M2M Event types, convert from CamelCase to UPPER_SNAKE_CASE
+ */
 export function testToUpperSnakeCase(str: string): string {
   return str
     .replace("EService", "Eservice") // special case for EService

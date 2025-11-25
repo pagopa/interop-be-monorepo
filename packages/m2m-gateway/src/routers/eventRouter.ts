@@ -126,6 +126,110 @@ const eventRouter = (
     }
   });
 
+  eventRouter.get("/keyEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getKeyEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res.status(200).send(m2mGatewayApi.KeyEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving key events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
+  eventRouter.get("/clientEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getClientsEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res.status(200).send(m2mGatewayApi.ClientEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving client events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
+  eventRouter.get("/producerKeyEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getProducerKeysEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res
+        .status(200)
+        .send(m2mGatewayApi.ProducerKeyEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving producer key events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
+  eventRouter.get("/producerKeychainEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getProducerKeychainsEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res
+        .status(200)
+        .send(m2mGatewayApi.ProducerKeychainEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving producer keychain events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
   return eventRouter;
 };
 
