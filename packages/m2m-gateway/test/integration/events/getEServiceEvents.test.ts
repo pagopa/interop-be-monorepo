@@ -8,15 +8,19 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getEServiceEvents integration", () => {
   const eventTypes = EServiceM2MEventType.options;
-  const events: m2mGatewayApi.EServiceEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.EServiceEvent["eventType"],
-    eserviceId: generateId(),
-  }));
+  const events: m2mEventApi.EServiceM2MEvent[] = eventTypes.map(
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        eserviceId: generateId(),
+      } as m2mEventApi.EServiceM2MEvent)
+  );
 
   const mockEventManagerResponse: m2mEventApi.EServiceM2MEvents = {
     events,

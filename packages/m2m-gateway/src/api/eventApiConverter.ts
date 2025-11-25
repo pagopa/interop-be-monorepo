@@ -10,3 +10,16 @@ export function toM2MGatewayApiAttributeEvent(
     attributeId: attributeEvent.attributeId,
   };
 }
+
+export function toM2MGatewayApiEServiceEvent(
+  eserviceEvent: m2mEventApi.EServiceM2MEvent
+): m2mGatewayApi.EServiceEvent {
+  return {
+    id: eserviceEvent.id,
+    eserviceId: eserviceEvent.eserviceId,
+    eventType: eserviceEvent.eventType,
+    eventTimestamp: eserviceEvent.eventTimestamp,
+    descriptorId: eserviceEvent.descriptorId,
+    producerDelegationId: eserviceEvent.producerDelegationId,
+  };
+}
