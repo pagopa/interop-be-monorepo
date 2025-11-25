@@ -17908,7 +17908,7 @@ paths:
       tags:
         - purposeTemplates
       summary: Link E-Services to Purpose Template
-      description: Link E-Services to a purpose template (in Draft or Active state)
+      description: Link E-Services to a Purpose Template that is in Draft or Active state
       operationId: linkEServicesToPurposeTemplate
       requestBody:
         content:
@@ -17927,7 +17927,7 @@ paths:
         required: true
       responses:
         "200":
-          description: E-Services linked to purpose template
+          description: E-Services linked to Purpose Template
           content:
             application/json:
               schema:
