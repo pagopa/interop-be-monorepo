@@ -130,9 +130,7 @@ describe("linkEServicesToPurposeTemplate", () => {
 
     await expect(
       purposeTemplateService.linkEServicesToPurposeTemplate(
-        unsafeBrandId(
-          mockLinkEServicesToPurposeTemplateResponse.data[0].purposeTemplateId
-        ),
+        unsafeBrandId(mockPurposeTemplate.id),
         mockEserviceIds,
         getMockM2MAdminAppContext()
       )
@@ -149,9 +147,7 @@ describe("linkEServicesToPurposeTemplate", () => {
 
     await expect(
       purposeTemplateService.linkEServicesToPurposeTemplate(
-        unsafeBrandId(
-          mockLinkEServicesToPurposeTemplateResponse.data[0].purposeTemplateId
-        ),
+        unsafeBrandId(mockPurposeTemplate.id),
         mockEserviceIds,
         getMockM2MAdminAppContext()
       )
