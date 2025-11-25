@@ -10,16 +10,18 @@ import {
 } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /eserviceTemplateEvents router test", () => {
   const eventTypes = EServiceTemplateM2MEventType.options;
   const events: m2mGatewayApi.EServiceTemplateEvent[] = eventTypes.map(
-    (eventType) => ({
-      id: generateId(),
-      eventTimestamp: new Date().toJSON(),
-      eventType: eventType as m2mGatewayApi.EServiceTemplateEvent["eventType"],
-      eserviceTemplateId: generateId(),
-    })
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        eserviceTemplateId: generateId(),
+      } as m2mGatewayApi.EServiceTemplateEvent)
   );
 
   const mockEServiceTemplateEvents: m2mGatewayApi.EServiceTemplateEvents = {
@@ -27,10 +29,10 @@ describe("GET /eserviceTemplateEvents router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams =
-  {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,
