@@ -16878,6 +16878,85 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /agreementEvents:
+    get:
+      tags:
+        - events
+      summary: Get Agreement events
+      description: |
+        Retrieve list of Agreement events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getAgreementsEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+        - $ref: "#/components/parameters/EventsDelegationId"
+      responses:
+        "200":
+          description: Agreement events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgreementEvents"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /attributeEvents:
     get:
       tags:
@@ -17072,6 +17151,65 @@ components:
           - type: string
             format: uuid
   schemas:
+    AgreementEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - AGREEMENT_ADDED
+            - DRAFT_AGREEMENT_UPDATED
+            - AGREEMENT_DELETED
+            - AGREEMENT_ACTIVATED
+            - AGREEMENT_REJECTED
+            - AGREEMENT_UPGRADED
+            - AGREEMENT_SUBMITTED
+            - AGREEMENT_ARCHIVED_BY_CONSUMER
+            - AGREEMENT_SUSPENDED_BY_CONSUMER
+            - AGREEMENT_UNSUSPENDED_BY_CONSUMER
+            - AGREEMENT_SUSPENDED_BY_PRODUCER
+            - AGREEMENT_UNSUSPENDED_BY_PRODUCER
+            - AGREEMENT_SUSPENDED_BY_PLATFORM
+            - AGREEMENT_UNSUSPENDED_BY_PLATFORM
+            - AGREEMENT_ARCHIVED_BY_UPGRADE
+            - AGREEMENT_CONSUMER_DOCUMENT_ADDED
+            - AGREEMENT_CONSUMER_DOCUMENT_REMOVED
+            - AGREEMENT_ARCHIVED_BY_REVOKED_DELEGATION
+            - AGREEMENT_DELETED_BY_REVOKED_DELEGATION
+            - AGREEMENT_SET_MISSING_CERTIFIED_ATTRIBUTES_BY_PLATFORM
+            - AGREEMENT_SET_DRAFT_BY_PLATFORM
+            - AGREEMENT_CONTRACT_GENERATED
+        eventTimestamp:
+          type: string
+          format: date-time
+        agreementId:
+          type: string
+          format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - agreementId
+    AgreementEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgreementEvent"
     AttributeEvent:
       type: object
       additionalProperties: false

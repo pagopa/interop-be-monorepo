@@ -21,7 +21,7 @@ export function toM2MGatewayApiEServiceEvent(
     eventTimestamp: eserviceEvent.eventTimestamp,
     descriptorId: eserviceEvent.descriptorId,
     producerDelegationId: eserviceEvent.producerDelegationId,
-    };
+  };
 }
 export function toM2MGatewayApiEServiceTemplateEvent(
   eserviceTemplateEvent: m2mEventApi.EServiceTemplateM2MEvent
@@ -32,5 +32,18 @@ export function toM2MGatewayApiEServiceTemplateEvent(
     eventType: eserviceTemplateEvent.eventType,
     eserviceTemplateId: eserviceTemplateEvent.eserviceTemplateId,
     eserviceTemplateVersionId: eserviceTemplateEvent.eserviceTemplateVersionId,
+  };
+}
+
+export function toM2MGatewayApiAgreementEvent(
+  agreementEvent: m2mEventApi.AgreementM2MEvent
+): m2mGatewayApi.AgreementEvent {
+  return {
+    id: agreementEvent.id,
+    agreementId: agreementEvent.agreementId,
+    eventType: agreementEvent.eventType,
+    eventTimestamp: agreementEvent.eventTimestamp,
+    producerDelegationId: agreementEvent.producerDelegationId,
+    consumerDelegationId: agreementEvent.consumerDelegationId,
   };
 }

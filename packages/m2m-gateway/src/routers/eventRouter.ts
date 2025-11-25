@@ -100,6 +100,31 @@ const eventRouter = (
       return res.status(errorRes.status).send();
     }
   });
+  eventRouter.get("/agreementEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getAgreementEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+          delegationId: req.query.delegationId,
+        },
+        ctx
+      );
+
+      return res.status(200).send(m2mGatewayApi.AgreementEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving agreement events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
 
   return eventRouter;
 };
