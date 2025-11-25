@@ -126,3 +126,17 @@ export function toM2MGatewayApiTenantEvent(
     eventTimestamp: tenantEvent.eventTimestamp,
   };
 }
+
+export function toM2MGatewayApiPurposeEvent(
+  purposeEvent: m2mEventApi.PurposeM2MEvent
+): m2mGatewayApi.PurposeEvent {
+  return {
+    id: purposeEvent.id,
+    purposeId: purposeEvent.purposeId,
+    eventType: purposeEvent.eventType,
+    eventTimestamp: purposeEvent.eventTimestamp,
+    purposeVersionId: purposeEvent.purposeVersionId,
+    producerDelegationId: purposeEvent.producerDelegationId,
+    consumerDelegationId: purposeEvent.consumerDelegationId,
+  };
+}

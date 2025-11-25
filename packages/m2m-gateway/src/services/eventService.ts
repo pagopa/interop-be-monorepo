@@ -14,6 +14,7 @@ import {
   toM2MGatewayApiProducerKeysEvent,
   toM2MGatewayApiEServiceTemplateEvent,
   toM2MGatewayApiTenantEvent,
+  toM2MGatewayApiPurposeEvent,
 } from "../api/eventApiConverter.js";
 
 export type EventService = ReturnType<typeof eventServiceBuilder>;
@@ -72,7 +73,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       { lastEventId, limit }: m2mGatewayApi.GetEventManagerPurposesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.PurposeEvents> {
-      logger.info(`Retrieving purpose events`);
+      logger.info(
+        `Retrieving purpose events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } = await clients.eventManagerClient.getPurposeM2MEvents({
         queries: {

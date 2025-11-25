@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import { generateId, PurposeM2MEventType } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,13 +10,17 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getPurposeEvents integration", () => {
-  const eventTypes = PurposeM2MEventType.options;
-  const events: m2mGatewayApi.PurposeEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.PurposeEvent["eventType"],
-    purposeId: generateId(),
-  }));
+  const events: m2mGatewayApi.PurposeEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "PURPOSE_ADDED",
+      purposeId: generateId(),
+      purposeVersionId: generateId(),
+      producerDelegationId: generateId(),
+      consumerDelegationId: generateId(),
+    },
+  ];
 
   const mockEventManagerResponse: m2mEventApi.PurposeM2MEvents = {
     events,

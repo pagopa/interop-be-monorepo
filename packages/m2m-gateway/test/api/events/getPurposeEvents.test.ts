@@ -3,18 +3,22 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId, PurposeM2MEventType } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
 describe("GET /purposeEvents router test", () => {
-  const eventTypes = PurposeM2MEventType.options;
-  const events: m2mGatewayApi.PurposeEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.PurposeEvent["eventType"],
-    purposeId: generateId(),
-  }));
+  const events: m2mGatewayApi.PurposeEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "PURPOSE_ADDED",
+      purposeId: generateId(),
+      purposeVersionId: generateId(),
+      producerDelegationId: generateId(),
+      consumerDelegationId: generateId(),
+    },
+  ];
 
   const mockPurposeEvents: m2mGatewayApi.PurposeEvents = {
     events,
