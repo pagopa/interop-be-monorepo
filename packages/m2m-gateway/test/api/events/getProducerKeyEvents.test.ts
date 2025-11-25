@@ -21,10 +21,10 @@ describe("GET /producerKeyEvents router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerProducerKeyEventsQueryParams =
-  {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,
