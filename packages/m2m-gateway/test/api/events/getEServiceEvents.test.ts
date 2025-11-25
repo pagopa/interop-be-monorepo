@@ -3,25 +3,20 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { EServiceM2MEventType, generateId } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /eserviceEvents router test", () => {
-  const eventTypes = EServiceM2MEventType.options;
-  const events: m2mGatewayApi.EServiceEvent[] = eventTypes.map(
-    (eventType) =>
-      ({
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: testToUpperSnakeCase(eventType),
-        eserviceId: generateId(),
-        descriptorId: generateId(),
-        producerDelegationId: generateId(),
-      } as m2mGatewayApi.EServiceEvent)
-  );
-
+  const events: m2mGatewayApi.EServiceEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "ESERVICE_ADDED",
+      eserviceId: generateId(),
+      producerDelegationId: generateId(),
+    },
+  ];
   const mockEServiceEvents: m2mGatewayApi.EServiceEvents = {
     events,
   };
@@ -81,7 +76,7 @@ describe("GET /eserviceEvents router test", () => {
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: "invalidEventId" },
-    { ...mockQueryParams, delegationId: "invalidDelegationId" },
+    { ...mockQueryParams, delegationId: 1 },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(

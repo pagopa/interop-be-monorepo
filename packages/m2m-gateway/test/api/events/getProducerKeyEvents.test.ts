@@ -21,10 +21,10 @@ describe("GET /producerKeyEvents router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerProducerKeyEventsQueryParams =
-    {
-      lastEventId: generateId(),
-      limit: 10,
-    };
+  {
+    lastEventId: generateId(),
+    limit: 10,
+  };
 
   const makeRequest = async (
     token: string,
@@ -44,7 +44,7 @@ describe("GET /producerKeyEvents router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEventService.getProducerKeysEvents = vi
+      mockEventService.getProducerKeyEvents = vi
         .fn()
         .mockResolvedValue(mockProducerKeyEvents);
 
@@ -53,7 +53,7 @@ describe("GET /producerKeyEvents router test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockProducerKeyEvents);
-      expect(mockEventService.getProducerKeysEvents).toHaveBeenCalledWith(
+      expect(mockEventService.getProducerKeyEvents).toHaveBeenCalledWith(
         mockQueryParams,
         expect.any(Object)
       );
