@@ -3,6 +3,7 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
+  toM2MGatewayApiAgreementEvent,
   toM2MGatewayApiAttributeEvent,
   toM2MGatewayApiEServiceEvent,
 } from "../api/eventApiConverter.js";
@@ -66,7 +67,9 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerAgreementsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.AgreementEvents> {
-      logger.info(`Retrieving agreement events with lastEventId: ${lastEventId} and limit: ${limit}`);
+      logger.info(
+        `Retrieving agreement events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
 
       const { events } = await clients.eventManagerClient.getAgreementM2MEvents(
         {
@@ -79,7 +82,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         }
       );
 
-      return { events };
+      return { events: events.map(toM2MGatewayApiAgreementEvent) };
     },
   };
 }

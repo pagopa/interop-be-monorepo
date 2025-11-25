@@ -8,16 +8,20 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getAgreementEvents integration", () => {
   const eventTypes = AgreementM2MEventType.options;
-  const events: m2mGatewayApi.AgreementEvent[] = eventTypes.map(
-    (eventType) => ({
-      id: generateId(),
-      eventTimestamp: new Date().toJSON(),
-      eventType: eventType as m2mGatewayApi.AgreementEvent["eventType"],
-      agreementId: generateId(),
-    })
+  const events: m2mEventApi.AgreementM2MEvent[] = eventTypes.map(
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        agreementId: generateId(),
+        producerDelegationId: generateId(),
+        consumerDelegationId: generateId(),
+      } as m2mEventApi.AgreementM2MEvent)
   );
 
   const mockEventManagerResponse: m2mEventApi.AgreementM2MEvents = {
@@ -36,15 +40,21 @@ describe("getAgreementEvents integration", () => {
     mockGetAgreementM2MEvents.mockClear();
   });
 
-  it.each([generateId(), undefined])(
+  it.each([
+    { lastEventId: generateId(), delegationId: generateId() },
+    { lastEventId: generateId(), delegationId: undefined },
+    { lastEventId: generateId(), delegationId: generateId() },
+    { lastEventId: undefined, delegationId: undefined },
+  ])(
     "Should succeed and perform API clients calls",
-    async (lastEventId) => {
+    async ({ lastEventId, delegationId }) => {
       const expectedResponse: m2mGatewayApi.AgreementEvents = {
         events,
       };
       const result = await eventService.getAgreementEvents(
         {
           lastEventId,
+          delegationId,
           limit: 10,
         },
         getMockM2MAdminAppContext()
@@ -54,6 +64,7 @@ describe("getAgreementEvents integration", () => {
         mockGet: mockGetAgreementM2MEvents,
         queries: {
           lastEventId,
+          delegationId,
           limit: 10,
         },
       });

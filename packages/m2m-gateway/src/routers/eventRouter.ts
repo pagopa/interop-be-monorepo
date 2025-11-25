@@ -88,7 +88,7 @@ const eventRouter = (
         ctx
       );
 
-      return res.status(200).send(events);
+      return res.status(200).send(m2mGatewayApi.AgreementEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,

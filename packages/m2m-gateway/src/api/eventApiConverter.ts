@@ -23,3 +23,16 @@ export function toM2MGatewayApiEServiceEvent(
     producerDelegationId: eserviceEvent.producerDelegationId,
   };
 }
+
+export function toM2MGatewayApiAgreementEvent(
+  agreementEvent: m2mEventApi.AgreementM2MEvent
+): m2mGatewayApi.AgreementEvent {
+  return {
+    id: agreementEvent.id,
+    agreementId: agreementEvent.agreementId,
+    eventType: agreementEvent.eventType,
+    eventTimestamp: agreementEvent.eventTimestamp,
+    producerDelegationId: agreementEvent.producerDelegationId,
+    consumerDelegationId: agreementEvent.consumerDelegationId,
+  };
+}

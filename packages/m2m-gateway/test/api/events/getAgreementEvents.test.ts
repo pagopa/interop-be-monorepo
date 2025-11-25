@@ -6,16 +6,21 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { AgreementM2MEventType, generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /agreementEvents router test", () => {
   const eventTypes = AgreementM2MEventType.options;
+
   const events: m2mGatewayApi.AgreementEvent[] = eventTypes.map(
-    (eventType) => ({
-      id: generateId(),
-      eventTimestamp: new Date().toJSON(),
-      eventType: eventType as m2mGatewayApi.AgreementEvent["eventType"],
-      agreementId: generateId(),
-    })
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        agreementId: generateId(),
+        producerDelegationId: generateId(),
+        consumerDelegationId: generateId(),
+      } as m2mGatewayApi.AgreementEvent)
   );
 
   const mockAgreementEvents: m2mGatewayApi.AgreementEvents = {
@@ -76,6 +81,7 @@ describe("GET /agreementEvents router test", () => {
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: "invalidEventId" },
+    { ...mockQueryParams, delegationId: "invalidDelegationId" },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(

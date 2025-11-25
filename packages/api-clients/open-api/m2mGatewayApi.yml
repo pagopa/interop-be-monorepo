@@ -17114,6 +17114,9 @@ components:
         consumerDelegationId:
           type: string
           format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
