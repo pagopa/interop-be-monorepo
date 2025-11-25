@@ -434,6 +434,11 @@ export function delegationServiceBuilder(
       },
     };
 
+    // eslint-disable-next-line functional/no-let
+    let revokedDelegation: Delegation = {
+      ...revokedDelegationWithoutContract,
+    };
+
     if (isFeatureFlagEnabled(config, "featureFlagDelegationsContractBuilder")) {
       const revocationContract = await contractBuilder.createRevocationContract(
         {
@@ -447,34 +452,34 @@ export function delegationServiceBuilder(
           logger,
         }
       );
-
-      const revokedDelegation = {
-        ...revokedDelegationWithoutContract,
+      revokedDelegation = {
+        ...revokedDelegation,
         revocationContract,
       };
-      await repository.createEvent(
-        match(kind)
-          .with(delegationKind.delegatedProducer, () =>
-            toCreateEventProducerDelegationRevoked(
-              {
-                data: revokedDelegation,
-                metadata,
-              },
-              correlationId
-            )
-          )
-          .with(delegationKind.delegatedConsumer, () =>
-            toCreateEventConsumerDelegationRevoked(
-              {
-                data: revokedDelegation,
-                metadata,
-              },
-              correlationId
-            )
-          )
-          .exhaustive()
-      );
     }
+
+    await repository.createEvent(
+      match(kind)
+        .with(delegationKind.delegatedProducer, () =>
+          toCreateEventProducerDelegationRevoked(
+            {
+              data: revokedDelegation,
+              metadata,
+            },
+            correlationId
+          )
+        )
+        .with(delegationKind.delegatedConsumer, () =>
+          toCreateEventConsumerDelegationRevoked(
+            {
+              data: revokedDelegation,
+              metadata,
+            },
+            correlationId
+          )
+        )
+        .exhaustive()
+    );
   }
 
   async function internalAddDelegationContract(
@@ -540,14 +545,19 @@ export function delegationServiceBuilder(
       delegation
     );
 
-    const delegationWithContract: Delegation = {
-      ...delegation,
-      ...(delegation.activationSignedContract
-        ? { activationContract: delegationContract }
-        : delegation.revocationSignedContract
-        ? { revocationContract: delegationContract }
-        : {}),
-    };
+    const delegationWithContract: Delegation = ((): Delegation => {
+      if (delegation.state === delegationState.revoked) {
+        return {
+          ...delegation,
+          revocationSignedContract: delegationContract,
+        };
+      } else {
+        return {
+          ...delegation,
+          activationSignedContract: delegationContract,
+        };
+      }
+    })();
 
     const event = await repository.createEvent(
       toCreateEventDelegationSignedContractGenerated(
