@@ -67,7 +67,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerProducerDelegationsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ProducerDelegationEvents> {
-      logger.info(`Retrieving producer delegation events`);
+      logger.info(`Retrieving producer delegation events with lastEventId: ${lastEventId} and limit: ${limit}`);
 
       const { events } =
         await clients.eventManagerClient.getProducerDelegationM2MEvents({
@@ -87,7 +87,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       }: m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegationEvents> {
-      logger.info(`Retrieving consumer delegation events`);
+      logger.info(`Retrieving consumer delegation events with lastEventId: ${lastEventId} and limit: ${limit}`);
 
       const { events } =
         await clients.eventManagerClient.getConsumerDelegationM2MEvents({
