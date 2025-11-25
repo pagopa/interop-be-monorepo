@@ -38,7 +38,7 @@ describe("getAttributeEvents integration", () => {
   });
 
   it.each([generateId(), undefined])(
-    "Should succeed and perform API clients calls",
+    "Should succeed and perform API clients calls with lastEventId: %s",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApi.AttributeEvents = {
         events,
