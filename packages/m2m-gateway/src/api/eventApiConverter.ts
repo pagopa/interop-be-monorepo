@@ -21,6 +21,17 @@ export function toM2MGatewayApiEServiceEvent(
     eventTimestamp: eserviceEvent.eventTimestamp,
     descriptorId: eserviceEvent.descriptorId,
     producerDelegationId: eserviceEvent.producerDelegationId,
+    };
+}
+export function toM2MGatewayApiEServiceTemplateEvent(
+  eserviceTemplateEvent: m2mEventApi.EServiceTemplateM2MEvent
+): m2mGatewayApi.EServiceTemplateEvent {
+  return {
+    id: eserviceTemplateEvent.id,
+    eventTimestamp: eserviceTemplateEvent.eventTimestamp,
+    eventType: eserviceTemplateEvent.eventType,
+    eserviceTemplateId: eserviceTemplateEvent.eserviceTemplateId,
+    eserviceTemplateVersionId: eserviceTemplateEvent.eserviceTemplateVersionId,
   };
 }
 
