@@ -3,13 +3,16 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { ProducerKeyM2MEventType, generateId } from "pagopa-interop-models";
+import {
+  ProducerKeychainM2MEventType,
+  generateId,
+} from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /producerKeychainEvents router test", () => {
-  const eventTypes = ProducerKeyM2MEventType.options;
+  const eventTypes = ProducerKeychainM2MEventType.options;
   const mockProducerKeychainEvents: m2mGatewayApi.ProducerKeychainEvents = {
     events: eventTypes.map(
       (eventType) =>
@@ -52,7 +55,7 @@ describe("GET /producerKeychainEvents router test", () => {
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockQueryParams);
-
+      console.log(res.body);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockProducerKeychainEvents);
       expect(mockEventService.getProducerKeychainsEvents).toHaveBeenCalledWith(
