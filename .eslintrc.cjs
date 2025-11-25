@@ -5,6 +5,12 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: "./tsconfig.eslint.json",
   },
+  plugins: ["local-rules"],
+  settings: {
+    "local-rules": {
+      rules: "./eslint-local-rules",
+    },
+  },
   rules: {
     // Any project level custom rule
     "@typescript-eslint/switch-exhaustiveness-check": "error",
@@ -21,6 +27,7 @@ module.exports = {
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-use-before-define": "off",
     "no-restricted-imports": ["error", { patterns: commonRestrictedImports }],
+    "local-rules/no-unsafe-object-spread": "error",
   },
   ignorePatterns: [
     ".eslintrc.cjs",
@@ -41,6 +48,12 @@ module.exports = {
             patterns: [...commonRestrictedImports, "**/testUtils"],
           },
         ],
+      },
+    },
+    {
+      files: ["**/*test*.ts", "**/test/**/*.ts"],
+      rules: {
+        "local-rules/no-unsafe-object-spread": "off",
       },
     },
   ],
