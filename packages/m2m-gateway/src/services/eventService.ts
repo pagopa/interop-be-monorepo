@@ -13,7 +13,11 @@ export type EventService = ReturnType<typeof eventServiceBuilder>;
 export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async getEServiceEvents(
-      { lastEventId, limit }: m2mGatewayApi.GetEventManagerEServicesQueryParams,
+      {
+        lastEventId,
+        limit,
+        delegationId,
+      }: m2mGatewayApi.GetEventManagerEServicesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceEvents> {
       logger.info(
@@ -24,6 +28,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         queries: {
           lastEventId,
           limit,
+          delegationId,
         },
         headers,
       });

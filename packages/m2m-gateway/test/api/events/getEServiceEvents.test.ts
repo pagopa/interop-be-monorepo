@@ -29,6 +29,7 @@ describe("GET /eserviceEvents router test", () => {
   const mockQueryParams: m2mGatewayApi.GetEventManagerEServicesQueryParams = {
     lastEventId: generateId(),
     limit: 10,
+    delegationId: generateId(),
   };
 
   const makeRequest = async (
@@ -80,6 +81,7 @@ describe("GET /eserviceEvents router test", () => {
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: "invalidEventId" },
+    { ...mockQueryParams, delegationId: "invalidDelegationId" },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(

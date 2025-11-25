@@ -32,11 +32,12 @@ const eventRouter = (
         {
           lastEventId: req.query.lastEventId,
           limit: req.query.limit,
+          delegationId: req.query.delegationId,
         },
         ctx
       );
 
-      return res.status(200).send(events);
+      return res.status(200).send(m2mGatewayApi.EServiceEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
