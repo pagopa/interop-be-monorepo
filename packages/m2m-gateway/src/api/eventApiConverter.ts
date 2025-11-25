@@ -11,6 +11,18 @@ export function toM2MGatewayApiAttributeEvent(
   };
 }
 
+export function toM2MGatewayApiEServiceTemplateEvent(
+  eserviceTemplateEvent: m2mEventApi.EServiceTemplateM2MEvent
+): m2mGatewayApi.EServiceTemplateEvent {
+  return {
+    id: eserviceTemplateEvent.id,
+    eventTimestamp: eserviceTemplateEvent.eventTimestamp,
+    eventType: eserviceTemplateEvent.eventType,
+    eserviceTemplateId: eserviceTemplateEvent.eserviceTemplateId,
+    eserviceTemplateVersionId: eserviceTemplateEvent.eserviceTemplateVersionId,
+  };
+}
+
 export function toM2MGatewayApiKeyEvent(
   keyEvent: m2mEventApi.KeyM2MEvent
 ): m2mGatewayApi.KeyEvent {

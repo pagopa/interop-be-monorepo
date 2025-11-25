@@ -8,6 +8,7 @@ import {
   toM2MGatewayApiKeyEvent,
   toM2MGatewayApiProducerKeychainsEvent,
   toM2MGatewayApiProducerKeysEvent,
+  toM2MGatewayApiEServiceTemplateEvent,
 } from "../api/eventApiConverter.js";
 
 export type EventService = ReturnType<typeof eventServiceBuilder>;
@@ -109,6 +110,28 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       return { events: events.map(toM2MGatewayApiProducerKeychainsEvent) };
+    },
+    async getEServiceTemplateEvents(
+      {
+        lastEventId,
+        limit,
+      }: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateEvents> {
+      logger.info(
+        `Retrieving eservice template events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
+
+      const { events } =
+        await clients.eventManagerClient.getEServiceTemplateM2MEvents({
+          queries: {
+            lastEventId,
+            limit,
+          },
+          headers,
+        });
+
+      return { events: events.map(toM2MGatewayApiEServiceTemplateEvent) };
     },
   };
 }
