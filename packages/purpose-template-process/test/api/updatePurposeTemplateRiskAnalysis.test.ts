@@ -99,12 +99,6 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}/riskAnalysis", () => {
       version: -1,
     },
   ])("Should return 400 if risk analysis template is invalid", async (body) => {
-    purposeTemplateService.updatePurposeTemplateRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue({
-        code: "riskAnalysisTemplateValidationFailed",
-        detail: "detail",
-      });
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
