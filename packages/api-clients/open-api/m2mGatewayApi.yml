@@ -16877,7 +16877,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/keys:
+  /keyEvents:
     get:
       tags:
         - events
@@ -16955,7 +16955,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/clients:
+  /clientEvents:
     get:
       tags:
         - events
@@ -17033,7 +17033,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/producerKeys:
+  /producerKeyEvents:
     get:
       tags:
         - events
@@ -17111,7 +17111,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /events/producerKeychains:
+  /producerKeychainEvents:
     get:
       tags:
         - events
@@ -17223,6 +17223,7 @@ components:
           type: string
           enum:
             - ATTRIBUTE_ADDED
+            - ATTRIBUTE_SIGNED_ADDED
         eventTimestamp:
           type: string
           format: date-time

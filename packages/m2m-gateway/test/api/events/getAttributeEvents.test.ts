@@ -6,15 +6,19 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { AttributeM2MEventType, generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /attributeEvents router test", () => {
   const eventTypes = AttributeM2MEventType.options;
-  const events: m2mGatewayApi.AttributeEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.AttributeEvent["eventType"],
-    attributeId: generateId(),
-  }));
+  const events: m2mGatewayApi.AttributeEvent[] = eventTypes.map(
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        attributeId: generateId(),
+      } as m2mGatewayApi.AttributeEvent)
+  );
 
   const mockAttributeEvents: m2mGatewayApi.AttributeEvents = {
     events,

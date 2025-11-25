@@ -3,26 +3,23 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { ProducerKeyM2MEventType, generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
-describe("GET /events/producerKeys router test", () => {
+describe("GET /producerKeyEvents router test", () => {
+  const eventTypes = ProducerKeyM2MEventType.options;
   const mockProducerKeyEvents: m2mGatewayApi.ProducerKeyEvents = {
-    events: [
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "PRODUCER_KEYCHAIN_KEY_ADDED",
-        kid: generateId(),
-      },
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "PRODUCER_KEYCHAIN_KEY_DELETED",
-        kid: generateId(),
-      },
-    ],
+    events: eventTypes.map(
+      (eventType) =>
+        ({
+          id: generateId(),
+          eventTimestamp: new Date().toJSON(),
+          eventType: testToUpperSnakeCase(eventType),
+          kid: generateId(),
+        } as m2mGatewayApi.ProducerKeyEvent)
+    ),
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerProducerKeyEventsQueryParams =
@@ -36,7 +33,7 @@ describe("GET /events/producerKeys router test", () => {
     query: m2mGatewayApi.GetEventManagerProducerKeyEventsQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/events/producerKeys`)
+      .get(`${appBasePath}/producerKeyEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();

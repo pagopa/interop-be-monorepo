@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { ClientM2MEventType, generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -8,24 +8,21 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getClientEvents integration", () => {
-  const mockClientEvent1: m2mEventApi.ClientM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "CLIENT_ADDED",
-    clientId: generateId(),
-  };
-
-  const mockClientEvent2: m2mEventApi.ClientM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "CLIENT_DELETED",
-    clientId: generateId(),
-  };
-
+  const eventTypes = ClientM2MEventType.options;
+  const events: m2mEventApi.ClientM2MEvent[] = eventTypes.map(
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        clientId: generateId(),
+      } as m2mEventApi.ClientM2MEvent)
+  );
   const mockEventManagerResponse: m2mEventApi.ClientM2MEvents = {
-    events: [mockClientEvent1, mockClientEvent2],
+    events,
   };
 
   const mockGetClientM2MEvents = vi
@@ -44,7 +41,7 @@ describe("getClientEvents integration", () => {
     "Should succeed and perform API clients calls",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApi.ClientEvents = {
-        events: [mockClientEvent1, mockClientEvent2],
+        events,
       };
       const result = await eventService.getClientsEvents(
         {

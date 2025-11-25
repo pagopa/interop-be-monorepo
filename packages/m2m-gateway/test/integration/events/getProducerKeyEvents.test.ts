@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, m2mEventApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { ProducerKeyM2MEventType, generateId } from "pagopa-interop-models";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -8,24 +8,22 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getProducerKeyEvents integration", () => {
-  const mockProducerKeyEvent1: m2mEventApi.ProducerKeyM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "PRODUCER_KEYCHAIN_KEY_ADDED",
-    kid: generateId(),
-  };
-
-  const mockProducerKeyEvent2: m2mEventApi.ProducerKeyM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "PRODUCER_KEYCHAIN_KEY_DELETED",
-    kid: generateId(),
-  };
-
+  const eventTypes = ProducerKeyM2MEventType.options;
+  const events: m2mEventApi.ProducerKeyM2MEvent[] = eventTypes.map(
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        producerKeychainId: generateId(),
+        kid: generateId(),
+      } as m2mEventApi.ProducerKeyM2MEvent)
+  );
   const mockEventManagerResponse: m2mEventApi.ProducerKeyM2MEvents = {
-    events: [mockProducerKeyEvent1, mockProducerKeyEvent2],
+    events,
   };
 
   const mockGetProducerKeyM2MEvents = vi
@@ -44,7 +42,7 @@ describe("getProducerKeyEvents integration", () => {
     "Should succeed and perform API clients calls",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApi.ProducerKeyEvents = {
-        events: [mockProducerKeyEvent1, mockProducerKeyEvent2],
+        events,
       };
       const result = await eventService.getProducerKeysEvents(
         {

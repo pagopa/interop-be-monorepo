@@ -3,26 +3,23 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { ClientM2MEventType, generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
-describe("GET /events/clients router test", () => {
+describe("GET /clientEvents router test", () => {
+  const eventTypes = ClientM2MEventType.options;
   const mockClientEvents: m2mGatewayApi.ClientEvents = {
-    events: [
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "CLIENT_ADDED",
-        clientId: generateId(),
-      },
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "CLIENT_DELETED",
-        clientId: generateId(),
-      },
-    ],
+    events: eventTypes.map(
+      (eventType) =>
+        ({
+          id: generateId(),
+          eventTimestamp: new Date().toJSON(),
+          eventType: testToUpperSnakeCase(eventType),
+          clientId: generateId(),
+        } as m2mGatewayApi.ClientEvent)
+    ),
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerClientQueryParams = {
@@ -35,7 +32,7 @@ describe("GET /events/clients router test", () => {
     query: m2mGatewayApi.GetEventManagerClientQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/events/clients`)
+      .get(`${appBasePath}/clientEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
