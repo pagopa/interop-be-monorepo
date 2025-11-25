@@ -6,15 +6,21 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { EServiceM2MEventType, generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("GET /eserviceEvents router test", () => {
   const eventTypes = EServiceM2MEventType.options;
-  const events: m2mGatewayApi.EServiceEvent[] = eventTypes.map((eventType) => ({
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: eventType as m2mGatewayApi.EServiceEvent["eventType"],
-    eserviceId: generateId(),
-  }));
+  const events: m2mGatewayApi.EServiceEvent[] = eventTypes.map(
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        eserviceId: generateId(),
+        descriptorId: generateId(),
+        producerDelegationId: generateId(),
+      } as m2mGatewayApi.EServiceEvent)
+  );
 
   const mockEServiceEvents: m2mGatewayApi.EServiceEvents = {
     events,

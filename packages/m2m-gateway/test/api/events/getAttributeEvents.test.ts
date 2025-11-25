@@ -3,26 +3,25 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { AttributeM2MEventType, generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
+import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
-describe("GET /eventsAttributes router test", () => {
+describe("GET /attributeEvents router test", () => {
+  const eventTypes = AttributeM2MEventType.options;
+  const events: m2mGatewayApi.AttributeEvent[] = eventTypes.map(
+    (eventType) =>
+      ({
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: testToUpperSnakeCase(eventType),
+        attributeId: generateId(),
+      } as m2mGatewayApi.AttributeEvent)
+  );
+
   const mockAttributeEvents: m2mGatewayApi.AttributeEvents = {
-    events: [
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "ATTRIBUTE_ADDED",
-        attributeId: generateId(),
-      },
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "ATTRIBUTE_ADDED",
-        attributeId: generateId(),
-      },
-    ],
+    events,
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerAttributesQueryParams = {
@@ -35,7 +34,7 @@ describe("GET /eventsAttributes router test", () => {
     query: m2mGatewayApi.GetEventManagerAttributesQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/eventsAttributes`)
+      .get(`${appBasePath}/attributeEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
