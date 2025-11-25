@@ -87,39 +87,31 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}/riskAnalysis", () => {
   });
 
   it.each([
-    {
-      testDescription: "empty body",
-    },
+    {},
     {
       ...validRiskAnalysisFormTemplateSeed,
       answers: {
         invalidAnswer: {},
       },
-      testDescription: "empty answers",
     },
     {
       ...validRiskAnalysisFormTemplateSeed,
       version: -1,
-      testDescription: "invalid version",
     },
-  ])(
-    "Should return 400 if risk analysis template is invalid $testDescription",
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async ({ testDescription, ...body }) => {
-      purposeTemplateService.updatePurposeTemplateRiskAnalysis = vi
-        .fn()
-        .mockRejectedValue({
-          code: "riskAnalysisTemplateValidationFailed",
-          detail: "detail",
-        });
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        body as purposeTemplateApi.RiskAnalysisFormTemplateSeed
-      );
-      expect(res.status).toBe(400);
-    }
-  );
+  ])("Should return 400 if risk analysis template is invalid", async (body) => {
+    purposeTemplateService.updatePurposeTemplateRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue({
+        code: "riskAnalysisTemplateValidationFailed",
+        detail: "detail",
+      });
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      body as purposeTemplateApi.RiskAnalysisFormTemplateSeed
+    );
+    expect(res.status).toBe(400);
+  });
 
   it("Should return 409 if purpose template is not in draft state", async () => {
     const mockPurposeTemplate: PurposeTemplate = {

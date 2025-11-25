@@ -16642,7 +16642,7 @@ paths:
       tags:
         - purposeTemplates
       summary: Update Risk Analysis
-      description: Update a Purpose Template Risk Analysis
+      description: Update a Purpose Template Risk Analysis in Draft state
       operationId: updatePurposeTemplateRiskAnalysis
       requestBody:
         content:

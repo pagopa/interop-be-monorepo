@@ -132,7 +132,7 @@ const purposeTemplateRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating risk analysis form for purpose template with id ${req.params.purposeTemplateId}`
+            `Error updating risk analysis form template for purpose template with id ${req.params.purposeTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

@@ -43,7 +43,7 @@ export function toPurposeTemplateApiRiskAnalysisFormTemplateSeed(
   seed: m2mGatewayApi.RiskAnalysisFormTemplateSeed
 ): purposeTemplateApi.RiskAnalysisFormTemplateSeed {
   return {
-    ...seed,
+    version: seed.version,
     answers: toPurposeTemplateApiRiskAnalysisTemplateAnswersSeed(seed.answers),
   };
 }

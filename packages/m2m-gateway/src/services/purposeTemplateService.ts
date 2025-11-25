@@ -421,7 +421,7 @@ export function purposeTemplateServiceBuilder(
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.RiskAnalysisFormTemplate> {
       logger.info(
-        `Updating risk analysis form for purpose template ${purposeTemplateId}`
+        `Updating risk analysis form template for purpose template ${purposeTemplateId}`
       );
 
       const { data: riskAnalysisForm, metadata } =
