@@ -9,40 +9,39 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getProducerKeyEvents integration", () => {
-  const events: m2mEventApi.ProducerKeyM2MEvent[] = [
+describe("getProducerDelegationEvents integration", () => {
+  const events: m2mEventApi.ProducerDelegationM2MEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "PRODUCER_KEYCHAIN_KEY_ADDED",
-      producerKeychainId: generateId(),
-      kid: generateId(),
+      eventType: "PRODUCER_DELEGATION_APPROVED",
+      delegationId: generateId(),
     },
   ];
 
-  const mockEventManagerResponse: m2mEventApi.ProducerKeyM2MEvents = {
+  const mockEventManagerResponse: m2mEventApi.ProducerDelegationM2MEvents = {
     events,
   };
 
-  const mockGetProducerKeyM2MEvents = vi
+  const mockGetProducerDelegationM2MEvents = vi
     .fn()
     .mockResolvedValue(mockEventManagerResponse);
 
   mockInteropBeClients.eventManagerClient = {
-    getProducerKeyM2MEvents: mockGetProducerKeyM2MEvents,
+    getProducerDelegationM2MEvents: mockGetProducerDelegationM2MEvents,
   } as unknown as PagoPAInteropBeClients["eventManagerClient"];
 
   beforeEach(() => {
-    mockGetProducerKeyM2MEvents.mockClear();
+    mockGetProducerDelegationM2MEvents.mockClear();
   });
 
   it.each([generateId(), undefined])(
     "Should succeed and perform API clients calls",
     async (lastEventId) => {
-      const expectedResponse: m2mGatewayApi.ProducerKeyEvents = {
+      const expectedResponse: m2mGatewayApi.ProducerDelegationEvents = {
         events,
       };
-      const result = await eventService.getProducerKeysEvents(
+      const result = await eventService.getProducerDelegationEvents(
         {
           lastEventId,
           limit: 10,
@@ -51,7 +50,7 @@ describe("getProducerKeyEvents integration", () => {
       );
       expect(result).toEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
-        mockGet: mockGetProducerKeyM2MEvents,
+        mockGet: mockGetProducerDelegationM2MEvents,
         queries: {
           lastEventId,
           limit: 10,

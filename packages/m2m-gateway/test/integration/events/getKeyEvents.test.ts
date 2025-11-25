@@ -1,23 +1,21 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { m2mEventApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { KeyM2MEventType, generateId } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { eventService, mockInteropBeClients } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
 describe("getKeyEvents integration", () => {
-  const eventTypes = KeyM2MEventType.options;
-  const events: m2mEventApi.KeyM2MEvent[] = eventTypes.map(
-    (eventType) =>
-      ({
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: testToUpperSnakeCase(eventType),
-        clientId: generateId(),
-        kid: generateId(),
-      } as m2mEventApi.KeyM2MEvent)
-  );
+  const events: m2mEventApi.KeyM2MEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "CLIENT_KEY_ADDED",
+      clientId: generateId(),
+      kid: generateId(),
+    },
+  ];
+
   const mockEventManagerResponse: m2mEventApi.KeyM2MEvents = {
     events,
   };

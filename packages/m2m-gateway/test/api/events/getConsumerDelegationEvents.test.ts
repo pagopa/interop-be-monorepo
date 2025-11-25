@@ -7,29 +7,32 @@ import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /clientEvents router test", () => {
-  const mockClientEvents: m2mGatewayApi.ClientEvents = {
-    events: [
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "CLIENT_ADDED",
-        clientId: generateId(),
-      },
-    ],
+describe("GET /consumerDelegationEvents router test", () => {
+  const events: m2mGatewayApi.ConsumerDelegationEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "CONSUMER_DELEGATION_APPROVED",
+      delegationId: generateId(),
+    },
+  ];
+
+  const mockConsumerDelegationEvents: m2mGatewayApi.ConsumerDelegationEvents = {
+    events,
   };
 
-  const mockQueryParams: m2mGatewayApi.GetEventManagerClientQueryParams = {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+  const mockQueryParams: m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams =
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,
-    query: m2mGatewayApi.GetEventManagerClientQueryParams
+    query: m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/clientEvents`)
+      .get(`${appBasePath}/consumerDelegationEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
@@ -42,16 +45,16 @@ describe("GET /clientEvents router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEventService.getClientsEvents = vi
+      mockEventService.getConsumerDelegationEvents = vi
         .fn()
-        .mockResolvedValue(mockClientEvents);
+        .mockResolvedValue(mockConsumerDelegationEvents);
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockClientEvents);
-      expect(mockEventService.getClientsEvents).toHaveBeenCalledWith(
+      expect(res.body).toEqual(mockConsumerDelegationEvents);
+      expect(mockEventService.getConsumerDelegationEvents).toHaveBeenCalledWith(
         mockQueryParams,
         expect.any(Object)
       );
@@ -77,7 +80,7 @@ describe("GET /clientEvents router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetEventManagerClientQueryParams
+      query as unknown as m2mGatewayApi.GetEventManagerConsumerDelegationsQueryParams
     );
 
     expect(res.status).toBe(400);

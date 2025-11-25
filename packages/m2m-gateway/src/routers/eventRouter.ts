@@ -52,7 +52,6 @@ const eventRouter = (
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-
       const events = await eventService.getEServiceTemplateEvents(
         {
           lastEventId: req.query.lastEventId,
@@ -174,6 +173,60 @@ const eventRouter = (
         emptyErrorMapper,
         ctx,
         "Error retrieving producer keychain events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
+  eventRouter.get("/producerDelegationEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getProducerDelegationEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res
+        .status(200)
+        .send(m2mGatewayApi.ProducerDelegationEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving producer delegation events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+
+  eventRouter.get("/consumerDelegationEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getConsumerDelegationEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res
+        .status(200)
+        .send(m2mGatewayApi.ConsumerDelegationEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving consumer delegation events"
       );
       return res.status(errorRes.status).send();
     }

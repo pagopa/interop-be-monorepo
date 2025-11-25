@@ -199,6 +199,12 @@ export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
     "getRiskAnalysisTemplateAnnotationDocuments"
   >;
 
+export type GetEventManagerConsumerDelegationsQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getConsumerDelegationEvents">;
+
+export type GetEventManagerProducerDelegationsQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getProducerDelegationEvents">;
+
 export type GetEventManagerEServiceTemplatesQueryParams =
   QueryParametersByAlias<EventManagerApi, "getEServiceTemplateEvents">;
 
