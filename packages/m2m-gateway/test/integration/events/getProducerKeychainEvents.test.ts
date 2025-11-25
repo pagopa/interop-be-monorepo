@@ -9,39 +9,38 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getAttributeEvents integration", () => {
-  const events: m2mEventApi.AttributeM2MEvent[] = [
+describe("getProducerKeychainEvents integration", () => {
+  const events: m2mEventApi.ProducerKeychainM2MEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "ATTRIBUTE_ADDED",
-      attributeId: generateId(),
+      eventType: "PRODUCER_KEYCHAIN_ADDED",
+      producerKeychainId: generateId(),
     },
   ];
-
-  const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {
+  const mockEventManagerResponse: m2mEventApi.ProducerKeychainM2MEvents = {
     events,
   };
 
-  const mockGetAttributeM2MEvents = vi
+  const mockGetProducerKeychainM2MEvents = vi
     .fn()
     .mockResolvedValue(mockEventManagerResponse);
 
   mockInteropBeClients.eventManagerClient = {
-    getAttributeM2MEvents: mockGetAttributeM2MEvents,
+    getProducerKeychainM2MEvents: mockGetProducerKeychainM2MEvents,
   } as unknown as PagoPAInteropBeClients["eventManagerClient"];
 
   beforeEach(() => {
-    mockGetAttributeM2MEvents.mockClear();
+    mockGetProducerKeychainM2MEvents.mockClear();
   });
 
   it.each([generateId(), undefined])(
-    "Should succeed and perform API clients calls with lastEventId: %s",
+    "Should succeed and perform API clients calls",
     async (lastEventId) => {
-      const expectedResponse: m2mGatewayApi.AttributeEvents = {
+      const expectedResponse: m2mGatewayApi.ProducerKeychainEvents = {
         events,
       };
-      const result = await eventService.getAttributeEvents(
+      const result = await eventService.getProducerKeychainEvents(
         {
           lastEventId,
           limit: 10,
@@ -50,7 +49,7 @@ describe("getAttributeEvents integration", () => {
       );
       expect(result).toEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
-        mockGet: mockGetAttributeM2MEvents,
+        mockGet: mockGetProducerKeychainM2MEvents,
         queries: {
           lastEventId,
           limit: 10,

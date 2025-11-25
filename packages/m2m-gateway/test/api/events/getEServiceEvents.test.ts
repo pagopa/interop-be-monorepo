@@ -7,31 +7,32 @@ import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /attributeEvents router test", () => {
-  const events: m2mGatewayApi.AttributeEvent[] = [
+describe("GET /eserviceEvents router test", () => {
+  const events: m2mGatewayApi.EServiceEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "ATTRIBUTE_ADDED",
-      attributeId: generateId(),
+      eventType: "ESERVICE_ADDED",
+      eserviceId: generateId(),
+      producerDelegationId: generateId(),
     },
   ];
-
-  const mockAttributeEvents: m2mGatewayApi.AttributeEvents = {
+  const mockEServiceEvents: m2mGatewayApi.EServiceEvents = {
     events,
   };
 
-  const mockQueryParams: m2mGatewayApi.GetEventManagerAttributesQueryParams = {
+  const mockQueryParams: m2mGatewayApi.GetEventManagerEServicesQueryParams = {
     lastEventId: generateId(),
     limit: 10,
+    delegationId: generateId(),
   };
 
   const makeRequest = async (
     token: string,
-    query: m2mGatewayApi.GetEventManagerAttributesQueryParams
+    query: m2mGatewayApi.GetEventManagerEServicesQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/attributeEvents`)
+      .get(`${appBasePath}/eserviceEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
@@ -44,16 +45,16 @@ describe("GET /attributeEvents router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEventService.getAttributeEvents = vi
+      mockEventService.getEServiceEvents = vi
         .fn()
-        .mockResolvedValue(mockAttributeEvents);
+        .mockResolvedValue(mockEServiceEvents);
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockAttributeEvents);
-      expect(mockEventService.getAttributeEvents).toHaveBeenCalledWith(
+      expect(res.body).toEqual(mockEServiceEvents);
+      expect(mockEventService.getEServiceEvents).toHaveBeenCalledWith(
         mockQueryParams,
         expect.any(Object)
       );
@@ -75,11 +76,12 @@ describe("GET /attributeEvents router test", () => {
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: "invalidEventId" },
+    { ...mockQueryParams, delegationId: 1 },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetEventManagerAttributesQueryParams
+      query as unknown as m2mGatewayApi.GetEventManagerEServicesQueryParams
     );
 
     expect(res.status).toBe(400);

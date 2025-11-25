@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -7,31 +8,32 @@ import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /attributeEvents router test", () => {
-  const events: m2mGatewayApi.AttributeEvent[] = [
+describe("GET /eserviceTemplateEvents router test", () => {
+  const events: m2mGatewayApi.EServiceTemplateEvent[] = [
     {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
-      eventType: "ATTRIBUTE_ADDED",
-      attributeId: generateId(),
+      eventType: "ESERVICE_TEMPLATE_ADDED",
+      eserviceTemplateId: generateId(),
     },
   ];
 
-  const mockAttributeEvents: m2mGatewayApi.AttributeEvents = {
+  const mockEServiceTemplateEvents: m2mGatewayApi.EServiceTemplateEvents = {
     events,
   };
 
-  const mockQueryParams: m2mGatewayApi.GetEventManagerAttributesQueryParams = {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+  const mockQueryParams: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams =
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,
-    query: m2mGatewayApi.GetEventManagerAttributesQueryParams
+    query: m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/attributeEvents`)
+      .get(`${appBasePath}/eserviceTemplateEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();
@@ -44,16 +46,16 @@ describe("GET /attributeEvents router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEventService.getAttributeEvents = vi
+      mockEventService.getEServiceTemplateEvents = vi
         .fn()
-        .mockResolvedValue(mockAttributeEvents);
+        .mockResolvedValue(mockEServiceTemplateEvents);
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockAttributeEvents);
-      expect(mockEventService.getAttributeEvents).toHaveBeenCalledWith(
+      expect(res.body).toEqual(mockEServiceTemplateEvents);
+      expect(mockEventService.getEServiceTemplateEvents).toHaveBeenCalledWith(
         mockQueryParams,
         expect.any(Object)
       );
@@ -79,7 +81,7 @@ describe("GET /attributeEvents router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetEventManagerAttributesQueryParams
+      query as unknown as m2mGatewayApi.GetEventManagerEServiceTemplatesQueryParams
     );
 
     expect(res.status).toBe(400);
