@@ -1,7 +1,8 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.14.2-slim@sha256:28b60cb146050237486e1d34b8e3299761d95db2013d7184a44b09f47904059d AS build
+
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS build
 
 RUN corepack enable
 
@@ -13,6 +14,7 @@ COPY .npmrc /app/
 
 COPY ./packages/in-app-notification-cleaner/package.json /app/packages/in-app-notification-cleaner/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
+COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/in-app-notification-db-models/package.json /app/packages/in-app-notification-db-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
@@ -21,6 +23,7 @@ COPY tsconfig.json /app/
 COPY turbo.json /app/
 COPY ./packages/in-app-notification-cleaner /app/packages/in-app-notification-cleaner
 COPY ./packages/commons /app/packages/commons
+COPY ./packages/models /app/packages/models
 COPY ./packages/in-app-notification-db-models /app/packages/in-app-notification-db-models
 
 RUN pnpm build && \
@@ -31,11 +34,12 @@ RUN pnpm build && \
   node_modules packages/in-app-notification-cleaner/node_modules \
   package*.json packages/in-app-notification-cleaner/package*.json \
   packages/commons \
+  packages/models \
   packages/in-app-notification-db-models \
   packages/in-app-notification-cleaner/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.14.2-slim@sha256:28b60cb146050237486e1d34b8e3299761d95db2013d7184a44b09f47904059d AS final
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS final
 
 COPY --from=build /out /app
 
