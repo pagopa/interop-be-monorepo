@@ -12,14 +12,14 @@ import { testToUpperSnakeCase } from "../../multipartTestUtils.js";
 
 describe("getAttributeEvents integration", () => {
   const eventTypes = AttributeM2MEventType.options;
-  const events: m2mGatewayApi.AttributeEvent[] = eventTypes.map(
+  const events: m2mEventApi.AttributeM2MEvent[] = eventTypes.map(
     (eventType) =>
       ({
         id: generateId(),
         eventTimestamp: new Date().toJSON(),
         eventType: testToUpperSnakeCase(eventType),
         attributeId: generateId(),
-      } as m2mGatewayApi.AttributeEvent)
+      } as m2mEventApi.AttributeM2MEvent)
   );
 
   const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {
