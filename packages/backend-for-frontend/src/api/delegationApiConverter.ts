@@ -66,6 +66,18 @@ export function toBffDelegationApiDelegationDoc(
     createdAt: document.createdAt,
   };
 }
+export function toBffDelegationApiDelegationSignedDoc(
+  document: delegationApi.DelegationSignedContractDocument
+): bffApi.SignedDocument {
+  return {
+    id: document.id,
+    name: document.name,
+    contentType: document.contentType,
+    prettyName: document.prettyName,
+    createdAt: document.createdAt,
+    signedAt: document.signedAt,
+  };
+}
 
 export function toBffDelegationApiDelegation(
   delegation: delegationApi.Delegation,
@@ -104,7 +116,17 @@ export function toBffDelegationApiDelegation(
     rejectionReason: delegation.rejectionReason,
     state: delegation.state,
     kind: delegation.kind,
-    isDocumentReady: delegation.signedActivationContract !== undefined,
+    activationSignedContract: delegation.activationSignedContract
+      ? toBffDelegationApiDelegationSignedDoc(
+          delegation.activationSignedContract
+        )
+      : undefined,
+    revocationSignedContract: delegation.revocationSignedContract
+      ? toBffDelegationApiDelegationSignedDoc(
+          delegation.revocationSignedContract
+        )
+      : undefined,
+    isDocumentReady: delegation.activationSignedContract !== undefined,
   };
 }
 

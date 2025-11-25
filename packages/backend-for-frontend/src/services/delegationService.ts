@@ -350,8 +350,8 @@ export function delegationServiceBuilder(
 
       const foundSignedContract =
         delegation.state === toDelegationState(delegationState.revoked)
-          ? delegation.signedRevocationContract
-          : delegation.signedActivationContract;
+          ? delegation.revocationSignedContract
+          : delegation.activationSignedContract;
 
       if (!foundSignedContract) {
         throw delegationContractNotFound(delegationId);

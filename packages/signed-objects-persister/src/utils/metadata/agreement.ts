@@ -4,7 +4,11 @@ import {
   Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { CorrelationId, AgreementDocument } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  AgreementDocument,
+  generateId,
+} from "pagopa-interop-models";
 import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addAgreementSignedContract = async (
@@ -19,6 +23,7 @@ export const addAgreementSignedContract = async (
   );
   const contractSigned: agreementApi.SignedDocument = {
     ...contract,
+    id: generateId(),
     createdAt: new Date(contract.createdAt).toISOString(),
     signedAt: new Date().toISOString(),
   };
