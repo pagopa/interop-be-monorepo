@@ -38,9 +38,14 @@ describe("getPurposeEvents integration", () => {
     mockGetPurposeM2MEvents.mockClear();
   });
 
-  it.each([generateId(), undefined])(
+  it.each([
+    { lastEventId: generateId(), delegationId: generateId() },
+    { lastEventId: generateId(), delegationId: undefined },
+    { lastEventId: generateId(), delegationId: generateId() },
+    { lastEventId: undefined, delegationId: undefined },
+  ])(
     "Should succeed and perform API clients calls",
-    async (lastEventId) => {
+    async ({ lastEventId, delegationId }) => {
       const expectedResponse: m2mGatewayApi.PurposeEvents = {
         events,
       };
@@ -48,6 +53,7 @@ describe("getPurposeEvents integration", () => {
         {
           lastEventId,
           limit: 10,
+          delegationId,
         },
         getMockM2MAdminAppContext()
       );
@@ -57,6 +63,7 @@ describe("getPurposeEvents integration", () => {
         queries: {
           lastEventId,
           limit: 10,
+          delegationId,
         },
       });
     }

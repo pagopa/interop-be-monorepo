@@ -83,6 +83,7 @@ const eventRouter = (
         {
           lastEventId: req.query.lastEventId,
           limit: req.query.limit,
+          delegationId: req.query.delegationId,
         },
         ctx
       );

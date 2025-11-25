@@ -70,17 +70,22 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
     },
 
     async getPurposeEvents(
-      { lastEventId, limit }: m2mGatewayApi.GetEventManagerPurposesQueryParams,
+      {
+        lastEventId,
+        limit,
+        delegationId,
+      }: m2mGatewayApi.GetEventManagerPurposesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.PurposeEvents> {
       logger.info(
-        `Retrieving purpose events with lastEventId: ${lastEventId} and limit: ${limit}`
+        `Retrieving purpose events with lastEventId: ${lastEventId} and limit: ${limit} and delegationId ${delegationId}`
       );
 
       const { events } = await clients.eventManagerClient.getPurposeM2MEvents({
         queries: {
           lastEventId,
           limit,
+          delegationId,
         },
         headers,
       });
