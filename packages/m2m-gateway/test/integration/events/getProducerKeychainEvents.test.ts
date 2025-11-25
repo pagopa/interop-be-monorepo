@@ -46,7 +46,7 @@ describe("getProducerKeychainEvents integration", () => {
       const expectedResponse: m2mGatewayApi.ProducerKeychainEvents = {
         events,
       };
-      const result = await eventService.getProducerKeychainsEvents(
+      const result = await eventService.getProducerKeychainEvents(
         {
           lastEventId,
           limit: 10,

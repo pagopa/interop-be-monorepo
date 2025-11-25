@@ -43,7 +43,7 @@ describe("getClientEvents integration", () => {
       const expectedResponse: m2mGatewayApi.ClientEvents = {
         events,
       };
-      const result = await eventService.getClientsEvents(
+      const result = await eventService.getClientEvents(
         {
           lastEventId,
           limit: 10,

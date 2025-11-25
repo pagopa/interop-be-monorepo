@@ -156,7 +156,7 @@ const eventRouter = (
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-      const events = await eventService.getClientsEvents(
+      const events = await eventService.getClientEvents(
         {
           lastEventId: req.query.lastEventId,
           limit: req.query.limit,
@@ -181,7 +181,7 @@ const eventRouter = (
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-      const events = await eventService.getProducerKeysEvents(
+      const events = await eventService.getProducerKeyEvents(
         {
           lastEventId: req.query.lastEventId,
           limit: req.query.limit,
@@ -208,7 +208,7 @@ const eventRouter = (
     try {
       validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-      const events = await eventService.getProducerKeychainsEvents(
+      const events = await eventService.getProducerKeychainEvents(
         {
           lastEventId: req.query.lastEventId,
           limit: req.query.limit,

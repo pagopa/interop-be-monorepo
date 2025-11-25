@@ -27,7 +27,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceEvents> {
       logger.info(
-        `Retrieving eservice events with lastEventId: ${lastEventId} and limit: ${limit}`
+        `Retrieving eservice events with lastEventId ${lastEventId}, limit ${limit} and delegationId ${delegationId}`
       );
 
       const { events } = await clients.eventManagerClient.getEServiceM2MEvents({
@@ -80,7 +80,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events: events.map(toM2MGatewayApiKeyEvent) };
     },
-    async getClientsEvents(
+    async getClientEvents(
       { lastEventId, limit }: m2mGatewayApi.GetEventManagerClientQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ClientEvents> {
@@ -96,7 +96,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events: events.map(toM2MGatewayApiClientEvent) };
     },
-    async getProducerKeysEvents(
+    async getProducerKeyEvents(
       {
         lastEventId,
         limit,
@@ -116,7 +116,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return { events: events.map(toM2MGatewayApiProducerKeysEvent) };
     },
-    async getProducerKeychainsEvents(
+    async getProducerKeychainEvents(
       {
         lastEventId,
         limit,
@@ -167,7 +167,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.AgreementEvents> {
       logger.info(
-        `Retrieving agreement events with lastEventId: ${lastEventId} and limit: ${limit}`
+        `Retrieving agreement events with lastEventId: ${lastEventId}, limit: ${limit} and delegationId: ${delegationId}`
       );
 
       const { events } = await clients.eventManagerClient.getAgreementM2MEvents(
