@@ -61,7 +61,7 @@ const eventRouter = (
         ctx
       );
 
-      return res.status(200).send(events);
+      return res.status(200).send(m2mGatewayApi.KeyEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
@@ -86,7 +86,7 @@ const eventRouter = (
         ctx
       );
 
-      return res.status(200).send(events);
+      return res.status(200).send(m2mGatewayApi.ClientEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
@@ -111,7 +111,9 @@ const eventRouter = (
         ctx
       );
 
-      return res.status(200).send(events);
+      return res
+        .status(200)
+        .send(m2mGatewayApi.ProducerKeyEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
@@ -136,7 +138,9 @@ const eventRouter = (
         ctx
       );
 
-      return res.status(200).send(events);
+      return res
+        .status(200)
+        .send(m2mGatewayApi.ProducerKeychainEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,

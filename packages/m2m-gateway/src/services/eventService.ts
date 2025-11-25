@@ -2,7 +2,13 @@ import { WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { toM2MGatewayApiAttributeEvent } from "../api/eventApiConverter.js";
+import {
+  toM2MGatewayApiAttributeEvent,
+  toM2MGatewayApiClientEvent,
+  toM2MGatewayApiKeyEvent,
+  toM2MGatewayApiProducerKeychainsEvent,
+  toM2MGatewayApiProducerKeysEvent,
+} from "../api/eventApiConverter.js";
 
 export type EventService = ReturnType<typeof eventServiceBuilder>;
 
@@ -46,7 +52,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      return { events };
+      return { events: events.map(toM2MGatewayApiKeyEvent) };
     },
     async getClientsEvents(
       { lastEventId, limit }: m2mGatewayApi.GetEventManagerClientQueryParams,
@@ -62,7 +68,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      return { events };
+      return { events: events.map(toM2MGatewayApiClientEvent) };
     },
     async getProducerKeysEvents(
       {
@@ -82,7 +88,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      return { events };
+      return { events: events.map(toM2MGatewayApiProducerKeysEvent) };
     },
     async getProducerKeychainsEvents(
       {
@@ -102,7 +108,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      return { events };
+      return { events: events.map(toM2MGatewayApiProducerKeychainsEvent) };
     },
   };
 }
