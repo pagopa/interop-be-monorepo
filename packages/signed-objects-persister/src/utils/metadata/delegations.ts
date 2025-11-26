@@ -25,7 +25,7 @@ export const addDelegationSignedContract = async (
     )}`
   );
 
-  const contractSigned: delegationApi.DelegationSignedContractDocument = {
+  const signedContract: delegationApi.DelegationSignedContractDocument = {
     ...contract,
     id: generateId(),
     createdAt: new Date(contract.createdAt).toISOString(),
@@ -36,7 +36,7 @@ export const addDelegationSignedContract = async (
   const { delegationProcessClient } = getInteropBeClients();
 
   await delegationProcessClient.delegation.addSignedDelegationContractMetadata(
-    contractSigned,
+    signedContract,
     {
       params: { delegationId },
       headers: getInteropHeaders({

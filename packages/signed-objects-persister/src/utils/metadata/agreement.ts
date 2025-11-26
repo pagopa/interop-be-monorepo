@@ -21,7 +21,7 @@ export const addAgreementSignedContract = async (
   logger.info(
     `addAgreementSignedContract: Agreement Document ${JSON.stringify(contract)}`
   );
-  const contractSigned: agreementApi.SignedDocument = {
+  const signedContract: agreementApi.SignedDocument = {
     ...contract,
     id: generateId(),
     createdAt: new Date(contract.createdAt).toISOString(),
@@ -32,7 +32,7 @@ export const addAgreementSignedContract = async (
   const { agreementProcessClient } = getInteropBeClients();
 
   await agreementProcessClient.addSignedAgreementContractMetadata(
-    contractSigned,
+    signedContract,
     {
       params: { agreementId },
       headers: getInteropHeaders({

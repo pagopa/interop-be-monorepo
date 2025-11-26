@@ -87,6 +87,13 @@ export function toBffDelegationApiDelegation(
   _: boolean | undefined,
   producer: tenantApi.Tenant
 ): bffApi.Delegation {
+  // The document is considered "ready" if the contract required for its current state is signed.
+  // When in the 'revoked' state, only the 'signedRevocationContract' is checked, as the 'signedActivationContract'
+  // is guaranteed to exist as a prerequisite for revocation.
+  const isDocumentReady =
+    delegation.state === toDelegationState(delegationState.revoked)
+      ? delegation.signedRevocationContract !== undefined
+      : delegation.signedActivationContract !== undefined;
   return {
     id: delegation.id,
     eservice: eservice && {
@@ -126,7 +133,7 @@ export function toBffDelegationApiDelegation(
           delegation.revocationSignedContract
         )
       : undefined,
-    isDocumentReady: delegation.activationSignedContract !== undefined,
+    isDocumentReady,
   };
 }
 
