@@ -67,8 +67,8 @@ import {
   toCreateEventPurposeTemplatePublished,
   toCreateEventPurposeTemplateSuspended,
   toCreateEventPurposeTemplateUnsuspended,
-  toCreateEventRiskAnalysisTemplateDocumentAdded,
-  toCreateEventRiskAnalysisTemplateSignedDocumentAdded,
+  toCreateEventRiskAnalysisTemplateDocumentGenerated,
+  toCreateEventRiskAnalysisTemplateSignedDocumentGenerated,
 } from "../model/domain/toEvent.js";
 import {
   addAnnotationDocumentToUpdatedAnswerIfNeeded,
@@ -1723,9 +1723,8 @@ export function purposeTemplateServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventRiskAnalysisTemplateDocumentAdded(
+        toCreateEventRiskAnalysisTemplateDocumentGenerated(
           updatedPurposeTemplate,
-          riskAnalysisTemplateDocument.id,
           correlationId,
           metadata.version
         )
@@ -1758,9 +1757,8 @@ export function purposeTemplateServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventRiskAnalysisTemplateSignedDocumentAdded(
+        toCreateEventRiskAnalysisTemplateSignedDocumentGenerated(
           updatedPurposeTemplate,
-          riskAnalysisTemplateSignedDocument.id,
           correlationId,
           metadata.version
         )

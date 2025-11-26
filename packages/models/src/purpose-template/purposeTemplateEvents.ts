@@ -15,8 +15,8 @@ import {
   PurposeTemplateUnsuspendedV2,
   PurposeTemplateAnnotationDocumentAddedV2,
   PurposeTemplateAnnotationDocumentUpdatedV2,
-  RiskAnalysisTemplateDocumentAddedV2,
-  RiskAnalysisTemplateSignedDocumentAddedV2,
+  RiskAnalysisTemplateDocumentGeneratedV2,
+  RiskAnalysisTemplateSignedDocumentGeneratedV2,
 } from "../gen/v2/purpose-template/events.js";
 
 export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
@@ -82,13 +82,13 @@ export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("RiskAnalysisTemplateDocumentAdded"),
-    data: protobufDecoder(RiskAnalysisTemplateDocumentAddedV2),
+    type: z.literal("RiskAnalysisTemplateDocumentGenerated"),
+    data: protobufDecoder(RiskAnalysisTemplateDocumentGeneratedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("RiskAnalysisTemplateSignedDocumentAdded"),
-    data: protobufDecoder(RiskAnalysisTemplateSignedDocumentAddedV2),
+    type: z.literal("RiskAnalysisTemplateSignedDocumentGenerated"),
+    data: protobufDecoder(RiskAnalysisTemplateSignedDocumentGeneratedV2),
   }),
 ]);
 export type PurposeTemplateEventV2 = z.infer<typeof PurposeTemplateEventV2>;
@@ -136,11 +136,11 @@ export function purposeTemplateEventToBinaryDataV2(
     .with({ type: "PurposeTemplateAnnotationDocumentUpdated" }, (e) =>
       PurposeTemplateAnnotationDocumentUpdatedV2.toBinary(e.data)
     )
-    .with({ type: "RiskAnalysisTemplateDocumentAdded" }, (e) =>
-      RiskAnalysisTemplateDocumentAddedV2.toBinary(e.data)
+    .with({ type: "RiskAnalysisTemplateDocumentGenerated" }, (e) =>
+      RiskAnalysisTemplateDocumentGeneratedV2.toBinary(e.data)
     )
-    .with({ type: "RiskAnalysisTemplateSignedDocumentAdded" }, (e) =>
-      RiskAnalysisTemplateSignedDocumentAddedV2.toBinary(e.data)
+    .with({ type: "RiskAnalysisTemplateSignedDocumentGenerated" }, (e) =>
+      RiskAnalysisTemplateSignedDocumentGeneratedV2.toBinary(e.data)
     )
     .exhaustive();
 }

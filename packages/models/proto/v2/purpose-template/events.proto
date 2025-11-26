@@ -62,12 +62,10 @@ message PurposeTemplateAnnotationDocumentUpdatedV2 {
   string answerId = 3;
 }
 
-message RiskAnalysisTemplateDocumentAddedV2 {
+message RiskAnalysisTemplateDocumentGeneratedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
-  string documentId = 2;
 }
 
-message RiskAnalysisTemplateSignedDocumentAddedV2 {
+message RiskAnalysisTemplateSignedDocumentGeneratedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
-  string documentId = 2;
 }

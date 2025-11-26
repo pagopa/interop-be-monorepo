@@ -47,8 +47,8 @@ export async function handlePurposeTemplateMessageV2(
             "PurposeTemplateArchived",
             "PurposeTemplateAnnotationDocumentDeleted",
             "PurposeTemplateAnnotationDocumentUpdated",
-            "RiskAnalysisTemplateDocumentAdded",
-            "RiskAnalysisTemplateSignedDocumentAdded"
+            "RiskAnalysisTemplateDocumentGenerated",
+            "RiskAnalysisTemplateSignedDocumentGenerated"
           ),
         },
         (msg) => {
