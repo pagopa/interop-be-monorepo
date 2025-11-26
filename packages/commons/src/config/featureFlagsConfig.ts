@@ -113,7 +113,7 @@ export const FeatureFlagDelegationsProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
@@ -129,7 +129,7 @@ export const FeatureFlagAgreementsProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
@@ -145,7 +145,7 @@ export const FeatureFlagPurposesProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
