@@ -15,13 +15,13 @@ import {
 } from "pagopa-interop-commons";
 
 import {
-  AgreementEventV2,
-  PurposeEventV2,
   genericInternalError,
   CorrelationId,
   unsafeBrandId,
   generateId,
   DelegationEventV2,
+  PurposeEvent,
+  AgreementEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -36,7 +36,9 @@ import { baseConsumerConfig, config } from "./config/config.js";
 import { handlePurposeMessageV2 } from "./handler/handlePurposeMessageV2.js";
 import { handleDelegationMessageV2 } from "./handler/handleDelegationMessageV2.js";
 import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js";
+import { handleAgreementMessageV1 } from "./handler/handleAgreementMessageV1.js";
 import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
+import { handlePurposeMessageV1 } from "./handler/handlePurposeMessageV1.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
@@ -75,34 +77,62 @@ function processMessage(
       .with(agreementTopicConfig.agreementTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          AgreementEventV2
+          AgreementEvent
         );
 
-        const documentGenerator = handleAgreementMessageV2.bind(
-          null,
-          decodedMessage,
-          pdfGenerator,
-          fileManager,
-          readModelServiceSQL,
-          refreshableToken
-        );
+        const documentGenerator = match(decodedMessage)
+          .with({ event_version: 1 }, (decoded) =>
+            handleAgreementMessageV1.bind(
+              null,
+              decoded,
+              pdfGenerator,
+              fileManager,
+              readModelServiceSQL,
+              refreshableToken
+            )
+          )
+          .with({ event_version: 2 }, (decoded) =>
+            handleAgreementMessageV2.bind(
+              null,
+              decoded,
+              pdfGenerator,
+              fileManager,
+              readModelServiceSQL,
+              refreshableToken
+            )
+          )
+          .exhaustive();
 
         return { decodedMessage, documentGenerator };
       })
       .with(purposeTopicConfig.purposeTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          PurposeEventV2
+          PurposeEvent
         );
 
-        const documentGenerator = handlePurposeMessageV2.bind(
-          null,
-          decodedMessage,
-          pdfGenerator,
-          fileManager,
-          readModelServiceSQL,
-          refreshableToken
-        );
+        const documentGenerator = match(decodedMessage)
+          .with({ event_version: 1 }, (decoded) =>
+            handlePurposeMessageV1.bind(
+              null,
+              decoded,
+              pdfGenerator,
+              fileManager,
+              readModelServiceSQL,
+              refreshableToken
+            )
+          )
+          .with({ event_version: 2 }, (decoded) =>
+            handlePurposeMessageV2.bind(
+              null,
+              decoded,
+              pdfGenerator,
+              fileManager,
+              readModelServiceSQL,
+              refreshableToken
+            )
+          )
+          .exhaustive();
 
         return { decodedMessage, documentGenerator };
       })
