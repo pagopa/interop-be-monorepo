@@ -74,6 +74,31 @@ const eventRouter = (
     }
   });
 
+  eventRouter.get("/purposeEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getPurposeEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+          delegationId: req.query.delegationId,
+        },
+        ctx
+      );
+
+      return res.status(200).send(m2mGatewayApi.PurposeEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving purpose events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
   eventRouter.get("/tenantEvents", async (req, res) => {
     const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
     try {

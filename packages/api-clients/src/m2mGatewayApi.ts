@@ -208,6 +208,11 @@ export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
     "getRiskAnalysisTemplateAnnotationDocuments"
   >;
 
+export type GetEventManagerPurposesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getPurposeEvents"
+>;
+
 export type GetEventManagerTenantEventsQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getTenantEvents"
