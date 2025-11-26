@@ -44,6 +44,8 @@ import {
   getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
   addRiskAnalysisTemplateDocumentErrorMapper,
+  getRiskAnalysisTemplateSignedDocumentErrorMapper,
+  getRiskAnalysisTemplateDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
@@ -53,6 +55,8 @@ import {
   purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
   purposeTemplateToApiPurposeTemplate,
   riskAnalysisAnswerToApiRiskAnalysisAnswer,
+  riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument,
+  riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument,
 } from "../model/domain/apiConverter.js";
 
 const purposeTemplateRouter = (
@@ -742,6 +746,35 @@ const purposeTemplateRouter = (
         }
       }
     )
+    .get("/purposeTemplates/:purposeTemplateId/document", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+
+        const document =
+          await purposeTemplateService.getRiskAnalysisTemplateDocument(
+            unsafeBrandId(req.params.purposeTemplateId),
+            ctx
+          );
+        return res
+          .status(200)
+          .send(
+            purposeTemplateApi.RiskAnalysisTemplateDocument.parse(
+              riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument(
+                document
+              )
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getRiskAnalysisTemplateDocumentErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
       async (req, res) => {
@@ -778,6 +811,38 @@ const purposeTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/signedDocument",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+
+          const document =
+            await purposeTemplateService.getRiskAnalysisTemplateSignedDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              purposeTemplateApi.RiskAnalysisTemplateSignedDocument.parse(
+                riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument(
+                  document
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateSignedDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
