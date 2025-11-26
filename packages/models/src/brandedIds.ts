@@ -279,6 +279,29 @@ export type EServiceTemplateM2MEventId = z.infer<
   typeof EServiceTemplateM2MEventId
 >;
 
+export const ClientM2MEventId = z.string().uuid().brand("ClientM2MEventId");
+export type ClientM2MEventId = z.infer<typeof ClientM2MEventId>;
+
+export const KeyM2MEventId = z.string().uuid().brand("KeyM2MEventId");
+export type KeyM2MEventId = z.infer<typeof KeyM2MEventId>;
+
+export const ProducerKeychainM2MEventId = z
+  .string()
+  .uuid()
+  .brand("ProducerKeychainM2MEventId");
+export type ProducerKeychainM2MEventId = z.infer<
+  typeof ProducerKeychainM2MEventId
+>;
+
+export const ProducerKeyM2MEventId = z
+  .string()
+  .uuid()
+  .brand("ProducerKeyM2MEventId");
+export type ProducerKeyM2MEventId = z.infer<typeof ProducerKeyM2MEventId>;
+
+export const TenantM2MEventId = z.string().uuid().brand("TenantM2MEventId");
+export type TenantM2MEventId = z.infer<typeof TenantM2MEventId>;
+
 export const IDS = z.union([
   CorrelationId,
   SpanId,
@@ -327,6 +350,11 @@ export const IDS = z.union([
   PurposeM2MEventId,
   DelegationM2MEventId,
   EServiceTemplateM2MEventId,
+  ClientM2MEventId,
+  KeyM2MEventId,
+  ProducerKeychainM2MEventId,
+  ProducerKeyM2MEventId,
+  TenantM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

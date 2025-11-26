@@ -45,6 +45,16 @@ export async function handleDelegationEvent(
             eventTimestamp
           );
 
+          /**
+           * When a consumer delegation is revoked, remove all consumer delegation-related data
+           * from existing m2m events so delegates lose access to past events.
+           */
+          if (event.type === "ConsumerDelegationRevoked") {
+            await m2mEventWriterService.removeConsumerDelegationVisibility(
+              delegation.id
+            );
+          }
+
           await m2mEventWriterService.insertConsumerDelegationM2MEvent(
             toConsumerDelegationM2MEventSQL(m2mEvent)
           );
@@ -66,6 +76,16 @@ export async function handleDelegationEvent(
             event.type,
             eventTimestamp
           );
+
+          /**
+           * When a producer delegation is revoked, remove all producer delegation-related data
+           * from existing m2m events so delegates lose access to past events.
+           */
+          if (event.type === "ProducerDelegationRevoked") {
+            await m2mEventWriterService.removeProducerDelegationVisibility(
+              delegation.id
+            );
+          }
 
           await m2mEventWriterService.insertProducerDelegationM2MEvent(
             toProducerDelegationM2MEventSQL(m2mEvent)
