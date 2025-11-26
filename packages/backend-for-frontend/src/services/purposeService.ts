@@ -5,6 +5,7 @@ import {
   UIAuthData,
   assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
+  getRulesetExpiration,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -214,26 +215,33 @@ export function purposeServiceBuilder(
       ? currentVersion?.signedContract !== undefined
       : currentVersion?.riskAnalysis !== undefined;
 
-    // retrieve risk analysis ruleset only if the requester is the consumer (no delegation) or delegated consumer
-    const riskAnalysisRuleset =
-      !skipRulesetRetrieval &&
-      purpose.riskAnalysisForm?.version &&
-      ((delegation === undefined &&
-        authData.organizationId === purpose.consumerId) ||
-        (delegation !== undefined &&
-          authData.organizationId === delegation?.delegate.id))
-        ? await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion(
-            {
-              params: {
-                riskAnalysisVersion: purpose.riskAnalysisForm.version,
-              },
-              headers,
-              queries: {
-                eserviceId: purpose.eserviceId,
-              },
-            }
-          )
-        : undefined;
+    // retrieve risk analysis ruleset only if the requester is:
+    // - the consumer (no delegation): in this case the tenant kind is the consumer's kind
+    // - delegated consumer: in this case the tenant kind is the delegator's kind
+
+    // eslint-disable-next-line functional/no-let
+    let rulesetExpiration: Date | undefined;
+
+    if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
+      if (
+        delegation === undefined &&
+        authData.organizationId === purpose.consumerId
+      ) {
+        rulesetExpiration = getRulesetExpiration(
+          consumer.kind,
+          purpose.riskAnalysisForm.version
+        );
+      } else if (
+        delegation !== undefined &&
+        authData.organizationId === delegation?.delegate.id
+      ) {
+        rulesetExpiration = getRulesetExpiration(
+          delegation.delegator.kind,
+          purpose.riskAnalysisForm.version
+        );
+        rulesetExpiration = undefined;
+      }
+    }
 
     return {
       id: purpose.id,
@@ -293,7 +301,7 @@ export function purposeServiceBuilder(
         ? toCompactPurposeTemplate(purposeTemplate)
         : undefined,
       isDocumentReady,
-      rulesetExpiration: riskAnalysisRuleset?.expiration,
+      rulesetExpiration: rulesetExpiration?.toJSON(),
     };
   };
 
