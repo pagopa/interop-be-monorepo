@@ -25964,6 +25964,8 @@ components:
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this e-service
+        personalData:
+          type: boolean
     ClientKind:
       type: string
       enum:
