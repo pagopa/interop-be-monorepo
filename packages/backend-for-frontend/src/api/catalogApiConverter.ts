@@ -12,12 +12,12 @@ import {
   descriptorState,
   DescriptorState,
   EServiceAttribute,
-  EServiceId,
   Technology,
   technology,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -33,8 +33,6 @@ import {
   isRequesterEserviceProducer,
   isValidDescriptor,
 } from "../services/validators.js";
-import { PurposeProcessClient } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
@@ -254,9 +252,7 @@ export function toBffCatalogApiEserviceRiskAnalysisSeed(
 
 export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
-  producer: tenantApi.Tenant,
-  purposeProcessClient: PurposeProcessClient,
-  headers: BffAppContext["headers"]
+  producer: tenantApi.Tenant
 ): Promise<bffApi.ProducerDescriptorEService> {
   const producerMail = getLatestTenantContactEmail(producer);
 
@@ -283,11 +279,9 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     draftDescriptor: draftDescriptor
       ? toCompactDescriptor(draftDescriptor)
       : undefined,
-    riskAnalysis: await enhanceRiskAnalysisArray(
+    riskAnalysis: await enhanceEServiceRiskAnalysisArray(
       eservice.riskAnalysis,
-      unsafeBrandId<EServiceId>(eservice.id),
-      purposeProcessClient,
-      headers
+      producer.kind
     ),
     descriptors: notDraftDecriptors,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
@@ -297,35 +291,17 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
   };
 }
 
-export async function enhanceRiskAnalysisArray(
+export async function enhanceEServiceRiskAnalysisArray(
   riskAnalysisArray: catalogApi.EServiceRiskAnalysis[],
-  eserviceId: EServiceId,
-  purposeProcessClient: PurposeProcessClient,
-  headers: BffAppContext["headers"]
+  producerTenantKind: tenantApi.TenantKind | undefined
 ): Promise<bffApi.EServiceRiskAnalysis[]> {
-  const rulesetExpirations: Record<string, string | undefined> = {};
-
-  for (const riskAnalysis of riskAnalysisArray) {
-    const version = riskAnalysis.riskAnalysisForm.version;
-    if (!rulesetExpirations[version]) {
-      const ruleset =
-        await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion({
-          params: {
-            riskAnalysisVersion: version,
-          },
-          headers,
-          queries: {
-            eserviceId,
-          },
-        });
-      rulesetExpirations[version] = ruleset.expiration;
-    }
-  }
-
   return riskAnalysisArray.map((riskAnalysis) =>
     toBffCatalogApiEserviceRiskAnalysis(
       riskAnalysis,
-      rulesetExpirations[riskAnalysis.riskAnalysisForm.version]
+      getRulesetExpiration(
+        producerTenantKind,
+        riskAnalysis.riskAnalysisForm.version
+      )?.toJSON()
     )
   );
 }
