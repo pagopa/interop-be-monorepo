@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
+  invalidDocumentDetected,
   pollingMaxRetriesExceeded,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
@@ -155,6 +156,28 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       params: { id: mockPurposeTemplateProcessResponse.data.id },
     });
     expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(mockPollRetries);
+  });
+
+  it("Should throw invalidDocumentDetected in case the file user is trying to upload is not a .pdf document", async () => {
+    const mockFileUpload: m2mGatewayApi.AnnotationDocumentUploadMultipart = {
+      file: new File(
+        [mockFileBuffer],
+        mockPurposeTemplateProcessResponse.data.name,
+        {
+          type: "application/json",
+        }
+      ),
+      prettyName: mockPurposeTemplateProcessResponse.data.prettyName,
+      answerId: mockAnswerId,
+    };
+
+    await expect(
+      purposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument(
+        unsafeBrandId(mockPurposeTemplateProcessResponse.data.id),
+        mockFileUpload,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(invalidDocumentDetected(mockDocumentId));
   });
 
   it("Should throw missingMetadata in case the data returned by the POST call has no metadata", async () => {

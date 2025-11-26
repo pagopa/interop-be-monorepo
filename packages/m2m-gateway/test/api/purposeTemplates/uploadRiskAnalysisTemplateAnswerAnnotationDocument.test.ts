@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
   generateId,
+  invalidDocumentDetected,
   pollingMaxRetriesExceeded,
   PurposeTemplateId,
 } from "pagopa-interop-models";
@@ -132,6 +133,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocum
       config.defaultPollingMaxRetries,
       config.defaultPollingRetryDelay
     ),
+    invalidDocumentDetected(generateId()),
   ])("Should return 500 in case of $code error", async (error) => {
     mockPurposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument =
       vi.fn().mockRejectedValue(error);

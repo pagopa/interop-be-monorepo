@@ -1,6 +1,11 @@
 import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
-import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
+  FileManager,
+  validateAndStorePDFDocument,
+  WithLogger,
+} from "pagopa-interop-commons";
+import {
+  generateId,
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   unsafeBrandId,
@@ -25,7 +30,6 @@ import {
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
-import { uploadAnswerAnnotationDocument } from "../utils/fileUpload.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -186,15 +190,45 @@ export function purposeTemplateServiceBuilder(
         `Adding document ${fileUpload.file.name} to annotation documents for purpose template ${purposeTemplateId} for answer ${fileUpload.answerId}`
       );
 
-      const { data: document, metadata } = await uploadAnswerAnnotationDocument(
-        {
-          purposeTemplateId,
-          fileUpload,
-          purposeTemplateProcessClient: clients.purposeTemplateProcessClient,
-          fileManager,
-          logger,
-          headers,
-        }
+      const documentId = generateId();
+
+      const { data: document, metadata } = await validateAndStorePDFDocument(
+        fileManager,
+        purposeTemplateId,
+        fileUpload.file,
+        documentId,
+        config.purposeTemplateDocumentsContainer,
+        config.purposeTemplateDocumentsPath,
+        fileUpload.prettyName,
+        async (
+          documentId: string,
+          fileName: string,
+          filePath: string,
+          prettyName: string,
+          contentType: string,
+          checksum: string
+        ): Promise<
+          WithMaybeMetadata<purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument>
+          // eslint-disable-next-line max-params
+        > =>
+          await clients.purposeTemplateProcessClient.addRiskAnalysisTemplateAnswerAnnotationDocument(
+            {
+              documentId,
+              prettyName,
+              name: fileName,
+              path: filePath,
+              contentType,
+              checksum,
+            },
+            {
+              headers,
+              params: {
+                id: purposeTemplateId,
+                answerId: fileUpload.answerId,
+              },
+            }
+          ),
+        logger
       );
 
       await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
