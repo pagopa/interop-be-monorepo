@@ -514,6 +514,54 @@ export function purposeTemplateServiceBuilder(
         logger
       );
     },
+    async getRiskAnalysisTemplateDocument(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<Uint8Array> {
+      logger.info(
+        `Downloading unsigned risk analysis template document from purpose template ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const unsignedDocument =
+        await purposeTemplateClient.getRiskAnalysisTemplateDocument({
+          params: {
+            purposeTemplateId,
+          },
+          headers,
+        });
+
+      return await fileManager.get(
+        // TODO: change after document-generator is updated
+        config.purposeTemplateDocumentsContainer,
+        unsignedDocument.path,
+        logger
+      );
+    },
+    async getRiskAnalysisTemplateSignedDocument(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<Uint8Array> {
+      logger.info(
+        `Downloading signed risk analysis template document from purpose template ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const signedDocument =
+        await purposeTemplateClient.getRiskAnalysisTemplateSignedDocument({
+          params: {
+            purposeTemplateId,
+          },
+          headers,
+        });
+
+      return await fileManager.get(
+        // TODO: change after document-generator is updated
+        config.purposeTemplateDocumentsContainer,
+        signedDocument.path,
+        logger
+      );
+    },
     async createRiskAnalysisAnswer(
       purposeTemplateId: PurposeTemplateId,
       seed: bffApi.RiskAnalysisTemplateAnswerRequest,
