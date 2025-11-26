@@ -114,6 +114,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
   it.each([
     eserviceTemplateVersionState.published,
     eserviceTemplateVersionState.suspended,
+    eserviceTemplateVersionState.deprecated,
   ])(
     "should write on event-store for the attributes update of a eservice template version with state %s",
     async (eserviceTemplateVersionState) => {
@@ -317,10 +318,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it.each([
-    eserviceTemplateVersionState.draft,
-    eserviceTemplateVersionState.deprecated,
-  ])(
+  it.each([eserviceTemplateVersionState.draft])(
     "should throw notValidDescriptorState if the eservice template version is in %s state",
     async (eserviceTemplateVersionState) => {
       const mockEServiceTemplateVersion: EServiceTemplateVersion = {
