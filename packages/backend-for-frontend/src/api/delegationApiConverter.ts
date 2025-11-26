@@ -66,6 +66,18 @@ export function toBffDelegationApiDelegationDoc(
     createdAt: document.createdAt,
   };
 }
+export function toBffDelegationApiDelegationSignedDoc(
+  document: delegationApi.DelegationSignedContractDocument
+): bffApi.SignedDocument {
+  return {
+    id: document.id,
+    name: document.name,
+    contentType: document.contentType,
+    prettyName: document.prettyName,
+    createdAt: document.createdAt,
+    signedAt: document.signedAt,
+  };
+}
 
 export function toBffDelegationApiDelegation(
   delegation: delegationApi.Delegation,
@@ -80,8 +92,8 @@ export function toBffDelegationApiDelegation(
   // is guaranteed to exist as a prerequisite for revocation.
   const isDocumentReady =
     delegation.state === toDelegationState(delegationState.revoked)
-      ? delegation.signedRevocationContract !== undefined
-      : delegation.signedActivationContract !== undefined;
+      ? delegation.revocationSignedContract !== undefined
+      : delegation.activationSignedContract !== undefined;
   return {
     id: delegation.id,
     eservice: eservice && {
@@ -111,6 +123,16 @@ export function toBffDelegationApiDelegation(
     rejectionReason: delegation.rejectionReason,
     state: delegation.state,
     kind: delegation.kind,
+    activationSignedContract: delegation.activationSignedContract
+      ? toBffDelegationApiDelegationSignedDoc(
+          delegation.activationSignedContract
+        )
+      : undefined,
+    revocationSignedContract: delegation.revocationSignedContract
+      ? toBffDelegationApiDelegationSignedDoc(
+          delegation.revocationSignedContract
+        )
+      : undefined,
     isDocumentReady,
   };
 }
