@@ -4,6 +4,7 @@ import {
   removeDuplicates,
   UIAuthData,
   assertFeatureFlagEnabled,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -205,7 +206,13 @@ export function purposeServiceBuilder(
     );
 
     const hasNotifications = notifications.includes(purpose.id);
-    const isDocumentReady = currentVersion?.signedContract !== undefined;
+
+    const isDocumentReady = isFeatureFlagEnabled(
+      config,
+      "featureFlagUseSignedDocument"
+    )
+      ? currentVersion?.signedContract !== undefined
+      : currentVersion?.riskAnalysis !== undefined;
 
     return {
       id: purpose.id,
