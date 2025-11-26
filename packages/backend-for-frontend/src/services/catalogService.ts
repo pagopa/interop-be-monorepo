@@ -16,6 +16,7 @@ import {
   createPollingByCondition,
   formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
+  getRulesetExpiration,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
@@ -1124,19 +1125,21 @@ export function catalogServiceBuilder(
           headers,
         });
 
+      const producer = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
-      const ruleset =
-        await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion({
-          params: {
-            riskAnalysisVersion: riskAnalysis.riskAnalysisForm.version,
-          },
-          queries: { eserviceId },
-          headers,
-        });
 
       return toBffCatalogApiEserviceRiskAnalysis(
         riskAnalysis,
-        ruleset.expiration
+        getRulesetExpiration(
+          producer.kind,
+          riskAnalysis.riskAnalysisForm.version
+        )?.toJSON()
       );
     },
     getEServiceDocumentById: async (
