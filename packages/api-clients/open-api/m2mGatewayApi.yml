@@ -16415,7 +16415,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
-          description: Purpose Template is not in Draft state
+          description: Forbidden
           content:
             application/problem+json:
               schema:
