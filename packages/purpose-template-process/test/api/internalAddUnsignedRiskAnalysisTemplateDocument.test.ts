@@ -43,8 +43,9 @@ describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDoc
   };
 
   beforeEach(() => {
-    purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata =
-      vi.fn().mockResolvedValue(undefined);
+    purposeTemplateService.internalAddRiskAnalysisTemplateDocumentMetadata = vi
+      .fn()
+      .mockResolvedValue(undefined);
   });
 
   const makeRequest = async (
@@ -69,7 +70,7 @@ describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDoc
       const res = await makeRequest(token);
 
       expect(
-        purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata
+        purposeTemplateService.internalAddRiskAnalysisTemplateDocumentMetadata
       ).toHaveBeenCalledWith(
         mockPurposeTemplate.id,
         mockRiskAnalysisDocumentPayload,
@@ -105,7 +106,7 @@ describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDoc
   ])(
     "Should return $expectedStatus for $description error",
     async ({ error, expectedStatus }) => {
-      purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata =
+      purposeTemplateService.internalAddRiskAnalysisTemplateDocumentMetadata =
         vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token);

@@ -794,7 +794,7 @@ const purposeTemplateRouter = (
           const riskAnalysisTemplateDocument =
             RiskAnalysisTemplateDocument.parse(req.body);
 
-          await purposeTemplateService.internalAddUnsignedRiskAnalysisTemplateDocumentMetadata(
+          await purposeTemplateService.internalAddRiskAnalysisTemplateDocumentMetadata(
             unsafeBrandId(purposeTemplateId),
             riskAnalysisTemplateDocument,
             ctx

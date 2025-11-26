@@ -1175,7 +1175,7 @@ paths:
       summary: Add unsigned Risk Analysis Template document metadata to purpose template
       tags:
         - purposeTemplate
-      operationId: internalAddUnsignedRiskAnalysisTemplateDocumentMetadata
+      operationId: internalAddRiskAnalysisTemplateDocumentMetadata
       requestBody:
         description: The unsigned Risk Analysis Template document metadata
         required: true

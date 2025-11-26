@@ -1696,7 +1696,7 @@ export function purposeTemplateServiceBuilder(
         offset,
       });
     },
-    async internalAddUnsignedRiskAnalysisTemplateDocumentMetadata(
+    async internalAddRiskAnalysisTemplateDocumentMetadata(
       purposeTemplateId: PurposeTemplateId,
       riskAnalysisTemplateDocument: RiskAnalysisTemplateDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
