@@ -76,9 +76,9 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
   const mockValidRiskAnalysisTemplateForm =
     getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
 
-  const riskAnalysisFormTemplateSeed = {
-    ...buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm),
-  };
+  const riskAnalysisFormTemplateSeed = buildRiskAnalysisFormTemplateSeed(
+    mockValidRiskAnalysisTemplateForm
+  );
 
   const purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed =
     getMockPurposeTemplateSeed(
@@ -161,7 +161,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
       await addOnePurposeTemplate(existingPurposeTemplate);
       await addOneTenant(creator);
 
-      const updatedPurposeTemplateResponse =
+      const updatedPurposeTemplateRiskAnalysisResponse =
         await purposeTemplateService.updatePurposeTemplateRiskAnalysis(
           existingPurposeTemplate.id,
           updatedRiskAnalysisFormTemplateSeed,
@@ -234,7 +234,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
         purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
       });
 
-      expect(updatedPurposeTemplateResponse).toEqual({
+      expect(updatedPurposeTemplateRiskAnalysisResponse).toEqual({
         data: expectedRiskAnalysisTemplateForm,
         metadata: { version: 1 },
       });
@@ -289,25 +289,24 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
     );
   });
 
-  it("Should throw a tenantNotAllowed error if the creator tenant is not template creator", async () => {
+  it("Should throw a tenantNotAllowed error if the requester tenant is not template creator", async () => {
+    const requesterId = generateId<TenantId>();
+
     await addOneTenant(creator);
-    await addOnePurposeTemplate({
-      ...existingPurposeTemplate,
-      creatorId: generateId(),
-    });
+    await addOnePurposeTemplate(existingPurposeTemplate);
 
     expect(
       purposeTemplateService.updatePurposeTemplateRiskAnalysis(
         existingPurposeTemplate.id,
         riskAnalysisFormTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData(requesterId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(creatorId));
+    ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 
-  it("Should remove annotations documents for each answer deleted in risk analysis form template seed, all annotation documents of answers not affected by update still remains in S3", async () => {
+  it("Should remove annotations documents for each answer deleted in risk analysis form template seed, all annotation documents of answers not affected by update still remain in S3", async () => {
     vi.spyOn(fileManager, "delete");
 
     // Risk Analysis Form must be defined in existing purpose template for this test

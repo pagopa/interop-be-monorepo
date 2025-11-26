@@ -1,11 +1,16 @@
 import { generateMock } from "@anatine/zod-mock";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  AuthRole,
+  authRole,
+  getLatestVersionFormRules,
+} from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
   generateId,
   pollingMaxRetriesExceeded,
   PurposeTemplateId,
+  tenantKind,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
@@ -22,7 +27,7 @@ describe("PUT /purposeTemplates/:purposeTemplateId/riskAnalysis router test", ()
   );
 
   const mockUpdateSeed: m2mGatewayApi.RiskAnalysisFormTemplateSeed = {
-    version: "1",
+    version: getLatestVersionFormRules(tenantKind.PA)!.version,
     answers: {
       purpose: {
         editable: false,

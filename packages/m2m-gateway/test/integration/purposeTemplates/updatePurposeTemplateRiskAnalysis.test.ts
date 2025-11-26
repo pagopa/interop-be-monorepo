@@ -11,6 +11,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getLatestVersionFormRules } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
@@ -61,7 +62,7 @@ describe("updatePurposeTemplateRiskAnalysis", () => {
 
   const mockRiskAnalysisFormTemplateSeed: m2mGatewayApi.RiskAnalysisFormTemplateSeed =
     {
-      version: "1",
+      version: getLatestVersionFormRules(tenantKind.PA)!.version,
       answers: newAnswer,
     };
 
@@ -148,7 +149,7 @@ describe("updatePurposeTemplateRiskAnalysis", () => {
     expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(mockPollRetries);
   });
 
-  it("Should throw missingMetadata in case the risk analysis returned by the call has no metadata", async () => {
+  it("Should throw missingMetadata in case the purpose template returned by the call has no metadata", async () => {
     mockGetPurposeTemplate.mockResolvedValueOnce({
       ...mockGetPurposeTemplateResponse,
       metadata: undefined,

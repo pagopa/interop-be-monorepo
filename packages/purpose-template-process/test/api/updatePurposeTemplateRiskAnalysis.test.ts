@@ -40,7 +40,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}/riskAnalysis", () => {
   const validRiskAnalysisFormTemplateSeed: purposeTemplateApi.RiskAnalysisFormTemplateSeed =
     buildRiskAnalysisFormTemplateSeed(mockRiskAnalysisFormTemplate);
 
-  const purposeTemplateResponse = getMockWithMetadata(
+  const riskAnalysisTemplateResponse = getMockWithMetadata(
     mockRiskAnalysisFormTemplate,
     2
   );
@@ -48,18 +48,18 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}/riskAnalysis", () => {
   beforeEach(() => {
     purposeTemplateService.updatePurposeTemplateRiskAnalysis = vi
       .fn()
-      .mockResolvedValue(purposeTemplateResponse);
+      .mockResolvedValue(riskAnalysisTemplateResponse);
   });
 
   const makeRequest = async (
     token: string,
-    purposeTemplateSeed: purposeTemplateApi.RiskAnalysisFormTemplateSeed
+    riskAnalysisTemplateSeed: purposeTemplateApi.RiskAnalysisFormTemplateSeed
   ) =>
     request(api)
       .put(`/purposeTemplates/${purposeTemplateId}/riskAnalysis`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(purposeTemplateSeed);
+      .send(riskAnalysisTemplateSeed);
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -73,7 +73,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}/riskAnalysis", () => {
         )
       );
       expect(res.headers["x-metadata-version"]).toBe(
-        purposeTemplateResponse.metadata.version.toString()
+        riskAnalysisTemplateResponse.metadata.version.toString()
       );
     }
   );
