@@ -92,8 +92,8 @@ export function toBffDelegationApiDelegation(
   // is guaranteed to exist as a prerequisite for revocation.
   const isDocumentReady =
     delegation.state === toDelegationState(delegationState.revoked)
-      ? delegation.signedRevocationContract !== undefined
-      : delegation.signedActivationContract !== undefined;
+      ? delegation.revocationSignedContract !== undefined
+      : delegation.activationSignedContract !== undefined;
   return {
     id: delegation.id,
     eservice: eservice && {
