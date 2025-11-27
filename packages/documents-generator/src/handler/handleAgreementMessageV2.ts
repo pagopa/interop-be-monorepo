@@ -24,9 +24,7 @@ import {
   retrieveTenant,
 } from "../service/agreement/agreementService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { getInteropBeClients } from "../clients/clientProvider.js";
-
-const { agreementProcessClient } = getInteropBeClients();
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
 export async function handleAgreementMessageV2(
@@ -35,6 +33,7 @@ export async function handleAgreementMessageV2(
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
+  clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -90,7 +89,7 @@ export async function handleAgreementMessageV2(
           `Agreement document generated with id ${contractWithIsoString.id}`
         );
 
-        await agreementProcessClient.addUnsignedAgreementContractMetadata(
+        await clients.agreementProcessClient.addUnsignedAgreementContractMetadata(
           contractWithIsoString,
           {
             params: { agreementId: agreement.id },

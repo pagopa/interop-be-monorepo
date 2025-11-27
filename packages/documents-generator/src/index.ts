@@ -39,11 +39,13 @@ import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js"
 import { handleAgreementMessageV1 } from "./handler/handleAgreementMessageV1.js";
 import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
 import { handlePurposeMessageV1 } from "./handler/handlePurposeMessageV1.js";
+import { getInteropBeClients } from "./clients/clientProvider.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
 );
 await refreshableToken.init();
+const clients = getInteropBeClients();
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
 
@@ -174,7 +176,7 @@ function processMessage(
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
 
-    await documentGenerator(loggerInstance);
+    await documentGenerator(clients, loggerInstance);
   };
 }
 

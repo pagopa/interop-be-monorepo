@@ -25,9 +25,7 @@ import {
   retrieveTenant,
 } from "../service/agreement/agreementService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { getInteropBeClients } from "../clients/clientProvider.js";
-
-const { agreementProcessClient } = getInteropBeClients();
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
 export async function handleAgreementMessageV1(
@@ -36,6 +34,7 @@ export async function handleAgreementMessageV1(
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
+  clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -55,22 +54,17 @@ export async function handleAgreementMessageV1(
           logger.info(`Agreement ${agreement.id} state not active `);
           return;
         }
-        const eservice = await retrieveEservice(
-          readModelService,
-          agreement.eserviceId
-        );
-        const consumer = await retrieveTenant(
-          readModelService,
-          agreement.consumerId
-        );
-        const producer = await retrieveTenant(
-          readModelService,
-          agreement.producerId
-        );
-        const activeDelegations = await getActiveConsumerAndProducerDelegations(
-          agreement,
-          readModelService
-        );
+
+        const [eservice, consumer, producer, activeDelegations] =
+          await Promise.all([
+            retrieveEservice(readModelService, agreement.eserviceId),
+            retrieveTenant(readModelService, agreement.consumerId),
+            retrieveTenant(readModelService, agreement.producerId),
+            getActiveConsumerAndProducerDelegations(
+              agreement,
+              readModelService
+            ),
+          ]);
 
         const contract = await agreementContractBuilder(
           readModelService,
@@ -95,7 +89,7 @@ export async function handleAgreementMessageV1(
           `Agreement document generated with id ${contractWithIsoString.id}`
         );
 
-        await agreementProcessClient.addUnsignedAgreementContractMetadata(
+        await clients.agreementProcessClient.addUnsignedAgreementContractMetadata(
           contractWithIsoString,
           {
             params: { agreementId: agreement.id },
@@ -113,9 +107,6 @@ export async function handleAgreementMessageV1(
         type: P.union(
           "AgreementAdded",
           "AgreementDeleted",
-          "AgreementConsumerDocumentAdded",
-          "AgreementConsumerDocumentRemoved",
-          "AgreementAdded",
           "AgreementSuspended",
           "AgreementDeactivated",
           "VerifiedAttributeUpdated",

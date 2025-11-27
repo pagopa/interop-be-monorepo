@@ -50,11 +50,13 @@ import {
 import { handleDelegationMessageV2 } from "../../src/handler/handleDelegationMessageV2.js";
 import { config } from "../../src/config/config.js";
 import { tenantNotFound } from "../../src/model/errors.js";
+import { getInteropBeClients } from "../../src/clients/clientProvider.js";
 
 const mockDelegationId = generateId<DelegationId>();
 const mockDelegatorId = generateId<TenantId>();
 const mockDelegateId = generateId<TenantId>();
 const mockEServiceId = generateId<EServiceId>();
+const clients = getInteropBeClients();
 export const mockAddUnsignedDelegationContractMetadataFn = vi.fn();
 vi.mock("pagopa-interop-api-clients", () => ({
   delegationApi: {
@@ -143,6 +145,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -210,6 +213,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -283,6 +287,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -348,6 +353,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -423,6 +429,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -501,6 +508,7 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
+        clients,
         genericLogger
       )
     ).resolves.toBeUndefined();
@@ -542,6 +550,7 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
+        clients,
         genericLogger
       )
     ).rejects.toThrow(tenantNotFound(mockDelegateId).message);

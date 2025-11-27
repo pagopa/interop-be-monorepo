@@ -13,11 +13,10 @@ import {
   beforeAll,
 } from "vitest";
 import {
-  AgreementEventEnvelopeV2,
+  AgreementEventEnvelopeV1,
   AgreementId,
   EServiceId,
   TenantId,
-  toAgreementV2,
   generateId,
   UserId,
   descriptorState,
@@ -55,6 +54,7 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
+  toAgreementV1,
 } from "pagopa-interop-commons-test";
 import { addDays } from "date-fns";
 import {
@@ -67,7 +67,7 @@ import {
   addOneAgreement,
   addOneAttribute,
 } from "../integrationUtils.js";
-import { handleAgreementMessageV2 } from "../../src/handler/handleAgreementMessageV2.js";
+import { handleAgreementMessageV1 } from "../../src/handler/handleAgreementMessageV1.js";
 import { config } from "../../src/config/config.js";
 import { eServiceNotFound, tenantNotFound } from "../../src/model/errors.js";
 import { getInteropBeClients } from "../../src/clients/clientProvider.js";
@@ -96,7 +96,7 @@ vi.mock("pagopa-interop-api-clients", () => ({
   },
 }));
 
-describe("handleAgreementMessageV2", () => {
+describe("handleAgreementMessageV1", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -156,13 +156,13 @@ describe("handleAgreementMessageV2", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const mockEvent: AgreementEventEnvelopeV2 = {
+    const mockEvent: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockAgreementId,
       version: 1,
-      event_version: 2,
+      event_version: 1,
       type: "AgreementActivated",
-      data: { agreement: toAgreementV2(mockAgreement) },
+      data: { agreement: toAgreementV1(mockAgreement) },
       log_date: new Date(),
     };
 
@@ -173,7 +173,7 @@ describe("handleAgreementMessageV2", () => {
       `${config.s3Bucket}/${config.agreementContractsPath}/${mockAgreementId}/mock-file.pdf`
     );
 
-    await handleAgreementMessageV2(
+    await handleAgreementMessageV1(
       mockEvent,
       pdfGenerator,
       fileManager,
@@ -258,7 +258,7 @@ describe("handleAgreementMessageV2", () => {
 
     const mockAgreement: Agreement = {
       ...getMockAgreement(),
-      state: agreementState.pending,
+      state: agreementState.active,
       eserviceId: mockEService.id,
       descriptorId: descriptor.id,
       producerId: mockProducer.id,
@@ -337,13 +337,13 @@ describe("handleAgreementMessageV2", () => {
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(`mock/path`);
 
-    const mockEvent: AgreementEventEnvelopeV2 = {
+    const mockEvent: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockAgreementId,
       version: 1,
-      event_version: 2,
+      event_version: 1,
       type: "AgreementActivated",
-      data: { agreement: toAgreementV2(mockAgreement) },
+      data: { agreement: toAgreementV1(mockAgreement) },
       log_date: new Date(),
       correlation_id: generateId(),
     };
@@ -352,7 +352,7 @@ describe("handleAgreementMessageV2", () => {
       mockEvent.correlation_id!
     );
 
-    await handleAgreementMessageV2(
+    await handleAgreementMessageV1(
       mockEvent,
       pdfGenerator,
       fileManager,
@@ -444,24 +444,25 @@ describe("handleAgreementMessageV2", () => {
       })
     );
   });
+
   it("should not process an 'AgreementAdded' event and only log an info message", async () => {
     const mockAgreement = getMockAgreement(mockEServiceId, mockConsumerId);
 
-    const mockEvent: AgreementEventEnvelopeV2 = {
+    const mockEvent: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockAgreementId,
       version: 1,
-      event_version: 2,
+      event_version: 1,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV2(mockAgreement) },
+      data: { agreement: toAgreementV1(mockAgreement) },
       log_date: new Date(),
     };
 
     const pdfGeneratorSpy = vi.spyOn(pdfGenerator, "generate");
-    const fileManagerSpy = vi.spyOn(fileManager, "storeBytes");
+    const fileManagerSpy = vi.spyOn(fileManager, "resumeOrStoreBytes");
 
     await expect(
-      handleAgreementMessageV2(
+      handleAgreementMessageV1(
         mockEvent,
         pdfGenerator,
         fileManager,
@@ -474,6 +475,7 @@ describe("handleAgreementMessageV2", () => {
     expect(pdfGeneratorSpy).not.toHaveBeenCalled();
     expect(fileManagerSpy).not.toHaveBeenCalled();
   });
+
   it("should throw eServiceNotFound error if EService is missing for an 'AgreementActivated' event", async () => {
     const mockAgreement = {
       ...getMockAgreement(mockEServiceId, mockConsumerId, "Active"),
@@ -485,18 +487,18 @@ describe("handleAgreementMessageV2", () => {
       },
     };
 
-    const mockEvent: AgreementEventEnvelopeV2 = {
+    const mockEvent: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockAgreementId,
       version: 1,
-      event_version: 2,
+      event_version: 1,
       type: "AgreementActivated",
-      data: { agreement: toAgreementV2(mockAgreement) },
+      data: { agreement: toAgreementV1(mockAgreement) },
       log_date: new Date(),
     };
 
     await expect(
-      handleAgreementMessageV2(
+      handleAgreementMessageV1(
         mockEvent,
         pdfGenerator,
         fileManager,
@@ -521,13 +523,13 @@ describe("handleAgreementMessageV2", () => {
       },
     };
 
-    const mockEvent: AgreementEventEnvelopeV2 = {
+    const mockEvent: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockAgreementId,
       version: 1,
-      event_version: 2,
+      event_version: 1,
       type: "AgreementActivated",
-      data: { agreement: toAgreementV2(mockAgreement) },
+      data: { agreement: toAgreementV1(mockAgreement) },
       log_date: new Date(),
     };
 
@@ -545,7 +547,7 @@ describe("handleAgreementMessageV2", () => {
     await addOneEService(newMockEService);
 
     await expect(
-      handleAgreementMessageV2(
+      handleAgreementMessageV1(
         mockEvent,
         pdfGenerator,
         fileManager,

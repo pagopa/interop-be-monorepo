@@ -28,9 +28,7 @@ import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
 import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
 import { eServiceNotFound, tenantKindNotFound } from "../model/errors.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { getInteropBeClients } from "../clients/clientProvider.js";
-
-const { purposeProcessClient } = getInteropBeClients();
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
 export async function handlePurposeMessageV1(
@@ -39,6 +37,7 @@ export async function handlePurposeMessageV1(
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
+  clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -134,7 +133,7 @@ export async function handlePurposeMessageV1(
         );
 
         const token = (await refreshableToken.get()).serialized;
-        await purposeProcessClient.addUnsignedRiskAnalysisDocumentMetadata(
+        await clients.purposeProcessClient.addUnsignedRiskAnalysisDocumentMetadata(
           contractWithIsoString,
           {
             params: { purposeId: purpose.id, versionId: purposeVersion.id },
