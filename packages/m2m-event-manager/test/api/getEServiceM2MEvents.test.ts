@@ -91,7 +91,7 @@ describe("API /events/eservices test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([generateId(), null, undefined])(
+  it.each([generateId(), "null", undefined])(
     "Should accept delegationId query param as %s",
     async (delegationId) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
