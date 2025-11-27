@@ -419,10 +419,13 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
-          kind:
-            getTenantKind([], tenantSeed.externalId) === tenantKind.SCP
-              ? tenantKind.SCP
-              : undefined,
+          kind: match(getTenantKind([], tenantSeed.externalId))
+            /**
+             * If the tenant kind is SCP or PRIVATE, set the kind straight away.
+             * If not, the kind will be evaluated when certified attributes are added.
+             */
+            .with(tenantKind.SCP, tenantKind.PRIVATE, (kind) => kind)
+            .otherwise(() => undefined),
         };
         await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
