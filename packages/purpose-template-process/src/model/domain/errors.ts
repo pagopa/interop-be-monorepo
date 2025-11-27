@@ -38,6 +38,7 @@ export const errorCodes = {
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
   invalidAssociatedEServiceForPublicationError: "0023",
+  missingRiskAnalysisFormTemplate: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -296,5 +297,15 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function missingRiskAnalysisFormTemplate(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Form Template provided for purpose template ${purposeTemplateId}`,
+    code: "missingRiskAnalysisFormTemplate",
+    title: "Missing Risk Analysis Form Template",
   });
 }

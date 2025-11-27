@@ -518,11 +518,9 @@ const purposeTemplateRouter = (
           return res
             .status(200)
             .send(
-              riskAnalysisFormTemplate
-                ? riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
-                    riskAnalysisFormTemplate
-                  )
-                : undefined
+              riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
+                riskAnalysisFormTemplate
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(

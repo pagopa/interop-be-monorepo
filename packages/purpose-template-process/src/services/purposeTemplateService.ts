@@ -43,6 +43,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
   invalidAssociatedEServiceForPublication,
+  missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
@@ -1711,7 +1712,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<RiskAnalysisFormTemplate | undefined>> {
+    ): Promise<WithMetadata<RiskAnalysisFormTemplate>> {
       logger.info(
         `Updating risk analysis form template for purpose template ${purposeTemplateId}`
       );
@@ -1731,15 +1732,18 @@ export function purposeTemplateServiceBuilder(
           purposeTemplate.data.handlesPersonalData
         );
 
-      const purposeRiskAnalysisFormWithDocuments =
-        purposeTemplate.data.purposeRiskAnalysisForm &&
-        validRiskAnalysisFormTemplate
-          ? addAnnotationDocumentToUpdatedAnswerIfNeeded(
-              purposeTemplateToApiPurposeTemplateSeed(purposeTemplate.data),
-              purposeTemplate.data.purposeRiskAnalysisForm,
-              validRiskAnalysisFormTemplate
-            )
-          : validRiskAnalysisFormTemplate;
+      if (!validRiskAnalysisFormTemplate) {
+        throw missingRiskAnalysisFormTemplate(purposeTemplateId);
+      }
+
+      const purposeRiskAnalysisFormWithDocuments = purposeTemplate.data
+        .purposeRiskAnalysisForm
+        ? addAnnotationDocumentToUpdatedAnswerIfNeeded(
+            purposeTemplateToApiPurposeTemplateSeed(purposeTemplate.data),
+            purposeTemplate.data.purposeRiskAnalysisForm,
+            validRiskAnalysisFormTemplate
+          )
+        : validRiskAnalysisFormTemplate;
 
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate.data,
