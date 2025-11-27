@@ -35,6 +35,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
@@ -591,5 +592,32 @@ describe("updatePurposeTemplate", () => {
 
     // Expect that remains only valid annotation documents in S3
     expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
+  });
+
+  it("should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false", async () => {
+    const purposeTemplate: PurposeTemplate = {
+      ...existingPurposeTemplate,
+      purposeIsFreeOfCharge: true,
+      purposeFreeOfChargeReason: "Some reason 1",
+    };
+
+    await addOnePurposeTemplate(purposeTemplate);
+
+    const updatedFreeOfChargeReason = "Some reason 2";
+    expect(
+      purposeTemplateService.updatePurposeTemplate(
+        purposeTemplate.id,
+        {
+          ...purposeTemplateSeed,
+          purposeIsFreeOfCharge: false,
+          purposeFreeOfChargeReason: updatedFreeOfChargeReason,
+        },
+        getMockContext({
+          authData: getMockAuthData(purposeTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      invalidFreeOfChargeReason(false, updatedFreeOfChargeReason)
+    );
   });
 });

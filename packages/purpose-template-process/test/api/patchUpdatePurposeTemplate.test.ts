@@ -18,6 +18,7 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import {
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotFound,
@@ -198,6 +199,10 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
         [purposeTemplateState.draft]
       ),
       expectedStatus: HTTP_STATUS_CONFLICT,
+    },
+    {
+      error: invalidFreeOfChargeReason(false, "Some reason"),
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
   ])(
     "Should return $expectedStatus for $error.code",

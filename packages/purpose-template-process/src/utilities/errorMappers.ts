@@ -18,6 +18,7 @@ export const createPurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with(
+      "invalidFreeOfChargeReason",
       "missingFreeOfChargeReason",
       "riskAnalysisTemplateValidationFailed",
       "ruleSetNotFoundError",

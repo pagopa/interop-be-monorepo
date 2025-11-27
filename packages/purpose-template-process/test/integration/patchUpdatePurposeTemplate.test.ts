@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
@@ -22,6 +23,7 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import {
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotFound,
@@ -249,7 +251,7 @@ describe("patch update purpose template", () => {
     }
   );
 
-  it("should throw missingFreeOfChargeReason if purposeFreeOfChargerReason and purposeIsFreeOfCharge is true", async () => {
+  it("should throw missingFreeOfChargeReason if purposeFreeOfChargerReason is missing and purposeIsFreeOfCharge is true", async () => {
     const purposeTemplate: PurposeTemplate = {
       ...mockPurposeTemplate,
       purposeIsFreeOfCharge: false,
@@ -265,5 +267,31 @@ describe("patch update purpose template", () => {
         getMockContextM2MAdmin({ organizationId: purposeTemplate.creatorId })
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
+  });
+
+  it("should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false", async () => {
+    const purposeTemplate: PurposeTemplate = {
+      ...mockPurposeTemplate,
+      purposeIsFreeOfCharge: true,
+      purposeFreeOfChargeReason: "Some reason 1",
+    };
+
+    await addOnePurposeTemplate(purposeTemplate);
+
+    const updatedFreeOfChargeReason = "Some reason 2";
+    expect(
+      purposeTemplateService.patchUpdatePurposeTemplate(
+        purposeTemplate.id,
+        {
+          purposeIsFreeOfCharge: false,
+          purposeFreeOfChargeReason: updatedFreeOfChargeReason,
+        },
+        getMockContextM2MAdmin({
+          organizationId: purposeTemplate.creatorId,
+        })
+      )
+    ).rejects.toThrowError(
+      invalidFreeOfChargeReason(false, updatedFreeOfChargeReason)
+    );
   });
 });
