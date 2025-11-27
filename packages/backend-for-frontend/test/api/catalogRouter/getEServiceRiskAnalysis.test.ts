@@ -28,7 +28,7 @@ describe("API GET /eservices/:eServiceId/riskAnalysis/:riskAnalysisId", () => {
   mockRiskAnalysis.riskAnalysisForm.version = "3.0";
   const mockApiRiskAnalysis = toBffCatalogApiEserviceRiskAnalysis(
     mockRiskAnalysis,
-    "2026-02-15T22:59:59.000Z"
+    new Date("2026-02-15T23:59:59").toJSON()
   );
 
   beforeEach(() => {
