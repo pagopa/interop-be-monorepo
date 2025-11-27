@@ -173,6 +173,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.key (
   -- Reference to the resource involved in the event
   resource_version INT NOT NULL,
   kid VARCHAR NOT NULL,
+  client_id UUID NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -185,6 +186,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_key (
   -- Reference to the resource involved in the event
   resource_version INT NOT NULL,
   kid VARCHAR NOT NULL,
+  producer_keychain_id UUID NOT NULL,
 
   PRIMARY KEY (id)
 );
