@@ -1,10 +1,36 @@
 import {
+  and,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNull,
+  ne,
+  notInArray,
+  or,
+  SQL,
+} from "drizzle-orm";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+  getValidFormRulesVersions,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+  withTotalCount,
+} from "pagopa-interop-commons";
+import {
+  DescriptorState,
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  genericInternalError,
   ListResult,
   PurposeTemplate,
   PurposeTemplateId,
+  purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
@@ -12,19 +38,21 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
   TenantKind,
+  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeTemplateArray,
   aggregatePurposeTemplateEServiceDescriptor,
   aggregatePurposeTemplateEServiceDescriptorArray,
   CatalogReadModelService,
   PurposeTemplateReadModelService,
-  aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
@@ -32,26 +60,11 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  and,
-  eq,
-  exists,
-  getTableColumns,
-  ilike,
-  inArray,
-  isNotNull,
-  isNull,
-  or,
-  SQL,
-} from "drizzle-orm";
-import {
-  ascLower,
-  createListResult,
-  escapeRegExp,
-  getValidFormRulesVersions,
-  withTotalCount,
-} from "pagopa-interop-commons";
+import { z } from "zod";
+import { PgSelect } from "drizzle-orm/pg-core";
+import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
@@ -66,12 +79,12 @@ export type GetPurposeTemplatesFilters = {
 export type GetPurposeTemplateEServiceDescriptorsFilters = {
   purposeTemplateId: PurposeTemplateId;
   producerIds: TenantId[];
-  eserviceIds: EServiceId[];
+  eserviceName?: string;
 };
 
 const getPurposeTemplatesFilters = (
-  readModelDB: DrizzleReturnType,
-  filters: GetPurposeTemplatesFilters
+  filters: GetPurposeTemplatesFilters,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): SQL | undefined => {
   const {
     purposeTitle,
@@ -97,21 +110,9 @@ const getPurposeTemplatesFilters = (
 
   const eserviceIdsFilter =
     eserviceIds.length > 0
-      ? and(
-          exists(
-            readModelDB
-              .select()
-              .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-              .where(
-                inArray(
-                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-                  eserviceIds
-                )
-              )
-          ),
-          isNotNull(
-            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId
-          )
+      ? inArray(
+          purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+          eserviceIds
         )
       : undefined;
 
@@ -157,6 +158,22 @@ const getPurposeTemplatesFilters = (
         )
       : undefined;
 
+  const visibilityFilter = hasRoleToAccessDraftPurposeTemplates(authData)
+    ? or(
+        eq(
+          purposeTemplateInReadmodelPurposeTemplate.creatorId,
+          authData.organizationId
+        ),
+        ne(
+          purposeTemplateInReadmodelPurposeTemplate.state,
+          purposeTemplateState.draft
+        )
+      )
+    : ne(
+        purposeTemplateInReadmodelPurposeTemplate.state,
+        purposeTemplateState.draft
+      );
+
   return and(
     purposeTitleFilter,
     creatorIdsFilter,
@@ -164,7 +181,8 @@ const getPurposeTemplatesFilters = (
     statesFilter,
     targetTenantKindFilter,
     excludeExpiredRiskAnalysisFilters,
-    handlesPersonalDataFilter
+    handlesPersonalDataFilter,
+    visibilityFilter
   );
 };
 
@@ -194,7 +212,8 @@ export function readModelServiceBuilderSQL({
     },
     async getPurposeTemplates(
       filters: GetPurposeTemplatesFilters,
-      { limit, offset }: { limit: number; offset: number }
+      { limit, offset }: { limit: number; offset: number },
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<PurposeTemplate>> {
       const subquery = readModelDB
         .select(
@@ -217,7 +236,7 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
           )
         )
-        .where(getPurposeTemplatesFilters(readModelDB, filters))
+        .where(getPurposeTemplatesFilters(filters, authData))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
@@ -296,16 +315,84 @@ export function readModelServiceBuilderSQL({
     },
     async getRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
     ): Promise<
       WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
     > {
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      const addAnswerAnnotationJoin = <T extends PgSelect>(query: T) =>
+        answerId
+          ? query.innerJoin(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+              eq(
+                purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+                purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+              )
+            )
+          : query;
+
+      const queryResult = await addAnswerAnnotationJoin(
+        readModelDB
+          .select(
+            getTableColumns(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+            )
+          )
+          .from(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+          )
+          .where(
+            and(
+              eq(
+                purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateId
+              ),
+              eq(
+                purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
+                documentId
+              ),
+              answerId
+                ? eq(
+                    purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+                    answerId
+                  )
+                : undefined
+            )
+          )
+          .$dynamic()
+      );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return {
+        data: toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]),
+        metadata: {
+          version: queryResult[0].metadataVersion,
+        },
+      };
+    },
+    async getRiskAnalysisTemplateAnnotationDocuments(
+      purposeTemplateId: PurposeTemplateId,
+      { limit, offset }: { limit: number; offset: number }
+    ): Promise<
+      ListResult<{
+        answerId: RiskAnalysisMultiAnswerId | RiskAnalysisSingleAnswerId;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }>
+    > {
       const queryResult = await readModelDB
-        .select({
-          riskAnalysisAnswerAnnotationDocument:
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-        })
+        .select(
+          withTotalCount({
+            answerId:
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+            ...getTableColumns(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+            ),
+          })
+        )
         .from(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
         )
@@ -323,29 +410,31 @@ export function readModelServiceBuilderSQL({
               purposeTemplateId
             ),
             eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
-              documentId
-            ),
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
-              answerId
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
             )
           )
-        );
+        )
+        .orderBy(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.createdAt
+        )
+        .limit(limit)
+        .offset(offset);
 
-      if (queryResult.length === 0) {
-        return undefined;
-      }
+      const results: Array<{
+        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }> = queryResult.map((r) => {
+        const { answerId, ...document } = r;
+        return {
+          answerId: unsafeBrandId<
+            RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+          >(answerId),
+          document: toRiskAnalysisTemplateAnswerAnnotationDocument(document),
+        };
+      });
 
-      const { riskAnalysisAnswerAnnotationDocument } = queryResult[0];
-      return {
-        data: toRiskAnalysisTemplateAnswerAnnotationDocument(
-          riskAnalysisAnswerAnnotationDocument
-        ),
-        metadata: {
-          version: riskAnalysisAnswerAnnotationDocument.metadataVersion,
-        },
-      };
+      return createListResult(results, queryResult[0]?.totalCount);
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,
@@ -385,7 +474,7 @@ export function readModelServiceBuilderSQL({
       filters: GetPurposeTemplateEServiceDescriptorsFilters,
       { limit, offset }: { limit: number; offset: number }
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
-      const { purposeTemplateId, producerIds, eserviceIds } = filters;
+      const { purposeTemplateId, producerIds, eserviceName } = filters;
 
       const queryResult = await readModelDB
         .select(
@@ -412,10 +501,10 @@ export function readModelServiceBuilderSQL({
             producerIds.length > 0
               ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
               : undefined,
-            eserviceIds.length > 0
-              ? inArray(
-                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-                  eserviceIds
+            eserviceName
+              ? ilike(
+                  eserviceInReadmodelCatalog.name,
+                  `%${escapeRegExp(eserviceName)}%`
                 )
               : undefined
           )
@@ -435,6 +524,115 @@ export function readModelServiceBuilderSQL({
         ),
         queryResult[0]?.totalCount
       );
+    },
+    async getPurposeTemplateEServiceWithDescriptorState(
+      purposeTemplateId: PurposeTemplateId,
+      allowedDescriptorStates: DescriptorState[]
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+            )
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
+            eserviceDescriptorInReadmodelCatalog.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            notInArray(
+              eserviceDescriptorInReadmodelCatalog.state,
+              allowedDescriptorStates
+            )
+          )
+        );
+
+      const purposeTemplateEServiceDescriptors =
+        aggregatePurposeTemplateEServiceDescriptorArray(queryResult);
+
+      return createListResult(
+        purposeTemplateEServiceDescriptors.map(
+          (eserviceDescriptor) => eserviceDescriptor.data
+        ),
+        queryResult[0]?.totalCount
+      );
+    },
+    async getPublishedPurposeTemplateCreators({
+      creatorName,
+      offset,
+      limit,
+    }: {
+      creatorName: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<purposeTemplateApi.CompactOrganization>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
+        .from(tenantInReadmodelTenant)
+        .innerJoin(
+          purposeTemplateInReadmodelPurposeTemplate,
+          and(
+            eq(
+              tenantInReadmodelTenant.id,
+              purposeTemplateInReadmodelPurposeTemplate.creatorId
+            )
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.state,
+              purposeTemplateState.published
+            ),
+            creatorName
+              ? ilike(
+                  tenantInReadmodelTenant.name,
+                  `%${escapeRegExp(creatorName)}%`
+                )
+              : undefined
+          )
+        )
+        .groupBy(tenantInReadmodelTenant.id)
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
+        .limit(limit)
+        .offset(offset);
+
+      const data: purposeTemplateApi.CompactOrganization[] = queryResult.map(
+        (d) => ({
+          id: d.id,
+          name: d.name,
+        })
+      );
+
+      const result = z
+        .array(purposeTemplateApi.CompactOrganization)
+        .safeParse(data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse compact organization items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
     },
   };
 }

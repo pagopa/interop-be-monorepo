@@ -21,7 +21,7 @@ import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handleAgreementMessageV2 = async (
   eventsWithTimestamp: Array<{
     agreementV2: AgreementEventV2;
-    timestamp: string;
+    timestamp: Date;
   }>,
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
@@ -82,7 +82,9 @@ export const handleAgreementMessageV2 = async (
             "AgreementConsumerDocumentRemoved",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
-            "AgreementDeletedByRevokedDelegation"
+            "AgreementDeletedByRevokedDelegation",
+            "AgreementContractGenerated",
+            "AgreementSignedContractGenerated"
           ),
         },
         (event) => {

@@ -1,0 +1,22 @@
+meta {
+  name: Remove User Notification Config Role
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-notification-config}}/internal/userNotificationConfigs/tenantId/:tenantId/userId/:userId/userRole/:userRole
+  body: json
+  auth: none
+}
+
+params:path {
+  userId: {{userId}}
+  tenantId: {{tenantId}}
+  userRole: {{userRole}}
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}

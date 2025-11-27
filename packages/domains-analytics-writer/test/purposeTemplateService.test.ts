@@ -246,7 +246,7 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const metadataVersionUpdated = 1;
     const updatedPurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     };
     const payloadPurposeTemplateDraftUpdated: PurposeTemplateDraftUpdatedV2 = {
       purposeTemplate: toPurposeTemplateV2(updatedPurposeTemplate),
@@ -277,7 +277,9 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     expect(retrievedPurposeTemplate?.metadataVersion).toBe(
       metadataVersionUpdated
     );
-    expect(retrievedPurposeTemplate?.state).toBe(purposeTemplateState.active);
+    expect(retrievedPurposeTemplate?.state).toBe(
+      purposeTemplateState.published
+    );
   });
 
   it("PurposeTemplateUnsuspended: updates the purpose template's state from suspended to active", async () => {
@@ -302,7 +304,7 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const metadataVersionUnsuspended = 3;
     const unsuspendedPurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     };
     const payloadPurposeTemplateUnsuspended: PurposeTemplateUnsuspendedV2 = {
       purposeTemplate: toPurposeTemplateV2(unsuspendedPurposeTemplate),
@@ -333,14 +335,16 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     expect(retrievedPurposeTemplate?.metadataVersion).toBe(
       metadataVersionUnsuspended
     );
-    expect(retrievedPurposeTemplate?.state).toBe(purposeTemplateState.active);
+    expect(retrievedPurposeTemplate?.state).toBe(
+      purposeTemplateState.published
+    );
   });
 
   it("PurposeTemplateSuspended: updates the purpose template's state from active to suspended", async () => {
     const metadataVersionActive = 2;
     const activePurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     };
     const payloadPurposeTemplateActive: PurposeTemplatePublishedV2 = {
       purposeTemplate: toPurposeTemplateV2(activePurposeTemplate),
@@ -398,7 +402,7 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const metadataVersionActive = 2;
     const activePurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     };
     const payloadPurposeTemplateActive: PurposeTemplatePublishedV2 = {
       purposeTemplate: toPurposeTemplateV2(activePurposeTemplate),

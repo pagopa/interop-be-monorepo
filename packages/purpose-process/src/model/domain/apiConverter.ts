@@ -4,10 +4,12 @@ import {
   PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionSignedDocument,
   PurposeVersionState,
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   LocalizedText,
@@ -95,6 +97,16 @@ export const purposeVersionDocumentToApiPurposeVersionDocument = (
   createdAt: document.createdAt.toJSON(),
 });
 
+export const purposeVersionSignedDocumentToApiPurposeVersionSignedDocument = (
+  document: PurposeVersionSignedDocument
+): purposeApi.PurposeVersionSignedDocument => ({
+  id: document.id,
+  contentType: document.contentType,
+  path: document.path,
+  createdAt: document.createdAt.toJSON(),
+  signedAt: document.signedAt?.toJSON(),
+});
+
 export const purposeVersionToApiPurposeVersion = (
   version: PurposeVersion
 ): purposeApi.PurposeVersion => ({
@@ -109,6 +121,11 @@ export const purposeVersionToApiPurposeVersion = (
   dailyCalls: version.dailyCalls,
   suspendedAt: version.suspendedAt?.toJSON(),
   rejectionReason: version.rejectionReason,
+  signedContract: version.signedContract
+    ? purposeVersionSignedDocumentToApiPurposeVersionSignedDocument(
+        version.signedContract
+      )
+    : undefined,
 });
 
 export const purposeToApiPurpose = (
@@ -228,4 +245,13 @@ export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
     formConfigQuestionToApiFormConfigQuestion
   ),
   expiration: configuration.expiration?.toJSON(),
+});
+
+export const apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys = (
+  input: purposeApi.PurposeVersionSignedDocument
+): PurposeVersionSignedDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(input.createdAt),
+  signedAt: input.signedAt ? new Date(input.signedAt) : undefined,
 });
