@@ -237,6 +237,6 @@ describe("handleAgreementEvent test", async () => {
       testM2mEventWriterService.insertAgreementM2MEvent
     ).toHaveBeenCalledTimes(3);
 
-    expect(await retrieveAllAgreementM2MEvents()).toHaveLength(2);
+    expect(await retrieveAllAgreementM2MEvents({ limit: 10 })).toHaveLength(2);
   });
 });
