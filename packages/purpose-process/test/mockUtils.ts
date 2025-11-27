@@ -10,9 +10,25 @@ import {
   PurposeRiskAnalysisFormV2,
   TenantKind,
   PurposeRiskAnalysisForm,
+  EServiceId,
+  TenantId,
+  Descriptor,
+  EServiceTemplateId,
+  EService,
 } from "pagopa-interop-models";
-import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
+import {
+  getMockValidRiskAnalysisForm,
+  validRiskAnalysis2_0_Private,
+  getMockEService,
+  validatedRiskAnalysisTemplate3_1_Pa,
+} from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  RiskAnalysisValidatedForm,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+} from "pagopa-interop-commons";
+
+import { match } from "ts-pattern";
 import { validateAndTransformRiskAnalysis } from "../src/services/validators.js";
 
 export const buildRiskAnalysisSeed = (
@@ -130,3 +146,81 @@ export const getMockReversePurposeSeed = (
   freeOfChargeReason: "test",
   dailyCalls: 1,
 });
+
+export const getMockPurposeFromTemplateSeed = (
+  eserviceId: string = generateId(),
+  consumerId: string = generateId(),
+  riskAnalysisForm?: purposeApi.RiskAnalysisFormSeed
+): purposeApi.PurposeFromTemplateSeed => ({
+  eserviceId,
+  consumerId,
+  title: "Mock title",
+  dailyCalls: 10,
+  riskAnalysisForm,
+});
+
+export const getMockEServiceForPurposeFromTemplate = (
+  eserviceId: EServiceId = generateId<EServiceId>(),
+  producerId: TenantId = generateId<TenantId>(),
+  descriptors: Descriptor[] = [],
+  templateId?: EServiceTemplateId | undefined,
+  personalData: boolean = true
+): EService => ({
+  ...getMockEService(eserviceId, producerId, descriptors, templateId),
+  personalData,
+});
+
+export const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm =
+  {
+    version: validatedRiskAnalysisTemplate3_1_Pa.version,
+    singleAnswers: [
+      {
+        key: "publicInterestTaskText",
+        value: "PublicInterestTaskText1",
+      },
+      {
+        key: "institutionalPurpose",
+        value: "MyPurpose",
+      },
+      {
+        key: "otherPersonalDataTypes",
+        value: "MyDataTypes",
+      },
+      {
+        key: "legalObligationReference",
+        value: "LegalObligation1",
+      },
+      {
+        key: "reasonPolicyNotProvided",
+        value: "Because",
+      },
+      {
+        key: "dataRetentionPeriod",
+        value: "10",
+      },
+    ],
+    multiAnswers: [],
+  };
+
+export const validatedRiskAnalysisFormFromTemplate2_0_Private: RiskAnalysisValidatedForm =
+  {
+    version: validRiskAnalysis2_0_Private.version,
+    singleAnswers: [],
+    multiAnswers: [],
+  };
+
+export const getMockValidRiskAnalysisFormFromTemplate = (
+  producerTenantKind: TenantKind
+): RiskAnalysisForm =>
+  match(producerTenantKind)
+    .with(tenantKind.PA, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(
+        validatedRiskAnalysisFormFromTemplate3_1_Pa
+      )
+    )
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(
+        validatedRiskAnalysisFormFromTemplate2_0_Private
+      )
+    )
+    .exhaustive();

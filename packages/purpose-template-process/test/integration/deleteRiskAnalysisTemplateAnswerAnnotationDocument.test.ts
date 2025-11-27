@@ -38,7 +38,7 @@ import {
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("deleteRiskAnalysisTemplateAnswerAnnotationDocumentDocument", () => {
+describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockDocument1 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
   const mockDocument2 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
   const annotationDocument1 = {
@@ -153,7 +153,10 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocumentDocument", () => {
       documentId: annotationDocument1.id,
     });
 
-    expect(response).toBeUndefined();
+    expect(response).toEqual({
+      data: annotationDocument1,
+      metadata: { version: 1 },
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -202,7 +205,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocumentDocument", () => {
     ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 
-  it("should throw riskAnalysisTemplateNotFound if the purpose template doesn't have a risk analysis template", async () => {
+  it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template doesn't have a risk analysis template", async () => {
     const purposeTemplateWithoutRiskAnalysisTemplate = getMockPurposeTemplate();
 
     await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysisTemplate);
@@ -246,8 +249,8 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocumentDocument", () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplate.id,
-        answerId,
-        documentId
+        documentId,
+        answerId
       )
     );
   });

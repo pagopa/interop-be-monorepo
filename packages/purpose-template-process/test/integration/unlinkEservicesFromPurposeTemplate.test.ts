@@ -44,7 +44,9 @@ import { config } from "../../src/config/config.js";
 import {
   eserviceNotAssociatedError,
   eserviceNotFound,
+  invalidDescriptorStateError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION } from "../../src/services/validators.js";
 
 describe("unlinkEservicesFromPurposeTemplate", () => {
   const tenant: Tenant = {
@@ -67,7 +69,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor1],
-    personalData: false,
+    personalData: true,
   };
 
   const eService2: EService = {
@@ -75,7 +77,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     id: generateId<EServiceId>(),
     producerId: tenant.id,
     descriptors: [descriptor2],
-    personalData: false,
+    personalData: true,
   };
 
   const purposeTemplate: PurposeTemplate = {
@@ -106,13 +108,34 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     });
 
     const eserviceIds = [eService1.id, eService2.id];
-    await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
-      purposeTemplate.id,
-      eserviceIds,
-      getMockContext({
-        authData: getMockAuthData(tenant.id),
-      })
-    );
+    const unlinkResponse =
+      await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+        purposeTemplate.id,
+        eserviceIds,
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      );
+
+    expect(unlinkResponse).toHaveLength(2);
+    expect(unlinkResponse[0]).toMatchObject({
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
+    });
+    expect(unlinkResponse[1]).toMatchObject({
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService2.id,
+        descriptorId: descriptor2.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
+    });
 
     const writtenEvent1 = await readLastPurposeTemplateEvent(
       purposeTemplate.id
@@ -281,7 +304,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
       id: nonAssociatedEServiceId,
       producerId: tenant.id,
       descriptors: [getMockDescriptor()],
-      personalData: false,
+      personalData: true,
     });
     await addOnePurposeTemplate(purposeTemplate);
 
@@ -309,6 +332,52 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
           ),
         ],
         [eService1.id, nonAssociatedEServiceId],
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("should throw invalidDescriptorStateError when trying to unlink eservice with descriptor in invalid state (not Published, Archived, Suspended or Deprecated)", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+      version: "1",
+    };
+
+    const eService: EService = {
+      ...getMockEService(),
+      producerId: tenant.id,
+      descriptors: [descriptor],
+      personalData: true,
+    };
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eService);
+
+    await addOnePurposeTemplateEServiceDescriptor({
+      purposeTemplateId: purposeTemplate.id,
+      eserviceId: eService.id,
+      descriptorId: descriptor.id,
+      createdAt: new Date(),
+    });
+
+    await expect(
+      purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+        purposeTemplate.id,
+        [eService.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      disassociationEServicesFromPurposeTemplateFailed(
+        [
+          invalidDescriptorStateError(
+            eService.id,
+            ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+          ),
+        ],
+        [eService.id],
         purposeTemplate.id
       )
     );

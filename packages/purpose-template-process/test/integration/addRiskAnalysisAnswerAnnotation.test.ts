@@ -17,13 +17,14 @@ import {
   TenantId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
   // hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
-  riskAnalysisAnswerNotFound,
+  riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
@@ -50,7 +51,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
       mockPurposeTemplate.purposeRiskAnalysisForm!.singleAnswers[0];
     const answerId = existingAnswer.id;
 
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation for the risk analysis answer",
       };
@@ -150,7 +151,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     expect(existingAnswer.annotation!.text).toBe("Original annotation text");
 
     // Now update the annotation
-    const updatedAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const updatedAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "Updated annotation text",
       };
@@ -176,8 +177,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  // todo disabled until hyperlinks validation rules are defined
-  /* it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
+  it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -190,7 +190,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
 
     const textWithHyperlink =
       "This text contains a hyperlink: https://example.com";
-    const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: textWithHyperlink,
       };
@@ -207,7 +207,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     ).rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
 
     vi.useRealTimers();
-  }); */
+  });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if purpose template has no risk analysis form", async () => {
     vi.useFakeTimers();
@@ -220,7 +220,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
 
     await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysis);
 
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation",
       };
@@ -245,14 +245,14 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  it("should throw riskAnalysisAnswerNotFound if answer is not found", async () => {
+  it("should throw riskAnalysisTemplateAnswerNotFound if answer is not found", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
     await addOnePurposeTemplate(mockPurposeTemplate);
 
     const nonExistentAnswerId = generateId<RiskAnalysisSingleAnswerId>();
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation",
       };
@@ -266,7 +266,9 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           authData: getMockAuthData(mockPurposeTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(riskAnalysisAnswerNotFound(nonExistentAnswerId));
+    ).rejects.toThrowError(
+      riskAnalysisTemplateAnswerNotFound({ answerId: nonExistentAnswerId })
+    );
 
     vi.useRealTimers();
   });
@@ -275,7 +277,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation",
       };
@@ -304,7 +306,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
       mockPurposeTemplate.purposeRiskAnalysisForm!.singleAnswers[0];
     const answerId = existingAnswer.id;
 
-    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText =
+    const validRiskAnalysisAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed =
       {
         text: "This is a test annotation",
       };

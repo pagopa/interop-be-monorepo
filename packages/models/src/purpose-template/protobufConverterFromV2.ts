@@ -25,8 +25,8 @@ export const fromPurposeTemplateStateV2 = (
   switch (input) {
     case PurposeTemplateStateV2.DRAFT:
       return purposeTemplateState.draft;
-    case PurposeTemplateStateV2.ACTIVE:
-      return purposeTemplateState.active;
+    case PurposeTemplateStateV2.PUBLISHED:
+      return purposeTemplateState.published;
     case PurposeTemplateStateV2.SUSPENDED:
       return purposeTemplateState.suspended;
     case PurposeTemplateStateV2.ARCHIVED:

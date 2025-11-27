@@ -66,20 +66,6 @@ services:
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
 
-  # POSTGRESQL user
-  user-sql:
-    volumes:
-      - ./user-db:/docker-entrypoint-initdb.d
-    image: postgres:14
-    ports:
-      - 6005:5435
-    environment:
-      PGPORT: 5435
-      POSTGRES_DB: root
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-    command: -c 'max_connections=512' -c 'wal_level=logical'
-
   # M2M events POSTGRESQL DB
   m2m-event-sql:
     volumes:

@@ -27,7 +27,6 @@ export async function handleAgreementSubmitted(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -48,9 +47,8 @@ export async function handleAgreementSubmitted(
     tenants: [producer],
     notificationType,
     readModelService,
-    userService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {

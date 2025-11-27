@@ -39,3 +39,7 @@ message ConsumerDelegationRevokedV2 {
 message DelegationContractGeneratedV2 {
   DelegationV2 delegation = 1;
 }
+
+message DelegationSignedContractGeneratedV2 {
+  DelegationV2 delegation = 1;
+}

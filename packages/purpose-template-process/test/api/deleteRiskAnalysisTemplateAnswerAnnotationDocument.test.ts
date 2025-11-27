@@ -7,15 +7,18 @@ import {
   purposeTemplateState,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateSingleAnswer,
   tenantKind,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockValidRiskAnalysisFormTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
@@ -42,9 +45,12 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     },
   };
 
+  const serviceResponse: WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> =
+    getMockWithMetadata(annotationDocument);
+
   purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument = vi
     .fn()
-    .mockResolvedValue({});
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -72,6 +78,9 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(204);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -79,7 +88,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, purposeTemplateId);
+    const res = await makeRequest(token);
 
     expect(res.status).toBe(403);
   });
@@ -88,7 +97,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
-        purposeTemplateState.active,
+        purposeTemplateState.published,
         [purposeTemplateState.draft]
       ),
       expectedStatus: 409,
@@ -104,8 +113,8 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     {
       error: riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplateId,
-        answer.id,
-        annotationDocument.id
+        annotationDocument.id,
+        answer.id
       ),
       expectedStatus: 404,
     },
@@ -128,33 +137,33 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
 
   it.each([
     {
-      name: "purpose template id",
-      run: (token: string) =>
-        makeRequest(token, "invalid" as PurposeTemplateId),
+      purposeTemplateId: "invalid-id" as PurposeTemplateId,
+      answerId: generateId<RiskAnalysisSingleAnswerId>(),
+      documentId: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
     },
     {
-      name: "answer id",
-      run: (token: string) =>
-        makeRequest(
-          token,
-          purposeTemplateId,
-          "invalid" as RiskAnalysisSingleAnswerId
-        ),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+      answerId: "invalid-id" as RiskAnalysisSingleAnswerId,
+      documentId: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
     },
     {
-      name: "document id",
-      run: (token: string) =>
-        makeRequest(
-          token,
-          purposeTemplateId,
-          answer.id,
-          "invalid" as RiskAnalysisTemplateAnswerAnnotationDocumentId
-        ),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+      answerId: generateId<RiskAnalysisSingleAnswerId>(),
+      documentId:
+        "invalid-id" as RiskAnalysisTemplateAnswerAnnotationDocumentId,
     },
-  ])("Should return 400 if invalid $name is passed", async ({ run }) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await run(token);
+  ])(
+    "Should return 400 if invalid parameters are passed: %s",
+    async ({ purposeTemplateId, answerId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        purposeTemplateId,
+        answerId,
+        documentId
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });
