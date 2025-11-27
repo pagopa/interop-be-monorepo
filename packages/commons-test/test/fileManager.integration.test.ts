@@ -216,7 +216,7 @@ describe("FileManager tests", async () => {
       expect(files).toContain("test/test/testCopy");
     });
 
-    it("should copy a file in the bucket (source file contains a special character)", async () => {
+    it("should copy a file in the bucket (source file contains a special character in the file name)", async () => {
       await fileManager.storeBytes(
         {
           bucket: s3Bucket,
