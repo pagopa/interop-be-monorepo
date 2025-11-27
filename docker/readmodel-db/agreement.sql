@@ -65,3 +65,17 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract (
   PRIMARY KEY (agreement_id, id),
   FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
+
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_signed_contract (
+  id UUID,
+  agreement_id UUID UNIQUE NOT NULL REFERENCES readmodel_agreement.agreement (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  signed_at TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (agreement_id, id), 
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);

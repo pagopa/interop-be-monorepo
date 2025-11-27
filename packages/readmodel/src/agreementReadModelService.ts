@@ -10,6 +10,7 @@ import {
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementSignedContractInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
@@ -41,6 +42,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
       					->2 agreement_attribute
       					->3 agreement_document
                 ->4 agreement_contract
+                ->5 agreement_signed_contract
       */
       const queryResult = await db
         .select({
@@ -49,6 +51,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .where(filter)
@@ -83,6 +86,14 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
           )
+        )
+        .leftJoin(
+          // 5
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
+          )
         );
 
       if (queryResult.length === 0) {
@@ -105,6 +116,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .where(filter)
@@ -134,6 +146,13 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         );
 

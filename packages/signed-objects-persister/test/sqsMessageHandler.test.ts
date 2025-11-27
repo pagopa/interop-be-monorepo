@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { FileManager, SafeStorageService } from "pagopa-interop-commons";
+import {
+  FileManager,
+  RefreshableInteropToken,
+  SafeStorageService,
+} from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
+import { config } from "../src/config/config.js";
 
 vi.mock("../src/config/config.js", () => ({
   config: {
@@ -13,13 +18,31 @@ vi.mock("../src/config/config.js", () => ({
 }));
 
 const mockFileManager: Partial<FileManager> = {
-  storeBytes: vi.fn(),
+  resumeOrStoreBytes: vi.fn(() =>
+    Promise.resolve("6e902b1c-7f55-4074-a036-749e75551f33")
+  ),
 };
+
+const testToken = "mockToken";
+const mockRefreshableToken: RefreshableInteropToken = {
+  get: () => Promise.resolve({ serialized: testToken }),
+} as unknown as RefreshableInteropToken;
 
 const mockDbService: SignatureServiceBuilder = {
   saveSignatureReference: vi.fn(),
-  readSignatureReference: vi.fn(),
+  readSignatureReference: vi.fn(() =>
+    Promise.resolve({
+      safeStorageId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      fileKind: "RISK_ANALYSIS_DOCUMENT",
+      fileName: "multa.pdf",
+      correlationId: expect.any(String),
+      creationTimestamp: expect.any(Number),
+    })
+  ),
+  saveDocumentSignatureReference: vi.fn(),
   deleteSignatureReference: vi.fn(),
+  readDocumentSignatureReference: vi.fn(),
+  readSignatureReferenceById: vi.fn(),
 };
 
 const mockSafeStorageService: SafeStorageService = {
@@ -73,34 +96,52 @@ describe("sqsMessageHandler", () => {
     (mockSafeStorageService.downloadFileContent as Mock).mockResolvedValueOnce(
       mockFileContent
     );
-    (mockFileManager.storeBytes as Mock).mockResolvedValueOnce(mockS3Key);
+    (mockFileManager.resumeOrStoreBytes as Mock).mockResolvedValueOnce(
+      mockS3Key
+    );
+    (mockDbService.readSignatureReferenceById as Mock).mockResolvedValueOnce({
+      id: sqsMessageBody.id,
+      key: sqsMessageBody.detail.key,
+      fileKind: "RISK_ANALYSIS_DOCUMENT",
+      createdAt: BigInt(123456),
+      contentType: "application/pdf",
+      subObjectId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      streamId: "6e902b1c-7f55-4074-a036-749e75551f33",
+    });
     (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(
       void 0
     );
+
+    vi.mock("../src/utils/metadata/riskAnalysis.js", () => ({
+      addPurposeRiskAnalysisSignedDocument: vi
+        .fn()
+        .mockResolvedValue(undefined),
+    }));
 
     await sqsMessageHandler(
       sqsMessagePayload,
       mockFileManager as FileManager,
       mockDbService,
-      mockSafeStorageService
+      mockSafeStorageService,
+      mockRefreshableToken
     );
 
     expect(mockSafeStorageService.getFile).toHaveBeenCalledWith(
       sqsMessageBody.detail.key
     );
 
-    expect(mockFileManager.storeBytes).toHaveBeenCalledWith(
+    expect(mockFileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       {
-        bucket: "test-bucket",
+        bucket: config.signedDocumentsBucket,
         path: "12345/2025/01/01",
-        name: "test-file-key.pdf",
+        name: "test-file-key-signed.pdf",
         content: mockFileContent,
       },
       expect.any(Object)
     );
 
     expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
-      sqsMessageBody.id
+      sqsMessageBody.detail.key
     );
   });
 
@@ -114,12 +155,13 @@ describe("sqsMessageHandler", () => {
         invalidSqsMessagePayload,
         mockFileManager as FileManager,
         mockDbService,
-        mockSafeStorageService
+        mockSafeStorageService,
+        mockRefreshableToken
       )
     ).rejects.toThrow("Invalid SQS payload");
 
     expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
-    expect(mockFileManager.storeBytes).not.toHaveBeenCalled();
+    expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
     expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
   });
 });

@@ -30,7 +30,6 @@ export async function handlePurposeVersionSuspendedByProducer(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -57,9 +56,8 @@ export async function handlePurposeVersionSuspendedByProducer(
     tenants: [consumer],
     notificationType,
     readModelService,
-    userService,
     logger,
-    includeTenantContactEmails: true,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {
