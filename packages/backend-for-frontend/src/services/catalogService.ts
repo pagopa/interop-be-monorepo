@@ -50,7 +50,6 @@ import {
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
-  PurposeProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
@@ -328,7 +327,6 @@ export function catalogServiceBuilder(
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: EServiceTemplateProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
-  purposeProcessClient: PurposeProcessClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
