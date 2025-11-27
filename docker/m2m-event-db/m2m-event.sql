@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   eservice_id UUID NOT NULL,
   descriptor_id UUID,
 
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice_template (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   eservice_template_id UUID NOT NULL,
   eservice_template_version_id UUID,
 
@@ -42,6 +44,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.agreement (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   agreement_id UUID NOT NULL,
 
   -- Columns to filter events based on tenant or delegation
@@ -63,6 +66,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   purpose_id UUID NOT NULL,
   purpose_version_id UUID,
 
@@ -85,6 +89,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.tenant (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   tenant_id UUID NOT NULL,
 
   PRIMARY KEY (id)
@@ -96,6 +101,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.attribute (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   attribute_id UUID NOT NULL,
 
   PRIMARY KEY (id)
@@ -107,6 +113,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.consumer_delegation (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   delegation_id UUID NOT NULL,
 
   PRIMARY KEY (id)
@@ -118,6 +125,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_delegation (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   delegation_id UUID NOT NULL,
 
   PRIMARY KEY (id)
@@ -129,6 +137,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.client (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   client_id UUID NOT NULL,
 
   -- Columns to filter events based on tenant
@@ -145,6 +154,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_keychain (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   producer_keychain_id UUID NOT NULL,
 
   -- Columns to filter events based on tenant
@@ -161,7 +171,9 @@ CREATE TABLE IF NOT EXISTS m2m_event.key (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   kid VARCHAR NOT NULL,
+  client_id UUID NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -172,7 +184,9 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_key (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
   kid VARCHAR NOT NULL,
+  producer_keychain_id UUID NOT NULL,
 
   PRIMARY KEY (id)
 );

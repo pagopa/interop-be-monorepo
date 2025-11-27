@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-function toApiAgreementM2MEventType(
+export function toApiAgreementM2MEventType(
   eventType: AgreementM2MEventType
 ): m2mEventApi.AgreementM2MEvent["eventType"] {
   return match<
@@ -69,7 +69,10 @@ function toApiAgreementM2MEventType(
       "AgreementSetDraftByPlatform",
       () => "AGREEMENT_SET_DRAFT_BY_PLATFORM"
     )
-
+    .with(
+      "AgreementSignedContractGenerated",
+      () => "AGREEMENT_CONTRACT_GENERATED"
+    )
     .exhaustive();
 }
 

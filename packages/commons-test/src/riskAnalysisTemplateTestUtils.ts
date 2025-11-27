@@ -19,6 +19,7 @@ import { match } from "ts-pattern";
 import {
   validRiskAnalysis2_0_Private,
   validRiskAnalysis3_0_Pa,
+  validRiskAnalysis3_1_Pa,
 } from "./riskAnalysisTestUtils.js";
 
 export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedForm =
@@ -33,21 +34,21 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "institutionalPurpose",
-        value: "MyPurpose",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
       },
       {
         key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
       },
       {
         key: "legalObligationReference",
-        value: "somethingLegal",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
       },
       {
         key: "knowsDataQuantity",
@@ -75,9 +76,9 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
       },
       {
         key: "reasonPolicyNotProvided",
-        value: "Because",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Because", "Because2"],
       },
       {
         key: "doneDpia",
@@ -144,6 +145,141 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
     ],
   };
 
+export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedForm =
+  {
+    version: validRiskAnalysis3_1_Pa.version,
+    singleAnswers: [
+      {
+        key: "purpose",
+        value: "INSTITUTIONAL",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "institutionalPurpose",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
+      },
+      {
+        key: "usesPersonalData",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "otherPersonalDataTypes",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
+      },
+      {
+        key: "legalObligationReference",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
+      },
+      {
+        key: "knowsDataQuantity",
+        value: "NO",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "deliveryMethod",
+        value: "CLEARTEXT",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "policyProvided",
+        value: "NO",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "confirmPricipleIntegrityAndDiscretion",
+        value: "true",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "reasonPolicyNotProvided",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["Because", "Because2"],
+      },
+      {
+        key: "doneDpia",
+        value: "NO",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "dataDownload",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "dataRetentionPeriod",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["10", "20"],
+      },
+      {
+        key: "isRequestOnBehalfOfThirdParties",
+        value: "YES",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "thirdPartiesRequestDataUsage",
+        value: "PA_ONLY",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "purposePursuit",
+        value: "MERE_CORRECTNESS",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "checkedExistenceMereCorrectnessInteropCatalogue",
+        value: "true",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "declarationConfirmGDPR",
+        value: "true",
+        editable: false,
+        suggestedValues: [],
+      },
+      {
+        key: "publicInterestTaskText",
+        value: undefined,
+        editable: false,
+        suggestedValues: ["PublicInterestTaskText1", "PublicInterestTaskText2"],
+      },
+      {
+        key: "legalBasisPublicInterest",
+        value: "PUBLIC_INTEREST_TASK",
+        editable: false,
+        suggestedValues: [],
+      },
+    ],
+    multiAnswers: [
+      { key: "personalDataTypes", values: ["OTHER"], editable: false },
+      {
+        key: "legalBasis",
+        values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+        editable: false,
+      },
+    ],
+  };
+
 export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValidatedForm =
   {
     version: validRiskAnalysis2_0_Private.version,
@@ -156,9 +292,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "institutionalPurpose",
-        value: "MyPurpose",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyPurpose", "MyPurpose2"],
       },
       {
         key: "usesPersonalData",
@@ -168,15 +304,15 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["MyDataTypes", "MyDataTypes2"],
       },
       {
         key: "legalObligationReference",
-        value: "YES",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["LegalObligation1", "LegalObligation2"],
       },
       {
         key: "legalBasisPublicInterest",
@@ -186,9 +322,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "ruleOfLawText",
-        value: "TheLaw",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["RuleOfLawText1", "RuleOfLawText2"],
       },
       {
         key: "knowsDataQuantity",
@@ -224,7 +360,7 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
         key: "reasonPolicyNotProvided",
         value: undefined,
         editable: false,
-        suggestedValues: ["Because1", "Because2"],
+        suggestedValues: ["Because", "Because2"],
       },
       {
         key: "doneDpia",
@@ -234,9 +370,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "dataRetentionPeriod",
-        value: "10",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["10", "20"],
       },
       {
         key: "purposePursuit",
@@ -273,7 +409,7 @@ export const getMockValidRiskAnalysisFormTemplate = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
-        validatedRiskAnalysisTemplate3_0_Pa
+        validatedRiskAnalysisTemplate3_1_Pa
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
@@ -288,26 +424,26 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
 ): RiskAnalysisFormTemplate => {
   const incompleteRiskAnalysisFormTemplate =
     getMockValidRiskAnalysisFormTemplate(producerTenantKind);
+
+  const addAnnotationToAnswers = <
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answers: T[]
+  ): T[] =>
+    answers.map(
+      (a): T => ({
+        ...a,
+        annotation: getMockRiskAnalysisTemplateAnswerAnnotation(undefined, 1),
+      })
+    );
+
   return {
     ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: [],
-      })
+    singleAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.singleAnswers
     ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
+    multiAnswers: addAnnotationToAnswers(
+      incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
   };
 };

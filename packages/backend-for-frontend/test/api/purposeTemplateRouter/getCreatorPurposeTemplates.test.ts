@@ -4,7 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCreatorPurposeTemplate } from "../../mockUtils.js";
@@ -13,7 +13,7 @@ describe("API GET /creators/purposeTemplates", () => {
   const defaultQuery = {
     q: "title",
     eserviceIds: `${generateId()},${generateId()}`,
-    states: "ACTIVE,DRAFT",
+    states: `${purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED},${purposeTemplateApi.PurposeTemplateState.Enum.DRAFT}`,
     offset: 0,
     limit: 5,
   };
@@ -63,7 +63,12 @@ describe("API GET /creators/purposeTemplates", () => {
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
     { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
-    { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
+    {
+      query: {
+        ...defaultQuery,
+        states: `${purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED},invalid`,
+      },
+    },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

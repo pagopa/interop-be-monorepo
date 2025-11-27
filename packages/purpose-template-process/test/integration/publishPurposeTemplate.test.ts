@@ -1,37 +1,49 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockCompleteRiskAnalysisFormTemplate,
-  getMockContext,
-  getMockPurposeTemplate,
-  sortPurposeTemplate,
-} from "pagopa-interop-commons-test";
-import {
-  generateId,
-  TenantId,
-  PurposeTemplate,
-  purposeTemplateState,
-  PurposeTemplatePublishedV2,
-  toPurposeTemplateV2,
-} from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
+  getLatestVersionFormRules,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockCompleteRiskAnalysisFormTemplate,
+  getMockContext,
+  getMockDescriptor,
+  getMockEService,
+  getMockPurposeTemplate,
+  sortPurposeTemplate,
+} from "pagopa-interop-commons-test";
 import {
+  descriptorState,
+  EService,
+  EServiceId,
+  generateId,
+  PurposeTemplate,
+  PurposeTemplatePublishedV2,
+  purposeTemplateState,
+  TenantId,
+  tenantKind,
+  toPurposeTemplateV2,
+} from "pagopa-interop-models";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { invalidDescriptorStateForPublicationError } from "../../src/errors/purposeTemplateValidationErrors.js";
+import {
+  invalidAssociatedEServiceForPublication,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION } from "../../src/services/validators.js";
+import {
+  addOneEService,
+  addOnePurposeTemplate,
+  addOnePurposeTemplateEServiceDescriptor,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("publishPurposeTemplate", () => {
   const creatorId = generateId<TenantId>();
@@ -56,7 +68,7 @@ describe("publishPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it.skip("should write on event-store for the publishing of a purpose template in draft state", async () => {
+  it("should write on event-store for the publishing of a purpose template in draft state", async () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const publishResponse = await purposeTemplateService.publishPurposeTemplate(
@@ -77,7 +89,7 @@ describe("publishPurposeTemplate", () => {
 
     const expectedPurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
       updatedAt: new Date(),
     };
 
@@ -133,7 +145,7 @@ describe("publishPurposeTemplate", () => {
       ...purposeTemplate,
       purposeRiskAnalysisForm: {
         id: generateId(),
-        version: "3.0",
+        version: getLatestVersionFormRules(tenantKind.PA)!.version,
         singleAnswers: [
           {
             id: generateId(),
@@ -152,7 +164,8 @@ describe("publishPurposeTemplate", () => {
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
         purposeTemplateWithInvalidRiskAnalysis.purposeRiskAnalysisForm!
       ),
-      purposeTemplateWithInvalidRiskAnalysis.targetTenantKind
+      purposeTemplateWithInvalidRiskAnalysis.targetTenantKind,
+      purposeTemplateWithInvalidRiskAnalysis.handlesPersonalData
     );
 
     await expect(async () => {
@@ -171,9 +184,9 @@ describe("publishPurposeTemplate", () => {
     {
       error: purposeTemplateStateConflict(
         purposeTemplate.id,
-        purposeTemplateState.active
+        purposeTemplateState.published
       ),
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     },
     {
       error: purposeTemplateNotInExpectedStates(
@@ -209,4 +222,58 @@ describe("publishPurposeTemplate", () => {
       }).rejects.toThrowError(error);
     }
   );
+
+  it("should throw unexpectedAssociationEServicePublishError if purpose template is linked to at least one archived eservice", async () => {
+    await addOnePurposeTemplate(purposeTemplate);
+
+    const invalidStateEService: EService = {
+      ...getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
+        getMockDescriptor(descriptorState.archived),
+      ]),
+      personalData: true,
+    };
+    const relatedEServices: EService[] = [
+      ...Array.from({ length: 3 }).map(() => ({
+        ...getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
+          getMockDescriptor(descriptorState.published),
+        ]),
+        personalData: true,
+      })),
+      invalidStateEService,
+    ];
+
+    await Promise.all(
+      relatedEServices.map((eservice) => addOneEService(eservice))
+    );
+
+    await Promise.all(
+      relatedEServices.map((eservice) =>
+        addOnePurposeTemplateEServiceDescriptor({
+          purposeTemplateId: purposeTemplate.id,
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+          createdAt: new Date(),
+        })
+      )
+    );
+
+    await expect(async () => {
+      await purposeTemplateService.publishPurposeTemplate(
+        purposeTemplate.id,
+        getMockContext({ authData: getMockAuthData(creatorId) })
+      );
+    }).rejects.toThrowError(
+      invalidAssociatedEServiceForPublication([
+        invalidDescriptorStateForPublicationError(
+          {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: invalidStateEService.id,
+            descriptorId: invalidStateEService.descriptors[0].id,
+            createdAt: expect.any(Date),
+          },
+          ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION
+        ),
+      ])
+    );
+  });
 });

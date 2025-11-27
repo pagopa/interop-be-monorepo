@@ -141,7 +141,7 @@ describe("Integration tests", async () => {
 
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate,
-        state: purposeTemplateState.active,
+        state: purposeTemplateState.published,
       };
       const payload: PurposeTemplatePublishedV2 = {
         purposeTemplate: toPurposeTemplateV2(updatedPurposeTemplate),
@@ -183,7 +183,7 @@ describe("Integration tests", async () => {
 
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate,
-        state: purposeTemplateState.active,
+        state: purposeTemplateState.published,
       };
       const payload: PurposeTemplateUnsuspendedV2 = {
         purposeTemplate: toPurposeTemplateV2(updatedPurposeTemplate),
@@ -215,7 +215,7 @@ describe("Integration tests", async () => {
 
       const activePurposeTemplate: PurposeTemplate = {
         ...purposeTemplate,
-        state: purposeTemplateState.active,
+        state: purposeTemplateState.published,
       };
 
       await purposeTemplateWriterService.upsertPurposeTemplate(
@@ -257,7 +257,7 @@ describe("Integration tests", async () => {
 
       const activePurposeTemplate: PurposeTemplate = {
         ...purposeTemplate,
-        state: purposeTemplateState.active,
+        state: purposeTemplateState.published,
       };
 
       await purposeTemplateWriterService.upsertPurposeTemplate(

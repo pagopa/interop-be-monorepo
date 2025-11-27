@@ -19,6 +19,7 @@ import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import eserviceRouter from "./routers/eserviceRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
+import purposeTemplateRouter from "./routers/purposeTemplateRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
@@ -32,6 +33,7 @@ import { ClientService } from "./services/clientService.js";
 import { EserviceService } from "./services/eserviceService.js";
 import { EserviceTemplateService } from "./services/eserviceTemplateService.js";
 import { PurposeService } from "./services/purposeService.js";
+import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 import { TenantService } from "./services/tenantService.js";
 import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
@@ -46,6 +48,7 @@ export type M2MGatewayServices = {
   eserviceService: EserviceService;
   eserviceTemplateService: EserviceTemplateService;
   purposeService: PurposeService;
+  purposeTemplateService: PurposeTemplateService;
   tenantService: TenantService;
   keyService: KeyService;
   producerKeychainService: ProducerKeychainService;
@@ -69,6 +72,7 @@ export async function createApp(
     eserviceService,
     eserviceTemplateService,
     purposeService,
+    purposeTemplateService,
     tenantService,
     keyService,
     producerKeychainService,
@@ -101,6 +105,7 @@ export async function createApp(
     eserviceRouter(zodiosCtx, eserviceService),
     attributeRouter(zodiosCtx, attributeService),
     purposeRouter(zodiosCtx, purposeService),
+    purposeTemplateRouter(zodiosCtx, purposeTemplateService),
     agreementRouter(zodiosCtx, agreementService),
     tenantRouter(zodiosCtx, tenantService),
     delegationRouter(zodiosCtx, delegationService),

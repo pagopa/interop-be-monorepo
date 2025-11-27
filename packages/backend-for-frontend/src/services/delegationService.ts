@@ -10,13 +10,18 @@ import {
   getAllFromPaginated,
   WithLogger,
 } from "pagopa-interop-commons";
-import { DelegationContractId, DelegationId } from "pagopa-interop-models";
+import {
+  DelegationContractId,
+  DelegationId,
+  delegationState,
+} from "pagopa-interop-models";
 import { isAxiosError } from "axios";
 import { match } from "ts-pattern";
 import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
+  toDelegationState,
 } from "../api/delegationApiConverter.js";
 import {
   CatalogProcessClient,
@@ -24,7 +29,10 @@ import {
   InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
-import { delegationNotFound } from "../model/errors.js";
+import {
+  delegationContractNotFound,
+  delegationNotFound,
+} from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
@@ -323,6 +331,39 @@ export function delegationServiceBuilder(
         logger
       );
 
+      return Buffer.from(contractBytes);
+    },
+
+    async getDelegationSignedContract(
+      delegationId: DelegationId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(
+        `Retrieving delegation signed contract from delegation ${delegationId}`
+      );
+
+      const delegation: delegationApi.Delegation =
+        await delegationClients.delegation.getDelegation({
+          params: { delegationId },
+          headers,
+        });
+
+      const foundSignedContract =
+        delegation.state === toDelegationState(delegationState.revoked)
+          ? delegation.signedRevocationContract
+          : delegation.signedActivationContract;
+
+      if (!foundSignedContract) {
+        throw delegationContractNotFound(delegationId);
+      }
+
+      const path = foundSignedContract.path;
+
+      const contractBytes = await fileManager.get(
+        config.delegationContractsContainer,
+        path,
+        logger
+      );
       return Buffer.from(contractBytes);
     },
 
