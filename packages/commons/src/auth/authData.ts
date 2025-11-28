@@ -31,6 +31,7 @@ export type UIAuthData = {
 export type M2MAuthData = {
   systemRole: Extract<SystemRole, "m2m">;
   organizationId: TenantId;
+  clientId: ClientId;
   jti: string;
 };
 
@@ -72,6 +73,7 @@ export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
     .with({ role: systemRole.M2M_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
       jti: t.jti,
     }))
     .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
