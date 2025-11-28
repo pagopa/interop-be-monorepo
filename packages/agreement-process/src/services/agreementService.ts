@@ -629,7 +629,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreement,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const agreementEvent =
@@ -1392,7 +1393,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreementWithoutContract,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const suspendedByPlatformChanged =
@@ -1573,7 +1575,9 @@ export function agreementServiceBuilder(
       agreementDocument: AgreementDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Adding agreement contract to agreement ${agreementId}`);
+      logger.info(
+        `Adding agreement contract to agreement ${agreementId} - document id ${agreementDocument.id}`
+      );
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
@@ -1783,12 +1787,16 @@ async function addContractOnFirstActivation(
   consumer: Tenant,
   producer: Tenant,
   agreement: Agreement,
-  activeDelegations: ActiveDelegations
+  activeDelegations: ActiveDelegations,
+  logger: Logger
 ): Promise<Agreement> {
   if (
     isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
     isFirstActivation
   ) {
+    logger.info(
+      `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
+    );
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
@@ -1802,7 +1810,9 @@ async function addContractOnFirstActivation(
       contract,
     };
   }
-
+  logger.info(
+    `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: skipping document generation`
+  );
   return agreement;
 }
 

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-let */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
@@ -18,6 +19,7 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -106,7 +108,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -163,7 +166,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -217,7 +221,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -271,7 +276,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

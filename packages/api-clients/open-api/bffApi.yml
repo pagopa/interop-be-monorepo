@@ -20383,11 +20383,18 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /delegations/{delegationId}/signedContract:
+  /delegations/{delegationId}/signedContract/{contractId}:
     parameters:
       - name: delegationId
         in: path
         description: The identifier of the delegation
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: contractId
+        in: path
+        description: The identifier of the the signedContract
         schema:
           type: string
           format: uuid
@@ -27308,6 +27315,8 @@ components:
           $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
           type: string
+        signedContract:
+          $ref: "#/components/schemas/PurposeVersionSignedDocument"
       required:
         - id
         - state
@@ -27354,6 +27363,25 @@ components:
         - REJECTED
         - WAITING_FOR_APPROVAL
         - ARCHIVED
+    PurposeVersionSignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - contentType
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
+          type: string
+          format: date-time
     User:
       type: object
       additionalProperties: false
@@ -27465,6 +27493,31 @@ components:
         contentType:
           type: string
         createdAt:
+          type: string
+          format: date-time
+    SignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
           type: string
           format: date-time
     AgreementsEService:
@@ -28379,6 +28432,10 @@ components:
           $ref: "#/components/schemas/DelegationState"
         kind:
           $ref: "#/components/schemas/DelegationKind"
+        activationSignedContract:
+          $ref: "#/components/schemas/SignedDocument"
+        revocationSignedContract:
+          $ref: "#/components/schemas/SignedDocument"
         isDocumentReady:
           type: boolean
       required:
