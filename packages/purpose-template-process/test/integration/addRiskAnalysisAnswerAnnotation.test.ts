@@ -17,6 +17,7 @@ import {
   TenantId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -176,8 +177,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  // todo disabled until hyperlinks validation rules are defined
-  /* it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
+  it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -207,7 +207,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     ).rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
 
     vi.useRealTimers();
-  }); */
+  });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if purpose template has no risk analysis form", async () => {
     vi.useFakeTimers();
