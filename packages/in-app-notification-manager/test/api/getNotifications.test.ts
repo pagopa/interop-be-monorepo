@@ -84,6 +84,7 @@ describe("API GET /notifications", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const queryParams = {
       q: "search term",
+      unread: false,
       notificationTypes: [],
       limit: "10",
       offset: "5",
