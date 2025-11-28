@@ -100,7 +100,11 @@ export function validateAuthorization<
         const admittedSystemRoles: SystemRole[] =
           admittedAuthRoles.filter(isSystemRole);
         if (!admittedSystemRoles.includes(systemRole)) {
-          checkIsM2MAdminPermittedForM2M(authData, admittedSystemRoles);
+          /**
+           * In case of M2M calls, provide a more meaningful error message
+           * about the possible causes of the authorization failure.
+           */
+          throwMeaningfulMessageForM2MCalls(authData, admittedSystemRoles);
           throw unauthorizedError(
             `Invalid role "${systemRole}" for this operation`
           );
@@ -201,7 +205,13 @@ function isUserRole(role: AuthRole): role is UserRole {
     .exhaustive();
 }
 
-function checkIsM2MAdminPermittedForM2M(
+/**
+ * If the call is made with "m2m" role but the permitted roles include
+ * "m2m-admin", it means that the user generated the token for a client that
+ * was missing an admin user.
+ * Throw a more meaningful error message in this case.
+ */
+function throwMeaningfulMessageForM2MCalls(
   authData: AuthData,
   permittedRoles: AuthRole[]
 ): void {
@@ -210,7 +220,7 @@ function checkIsM2MAdminPermittedForM2M(
     permittedRoles.includes(authRole.M2M_ADMIN_ROLE)
   ) {
     throw unauthorizedError(
-      `Admin user not set for Client ${authData.clientId} with M2M role`
+      `Admin user not set for Client ${authData.clientId} with M2M role. In case it is already set, regenerate the m2m token.`
     );
   }
 }
