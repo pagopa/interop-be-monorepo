@@ -44,6 +44,7 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  PurposeVersionSignedDocument,
   PurposeVersionStamps,
   RiskAnalysis,
   RiskAnalysisId,
@@ -109,6 +110,7 @@ import {
   toCreateEventRiskAnalysisDocumentGenerated,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
+  toCreateEventRiskAnalysisSignedDocumentGenerated,
 } from "../model/domain/toEvent.js";
 import { GetPurposesFilters } from "./readModelService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -182,6 +184,24 @@ const retrievePurposeVersionDocument = (
   documentId: PurposeVersionDocumentId
 ): PurposeVersionDocument => {
   const document = purposeVersion.riskAnalysis;
+
+  if (document === undefined || document.id !== documentId) {
+    throw purposeVersionDocumentNotFound(
+      purposeId,
+      purposeVersion.id,
+      documentId
+    );
+  }
+
+  return document;
+};
+
+const retrievePurposeVersionSignedDocument = (
+  purposeId: PurposeId,
+  purposeVersion: PurposeVersion,
+  documentId: PurposeVersionDocumentId
+): PurposeVersionSignedDocument => {
+  const document = purposeVersion.signedContract;
 
   if (document === undefined || document.id !== documentId) {
     throw purposeVersionDocumentNotFound(
@@ -976,26 +996,40 @@ export function purposeServiceBuilder(
         },
       };
 
-      const riskAnalysisDocument = await generateRiskAnalysisDocument({
-        eservice,
-        purpose: purpose.data,
-        userId: stamps.creation.who,
-        dailyCalls: seed.dailyCalls,
-        readModelService,
-        fileManager,
-        pdfGenerator,
-        logger,
-      });
+      const riskAnalysisDocument = isFeatureFlagEnabled(
+        config,
+        "featureFlagPurposesContractBuilder"
+      )
+        ? await generateRiskAnalysisDocument({
+            eservice,
+            purpose: purpose.data,
+            userId: stamps.creation.who,
+            dailyCalls: seed.dailyCalls,
+            readModelService,
+            fileManager,
+            pdfGenerator,
+            logger,
+          })
+        : undefined;
 
-      const newPurposeVersion: PurposeVersion = {
-        id: generateId(),
-        riskAnalysis: riskAnalysisDocument,
-        state: purposeVersionState.active,
-        dailyCalls: seed.dailyCalls,
-        firstActivationAt: new Date(),
-        createdAt: new Date(),
-        stamps,
-      };
+      const newPurposeVersion: PurposeVersion = riskAnalysisDocument
+        ? {
+            id: generateId(),
+            riskAnalysis: riskAnalysisDocument,
+            state: purposeVersionState.active,
+            dailyCalls: seed.dailyCalls,
+            firstActivationAt: new Date(),
+            createdAt: new Date(),
+            stamps,
+          }
+        : {
+            id: generateId(),
+            state: purposeVersionState.active,
+            dailyCalls: seed.dailyCalls,
+            firstActivationAt: new Date(),
+            createdAt: new Date(),
+            stamps,
+          };
 
       const oldVersions = archiveActiveAndSuspendedPurposeVersions(
         purpose.data.versions
@@ -1757,24 +1791,74 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const purposeWithContract = {
-        ...purposeRetrieved.data,
-        riskAnalysisDocument,
+      const versionRetrieved = retrievePurposeVersion(
+        versionId,
+        purposeRetrieved
+      );
+
+      const updatedVersion: PurposeVersion = {
+        ...versionRetrieved,
+        riskAnalysis: riskAnalysisDocument,
       };
+
+      const updatedPurpose = replacePurposeVersion(
+        purposeRetrieved.data,
+        updatedVersion
+      );
+
       const event = await repository.createEvent(
         toCreateEventRiskAnalysisDocumentGenerated({
-          purpose: purposeWithContract,
+          purpose: updatedPurpose,
           version: purposeRetrieved.metadata.version,
           versionId,
           correlationId,
         })
       );
-      const purposeVersion: PurposeVersion = retrievePurposeVersion(
+
+      return {
+        data: updatedVersion,
+        metadata: { version: event.newVersion },
+      };
+    },
+    async internalAddSignedRiskAnalysisDocumentMetadata(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      signedRiskAnalysis: PurposeVersionSignedDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
+      logger.info(
+        `Adding signed risk analysis document for purpose ${purposeId}, version ${versionId}`
+      );
+      const purposeRetrieved = await retrievePurpose(
+        purposeId,
+        readModelService
+      );
+
+      const versionRetrieved = retrievePurposeVersion(
         versionId,
         purposeRetrieved
       );
+
+      const updatedVersion: PurposeVersion = {
+        ...versionRetrieved,
+        signedContract: signedRiskAnalysis,
+      };
+
+      const updatedPurpose = replacePurposeVersion(
+        purposeRetrieved.data,
+        updatedVersion
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventRiskAnalysisSignedDocumentGenerated({
+          purpose: updatedPurpose,
+          version: purposeRetrieved.metadata.version,
+          versionId,
+          correlationId,
+        })
+      );
       return {
-        data: purposeVersion,
+        data: updatedVersion,
         metadata: { version: event.newVersion },
       };
     },
@@ -1807,7 +1891,11 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (purposeUpdateContent.title) {
+      if (
+        purposeUpdateContent.title &&
+        purposeUpdateContent.title?.toLocaleLowerCase() !==
+          purpose.data.title.toLocaleLowerCase()
+      ) {
         await assertPurposeTitleIsNotDuplicated({
           readModelService,
           eserviceId: purpose.data.eserviceId,
@@ -1860,6 +1948,42 @@ export function purposeServiceBuilder(
         data: updatedPurpose,
         metadata: { version: createdEvent.newVersion },
       };
+    },
+    async getRiskAnalysisSignedDocument({
+      purposeId,
+      versionId,
+      documentId,
+      ctx: { authData, logger },
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      documentId: PurposeVersionDocumentId;
+      ctx: WithLogger<AppContext<UIAuthData>>;
+    }): Promise<PurposeVersionDocument> {
+      logger.info(
+        `Retrieving Risk Analysis signed document ${documentId} in version ${versionId} of Purpose ${purposeId}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      await assertRequesterCanRetrievePurpose(
+        purpose.data,
+        eservice,
+        authData,
+        readModelService
+      );
+
+      const version = retrievePurposeVersion(versionId, purpose);
+
+      return retrievePurposeVersionSignedDocument(
+        purposeId,
+        version,
+        documentId
+      );
     },
   };
 }
@@ -2237,23 +2361,39 @@ async function activatePurposeLogic({
     .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
     .exhaustive();
 
-  const updatedPurposeVersion: PurposeVersion = {
-    ...purposeVersion,
-    state: purposeVersionState.active,
-    riskAnalysis: await generateRiskAnalysisDocument({
-      eservice,
-      purpose: purpose.data,
-      userId: stamps?.creation.who,
-      dailyCalls: purposeVersion.dailyCalls,
-      readModelService,
-      fileManager,
-      pdfGenerator,
-      logger,
-    }),
-    stamps,
-    updatedAt: new Date(),
-    firstActivationAt: new Date(),
-  };
+  const riskAnalysis = isFeatureFlagEnabled(
+    config,
+    "featureFlagPurposesContractBuilder"
+  )
+    ? await generateRiskAnalysisDocument({
+        eservice,
+        purpose: purpose.data,
+        userId: stamps?.creation.who,
+        dailyCalls: purposeVersion.dailyCalls,
+        readModelService,
+        fileManager,
+        pdfGenerator,
+        logger,
+      })
+    : undefined;
+
+  const updatedPurposeVersion: PurposeVersion = riskAnalysis
+    ? {
+        ...purposeVersion,
+        state: purposeVersionState.active,
+        riskAnalysis,
+        stamps,
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+      }
+    : {
+        ...purposeVersion,
+        state: purposeVersionState.active,
+        stamps,
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+      };
+
   const unsuspendedPurpose: Purpose =
     fromState === purposeVersionState.waitingForApproval
       ? {

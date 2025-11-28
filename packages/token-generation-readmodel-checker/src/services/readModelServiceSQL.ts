@@ -15,6 +15,7 @@ import {
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementSignedContractInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   clientInReadmodelClient,
   clientKeyInReadmodelClient,
@@ -35,6 +36,7 @@ import {
   purposeRiskAnalysisFormInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
@@ -134,6 +136,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
+          purposeVersionSignedDocument:
+            purposeVersionSignedDocumentInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
@@ -176,6 +180,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionStampInReadmodelPurpose.purposeVersionId
           )
+        )
+        .leftJoin(
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
         );
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult)).map(
@@ -191,6 +202,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .leftJoin(
@@ -219,6 +231,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         );
 

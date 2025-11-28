@@ -1,5 +1,9 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  RiskAnalysisFormTemplateToValidate,
+  RiskAnalysisTemplateAnswerToValidate,
+} from "pagopa-interop-commons";
+import {
   EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   purposeTemplateState,
@@ -187,4 +191,49 @@ export const annotationDocumentToApiAnnotationDocument = (
 ): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument => ({
   ...annotationDocument,
   createdAt: annotationDocument.createdAt.toJSON(),
+});
+
+export const annotationDocumentToApiAnnotationDocumentWithAnswerId =
+  (annotationDocumentWithAnswerId: {
+    answerId: string;
+    document: RiskAnalysisTemplateAnswerAnnotationDocument;
+  }): purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentWithAnswerId => ({
+    answerId: annotationDocumentWithAnswerId.answerId,
+    document: annotationDocumentToApiAnnotationDocument(
+      annotationDocumentWithAnswerId.document
+    ),
+  });
+
+// RiskAnalysisTemplateAnswerSeed don't require 'docs',
+// but RiskAnalysisTemplateAnswerToValidate requires 'docs' property.
+export const toRiskAnalysisTemplateAnswerToValidate = (
+  answer: purposeTemplateApi.RiskAnalysisTemplateAnswerSeed
+): RiskAnalysisTemplateAnswerToValidate => ({
+  ...answer,
+  annotation: answer.annotation
+    ? {
+        text: answer.annotation.text,
+        docs: [],
+      }
+    : undefined,
+});
+
+// RiskAnalysisFormTemplateSeed have 'answers' without 'docs',
+// but RiskAnalysisFormTemplateToValidate requires 'docs' property in answers.
+export const toRiskAnalysisFormTemplateToValidate = (
+  formTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed
+): RiskAnalysisFormTemplateToValidate => ({
+  version: formTemplate.version,
+  answers: Object.entries(formTemplate.answers)
+    .map(([answerKey, answerValue]) => ({
+      key: answerKey,
+      value: toRiskAnalysisTemplateAnswerToValidate(answerValue),
+    }))
+    .reduce(
+      (acc, answer) => ({
+        ...acc,
+        [answer.key]: answer.value,
+      }),
+      {}
+    ),
 });

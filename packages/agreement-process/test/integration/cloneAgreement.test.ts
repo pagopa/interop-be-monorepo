@@ -192,6 +192,7 @@ describe("clone agreement", () => {
     delete expectedAgreementCloned.suspendedAt;
     delete expectedAgreementCloned.updatedAt;
     delete expectedAgreementCloned.contract;
+    delete expectedAgreementCloned.signedContract;
     expectedAgreementCloned.stamps = {};
 
     expect(agreementClonedEventPayload).toMatchObject({
@@ -340,6 +341,7 @@ describe("clone agreement", () => {
     delete expectedAgreementCloned.suspendedAt;
     delete expectedAgreementCloned.updatedAt;
     delete expectedAgreementCloned.contract;
+    delete expectedAgreementCloned.signedContract;
     expectedAgreementCloned.stamps = {};
 
     expect(agreementClonedEventPayload).toMatchObject({
