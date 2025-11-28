@@ -1784,7 +1784,7 @@ export function purposeServiceBuilder(
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(
-        `Adding risk analysis document for purpose ${purposeId}, version ${versionId}`
+        `Adding risk analysis document for purpose ${purposeId}, version ${versionId}, document id ${riskAnalysisDocument.id}`
       );
       const purposeRetrieved = await retrievePurpose(
         purposeId,

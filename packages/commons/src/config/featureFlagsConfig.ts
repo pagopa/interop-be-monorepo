@@ -113,7 +113,7 @@ export const FeatureFlagDelegationsProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
@@ -129,7 +129,7 @@ export const FeatureFlagAgreementsProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
@@ -145,7 +145,7 @@ export const FeatureFlagPurposesProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
@@ -157,6 +157,21 @@ export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
   typeof FeatureFlagPurposesProcessContractBuilderConfig
 >;
 
+export const FeatureFlagUseSignedDocumentConfig = z
+  .object({
+    FEATURE_FLAG_USE_SIGNED_DOCUMENT: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagUseSignedDocument: c.FEATURE_FLAG_USE_SIGNED_DOCUMENT ?? false,
+  }));
+export type FeatureFlagUseSignedDocumentConfig = z.infer<
+  typeof FeatureFlagUseSignedDocumentConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
@@ -166,7 +181,8 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagEServicePersonalDataConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
-  FeatureFlagPurposesProcessContractBuilderConfig;
+  FeatureFlagPurposesProcessContractBuilderConfig &
+  FeatureFlagUseSignedDocumentConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
