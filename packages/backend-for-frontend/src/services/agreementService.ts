@@ -308,7 +308,7 @@ export function agreementServiceBuilder(
       const path = agreement.signedContract.path;
 
       const documentBytes = await fileManager.get(
-        config.consumerDocumentsContainer,
+        config.consumerSignedDocumentsContainer,
         path,
         logger
       );
