@@ -4,7 +4,7 @@ import { z } from "zod";
 const M2MEventCleanerConfig = M2MEventSQLDbConfig.and(
   z
     .object({
-      DELETE_OLDER_THAN_DAYS: z.coerce.number().default(90),
+      DELETE_OLDER_THAN_DAYS: z.coerce.number(),
     })
     .transform((config) => ({
       deleteOlderThanDays: config.DELETE_OLDER_THAN_DAYS,
