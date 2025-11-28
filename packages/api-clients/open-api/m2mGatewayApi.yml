@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: PDND Interoperability API
   x-summary: PDND Interoperability API
-  version: "2.3.0"
+  version: "2.4.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
