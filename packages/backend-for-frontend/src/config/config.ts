@@ -32,11 +32,13 @@ export const AgreementProcessServerConfig = z
     AGREEMENT_PROCESS_URL: APIEndpoint,
     CONSUMER_DOCUMENTS_PATH: z.string(),
     CONSUMER_DOCUMENTS_CONTAINER: z.string(),
+    CONSUMER_SIGNED_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
     consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
     consumerDocumentsContainer: c.CONSUMER_DOCUMENTS_CONTAINER,
+    consumerSignedDocumentsContainer: c.CONSUMER_SIGNED_DOCUMENTS_CONTAINER,
   }));
 export type AgreementProcessServerConfig = z.infer<
   typeof AgreementProcessServerConfig
@@ -72,12 +74,15 @@ export const PurposeProcessServerConfig = z
   .object({
     PURPOSE_PROCESS_URL: APIEndpoint,
     RISK_ANALYSIS_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_SIGNED_DOCUMENTS_CONTAINER: z.string(),
     RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     purposeUrl: c.PURPOSE_PROCESS_URL,
     riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCUMENTS_CONTAINER,
     riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+    riskAnalysisSignedDocumentsContainer:
+      c.RISK_ANALYSIS_SIGNED_DOCUMENTS_CONTAINER,
   }));
 export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
@@ -129,10 +134,12 @@ export const DelegationProcessServerConfig = z
   .object({
     DELEGATION_PROCESS_URL: APIEndpoint,
     DELEGATION_CONTRACTS_CONTAINER: z.string(),
+    DELEGATION_SIGNED_CONTRACTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     delegationProcessUrl: c.DELEGATION_PROCESS_URL,
     delegationContractsContainer: c.DELEGATION_CONTRACTS_CONTAINER,
+    delegationSignedContractsContainer: c.DELEGATION_SIGNED_CONTRACTS_CONTAINER,
   }));
 export type DelegationProcessServerConfig = z.infer<
   typeof DelegationProcessServerConfig

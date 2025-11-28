@@ -909,7 +909,7 @@ export function purposeServiceBuilder(
         });
 
       return await fileManager.get(
-        config.riskAnalysisDocumentsContainer,
+        config.riskAnalysisSignedDocumentsContainer,
         signedDocument.path,
         logger
       );
