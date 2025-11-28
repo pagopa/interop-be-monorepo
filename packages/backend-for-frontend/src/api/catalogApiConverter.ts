@@ -87,6 +87,7 @@ export function toBffCatalogApiEService(
         }
       : {}),
     hasUnreadNotifications: hasNotifications,
+    personalData: eservice.personalData,
   };
 }
 
