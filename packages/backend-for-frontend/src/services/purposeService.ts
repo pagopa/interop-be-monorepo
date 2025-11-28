@@ -4,6 +4,7 @@ import {
   removeDuplicates,
   UIAuthData,
   assertFeatureFlagEnabled,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -205,7 +206,13 @@ export function purposeServiceBuilder(
     );
 
     const hasNotifications = notifications.includes(purpose.id);
-    const isDocumentReady = currentVersion?.signedContract !== undefined;
+
+    const isDocumentReady = isFeatureFlagEnabled(
+      config,
+      "featureFlagUseSignedDocument"
+    )
+      ? currentVersion?.signedContract !== undefined
+      : currentVersion?.riskAnalysis !== undefined;
 
     return {
       id: purpose.id,
@@ -815,19 +822,22 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
-      const riskAnalysisRuleset = purpose.riskAnalysisForm?.version
-        ? await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion(
-            {
-              params: {
-                riskAnalysisVersion: purpose.riskAnalysisForm?.version,
-              },
-              headers,
-              queries: {
-                eserviceId: purpose.eserviceId,
-              },
-            }
-          )
-        : undefined;
+      // retrieve risk analysis ruleset only if the requester is the consumer
+      const riskAnalysisRuleset =
+        purpose.riskAnalysisForm?.version &&
+        authData.organizationId === purpose.consumerId
+          ? await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion(
+              {
+                params: {
+                  riskAnalysisVersion: purpose.riskAnalysisForm.version,
+                },
+                headers,
+                queries: {
+                  eserviceId: purpose.eserviceId,
+                },
+              }
+            )
+          : undefined;
 
       return await enhancePurpose(
         authData,
@@ -899,7 +909,7 @@ export function purposeServiceBuilder(
         });
 
       return await fileManager.get(
-        config.riskAnalysisDocumentsContainer,
+        config.riskAnalysisSignedDocumentsContainer,
         signedDocument.path,
         logger
       );
