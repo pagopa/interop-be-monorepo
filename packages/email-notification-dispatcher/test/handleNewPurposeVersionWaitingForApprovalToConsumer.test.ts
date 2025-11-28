@@ -2,6 +2,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
   getMockContext,
+  getMockDescriptor,
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
@@ -10,6 +11,7 @@ import {
 import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
+  descriptorState,
   EService,
   EServiceId,
   generateId,
@@ -280,7 +282,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
   it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
     const olderDescriptor = {
-      ...getMockDescriptorPublished(),
+      ...getMockDescriptor(descriptorState.deprecated),
       dailyCallsPerConsumer: 500,
       version: "1",
       publishedAt: new Date("2023-01-01"),

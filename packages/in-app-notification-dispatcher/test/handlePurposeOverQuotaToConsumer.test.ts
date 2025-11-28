@@ -6,6 +6,7 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockTenant,
+  getMockDescriptor,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -15,6 +16,7 @@ import {
   PurposeId,
   toPurposeV2,
   purposeVersionState,
+  descriptorState,
 } from "pagopa-interop-models";
 import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handlePurposeOverQuotaToConsumer } from "../src/handlers/purposes/handlePurposeOverQuotaToConsumer.js";
@@ -191,7 +193,7 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
   it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
     const olderDescriptor = {
-      ...getMockDescriptorPublished(),
+      ...getMockDescriptor(descriptorState.deprecated),
       dailyCallsPerConsumer: 500,
       version: "1",
       publishedAt: new Date("2023-01-01"),
