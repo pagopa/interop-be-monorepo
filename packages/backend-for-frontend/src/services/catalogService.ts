@@ -16,6 +16,7 @@ import {
   createPollingByCondition,
   formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
+  getRulesetExpiration,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
@@ -40,7 +41,7 @@ import {
   toCatalogCreateEServiceSeed,
   toCompactProducerDescriptor,
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
-  enhanceRiskAnalysisArray,
+  enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
 import {
   AgreementProcessClient,
@@ -49,7 +50,6 @@ import {
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
-  PurposeProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
@@ -327,7 +327,6 @@ export function catalogServiceBuilder(
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: EServiceTemplateProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
-  purposeProcessClient: PurposeProcessClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
@@ -478,9 +477,7 @@ export function catalogServiceBuilder(
         eservice:
           await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
             eservice,
-            producerTenant,
-            purposeProcessClient,
-            headers
+            producerTenant
           ),
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
@@ -537,6 +534,13 @@ export function catalogServiceBuilder(
           headers,
         });
 
+      const producer = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+
       await assertRequesterCanActAsProducer(
         delegationProcessClient,
         headers,
@@ -550,11 +554,9 @@ export function catalogServiceBuilder(
         description: eservice.description,
         technology: eservice.technology,
         mode: eservice.mode,
-        riskAnalysis: await enhanceRiskAnalysisArray(
+        riskAnalysis: await enhanceEServiceRiskAnalysisArray(
           eservice.riskAnalysis,
-          unsafeBrandId<EServiceId>(eservice.id),
-          purposeProcessClient,
-          headers
+          producer.kind
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
@@ -1006,9 +1008,7 @@ export function catalogServiceBuilder(
           producerTenant,
           agreement,
           requesterTenant,
-          consumerDelegators,
-          purposeProcessClient,
-          headers
+          consumerDelegators
         ),
       };
     },
@@ -1123,19 +1123,21 @@ export function catalogServiceBuilder(
           headers,
         });
 
+      const producer = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
-      const ruleset =
-        await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion({
-          params: {
-            riskAnalysisVersion: riskAnalysis.riskAnalysisForm.version,
-          },
-          queries: { eserviceId },
-          headers,
-        });
 
       return toBffCatalogApiEserviceRiskAnalysis(
         riskAnalysis,
-        ruleset.expiration
+        getRulesetExpiration(
+          producer.kind,
+          riskAnalysis.riskAnalysisForm.version
+        )?.toJSON()
       );
     },
     getEServiceDocumentById: async (
