@@ -6,7 +6,7 @@ import {
   attributeInM2MEvent,
   AttributeM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
-import { generateId } from "../../models/src/index.js";
+import { generateId } from "pagopa-interop-models";
 
 export const { cleanup, m2mEventDB } = await setupTestContainersVitest(
   undefined,

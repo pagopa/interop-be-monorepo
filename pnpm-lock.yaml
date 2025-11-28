@@ -3680,9 +3680,6 @@ importers:
       pagopa-interop-m2m-event-db-models:
         specifier: workspace:*
         version: link:../m2m-event-db-models
-      pagopa-interop-readmodel-models:
-        specifier: workspace:*
-        version: link:../readmodel-models
       pg:
         specifier: 8.13.1
         version: 8.13.1

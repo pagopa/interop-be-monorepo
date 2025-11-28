@@ -1,4 +1,5 @@
 import { lt } from "drizzle-orm";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Logger } from "pagopa-interop-commons";
 import {
   agreementInM2MEvent,
@@ -14,10 +15,9 @@ import {
   purposeInM2MEvent,
   tenantInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
-import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
 
 export const deleteOldM2MEvents = async (
-  db: DrizzleReturnType,
+  db: NodePgDatabase,
   deleteOlderThanDays: number,
   loggerInstance: Logger
 ): Promise<number> => {
