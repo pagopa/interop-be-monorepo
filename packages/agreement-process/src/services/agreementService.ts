@@ -1583,12 +1583,6 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      assertExpectedState(
-        agreementId,
-        agreement.state,
-        agreementUpgradableStates
-      );
-
       const agreementWithDocument: Agreement = {
         ...agreement,
         contract: agreementDocument,
