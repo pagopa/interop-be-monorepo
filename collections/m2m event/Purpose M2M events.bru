@@ -1,0 +1,21 @@
+meta {
+  name: Purpose M2M events
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-m2m-event-manager}}/events/purposes?limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  ~lastEventId:
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  X-Correlation-Id: {{correlation-id}}
+}

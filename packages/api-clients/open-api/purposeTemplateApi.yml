@@ -308,7 +308,7 @@ paths:
         "204":
           description: Purpose template deleted
         "403":
-          description: Purpose template is not in Draft state
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -845,25 +845,25 @@ paths:
           content:
             application/problem+json:
               schema:
-          $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
-          $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
-          $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
             application/problem+json:
               schema:
-          $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
