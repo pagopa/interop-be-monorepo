@@ -344,7 +344,7 @@ describe("handlePurposeEvent test", async () => {
       testM2mEventWriterService.insertPurposeM2MEvent
     ).toHaveBeenCalledTimes(3);
 
-    expect(await retrieveAllPurposeM2MEvents()).toHaveLength(2);
+    expect(await retrieveAllPurposeM2MEvents({ limit: 10 })).toHaveLength(2);
   });
 
   it("should throw purposeEServiceNotFound if the purpose e-service is not found in read model", async () => {
@@ -378,6 +378,6 @@ describe("handlePurposeEvent test", async () => {
       testM2mEventWriterService.insertPurposeM2MEvent
     ).toHaveBeenCalledTimes(0);
 
-    expect(await retrieveAllPurposeM2MEvents()).toHaveLength(0);
+    expect(await retrieveAllPurposeM2MEvents({ limit: 10 })).toHaveLength(0);
   });
 });

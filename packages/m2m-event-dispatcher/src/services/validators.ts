@@ -2,13 +2,20 @@ import {
   AgreementEventEnvelopeV2,
   AgreementV2,
   EService,
+  DelegationEventEnvelopeV2,
+  DelegationV2,
   EServiceEventEnvelopeV2,
   EServiceId,
+  EServiceTemplateEventEnvelopeV2,
+  EServiceTemplateV2,
   EServiceV2,
   missingKafkaMessageDataError,
   PurposeEventEnvelopeV2,
   PurposeId,
   PurposeV2,
+  AuthorizationEventEnvelopeV2,
+  ClientV2,
+  ProducerKeychainV2,
 } from "pagopa-interop-models";
 import { purposeEServiceNotFound } from "../models/errors.js";
 
@@ -49,5 +56,49 @@ export function assertPurposeEServiceExists(
 ): asserts eservice is EService {
   if (!eservice) {
     throw purposeEServiceNotFound(eserviceId, purposeId);
+  }
+}
+
+export function assertDelegationExistsInEvent(
+  event: DelegationEventEnvelopeV2
+): asserts event is DelegationEventEnvelopeV2 & {
+  data: { delegation: DelegationV2 };
+} {
+  if (!event.data.delegation) {
+    throw missingKafkaMessageDataError("delegation", event.type);
+  }
+}
+
+export function assertEServiceTemplateExistsInEvent(
+  event: EServiceTemplateEventEnvelopeV2
+): asserts event is EServiceTemplateEventEnvelopeV2 & {
+  data: { eserviceTemplate: EServiceTemplateV2 };
+} {
+  if (!event.data.eserviceTemplate) {
+    throw missingKafkaMessageDataError("eserviceTemplate", event.type);
+  }
+}
+
+export function assertClientExistsInEvent(
+  event: AuthorizationEventEnvelopeV2 & {
+    data: { client?: ClientV2 };
+  }
+): asserts event is AuthorizationEventEnvelopeV2 & {
+  data: { client: ClientV2 };
+} {
+  if (!event.data.client) {
+    throw missingKafkaMessageDataError("client", event.type);
+  }
+}
+
+export function assertProducerKeychainExistsInEvent(
+  event: AuthorizationEventEnvelopeV2 & {
+    data: { producerKeychain?: ProducerKeychainV2 };
+  }
+): asserts event is AuthorizationEventEnvelopeV2 & {
+  data: { producerKeychain: ProducerKeychainV2 };
+} {
+  if (!event.data.producerKeychain) {
+    throw missingKafkaMessageDataError("producerKeychain", event.type);
   }
 }

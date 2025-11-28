@@ -678,7 +678,27 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - DRAFT_PURPOSE_DELETED
+            - WAITING_FOR_APPROVAL_PURPOSE_DELETED
+            - PURPOSE_DELETED_BY_REVOKED_DELEGATION
+            - PURPOSE_ADDED
+            - DRAFT_PURPOSE_UPDATED
+            - NEW_PURPOSE_VERSION_ACTIVATED
+            - NEW_PURPOSE_VERSION_WAITING_FOR_APPROVAL
+            - PURPOSE_ACTIVATED
+            - PURPOSE_ARCHIVED
+            - PURPOSE_VERSION_OVER_QUOTA_UNSUSPENDED
+            - PURPOSE_VERSION_REJECTED
+            - PURPOSE_VERSION_SUSPENDED_BY_CONSUMER
+            - PURPOSE_VERSION_SUSPENDED_BY_PRODUCER
+            - PURPOSE_VERSION_UNSUSPENDED_BY_CONSUMER
+            - PURPOSE_VERSION_UNSUSPENDED_BY_PRODUCER
+            - PURPOSE_WAITING_FOR_APPROVAL
+            - WAITING_FOR_APPROVAL_PURPOSE_VERSION_DELETED
+            - PURPOSE_VERSION_ACTIVATED
+            - PURPOSE_CLONED
+            - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
+            - RISK_ANALYSIS_DOCUMENT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -719,7 +739,26 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - MAINTENANCE_TENANT_DELETED
+            - TENANT_PROMOTED_TO_CERTIFIER
+            - MAINTENANCE_TENANT_UPDATED
+            - TENANT_CERTIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_CERTIFIED_ATTRIBUTE_REVOKED
+            - TENANT_DECLARED_ATTRIBUTE_ASSIGNED
+            - TENANT_DECLARED_ATTRIBUTE_REVOKED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_ADDED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_REMOVED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_ADDED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_REMOVED
+            - TENANT_KIND_UPDATED
+            - TENANT_MAIL_ADDED
+            - TENANT_MAIL_DELETED
+            - TENANT_ONBOARD_DETAILS_UPDATED
+            - TENANT_ONBOARDED
+            - TENANT_VERIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_VERIFIED_ATTRIBUTE_EXPIRATION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_REVOKED
         eventTimestamp:
           type: string
           format: date-time
@@ -783,7 +822,11 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - CONSUMER_DELEGATION_APPROVED
+            - CONSUMER_DELEGATION_REVOKED
+            - CONSUMER_DELEGATION_REJECTED
+            - CONSUMER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -815,7 +858,11 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - PRODUCER_DELEGATION_APPROVED
+            - PRODUCER_DELEGATION_REVOKED
+            - PRODUCER_DELEGATION_REJECTED
+            - PRODUCER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -847,7 +894,10 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - CLIENT_ADDED
+            - CLIENT_DELETED
+            - CLIENT_PURPOSE_ADDED
+            - CLIENT_PURPOSE_REMOVED
         eventTimestamp:
           type: string
           format: date-time
@@ -879,7 +929,10 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - PRODUCER_KEYCHAIN_ADDED
+            - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_ESERVICE_ADDED
+            - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
         eventTimestamp:
           type: string
           format: date-time
@@ -911,11 +964,14 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - CLIENT_KEY_ADDED
+            - CLIENT_KEY_DELETED
         eventTimestamp:
           type: string
           format: date-time
         kid:
+          type: string
+        clientId:
           type: string
           format: uuid
       required:
@@ -923,6 +979,7 @@ components:
         - eventType
         - eventTimestamp
         - kid
+        - clientId
     KeyM2MEvents:
       type: object
       additionalProperties: false
@@ -943,11 +1000,14 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - PRODUCER_KEYCHAIN_KEY_ADDED
+            - PRODUCER_KEYCHAIN_KEY_DELETED
         eventTimestamp:
           type: string
           format: date-time
         kid:
+          type: string
+        producerKeychainId:
           type: string
           format: uuid
       required:
@@ -955,6 +1015,7 @@ components:
         - eventType
         - eventTimestamp
         - kid
+        - producerKeychainId
     ProducerKeyM2MEvents:
       type: object
       additionalProperties: false
@@ -975,7 +1036,30 @@ components:
         eventType:
           type: string
           enum:
-            - TODO # Add actual event types here
+            - ESERVICE_TEMPLATE_DELETED
+            - ESERVICE_TEMPLATE_VERSION_ACTIVATED
+            - ESERVICE_TEMPLATE_ADDED
+            - ESERVICE_TEMPLATE_INTENDED_TARGET_UPDATED
+            - ESERVICE_TEMPLATE_DESCRIPTION_UPDATED
+            - ESERVICE_TEMPLATE_DRAFT_VERSION_DELETED
+            - ESERVICE_TEMPLATE_DRAFT_VERSION_UPDATED
+            - ESERVICE_TEMPLATE_DRAFT_UPDATED
+            - ESERVICE_TEMPLATE_NAME_UPDATED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_ADDED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_DELETED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_SUSPENDED
+            - ESERVICE_TEMPLATE_VERSION_ADDED
+            - ESERVICE_TEMPLATE_VERSION_ATTRIBUTES_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_ADDED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_DELETED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_PUBLISHED
+            - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
+            - ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
         eventTimestamp:
           type: string
           format: date-time
