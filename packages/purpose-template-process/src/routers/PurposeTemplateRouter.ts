@@ -493,7 +493,7 @@ const purposeTemplateRouter = (
             addPurposeTemplateAnswerAnnotationErrorMapper,
             ctx
           );
-          return res.status(errorRes.status).send();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
