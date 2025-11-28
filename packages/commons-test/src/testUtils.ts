@@ -1352,6 +1352,7 @@ export const getMockContextM2M = ({
   authData: {
     systemRole: systemRole.M2M_ROLE,
     organizationId: organizationId || generateId(),
+    clientId: generateId(),
     jti: generateId(),
   },
   serviceName: serviceName || "test",

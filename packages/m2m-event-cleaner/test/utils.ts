@@ -1,14 +1,15 @@
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { inject, afterEach, beforeEach, vi } from "vitest";
 import {
   tenantInM2MEvent,
   TenantM2MEventSQL,
   attributeInM2MEvent,
   AttributeM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { inject, afterEach, beforeEach, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-export const { cleanup, m2mEventDB } = await setupTestContainersVitest(
+export const { cleanup, m2mEventDB: db } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
@@ -19,6 +20,8 @@ export const { cleanup, m2mEventDB } = await setupTestContainersVitest(
   undefined,
   inject("m2mEventDbConfig")
 );
+
+export const m2mEventDB = db as unknown as NodePgDatabase;
 
 beforeEach(() => {
   vi.useFakeTimers();
