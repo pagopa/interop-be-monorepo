@@ -28,6 +28,7 @@ const mockM2MAuthData: M2MAuthData = {
   systemRole: "m2m",
   organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
   jti: generateId(),
+  clientId: generateId(),
 };
 
 const mockInternalAuthData: InternalAuthData = {
