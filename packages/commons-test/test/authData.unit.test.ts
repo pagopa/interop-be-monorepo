@@ -8,7 +8,7 @@ import {
   AuthDataUserInfo,
   M2MAdminAuthData,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 const mockUiAuthData: UIAuthData = {
@@ -17,6 +17,7 @@ const mockUiAuthData: UIAuthData = {
     origin: "IPA",
     value: "5N2TR557",
   },
+  jti: generateId(),
   selfcareId: unsafeBrandId("1962d21c-c701-4805-93f6-53a877898756"),
   organizationId: unsafeBrandId("69e2865e-65ab-4e48-a638-2037a9ee2ee7"),
   userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
@@ -26,14 +27,17 @@ const mockUiAuthData: UIAuthData = {
 const mockM2MAuthData: M2MAuthData = {
   systemRole: "m2m",
   organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
+  jti: generateId(),
 };
 
 const mockInternalAuthData: InternalAuthData = {
   systemRole: "internal",
+  jti: generateId(),
 };
 
 const mockMaintenanceAuthData: MaintenanceAuthData = {
   systemRole: "maintenance",
+  jti: generateId(),
 };
 
 const mockM2MAdminAuthData: M2MAdminAuthData = {
@@ -41,6 +45,7 @@ const mockM2MAdminAuthData: M2MAdminAuthData = {
   organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
   userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
   clientId: unsafeBrandId("e61249fc-fa7e-4aaf-abc7-5bd069cb56d4"),
+  jti: generateId(),
 };
 
 describe("authData", () => {

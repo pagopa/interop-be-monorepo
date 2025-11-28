@@ -27,6 +27,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<M2MAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "m2m",
           organizationId: generateId(),
         },
@@ -91,6 +92,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<InternalAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "internal",
         },
       };
@@ -112,6 +114,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<MaintenanceAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "maintenance",
         },
       };
@@ -132,6 +135,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<M2MAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "m2m",
           organizationId: generateId(),
         },
@@ -199,6 +203,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<InternalAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "internal",
         },
       };
@@ -221,6 +226,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<MaintenanceAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "maintenance",
         },
       };
