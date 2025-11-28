@@ -120,7 +120,6 @@ describe("handleAgreementEvent test", async () => {
                     "AgreementArchivedByConsumer",
                     "AgreementArchivedByUpgrade",
                     "AgreementArchivedByRevokedDelegation",
-                    "AgreementContractGenerated",
                     "AgreementSignedContractGenerated"
                   ),
                   async () => m2mEventVisibility.restricted
@@ -149,6 +148,10 @@ describe("handleAgreementEvent test", async () => {
                       )
                       .exhaustive()
                 )
+                /**
+                 * Not handled events
+                 */
+                .with("AgreementContractGenerated", () => undefined)
                 .exhaustive();
 
               await handleAgreementEvent(
@@ -158,6 +161,14 @@ describe("handleAgreementEvent test", async () => {
                 testM2mEventWriterService,
                 testReadModelService
               );
+
+              if (expectedVisibility === undefined) {
+                expect(
+                  testM2mEventWriterService.insertAgreementM2MEvent
+                ).not.toHaveBeenCalled();
+                return;
+              }
+
               expect(
                 testM2mEventWriterService.insertAgreementM2MEvent
               ).toHaveBeenCalledTimes(1);
@@ -226,6 +237,6 @@ describe("handleAgreementEvent test", async () => {
       testM2mEventWriterService.insertAgreementM2MEvent
     ).toHaveBeenCalledTimes(3);
 
-    expect(await retrieveAllAgreementM2MEvents()).toHaveLength(2);
+    expect(await retrieveAllAgreementM2MEvents({ limit: 10 })).toHaveLength(2);
   });
 });
