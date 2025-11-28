@@ -9,7 +9,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveEservice,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
@@ -31,7 +31,7 @@ export async function handlePurposeOverQuotaToConsumer(
   );
   const purpose = fromPurposeV2(purposeV2Msg);
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
-  const { dailyCallsPerConsumer } = retrieveLatestPublishedDescriptor(eservice);
+  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
 
   const usersWithNotifications = await getNotificationRecipients(
     [purpose.consumerId],

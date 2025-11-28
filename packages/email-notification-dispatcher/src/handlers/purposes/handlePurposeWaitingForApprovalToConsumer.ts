@@ -9,7 +9,7 @@ import {
   eventMailTemplateType,
   retrieveEService,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -43,7 +43,7 @@ export async function handlePurposeWaitingForApprovalToConsumer(
     retrieveEService(purpose.eserviceId, readModelService),
   ]);
 
-  const { dailyCallsPerConsumer } = retrieveLatestPublishedDescriptor(eservice);
+  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
 
   const consumer = await retrieveTenant(purpose.consumerId, readModelService);
 

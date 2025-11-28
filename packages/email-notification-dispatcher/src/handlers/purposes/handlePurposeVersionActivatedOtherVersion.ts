@@ -9,7 +9,7 @@ import {
   eventMailTemplateType,
   retrieveEService,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -51,7 +51,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
     retrieveEService(purpose.eserviceId, readModelService),
   ]);
 
-  const { dailyCallsPerConsumer } = retrieveLatestPublishedDescriptor(eservice);
+  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
 
   const [consumer, producer] = await Promise.all([
     retrieveTenant(purpose.consumerId, readModelService),
