@@ -21,7 +21,6 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId} test", () => {
-  const purposeTemplateId = generateId<PurposeTemplateId>();
   const riskAnalysisTemplate = getMockValidRiskAnalysisFormTemplate(
     tenantKind.PA
   );
@@ -64,33 +63,33 @@ describe("API DELETE /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/
 
   it.each([
     {
-      name: "purpose template id",
-      run: (token: string) =>
-        makeRequest(token, "invalid" as PurposeTemplateId),
+      purposeTemplateId: "invalid-id" as PurposeTemplateId,
+      answerId: generateId<RiskAnalysisSingleAnswerId>(),
+      documentId: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
     },
     {
-      name: "answer id",
-      run: (token: string) =>
-        makeRequest(
-          token,
-          generateId<PurposeTemplateId>(),
-          "invalid" as RiskAnalysisSingleAnswerId
-        ),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+      answerId: "invalid-id" as RiskAnalysisSingleAnswerId,
+      documentId: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
     },
     {
-      name: "document id",
-      run: (token: string) =>
-        makeRequest(
-          token,
-          purposeTemplateId,
-          answer.id,
-          "invalid" as RiskAnalysisTemplateAnswerAnnotationDocumentId
-        ),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+      answerId: generateId<RiskAnalysisSingleAnswerId>(),
+      documentId:
+        "invalid-id" as RiskAnalysisTemplateAnswerAnnotationDocumentId,
     },
-  ])("Should return 400 if an invalid $name is passed", async ({ run }) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await run(token);
+  ])(
+    "Should return 400 if invalid parameters are passed: %s",
+    async ({ purposeTemplateId, answerId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        purposeTemplateId,
+        answerId,
+        documentId
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

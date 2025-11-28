@@ -1,29 +1,3 @@
-import {
-  EServiceDescriptorPurposeTemplate,
-  EServiceId,
-  generateId,
-  PurposeTemplate,
-  PurposeTemplateId,
-  purposeTemplateState,
-  WithMetadata,
-  purposeTemplateEventToBinaryDataV2,
-  ListResult,
-  PurposeTemplateState,
-  RiskAnalysisTemplateAnswer,
-  RiskAnalysisTemplateAnswerAnnotation,
-  RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  RiskAnalysisTemplateAnswerAnnotationDocument,
-  RiskAnalysisSingleAnswerId,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
-  RiskAnalysisTemplateAnswerAnnotationId,
-  TenantKind,
-  unsafeBrandId,
-  EService,
-  DescriptorId,
-} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
@@ -38,22 +12,51 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import {
+  DescriptorId,
+  EService,
+  EServiceDescriptorPurposeTemplate,
+  EServiceId,
+  generateId,
+  ListResult,
+  PurposeTemplate,
+  purposeTemplateEventToBinaryDataV2,
+  PurposeTemplateId,
+  purposeTemplateState,
+  PurposeTemplateState,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
+  TenantKind,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  purposeTemplateNotFound,
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
+  invalidAssociatedEServiceForPublication,
+  purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
   tenantNotAllowed,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
-  toCreateEventPurposeTemplateArchived,
   toCreateEventPurposeTemplateAnnotationDocumentDeleted,
+  toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
+  toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated,
+  toCreateEventPurposeTemplateArchived,
   toCreateEventPurposeTemplateDraftDeleted,
   toCreateEventPurposeTemplateDraftUpdated,
   toCreateEventPurposeTemplateEServiceLinked,
@@ -61,8 +64,6 @@ import {
   toCreateEventPurposeTemplatePublished,
   toCreateEventPurposeTemplateSuspended,
   toCreateEventPurposeTemplateUnsuspended,
-  toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
-  toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated,
 } from "../model/domain/toEvent.js";
 import {
   addAnnotationDocumentToUpdatedAnswerIfNeeded,
@@ -77,27 +78,28 @@ import {
 import {
   assertActivatableState,
   assertAnnotationDocumentIsUnique,
-  assertArchivableState,
-  assertConsistentFreeOfCharge,
-  assertEServiceIdsCountIsBelowThreshold,
-  assertPurposeTemplateStateIsValid,
-  assertPurposeTemplateIsDraft,
-  assertPurposeTemplateHasRiskAnalysisForm,
-  validateRiskAnalysisAnswerAnnotationOrThrow,
-  assertPurposeTemplateTitleIsNotDuplicated,
-  assertRequesterIsCreator,
-  assertDocumentsLimitsNotReached,
-  validateAndTransformRiskAnalysisTemplate,
-  validateEservicesAssociations,
-  validateEservicesDisassociations,
-  validateRiskAnalysisTemplateOrThrow,
-  assertSuspendableState,
-  validateRiskAnalysisAnswerOrThrow,
   assertAnnotationDocumentPrettyNameIsUnique,
   assertAnswerExistsInRiskAnalysisTemplate,
+  assertArchivableState,
+  assertConsistentFreeOfCharge,
+  assertDocumentsLimitsNotReached,
+  assertEServiceIdsCountIsBelowThreshold,
+  assertPurposeTemplateHasRiskAnalysisForm,
+  assertPurposeTemplateIsDraft,
+  assertPurposeTemplateStateIsValid,
+  assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterIsCreator,
+  assertSuspendableState,
   hasRoleToAccessDraftPurposeTemplates,
-  isRequesterCreator,
   isPurposeTemplateDraft,
+  isRequesterCreator,
+  validateAndTransformRiskAnalysisTemplate,
+  validateAssociatedEserviceForPublication,
+  validateEservicesAssociations,
+  validateEservicesDisassociations,
+  validateRiskAnalysisAnswerAnnotationOrThrow,
+  validateRiskAnalysisAnswerOrThrow,
+  validateRiskAnalysisTemplateOrThrow,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -158,24 +160,29 @@ function retrieveAnswerAnnotation(
   return answer.annotation;
 }
 
-async function retrieveAnswerAnnotationDocument(
-  purposeTemplateId: PurposeTemplateId,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  readModelService: ReadModelServiceSQL
-): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+async function retrieveAnswerAnnotationDocument({
+  purposeTemplateId,
+  answerId,
+  documentId,
+  readModelService,
+}: {
+  purposeTemplateId: PurposeTemplateId;
+  answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  readModelService: ReadModelServiceSQL;
+}): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
   const annotationDocument =
     await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
 
   if (!annotationDocument) {
     throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
       purposeTemplateId,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
   }
 
@@ -430,8 +437,8 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
   if (!removedAnnotationDocument) {
     throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
       purposeTemplate.data.id,
-      answerId,
-      documentId
+      documentId,
+      answerId
     );
   }
 
@@ -500,6 +507,18 @@ async function activatePurposeTemplate({
 
   assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
   assertActivatableState(purposeTemplate.data, expectedInitialState);
+
+  const eserviceStateValidationIssues =
+    await validateAssociatedEserviceForPublication(
+      readModelService,
+      purposeTemplate.data.id
+    );
+
+  if (eserviceStateValidationIssues.length > 0) {
+    throw invalidAssociatedEServiceForPublication(
+      eserviceStateValidationIssues
+    );
+  }
 
   validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate:
@@ -672,7 +691,7 @@ export function purposeTemplateServiceBuilder(
         documentId,
       }: {
         purposeTemplateId: PurposeTemplateId;
-        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
         documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       },
       {
@@ -681,7 +700,9 @@ export function purposeTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       logger.info(
-        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}${
+          answerId ? ` and answer ${answerId}` : ""
+        }`
       );
 
       const purposeTemplate = applyVisibilityToPurposeTemplate(
@@ -689,13 +710,48 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      assertAnswerExistsInRiskAnalysisTemplate(purposeTemplate.data, answerId);
+      if (answerId) {
+        assertAnswerExistsInRiskAnalysisTemplate(
+          purposeTemplate.data,
+          answerId
+        );
+      }
 
-      return await retrieveAnswerAnnotationDocument(
+      return await retrieveAnswerAnnotationDocument({
         purposeTemplateId,
         answerId,
         documentId,
-        readModelService
+        readModelService,
+      });
+    },
+    async getRiskAnalysisTemplateAnnotationDocuments(
+      purposeTemplateId: PurposeTemplateId,
+      {
+        offset,
+        limit,
+      }: purposeTemplateApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
+    ): Promise<
+      ListResult<{
+        answerId: string;
+        document: RiskAnalysisTemplateAnswerAnnotationDocument;
+      }>
+    > {
+      logger.info(
+        `Retrieving risk analysis template annotation documents for purpose template ${purposeTemplateId}`
+      );
+
+      applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
+      );
+
+      return readModelService.getRiskAnalysisTemplateAnnotationDocuments(
+        purposeTemplateId,
+        { offset, limit }
       );
     },
     async getPurposeTemplateEServiceDescriptors(
@@ -1191,12 +1247,12 @@ export function purposeTemplateServiceBuilder(
         purposeTemplate.data.id
       );
 
-      const oldAnnotationDocument = await retrieveAnswerAnnotationDocument(
+      const oldAnnotationDocument = await retrieveAnswerAnnotationDocument({
         purposeTemplateId,
         answerId,
         documentId,
-        readModelService
-      );
+        readModelService,
+      });
 
       const newAnnotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument =
         {
@@ -1259,7 +1315,7 @@ export function purposeTemplateServiceBuilder(
     async addRiskAnalysisAnswerAnnotation(
       purposeTemplateId: PurposeTemplateId,
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-      riskAnalysisTemplateAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText,
+      riskAnalysisTemplateAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationSeed,
       {
         logger,
         correlationId,
@@ -1281,25 +1337,22 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateState.draft,
       ]);
 
-      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+      validateRiskAnalysisAnswerAnnotationOrThrow(
+        riskAnalysisTemplateAnswerAnnotationRequest.text
+      );
 
-      const answerAndAnnotation = findAnswerAndAnnotation(
+      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+      const existingAnswerAndAnnotation = findAnswerAndAnnotation(
         riskAnalysisForm,
         answerId
       );
 
-      if (answerAndAnnotation.annotation) {
-        validateRiskAnalysisAnswerAnnotationOrThrow(
-          answerAndAnnotation.annotation.text
-        );
-      }
-
       const newAnnotation: RiskAnalysisTemplateAnswerAnnotation =
-        answerAndAnnotation.annotation
+        existingAnswerAndAnnotation.annotation
           ? {
-              id: answerAndAnnotation.annotation.id,
+              id: existingAnswerAndAnnotation.annotation.id,
               text: riskAnalysisTemplateAnswerAnnotationRequest.text,
-              docs: answerAndAnnotation.annotation.docs,
+              docs: existingAnswerAndAnnotation.annotation.docs,
             }
           : {
               id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),

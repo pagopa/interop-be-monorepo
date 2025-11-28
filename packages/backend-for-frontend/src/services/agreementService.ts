@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import {
   FileManager,
   getAllFromPaginated,
+  isFeatureFlagEnabled,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -307,7 +308,7 @@ export function agreementServiceBuilder(
       const path = agreement.signedContract.path;
 
       const documentBytes = await fileManager.get(
-        config.consumerDocumentsContainer,
+        config.consumerSignedDocumentsContainer,
         path,
         logger
       );
@@ -864,6 +865,12 @@ export async function enrichAgreement(
     suspendedAt: agreement.suspendedAt,
     consumerNotes: agreement.consumerNotes,
     rejectionReason: agreement.rejectionReason,
+    isDocumentReady: isFeatureFlagEnabled(
+      config,
+      "featureFlagUseSignedDocument"
+    )
+      ? agreement.signedContract !== undefined
+      : agreement.contract !== undefined,
   };
 }
 

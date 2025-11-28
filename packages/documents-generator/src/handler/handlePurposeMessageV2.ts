@@ -132,6 +132,11 @@ export async function handlePurposeMessageV2(
           ...contract,
           createdAt: contract.createdAt.toISOString(),
         };
+
+        logger.info(
+          `purpose version document generated with id ${contractWithIsoString.id}`
+        );
+
         const token = (await refreshableToken.get()).serialized;
         await purposeProcessClient.addUnsignedRiskAnalysisDocumentMetadata(
           contractWithIsoString,

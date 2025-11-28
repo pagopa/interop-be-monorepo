@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
+
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   EServiceEventEnvelopeV2,
@@ -16,6 +18,7 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -83,7 +86,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         eserviceV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -105,7 +108,8 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -136,7 +140,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         eserviceV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -157,7 +161,8 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });
@@ -191,7 +196,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         eserviceV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 

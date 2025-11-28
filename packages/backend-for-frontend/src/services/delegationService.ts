@@ -331,10 +331,11 @@ export function delegationServiceBuilder(
 
     async getDelegationSignedContract(
       delegationId: DelegationId,
+      contractId: DelegationContractId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
       logger.info(
-        `Retrieving delegation signed contract  from delegation ${delegationId}`
+        `Retrieving delegation signed contract from delegation ${delegationId}`
       );
 
       const delegation: delegationApi.Delegation =
@@ -343,15 +344,12 @@ export function delegationServiceBuilder(
           headers,
         });
 
-      const { signedActivationContract, signedRevocationContract } = delegation;
+      const { activationSignedContract, revocationSignedContract } = delegation;
 
-      const signedContracts = [
-        signedActivationContract,
-        signedRevocationContract,
-      ];
+      const contracts = [activationSignedContract, revocationSignedContract];
 
-      const foundSignedContract = signedContracts.find(
-        (contract) => contract != null
+      const foundSignedContract = contracts.find(
+        (contract) => contract?.id === contractId
       );
 
       if (!foundSignedContract) {
@@ -361,7 +359,7 @@ export function delegationServiceBuilder(
       const path = foundSignedContract.path;
 
       const contractBytes = await fileManager.get(
-        config.delegationContractsContainer,
+        config.delegationSignedContractsContainer,
         path,
         logger
       );

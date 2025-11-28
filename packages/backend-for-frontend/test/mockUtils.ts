@@ -40,6 +40,9 @@ export const getMockBffApiDelegation = (): bffApi.Delegation & {
   state: generateMock(bffApi.DelegationState),
   kind: generateMock(bffApi.DelegationKind),
   rejectionReason: generateMock(z.string().optional()),
+  isDocumentReady: generateMock(z.boolean()),
+  activationSignedContract: generateMock(bffApi.SignedDocument.optional()),
+  revocationSignedContract: generateMock(bffApi.SignedDocument.optional()),
 });
 
 export const getMockBffApiAttributeSeed = (): bffApi.AttributeSeed => ({
@@ -498,6 +501,7 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
   hasUnreadNotifications: generateMock(z.boolean()),
   purposeTemplate: generateMock(bffApi.CompactPurposeTemplate.optional()),
+  isDocumentReady: generateMock(z.boolean()),
 });
 
 export const getMockBffApiRiskAnalysisFormConfig =
@@ -1002,6 +1006,7 @@ export const getMockBffApiAgreement = (): bffApi.Agreement & {
   createdAt: generateMock(z.string().datetime({ offset: true })),
   updatedAt: generateMock(z.string().datetime({ offset: true }).optional()),
   suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+  isDocumentReady: generateMock(z.boolean()),
 });
 
 export const getMockBffApiAddAgreementConsumerDocumentBody =

@@ -14,6 +14,7 @@ import { delegationServiceBuilder } from "./services/delegationService.js";
 import { eserviceServiceBuilder } from "./services/eserviceService.js";
 import { eserviceTemplateServiceBuilder } from "./services/eserviceTemplateService.js";
 import { purposeServiceBuilder } from "./services/purposeService.js";
+import { purposeTemplateServiceBuilder } from "./services/purposeTemplateService.js";
 import { tenantServiceBuilder } from "./services/tenantService.js";
 import { keyServiceBuilder } from "./services/keyService.js";
 import { producerKeychainServiceBuilder } from "./services/producerKeychainService.js";
@@ -29,6 +30,7 @@ const services: M2MGatewayServices = {
   eserviceService: eserviceServiceBuilder(clients, fileManager),
   eserviceTemplateService: eserviceTemplateServiceBuilder(clients, fileManager),
   purposeService: purposeServiceBuilder(clients, fileManager),
+  purposeTemplateService: purposeTemplateServiceBuilder(clients, fileManager),
   tenantService: tenantServiceBuilder(clients),
   keyService: keyServiceBuilder(clients),
   producerKeychainService: producerKeychainServiceBuilder(clients),

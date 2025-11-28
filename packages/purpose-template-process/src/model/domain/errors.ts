@@ -37,6 +37,7 @@ export const errorCodes = {
   conflictDuplicatedDocument: "0020",
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
+  invalidAssociatedEServiceForPublicationError: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -69,6 +70,16 @@ export function purposeTemplateNotFound(
     detail: `No Purpose Template found for ID ${purposeTemplateId}`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template Not Found",
+  });
+}
+
+export function invalidAssociatedEServiceForPublication(
+  reasons: PurposeTemplateValidationIssue[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Linked e-service descriptors are not valid for publishing. Reasons: ${reasons}`,
+    code: "invalidAssociatedEServiceForPublicationError",
+    title: "Linked e-service descriptors are not valid for publishing",
   });
 }
 
@@ -167,11 +178,13 @@ export function riskAnalysisTemplateAnswerAnnotationNotFound(
 
 export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   purposeTemplateId: PurposeTemplateId,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
+    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId}${
+      answerId ? ` and answer ${answerId}` : ""
+    }`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
   });
