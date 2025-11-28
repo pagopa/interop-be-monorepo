@@ -197,6 +197,8 @@ await runConsumer(
     config.delegationTopic,
     config.authorizationTopic,
     config.attributeTopic,
+    config.tenantTopic,
+    config.eserviceTemplateTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
