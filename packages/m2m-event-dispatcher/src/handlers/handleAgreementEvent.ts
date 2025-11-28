@@ -45,7 +45,6 @@ export async function handleAgreementEvent(
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
           "AgreementArchivedByRevokedDelegation",
-          "AgreementContractGenerated",
           "AgreementSignedContractGenerated"
         ),
       },
@@ -58,13 +57,25 @@ export async function handleAgreementEvent(
           event.version,
           event.type,
           eventTimestamp,
-          await readModelService.getActiveDelegationsForAgreement(agreement)
+          await readModelService.getActiveDelegationsForAgreementOrPurpose(
+            agreement
+          )
         );
 
         await m2mEventWriterService.insertAgreementM2MEvent(
           toAgreementM2MEventSQL(m2mEvent)
         );
       }
+    )
+    .with(
+      {
+        /**
+         * We avoid exposing the unsigned document generation.
+         * The user will only be able to see only the signed one.
+         */
+        type: P.union("AgreementContractGenerated"),
+      },
+      () => Promise.resolve(void 0)
     )
     .exhaustive();
 }

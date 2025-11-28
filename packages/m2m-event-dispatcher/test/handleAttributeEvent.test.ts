@@ -109,6 +109,6 @@ describe("handleAttributeEvent test", async () => {
       testM2mEventWriterService.insertAttributeM2MEvent
     ).toHaveBeenCalledTimes(3);
 
-    expect(await retrieveAllAttributeM2MEvents()).toHaveLength(2);
+    expect(await retrieveAllAttributeM2MEvents({ limit: 10 })).toHaveLength(2);
   });
 });
