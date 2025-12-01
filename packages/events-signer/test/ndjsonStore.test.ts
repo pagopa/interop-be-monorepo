@@ -6,9 +6,9 @@ import { DelegationEventData } from "../src/models/eventTypes.js";
 
 describe("prepareNdjsonEventData", () => {
   it("should prepare NDJSON data and return file details", async () => {
-    const timestamp1 = "2024-07-30T10:00:00Z";
-    const timestamp2 = "2024-07-31T11:00:00Z";
-    const timestamp3 = "2024-07-11T12:00:00Z";
+    const timestamp1 = new Date("2024-07-30T10:00:00Z");
+    const timestamp2 = new Date("2024-07-31T11:00:00Z");
+    const timestamp3 = new Date("2024-07-11T12:00:00Z");
 
     const mockEvents: DelegationEventData[] = [
       {

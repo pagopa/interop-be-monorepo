@@ -14,6 +14,7 @@ import {
   UIAuthData,
   WithLogger,
   eventRepository,
+  isFeatureFlagEnabled,
   ownership,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
@@ -40,6 +41,7 @@ import {
   CompactTenant,
   CorrelationId,
   DelegationId,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -86,6 +88,7 @@ import {
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
   toCreateEventAgreementDocumentGenerated,
+  toCreateEventAgreementSignedContractGenerated,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -626,7 +629,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreement,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const agreementEvent =
@@ -1378,7 +1382,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreementWithoutContract,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const suspendedByPlatformChanged =
@@ -1558,18 +1563,54 @@ export function agreementServiceBuilder(
       agreementDocument: AgreementDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Adding agreement contract ${agreementId}`);
+      logger.info(
+        `Adding agreement contract to agreement ${agreementId} - document id ${agreementDocument.id}`
+      );
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
       );
 
-      const agreementWithDocument = {
+      const agreementWithDocument: Agreement = {
         ...agreement,
-        agreementDocument,
+        contract: agreementDocument,
       };
       const event = await repository.createEvent(
         toCreateEventAgreementDocumentGenerated(
+          { data: agreementWithDocument, metadata },
+          correlationId
+        )
+      );
+      return {
+        data: agreement,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async internalAddAgreementSignedContract(
+      agreementId: AgreementId,
+      agreementContract: AgreementSignedContract,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(`Adding signed contract to agreement ${agreementId}`);
+      const { data: agreement, metadata } = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+
+      assertExpectedState(
+        agreementId,
+        agreement.state,
+        agreementUpgradableStates
+      );
+
+      const agreementWithDocument: Agreement = {
+        ...agreement,
+        signedContract: agreementContract,
+      };
+      const event = await repository.createEvent(
+        toCreateEventAgreementSignedContractGenerated(
           { data: agreementWithDocument, metadata },
           correlationId
         )
@@ -1728,9 +1769,16 @@ async function addContractOnFirstActivation(
   consumer: Tenant,
   producer: Tenant,
   agreement: Agreement,
-  activeDelegations: ActiveDelegations
+  activeDelegations: ActiveDelegations,
+  logger: Logger
 ): Promise<Agreement> {
-  if (isFirstActivation) {
+  if (
+    isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
+    isFirstActivation
+  ) {
+    logger.info(
+      `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
+    );
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
@@ -1744,7 +1792,9 @@ async function addContractOnFirstActivation(
       contract,
     };
   }
-
+  logger.info(
+    `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: skipping document generation`
+  );
   return agreement;
 }
 

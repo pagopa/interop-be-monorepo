@@ -4,6 +4,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { genericError } from "pagopa-interop-models";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors.js";
 import { toBffCatalogApiEserviceRiskAnalysis } from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
@@ -132,8 +133,16 @@ export function toCatalogCreateEServiceTemplateSeed(
 export function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
   riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
 ): bffApi.EServiceTemplateRiskAnalysis {
+  const tenantKind = riskAnalysis.tenantKind;
+  const rulesetExpiration = getRulesetExpiration(
+    tenantKind,
+    riskAnalysis.riskAnalysisForm.version
+  );
   return {
-    ...toBffCatalogApiEserviceRiskAnalysis(riskAnalysis),
-    tenantKind: riskAnalysis.tenantKind,
+    ...toBffCatalogApiEserviceRiskAnalysis(
+      riskAnalysis,
+      rulesetExpiration?.toJSON()
+    ),
+    tenantKind,
   };
 }

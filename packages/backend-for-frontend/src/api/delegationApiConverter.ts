@@ -12,6 +12,8 @@ import {
   DelegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { isFeatureFlagEnabled } from "pagopa-interop-commons";
+import { config } from "../config/config.js";
 import { toCompactDescriptor } from "./catalogApiConverter.js";
 import { toCompactEserviceLight } from "./agreementApiConverter.js";
 
@@ -66,6 +68,18 @@ export function toBffDelegationApiDelegationDoc(
     createdAt: document.createdAt,
   };
 }
+export function toBffDelegationApiDelegationSignedDoc(
+  document: delegationApi.DelegationSignedContractDocument
+): bffApi.SignedDocument {
+  return {
+    id: document.id,
+    name: document.name,
+    contentType: document.contentType,
+    prettyName: document.prettyName,
+    createdAt: document.createdAt,
+    signedAt: document.signedAt,
+  };
+}
 
 export function toBffDelegationApiDelegation(
   delegation: delegationApi.Delegation,
@@ -75,6 +89,21 @@ export function toBffDelegationApiDelegation(
   _: boolean | undefined,
   producer: tenantApi.Tenant
 ): bffApi.Delegation {
+  const useSignedContracts = isFeatureFlagEnabled(
+    config,
+    "featureFlagUseSignedDocument"
+  );
+  // The document is considered "ready" if the contract required for its current state is signed.
+  // When in the 'revoked' state, only the 'signedRevocationContract' is checked, as the 'signedActivationContract'
+  // is guaranteed to exist as a prerequisite for revocation.
+  const isDocumentReady =
+    delegation.state === toDelegationState(delegationState.revoked)
+      ? useSignedContracts
+        ? delegation.revocationSignedContract !== undefined
+        : delegation.revocationContract !== undefined
+      : useSignedContracts
+      ? delegation.activationSignedContract !== undefined
+      : delegation.activationContract !== undefined;
   return {
     id: delegation.id,
     eservice: eservice && {
@@ -104,6 +133,17 @@ export function toBffDelegationApiDelegation(
     rejectionReason: delegation.rejectionReason,
     state: delegation.state,
     kind: delegation.kind,
+    activationSignedContract: delegation.activationSignedContract
+      ? toBffDelegationApiDelegationSignedDoc(
+          delegation.activationSignedContract
+        )
+      : undefined,
+    revocationSignedContract: delegation.revocationSignedContract
+      ? toBffDelegationApiDelegationSignedDoc(
+          delegation.revocationSignedContract
+        )
+      : undefined,
+    isDocumentReady,
   };
 }
 

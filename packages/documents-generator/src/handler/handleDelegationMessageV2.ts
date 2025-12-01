@@ -79,7 +79,8 @@ export async function handleDelegationMessageV2(
           contract,
           refreshableToken,
           delegation,
-          correlationId
+          correlationId,
+          logger
         );
 
         logger.info(`Delegation event ${msg.type} handled successfully`);
@@ -123,7 +124,8 @@ export async function handleDelegationMessageV2(
           contract,
           refreshableToken,
           delegation,
-          correlationId
+          correlationId,
+          logger
         );
         logger.info(`Delegation event ${msg.type} handled successfully`);
       }
@@ -135,7 +137,8 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
           "ProducerDelegationSubmitted",
-          "DelegationContractGenerated"
+          "DelegationContractGenerated",
+          "DelegationSignedContractGenerated"
         ),
       },
       () => Promise.resolve()
@@ -147,14 +150,17 @@ async function sendContractMetadataToProcess(
   contract: DelegationContractDocument,
   refreshableToken: RefreshableInteropToken,
   delegation: Delegation,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  logger: Logger
 ): Promise<void> {
   const contractWithIsoString = {
     ...contract,
     createdAt: contract.createdAt.toISOString(),
   };
   const token = (await refreshableToken.get()).serialized;
-
+  logger.info(
+    `delegation document generated with id ${contractWithIsoString.id}`
+  );
   await delegationProcessClient.delegation.addUnsignedDelegationContractMetadata(
     contractWithIsoString,
     {

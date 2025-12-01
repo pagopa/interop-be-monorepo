@@ -86,6 +86,10 @@ export async function handleAgreementMessageV2(
         };
         const token = (await refreshableToken.get()).serialized;
 
+        logger.info(
+          `Agreement document generated with id ${contractWithIsoString.id}`
+        );
+
         await agreementProcessClient.addUnsignedAgreementContractMetadata(
           contractWithIsoString,
           {
@@ -121,7 +125,8 @@ export async function handleAgreementMessageV2(
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByPlatform",
           "AgreementRejected",
-          "AgreementContractGenerated"
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       () => Promise.resolve()

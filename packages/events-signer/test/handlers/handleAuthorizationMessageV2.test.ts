@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-let */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
@@ -18,6 +19,7 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -85,7 +87,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     const eventsWithTimestamp = [
       {
         authV2: message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       },
     ];
 
@@ -106,7 +108,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -144,9 +147,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { authV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ authV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -165,7 +166,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -200,9 +202,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { authV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ authV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -221,7 +221,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -256,9 +257,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { authV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ authV2: message, timestamp: new Date() }];
 
     const safeStorageCreateFileSpy = vi.spyOn(safeStorageService, "createFile");
     const safeStorageUploadFileSpy = vi.spyOn(
@@ -277,7 +276,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });
@@ -308,9 +308,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [
-      { authV2: message, timestamp: new Date().toISOString() },
-    ];
+    const eventsWithTimestamp = [{ authV2: message, timestamp: new Date() }];
 
     vi.spyOn(safeStorageService, "createFile").mockRejectedValue(
       new Error("Safe Storage API error")

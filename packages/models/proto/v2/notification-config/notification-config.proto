@@ -27,6 +27,8 @@ message NotificationConfigV2 {
 
   bool clientKeyAddedDeletedToClientUsers = 20;
   bool producerKeychainKeyAddedDeletedToClientUsers = 21;
+  bool purposeQuotaAdjustmentRequestToProducer = 22;
+  bool purposeOverQuotaStateToConsumer = 23;
 }
 
 message TenantNotificationConfigV2 {

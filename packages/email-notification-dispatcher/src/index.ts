@@ -86,7 +86,7 @@ const templateService = buildHTMLTemplateService();
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 function registerPartial(name: string, path: string): void {
-  const buffer = fs.readFileSync(`${dirname}/..${path}`);
+  const buffer = fs.readFileSync(`${dirname}/${path}`);
   templateService.registerPartial(name, buffer.toString());
 }
 

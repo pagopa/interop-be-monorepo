@@ -275,6 +275,10 @@ export const addOneDelegation = async (
     DelegationDbTable.delegation_contract_document,
     splitResult.contractDocumentsSQL
   );
+  await writeInKpi(
+    DelegationDbTable.delegation_signed_contract_document,
+    splitResult.contractSignedDocumentsSQL
+  );
 };
 
 export const addOneAgreement = async (
@@ -297,6 +301,10 @@ export const addOneAgreement = async (
   await writeInKpi(
     AgreementDbTable.agreement_contract,
     splitResult.contractSQL ? [splitResult.contractSQL] : []
+  );
+  await writeInKpi(
+    AgreementDbTable.agreement_signed_contract,
+    splitResult.signedContractSQL ? [splitResult.signedContractSQL] : []
   );
 };
 

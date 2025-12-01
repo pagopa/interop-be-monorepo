@@ -85,6 +85,12 @@ export const {{@key}}Endpoints = makeApi([
             response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId"))}}
             response: z.instanceof(Buffer),
+		{{else if (and (eq method "get") (eq path "/agreements/:agreementId/signedContract"))}}
+            response: z.instanceof(Buffer),
+		{{else if (and (eq method "get") (eq path "/delegations/:delegationId/signedContract/:contractId"))}}
+            response: z.instanceof(Buffer),
+		{{else if (and (eq method "get") (eq path "/purposes/:purposeId/versions/:versionId/signedDocuments/:documentId"))}}
+            response: z.instanceof(Buffer),
 		{{else}}
 			response: {{{response}}},
 		{{/if}}

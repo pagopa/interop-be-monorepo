@@ -260,7 +260,7 @@ describe("getCatalogEServiceDescriptor", () => {
   vi.spyOn(
     catalogApiConverter,
     "toBffCatalogDescriptorEService"
-  ).mockReturnValue(catalogDescriptorEService);
+  ).mockReturnValue(Promise.resolve(catalogDescriptorEService));
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,

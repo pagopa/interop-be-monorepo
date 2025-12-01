@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import axios from "axios";
-import { createSafeStorageApiClient } from "pagopa-interop-commons";
+import {
+  createSafeStorageApiClient,
+  genericLogger,
+} from "pagopa-interop-commons";
 import { config } from "../src/config/config.js";
 
 vi.mock("axios");
@@ -44,7 +47,7 @@ describe("SafeStorageApiClient - Unit Tests", () => {
     mockAxiosInstance.get.mockResolvedValue({ data: mockResponse });
 
     const client = createSafeStorageApiClient(config);
-    const result = await client.getFile("mock/key.pdf");
+    const result = await client.getFile("mock/key.pdf", false, genericLogger);
 
     expect(mockAxiosInstance.get).toHaveBeenCalledWith(
       "/safe-storage/v1/files/mock/key.pdf",
@@ -68,7 +71,8 @@ describe("SafeStorageApiClient - Unit Tests", () => {
 
     const client = createSafeStorageApiClient(config);
     const result = await client.downloadFileContent(
-      "https://download.example.com/file"
+      "https://download.example.com/file",
+      genericLogger
     );
 
     expect(getSpy).toHaveBeenCalledWith("https://download.example.com/file", {

@@ -81,7 +81,8 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
         fileKind: "RISK_ANALYSIS_DOCUMENT",
         streamId: "purpose-id",
         subObjectId: "version-123",
-      })
+      }),
+      expect.any(Object)
     );
   });
 

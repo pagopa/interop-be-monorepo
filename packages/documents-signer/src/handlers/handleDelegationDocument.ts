@@ -8,14 +8,16 @@ import {
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import {
-  DelegationEventV2,
+  DelegationEventEnvelopeV2,
+  delegationState,
   missingKafkaMessageDataError,
+  toDelegationStateV2,
 } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export async function handleDelegationDocument(
-  decodedMessage: DelegationEventV2,
+  decodedMessage: DelegationEventEnvelopeV2,
   signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService,
   fileManager: FileManager,
@@ -30,8 +32,16 @@ export async function handleDelegationDocument(
         if (!msg.data.delegation) {
           throw missingKafkaMessageDataError("delegation", msg.type);
         }
-        if (msg.data.delegation?.activationContract?.path) {
-          const s3Key = msg.data.delegation.activationContract.path;
+        const isRevokationContractGenerated =
+          msg.data.delegation.state ===
+          toDelegationStateV2(delegationState.revoked);
+
+        const targetContract = isRevokationContractGenerated
+          ? msg.data.delegation?.revocationContract
+          : msg.data.delegation?.activationContract;
+
+        if (targetContract?.path) {
+          const s3Key = targetContract.path;
           const file: Uint8Array = await fileManager.get(
             config.s3Bucket,
             s3Key,
@@ -40,38 +50,43 @@ export async function handleDelegationDocument(
 
           const fileName = path.basename(s3Key);
           const checksum = await calculateSha256Base64(Buffer.from(file));
+          const contentType = "application/pdf";
 
           const safeStorageRequest: FileCreationRequest = {
-            contentType: "application/gzip",
+            contentType,
             documentType: config.safeStorageDocType,
             status: config.safeStorageDocStatus,
             checksumValue: checksum,
           };
 
           const { uploadUrl, secret, key } =
-            await safeStorageService.createFile(safeStorageRequest);
+            await safeStorageService.createFile(safeStorageRequest, logger);
 
           await safeStorageService.uploadFileContent(
             uploadUrl,
             Buffer.from(file),
-            "application/pdf",
+            contentType,
             secret,
-            checksum
+            checksum,
+            logger
           );
 
-          await signatureService.saveDocumentSignatureReference({
-            safeStorageId: key,
-            fileKind: "DELEGATION_CONTRACT",
-            streamId: msg.data.delegation.id,
-            subObjectId: "",
-            contentType: "application/pdf",
-            path: msg.data.delegation.activationContract.path,
-            prettyname: msg.data.delegation.activationContract.prettyName,
-            fileName,
-            version: msg.event_version,
-            createdAt: msg.data.delegation.createdAt,
-            correlationId: "",
-          });
+          await signatureService.saveDocumentSignatureReference(
+            {
+              safeStorageId: key,
+              fileKind: "DELEGATION_CONTRACT",
+              streamId: msg.data.delegation.id,
+              subObjectId: "",
+              contentType,
+              path: targetContract.path,
+              prettyname: targetContract.prettyName,
+              fileName,
+              version: msg.event_version,
+              createdAt: msg.data.delegation.createdAt,
+              correlationId: msg.correlation_id ?? "",
+            },
+            logger
+          );
         }
       }
     )
@@ -85,7 +100,8 @@ export async function handleDelegationDocument(
           "ConsumerDelegationRejected",
           "ConsumerDelegationRevoked",
           "ProducerDelegationApproved",
-          "ConsumerDelegationApproved"
+          "ConsumerDelegationApproved",
+          "DelegationSignedContractGenerated"
         ),
       },
       () => Promise.resolve()

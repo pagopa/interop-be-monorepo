@@ -26,6 +26,7 @@
     "@aws-sdk/client-sqs": "3.840.0",
     "@aws-sdk/s3-request-presigner": "3.842.0",
     "@aws-sdk/client-dynamodb": "3.840.0",
+    "@aws-sdk/util-dynamodb": "3.840.0",
     "@types/adm-zip": "0.5.7",
     "@types/multer": "1.4.13",
     "@zodios/core": "10.9.6",

@@ -56,6 +56,8 @@ function toOutboundDelegationV2(
       delegation.revocationContract &&
       toOuboundDelegationContractDocumentV2(delegation.revocationContract),
     stamps: delegation.stamps && toOutboundStampsV2(delegation.stamps),
+    activationSignedContract: undefined,
+    revocationSignedContract: undefined,
   };
 }
 
@@ -74,6 +76,7 @@ export function toOutboundEventV2(
       { type: "ConsumerDelegationRejected" },
       { type: "ConsumerDelegationRevoked" },
       { type: "DelegationContractGenerated" },
+      { type: "DelegationSignedContractGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
