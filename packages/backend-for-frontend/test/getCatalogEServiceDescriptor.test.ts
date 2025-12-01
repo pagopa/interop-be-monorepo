@@ -17,7 +17,6 @@ import {
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
-  PurposeProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
@@ -236,8 +235,6 @@ describe("getCatalogEServiceDescriptor", () => {
     },
   ]);
 
-  const mockPurposeProcessClient = {} as unknown as PurposeProcessClient;
-
   vi.spyOn(delegationService, "getAllDelegations").mockResolvedValue([]);
 
   vi.spyOn(agreementService, "getLatestAgreement").mockResolvedValue({
@@ -273,7 +270,6 @@ describe("getCatalogEServiceDescriptor", () => {
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
     mockInAppNotificationManagerClient,
-    mockPurposeProcessClient,
     fileManager,
     config
   );
