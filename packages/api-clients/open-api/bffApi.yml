@@ -25571,6 +25571,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        rulesetExpiration:
+          type: string
+          format: date-time
     ProducerEServiceDescriptor:
       type: object
       additionalProperties: false
