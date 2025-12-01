@@ -4,7 +4,6 @@ import {
   TenantId,
   InternalError,
   AgreementId,
-  EServiceTemplateId,
 } from "pagopa-interop-models";
 
 type EmailNotificationDispatcherErrorCode =
@@ -16,6 +15,7 @@ type EmailNotificationDispatcherErrorCode =
   | "descriptorNotFound"
   | "activeProducerDelegationNotFound"
   | "eserviceAgreementsNotFound"
+  | "eserviceWithoutDescriptors"
   | "descriptorPublishedNotFound"
   | "certifierTenantNotFound"
   | "clientKeyNotFound"
@@ -100,12 +100,12 @@ export function descriptorNotFound(
   });
 }
 
-export function descriptorPublishedNotFound(
-  eServiceId: EServiceId | EServiceTemplateId
+export function eserviceWithoutDescriptors(
+  eServiceId: EServiceId
 ): EmailNotificationDispatcherError {
   return new InternalError({
-    detail: `Published descriptor not found in EService ${eServiceId}`,
-    code: "descriptorPublishedNotFound",
+    detail: `EService ${eServiceId} does not have any descriptor`,
+    code: "eserviceWithoutDescriptors",
   });
 }
 
