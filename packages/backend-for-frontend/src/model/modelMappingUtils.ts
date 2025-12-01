@@ -91,6 +91,8 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     delegationSubmittedRevokedToDelegate: "/aderente/deleghe",
     certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
+    purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
+    purposeOverQuotaStateToConsumer: "/fruizione/finalita",
   } as const;
 
 export const Category = z.enum([
@@ -122,6 +124,8 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   delegationSubmittedRevokedToDelegate: "Delegations",
   certifiedVerifiedAttributeAssignedRevokedToAssignee: "AttributesAndKeys",
   producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
+  purposeQuotaAdjustmentRequestToProducer: "Providers",
+  purposeOverQuotaStateToConsumer: "Subscribers",
 };
 
 export const categoryToNotificationTypes: Record<Category, NotificationType[]> =

@@ -101,6 +101,11 @@ describe("updateUserNotificationConfig", () => {
         producerKeychainKeyAddedDeletedToClientUsers:
           !userNotificationConfig.inAppConfig
             .producerKeychainKeyAddedDeletedToClientUsers,
+        purposeQuotaAdjustmentRequestToProducer:
+          !userNotificationConfig.inAppConfig
+            .purposeQuotaAdjustmentRequestToProducer,
+        purposeOverQuotaStateToConsumer:
+          !userNotificationConfig.inAppConfig.purposeOverQuotaStateToConsumer,
       },
       emailConfig: getMockNotificationConfig(),
     };

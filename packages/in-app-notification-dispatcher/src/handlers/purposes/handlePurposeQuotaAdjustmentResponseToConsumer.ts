@@ -2,9 +2,9 @@ import {
   fromPurposeV2,
   missingKafkaMessageDataError,
   PurposeV2,
+  NewNotification,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
-import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
@@ -14,31 +14,37 @@ import {
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
-export async function handlePurposeActivatedRejectedToConsumer(
+export type PurposeQuotaAdjustmentResponseToConsumerType =
+  | "PurposeVersionActivated"
+  | "PurposeVersionRejected";
+
+export async function handlePurposeQuotaAdjustmentResponseToConsumer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  type: "PurposeVersionActivated" | "PurposeVersionRejected"
+  type: PurposeQuotaAdjustmentResponseToConsumerType
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
     throw missingKafkaMessageDataError("purpose", type);
   }
-  logger.info(
-    `Sending in-app notification for handlePurposeActivatedRejectedToConsumer ${purposeV2Msg.id}`
-  );
+
   const purpose = fromPurposeV2(purposeV2Msg);
 
-  // Only send notification if there is only one version (version count = 1)
-  if (purpose.versions.length !== 1) {
+  // Only send notification if there are multiple versions (version count > 1)
+  if (purpose.versions.length <= 1) {
     logger.info(
-      `Purpose ${purpose.id} has more than one version, skipping purposeActivatedRejectedToConsumer notification`
+      `Purpose ${purpose.id} has only one version, skipping purposeQuotaAdjustmentResponseToConsumer notification`
     );
     return [];
   }
 
+  logger.info(
+    `Sending in-app notification for handlePurposeQuotaAdjustmentResponseToConsumer ${purpose.id}`
+  );
+
   const usersWithNotifications = await getNotificationRecipients(
     [purpose.consumerId],
-    "purposeActivatedRejectedToConsumer",
+    "purposeOverQuotaStateToConsumer",
     readModelService,
     logger
   );
@@ -49,31 +55,26 @@ export async function handlePurposeActivatedRejectedToConsumer(
     return [];
   }
 
+  const action = match(type)
+    .with("PurposeVersionActivated", () => "accettato" as const)
+    .with("PurposeVersionRejected", () => "rifiutato" as const)
+    .exhaustive();
+
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
   const producer = await retrieveTenant(eservice.producerId, readModelService);
 
-  const body = match(type)
-    .with("PurposeVersionActivated", () =>
-      inAppTemplates.purposeActivatedToConsumer(
-        purpose.title,
-        producer.name,
-        eservice.name
-      )
-    )
-    .with("PurposeVersionRejected", () =>
-      inAppTemplates.purposeRejectedToConsumer(
-        purpose.title,
-        producer.name,
-        eservice.name
-      )
-    )
-    .exhaustive();
+  const body = inAppTemplates.purposeQuotaAdjustmentResponseToConsumer(
+    producer.name,
+    purpose.title,
+    eservice.name,
+    action
+  );
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
-    notificationType: "purposeActivatedRejectedToConsumer",
+    notificationType: "purposeOverQuotaStateToConsumer",
     entityId: purpose.id,
   }));
 }
