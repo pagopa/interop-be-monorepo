@@ -41,6 +41,8 @@ export const getMockBffApiDelegation = (): bffApi.Delegation & {
   kind: generateMock(bffApi.DelegationKind),
   rejectionReason: generateMock(z.string().optional()),
   isDocumentReady: generateMock(z.boolean()),
+  activationSignedContract: generateMock(bffApi.SignedDocument.optional()),
+  revocationSignedContract: generateMock(bffApi.SignedDocument.optional()),
 });
 
 export const getMockBffApiAttributeSeed = (): bffApi.AttributeSeed => ({
