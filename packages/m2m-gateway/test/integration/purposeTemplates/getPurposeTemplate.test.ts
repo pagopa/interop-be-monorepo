@@ -12,6 +12,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { toM2MGatewayApiPurposeTemplateTargetTenantKind } from "../../../src/api/purposeTemplateApiConverter.js";
 
 describe("getPurposeTemplate", () => {
   const mockApiPurposeTemplateResponse = getMockWithMetadata(
@@ -37,7 +38,9 @@ describe("getPurposeTemplate", () => {
       state: mockApiPurposeTemplateResponse.data.state,
       purposeTitle: mockApiPurposeTemplateResponse.data.purposeTitle,
       targetDescription: mockApiPurposeTemplateResponse.data.targetDescription,
-      targetTenantKind: mockApiPurposeTemplateResponse.data.targetTenantKind,
+      targetTenantKind: toM2MGatewayApiPurposeTemplateTargetTenantKind(
+        mockApiPurposeTemplateResponse.data.targetTenantKind
+      ),
       purposeDescription:
         mockApiPurposeTemplateResponse.data.purposeDescription,
       purposeIsFreeOfCharge:

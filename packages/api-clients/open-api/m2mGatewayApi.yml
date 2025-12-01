@@ -16202,7 +16202,7 @@ paths:
           name: targetTenantKind
           description: Filter Purpose Templates by target tenant kind. If not specified, return Purpose Templates for any tenant kind.
           schema:
-            $ref: "#/components/schemas/TenantKind"
+            $ref: "#/components/schemas/TargetTenantKind"
         - in: query
           name: handlesPersonalData
           description: Filter Purpose Templates by whether they handle personal data. If not specified, return Purpose Templates that both handle and do not handle personal data.
@@ -18891,6 +18891,11 @@ components:
         - PRIVATE
         - GSP
         - SCP
+    TargetTenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
     Tenants:
       type: object
       additionalProperties: false
@@ -19218,7 +19223,7 @@ components:
         targetDescription:
           type: string
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         creatorId:
           type: string
           format: uuid

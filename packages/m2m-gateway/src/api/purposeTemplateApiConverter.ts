@@ -1,4 +1,6 @@
 import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
+import { tenantKind } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export function toGetPurposeTemplatesApiQueryParams(
   params: m2mGatewayApi.GetPurposeTemplatesQueryParams
@@ -25,7 +27,9 @@ export function toM2MGatewayApiPurposeTemplate(
     state: purposeTemplate.state,
     purposeTitle: purposeTemplate.purposeTitle,
     targetDescription: purposeTemplate.targetDescription,
-    targetTenantKind: purposeTemplate.targetTenantKind,
+    targetTenantKind: toM2MGatewayApiPurposeTemplateTargetTenantKind(
+      purposeTemplate.targetTenantKind
+    ),
     purposeDescription: purposeTemplate.purposeDescription,
     purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
     handlesPersonalData: purposeTemplate.handlesPersonalData,
@@ -49,4 +53,18 @@ export function toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument(
       contentType: documentWithAnswerId.document.contentType,
     },
   };
+}
+
+export function toM2MGatewayApiPurposeTemplateTargetTenantKind(
+  targetTenantKind: purposeTemplateApi.TenantKind
+): m2mGatewayApi.TargetTenantKind {
+  return match(targetTenantKind)
+    .with(tenantKind.PA, () => m2mGatewayApi.TargetTenantKind.Enum.PA)
+    .with(
+      tenantKind.SCP,
+      tenantKind.GSP,
+      tenantKind.PRIVATE,
+      () => m2mGatewayApi.TargetTenantKind.Enum.PRIVATE
+    )
+    .exhaustive();
 }

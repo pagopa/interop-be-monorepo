@@ -9,6 +9,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { toM2MGatewayApiPurposeTemplateTargetTenantKind } from "../../../src/api/purposeTemplateApiConverter.js";
 
 describe("getPurposeTemplates", () => {
   const mockParams: m2mGatewayApi.GetPurposeTemplatesQueryParams = {
@@ -58,7 +59,9 @@ describe("getPurposeTemplates", () => {
       state: mockApiPurposeTemplate1.state,
       purposeTitle: mockApiPurposeTemplate1.purposeTitle,
       targetDescription: mockApiPurposeTemplate1.targetDescription,
-      targetTenantKind: mockApiPurposeTemplate1.targetTenantKind,
+      targetTenantKind: toM2MGatewayApiPurposeTemplateTargetTenantKind(
+        mockApiPurposeTemplate1.targetTenantKind
+      ),
       purposeDescription: mockApiPurposeTemplate1.purposeDescription,
       purposeIsFreeOfCharge: mockApiPurposeTemplate1.purposeIsFreeOfCharge,
       handlesPersonalData: mockApiPurposeTemplate1.handlesPersonalData,
@@ -75,7 +78,9 @@ describe("getPurposeTemplates", () => {
       state: mockApiPurposeTemplate2.state,
       purposeTitle: mockApiPurposeTemplate2.purposeTitle,
       targetDescription: mockApiPurposeTemplate2.targetDescription,
-      targetTenantKind: mockApiPurposeTemplate2.targetTenantKind,
+      targetTenantKind: toM2MGatewayApiPurposeTemplateTargetTenantKind(
+        mockApiPurposeTemplate2.targetTenantKind
+      ),
       purposeDescription: mockApiPurposeTemplate2.purposeDescription,
       purposeIsFreeOfCharge: mockApiPurposeTemplate2.purposeIsFreeOfCharge,
       handlesPersonalData: mockApiPurposeTemplate2.handlesPersonalData,
