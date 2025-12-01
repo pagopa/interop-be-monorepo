@@ -2,18 +2,17 @@ import { EServiceId, InternalError } from "pagopa-interop-models";
 
 type InAppNotificationDispatcherErrorCode =
   | "tenantNotFound"
-  | "descriptorPublishedNotFound"
   | "eserviceNotFound"
   | "activeProducerDelegationNotFound"
   | "purposeNotFound"
-  | "descriptorNotFound"
   | "purposeNotFound"
   | "clientKeyNotFound"
   | "producerKeychainKeyNotFound"
   | "attributeNotFound"
   | "certifierTenantNotFound"
   | "attributeOriginUndefined"
-  | "attributeNotFoundInTenant";
+  | "attributeNotFoundInTenant"
+  | "eserviceWithoutDescriptors";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
@@ -36,15 +35,6 @@ export function tenantNotFound(
   });
 }
 
-export function descriptorPublishedNotFound(
-  eServiceId: string
-): InAppNotificationDispatcherError {
-  return new InternalError({
-    detail: `Published descriptor not found in EService ${eServiceId}`,
-    code: "descriptorPublishedNotFound",
-  });
-}
-
 export function eserviceNotFound(
   eServiceId: string
 ): InAppNotificationDispatcherError {
@@ -63,12 +53,12 @@ export function activeProducerDelegationNotFound(
   });
 }
 
-export function descriptorNotFound(
-  descriptorId: string
+export function eserviceWithoutDescriptors(
+  eServiceId: EServiceId
 ): InAppNotificationDispatcherError {
   return new InternalError({
-    detail: `Descriptor ${descriptorId} not found`,
-    code: "descriptorNotFound",
+    detail: `EService ${eServiceId} does not have any descriptor`,
+    code: "eserviceWithoutDescriptors",
   });
 }
 

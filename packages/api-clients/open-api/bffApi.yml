@@ -23112,6 +23112,11 @@ paths:
           schema:
             type: string
         - in: query
+          name: unread
+          required: false
+          schema:
+            type: boolean
+        - in: query
           name: category
           description: Category to filter notifications
           schema:
@@ -25566,6 +25571,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        rulesetExpiration:
+          type: string
+          format: date-time
     ProducerEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -25964,6 +25972,8 @@ components:
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this e-service
+        personalData:
+          type: boolean
     ClientKind:
       type: string
       enum:
@@ -29105,6 +29115,8 @@ components:
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
+        - purposeOverQuotaStateToConsumer
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -29143,6 +29155,10 @@ components:
         certifiedVerifiedAttributeAssignedRevokedToAssignee:
           type: boolean
         clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+          type: boolean
+        purposeQuotaAdjustmentRequestToProducer:
+          type: boolean
+        purposeOverQuotaStateToConsumer:
           type: boolean
     TenantNotificationConfig:
       type: object

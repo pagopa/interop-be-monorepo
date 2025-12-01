@@ -8,7 +8,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -44,7 +44,7 @@ export async function handleEserviceDescriptorPublished(
       eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
-    retrieveLatestPublishedDescriptor(eservice),
+    retrieveLatestDescriptor(eservice),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
 
