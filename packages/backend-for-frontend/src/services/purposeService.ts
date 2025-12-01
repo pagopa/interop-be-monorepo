@@ -5,6 +5,7 @@ import {
   UIAuthData,
   assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
+  getRulesetExpiration,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -131,7 +132,7 @@ export function purposeServiceBuilder(
     producers: tenantApi.Tenant[],
     consumers: tenantApi.Tenant[],
     purposeTemplate: purposeTemplateApi.PurposeTemplate | undefined,
-    riskAnalysisRuleset: purposeApi.RiskAnalysisFormConfigResponse | undefined,
+    skipRulesetRetrieval: boolean,
     headers: Headers,
     correlationId: CorrelationId,
     notifications: string[]
@@ -214,6 +215,34 @@ export function purposeServiceBuilder(
       ? currentVersion?.signedContract !== undefined
       : currentVersion?.riskAnalysis !== undefined;
 
+    // retrieve risk analysis ruleset only if the requester is:
+    // - the consumer (no delegation): in this case the tenant kind is the consumer's kind
+    // - delegated consumer: in this case the tenant kind is the delegator's kind
+
+    // eslint-disable-next-line functional/no-let
+    let rulesetExpiration: Date | undefined;
+
+    if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
+      if (
+        delegation === undefined &&
+        authData.organizationId === purpose.consumerId
+      ) {
+        rulesetExpiration = getRulesetExpiration(
+          consumer.kind,
+          purpose.riskAnalysisForm.version
+        );
+      } else if (
+        delegation !== undefined &&
+        authData.organizationId === delegation?.delegate.id
+      ) {
+        rulesetExpiration = getRulesetExpiration(
+          delegation.delegator.kind,
+          purpose.riskAnalysisForm.version
+        );
+        rulesetExpiration = undefined;
+      }
+    }
+
     return {
       id: purpose.id,
       title: purpose.title,
@@ -272,7 +301,7 @@ export function purposeServiceBuilder(
         ? toCompactPurposeTemplate(purposeTemplate)
         : undefined,
       isDocumentReady,
-      rulesetExpiration: riskAnalysisRuleset?.expiration,
+      rulesetExpiration: rulesetExpiration?.toJSON(),
     };
   };
 
@@ -368,7 +397,7 @@ export function purposeServiceBuilder(
           producers,
           consumers,
           purposeTemplate,
-          undefined, // NOTE: if we need the rulesetExpiration when retrieving the purposes list, we have to fetch it here
+          true, // NOTE: if we need the rulesetExpiration when retrieving the purposes list, we have to fetch it here
           headers,
           correlationId,
           notifications
@@ -822,23 +851,6 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
-      // retrieve risk analysis ruleset only if the requester is the consumer
-      const riskAnalysisRuleset =
-        purpose.riskAnalysisForm?.version &&
-        authData.organizationId === purpose.consumerId
-          ? await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion(
-              {
-                params: {
-                  riskAnalysisVersion: purpose.riskAnalysisForm.version,
-                },
-                headers,
-                queries: {
-                  eserviceId: purpose.eserviceId,
-                },
-              }
-            )
-          : undefined;
-
       return await enhancePurpose(
         authData,
         purpose,
@@ -846,7 +858,7 @@ export function purposeServiceBuilder(
         [producer],
         [consumer],
         purposeTemplate,
-        riskAnalysisRuleset,
+        false,
         headers,
         correlationId,
         notification
@@ -909,7 +921,7 @@ export function purposeServiceBuilder(
         });
 
       return await fileManager.get(
-        config.riskAnalysisDocumentsContainer,
+        config.riskAnalysisSignedDocumentsContainer,
         signedDocument.path,
         logger
       );

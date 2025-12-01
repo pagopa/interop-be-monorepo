@@ -359,7 +359,7 @@ export function delegationServiceBuilder(
       const path = foundSignedContract.path;
 
       const contractBytes = await fileManager.get(
-        config.delegationContractsContainer,
+        config.delegationSignedContractsContainer,
         path,
         logger
       );
