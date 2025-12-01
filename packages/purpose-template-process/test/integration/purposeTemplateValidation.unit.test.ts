@@ -293,7 +293,7 @@ describe("Purpose Template Validation", () => {
           )
       )
     )(
-      "should return invalid result (invalidDescriptorStateError) when disassociating an eservice that only has invalid descriptor state $s (validateEServiceDescriptors)",
+      "should return invalid result (invalidDescriptorStateError) when disassociating an eservice that only has invalid descriptor state %s (validateEServiceDescriptors)",
       async (invalidState) => {
         const eserviceIds = [eserviceId1];
         const invalidDescriptor = getMockDescriptor(invalidState);
@@ -306,8 +306,8 @@ describe("Purpose Template Validation", () => {
         };
 
         const existingAssociation = {
-          eserviceId: eserviceId1,
-          descriptorId: eserviceWithInvalidDescriptors,
+          eserviceId: eserviceWithInvalidDescriptors.id,
+          descriptorId: invalidDescriptor.id,
           purposeTemplateId: purposeTemplate.id,
         };
 
