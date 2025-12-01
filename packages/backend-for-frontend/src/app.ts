@@ -176,7 +176,6 @@ export async function createServices(
       clients.delegationProcessClient,
       clients.eserviceTemplateProcessClient,
       clients.inAppNotificationManagerClient,
-      clients.purposeProcessClient,
       fileManager,
       config
     ),
