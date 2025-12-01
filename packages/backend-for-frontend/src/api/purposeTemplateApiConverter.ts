@@ -4,6 +4,8 @@ import {
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
+import { tenantKind } from "pagopa-interop-models";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
 export function toBffCreatorPurposeTemplate(
@@ -11,7 +13,9 @@ export function toBffCreatorPurposeTemplate(
 ): bffApi.CreatorPurposeTemplate {
   return {
     id: purposeTemplate.id,
-    targetTenantKind: purposeTemplate.targetTenantKind,
+    targetTenantKind: toBffPurposeTemplateTargetTenantKind(
+      purposeTemplate.targetTenantKind
+    ),
     purposeTitle: purposeTemplate.purposeTitle,
     state: purposeTemplate.state,
   };
@@ -23,7 +27,9 @@ export function toBffCatalogPurposeTemplate(
 ): bffApi.CatalogPurposeTemplate {
   return {
     id: purposeTemplate.id,
-    targetTenantKind: purposeTemplate.targetTenantKind,
+    targetTenantKind: toBffPurposeTemplateTargetTenantKind(
+      purposeTemplate.targetTenantKind
+    ),
     purposeTitle: purposeTemplate.purposeTitle,
     purposeDescription: purposeTemplate.purposeDescription,
     creator: toBffCompactOrganization(creator),
@@ -72,7 +78,9 @@ export function toBffPurposeTemplateWithCompactCreator(
   return {
     id: purposeTemplate.id,
     targetDescription: purposeTemplate.targetDescription,
-    targetTenantKind: purposeTemplate.targetTenantKind,
+    targetTenantKind: toBffPurposeTemplateTargetTenantKind(
+      purposeTemplate.targetTenantKind
+    ),
     state: purposeTemplate.state,
     createdAt: purposeTemplate.createdAt,
     updatedAt: purposeTemplate.updatedAt,
@@ -85,5 +93,42 @@ export function toBffPurposeTemplateWithCompactCreator(
     creator: toBffCompactOrganization(creator),
     handlesPersonalData: purposeTemplate.handlesPersonalData,
     annotationDocuments,
+  };
+}
+
+function toBffPurposeTemplateTargetTenantKind(
+  targetTenantKind: purposeTemplateApi.TenantKind
+): bffApi.TargetTenantKind {
+  return match(targetTenantKind)
+    .with(tenantKind.PA, () => bffApi.TargetTenantKind.Enum.PA)
+    .with(
+      tenantKind.SCP,
+      tenantKind.GSP,
+      tenantKind.PRIVATE,
+      () => bffApi.TargetTenantKind.Enum.PRIVATE
+    )
+    .exhaustive();
+}
+
+export function toBffPurposeTemplate(
+  purposeTemplate: purposeTemplateApi.PurposeTemplate
+): bffApi.PurposeTemplate {
+  return {
+    id: purposeTemplate.id,
+    targetDescription: purposeTemplate.targetDescription,
+    targetTenantKind: toBffPurposeTemplateTargetTenantKind(
+      purposeTemplate.targetTenantKind
+    ),
+    state: purposeTemplate.state,
+    createdAt: purposeTemplate.createdAt,
+    updatedAt: purposeTemplate.updatedAt,
+    purposeTitle: purposeTemplate.purposeTitle,
+    purposeDescription: purposeTemplate.purposeDescription,
+    purposeRiskAnalysisForm: purposeTemplate.purposeRiskAnalysisForm,
+    purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
+    purposeFreeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason,
+    purposeDailyCalls: purposeTemplate.purposeDailyCalls,
+    creatorId: purposeTemplate.creatorId,
+    handlesPersonalData: purposeTemplate.handlesPersonalData,
   };
 }
