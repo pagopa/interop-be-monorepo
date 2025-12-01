@@ -11,6 +11,7 @@ import {
   vi,
   afterEach,
   beforeAll,
+  afterAll,
 } from "vitest";
 import {
   AgreementEventEnvelopeV2,
@@ -100,6 +101,16 @@ describe("handleAgreementMessageV2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+  const currentExecutionTime = new Date();
 
   const testToken = "mockToken";
 
@@ -362,8 +373,8 @@ describe("handleAgreementMessageV2", () => {
       genericLogger
     );
     const expectedPayload = {
-      todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+      todayDate: dateAtRomeZone(currentExecutionTime),
+      todayTime: timeAtRomeZone(currentExecutionTime),
       agreementId: mockAgreement.id,
       submitterId: mockAgreement.stamps.submission!.who,
       submissionDate: dateAtRomeZone(mockAgreement.stamps.submission!.when),
@@ -382,16 +393,24 @@ describe("handleAgreementMessageV2", () => {
 
       certifiedAttributes: [
         {
-          assignmentDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-          assignmentTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+          assignmentDate: dateAtRomeZone(
+            validTenantCertifiedAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validTenantCertifiedAttribute.assignmentTimestamp
+          ),
           attributeName: certifiedAttribute.name,
           attributeId: mockCertifiedAttribute.id,
         },
       ],
       declaredAttributes: [
         {
-          assignmentDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-          assignmentTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+          assignmentDate: dateAtRomeZone(
+            validTenantDeclaredAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validTenantDeclaredAttribute.assignmentTimestamp
+          ),
           attributeName: declaredAttribute.name,
           attributeId: mockTenantDeclaredAttribute.id,
           delegationId: validTenantDeclaredAttribute.delegationId,
@@ -399,15 +418,18 @@ describe("handleAgreementMessageV2", () => {
       ],
       verifiedAttributes: [
         {
-          assignmentDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-          assignmentTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+          assignmentDate: dateAtRomeZone(
+            validTenantVerifiedAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validTenantVerifiedAttribute.assignmentTimestamp
+          ),
           attributeName: verifiedAttribute.name,
           attributeId: verifiedAttribute.id,
           expirationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
           delegationId: undefined,
         },
       ],
-
       producerDelegationId: undefined,
       producerDelegateName: undefined,
       producerDelegateIpaCode: undefined,

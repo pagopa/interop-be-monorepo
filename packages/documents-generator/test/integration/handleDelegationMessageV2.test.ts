@@ -12,6 +12,7 @@ import {
   beforeEach,
   afterEach,
   beforeAll,
+  afterAll,
 } from "vitest";
 import {
   DelegationEventEnvelopeV2,
@@ -80,6 +81,17 @@ describe("handleDelegationMessageV2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  const currentExecutionTime = new Date();
   const testToken = "mockToken";
 
   const testHeaders = {
@@ -449,8 +461,8 @@ describe("handleDelegationMessageV2", () => {
     const expectedPayload = {
       delegationKindText: "all’erogazione",
       delegationActionText: "ad erogare l’",
-      todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+      todayDate: dateAtRomeZone(currentExecutionTime),
+      todayTime: timeAtRomeZone(currentExecutionTime),
       delegationId: mockDelegation.id,
       delegatorName: mockDelegator.name,
       delegatorIpaCode: getIpaCode(mockDelegator),

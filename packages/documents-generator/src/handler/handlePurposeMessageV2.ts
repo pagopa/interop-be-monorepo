@@ -18,6 +18,7 @@ import {
   PDFGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   retrieveEService,
   retrievePurposeDelegation,
@@ -26,7 +27,7 @@ import {
 import { config } from "../config/config.js";
 import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
 import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
-import { eServiceNotFound, tenantKindNotFound } from "../model/errors.js";
+import { tenantKindNotFound } from "../model/errors.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
 import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
@@ -65,12 +66,10 @@ export async function handlePurposeMessageV2(
           purpose.eserviceId,
           readModelService
         );
-        if (!eservice) {
-          throw eServiceNotFound(purpose.eserviceId);
-        }
+
         const [producer, consumer, producerDelegation, consumerDelegation] =
           await Promise.all([
-            retrieveTenant(eservice?.data.producerId, readModelService),
+            retrieveTenant(eservice.data.producerId, readModelService),
             retrieveTenant(purpose.consumerId, readModelService),
             readModelService.getActiveProducerDelegationByEserviceId(
               purpose.eserviceId
@@ -127,7 +126,7 @@ export async function handlePurposeMessageV2(
           tenantKind,
           "it"
         );
-        const contractWithIsoString = {
+        const contractWithIsoString: purposeApi.PurposeVersionDocument = {
           ...contract,
           createdAt: contract.createdAt.toISOString(),
         };

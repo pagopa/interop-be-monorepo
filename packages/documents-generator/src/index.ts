@@ -8,7 +8,6 @@ import {
   PurposeTopicConfig,
   RefreshableInteropToken,
   decodeKafkaMessage,
-  genericLogger,
   initFileManager,
   initPDFGenerator,
   logger,
@@ -180,22 +179,18 @@ function processMessage(
   };
 }
 
-try {
-  await runConsumer(
-    baseConsumerConfig,
-    [config.agreementTopic, config.purposeTopic, config.delegationTopic],
-    processMessage(
-      {
-        agreementTopic: config.agreementTopic,
-      },
-      {
-        purposeTopic: config.purposeTopic,
-      },
-      {
-        delegationTopic: config.delegationTopic,
-      }
-    )
-  );
-} catch (e) {
-  genericLogger.error(`An error occurred during initialization:\n${e}`);
-}
+await runConsumer(
+  baseConsumerConfig,
+  [config.agreementTopic, config.purposeTopic, config.delegationTopic],
+  processMessage(
+    {
+      agreementTopic: config.agreementTopic,
+    },
+    {
+      purposeTopic: config.purposeTopic,
+    },
+    {
+      delegationTopic: config.delegationTopic,
+    }
+  )
+);

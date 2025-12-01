@@ -17,6 +17,7 @@ import {
   RefreshableInteropToken,
   getInteropHeaders,
 } from "pagopa-interop-commons";
+import { delegationApi } from "pagopa-interop-api-clients";
 import { contractBuilder } from "../service/delegation/delegationContractBuilder.js";
 import { config } from "../config/config.js";
 import {
@@ -156,7 +157,7 @@ async function sendContractMetadataToProcess(
   clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
-  const contractWithIsoString = {
+  const contractWithIsoString: delegationApi.DelegationContractDocument = {
     ...contract,
     createdAt: contract.createdAt.toISOString(),
   };

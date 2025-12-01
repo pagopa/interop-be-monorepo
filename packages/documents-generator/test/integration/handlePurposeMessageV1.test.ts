@@ -74,7 +74,7 @@ vi.mock("pagopa-interop-api-clients", () => ({
     }),
   },
 }));
-describe("handleDelegationMessageV1", () => {
+describe("handlePurposeMessageV1", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

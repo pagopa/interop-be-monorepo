@@ -16,6 +16,7 @@ import {
   RefreshableInteropToken,
   getInteropHeaders,
 } from "pagopa-interop-commons";
+import { agreementApi } from "pagopa-interop-api-clients";
 import { agreementContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 import { config } from "../config/config.js";
 
@@ -79,7 +80,7 @@ export async function handleAgreementMessageV1(
           producer,
           activeDelegations
         );
-        const contractWithIsoString = {
+        const contractWithIsoString: agreementApi.Document = {
           ...contract,
           createdAt: contract.createdAt.toISOString(),
         };
