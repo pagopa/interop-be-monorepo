@@ -51,7 +51,7 @@ describe("API POST /purposeTemplates", () => {
       description: "invalid enum value",
       body: {
         ...mockPurposeTemplate,
-        targetTenantKind: "invalidTenantKind" as bffApi.TenantKind,
+        targetTenantKind: "invalidTenantKind" as bffApi.TargetTenantKind,
       },
     },
     {
