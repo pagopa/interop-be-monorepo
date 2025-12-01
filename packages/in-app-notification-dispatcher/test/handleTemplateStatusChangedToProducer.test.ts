@@ -40,7 +40,12 @@ describe("handleTemplateStatusChangedToProducer", async () => {
 
   it("should throw missingKafkaMessageDataError when eserviceTemplate is undefined", async () => {
     await expect(() =>
-      handleTemplateStatusChangedToProducer(undefined, logger, readModelService)
+      handleTemplateStatusChangedToProducer(
+        undefined,
+        generateId(),
+        logger,
+        readModelService
+      )
     ).rejects.toThrow(
       missingKafkaMessageDataError(
         "eserviceTemplate",
@@ -59,6 +64,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
     eserviceTemplate.creatorId = creatorId;
     const notifications = await handleTemplateStatusChangedToProducer(
       toEServiceTemplateV2(eserviceTemplate),
+      eserviceTemplate.versions[0].id,
       logger,
       readModelService
     );
@@ -80,6 +86,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
     eserviceTemplate.creatorId = creatorId;
     const notifications = await handleTemplateStatusChangedToProducer(
       toEServiceTemplateV2(eserviceTemplate),
+      eserviceTemplate.versions[0].id,
       logger,
       readModelService
     );

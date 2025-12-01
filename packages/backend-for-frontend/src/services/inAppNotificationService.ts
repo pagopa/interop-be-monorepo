@@ -13,8 +13,10 @@ export function inAppNotificationServiceBuilder(
   inAppNotificationManagerClient: InAppNotificationManagerClient
 ) {
   return {
+    // eslint-disable-next-line max-params
     getNotifications: (
       q: string | undefined,
+      unread: boolean | undefined,
       category: Category | undefined,
       offset: number,
       limit: number,
@@ -30,6 +32,7 @@ export function inAppNotificationServiceBuilder(
         headers,
         queries: {
           q,
+          unread,
           notificationTypes,
           offset,
           limit,
