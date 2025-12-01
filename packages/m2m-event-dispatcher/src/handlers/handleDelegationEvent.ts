@@ -12,12 +12,14 @@ import {
   toConsumerDelegationM2MEventSQL,
   toProducerDelegationM2MEventSQL,
 } from "../models/delegationM2MEventAdapterSQL.js";
+import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 
 export async function handleDelegationEvent(
   decodedMessage: DelegationEventEnvelopeV2,
   eventTimestamp: Date,
   logger: Logger,
-  m2mEventWriterService: M2MEventWriterServiceSQL
+  m2mEventWriterService: M2MEventWriterServiceSQL,
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   assertDelegationExistsInEvent(decodedMessage);
   const delegation = fromDelegationV2(decodedMessage.data.delegation);
@@ -76,6 +78,26 @@ export async function handleDelegationEvent(
             event.type,
             eventTimestamp
           );
+
+          /**
+           * When a producer delegation is approved, add all producer delegation-related data
+           * from existing m2m events so delegates gain access to past events.
+           */
+          if (event.type === "ProducerDelegationApproved") {
+            const [relatedAgreementsIds, relatedPurposeIds] = await Promise.all(
+              [
+                readModelService.getEServiceAgreementIds(delegation.eserviceId),
+                readModelService.getEServicePurposeIds(delegation.eserviceId),
+              ]
+            );
+            await m2mEventWriterService.addProducerDelegationVisibility(
+              delegation.eserviceId,
+              delegation.id,
+              delegation.delegateId,
+              relatedAgreementsIds,
+              relatedPurposeIds
+            );
+          }
 
           /**
            * When a producer delegation is revoked, remove all producer delegation-related data

@@ -9,6 +9,9 @@ import {
   generateId,
   DelegationId,
   TenantId,
+  AgreementId,
+  PurposeId,
+  EServiceId,
   m2mEventVisibility,
   AgreementM2MEvent,
   PurposeM2MEvent,
@@ -30,6 +33,7 @@ import {
   retrieveLastAgreementM2MEvent,
   retrieveLastPurposeM2MEvent,
   retrieveLastEServiceM2MEvent,
+  testReadModelService,
 } from "./utils.js";
 
 describe("handleDelegationEvent test", async () => {
@@ -127,7 +131,8 @@ describe("handleDelegationEvent test", async () => {
           message,
           eventTimestamp,
           genericLogger,
-          testM2mEventWriterService
+          testM2mEventWriterService,
+          testReadModelService
         );
 
         await match(kind)
@@ -192,7 +197,8 @@ describe("handleDelegationEvent test", async () => {
         message,
         eventTimestamp,
         genericLogger,
-        testM2mEventWriterService
+        testM2mEventWriterService,
+        testReadModelService
       );
 
       // Try to insert the same event again: should be skipped
@@ -200,7 +206,8 @@ describe("handleDelegationEvent test", async () => {
         message,
         eventTimestamp,
         genericLogger,
-        testM2mEventWriterService
+        testM2mEventWriterService,
+        testReadModelService
       );
 
       // Try to insert one with a further resource version: should be inserted
@@ -208,7 +215,8 @@ describe("handleDelegationEvent test", async () => {
         { ...message, version: message.version + 1 },
         eventTimestamp,
         genericLogger,
-        testM2mEventWriterService
+        testM2mEventWriterService,
+        testReadModelService
       );
 
       await match(kind)
@@ -287,7 +295,8 @@ describe("handleDelegationEvent test", async () => {
       message,
       new Date(),
       genericLogger,
-      testM2mEventWriterService
+      testM2mEventWriterService,
+      testReadModelService
     );
 
     expect(
@@ -302,6 +311,110 @@ describe("handleDelegationEvent test", async () => {
 
     expect(purposeM2MEvent.consumerDelegationId).toBeUndefined();
     expect(purposeM2MEvent.consumerDelegateId).toBeUndefined();
+  });
+
+  it("should add producer delegation visibility after ProducerDelegationApproved", async () => {
+    const delegationId = generateId<DelegationId>();
+    const delegateId = generateId<TenantId>();
+    const eserviceId = generateId<EServiceId>();
+    const agreementId = generateId<AgreementId>();
+    const purposeId = generateId<PurposeId>();
+
+    const eserviceEvent: EServiceM2MEvent = {
+      id: generateId(),
+      eserviceId,
+      producerId: generateId(),
+      eventType: "DraftEServiceUpdated",
+      eventTimestamp: new Date(),
+      visibility: m2mEventVisibility.owner,
+      resourceVersion: 1,
+    };
+
+    const agreementEvent: AgreementM2MEvent = {
+      id: generateId(),
+      agreementId,
+      consumerId: generateId(),
+      producerId: generateId(),
+      eventType: "DraftAgreementUpdated",
+      eventTimestamp: new Date(),
+      visibility: m2mEventVisibility.owner,
+      resourceVersion: 1,
+    };
+
+    const purposeEvent: PurposeM2MEvent = {
+      id: generateId(),
+      purposeId,
+      consumerId: generateId(),
+      producerId: generateId(),
+      eventType: "DraftPurposeUpdated",
+      eventTimestamp: new Date(),
+      visibility: m2mEventVisibility.restricted,
+      resourceVersion: 1,
+    };
+
+    await testM2mEventWriterService.insertEServiceM2MEvent(
+      toEServiceM2MEventSQL(eserviceEvent)
+    );
+    await testM2mEventWriterService.insertAgreementM2MEvent(
+      toAgreementM2MEventSQL(agreementEvent)
+    );
+    await testM2mEventWriterService.insertPurposeM2MEvent(
+      toPurposeM2MEventSQL(purposeEvent)
+    );
+
+    const getAgreementsSpy = vi
+      .spyOn(testReadModelService, "getEServiceAgreementIds")
+      .mockResolvedValue([agreementId]);
+    const getPurposesSpy = vi
+      .spyOn(testReadModelService, "getEServicePurposeIds")
+      .mockResolvedValue([purposeId]);
+    const addVisibilitySpy = vi.spyOn(
+      testM2mEventWriterService,
+      "addProducerDelegationVisibility"
+    );
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      id: delegationId,
+      eserviceId,
+      delegateId,
+    });
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: delegation.id,
+      type: "ProducerDelegationApproved",
+      data: { delegation: toDelegationV2(delegation) },
+    } as DelegationEventEnvelopeV2;
+
+    await handleDelegationEvent(
+      message,
+      new Date(),
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    expect(getAgreementsSpy).toHaveBeenCalledWith(eserviceId);
+    expect(getPurposesSpy).toHaveBeenCalledWith(eserviceId);
+    expect(addVisibilitySpy).toHaveBeenCalledWith(
+      eserviceId,
+      delegationId,
+      delegation.delegateId,
+      [agreementId],
+      [purposeId]
+    );
+
+    const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
+    const agreementM2MEvent = await retrieveLastAgreementM2MEvent();
+    const purposeM2MEvent = await retrieveLastPurposeM2MEvent();
+
+    expect(eserviceM2MEvent.producerDelegationId).toBe(delegationId);
+    expect(eserviceM2MEvent.producerDelegateId).toBe(delegation.delegateId);
+    expect(agreementM2MEvent.producerDelegationId).toBe(delegationId);
+    expect(agreementM2MEvent.producerDelegateId).toBe(delegation.delegateId);
+    expect(purposeM2MEvent.producerDelegationId).toBe(delegationId);
+    expect(purposeM2MEvent.producerDelegateId).toBe(delegation.delegateId);
   });
 
   it("should clear producer delegation fields in existing events after ProducerDelegationRevoked", async () => {
@@ -372,7 +485,8 @@ describe("handleDelegationEvent test", async () => {
       message,
       new Date(),
       genericLogger,
-      testM2mEventWriterService
+      testM2mEventWriterService,
+      testReadModelService
     );
 
     expect(

@@ -34,6 +34,8 @@ import {
 import {
   delegationReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+  agreementReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertDelegation,
@@ -63,6 +65,8 @@ export const testM2mEventWriterService =
 export const testReadModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: delegationReadModelServiceBuilder(readModelDB),
   catalogReadModelServiceSQL: catalogReadModelServiceBuilder(readModelDB),
+  purposeReadModelServiceSQL: purposeReadModelServiceBuilder(readModelDB),
+  agreementReadModelServiceSQL: agreementReadModelServiceBuilder(readModelDB),
 });
 
 export const getMockEventEnvelopeCommons = () => ({

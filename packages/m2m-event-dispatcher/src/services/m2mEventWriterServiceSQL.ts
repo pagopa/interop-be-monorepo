@@ -25,7 +25,14 @@ import {
   TenantM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { SQL, eq, and } from "drizzle-orm";
+import { SQL, eq, and, inArray } from "drizzle-orm";
+import {
+  AgreementId,
+  DelegationId,
+  EServiceId,
+  PurposeId,
+  TenantId,
+} from "pagopa-interop-models";
 import { isResourceVersionPresent } from "../utils/m2mEventSQLUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -251,6 +258,48 @@ export function m2mEventWriterServiceSQLBuilder(
           tx,
           eserviceInM2MEvent,
           delegationId
+        );
+      });
+    },
+    async addProducerDelegationVisibility(
+      eserviceId: EServiceId,
+      delegationId: DelegationId,
+      delegateId: TenantId,
+      relatedAgreementsIds: AgreementId[],
+      relatedPurposeIds: PurposeId[]
+    ): Promise<void> {
+      async function addProducerDelegationInTable(
+        tx: Tx,
+        table:
+          | typeof eserviceInM2MEvent
+          | typeof agreementInM2MEvent
+          | typeof purposeInM2MEvent,
+        filter: SQL<unknown>
+      ): Promise<void> {
+        await tx
+          .update(table)
+          .set({
+            producerDelegationId: delegationId,
+            producerDelegateId: delegateId,
+          } as Partial<typeof table.$inferInsert>)
+          .where(filter);
+      }
+
+      await m2mEventDB.transaction(async (tx) => {
+        await addProducerDelegationInTable(
+          tx,
+          agreementInM2MEvent,
+          inArray(agreementInM2MEvent.agreementId, relatedAgreementsIds)
+        );
+        await addProducerDelegationInTable(
+          tx,
+          purposeInM2MEvent,
+          inArray(purposeInM2MEvent.purposeId, relatedPurposeIds)
+        );
+        await addProducerDelegationInTable(
+          tx,
+          eserviceInM2MEvent,
+          eq(eserviceInM2MEvent.eserviceId, eserviceId)
         );
       });
     },

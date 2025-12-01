@@ -19,9 +19,11 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
+  purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
@@ -60,10 +62,15 @@ const readModelDB = makeDrizzleConnection(config);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  purposeReadModelServiceSQL,
+  agreementReadModelServiceSQL,
 });
 
 const m2mEventDB = drizzle(

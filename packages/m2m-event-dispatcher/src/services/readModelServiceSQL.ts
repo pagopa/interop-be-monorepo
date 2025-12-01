@@ -1,10 +1,12 @@
 import { and, eq } from "drizzle-orm";
 import {
   Agreement,
+  AgreementId,
   Delegation,
   EService,
   EServiceId,
   Purpose,
+  PurposeId,
   TenantId,
   delegationKind,
   delegationState,
@@ -12,17 +14,27 @@ import {
 import {
   DelegationReadModelService,
   CatalogReadModelService,
+  AgreementReadModelService,
+  PurposeReadModelService,
 } from "pagopa-interop-readmodel";
-import { delegationInReadmodelDelegation } from "pagopa-interop-readmodel-models";
+import {
+  delegationInReadmodelDelegation,
+  agreementInReadmodelAgreement,
+  purposeInReadmodelPurpose,
+} from "pagopa-interop-readmodel-models";
 import { Delegations } from "../models/delegations.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 }: {
   delegationReadModelServiceSQL: DelegationReadModelService;
   catalogReadModelServiceSQL: CatalogReadModelService;
+  agreementReadModelServiceSQL: AgreementReadModelService;
+  purposeReadModelServiceSQL: PurposeReadModelService;
 }) {
   async function getActiveProducerDelegation(
     eserviceId: EServiceId
@@ -84,6 +96,22 @@ export function readModelServiceBuilderSQL({
     ): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(eserviceId))
         ?.data;
+    },
+    async getEServiceAgreementIds(
+      eserviceId: EServiceId
+    ): Promise<AgreementId[]> {
+      return (
+        await agreementReadModelServiceSQL.getAgreementsByFilter(
+          eq(agreementInReadmodelAgreement.eserviceId, eserviceId)
+        )
+      ).map((a) => a.data.id);
+    },
+    async getEServicePurposeIds(eserviceId: EServiceId): Promise<PurposeId[]> {
+      return (
+        await purposeReadModelServiceSQL.getPurposesByFilter(
+          eq(purposeInReadmodelPurpose.eserviceId, eserviceId)
+        )
+      ).map((a) => a.data.id);
     },
   };
 }
