@@ -19,7 +19,7 @@ const DelegationDocumentConfig = z
   }));
 
 const DelegationProcessConfig = CommonHTTPServiceConfig.and(
-  ReadModelSQLDbConfig,
+  ReadModelSQLDbConfig
 )
   .and(EventStoreConfig)
   .and(S3Config)
@@ -36,11 +36,11 @@ const DelegationProcessConfig = CommonHTTPServiceConfig.and(
       })
       .transform((c) => ({
         delegationsAllowedOrigins: c.DELEGATIONS_ALLOWED_ORIGINS.split(","),
-      })),
+      }))
   )
   .and(ApplicationAuditProducerConfig);
 
 export type DelegationProcessConfig = z.infer<typeof DelegationProcessConfig>;
 export const config: DelegationProcessConfig = DelegationProcessConfig.parse(
-  process.env,
+  process.env
 );
