@@ -14,7 +14,6 @@ import {
   toClientV2,
 } from "pagopa-interop-models";
 import { handleClientKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleClientKeyAddedDeletedToClientUsers.js";
-import { clientKeyNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { addOneTenant, readModelService } from "./utils.js";
@@ -38,11 +37,17 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
     kid: "key2-kid",
   };
 
+  const key3 = {
+    ...getMockKey(),
+    userId: userId3,
+    kid: "key3-kid",
+  };
+
   const client = {
     ...getMockClient({
       consumerId,
       users: [userId1, userId2, userId3],
-      keys: [key1, key2],
+      keys: [key1, key2, key3],
     }),
     id: clientId,
     name: "Test Client",
@@ -58,38 +63,6 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
     mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneTenant(consumerTenant);
-  });
-
-  describe("Error cases", () => {
-    it("should throw clientKeyNotFound when key is not found in ClientKeyDeleted event", async () => {
-      const unknownKid = "unknown-kid";
-      const messageWithUnknownKey: AuthorizationEventEnvelopeV2 = {
-        type: "ClientKeyDeleted",
-        event_version: 2,
-        sequence_num: 1,
-        version: 1,
-        stream_id: generateId(),
-        log_date: new Date(),
-        data: {
-          client: toClientV2(client),
-          kid: unknownKid,
-        },
-      };
-
-      // Mock notification recipients so the check doesn't exit early
-      mockGetNotificationRecipients.mockResolvedValue([
-        { userId: userId1, tenantId: consumerId },
-        { userId: userId2, tenantId: consumerId },
-      ]);
-
-      await expect(() =>
-        handleClientKeyAddedDeletedToClientUsers(
-          messageWithUnknownKey,
-          logger,
-          readModelService
-        )
-      ).rejects.toThrow(clientKeyNotFound(clientId, unknownKid));
-    });
   });
 
   describe("Empty notifications scenario", () => {
@@ -206,7 +179,13 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
   });
 
   describe("ClientKeyDeleted event", () => {
-    it("should generate notifications for all users except the key owner", async () => {
+    it("should generate notifications for remaining key owners after deletion", async () => {
+      // key1 has been deleted, so client only has key2 and key3
+      const clientAfterDeletion = {
+        ...client,
+        keys: [key2, key3], // key1 is no longer in the client
+      };
+
       const message: AuthorizationEventEnvelopeV2 = {
         type: "ClientKeyDeleted",
         event_version: 2,
@@ -215,15 +194,15 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         stream_id: generateId(),
         log_date: new Date(),
         data: {
-          client: toClientV2(client),
-          kid: key1.kid, // key1 belongs to userId1
+          client: toClientV2(clientAfterDeletion),
+          kid: key1.kid, // key1 (userId1's key) was deleted
         },
       };
 
       const userNotificationConfigs = [
-        { userId: userId1, tenantId: consumerId }, // This user should be filtered out
-        { userId: userId2, tenantId: consumerId },
-        { userId: userId3, tenantId: consumerId },
+        { userId: userId1, tenantId: consumerId }, // Deleted key owner - should NOT receive notification
+        { userId: userId2, tenantId: consumerId }, // Still has key2 - should receive notification
+        { userId: userId3, tenantId: consumerId }, // Still has key3 - should receive notification
       ];
 
       mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
@@ -234,12 +213,12 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         readModelService
       );
 
-      // Should exclude the key owner (userId1)
+      // Should include only users who still have keys (userId2 and userId3)
       expect(notifications).toHaveLength(2);
 
       const expectedBody = inAppTemplates.clientKeyDeletedToClientUsers(
         client.name,
-        key1.userId
+        key1.kid
       );
 
       const expectedNotifications = [
@@ -263,12 +242,20 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         expect.arrayContaining(expectedNotifications)
       );
 
-      // Verify the key owner is not included
+      // Verify deleted key owner is NOT included, but remaining key owners are
       const userIds = notifications.map((n) => n.userId);
-      expect(userIds).not.toContain(userId1);
+      expect(userIds).not.toContain(userId1); // Deleted key owner
+      expect(userIds).toContain(userId2); // Remaining key owner
+      expect(userIds).toContain(userId3); // Remaining key owner
     });
 
-    it("should handle case where key owner is not in notification configs", async () => {
+    it("should only notify users who still have keys after deletion", async () => {
+      // key3 has been deleted, so client only has key1 and key2
+      const clientAfterDeletion = {
+        ...client,
+        keys: [key1, key2], // key3 is no longer in the client
+      };
+
       const message: AuthorizationEventEnvelopeV2 = {
         type: "ClientKeyDeleted",
         event_version: 2,
@@ -277,15 +264,15 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         stream_id: generateId(),
         log_date: new Date(),
         data: {
-          client: toClientV2(client),
-          kid: key1.kid, // key1 belongs to userId1
+          client: toClientV2(clientAfterDeletion),
+          kid: key3.kid, // key3 (userId3's key) was deleted
         },
       };
 
-      // userId1 (key owner) is not in the notification configs
+      // Only userId1 and userId2 have notifications enabled
       const userNotificationConfigs = [
-        { userId: userId2, tenantId: consumerId },
-        { userId: userId3, tenantId: consumerId },
+        { userId: userId1, tenantId: consumerId }, // Still has key1
+        { userId: userId2, tenantId: consumerId }, // Still has key2
       ];
 
       mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
@@ -296,12 +283,12 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         readModelService
       );
 
-      // Should include all users since key owner wasn't in the list anyway
+      // Should include both userId1 and userId2 who still have keys
       expect(notifications).toHaveLength(2);
 
       const userIds = notifications.map((n) => n.userId);
+      expect(userIds).toContain(userId1);
       expect(userIds).toContain(userId2);
-      expect(userIds).toContain(userId3);
     });
   });
 
@@ -468,6 +455,12 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
     });
 
     it("should use correct template for ClientKeyDeleted", async () => {
+      // key1 has been deleted, so client only has key2 and key3
+      const clientAfterDeletion = {
+        ...client,
+        keys: [key2, key3],
+      };
+
       const message: AuthorizationEventEnvelopeV2 = {
         type: "ClientKeyDeleted",
         event_version: 2,
@@ -476,14 +469,14 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         stream_id: generateId(),
         log_date: new Date(),
         data: {
-          client: toClientV2(client),
+          client: toClientV2(clientAfterDeletion),
           kid: key1.kid,
         },
       };
 
       mockGetNotificationRecipients.mockResolvedValue([
         { userId: userId2, tenantId: consumerId },
-      ]); // Different user than key owner
+      ]); // userId2 still has key2, so will receive notification
 
       const notifications = await handleClientKeyAddedDeletedToClientUsers(
         message,
@@ -492,7 +485,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
       );
 
       expect(notifications[0].body).toBe(
-        inAppTemplates.clientKeyDeletedToClientUsers(client.name, key1.userId)
+        inAppTemplates.clientKeyDeletedToClientUsers(client.name, key1.kid)
       );
     });
 

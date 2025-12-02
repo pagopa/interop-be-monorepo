@@ -15,7 +15,6 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
-import { clientKeyNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType = "clientKeyAddedDeletedToClientUsers";
 
@@ -36,16 +35,14 @@ export async function handleClientKeyDeleted(
   }
 
   const client = fromClientV2(clientV2Msg);
-  const key = client.keys.find((key) => key.kid === kid);
-
-  if (!key) {
-    throw clientKeyNotFound(client.id, kid);
-  }
 
   const [htmlTemplate, consumer] = await Promise.all([
     retrieveHTMLTemplate(eventMailTemplateType.clientKeyDeletedMailTemplate),
     retrieveTenant(client.consumerId, readModelService),
   ]);
+
+  // Get remaining key owners (the deleted key is no longer in client.keys)
+  const remainingKeyOwnerIds = client.keys.map((k) => k.userId);
 
   const targets = (
     await getRecipientsForTenants({
@@ -55,7 +52,10 @@ export async function handleClientKeyDeleted(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter((target) => target.type !== "User" || target.userId !== key.userId);
+  ).filter(
+    (target) =>
+      target.type !== "User" || remainingKeyOwnerIds.includes(target.userId)
+  );
 
   if (targets.length === 0) {
     logger.info(
@@ -73,7 +73,7 @@ export async function handleClientKeyDeleted(
         notificationType,
         entityId: client.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
-        userName: key.userId,
+        keyId: kid,
         clientName: client.name,
       }),
     },

@@ -15,7 +15,6 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
-import { producerKeychainKeyNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";
@@ -40,11 +39,6 @@ export async function handleProducerKeychainKeyDeleted(
   }
 
   const producerKeychain = fromProducerKeychainV2(producerKeychainV2Msg);
-  const key = producerKeychain.keys.find((key) => key.kid === kid);
-
-  if (!key) {
-    throw producerKeychainKeyNotFound(producerKeychain.id, kid);
-  }
 
   const [htmlTemplate, producer] = await Promise.all([
     retrieveHTMLTemplate(
@@ -52,6 +46,9 @@ export async function handleProducerKeychainKeyDeleted(
     ),
     retrieveTenant(producerKeychain.producerId, readModelService),
   ]);
+
+  // Get remaining key owners (the deleted key is no longer in producerKeychain.keys)
+  const remainingKeyOwnerIds = producerKeychain.keys.map((k) => k.userId);
 
   const targets = (
     await getRecipientsForTenants({
@@ -61,7 +58,10 @@ export async function handleProducerKeychainKeyDeleted(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter((target) => target.type !== "User" || target.userId !== key.userId);
+  ).filter(
+    (target) =>
+      target.type !== "User" || remainingKeyOwnerIds.includes(target.userId)
+  );
 
   if (targets.length === 0) {
     logger.info(
@@ -79,7 +79,7 @@ export async function handleProducerKeychainKeyDeleted(
         notificationType,
         entityId: producerKeychain.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
-        userName: key.userId,
+        keyId: kid,
         producerKeychainName: producerKeychain.name,
       }),
     },

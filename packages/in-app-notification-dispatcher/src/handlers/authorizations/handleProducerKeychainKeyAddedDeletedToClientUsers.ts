@@ -7,7 +7,6 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { producerKeychainKeyNotFound } from "../../models/errors.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import { getNotificationRecipients } from "../handlerCommons.js";
 
@@ -51,26 +50,23 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   }
 
   return match(decodedMessage)
-    .with({ type: "ProducerKeychainKeyDeleted" }, ({ data: { kid } }) => {
-      const key = producerKeychain.keys.find((key) => key.kid === kid);
-      if (!key) {
-        throw producerKeychainKeyNotFound(producerKeychain.id, kid);
-      }
-
-      return usersWithNotifications
-        .filter(({ userId }) => userId !== key.userId) // Send to all other users
+    .with({ type: "ProducerKeychainKeyDeleted" }, ({ data: { kid } }) =>
+      usersWithNotifications
+        .filter(({ userId }) =>
+          producerKeychain.keys.map((k) => k.userId).includes(userId)
+        ) // Send to remaining key owners
         .map(({ userId, tenantId }) => ({
           userId,
           tenantId,
           body: inAppTemplates.producerKeychainKeyDeletedToClientUsers(
             producerKeychain.name,
-            key.userId
+            kid
           ),
           notificationType:
             "producerKeychainKeyAddedDeletedToClientUsers" as const,
           entityId: producerKeychain.id,
-        }));
-    })
+        }))
+    )
     .with({ type: "ProducerKeychainKeyAdded" }, () =>
       usersWithNotifications.map(({ userId, tenantId }) => ({
         userId,

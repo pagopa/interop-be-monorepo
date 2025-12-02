@@ -23,10 +23,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { handleProducerKeychainKeyDeleted } from "../src/handlers/authorization/handleProducerKeychainKeyDeleted.js";
-import {
-  producerKeychainKeyNotFound,
-  tenantNotFound,
-} from "../src/models/errors.js";
+import { tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
   getMockUser,
@@ -53,11 +50,17 @@ describe("handleProducerKeychainKeyDeleted", async () => {
     kid: "key2-kid",
   };
 
+  const key3: Key = {
+    ...getMockKey(),
+    userId: userId3,
+    kid: "key3-kid",
+  };
+
   const producerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain({ producerId }),
     id: producerKeychainId,
     name: "Test Producer Keychain",
-    keys: [key1, key2],
+    keys: [key1, key2, key3],
     users: [userId1, userId2, userId3],
   };
 
@@ -139,26 +142,17 @@ describe("handleProducerKeychainKeyDeleted", async () => {
     ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
-  it("should throw producerKeychainKeyNotFound when key is not found", async () => {
-    const unknownKid = "unknown";
+  it("should send notifications to remaining key owners when a key is deleted", async () => {
+    // key1 has been deleted, so producerKeychain only has key2 and key3
+    const producerKeychainAfterDeletion: ProducerKeychain = {
+      ...producerKeychain,
+      keys: [key2, key3],
+    };
 
-    await expect(() =>
-      handleProducerKeychainKeyDeleted({
-        producerKeychainV2Msg: toProducerKeychainV2(producerKeychain),
-        kid: unknownKid,
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(
-      producerKeychainKeyNotFound(producerKeychainId, unknownKid)
-    );
-  });
-
-  it("should generate one message per user of the tenant except the user that deleted the key", async () => {
     const messages = await handleProducerKeychainKeyDeleted({
-      producerKeychainV2Msg: toProducerKeychainV2(producerKeychain),
+      producerKeychainV2Msg: toProducerKeychainV2(
+        producerKeychainAfterDeletion
+      ),
       kid: key1.kid,
       logger,
       templateService,
@@ -166,25 +160,32 @@ describe("handleProducerKeychainKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
+    // Should send to userId2 and userId3 (remaining key owners), not userId1 (deleted key owner)
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
       )
-    ).toBe(false);
+    ).toBe(false); // userId1 - deleted key owner
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[1].id
       )
-    ).toBe(true);
+    ).toBe(true); // userId2 - remaining key owner
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[2].id
       )
-    ).toBe(true);
+    ).toBe(true); // userId3 - remaining key owner
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
+    // key1 has been deleted, so producerKeychain only has key2 and key3
+    const producerKeychainAfterDeletion: ProducerKeychain = {
+      ...producerKeychain,
+      keys: [key2, key3],
+    };
+
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
@@ -197,7 +198,9 @@ describe("handleProducerKeychainKeyDeleted", async () => {
       ]);
 
     const messages = await handleProducerKeychainKeyDeleted({
-      producerKeychainV2Msg: toProducerKeychainV2(producerKeychain),
+      producerKeychainV2Msg: toProducerKeychainV2(
+        producerKeychainAfterDeletion
+      ),
       kid: key1.kid,
       logger,
       templateService,
@@ -205,27 +208,36 @@ describe("handleProducerKeychainKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
+    // Only userId3 has notifications enabled and still has a key
     expect(messages.length).toEqual(1);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
       )
-    ).toBe(false);
+    ).toBe(false); // userId1 - deleted key owner
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[1].id
       )
-    ).toBe(false);
+    ).toBe(false); // userId2 - notifications disabled
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[2].id
       )
-    ).toBe(true);
+    ).toBe(true); // userId3 - has notifications enabled and still has key3
   });
 
   it("should generate a complete and correct message", async () => {
+    // key1 has been deleted, so producerKeychain only has key2 and key3
+    const producerKeychainAfterDeletion: ProducerKeychain = {
+      ...producerKeychain,
+      keys: [key2, key3],
+    };
+
     const messages = await handleProducerKeychainKeyDeleted({
-      producerKeychainV2Msg: toProducerKeychainV2(producerKeychain),
+      producerKeychainV2Msg: toProducerKeychainV2(
+        producerKeychainAfterDeletion
+      ),
       kid: key1.kid,
       logger,
       templateService,
@@ -248,7 +260,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
           expect(message.email.body).toContain(producerTenant.name);
         })
         .exhaustive();
-      expect(message.email.body).toContain(key1.userId);
+      expect(message.email.body).toContain(key1.kid);
       expect(message.email.body).toContain(producerKeychain.name);
     });
   });
