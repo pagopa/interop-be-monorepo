@@ -112,9 +112,8 @@ function getAnswerAnnotation(
       </div>`;
 }
 
-// TODO: remove eslint-disable
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function formatSingleAnswer(
+// TODO: remove export
+export function formatSingleAnswer(
   questionRules: FormQuestionRules,
   singleAnswer: RiskAnalysisTemplateSingleAnswer,
   language: Language
@@ -128,9 +127,8 @@ function formatSingleAnswer(
   );
 }
 
-// TODO: remove eslint-disable
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function formatMultiAnswer(
+// TODO: remove export
+export function formatMultiAnswer(
   questionRules: FormQuestionRules,
   multiAnswer: RiskAnalysisTemplateMultiAnswer,
   language: Language
@@ -191,9 +189,8 @@ function formatAnswer<
 `;
 }
 
-// TODO: remove eslint-disable
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function formatFreeOfCharge(
+// TODO: remove export
+export function formatFreeOfCharge(
   purposeIsFreeOfCharge: boolean,
   purposeFreeOfChargeReason?: string
 ): { purposeFreeOfChargeHtml: string; purposeFreeOfChargeReasonHtml: string } {
