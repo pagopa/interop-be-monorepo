@@ -278,5 +278,28 @@ export function purposeTemplateServiceBuilder(
 
       return toM2MGatewayApiPurposeTemplate(data);
     },
+    async unsuspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.unsuspendPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
   };
 }
