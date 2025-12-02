@@ -25,7 +25,7 @@ import {
   addOneDelegationToReadModel,
   getMockEventEnvelopeCommons,
   retrieveAllEServiceM2MEvents,
-  retrieveLastEServiceM2MEvent,
+  retrieveEServiceM2MEventByEServiceIdAndDescriptorId,
   testM2mEventWriterService,
   testReadModelService,
 } from "./utils.js";
@@ -299,7 +299,12 @@ describe("handleEServiceEvent test", async () => {
               ).toHaveBeenCalledTimes(1);
               vi.clearAllMocks();
 
-              const actualM2MEvent = await retrieveLastEServiceM2MEvent();
+              const actualM2MEvent =
+                await retrieveEServiceM2MEventByEServiceIdAndDescriptorId(
+                  eservice.id,
+                  descriptorId
+                );
+              expect(actualM2MEvent).toBeDefined();
               expect(actualM2MEvent).toEqual({
                 id: expect.any(String),
                 eventType,

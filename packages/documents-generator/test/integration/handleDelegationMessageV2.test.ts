@@ -12,6 +12,7 @@ import {
   beforeEach,
   afterEach,
   beforeAll,
+  afterAll,
 } from "vitest";
 import {
   DelegationEventEnvelopeV2,
@@ -50,11 +51,13 @@ import {
 import { handleDelegationMessageV2 } from "../../src/handler/handleDelegationMessageV2.js";
 import { config } from "../../src/config/config.js";
 import { tenantNotFound } from "../../src/model/errors.js";
+import { getInteropBeClients } from "../../src/clients/clientProvider.js";
 
 const mockDelegationId = generateId<DelegationId>();
 const mockDelegatorId = generateId<TenantId>();
 const mockDelegateId = generateId<TenantId>();
 const mockEServiceId = generateId<EServiceId>();
+const clients = getInteropBeClients();
 export const mockAddUnsignedDelegationContractMetadataFn = vi.fn();
 vi.mock("pagopa-interop-api-clients", () => ({
   delegationApi: {
@@ -78,6 +81,17 @@ describe("handleDelegationMessageV2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  const currentExecutionTime = new Date();
   const testToken = "mockToken";
 
   const testHeaders = {
@@ -143,6 +157,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -210,6 +225,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -283,6 +299,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -348,6 +365,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -423,6 +441,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -442,8 +461,8 @@ describe("handleDelegationMessageV2", () => {
     const expectedPayload = {
       delegationKindText: "all’erogazione",
       delegationActionText: "ad erogare l’",
-      todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+      todayDate: dateAtRomeZone(currentExecutionTime),
+      todayTime: timeAtRomeZone(currentExecutionTime),
       delegationId: mockDelegation.id,
       delegatorName: mockDelegator.name,
       delegatorIpaCode: getIpaCode(mockDelegator),
@@ -501,6 +520,7 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
+        clients,
         genericLogger
       )
     ).resolves.toBeUndefined();
@@ -542,6 +562,7 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
+        clients,
         genericLogger
       )
     ).rejects.toThrow(tenantNotFound(mockDelegateId).message);

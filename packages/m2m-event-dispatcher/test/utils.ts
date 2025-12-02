@@ -1,5 +1,5 @@
 import { randomInt } from "crypto";
-import { desc } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   agreementInM2MEvent,
@@ -104,6 +104,37 @@ export async function retrieveAllAttributeM2MEvents({
 
 export async function retrieveLastEServiceM2MEvent(): Promise<EServiceM2MEvent> {
   return (await retrieveAllEServiceM2MEvents({ limit: 1 }))[0];
+}
+
+export async function retrieveEServiceM2MEventByEServiceIdAndDescriptorId(
+  eserviceId: string,
+  descriptorId: string | undefined
+): Promise<EServiceM2MEvent | undefined> {
+  const conditions = [eq(eserviceInM2MEvent.eserviceId, eserviceId)];
+
+  if (descriptorId === undefined) {
+    conditions.push(isNull(eserviceInM2MEvent.descriptorId));
+  } else {
+    conditions.push(eq(eserviceInM2MEvent.descriptorId, descriptorId));
+  }
+
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(eserviceInM2MEvent)
+    .where(and(...conditions))
+    .orderBy(desc(eserviceInM2MEvent.id))
+    .limit(1);
+
+  if (sqlEvents.length === 0) {
+    return undefined;
+  }
+
+  return EServiceM2MEvent.parse({
+    ...sqlEvents[0],
+    descriptorId: sqlEvents[0].descriptorId ?? undefined,
+    producerDelegationId: sqlEvents[0].producerDelegationId ?? undefined,
+    producerDelegateId: sqlEvents[0].producerDelegateId ?? undefined,
+  });
 }
 
 export async function retrieveAllEServiceM2MEvents({

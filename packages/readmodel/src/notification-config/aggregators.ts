@@ -137,6 +137,12 @@ export const aggregateUserNotificationConfig = ({
       enabledInAppNotifications.includes(
         "producerKeychainKeyAddedDeletedToClientUsers"
       ),
+    purposeQuotaAdjustmentRequestToProducer: enabledInAppNotifications.includes(
+      "purposeQuotaAdjustmentRequestToProducer"
+    ),
+    purposeOverQuotaStateToConsumer: enabledInAppNotifications.includes(
+      "purposeOverQuotaStateToConsumer"
+    ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -205,6 +211,12 @@ export const aggregateUserNotificationConfig = ({
       enabledEmailNotifications.includes(
         "producerKeychainKeyAddedDeletedToClientUsers"
       ),
+    purposeQuotaAdjustmentRequestToProducer: enabledEmailNotifications.includes(
+      "purposeQuotaAdjustmentRequestToProducer"
+    ),
+    purposeOverQuotaStateToConsumer: enabledEmailNotifications.includes(
+      "purposeOverQuotaStateToConsumer"
+    ),
   };
 
   return {
