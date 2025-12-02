@@ -72,12 +72,24 @@ import { handleAgreementMessageV2 } from "../../src/handler/handleAgreementMessa
 import { config } from "../../src/config/config.js";
 import { eServiceNotFound, tenantNotFound } from "../../src/model/errors.js";
 import { getInteropBeClients } from "../../src/clients/clientProvider.js";
+import {
+  ContractBuilder,
+  agreementContractBuilder,
+} from "../../src/service/agreement/agreementContractBuilder.js";
 
 const mockAgreementId = generateId<AgreementId>();
 const mockEServiceId = generateId<EServiceId>();
 const mockProducerId = generateId<TenantId>();
 const mockConsumerId = generateId<TenantId>();
 const clients = getInteropBeClients();
+const agreementContractInstance: ContractBuilder = agreementContractBuilder(
+  readModelService,
+  pdfGenerator,
+  fileManager,
+  config,
+  genericLogger
+);
+
 export const mockAddUnsignedAgreementContractMetadataFn = vi.fn();
 vi.mock("pagopa-interop-api-clients", () => ({
   delegationApi: {
@@ -186,10 +198,9 @@ describe("handleAgreementMessageV2", () => {
 
     await handleAgreementMessageV2(
       mockEvent,
-      pdfGenerator,
-      fileManager,
       readModelService,
       mockRefreshableToken,
+      agreementContractInstance,
       clients,
       genericLogger
     );
@@ -365,10 +376,9 @@ describe("handleAgreementMessageV2", () => {
 
     await handleAgreementMessageV2(
       mockEvent,
-      pdfGenerator,
-      fileManager,
       readModelService,
       mockRefreshableToken,
+      agreementContractInstance,
       clients,
       genericLogger
     );
@@ -426,7 +436,9 @@ describe("handleAgreementMessageV2", () => {
           ),
           attributeName: verifiedAttribute.name,
           attributeId: verifiedAttribute.id,
-          expirationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+          expirationDate: dateAtRomeZone(
+            validTenantVerifiedAttribute.verifiedBy[0].expirationDate!
+          ),
           delegationId: undefined,
         },
       ],
@@ -485,10 +497,9 @@ describe("handleAgreementMessageV2", () => {
     await expect(
       handleAgreementMessageV2(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        agreementContractInstance,
         clients,
         genericLogger
       )
@@ -520,10 +531,9 @@ describe("handleAgreementMessageV2", () => {
     await expect(
       handleAgreementMessageV2(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        agreementContractInstance,
         clients,
         genericLogger
       )
@@ -569,10 +579,9 @@ describe("handleAgreementMessageV2", () => {
     await expect(
       handleAgreementMessageV2(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        agreementContractInstance,
         clients,
         genericLogger
       )

@@ -9,15 +9,12 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
-  FileManager,
   Logger,
-  PDFGenerator,
   RefreshableInteropToken,
   getInteropHeaders,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
-import { agreementContractBuilder } from "../service/agreement/agreementContractBuilder.js";
-import { config } from "../config/config.js";
+import { ContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 
 import {
   getActiveConsumerAndProducerDelegations,
@@ -30,10 +27,9 @@ import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 // eslint-disable-next-line max-params
 export async function handleAgreementMessageV2(
   decodedMessage: AgreementEventEnvelopeV2,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
+  agreementContractBuilder: ContractBuilder,
   clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
@@ -67,19 +63,14 @@ export async function handleAgreementMessageV2(
           readModelService
         );
 
-        const contract = await agreementContractBuilder(
-          readModelService,
-          pdfGenerator,
-          fileManager,
-          config,
-          logger
-        ).createContract(
+        const contract = await agreementContractBuilder.createContract(
           agreement,
           eservice,
           consumer,
           producer,
           activeDelegations
         );
+
         const contractWithIsoString: agreementApi.Document = {
           ...contract,
           createdAt: contract.createdAt.toISOString(),

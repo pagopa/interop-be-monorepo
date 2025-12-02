@@ -11,11 +11,9 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
-  FileManager,
   getInteropHeaders,
   getIpaCode,
   Logger,
-  PDFGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
@@ -24,9 +22,8 @@ import {
   retrievePurposeDelegation,
   retrieveTenant,
 } from "../service/purpose/purposeService.js";
-import { config } from "../config/config.js";
 import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
-import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
+import { RiskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
 import { tenantKindNotFound } from "../model/errors.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
 import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
@@ -34,10 +31,9 @@ import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 // eslint-disable-next-line max-params
 export async function handlePurposeMessageV2(
   decodedMessage: PurposeEventEnvelopeV2,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
+  riskAnalysisDocumentBuilder: RiskAnalysisDocumentBuilder,
   clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
@@ -113,19 +109,15 @@ export async function handlePurposeMessageV2(
           .with(eserviceMode.receive, () => getTenantKind(producer))
           .exhaustive();
 
-        const contract = await riskAnalysisDocumentBuilder(
-          pdfGenerator,
-          fileManager,
-          config,
-          logger
-        ).createRiskAnalysisDocument(
-          purpose,
-          purposeVersion.dailyCalls,
-          eserviceInfo,
-          purposeVersion.stamps?.creation.who,
-          tenantKind,
-          "it"
-        );
+        const contract =
+          await riskAnalysisDocumentBuilder.createRiskAnalysisDocument(
+            purpose,
+            purposeVersion.dailyCalls,
+            eserviceInfo,
+            purposeVersion.stamps?.creation.who,
+            tenantKind,
+            "it"
+          );
         const contractWithIsoString: purposeApi.PurposeVersionDocument = {
           ...contract,
           createdAt: contract.createdAt.toISOString(),

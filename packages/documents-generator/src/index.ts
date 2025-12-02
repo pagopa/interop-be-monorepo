@@ -8,6 +8,7 @@ import {
   PurposeTopicConfig,
   RefreshableInteropToken,
   decodeKafkaMessage,
+  genericLogger,
   initFileManager,
   initPDFGenerator,
   logger,
@@ -39,6 +40,14 @@ import { handleAgreementMessageV1 } from "./handler/handleAgreementMessageV1.js"
 import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
 import { handlePurposeMessageV1 } from "./handler/handlePurposeMessageV1.js";
 import { getInteropBeClients } from "./clients/clientProvider.js";
+import {
+  ContractBuilder,
+  agreementContractBuilder,
+} from "./service/agreement/agreementContractBuilder.js";
+import {
+  RiskAnalysisDocumentBuilder,
+  riskAnalysisDocumentBuilder,
+} from "./service/purpose/purposeContractBuilder.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
@@ -68,6 +77,17 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
 });
 
+const agreementContractInstance: ContractBuilder = agreementContractBuilder(
+  readModelServiceSQL,
+  pdfGenerator,
+  fileManager,
+  config,
+  genericLogger
+);
+
+const riskAnalysisContractInstance: RiskAnalysisDocumentBuilder =
+  riskAnalysisDocumentBuilder(pdfGenerator, fileManager, config, genericLogger);
+
 function processMessage(
   agreementTopicConfig: AgreementTopicConfig,
   purposeTopicConfig: PurposeTopicConfig,
@@ -86,20 +106,18 @@ function processMessage(
             handleAgreementMessageV1.bind(
               null,
               decoded,
-              pdfGenerator,
-              fileManager,
               readModelServiceSQL,
-              refreshableToken
+              refreshableToken,
+              agreementContractInstance
             )
           )
           .with({ event_version: 2 }, (decoded) =>
             handleAgreementMessageV2.bind(
               null,
               decoded,
-              pdfGenerator,
-              fileManager,
               readModelServiceSQL,
-              refreshableToken
+              refreshableToken,
+              agreementContractInstance
             )
           )
           .exhaustive();
@@ -117,20 +135,18 @@ function processMessage(
             handlePurposeMessageV1.bind(
               null,
               decoded,
-              pdfGenerator,
-              fileManager,
               readModelServiceSQL,
-              refreshableToken
+              refreshableToken,
+              riskAnalysisContractInstance
             )
           )
           .with({ event_version: 2 }, (decoded) =>
             handlePurposeMessageV2.bind(
               null,
               decoded,
-              pdfGenerator,
-              fileManager,
               readModelServiceSQL,
-              refreshableToken
+              refreshableToken,
+              riskAnalysisContractInstance
             )
           )
           .exhaustive();

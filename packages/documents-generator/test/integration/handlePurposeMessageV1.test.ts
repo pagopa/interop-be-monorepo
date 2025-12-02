@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import {
   RefreshableInteropToken,
+  dateAtRomeZone,
   genericLogger,
   getIpaCode,
 } from "pagopa-interop-commons";
@@ -37,6 +38,7 @@ import {
   beforeEach,
   afterEach,
   beforeAll,
+  afterAll,
 } from "vitest";
 import {
   cleanup,
@@ -55,7 +57,16 @@ import {
   tenantKindNotFound,
 } from "../../src/model/errors.js";
 import { getInteropBeClients } from "../../src/clients/clientProvider.js";
+import { config } from "../../src/config/config.js";
+import {
+  RiskAnalysisDocumentBuilder,
+  riskAnalysisDocumentBuilder,
+} from "../../src/service/purpose/purposeContractBuilder.js";
 const clients = getInteropBeClients();
+
+const riskAnalysisContractInstance: RiskAnalysisDocumentBuilder =
+  riskAnalysisDocumentBuilder(pdfGenerator, fileManager, config, genericLogger);
+
 export const mockAddUnsignedRiskAnalysysContractMetadataFn = vi.fn();
 vi.mock("pagopa-interop-api-clients", () => ({
   delegationApi: {
@@ -77,6 +88,15 @@ vi.mock("pagopa-interop-api-clients", () => ({
 describe("handlePurposeMessageV1", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
   });
 
   const testToken = "mockToken";
@@ -167,10 +187,9 @@ describe("handlePurposeMessageV1", () => {
 
     await handlePurposeMessageV1(
       mockEvent,
-      pdfGenerator,
-      fileManager,
       readModelService,
       mockRefreshableToken,
+      riskAnalysisContractInstance,
       clients,
       genericLogger
     );
@@ -184,7 +203,7 @@ describe("handlePurposeMessageV1", () => {
       consumerIpaCode: getIpaCode(mockConsumer),
       freeOfCharge: expect.any(String),
       freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      date: dateAtRomeZone(new Date()),
       eServiceMode: "Eroga",
       producerDelegationId: undefined,
       producerDelegateName: undefined,
@@ -247,10 +266,9 @@ describe("handlePurposeMessageV1", () => {
     await expect(
       handlePurposeMessageV1(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        riskAnalysisContractInstance,
         clients,
         genericLogger
       )
@@ -282,10 +300,9 @@ describe("handlePurposeMessageV1", () => {
     await expect(
       handlePurposeMessageV1(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        riskAnalysisContractInstance,
         clients,
         genericLogger
       )
@@ -332,10 +349,9 @@ describe("handlePurposeMessageV1", () => {
     await expect(
       handlePurposeMessageV1(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        riskAnalysisContractInstance,
         clients,
         genericLogger
       )
