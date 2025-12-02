@@ -9,14 +9,12 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
-  FileManager,
   Logger,
-  PDFGenerator,
   RefreshableInteropToken,
   getInteropHeaders,
 } from "pagopa-interop-commons";
-import { agreementContractBuilder } from "../service/agreement/agreementContractBuilder.js";
-import { config } from "../config/config.js";
+import { agreementApi } from "pagopa-interop-api-clients";
+import { ContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 
 import {
   getActiveConsumerAndProducerDelegations,
@@ -24,17 +22,15 @@ import {
   retrieveTenant,
 } from "../service/agreement/agreementService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { getInteropBeClients } from "../clients/clientProvider.js";
-
-const { agreementProcessClient } = getInteropBeClients();
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
 export async function handleAgreementMessageV2(
   decodedMessage: AgreementEventEnvelopeV2,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
+  agreementContractBuilder: ContractBuilder,
+  clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -67,20 +63,15 @@ export async function handleAgreementMessageV2(
           readModelService
         );
 
-        const contract = await agreementContractBuilder(
-          readModelService,
-          pdfGenerator,
-          fileManager,
-          config,
-          logger
-        ).createContract(
+        const contract = await agreementContractBuilder.createContract(
           agreement,
           eservice,
           consumer,
           producer,
           activeDelegations
         );
-        const contractWithIsoString = {
+
+        const contractWithIsoString: agreementApi.Document = {
           ...contract,
           createdAt: contract.createdAt.toISOString(),
         };
@@ -90,7 +81,7 @@ export async function handleAgreementMessageV2(
           `Agreement document generated with id ${contractWithIsoString.id}`
         );
 
-        await agreementProcessClient.addUnsignedAgreementContractMetadata(
+        await clients.agreementProcessClient.addUnsignedAgreementContractMetadata(
           contractWithIsoString,
           {
             params: { agreementId: agreement.id },
