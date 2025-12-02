@@ -194,18 +194,6 @@ export async function retrieveHTMLTemplate(
   }
 }
 
-export function getFormattedAgreementStampDate(
-  agreement: Agreement,
-  stamp: keyof Agreement["stamps"]
-): string {
-  const stampDate = agreement.stamps[stamp]?.when;
-
-  if (stampDate === undefined) {
-    throw agreementStampDateNotFound(stamp, agreement.id);
-  }
-  return dateAtRomeZone(new Date(Number(stampDate)));
-}
-
 export function retrieveLatestDescriptor(eservice: EService): Descriptor {
   if (eservice.descriptors.length === 0) {
     throw eserviceWithoutDescriptors(eservice.id);
