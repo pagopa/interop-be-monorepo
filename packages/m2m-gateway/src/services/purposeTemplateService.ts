@@ -301,5 +301,28 @@ export function purposeTemplateServiceBuilder(
 
       return toM2MGatewayApiPurposeTemplate(data);
     },
+    async suspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Suspending purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.suspendPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
   };
 }

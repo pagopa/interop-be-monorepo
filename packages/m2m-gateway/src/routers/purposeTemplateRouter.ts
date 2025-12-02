@@ -270,7 +270,32 @@ const purposeTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/purposeTemplates/:purposeTemplateId/suspend", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purposeTemplate =
+          await purposeTemplateService.suspendPurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeTemplate.parse(purposeTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error suspending purpose template ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return purposeTemplateRouter;
 };
