@@ -36,7 +36,7 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
         AGREEMENT_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
-        delegationDocumentPath: c.DELEGATION_DOCUMENTS_PATH,
+        delegationDocumentsPath: c.DELEGATION_DOCUMENTS_PATH,
         agreementContractsPath: c.AGREEMENT_DOCUMENTS_PATH,
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
         delegationProcessUrl: c.DELEGATION_PROCESS_URL,

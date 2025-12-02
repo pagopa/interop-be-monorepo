@@ -15,7 +15,7 @@ const DelegationDocumentConfig = z
     DELEGATION_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
-    delegationDocumentPath: c.DELEGATION_DOCUMENTS_PATH,
+    delegationDocumentsPath: c.DELEGATION_DOCUMENTS_PATH,
   }));
 
 const DelegationProcessConfig = CommonHTTPServiceConfig.and(
