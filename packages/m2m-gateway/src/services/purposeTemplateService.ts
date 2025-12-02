@@ -15,10 +15,6 @@ import {
   pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import {
-  isPolledVersionAtLeastMetadataTargetVersion,
-  pollResourceWithMetadata,
-} from "../utils/polling.js";
 
 import {
   toGetPurposeTemplatesApiQueryParams,
