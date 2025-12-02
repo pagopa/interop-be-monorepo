@@ -16,6 +16,11 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import {
+  isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
+
+import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiPurposeTemplate,
   toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
@@ -62,6 +67,17 @@ export function purposeTemplateServiceBuilder(
     pollResourceUntilDeletion(() =>
       retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
     )({});
+
+  const pollPurposeTemplateById = (
+    purposeTemplateId: PurposeTemplateId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(purposeTemplateId, headers)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+    });
 
   return {
     async getPurposeTemplates(
@@ -240,6 +256,98 @@ export function purposeTemplateServiceBuilder(
         config.purposeTemplateDocumentsContainer,
         logger
       );
+    },
+    async publishPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Publishing purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.publishPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async archivePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Archiving purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.archivePurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async unsuspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.unsuspendPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async suspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(`Suspending purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.suspendPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
     },
     async deletePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,

@@ -1583,12 +1583,6 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      assertExpectedState(
-        agreementId,
-        agreement.state,
-        agreementUpgradableStates
-      );
-
       const agreementWithDocument: Agreement = {
         ...agreement,
         contract: agreementDocument,
@@ -1615,12 +1609,6 @@ export function agreementServiceBuilder(
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
-      );
-
-      assertExpectedState(
-        agreementId,
-        agreement.state,
-        agreementUpgradableStates
       );
 
       const agreementWithDocument: Agreement = {

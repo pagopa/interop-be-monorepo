@@ -193,6 +193,109 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/purposeTemplates/:purposeTemplateId/publish", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purposeTemplate =
+          await purposeTemplateService.publishPurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeTemplate.parse(purposeTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error publishing purpose template ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposeTemplates/:purposeTemplateId/archive", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purposeTemplate =
+          await purposeTemplateService.archivePurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeTemplate.parse(purposeTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error archiving purpose template ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/purposeTemplates/:purposeTemplateId/unsuspend",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const purposeTemplate =
+            await purposeTemplateService.unsuspendPurposeTemplate(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.PurposeTemplate.parse(purposeTemplate));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error unsuspending purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post("/purposeTemplates/:purposeTemplateId/suspend", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purposeTemplate =
+          await purposeTemplateService.suspendPurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeTemplate.parse(purposeTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error suspending purpose template ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete("/purposeTemplates/:purposeTemplateId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
