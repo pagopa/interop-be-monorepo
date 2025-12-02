@@ -98,7 +98,36 @@ h1 {
 }
 
 .purpose-template-answers .item {
+  position: relative;
   margin: 16px 0;
+}
+
+.purpose-template-answers .item .not-editable-chip{
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: #e3e7eb;
+}
+
+.purpose-template-answers .item .suggested-values .title{
+  font-weight: 600;
+}
+
+.purpose-template-answers .item .annotation{
+  position: relative;
+  margin: 16px;
+  background-color: #e3e7eb;
+}
+
+.purpose-template-answers .item .annotation .title{
+  font-weight: 600;
+  padding-bottom: 8px;
+}
+
+.purpose-template-answers .item .annotation .docs{
+  list-style-type: none;
+  font-style: italic;
+  font-weight: 500;
 }
 
 .free-of-charge label {
