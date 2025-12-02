@@ -1,10 +1,10 @@
 import {
   CorrelationId,
   eserviceMode,
-  fromPurposeV2,
+  fromPurposeV1,
   generateId,
   missingKafkaMessageDataError,
-  PurposeEventEnvelopeV2,
+  PurposeEventEnvelopeV1,
   Tenant,
   TenantKind,
   unsafeBrandId,
@@ -29,8 +29,8 @@ import { ReadModelServiceSQL } from "../service/readModelSql.js";
 import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
-export async function handlePurposeMessageV2(
-  decodedMessage: PurposeEventEnvelopeV2,
+export async function handlePurposeMessageV1(
+  decodedMessage: PurposeEventEnvelopeV1,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
   riskAnalysisDocumentBuilder: RiskAnalysisDocumentBuilder,
@@ -40,11 +40,7 @@ export async function handlePurposeMessageV2(
   await match(decodedMessage)
     .with(
       {
-        type: P.union(
-          "PurposeActivated",
-          "NewPurposeVersionActivated",
-          "PurposeVersionActivated"
-        ),
+        type: P.union("PurposeVersionActivated"),
       },
       async (msg): Promise<void> => {
         if (!msg.data.purpose) {
@@ -55,7 +51,7 @@ export async function handlePurposeMessageV2(
           ? unsafeBrandId<CorrelationId>(msg.correlation_id)
           : generateId<CorrelationId>();
 
-        const purpose = fromPurposeV2(msg.data.purpose);
+        const purpose = fromPurposeV1(msg.data.purpose);
         const purposeVersion = purpose.versions[purpose.versions.length - 1];
 
         const eservice = await retrieveEService(
@@ -143,25 +139,16 @@ export async function handlePurposeMessageV2(
     .with(
       {
         type: P.union(
-          "PurposeAdded",
-          "DraftPurposeUpdated",
-          "WaitingForApprovalPurposeVersionDeleted",
-          "NewPurposeVersionWaitingForApproval",
-          "PurposeCloned",
+          "PurposeCreated",
+          "PurposeUpdated",
+          "PurposeVersionSuspended",
+          "PurposeVersionArchived",
+          "PurposeVersionWaitedForApproval",
           "PurposeVersionRejected",
-          "PurposeWaitingForApproval",
-          "DraftPurposeDeleted",
-          "WaitingForApprovalPurposeDeleted",
-          "PurposeDeletedByRevokedDelegation",
-          "PurposeVersionSuspendedByConsumer",
-          "PurposeVersionSuspendedByProducer",
-          "PurposeVersionUnsuspendedByConsumer",
-          "PurposeVersionUnsuspendedByProducer",
-          "PurposeVersionOverQuotaUnsuspended",
-          "PurposeArchived",
-          "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisDocumentGenerated",
-          "RiskAnalysisSignedDocumentGenerated"
+          "PurposeVersionCreated",
+          "PurposeVersionUpdated",
+          "PurposeDeleted",
+          "PurposeVersionDeleted"
         ),
       },
       () => Promise.resolve()
