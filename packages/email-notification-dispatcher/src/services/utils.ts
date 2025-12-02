@@ -12,12 +12,10 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
-  agreementStampDateNotFound,
   descriptorNotFound,
   eServiceNotFound,
   eserviceWithoutDescriptors,
