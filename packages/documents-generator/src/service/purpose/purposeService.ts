@@ -28,7 +28,7 @@ export const retrieveTenant = async (
 export const retrieveEService = async (
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
-): Promise<WithMetadata<EService> | undefined> => {
+): Promise<WithMetadata<EService>> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
     throw eServiceNotFound(eserviceId);

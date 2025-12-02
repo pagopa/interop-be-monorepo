@@ -354,3 +354,7 @@ function formatFreeOfCharge(
     freeOfChargeReasonHtml,
   };
 }
+
+export type RiskAnalysisDocumentBuilder = ReturnType<
+  typeof riskAnalysisDocumentBuilder
+>;
