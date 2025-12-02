@@ -17,6 +17,10 @@ import {
   toM2MGatewayApiPurposeEvent,
 } from "../api/eventApiConverter.js";
 
+const normalizeDelegationId = (
+  delegationId: string | null | undefined
+): string | undefined => (delegationId === null ? "null" : delegationId);
+
 export type EventService = ReturnType<typeof eventServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -38,7 +42,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         queries: {
           lastEventId,
           limit,
-          delegationId,
+          delegationId: normalizeDelegationId(delegationId),
         },
         headers,
       });
@@ -85,7 +89,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         queries: {
           lastEventId,
           limit,
-          delegationId,
+          delegationId: normalizeDelegationId(delegationId),
         },
         headers,
       });
@@ -229,7 +233,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
           queries: {
             lastEventId,
             limit,
-            delegationId,
+            delegationId: normalizeDelegationId(delegationId),
           },
           headers,
         }
