@@ -53,11 +53,14 @@ describe("sqsMessageHandler", () => {
       mockSafeStorageService
     );
 
-    expect(mockDbService.saveSignatureReference).toHaveBeenCalledWith({
-      safeStorageId: "mock-key",
-      fileKind: "VOUCHER_AUDIT",
-      fileName: "my-audit-file.json",
-      correlationId: mockCorrelationId,
-    });
+    expect(mockDbService.saveSignatureReference).toHaveBeenCalledWith(
+      {
+        safeStorageId: "mock-key",
+        fileKind: "VOUCHER_AUDIT",
+        fileName: "my-audit-file.json",
+        correlationId: mockCorrelationId,
+      },
+      expect.any(Object)
+    );
   });
 });
