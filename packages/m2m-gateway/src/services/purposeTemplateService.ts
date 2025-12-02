@@ -64,17 +64,6 @@ export function purposeTemplateServiceBuilder(
       retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
     )({});
 
-  const pollPurposeTemplateById = (
-    purposeTemplateId: PurposeTemplateId,
-    metadata: { version: number } | undefined,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<m2mGatewayApi.PurposeTemplate>> =>
-    pollResourceWithMetadata(() =>
-      retrievePurposeTemplateById(purposeTemplateId, headers)
-    )({
-      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
-    });
-
   return {
     async getPurposeTemplates(
       queryParams: m2mGatewayApi.GetPurposeTemplatesQueryParams,
