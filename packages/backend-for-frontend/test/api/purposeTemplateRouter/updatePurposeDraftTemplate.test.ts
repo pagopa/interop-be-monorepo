@@ -6,7 +6,7 @@ import {
   generateToken,
   getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
-import { generateId, tenantKind } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { vi, beforeEach, describe, it, expect } from "vitest";
 import { api, clients } from "../../vitest.api.setup.js";
@@ -26,7 +26,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
 
   const validPurposeTemplateSeed: bffApi.PurposeTemplateSeed = {
     targetDescription: "Target description",
-    targetTenantKind: tenantKind.PA,
+    targetTenantKind: bffApi.TargetTenantKind.Enum.PA,
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,
