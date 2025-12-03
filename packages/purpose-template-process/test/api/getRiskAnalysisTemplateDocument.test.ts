@@ -67,7 +67,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/document test", () => {
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s on successful risk analysis template  retrieved",
+    "Should return 200 for user with role %s on successful risk analysis template document retrieved",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
