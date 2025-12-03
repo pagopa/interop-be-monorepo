@@ -20,6 +20,8 @@ import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTempl
 
 const YES = "Sì";
 const NO = "No";
+const YES_PERSONAL_DATA = "Sì, tratta dati personali";
+const NO_PERSONAL_DATA = "No, non tratta dati personali";
 const NOT_AVAILABLE = "N/A";
 const NO_ANSWER = "-";
 
@@ -31,6 +33,7 @@ export const getPdfPayload = ({
   purposeTemplate,
   riskAnalysisFormTemplate,
   creatorName,
+  creatorIPACode,
   purposeIsFreeOfCharge,
   purposeFreeOfChargeReason,
   language,
@@ -39,6 +42,7 @@ export const getPdfPayload = ({
   purposeTemplate: PurposeTemplate;
   riskAnalysisFormTemplate: RiskAnalysisFormTemplate;
   creatorName: string;
+  creatorIPACode: string | undefined;
   purposeIsFreeOfCharge: boolean;
   purposeFreeOfChargeReason?: string;
   language: Language;
@@ -54,8 +58,11 @@ export const getPdfPayload = ({
   return {
     purposeTemplateId: purposeTemplate.id,
     creatorName,
+    creatorIPACode,
     targetDescription: purposeTemplate.targetDescription,
-    handlesPersonalData: purposeTemplate.handlesPersonalData ? YES : NO,
+    handlesPersonalData: purposeTemplate.handlesPersonalData
+      ? YES_PERSONAL_DATA
+      : NO_PERSONAL_DATA,
     purposeIsFreeOfCharge: purposeFreeOfChargeHtml,
     purposeFreeOfChargeReason: purposeFreeOfChargeReasonHtml,
     answers,
@@ -161,16 +168,13 @@ function getAnswerAnnotation(
   }
 
   const docs = annotation.docs
-    ? `<ul class="docs">${annotation.docs
-        .map((doc) => `<li>${doc.prettyName}.pdf</li>`)
-        .join("")}</ul>`
-    : "";
+    .map((doc) => `<div class="doc">${doc.prettyName}.pdf</div>`)
+    .join("");
 
-  return `<div class="annotation">
-        <div class="title">Annotazioni fornite dal creatore</div>
-        <div class="text">${Handlebars.escapeExpression(annotation.text)}</div>
-        ${docs}
-      </div>`;
+  return `<div class="info-label">Annotazione: ${Handlebars.escapeExpression(
+    annotation.text
+  )}</div>
+        ${docs}`;
 }
 
 // TODO: remove export
@@ -213,7 +217,12 @@ function getSingleAnswerSuggestedValues(
   }
 
   const valuesList = answer.suggestedValues
-    .map((value, idx) => `<li>Opzione ${idx + 1}: ${value}</li>`)
+    .map(
+      (value, idx) =>
+        `<li><span class="option-label">Opzione ${
+          idx + 1
+        }:</span> ${value}</li>`
+    )
     .join("");
 
   return `<div class="suggested-values">
@@ -253,19 +262,17 @@ function formatAnswer<
   const answerSuggestedValues = getAnswerSuggestedValues(answer);
 
   const isEditable = getAnswerIsEditable(answer);
-  const notEditableChip = isEditable
-    ? ""
-    : `<div class="not-editable-chip">Non modificabile</div>`;
 
   return `<div class="item">
-  ${notEditableChip}
-  <div class="label">${questionLabel}</div>
+  <div class="label">${questionLabel}&nbsp;${
+    isEditable ? "" : "(Risposta non modificabile)"
+  }</div>
   ${infoLabel ? `<div class="info-label">${infoLabel}</div>` : ""}
 
   ${
     answerSuggestedValues
       ? answerSuggestedValues
-      : `<div class="answer">${answerText}</div>`
+      : `<div class="answer"> <span class="answer-label">Risposta:</span> ${answerText}</div>`
   }
 
   ${answerAnnotation}

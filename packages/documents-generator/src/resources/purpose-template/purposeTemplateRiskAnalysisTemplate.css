@@ -102,12 +102,8 @@ h1 {
   margin: 16px 0;
 }
 
-.purpose-template-answers .item .not-editable-chip {
-  float: right;
-  padding: 2px 4px;
-  border-radius: 4px;
-  background-color: #e3e7eb;
-  font-weight: 500;
+.purpose-template-answers .item .answer-label {
+  font-weight: 600;
 }
 
 .purpose-template-answers .item .suggested-values .title {
@@ -116,26 +112,15 @@ h1 {
 
 .purpose-template-answers .item .suggested-values .suggested-value-list {
   margin-top: 0;
-}
-
-.purpose-template-answers .item .annotation {
-  position: relative;
-  padding: 8px;
-  border-radius: 4px;
-  background-color: #e3e7eb;
-}
-
-.purpose-template-answers .item .annotation .title {
-  font-weight: 600;
-  padding-bottom: 8px;
-}
-
-.purpose-template-answers .item .annotation .docs {
-  list-style-type: none;
-  font-style: italic;
-  font-weight: 500;
-  padding-left: 8px;
   margin-bottom: 0;
+  padding-left: 24px;
+}
+.purpose-template-answers .item .suggested-values .option-label {
+  font-weight: 600;
+}
+
+.purpose-template-answers .item .doc {
+  font-weight: 600;
 }
 
 .free-of-charge label {

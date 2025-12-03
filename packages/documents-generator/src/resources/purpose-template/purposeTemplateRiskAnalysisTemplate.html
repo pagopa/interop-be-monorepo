@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Analisi del rischio</title>
+    <title>Template Analisi del rischio</title>
     <link
       rel="stylesheet"
       href="./purposeTemplateRiskAnalysisTemplate.css"
@@ -52,11 +52,12 @@
       </div>
 
       <div class="item">
-        <div class="label">Ente creatore</div>
-        <div class="value">{{creatorName}}</div>
+        <div class="label">Ente erogatore</div>
+        <div class="value">
+          {{creatorName}}{{#if creatorIPACode}} (codice IPA:
+          {{creatorIPACode}}){{/if}}
+        </div>
       </div>
-
-      <br />
 
       <div class="item">
         <div class="label">Destinatari</div>
