@@ -17,18 +17,17 @@ import {
   getMockPurposeVersion,
   getMockTenant,
   getMockValidRiskAnalysisForm,
+  toPurposeV1,
 } from "pagopa-interop-commons-test/index.js";
 import {
   CorrelationId,
   EServiceId,
-  PurposeEventEnvelopeV2,
+  PurposeEventEnvelopeV1,
   Tenant,
   TenantId,
   UserId,
   agreementState,
   generateId,
-  purposeVersionState,
-  toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -52,7 +51,7 @@ import {
   readModelService,
 } from "../integrationUtils.js";
 
-import { handlePurposeMessageV2 } from "../../src/handler/handlePurposeMessageV2.js";
+import { handlePurposeMessageV1 } from "../../src/handler/handlePurposeMessageV1.js";
 import {
   eServiceNotFound,
   tenantKindNotFound,
@@ -64,8 +63,10 @@ import {
   riskAnalysisDocumentBuilder,
 } from "../../src/service/purpose/purposeContractBuilder.js";
 const clients = getInteropBeClients();
+
 const riskAnalysisContractInstance: RiskAnalysisDocumentBuilder =
   riskAnalysisDocumentBuilder(pdfGenerator, fileManager, config, genericLogger);
+
 export const mockAddUnsignedRiskAnalysysContractMetadataFn = vi.fn();
 vi.mock("pagopa-interop-api-clients", () => ({
   delegationApi: {
@@ -84,7 +85,7 @@ vi.mock("pagopa-interop-api-clients", () => ({
     }),
   },
 }));
-describe("handleDelegationMessageV2", () => {
+describe("handlePurposeMessageV1", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -114,7 +115,7 @@ describe("handleDelegationMessageV2", () => {
   });
   afterEach(cleanup);
 
-  it("should write on event-store for the activation of a purpose version in the waiting for approval state and call purpose-process", async () => {
+  it("should write on event-store for the activation of a purpose version and call purpose-process", async () => {
     vi.spyOn(pdfGenerator, "generate");
     const mockUserId = generateId<UserId>();
     const mockConsumer: Tenant = {
@@ -148,7 +149,6 @@ describe("handleDelegationMessageV2", () => {
 
     const mockPurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.waitingForApproval,
       stamps: {
         creation: {
           who: mockUserId,
@@ -170,13 +170,13 @@ describe("handleDelegationMessageV2", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const mockEvent: PurposeEventEnvelopeV2 = {
+    const mockEvent: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockPurpose.id,
       version: 1,
-      event_version: 2,
-      type: "PurposeActivated",
-      data: { purpose: toPurposeV2(mockPurpose) },
+      event_version: 1,
+      type: "PurposeVersionActivated",
+      data: { purpose: toPurposeV1(mockPurpose) },
       log_date: new Date(),
       correlation_id: generateId(),
     };
@@ -185,7 +185,7 @@ describe("handleDelegationMessageV2", () => {
       mockEvent.correlation_id!
     );
 
-    await handlePurposeMessageV2(
+    await handlePurposeMessageV1(
       mockEvent,
       readModelService,
       mockRefreshableToken,
@@ -250,13 +250,13 @@ describe("handleDelegationMessageV2", () => {
       versions: [],
     };
 
-    const mockEvent: PurposeEventEnvelopeV2 = {
+    const mockEvent: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockPurpose.id,
       version: 1,
-      event_version: 2,
-      type: "PurposeAdded",
-      data: { purpose: toPurposeV2(mockPurpose) },
+      event_version: 1,
+      type: "PurposeCreated",
+      data: { purpose: toPurposeV1(mockPurpose) },
       log_date: new Date(),
     };
 
@@ -264,7 +264,7 @@ describe("handleDelegationMessageV2", () => {
     const fileManagerSpy = vi.spyOn(fileManager, "storeBytes");
 
     await expect(
-      handlePurposeMessageV2(
+      handlePurposeMessageV1(
         mockEvent,
         readModelService,
         mockRefreshableToken,
@@ -278,26 +278,27 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManagerSpy).not.toHaveBeenCalled();
   });
   it("should throw eServiceNotFound if EService is missing for an 'activated' event", async () => {
+    const mockPurposeVersion = getMockPurposeVersion();
     const mockPurpose = {
       ...getMockPurpose(),
       riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
       consumerId: generateId<TenantId>(),
       eserviceId: generateId<EServiceId>(),
-      versions: [],
+      versions: [mockPurposeVersion],
     };
 
-    const mockEvent: PurposeEventEnvelopeV2 = {
+    const mockEvent: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockPurpose.id,
       version: 1,
-      event_version: 2,
-      type: "PurposeActivated",
-      data: { purpose: toPurposeV2(mockPurpose) },
+      event_version: 1,
+      type: "PurposeVersionActivated",
+      data: { purpose: toPurposeV1(mockPurpose) },
       log_date: new Date(),
     };
 
     await expect(
-      handlePurposeMessageV2(
+      handlePurposeMessageV1(
         mockEvent,
         readModelService,
         mockRefreshableToken,
@@ -307,7 +308,7 @@ describe("handleDelegationMessageV2", () => {
       )
     ).rejects.toThrow(eServiceNotFound(mockPurpose.eserviceId).message);
   });
-  it("should throw tenantKindNotFound if tenantKind is not found", async () => {
+  it("should throw tenantKindNotFound if consumer tenantKind is not found", async () => {
     const mockConsumer: Tenant = {
       ...getMockTenant(),
       kind: undefined,
@@ -322,30 +323,31 @@ describe("handleDelegationMessageV2", () => {
       producerId: mockProducer.id,
       descriptors: [],
     };
+    const mockPurposeVersion = getMockPurposeVersion();
     const mockPurpose = {
       ...getMockPurpose(),
       riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
       consumerId: mockConsumer.id,
       eserviceId: mockEService.id,
-      versions: [],
+      versions: [mockPurposeVersion],
     };
 
     await addOneEService(mockEService);
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const mockEvent: PurposeEventEnvelopeV2 = {
+    const mockEvent: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: mockPurpose.id,
       version: 1,
-      event_version: 2,
-      type: "PurposeActivated",
-      data: { purpose: toPurposeV2(mockPurpose) },
+      event_version: 1,
+      type: "PurposeVersionActivated",
+      data: { purpose: toPurposeV1(mockPurpose) },
       log_date: new Date(),
     };
 
     await expect(
-      handlePurposeMessageV2(
+      handlePurposeMessageV1(
         mockEvent,
         readModelService,
         mockRefreshableToken,
