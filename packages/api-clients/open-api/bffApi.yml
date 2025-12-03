@@ -11459,7 +11459,7 @@ paths:
           name: targetTenantKind
           description: filter by target tenant kind
           schema:
-            $ref: "#/components/schemas/TenantKind"
+            $ref: "#/components/schemas/TargetTenantKind"
         - in: query
           name: excludeExpiredRiskAnalysis
           description: exclude purpose templates with expired risk analysis
@@ -26377,6 +26377,11 @@ components:
         - PRIVATE
         - GSP
         - SCP
+    TargetTenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
     CompactOrganizations:
       type: object
       additionalProperties: false
@@ -26680,7 +26685,7 @@ components:
         targetDescription:
           type: string
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         creatorId:
           type: string
           format: uuid
@@ -26739,7 +26744,7 @@ components:
         targetDescription:
           type: string
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         creator:
           $ref: "#/components/schemas/CompactOrganization"
         state:
@@ -26791,7 +26796,7 @@ components:
           minLength: 10
           maxLength: 250
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         purposeTitle:
           type: string
           minLength: 5
@@ -26974,7 +26979,7 @@ components:
           type: string
           format: uuid
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         purposeTitle:
           type: string
         state:
@@ -27006,7 +27011,7 @@ components:
           type: string
           format: uuid
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         purposeTitle:
           type: string
         purposeDescription:

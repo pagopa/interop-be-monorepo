@@ -1,8 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import {
-  AgreementEventEnvelopeV2,
+  AgreementEventEnvelopeV1,
   CorrelationId,
-  fromAgreementV2,
+  agreementState,
+  fromAgreementV1,
   generateId,
   missingKafkaMessageDataError,
   unsafeBrandId,
@@ -14,7 +15,6 @@ import {
   getInteropHeaders,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
-import { ContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 
 import {
   getActiveConsumerAndProducerDelegations,
@@ -23,10 +23,11 @@ import {
 } from "../service/agreement/agreementService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
 import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
+import { ContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 
 // eslint-disable-next-line max-params
-export async function handleAgreementMessageV2(
-  decodedMessage: AgreementEventEnvelopeV2,
+export async function handleAgreementMessageV1(
+  decodedMessage: AgreementEventEnvelopeV1,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
   agreementContractBuilder: ContractBuilder,
@@ -36,7 +37,7 @@ export async function handleAgreementMessageV2(
   await match(decodedMessage)
     .with(
       {
-        type: P.union("AgreementActivated", "AgreementUpgraded"),
+        type: P.union("AgreementActivated", "AgreementUpdated"),
       },
       async (msg): Promise<void> => {
         if (!msg.data.agreement) {
@@ -45,23 +46,22 @@ export async function handleAgreementMessageV2(
         const correlationId = msg.correlation_id
           ? unsafeBrandId<CorrelationId>(msg.correlation_id)
           : generateId<CorrelationId>();
-        const agreement = fromAgreementV2(msg.data.agreement);
-        const eservice = await retrieveEservice(
-          readModelService,
-          agreement.eserviceId
-        );
-        const consumer = await retrieveTenant(
-          readModelService,
-          agreement.consumerId
-        );
-        const producer = await retrieveTenant(
-          readModelService,
-          agreement.producerId
-        );
-        const activeDelegations = await getActiveConsumerAndProducerDelegations(
-          agreement,
-          readModelService
-        );
+        const agreement = fromAgreementV1(msg.data.agreement);
+        if (agreement.state !== agreementState.active) {
+          logger.info(`Agreement ${agreement.id} state not active `);
+          return;
+        }
+
+        const [eservice, consumer, producer, activeDelegations] =
+          await Promise.all([
+            retrieveEservice(readModelService, agreement.eserviceId),
+            retrieveTenant(readModelService, agreement.consumerId),
+            retrieveTenant(readModelService, agreement.producerId),
+            getActiveConsumerAndProducerDelegations(
+              agreement,
+              readModelService
+            ),
+          ]);
 
         const contract = await agreementContractBuilder.createContract(
           agreement,
@@ -70,7 +70,6 @@ export async function handleAgreementMessageV2(
           producer,
           activeDelegations
         );
-
         const contractWithIsoString: agreementApi.Document = {
           ...contract,
           createdAt: contract.createdAt.toISOString(),
@@ -99,25 +98,12 @@ export async function handleAgreementMessageV2(
         type: P.union(
           "AgreementAdded",
           "AgreementDeleted",
-          "DraftAgreementUpdated",
-          "AgreementArchivedByUpgrade",
+          "AgreementSuspended",
+          "AgreementDeactivated",
+          "VerifiedAttributeUpdated",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
-          "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform",
-          "AgreementDeletedByRevokedDelegation",
-          "AgreementArchivedByRevokedDelegation",
-          "AgreementSubmitted",
-          "AgreementUnsuspendedByProducer",
-          "AgreementUnsuspendedByConsumer",
-          "AgreementUnsuspendedByPlatform",
-          "AgreementArchivedByConsumer",
-          "AgreementSuspendedByProducer",
-          "AgreementSuspendedByConsumer",
-          "AgreementSuspendedByPlatform",
-          "AgreementRejected",
-          "AgreementContractGenerated",
-          "AgreementSignedContractGenerated"
+          "AgreementContractAdded"
         ),
       },
       () => Promise.resolve()
