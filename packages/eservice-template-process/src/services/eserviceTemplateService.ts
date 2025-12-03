@@ -1159,9 +1159,7 @@ export function eserviceTemplateServiceBuilder(
       );
 
       if (
-        eserviceTemplateVersion.state !==
-          eserviceTemplateVersionState.published &&
-        eserviceTemplateVersion.state !== eserviceTemplateVersionState.suspended
+        eserviceTemplateVersion.state === eserviceTemplateVersionState.draft
       ) {
         throw notValidEServiceTemplateVersionState(
           eserviceTemplateVersionId,
