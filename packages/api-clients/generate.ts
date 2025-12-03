@@ -77,8 +77,7 @@ const main = async () => {
         isMediaTypeAllowed(mediaType) {
           return (
             mediaType === "application/json" ||
-            mediaType === "application/problem+json" ||
-            mediaType === "application/merge-patch+json"
+            mediaType === "application/problem+json"
           );
         },
         withAlias: true,

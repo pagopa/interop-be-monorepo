@@ -5036,7 +5036,7 @@ paths:
       operationId: updateDraftEService
       requestBody:
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceDraftUpdateSeed"
         required: true
@@ -5231,7 +5231,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceDelegationUpdateSeed"
       responses:
@@ -5344,7 +5344,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
       responses:
@@ -5457,7 +5457,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceNameUpdateSeed"
       responses:
@@ -5570,7 +5570,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
       responses:
@@ -5958,7 +5958,7 @@ paths:
       operationId: updateDraftEServiceDescriptor
       requestBody:
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorDraftUpdateSeed"
         required: true
@@ -6162,7 +6162,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorQuotasUpdateSeed"
       responses:
@@ -9396,7 +9396,7 @@ paths:
       operationId: updateDraftEServiceTemplate
       requestBody:
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateDraftUpdateSeed"
         required: true
@@ -9591,7 +9591,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
       responses:
@@ -9691,7 +9691,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateIntendedTargetUpdateSeed"
       responses:
@@ -9791,7 +9791,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateNameUpdateSeed"
       responses:
@@ -10180,7 +10180,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionDraftUpdateSeed"
       responses:
@@ -11422,7 +11422,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionQuotasUpdateSeed"
       responses:
@@ -13356,7 +13356,7 @@ paths:
       operationId: updateDraftPurpose
       requestBody:
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeDraftUpdateSeed"
         required: true
@@ -14531,7 +14531,7 @@ paths:
       operationId: updateDraftReversePurpose
       requestBody:
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/ReversePurposeDraftUpdateSeed"
         required: true
