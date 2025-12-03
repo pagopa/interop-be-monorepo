@@ -11,10 +11,16 @@ enum PurposeTemplateStateV2 {
   ARCHIVED = 3;
 }
 
+enum TargetTenantKindV2 {
+  PA = 0;
+  PRIVATE = 2;
+}
+
+
 message PurposeTemplateV2 {
   string id = 1;
   string targetDescription = 2;
-  tenant.v2.TenantKindV2 targetTenantKind = 3;
+  TargetTenantKindV2 targetTenantKind = 3;
   string creatorId = 4;
   PurposeTemplateStateV2 state = 5;
   int64 createdAt = 6;

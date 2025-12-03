@@ -11,7 +11,7 @@ import {
   PurposeTemplateId,
   purposeTemplateState,
   TenantId,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -31,7 +31,7 @@ describe("getPurposeTemplateById", () => {
         ...getMockPurposeTemplate(),
         state: purposeTemplateState,
         purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-          tenantKind.PA
+          targetTenantKind.PA
         ),
       };
       await addOnePurposeTemplate(purposeTemplate);
@@ -66,7 +66,7 @@ describe("getPurposeTemplateById", () => {
         ...getMockPurposeTemplate(),
         state: purposeTemplateState,
         purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-          tenantKind.PA
+          targetTenantKind.PA
         ),
       };
       await addOnePurposeTemplate(purposeTemplate);
@@ -95,7 +95,7 @@ describe("getPurposeTemplateById", () => {
       ...getMockPurposeTemplate(),
       state: purposeTemplateState.draft,
       purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-        tenantKind.PA
+        targetTenantKind.PA
       ),
     };
     await addOnePurposeTemplate(purposeTemplate);
