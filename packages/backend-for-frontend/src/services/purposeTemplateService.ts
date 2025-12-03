@@ -532,7 +532,6 @@ export function purposeTemplateServiceBuilder(
         });
 
       return await fileManager.get(
-        // TODO: change after document-generator is updated
         config.purposeTemplateDocumentsContainer,
         unsignedDocument.path,
         logger
@@ -556,8 +555,7 @@ export function purposeTemplateServiceBuilder(
         });
 
       return await fileManager.get(
-        // TODO: change after document-generator is updated
-        config.purposeTemplateDocumentsContainer,
+        config.purposeTemplateSignedDocumentsContainer,
         signedDocument.path,
         logger
       );
