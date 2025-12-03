@@ -13,6 +13,7 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import express from "express";
 import { config } from "./config/config.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
@@ -83,6 +84,9 @@ export async function createApp(
   } = services;
 
   const app = zodiosCtx.app();
+  app.use(
+    express.json({ type: ["application/json", "application/merge-patch+json"] })
+  );
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
