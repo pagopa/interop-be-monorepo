@@ -122,7 +122,7 @@ paths:
       requestBody:
         description: An E-Service template seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateSeed"
         required: true
@@ -176,7 +176,7 @@ paths:
         "200":
           description: E-Service template retrieved
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "404":
@@ -209,7 +209,7 @@ paths:
         description: A Draft E-Service template update seed containing the possible updatable fields
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateSeed"
       responses:
@@ -248,7 +248,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/PatchUpdateEServiceTemplateSeed"
       responses:
@@ -330,7 +330,7 @@ paths:
       requestBody:
         description: An E-Service template version seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionSeed"
         required: true
@@ -438,7 +438,7 @@ paths:
       requestBody:
         description: An E-Service template version seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateVersionSeed"
         required: true
@@ -493,7 +493,7 @@ paths:
       requestBody:
         description: A partial E-Service template version seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/PatchUpdateEServiceTemplateVersionSeed"
         required: true
@@ -702,7 +702,7 @@ paths:
         description: Payload
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateVersionQuotasSeed"
       responses:
@@ -763,7 +763,7 @@ paths:
         description: E-Service template document
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/CreateEServiceTemplateVersionDocumentSeed"
       responses:
@@ -831,7 +831,7 @@ paths:
         "200":
           description: EService template document metadata retrieved
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EServiceDoc"
         "404":
@@ -889,7 +889,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "404":
@@ -947,7 +947,7 @@ paths:
         description: A payload containing the possible document updatable fields
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateVersionDocumentSeed"
       responses:
@@ -998,7 +998,7 @@ paths:
         description: A payload containing the risk analysis
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
@@ -1059,7 +1059,7 @@ paths:
         description: A payload containing the risk analysis to update
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
@@ -1153,7 +1153,7 @@ paths:
         description: A payload containing the new intended target description
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateIntendedTargetUpdateSeed"
       responses:
@@ -1207,7 +1207,7 @@ paths:
         description: A payload containing the new description
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
       responses:
@@ -1261,7 +1261,7 @@ paths:
         description: A payload containing the new name
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateNameUpdateSeed"
       responses:
@@ -1322,7 +1322,7 @@ paths:
         description: A payload containing the attributes
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/AttributesSeed"
       responses:
@@ -1381,7 +1381,7 @@ paths:
         description: EService template personalData flag updated
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceTemplatePersonalDataFlagUpdateSeed"
       responses:
@@ -1394,25 +1394,25 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/creators":

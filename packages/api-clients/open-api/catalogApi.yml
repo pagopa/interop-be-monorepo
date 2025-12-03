@@ -181,7 +181,7 @@ paths:
       requestBody:
         description: An E-Service seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceSeed"
         required: true
@@ -229,7 +229,7 @@ paths:
         "200":
           description: E-Service retrieved
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EService"
           headers:
@@ -304,7 +304,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/PatchUpdateEServiceSeed"
       responses:
@@ -392,7 +392,7 @@ paths:
         description: An E-Service update seed containing the possible updatable fields
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateInstanceSeed"
       responses:
@@ -486,7 +486,7 @@ paths:
         "200":
           description: Upgraded EService Descriptor created
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptor"
         "404":
@@ -575,7 +575,7 @@ paths:
       requestBody:
         description: An E-Service Descriptor seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorSeed"
         required: true
@@ -622,7 +622,7 @@ paths:
       requestBody:
         description: An E-Service Instance Descriptor seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceInstanceDescriptorSeed"
         required: true
@@ -712,7 +712,7 @@ paths:
       requestBody:
         description: An E-Service Descriptor seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorSeed"
         required: true
@@ -752,7 +752,7 @@ paths:
       requestBody:
         description: A partial E-Service Descriptor seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/PatchUpdateEServiceDescriptorSeed"
         required: true
@@ -809,7 +809,7 @@ paths:
       requestBody:
         description: An E-Service Descriptor seed
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorTemplateInstanceSeed"
         required: true
@@ -863,7 +863,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EService"
         "400":
@@ -909,7 +909,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EService"
         "400":
@@ -955,7 +955,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EService"
         "400":
@@ -1000,7 +1000,7 @@ paths:
         "200":
           description: Cloned EService with a new draft descriptor updated.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EService"
         "400":
@@ -1086,7 +1086,7 @@ paths:
         description: Payload
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorQuotasSeed"
       responses:
@@ -1141,7 +1141,7 @@ paths:
         description: Payload
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorAgreementApprovalPolicySeed"
       responses:
@@ -1204,7 +1204,7 @@ paths:
         description: E-Service document
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
       responses:
@@ -1263,7 +1263,7 @@ paths:
         "200":
           description: EService documents retrieved
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EServiceDocs"
         "400":
@@ -1321,7 +1321,7 @@ paths:
         "200":
           description: EService document metadata retrieved
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/EServiceDoc"
         "404":
@@ -1419,7 +1419,7 @@ paths:
         description: A payload containing the possible document updatable fields
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
       responses:
@@ -1687,7 +1687,7 @@ paths:
         description: A payload containing the risk analysis to update
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
@@ -1781,7 +1781,7 @@ paths:
         description: A payload containing the new description
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
       responses:
@@ -1835,7 +1835,7 @@ paths:
         description: A payload containing the new flags
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceDelegationFlagsUpdateSeed"
       responses:
@@ -1895,7 +1895,7 @@ paths:
         description: A payload containing the new name
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceNameUpdateSeed"
       responses:
@@ -1948,15 +1948,15 @@ paths:
         description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
         required: true
         content:
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
       responses:
         "200":
           description: EService SignalHub flag updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1964,25 +1964,25 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/personalDataFlag:
@@ -2021,25 +2021,25 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
@@ -2110,7 +2110,7 @@ paths:
       requestBody:
         description: Payload containing the reason of the rejection
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/RejectDelegatedEServiceDescriptorSeed"
         required: true
@@ -2187,7 +2187,7 @@ paths:
         description: A payload containing the attributes
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/AttributesSeed"
       responses:
@@ -2241,7 +2241,7 @@ paths:
         description: A payload containing the new name
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceNameUpdateSeed"
       operationId: updateTemplateInstanceName
@@ -2278,7 +2278,7 @@ paths:
         description: A payload containing the new name
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
       operationId: updateTemplateInstanceDescription
@@ -2315,7 +2315,7 @@ paths:
         description: A payload containing a boolean that describes the personalData flag
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
       operationId: setTemplateInstancePersonalDataFlag
@@ -2359,7 +2359,7 @@ paths:
         description: A payload containing the new voucher lifespan
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorVoucherLifespanUpdateSeed"
       operationId: updateTemplateInstanceDescriptorVoucherLifespan
@@ -2408,7 +2408,7 @@ paths:
         description: A payload containing the attributes
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/AttributesSeed"
       responses:
@@ -2467,7 +2467,7 @@ paths:
         description: E-Service document
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
       responses:
@@ -2527,7 +2527,7 @@ paths:
         description: A payload containing the possible document updatable fields
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
       responses:
@@ -2635,7 +2635,7 @@ paths:
         description: Payload
         required: true
         content:
-          application/json:
+          application/problem+json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateInstanceDescriptorQuotasSeed"
       responses:

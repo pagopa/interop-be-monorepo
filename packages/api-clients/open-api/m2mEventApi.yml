@@ -518,10 +518,9 @@ components:
             (public resources, resources accessible as consumer/producer, owned resources, etc.)
       required: false
       schema:
-        oneOf:
-          - type: "null"
-          - type: string
-            format: uuid
+        type: string
+        format: uuid
+        nullable: true
     CorrelationIdHeader:
       in: header
       name: X-Correlation-Id
