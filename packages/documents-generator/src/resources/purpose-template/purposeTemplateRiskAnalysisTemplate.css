@@ -103,19 +103,25 @@ h1 {
 }
 
 .purpose-template-answers .item .not-editable-chip {
-  position: absolute;
-  top: 16px;
-  right: 16px;
+  float: right;
+  padding: 2px 4px;
+  border-radius: 4px;
   background-color: #e3e7eb;
+  font-weight: 500;
 }
 
 .purpose-template-answers .item .suggested-values .title {
   font-weight: 600;
 }
 
+.purpose-template-answers .item .suggested-values .suggested-value-list {
+  margin-top: 0;
+}
+
 .purpose-template-answers .item .annotation {
   position: relative;
-  margin: 16px;
+  padding: 8px;
+  border-radius: 4px;
   background-color: #e3e7eb;
 }
 
@@ -128,6 +134,8 @@ h1 {
   list-style-type: none;
   font-style: italic;
   font-weight: 500;
+  padding-left: 8px;
+  margin-bottom: 0;
 }
 
 .free-of-charge label {

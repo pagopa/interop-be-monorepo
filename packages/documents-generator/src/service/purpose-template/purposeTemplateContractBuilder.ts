@@ -2,16 +2,21 @@ import Handlebars from "handlebars";
 import {
   FormQuestionRules,
   LocalizedText,
+  RiskAnalysisFormRules,
   answerNotFoundInConfigError,
   dataType,
+  dateAtRomeZone,
   incompatibleConfigError,
 } from "pagopa-interop-commons";
 import {
+  PurposeTemplate,
+  RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTemplateModels.js";
 
 const YES = "Sì";
 const NO = "No";
@@ -19,6 +24,62 @@ const NOT_AVAILABLE = "N/A";
 const NO_ANSWER = "-";
 
 type Language = keyof LocalizedText;
+
+// TODO: remove export
+export const getPdfPayload = ({
+  riskAnalysisFormConfig,
+  purposeTemplate,
+  riskAnalysisFormTemplate,
+  creatorName,
+  purposeIsFreeOfCharge,
+  purposeFreeOfChargeReason,
+  language,
+}: {
+  riskAnalysisFormConfig: RiskAnalysisFormRules;
+  purposeTemplate: PurposeTemplate;
+  riskAnalysisFormTemplate: RiskAnalysisFormTemplate;
+  creatorName: string;
+  purposeIsFreeOfCharge: boolean;
+  purposeFreeOfChargeReason?: string;
+  language: Language;
+}): RiskAnalysisTemplateDocumentPDFPayload => {
+  const answers = formatAnswers(
+    riskAnalysisFormConfig,
+    riskAnalysisFormTemplate,
+    language
+  );
+  const { purposeFreeOfChargeHtml, purposeFreeOfChargeReasonHtml } =
+    formatFreeOfCharge(purposeIsFreeOfCharge, purposeFreeOfChargeReason);
+
+  return {
+    purposeTemplateId: purposeTemplate.id,
+    creatorName,
+    targetDescription: purposeTemplate.targetDescription,
+    handlesPersonalData: purposeTemplate.handlesPersonalData ? YES : NO,
+    purposeIsFreeOfCharge: purposeFreeOfChargeHtml,
+    purposeFreeOfChargeReason: purposeFreeOfChargeReasonHtml,
+    answers,
+    date: dateAtRomeZone(new Date()),
+  };
+};
+
+function formatAnswers(
+  formConfig: RiskAnalysisFormRules,
+  riskAnalysisForm: RiskAnalysisFormTemplate,
+  language: Language
+): string {
+  return formConfig.questions
+    .flatMap((questionRules) => {
+      const singleAnswers = riskAnalysisForm.singleAnswers
+        .filter((a) => a.key === questionRules.id)
+        .map((a) => formatSingleAnswer(questionRules, a, language));
+      const multiAnswers = riskAnalysisForm.multiAnswers
+        .filter((a) => a.key === questionRules.id)
+        .map((a) => formatMultiAnswer(questionRules, a, language));
+      return singleAnswers.concat(multiAnswers);
+    })
+    .join("\n");
+}
 
 function getLocalizedLabel(text: LocalizedText, language: Language): string {
   return match(language)
@@ -99,16 +160,16 @@ function getAnswerAnnotation(
     return "";
   }
 
+  const docs = annotation.docs
+    ? `<ul class="docs">${annotation.docs
+        .map((doc) => `<li>${doc.prettyName}.pdf</li>`)
+        .join("")}</ul>`
+    : "";
+
   return `<div class="annotation">
         <div class="title">Annotazioni fornite dal creatore</div>
         <div class="text">${Handlebars.escapeExpression(annotation.text)}</div>
-        ${
-          annotation.docs
-            ? `<ul class="docs">${annotation.docs.map(
-                (doc) => `<li>${doc.prettyName}</li>`
-              )}</ul>`
-            : ""
-        }
+        ${docs}
       </div>`;
 }
 
@@ -123,7 +184,8 @@ export function formatSingleAnswer(
     singleAnswer,
     language,
     getSingleAnswerText.bind(null, language),
-    getSingleAnswerSuggestedValues
+    getSingleAnswerSuggestedValues,
+    getSingleAnswerIsEditable
   );
 }
 
@@ -138,7 +200,8 @@ export function formatMultiAnswer(
     multiAnswer,
     language,
     getMultiAnswerText.bind(null, language),
-    () => ""
+    () => "",
+    () => multiAnswer.editable
   );
 }
 
@@ -149,14 +212,27 @@ function getSingleAnswerSuggestedValues(
     return "";
   }
 
+  const valuesList = answer.suggestedValues
+    .map((value, idx) => `<li>Opzione ${idx + 1}: ${value}</li>`)
+    .join("");
+
   return `<div class="suggested-values">
         <div class="title">Risposte:</div>
-        <ul class="suggested-value-list">${answer.suggestedValues.map(
-          (value, idx) => `<li>Opzione ${idx + 1}: ${value}</li>`
-        )}</ul>
+        <ul class="suggested-value-list">${valuesList}</ul>
       </div>`;
 }
 
+function getSingleAnswerIsEditable(
+  answer: RiskAnalysisTemplateSingleAnswer
+): boolean {
+  if (answer.editable) {
+    return true;
+  }
+
+  return answer.suggestedValues && answer.suggestedValues.length > 0;
+}
+
+// eslint-disable-next-line max-params
 function formatAnswer<
   T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
 >(
@@ -164,7 +240,8 @@ function formatAnswer<
   answer: T,
   language: Language,
   getAnswerText: (questionRules: FormQuestionRules, answer: T) => string,
-  getAnswerSuggestedValues: (answer: T) => string
+  getAnswerSuggestedValues: (answer: T) => string,
+  getAnswerIsEditable: (answer: T) => boolean
 ): string {
   const questionLabel = getLocalizedLabel(questionRules.label, language);
   const infoLabel =
@@ -174,7 +251,9 @@ function formatAnswer<
 
   const answerAnnotation = getAnswerAnnotation(answer.annotation);
   const answerSuggestedValues = getAnswerSuggestedValues(answer);
-  const notEditableChip = answer.editable
+
+  const isEditable = getAnswerIsEditable(answer);
+  const notEditableChip = isEditable
     ? ""
     : `<div class="not-editable-chip">Non modificabile</div>`;
 
@@ -182,8 +261,13 @@ function formatAnswer<
   ${notEditableChip}
   <div class="label">${questionLabel}</div>
   ${infoLabel ? `<div class="info-label">${infoLabel}</div>` : ""}
-  <div class="answer">${answerText}</div>
-  ${answerSuggestedValues}
+
+  ${
+    answerSuggestedValues
+      ? answerSuggestedValues
+      : `<div class="answer">${answerText}</div>`
+  }
+
   ${answerAnnotation}
 </div>
 `;
