@@ -45,7 +45,7 @@ describe("getRiskAnalysisTemplateDocument", async () => {
     );
   });
 
-  it("should throw purposeTemplateRiskAnalysisTemplateDocumentNotFound if the risk analysis template   document doesn't exist", async () => {
+  it("should throw purposeTemplateRiskAnalysisTemplateDocumentNotFound if the risk analysis template document doesn't exist", async () => {
     const riskAnalysisFormTemplate = getMockValidRiskAnalysisFormTemplate(
       tenantKind.PA
     );
