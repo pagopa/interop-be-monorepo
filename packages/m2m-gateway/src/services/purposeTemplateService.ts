@@ -26,10 +26,6 @@ import {
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
-import {
-  pollResourceWithMetadata,
-  isPolledVersionAtLeastMetadataTargetVersion,
-} from "../utils/polling.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
