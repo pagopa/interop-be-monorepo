@@ -1730,7 +1730,7 @@ export function purposeTemplateServiceBuilder(
         )
       );
     },
-    async internalAddSignedRiskAnalysisTemplateDocumentMetadata(
+    async internalAddRiskAnalysisTemplateSignedDocumentMetadata(
       purposeTemplateId: PurposeTemplateId,
       riskAnalysisTemplateSignedDocument: RiskAnalysisTemplateSignedDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>

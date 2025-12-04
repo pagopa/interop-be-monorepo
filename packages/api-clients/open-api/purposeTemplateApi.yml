@@ -1225,7 +1225,7 @@ paths:
       summary: Add signed Risk Analysis Template document metadata to purpose template
       tags:
         - purposeTemplate
-      operationId: internalAddSignedRiskAnalysisTemplateDocumentMetadata
+      operationId: internalAddRiskAnalysisTemplateSignedDocumentMetadata
       requestBody:
         description: The signed Risk Analysis Template document metadata
         required: true
