@@ -16641,9 +16641,9 @@ paths:
     put:
       tags:
         - purposeTemplates
-      summary: Update a Purpose Template Risk Analysis
-      description: Update a Purpose Template Risk Analysis in Draft state
-      operationId: updatePurposeTemplateRiskAnalysis
+      summary: Replace the Risk Analysis of a Purpose Template
+      description: Replace the Risk Analysis of a Purpose Template in Draft state
+      operationId: replacePurposeTemplateRiskAnalysis
       requestBody:
         content:
           application/json:

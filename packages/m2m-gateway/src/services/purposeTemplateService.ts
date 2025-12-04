@@ -411,13 +411,13 @@ export function purposeTemplateServiceBuilder(
 
       await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
     },
-    async updatePurposeTemplateRiskAnalysis(
+    async replacePurposeTemplateRiskAnalysis(
       purposeTemplateId: PurposeTemplateId,
       riskAnalysisFormSeed: m2mGatewayApi.RiskAnalysisFormTemplateSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.RiskAnalysisFormTemplate> {
       logger.info(
-        `Updating risk analysis form template for purpose template ${purposeTemplateId}`
+        `Replacing risk analysis form template for purpose template ${purposeTemplateId}`
       );
 
       const { data: riskAnalysisForm, metadata } =

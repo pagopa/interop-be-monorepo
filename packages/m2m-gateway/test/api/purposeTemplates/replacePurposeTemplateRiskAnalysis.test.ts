@@ -51,7 +51,7 @@ describe("PUT /purposeTemplates/:purposeTemplateId/riskAnalysis router test", ()
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeTemplateService.updatePurposeTemplateRiskAnalysis = vi
+      mockPurposeTemplateService.replacePurposeTemplateRiskAnalysis = vi
         .fn()
         .mockResolvedValue(mockRiskAnalysisFormTemplate);
 
@@ -61,7 +61,7 @@ describe("PUT /purposeTemplates/:purposeTemplateId/riskAnalysis router test", ()
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockRiskAnalysisFormTemplate);
       expect(
-        mockPurposeTemplateService.updatePurposeTemplateRiskAnalysis
+        mockPurposeTemplateService.replacePurposeTemplateRiskAnalysis
       ).toHaveBeenCalledWith(
         purposeTemplateId,
         mockUpdateSeed,
@@ -111,7 +111,7 @@ describe("PUT /purposeTemplates/:purposeTemplateId/riskAnalysis router test", ()
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockPurposeTemplateService.updatePurposeTemplateRiskAnalysis = vi
+    mockPurposeTemplateService.replacePurposeTemplateRiskAnalysis = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -134,7 +134,7 @@ describe("PUT /purposeTemplates/:purposeTemplateId/riskAnalysis router test", ()
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockPurposeTemplateService.updatePurposeTemplateRiskAnalysis = vi
+      mockPurposeTemplateService.replacePurposeTemplateRiskAnalysis = vi
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

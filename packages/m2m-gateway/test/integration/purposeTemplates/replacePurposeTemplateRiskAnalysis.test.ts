@@ -24,7 +24,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("updatePurposeTemplateRiskAnalysis", () => {
+describe("replacePurposeTemplateRiskAnalysis", () => {
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
   const mockValiRiskAnalysisFormTemplate = getMockValidRiskAnalysisFormTemplate(
     tenantKind.PA
@@ -105,7 +105,7 @@ describe("updatePurposeTemplateRiskAnalysis", () => {
 
   it("Should succeed and perform service calls", async () => {
     const result =
-      await purposeTemplateService.updatePurposeTemplateRiskAnalysis(
+      await purposeTemplateService.replacePurposeTemplateRiskAnalysis(
         unsafeBrandId(mockPurposeTemplate.id),
         mockRiskAnalysisFormTemplateSeed,
         getMockM2MAdminAppContext()
@@ -156,7 +156,7 @@ describe("updatePurposeTemplateRiskAnalysis", () => {
     });
 
     await expect(
-      purposeTemplateService.updatePurposeTemplateRiskAnalysis(
+      purposeTemplateService.replacePurposeTemplateRiskAnalysis(
         unsafeBrandId(mockPurposeTemplate.id),
         mockRiskAnalysisFormTemplateSeed,
         getMockM2MAdminAppContext()
@@ -173,7 +173,7 @@ describe("updatePurposeTemplateRiskAnalysis", () => {
     );
 
     await expect(
-      purposeTemplateService.updatePurposeTemplateRiskAnalysis(
+      purposeTemplateService.replacePurposeTemplateRiskAnalysis(
         unsafeBrandId(mockPurposeTemplate.id),
         mockRiskAnalysisFormTemplateSeed,
         getMockM2MAdminAppContext()

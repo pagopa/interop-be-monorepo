@@ -114,7 +114,7 @@ const purposeTemplateRouter = (
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
           const riskAnalysisFormTemplate =
-            await purposeTemplateService.updatePurposeTemplateRiskAnalysis(
+            await purposeTemplateService.replacePurposeTemplateRiskAnalysis(
               unsafeBrandId(req.params.purposeTemplateId),
               req.body,
               ctx
