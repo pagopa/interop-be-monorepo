@@ -15,7 +15,7 @@ import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
-describe("POST /purposeTemplates/:purposeTemplateId/linkEservices route test", () => {
+describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () => {
   const mockDate = new Date();
   beforeEach(() => {
     vi.useFakeTimers();
@@ -50,9 +50,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/linkEservices route test", (
     }
   ) =>
     request(api)
-      .post(
-        `${appBasePath}/purposeTemplates/${purposeTemplateId}/linkEservices`
-      )
+      .post(`${appBasePath}/purposeTemplates/${purposeTemplateId}/eservices`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 
@@ -61,7 +59,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/linkEservices route test", (
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
       const purposeTemplateId = generateId<PurposeTemplateId>();
-      mockPurposeTemplateService.linkEServicesToPurposeTemplate = vi.fn();
+      mockPurposeTemplateService.addPurposeTemplateEService = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, purposeTemplateId, mockRequestBody);
@@ -69,7 +67,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/linkEservices route test", (
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
       expect(
-        mockPurposeTemplateService.linkEServicesToPurposeTemplate
+        mockPurposeTemplateService.addPurposeTemplateEService
       ).toHaveBeenCalledWith(
         purposeTemplateId,
         mockRequestBody,
@@ -87,7 +85,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/linkEservices route test", (
   });
 
   it("Should return 400 for incorrect value for purpose template id", async () => {
-    mockPurposeTemplateService.linkEServicesToPurposeTemplate = vi
+    mockPurposeTemplateService.addPurposeTemplateEService = vi
       .fn()
       .mockResolvedValue(mockM2MLinkEserviceResponse);
 
@@ -123,7 +121,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/linkEservices route test", (
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockPurposeTemplateService.linkEServicesToPurposeTemplate = vi
+    mockPurposeTemplateService.addPurposeTemplateEService = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

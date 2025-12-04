@@ -23,7 +23,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("linkEServicesToPurposeTemplate", () => {
+describe("addPurposeTemplateEService", () => {
   const eserviceId1 = generateId<EServiceId>();
   const eserviceId2 = generateId<EServiceId>();
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
@@ -78,7 +78,7 @@ describe("linkEServicesToPurposeTemplate", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    await purposeTemplateService.linkEServicesToPurposeTemplate(
+    await purposeTemplateService.addPurposeTemplateEService(
       unsafeBrandId(mockPurposeTemplate.id),
       mockEserviceIdsBody,
       getMockM2MAdminAppContext()
@@ -110,7 +110,7 @@ describe("linkEServicesToPurposeTemplate", () => {
     });
 
     await expect(
-      purposeTemplateService.linkEServicesToPurposeTemplate(
+      purposeTemplateService.addPurposeTemplateEService(
         unsafeBrandId(mockPurposeTemplate.id),
         mockEserviceIdsBody,
         getMockM2MAdminAppContext()
@@ -125,7 +125,7 @@ describe("linkEServicesToPurposeTemplate", () => {
     });
 
     await expect(
-      purposeTemplateService.linkEServicesToPurposeTemplate(
+      purposeTemplateService.addPurposeTemplateEService(
         unsafeBrandId(mockPurposeTemplate.id),
         mockEserviceIdsBody,
         getMockM2MAdminAppContext()
@@ -142,7 +142,7 @@ describe("linkEServicesToPurposeTemplate", () => {
     );
 
     await expect(
-      purposeTemplateService.linkEServicesToPurposeTemplate(
+      purposeTemplateService.addPurposeTemplateEService(
         unsafeBrandId(mockPurposeTemplate.id),
         mockEserviceIdsBody,
         getMockM2MAdminAppContext()

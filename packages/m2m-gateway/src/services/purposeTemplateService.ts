@@ -548,19 +548,19 @@ export function purposeTemplateServiceBuilder(
 
       return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
     },
-    async linkEServicesToPurposeTemplate(
+    async addPurposeTemplateEService(
       purposeTemplateId: PurposeTemplateId,
-      body: m2mGatewayApi.PurposeTemplateLinkEServices,
+      { eserviceIds }: m2mGatewayApi.PurposeTemplateLinkEServices,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Linking e-services ${body.eserviceIds} to purpose template ${purposeTemplateId}`
+        `Linking e-services ${eserviceIds} to purpose template ${purposeTemplateId}`
       );
 
       const { metadata } =
         await clients.purposeTemplateProcessClient.linkEServicesToPurposeTemplate(
           {
-            eserviceIds: body.eserviceIds,
+            eserviceIds,
           },
           {
             headers,
