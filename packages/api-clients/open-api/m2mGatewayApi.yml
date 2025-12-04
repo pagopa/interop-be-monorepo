@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: PDND Interoperability API
-  description: PDND Interoperability API Gateway for machine-to-machine communication
+  description: PDND Interoperability API for machine-to-machine interaction with interoperability features
   x-summary: PDND Interoperability API
   version: "2.4.0"
   contact:

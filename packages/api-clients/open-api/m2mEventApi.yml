@@ -527,8 +527,6 @@ components:
       required: true
       schema:
         type: string
-        format: uuid
-        nullable: true
   schemas:
     EServiceM2MEvent:
       type: object
