@@ -217,7 +217,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: id
         in: path
-        description: the purpose template id
+        description: the Purpose Template Id
         required: true
         schema:
           type: string
@@ -1160,12 +1160,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposeTemplates/{purposeTemplateId}/document:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeTemplateId
         in: path
-        description: The purpose template id
+        description: The Purpose Template Id
         required: true
         schema:
           type: string
@@ -1175,8 +1175,8 @@ paths:
         - bearerAuth: []
       tags:
         - purposeTemplate
-      summary: Get an Risk Analysis Template unsigned document
-      description: Retrieves a risk analysis Template unsigned document
+      summary: Get a Risk Analysis Template unsigned document
+      description: Retrieve a risk analysis Template unsigned document
       operationId: getRiskAnalysisTemplateDocument
       responses:
         "200":
@@ -1197,12 +1197,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposeTemplates/{purposeTemplateId}/signedDocument:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument/signed:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeTemplateId
         in: path
-        description: The purpose template id
+        description: The Purpose Template Id
         required: true
         schema:
           type: string
@@ -1212,8 +1212,8 @@ paths:
         - bearerAuth: []
       tags:
         - purposeTemplate
-      summary: Get an Risk Analysis Template signed document
-      description: Retrieves a risk analysis Template signed document
+      summary: Get a Risk Analysis Template signed document
+      description: Retrieve a Risk Analysis Template signed document
       operationId: getRiskAnalysisTemplateSignedDocument
       responses:
         "200":
@@ -1239,7 +1239,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeTemplateId
         in: path
-        description: The purpose template id
+        description: The Purpose Template Id
         required: true
         schema:
           type: string
@@ -1283,7 +1283,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeTemplateId
         in: path
-        description: The purpose template id
+        description: The Purpose Template Id
         required: true
         schema:
           type: string

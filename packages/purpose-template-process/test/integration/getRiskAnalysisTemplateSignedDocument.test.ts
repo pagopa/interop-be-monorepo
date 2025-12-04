@@ -41,8 +41,7 @@ describe("getRiskAnalysisTemplateSignedDocument", async () => {
         getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
       );
     expect(purposeTemplateResponse).toMatchObject(
-      purposeTemplate.purposeRiskAnalysisForm!
-        .riskAnalysisTemplateSignedDocument!
+      purposeTemplate.purposeRiskAnalysisForm!.signedDocument!
     );
   });
 

@@ -31,10 +31,8 @@ const {
   HTTP_STATUS_NOT_FOUND,
 } = constants;
 
-describe("API GET /purposeTemplates/:purposeTemplateId/signedDocument test", () => {
-  const mockPurposeTemplate: PurposeTemplate = {
-    ...getMockPurposeTemplate(),
-  };
+describe("API GET /purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed test", () => {
+  const mockPurposeTemplate: PurposeTemplate = getMockPurposeTemplate();
 
   const mockRiskAnalysisDocument: RiskAnalysisTemplateSignedDocument = {
     id: generateId<RiskAnalysisTemplateDocumentId>(),
@@ -57,7 +55,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/signedDocument test", () 
     purposeTemplateId: PurposeTemplateId = mockPurposeTemplate.id
   ) =>
     request(api)
-      .get(`/purposeTemplates/${purposeTemplateId}/signedDocument`)
+      .get(`/purposeTemplates/${purposeTemplateId}/riskAnalysisDocument/signed`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();

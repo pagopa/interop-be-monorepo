@@ -31,10 +31,8 @@ const {
   HTTP_STATUS_NOT_FOUND,
 } = constants;
 
-describe("API GET /purposeTemplates/:purposeTemplateId/document test", () => {
-  const mockPurposeTemplate: PurposeTemplate = {
-    ...getMockPurposeTemplate(),
-  };
+describe("API GET /purposeTemplates/:purposeTemplateId/riskAnalysisDocument test", () => {
+  const mockPurposeTemplate: PurposeTemplate = getMockPurposeTemplate();
 
   const mockRiskAnalysisDocument: RiskAnalysisTemplateDocument = {
     id: generateId<RiskAnalysisTemplateDocumentId>(),
@@ -56,7 +54,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/document test", () => {
     purposeTemplateId: PurposeTemplateId = mockPurposeTemplate.id
   ) =>
     request(api)
-      .get(`/purposeTemplates/${purposeTemplateId}/document`)
+      .get(`/purposeTemplates/${purposeTemplateId}/riskAnalysisDocument`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
@@ -95,7 +93,6 @@ describe("API GET /purposeTemplates/:purposeTemplateId/document test", () => {
     {
       error: purposeTemplateNotFound(mockPurposeTemplate.id),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
-      description: "purposeTemplateNotFound",
     },
     {
       error: purposeTemplateRiskAnalysisFormNotFound(
@@ -103,17 +100,15 @@ describe("API GET /purposeTemplates/:purposeTemplateId/document test", () => {
         generateId<RiskAnalysisFormTemplateId>()
       ),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
-      description: "purposeTemplateRiskAnalysisFormNotFound",
     },
     {
       error: purposeTemplateRiskAnalysisTemplateDocumentNotFound(
         generateId<RiskAnalysisFormTemplateId>()
       ),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
-      description: "purposeTemplateRiskAnalysisTemplateDocumentNotFound",
     },
   ])(
-    "Should return $expectedStatus for $description error",
+    "Should return $expectedStatus for $error.code error",
     async ({ error, expectedStatus }) => {
       purposeTemplateService.getRiskAnalysisTemplateDocument = vi
         .fn()

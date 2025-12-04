@@ -132,7 +132,7 @@ function retrieveRiskAnalysisFormTemplate(
 function retrieveRiskAnalysisTemplateDocument(
   formTemplate: RiskAnalysisFormTemplate
 ): RiskAnalysisTemplateDocument {
-  const templateDocument = formTemplate.riskAnalysisTemplateDocument;
+  const templateDocument = formTemplate.document;
   if (!templateDocument) {
     throw purposeTemplateRiskAnalysisTemplateDocumentNotFound(formTemplate.id);
   }
@@ -142,8 +142,7 @@ function retrieveRiskAnalysisTemplateDocument(
 function retrieveRiskAnalysisTemplateSignedDocument(
   formTemplate: RiskAnalysisFormTemplate
 ): RiskAnalysisTemplateSignedDocument {
-  const templateSignedDocument =
-    formTemplate.riskAnalysisTemplateSignedDocument;
+  const templateSignedDocument = formTemplate.signedDocument;
   if (!templateSignedDocument) {
     throw purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
       formTemplate.id

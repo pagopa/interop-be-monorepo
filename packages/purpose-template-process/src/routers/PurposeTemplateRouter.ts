@@ -746,35 +746,38 @@ const purposeTemplateRouter = (
         }
       }
     )
-    .get("/purposeTemplates/:purposeTemplateId/document", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysisDocument",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
 
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
 
-        const document =
-          await purposeTemplateService.getRiskAnalysisTemplateDocument(
-            unsafeBrandId(req.params.purposeTemplateId),
+          const document =
+            await purposeTemplateService.getRiskAnalysisTemplateDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              purposeTemplateApi.RiskAnalysisTemplateDocument.parse(
+                riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument(
+                  document
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateDocumentErrorMapper,
             ctx
           );
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.RiskAnalysisTemplateDocument.parse(
-              riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument(
-                document
-              )
-            )
-          );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getRiskAnalysisTemplateDocumentErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    })
+    )
     .get(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
       async (req, res) => {
@@ -818,7 +821,7 @@ const purposeTemplateRouter = (
       }
     )
     .get(
-      "/purposeTemplates/:purposeTemplateId/signedDocument",
+      "/purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
