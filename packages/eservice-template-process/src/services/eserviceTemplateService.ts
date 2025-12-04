@@ -1519,7 +1519,10 @@ export function eserviceTemplateServiceBuilder(
           createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
         },
         metadata: {
-          version: createdEvents.latestNewVersion.get(events[0].streamId) ?? 0,
+          version:
+            createdEvents.latestNewVersions.get(
+              updatedEServiceTemplateWithDocs.id
+            ) ?? 0,
         },
       };
     },

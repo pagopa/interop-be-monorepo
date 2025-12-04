@@ -89,7 +89,7 @@ describe("EventRepository tests", async () => {
         { streamId: eservice.id, newVersion: 1 },
         { streamId: eservice.id, newVersion: 2 },
       ],
-      latestNewVersion: new Map(
+      latestNewVersions: new Map(
         Object.entries({
           [eservice.id]: 2,
         })
@@ -175,7 +175,7 @@ describe("EventRepository tests", async () => {
         { streamId: eservice.id, newVersion: 1 },
         { streamId: eservice.id, newVersion: 2 },
       ],
-      latestNewVersion: new Map(
+      latestNewVersions: new Map(
         Object.entries({
           [eservice.id]: 2,
         })

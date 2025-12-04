@@ -24,7 +24,7 @@ type CreatedEvent = {
 
 type CreatedEvents = {
   events: CreatedEvent[];
-  latestNewVersion: Map<CreatedEvent["streamId"], number>;
+  latestNewVersions: Map<CreatedEvent["streamId"], number>;
 };
 
 async function insertEventInTransaction<T extends Event>(
@@ -97,7 +97,7 @@ async function internalCreateEvents<T extends Event>(
   createEvents: Array<CreateEvent<T>>
 ): Promise<CreatedEvents> {
   const createdEvents: CreatedEvent[] = [];
-  const latestNewVersion = new Map<string, number>();
+  const latestNewVersions = new Map<string, number>();
 
   try {
     await db.tx(async (t) => {
@@ -110,17 +110,13 @@ async function internalCreateEvents<T extends Event>(
         // eslint-disable-next-line functional/immutable-data
         createdEvents.push(createdEvent);
 
-        const currentMax = latestNewVersion.get(createdEvent.streamId) ?? -1;
-        latestNewVersion.set(
-          createdEvent.streamId,
-          Math.max(currentMax, createdEvent.newVersion)
-        );
+        latestNewVersions.set(createdEvent.streamId, createdEvent.newVersion);
       }
     });
 
     return {
       events: createdEvents,
-      latestNewVersion,
+      latestNewVersions,
     };
   } catch (error) {
     throw genericInternalError(`Error creating multiple events: ${error}`);
