@@ -149,7 +149,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
     await handleDelegationMessageV2(
       mockEvent,
@@ -166,7 +166,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
@@ -212,7 +212,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     testHeaders["X-Correlation-Id"] = unsafeBrandId<CorrelationId>(
@@ -290,7 +290,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     await handleDelegationMessageV2(
@@ -308,7 +308,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
@@ -356,7 +356,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     await handleDelegationMessageV2(
@@ -374,7 +374,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
