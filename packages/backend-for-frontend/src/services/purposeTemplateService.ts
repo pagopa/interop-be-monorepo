@@ -519,7 +519,7 @@ export function purposeTemplateServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<Uint8Array> {
       logger.info(
-        `Downloading unsigned risk analysis template document from purpose template ${purposeTemplateId}`
+        `Downloading risk analysis template document from purpose template ${purposeTemplateId}`
       );
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 

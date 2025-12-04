@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, services } from "../../vitest.api.setup.js";
 
-describe("API GET /purposeTemplates/{purposeTemplateId}/document test", () => {
+describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument test", () => {
   const mockDocument = new Uint8Array(100).map(() =>
     Math.floor(Math.random() * 256)
   );
@@ -24,7 +24,9 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/document test", () => {
     purposeTemplateId: PurposeTemplateId = generateId()
   ) =>
     request(api)
-      .get(`${appBasePath}/purposeTemplates/${purposeTemplateId}/document`)
+      .get(
+        `${appBasePath}/purposeTemplates/${purposeTemplateId}/riskAnalysisDocument`
+      )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 

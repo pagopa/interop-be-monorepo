@@ -11819,7 +11819,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /purposeTemplates/{purposeTemplateId}/document:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
     parameters:
       - name: purposeTemplateId
         in: path
@@ -11924,7 +11924,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds.
-  /purposeTemplates/{purposeTemplateId}/signedDocument:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument/signed:
     parameters:
       - name: purposeTemplateId
         in: path
