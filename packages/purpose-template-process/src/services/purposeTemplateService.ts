@@ -593,6 +593,7 @@ async function updateDraftPurposeTemplate(
     targetTenantKind,
     purposeTitle,
     purposeFreeOfChargeReason,
+    purposeDailyCalls,
     handlesPersonalData,
   } = typeAndSeed.seed;
 
@@ -655,6 +656,11 @@ async function updateDraftPurposeTemplate(
         ? undefined
         : purposeTemplate.data.purposeFreeOfChargeReason),
     purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
+    purposeDailyCalls:
+      purposeDailyCalls ??
+      (purposeDailyCalls === null
+        ? undefined
+        : purposeTemplate.data.purposeDailyCalls),
     updatedAt: new Date(),
   };
 

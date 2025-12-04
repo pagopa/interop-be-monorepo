@@ -1352,6 +1352,7 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+          nullable: true
         handlesPersonalData:
           type: boolean
     PurposeTemplateState:

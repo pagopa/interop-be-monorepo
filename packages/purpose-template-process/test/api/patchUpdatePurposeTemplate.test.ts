@@ -129,7 +129,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
       purposeDailyCalls: 10,
       handlesPersonalData: true,
     },
-  ] as purposeTemplateApi.PatchUpdatePurposeTemplateSeed[])(
+  ] satisfies purposeTemplateApi.PatchUpdatePurposeTemplateSeed[])(
     "Should return 200 with partial seed (seed #%#)",
     async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

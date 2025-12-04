@@ -89,10 +89,10 @@ describe("patch update purpose template", () => {
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
       purposeFreeOfChargeReason: null,
-      purposeDailyCalls: 10,
+      purposeDailyCalls: null,
       handlesPersonalData: true,
     },
-  ] as purposeTemplateApi.PatchUpdatePurposeTemplateSeed[])(
+  ] satisfies purposeTemplateApi.PatchUpdatePurposeTemplateSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
     async (seed) => {
       const purposeTemplate: PurposeTemplate = {
@@ -133,7 +133,10 @@ describe("patch update purpose template", () => {
           purposeFreeOfChargeReason: undefined,
         }),
         purposeDailyCalls:
-          seed.purposeDailyCalls ?? purposeTemplate.purposeDailyCalls,
+          seed.purposeDailyCalls ??
+          (seed.purposeDailyCalls === null
+            ? undefined
+            : purposeTemplate.purposeDailyCalls),
         handlesPersonalData:
           seed.handlesPersonalData ?? purposeTemplate.handlesPersonalData,
         updatedAt: new Date(),
