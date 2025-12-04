@@ -13,6 +13,7 @@ import { config } from "../config/config.js";
 import { pollResourceUntilDeletion } from "../utils/polling.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
+  isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 
@@ -52,6 +53,16 @@ export function purposeTemplateServiceBuilder(
     pollResourceUntilDeletion(() =>
       retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
     )({});
+
+  const pollPurposeTemplate = (
+    response: WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(unsafeBrandId(response.data.id), headers)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
 
   const pollPurposeTemplateById = (
     purposeTemplateId: PurposeTemplateId,
@@ -333,6 +344,37 @@ export function purposeTemplateServiceBuilder(
       );
 
       return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async createPurposeTemplate(
+      purposeTemplateSeed: m2mGatewayApi.PurposeTemplateSeed,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(
+        `Creating purpose template for creator ${authData.organizationId}`
+      );
+
+      const purposeResponse =
+        await clients.purposeTemplateProcessClient.createPurposeTemplate(
+          {
+            targetDescription: purposeTemplateSeed.targetDescription,
+            targetTenantKind: purposeTemplateSeed.targetTenantKind,
+            purposeTitle: purposeTemplateSeed.purposeTitle,
+            purposeDescription: purposeTemplateSeed.purposeDescription,
+            purposeIsFreeOfCharge: purposeTemplateSeed.purposeIsFreeOfCharge,
+            purposeFreeOfChargeReason:
+              purposeTemplateSeed.purposeFreeOfChargeReason,
+            purposeDailyCalls: purposeTemplateSeed.purposeDailyCalls,
+            handlesPersonalData: purposeTemplateSeed.handlesPersonalData,
+          },
+          { headers }
+        );
+
+      const polledResource = await pollPurposeTemplate(
+        purposeResponse,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(polledResource.data);
     },
     async deletePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,

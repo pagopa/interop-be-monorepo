@@ -296,6 +296,28 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/purposeTemplates", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purposeTemplate =
+          await purposeTemplateService.createPurposeTemplate(req.body, ctx);
+
+        return res
+          .status(201)
+          .send(m2mGatewayApi.PurposeTemplate.parse(purposeTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating purpose template`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete("/purposeTemplates/:purposeTemplateId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
