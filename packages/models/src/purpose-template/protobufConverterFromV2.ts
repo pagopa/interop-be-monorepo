@@ -92,10 +92,10 @@ export const fromPurposeRiskAnalysisFormTemplateV2 = (
       ? fromRiskAnalysisTemplateAnswerAnnotationV2(a.annotation)
       : undefined,
   })),
-  riskAnalysisTemplateDocument: input.riskAnalysisTemplateDocument
+  document: input.riskAnalysisTemplateDocument
     ? fromRiskAnalysisTemplateDocumentV2(input.riskAnalysisTemplateDocument)
     : undefined,
-  riskAnalysisTemplateSignedDocument: input.riskAnalysisTemplateSignedDocument
+  signedDocument: input.riskAnalysisTemplateSignedDocument
     ? fromRiskAnalysisTemplateSignedDocumentV2(
         input.riskAnalysisTemplateSignedDocument
       )

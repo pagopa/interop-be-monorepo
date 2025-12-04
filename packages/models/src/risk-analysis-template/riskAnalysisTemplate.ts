@@ -102,8 +102,7 @@ export const RiskAnalysisFormTemplate = z.object({
   version: z.string(),
   singleAnswers: z.array(RiskAnalysisTemplateSingleAnswer),
   multiAnswers: z.array(RiskAnalysisTemplateMultiAnswer),
-  riskAnalysisTemplateDocument: RiskAnalysisTemplateDocument.optional(),
-  riskAnalysisTemplateSignedDocument:
-    RiskAnalysisTemplateSignedDocument.optional(),
+  document: RiskAnalysisTemplateDocument.optional(),
+  signedDocument: RiskAnalysisTemplateSignedDocument.optional(),
 });
 export type RiskAnalysisFormTemplate = z.infer<typeof RiskAnalysisFormTemplate>;

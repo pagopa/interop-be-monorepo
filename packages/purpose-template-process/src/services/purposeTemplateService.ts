@@ -1714,7 +1714,7 @@ export function purposeTemplateServiceBuilder(
 
       const updatedFormTemplate: RiskAnalysisFormTemplate = {
         ...riskAnalysisFormTemplate,
-        riskAnalysisTemplateDocument,
+        document: riskAnalysisTemplateDocument,
       };
 
       const updatedPurposeTemplate: PurposeTemplate = {
@@ -1748,7 +1748,7 @@ export function purposeTemplateServiceBuilder(
 
       const updatedFormTemplate: RiskAnalysisFormTemplate = {
         ...riskAnalysisFormTemplate,
-        riskAnalysisTemplateSignedDocument,
+        signedDocument: riskAnalysisTemplateSignedDocument,
       };
 
       const updatedPurposeTemplate: PurposeTemplate = {

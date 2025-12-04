@@ -448,9 +448,8 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
     multiAnswers: addAnnotationToAnswers(
       incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
-    riskAnalysisTemplateDocument: getMockRiskAnalysisTemplateDocument(),
-    riskAnalysisTemplateSignedDocument:
-      getMockRiskAnalysisTemplateSignedDocument(),
+    document: getMockRiskAnalysisTemplateDocument(),
+    signedDocument: getMockRiskAnalysisTemplateSignedDocument(),
   };
 };
 

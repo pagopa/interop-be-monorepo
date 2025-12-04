@@ -118,8 +118,8 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
     version,
     singleAnswers,
     multiAnswers,
-    riskAnalysisTemplateDocument,
-    riskAnalysisTemplateSignedDocument,
+    document,
+    signedDocument,
     ...rest
   } = riskAnalysisFormTemplate;
   void (rest satisfies Record<string, never>);
@@ -273,9 +273,9 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
 
   const riskAnalysisTemplateDocumentSQL:
     | PurposeTemplateRiskAnalysisFormDocumentSQL
-    | undefined = riskAnalysisTemplateDocument
+    | undefined = document
     ? toPurposeTemplateRiskAnalysisFormDocumentSQL(
-        riskAnalysisTemplateDocument,
+        document,
         metadataVersion,
         purposeTemplateId,
         id
@@ -284,9 +284,9 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
 
   const riskAnalysisTemplateSignedDocumentSQL:
     | PurposeTemplateRiskAnalysisFormSignedDocumentSQL
-    | undefined = riskAnalysisTemplateSignedDocument
+    | undefined = signedDocument
     ? toPurposeTemplateRiskAnalysisFormSignedDocumentSQL(
-        riskAnalysisTemplateSignedDocument,
+        signedDocument,
         metadataVersion,
         purposeTemplateId,
         id
