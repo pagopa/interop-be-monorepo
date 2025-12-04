@@ -10,6 +10,7 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
+import { pollResourceUntilDeletion } from "../utils/polling.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
@@ -44,6 +45,14 @@ export function purposeTemplateServiceBuilder(
       },
       headers,
     });
+
+  const pollPurposeTemplateUntilDeletion = (
+    purposeTemplateId: PurposeTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
+    )({});
 
   const pollPurposeTemplate = (
     response: WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>,
@@ -366,6 +375,22 @@ export function purposeTemplateServiceBuilder(
       );
 
       return toM2MGatewayApiPurposeTemplate(polledResource.data);
+    },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      await clients.purposeTemplateProcessClient.deletePurposeTemplate(
+        undefined,
+        {
+          params: { id: purposeTemplateId },
+          headers,
+        }
+      );
+
+      await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
     },
   };
 }
