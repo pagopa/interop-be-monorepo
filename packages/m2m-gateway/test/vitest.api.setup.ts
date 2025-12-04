@@ -124,6 +124,7 @@ export const api = await createApp(
     tenantService: mockTenantService,
     keyService: mockKeyService,
     producerKeychainService: mockProducerKeychainService,
+    eventService: mockEventService,
   },
   rateLimiterMiddleware(mockRateLimiter)
 );
