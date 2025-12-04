@@ -76,11 +76,11 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "eServiceModeNotAllowed",
       "missingFreeOfChargeReason",
       "riskAnalysisValidationFailed",
+      "purposeNotInDraftState",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
       "tenantIsNotTheConsumer",
-      "purposeNotInDraftState",
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )

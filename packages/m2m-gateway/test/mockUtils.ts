@@ -34,6 +34,7 @@ export const getMockM2MAdminAppContext = ({
       organizationId: organizationId || generateId(),
       userId: generateId(),
       clientId: generateId(),
+      jti: generateId(),
     },
     serviceName: serviceName || generateMock(z.string()),
     spanId: generateId(),
