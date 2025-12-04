@@ -290,8 +290,10 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
     version: riskAnalysisFormTemplateSQL.version,
     singleAnswers: riskAnalysisTemplateSingleAnswers,
     multiAnswers: riskAnalysisTemplateMultiAnswers,
-    riskAnalysisTemplateDocument,
-    riskAnalysisTemplateSignedDocument,
+    ...(riskAnalysisTemplateDocument ? { riskAnalysisTemplateDocument } : {}),
+    ...(riskAnalysisTemplateSignedDocument
+      ? { riskAnalysisTemplateSignedDocument }
+      : {}),
   };
 };
 
