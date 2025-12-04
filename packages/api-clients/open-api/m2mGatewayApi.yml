@@ -19801,6 +19801,7 @@ components:
         purposeFreeOfChargeReason:
           type: string
         purposeDailyCalls:
+          description: Maximum number of daily calls that the purpose can perform
           type: integer
           format: int32
           minimum: 1
