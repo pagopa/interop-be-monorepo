@@ -38,6 +38,8 @@ tags:
     description: Purpose Templates routes
   - name: health
     description: Verify service status
+  - name: events
+    description: Events routes
 paths:
   /agreements:
     get:
