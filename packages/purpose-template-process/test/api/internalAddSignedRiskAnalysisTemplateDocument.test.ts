@@ -29,9 +29,7 @@ const {
 } = constants;
 
 describe("API POST /internal/purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed test", () => {
-  const mockPurposeTemplate: PurposeTemplate = {
-    ...getMockPurposeTemplate(),
-  };
+  const mockPurposeTemplate: PurposeTemplate = getMockPurposeTemplate();
 
   const mockRiskAnalysisDocumentPayload: RiskAnalysisTemplateSignedDocument = {
     id: generateId<RiskAnalysisTemplateDocumentId>(),
