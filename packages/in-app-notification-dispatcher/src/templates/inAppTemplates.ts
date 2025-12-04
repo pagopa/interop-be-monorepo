@@ -274,6 +274,30 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente erogatore ${producerName} ha rifiutato la finalità <strong>${purposeName}</strong> che il tuo ente ha inoltrato per l'e-service <strong>${eserviceName}</strong>.`,
+  purposeQuotaAdjustmentNewVersionToProducer: (
+    consumerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${consumerName} ha richiesto un adeguamento del piano di carico per la finalità "<strong>${purposeName}</strong>", associata al tuo e-service <strong>${eserviceName}</strong>.`,
+  purposeQuotaAdjustmentFirstVersionToProducer: (
+    consumerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${consumerName} ha inviato la finalità "<strong>${purposeName}</strong>", che prevede un piano di carico superiore alla tua soglia, associata al tuo e-service <strong>${eserviceName}</strong>.`,
+  purposeOverQuotaToConsumer: (
+    eserviceName: string,
+    dailyCalls: number
+  ): string =>
+    `La stima di carico complessiva per le finalità associate all'e-service "<strong>${eserviceName}</strong>" ha superato la soglia massima consentita dall'erogatore pari a <strong>${dailyCalls}</strong> chiamate API giornaliere.`,
+  purposeQuotaAdjustmentResponseToConsumer: (
+    producerName: string,
+    purposeName: string,
+    eserviceName: string,
+    action: "accettato" | "rifiutato"
+  ): string =>
+    `L'ente erogatore ${producerName} ha ${action} la richiesta di adeguamento del piano di carico formulata dal tuo ente per la finalità "<strong>${purposeName}</strong>", associata all'e-service "<strong>${eserviceName}</strong>".`,
   clientAddedRemovedToProducer: (
     purposeName: string,
     eserviceName: string,

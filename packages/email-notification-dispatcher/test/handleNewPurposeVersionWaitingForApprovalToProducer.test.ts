@@ -27,7 +27,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handlePurposeVersionRejected } from "../src/handlers/purposes/handlePurposeVersionRejected.js";
+import { handleNewPurposeVersionWaitingForApprovalToProducer } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import {
   addOneEService,
   addOnePurpose,
@@ -37,7 +37,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handlePurposeVersionRejected", async () => {
+describe("handleNewPurposeVersionWaitingForApproval", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -52,15 +52,15 @@ describe("handlePurposeVersionRejected", async () => {
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
     name: "Producer Tenant",
+    mails: [getMockTenantMail()],
   };
   const consumerTenant = {
     ...getMockTenant(consumerId),
     name: "Consumer Tenant",
-    mails: [getMockTenantMail()],
   };
   const users = [
-    getMockUser(consumerTenant.id),
-    getMockUser(consumerTenant.id),
+    getMockUser(producerTenant.id),
+    getMockUser(producerTenant.id),
   ];
 
   const { logger } = getMockContext({});
@@ -73,7 +73,7 @@ describe("handlePurposeVersionRejected", async () => {
       .fn()
       .mockResolvedValue({
         id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenant.id,
+        tenantId: producerTenant.id,
         enabled: true,
         createAt: new Date(),
       });
@@ -95,7 +95,7 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should throw missingKafkaMessageDataError when purpose is undefined", async () => {
     await expect(() =>
-      handlePurposeVersionRejected({
+      handleNewPurposeVersionWaitingForApprovalToProducer({
         purposeV2Msg: undefined,
         logger,
         templateService,
@@ -103,7 +103,10 @@ describe("handlePurposeVersionRejected", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("purpose", "PurposeVersionRejected")
+      missingKafkaMessageDataError(
+        "purpose",
+        "NewPurposeVersionWaitingForApproval"
+      )
     );
   });
 
@@ -118,7 +121,7 @@ describe("handlePurposeVersionRejected", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeVersionRejected({
+      handleNewPurposeVersionWaitingForApprovalToProducer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -129,11 +132,11 @@ describe("handlePurposeVersionRejected", async () => {
   });
 
   it("should throw tenantNotFound when producer is not found", async () => {
-    const unkonwnProducerId = generateId<TenantId>();
+    const unknownProducerId = generateId<TenantId>();
 
     const eserviceWithUnknownProducer: EService = {
       ...getMockEService(),
-      producerId: unkonwnProducerId,
+      producerId: unknownProducerId,
     };
     await addOneEService(eserviceWithUnknownProducer);
 
@@ -145,14 +148,14 @@ describe("handlePurposeVersionRejected", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeVersionRejected({
+      handleNewPurposeVersionWaitingForApprovalToProducer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(tenantNotFound(unkonwnProducerId));
+    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
@@ -166,7 +169,7 @@ describe("handlePurposeVersionRejected", async () => {
     await addOnePurpose(purpose);
 
     await expect(() =>
-      handlePurposeVersionRejected({
+      handleNewPurposeVersionWaitingForApprovalToProducer({
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
@@ -176,7 +179,7 @@ describe("handlePurposeVersionRejected", async () => {
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
   });
 
-  it("should generate one message per user of the consumer", async () => {
+  it("should generate one message per user of the producer", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
@@ -184,7 +187,7 @@ describe("handlePurposeVersionRejected", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -192,7 +195,7 @@ describe("handlePurposeVersionRejected", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(3);
+    expect(messages.length).toEqual(2);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
@@ -224,7 +227,7 @@ describe("handlePurposeVersionRejected", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -232,7 +235,7 @@ describe("handlePurposeVersionRejected", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(2);
+    expect(messages.length).toEqual(1);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
@@ -245,7 +248,7 @@ describe("handlePurposeVersionRejected", async () => {
     ).toBe(false);
   });
 
-  it("should generate one message to the consumer", async () => {
+  it("should generate one message to the producer", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
@@ -253,7 +256,7 @@ describe("handlePurposeVersionRejected", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -261,36 +264,42 @@ describe("handlePurposeVersionRejected", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(3);
-    expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" &&
-          message.address === consumerTenant.mails[0].address
-      )
-    ).toBe(true);
+    expect(messages.length).toEqual(2);
+    // Tenant contact emails are not included since includeTenantContactEmails is false
+    expect(messages.every((message) => message.type === "User")).toBe(true);
   });
 
-  it("should generate a message using the latest consumer mail that was registered", async () => {
+  it("should generate a message using the latest producer mail that was registered", async () => {
     const oldMail: TenantMail = {
       ...getMockTenantMail(),
       createdAt: new Date(1999),
     };
     const newMail = getMockTenantMail();
-    const consumerTenantWithMultipleMails: Tenant = {
-      ...getMockTenant(),
+    const producerTenantWithMultipleMails: Tenant = {
+      ...getMockTenant(producerId),
       mails: [oldMail, newMail],
     };
-    await addOneTenant(consumerTenantWithMultipleMails);
+    await addOneTenant(producerTenantWithMultipleMails);
+
+    // Mock to return no users for this specific producer
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([]);
+
+    const eserviceWithMultipleMailProducer: EService = {
+      ...getMockEService(),
+      producerId: producerTenantWithMultipleMails.id,
+    };
+    await addOneEService(eserviceWithMultipleMailProducer);
 
     const purpose: Purpose = {
       ...getMockPurpose(),
-      eserviceId: eservice.id,
-      consumerId: consumerTenantWithMultipleMails.id,
+      eserviceId: eserviceWithMultipleMailProducer.id,
+      consumerId: consumerTenant.id,
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -298,21 +307,15 @@ describe("handlePurposeVersionRejected", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(1);
-    expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" && message.address === newMail.address
-      )
-    ).toBe(true);
+    expect(messages.length).toEqual(0);
   });
 
-  it("should not generate a message to the consumer if they disabled email notification", async () => {
+  it("should not generate a message to the producer if they disabled email notification", async () => {
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
         id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenant.id,
+        tenantId: producerTenant.id,
         enabled: false,
         createAt: new Date(),
       });
@@ -324,7 +327,7 @@ describe("handlePurposeVersionRejected", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
@@ -337,7 +340,7 @@ describe("handlePurposeVersionRejected", async () => {
       messages.some(
         (message) =>
           message.type === "Tenant" &&
-          message.address === consumerTenant.mails[0].address
+          message.address === producerTenant.mails[0].address
       )
     ).toBe(false);
   });
@@ -350,28 +353,28 @@ describe("handlePurposeVersionRejected", async () => {
     };
     await addOnePurpose(purpose);
 
-    const messages = await handlePurposeVersionRejected({
+    const messages = await handleNewPurposeVersionWaitingForApprovalToProducer({
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(3);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain(
-        `La tua finalità &quot;${purpose.title}&quot; è stata rifiutata`
+        `Richiesta adeguamento piano di carico per la finalità &quot;${purpose.title}&quot;`
       );
       match(message.type)
         .with("User", () => {
           expect(message.email.body).toContain("{{ recipientName }}");
-          expect(message.email.body).toContain(producerTenant.name);
+          expect(message.email.body).toContain(consumerTenant.name);
         })
         .with("Tenant", () => {
-          expect(message.email.body).toContain(consumerTenant.name);
           expect(message.email.body).toContain(producerTenant.name);
+          expect(message.email.body).toContain(consumerTenant.name);
         })
         .exhaustive();
       expect(message.email.body).toContain(eservice.name);
