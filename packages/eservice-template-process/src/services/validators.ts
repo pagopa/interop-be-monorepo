@@ -86,6 +86,14 @@ export function versionStatesNotAllowingDocumentOperations(
     .exhaustive();
 }
 
+export function versionStatesNotAllowingInterfaceOperations(
+  version: EServiceTemplateVersion
+): boolean {
+  return match(version.state)
+    .with(eserviceTemplateVersionState.draft, () => false)
+    .otherwise(() => true);
+}
+
 export function assertConsistentDailyCalls({
   dailyCallsPerConsumer,
   dailyCallsTotal,
