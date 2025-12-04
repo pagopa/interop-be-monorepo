@@ -1192,12 +1192,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -1238,12 +1232,6 @@ paths:
           description: Signed Risk Analysis Template metadata added successfully
         "400":
           description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "401":
-          description: Unauthorized
           content:
             application/problem+json:
               schema:
