@@ -552,12 +552,12 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       body: m2mGatewayApi.PurposeTemplateLinkEServices,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorPurposeTemplate[]> {
+    ): Promise<void> {
       logger.info(
         `Linking e-services ${body.eserviceIds} to purpose template ${purposeTemplateId}`
       );
 
-      const { data: eserviceDescriptorPurposeTemplates, metadata } =
+      const { metadata } =
         await clients.purposeTemplateProcessClient.linkEServicesToPurposeTemplate(
           {
             eserviceIds: body.eserviceIds,
@@ -571,8 +571,6 @@ export function purposeTemplateServiceBuilder(
         );
 
       await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
-
-      return eserviceDescriptorPurposeTemplates;
     },
     async removePurposeTemplateEService(
       purposeTemplateId: PurposeTemplateId,

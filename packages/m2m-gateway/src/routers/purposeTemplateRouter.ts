@@ -481,22 +481,13 @@ const purposeTemplateRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          const eServiceDescriptorPurposeTemplates =
-            await purposeTemplateService.linkEServicesToPurposeTemplate(
-              unsafeBrandId(req.params.purposeTemplateId),
-              req.body,
-              ctx
-            );
+          await purposeTemplateService.linkEServicesToPurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            req.body,
+            ctx
+          );
 
-          return res
-            .status(200)
-            .send(
-              eServiceDescriptorPurposeTemplates.map((descriptor) =>
-                m2mGatewayApi.EServiceDescriptorPurposeTemplate.parse(
-                  descriptor
-                )
-              )
-            );
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

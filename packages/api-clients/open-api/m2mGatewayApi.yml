@@ -17917,14 +17917,8 @@ paths:
               $ref: "#/components/schemas/PurposeTemplateLinkEServices"
         required: true
       responses:
-        "200":
+        "204":
           description: E-Services linked to Purpose Template
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"

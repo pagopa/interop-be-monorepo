@@ -58,23 +58,21 @@ describe("POST /purposeTemplates/:purposeTemplateId/linkEservices route test", (
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 204 and perform service calls for user with role %s",
     async (role) => {
       const purposeTemplateId = generateId<PurposeTemplateId>();
-      mockPurposeTemplateService.linkEServicesToPurposeTemplate = vi
-        .fn()
-        .mockResolvedValue(mockM2MLinkEserviceResponse);
+      mockPurposeTemplateService.linkEServicesToPurposeTemplate = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, purposeTemplateId, mockRequestBody);
 
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MLinkEserviceResponse);
+      expect(res.status).toBe(204);
+      expect(res.body).toEqual({});
       expect(
         mockPurposeTemplateService.linkEServicesToPurposeTemplate
       ).toHaveBeenCalledWith(
         purposeTemplateId,
-        mockEserviceIds,
+        mockRequestBody,
         expect.any(Object) // Context object
       );
     }
@@ -133,32 +131,4 @@ describe("POST /purposeTemplates/:purposeTemplateId/linkEservices route test", (
 
     expect(res.status).toBe(500);
   });
-
-  it.each([
-    [{ ...mockM2MLinkEserviceResponse, eserviceId: undefined }],
-    [{ ...mockM2MLinkEserviceResponse, eserviceId: "invalid" }],
-    [{ ...mockM2MLinkEserviceResponse, descriptorId: undefined }],
-    [{ ...mockM2MLinkEserviceResponse, descriptorId: "invalid" }],
-    [{ ...mockM2MLinkEserviceResponse, purposeTemplateId: undefined }],
-    [{ ...mockM2MLinkEserviceResponse, purposeTemplateId: "invalid" }],
-    [{ ...mockM2MLinkEserviceResponse, createdAt: undefined }],
-    [{ ...mockM2MLinkEserviceResponse, createdAt: "invalid" }],
-    [
-      {
-        ...mockM2MLinkEserviceResponse,
-        invalidParam: "invalidValue",
-      },
-    ],
-  ])(
-    "Should return 500 when API model parsing fails for response",
-    async (resp) => {
-      mockPurposeTemplateService.linkEServicesToPurposeTemplate = vi
-        .fn()
-        .mockResolvedValueOnce(resp);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, generateId(), mockRequestBody);
-
-      expect(res.status).toBe(500);
-    }
-  );
 });

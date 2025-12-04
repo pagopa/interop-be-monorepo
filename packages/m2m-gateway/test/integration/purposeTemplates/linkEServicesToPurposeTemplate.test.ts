@@ -78,16 +78,12 @@ describe("linkEServicesToPurposeTemplate", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const result = await purposeTemplateService.linkEServicesToPurposeTemplate(
+    await purposeTemplateService.linkEServicesToPurposeTemplate(
       unsafeBrandId(mockPurposeTemplate.id),
       mockEserviceIdsBody,
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual([
-      mockApiPurposeTemplateEServiceDescriptor1,
-      mockApiPurposeTemplateEServiceDescriptor2,
-    ]);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeTemplateProcessClient
