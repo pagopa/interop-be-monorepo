@@ -84,10 +84,10 @@ export const toRiskAnalysisFormTemplateV2 = (
       ? toRiskAnalysisTemplateAnswerAnnotationV2(a.annotation)
       : undefined,
   })),
-  riskAnalysisTemplateDocument: input.document
+  document: input.document
     ? toRiskAnalysisTemplateDocumentV2(input.document)
     : undefined,
-  riskAnalysisTemplateSignedDocument: input.signedDocument
+  signedDocument: input.signedDocument
     ? toRiskAnalysisTemplateSignedDocumentV2(input.signedDocument)
     : undefined,
 });

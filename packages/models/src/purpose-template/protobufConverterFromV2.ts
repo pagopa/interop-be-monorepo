@@ -92,13 +92,11 @@ export const fromPurposeRiskAnalysisFormTemplateV2 = (
       ? fromRiskAnalysisTemplateAnswerAnnotationV2(a.annotation)
       : undefined,
   })),
-  document: input.riskAnalysisTemplateDocument
-    ? fromRiskAnalysisTemplateDocumentV2(input.riskAnalysisTemplateDocument)
+  document: input.document
+    ? fromRiskAnalysisTemplateDocumentV2(input.document)
     : undefined,
-  signedDocument: input.riskAnalysisTemplateSignedDocument
-    ? fromRiskAnalysisTemplateSignedDocumentV2(
-        input.riskAnalysisTemplateSignedDocument
-      )
+  signedDocument: input.signedDocument
+    ? fromRiskAnalysisTemplateSignedDocumentV2(input.signedDocument)
     : undefined,
 });
 

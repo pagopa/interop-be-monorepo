@@ -33,8 +33,8 @@ message RiskAnalysisFormTemplateV2 {
   string version = 2;
   repeated RiskAnalysisTemplateSingleAnswerV2 singleAnswers = 3;
   repeated RiskAnalysisTemplateMultiAnswerV2 multiAnswers = 4;
-  optional RiskAnalysisTemplateDocumentV2 riskAnalysisTemplateDocument = 5;
-  optional RiskAnalysisTemplateSignedDocumentV2 riskAnalysisTemplateSignedDocument = 6;
+  optional RiskAnalysisTemplateDocumentV2 document = 5;
+  optional RiskAnalysisTemplateSignedDocumentV2 signedDocument = 6;
 }
 
 message RiskAnalysisTemplateSingleAnswerV2 {
