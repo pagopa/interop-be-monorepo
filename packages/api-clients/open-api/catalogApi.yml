@@ -1935,6 +1935,7 @@ paths:
       tags:
         - process
       summary: Enable/disable SignalHub for an e-service
+      description: Enable or disable SignalHub for an e-service
       operationId: updateEServiceSignalHubFlag
       parameters:
         - name: eServiceId

@@ -521,12 +521,6 @@ components:
         type: string
         format: uuid
         nullable: true
-    CorrelationIdHeader:
-      in: header
-      name: X-Correlation-Id
-      required: true
-      schema:
-        type: string
   schemas:
     EServiceM2MEvent:
       type: object

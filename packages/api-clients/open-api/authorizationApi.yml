@@ -1891,9 +1891,6 @@ components:
       required:
         - name
         - members
-    Visibility:
-      type: string
-      enum: [PARTIAL, FULL]
     Client:
       description: |
         Models a client that can be either a full client or a partial client based on the caller
