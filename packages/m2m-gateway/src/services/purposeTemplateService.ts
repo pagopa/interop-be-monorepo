@@ -183,7 +183,7 @@ export function purposeTemplateServiceBuilder(
     },
     async uploadRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
-      fileUpload: m2mGatewayApi.AnnotationDocumentUploadMultipart,
+      fileUpload: m2mGatewayApi.RiskAnalysisTemplateAnnotationDocumentUploadMultipart,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Document> {
       logger.info(

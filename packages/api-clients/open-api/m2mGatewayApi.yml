@@ -16659,18 +16659,18 @@ paths:
     post:
       tags:
         - purposeTemplates
-      summary: Add Document to Risk Analysis Answer Annotation
-      description: Add Answer Annotation Document to Risk Analysis of Purpose Template
-      operationId: addRiskAnalysisTemplateAnswerAnnotationDocument
+      summary: Upload a Risk Analysis Form Template Answer Annotation Document
+      description: Upload a Document for the specified Risk Analysis Form Template Answer Annotation
+      operationId: uploadRiskAnalysisTemplateAnswerAnnotationDocument
       requestBody:
         content:
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/AnnotationDocumentUploadMultipart"
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentUploadMultipart"
         required: true
       responses:
         "201":
-          description: Answer Annotation Document uploaded successfully
+          description: Risk Analysis Form Template Answer Annotation Document uploaded successfully
           content:
             application/json:
               schema:
@@ -21299,7 +21299,7 @@ components:
         prettyName:
           type: string
           description: A human-readable name for the file
-    AnnotationDocumentUploadMultipart:
+    RiskAnalysisTemplateAnnotationDocumentUploadMultipart:
       type: object
       additionalProperties: false
       required:
