@@ -16763,12 +16763,12 @@ paths:
     delete:
       tags:
         - purposeTemplates
-      summary: Delete the Document of a Risk Analysis Template Form Answer Annotation
-      description: Delete the Document of a Risk Analysis Template Form Answer Annotation
+      summary: Delete the Document of a Risk Analysis Form Template Answer Annotation
+      description: Delete the Document of a Risk Analysis Form Template Answer Annotation
       operationId: deleteRiskAnalysisTemplateAnswerAnnotationDocument
       responses:
         "204":
-          description: Risk Analysis Template Form Answer Annotation Document deleted
+          description: Risk Analysis Form Template Answer Annotation Document deleted
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
