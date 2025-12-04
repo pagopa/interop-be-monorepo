@@ -484,7 +484,7 @@ const purposeTemplateRouter = (
           const eServiceDescriptorPurposeTemplates =
             await purposeTemplateService.linkEServicesToPurposeTemplate(
               unsafeBrandId(req.params.purposeTemplateId),
-              req.body.eserviceIds,
+              req.body,
               ctx
             );
 

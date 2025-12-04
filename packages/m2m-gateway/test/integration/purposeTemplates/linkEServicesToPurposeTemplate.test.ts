@@ -27,7 +27,9 @@ describe("linkEServicesToPurposeTemplate", () => {
   const eserviceId1 = generateId<EServiceId>();
   const eserviceId2 = generateId<EServiceId>();
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
-  const mockEserviceIds = [eserviceId1, eserviceId2];
+  const mockEserviceIdsBody = {
+    eserviceIds: [eserviceId1, eserviceId2],
+  };
 
   const mockApiPurposeTemplateEServiceDescriptor1: purposeTemplateApi.EServiceDescriptorPurposeTemplate =
     {
@@ -78,7 +80,7 @@ describe("linkEServicesToPurposeTemplate", () => {
   it("Should succeed and perform API clients calls", async () => {
     const result = await purposeTemplateService.linkEServicesToPurposeTemplate(
       unsafeBrandId(mockPurposeTemplate.id),
-      mockEserviceIds,
+      mockEserviceIdsBody,
       getMockM2MAdminAppContext()
     );
 
@@ -93,9 +95,7 @@ describe("linkEServicesToPurposeTemplate", () => {
       params: {
         id: mockPurposeTemplate.id,
       },
-      body: {
-        eserviceIds: mockEserviceIds,
-      },
+      body: mockEserviceIdsBody,
     });
     expect(mockLinkEServicesToPurposeTemplate).toHaveBeenCalledOnce();
 
@@ -116,7 +116,7 @@ describe("linkEServicesToPurposeTemplate", () => {
     await expect(
       purposeTemplateService.linkEServicesToPurposeTemplate(
         unsafeBrandId(mockPurposeTemplate.id),
-        mockEserviceIds,
+        mockEserviceIdsBody,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -131,7 +131,7 @@ describe("linkEServicesToPurposeTemplate", () => {
     await expect(
       purposeTemplateService.linkEServicesToPurposeTemplate(
         unsafeBrandId(mockPurposeTemplate.id),
-        mockEserviceIds,
+        mockEserviceIdsBody,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -148,7 +148,7 @@ describe("linkEServicesToPurposeTemplate", () => {
     await expect(
       purposeTemplateService.linkEServicesToPurposeTemplate(
         unsafeBrandId(mockPurposeTemplate.id),
-        mockEserviceIds,
+        mockEserviceIdsBody,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

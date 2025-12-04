@@ -17907,23 +17907,14 @@ paths:
     post:
       tags:
         - purposeTemplates
-      summary: Link E-Services to Purpose Template
-      description: Link E-Services to a Purpose Template that is in Draft or Active state
+      summary: Link an E-Service to a Purpose Template
+      description: Link an E-Service to a Purpose Template that is in Draft or Active state
       operationId: linkEServicesToPurposeTemplate
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                eserviceIds:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
-                  minItems: 1
-              required:
-                - eserviceIds
+              $ref: "#/components/schemas/PurposeTemplateLinkEServices"
         required: true
       responses:
         "200":
@@ -21515,6 +21506,17 @@ components:
       required:
         - version
         - answers
+    PurposeTemplateLinkEServices:
+      type: object
+      properties:
+        eserviceIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - eserviceIds
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
