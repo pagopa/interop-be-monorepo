@@ -14,6 +14,7 @@ export type LoggerMetadata = {
   eventVersion?: number;
   streamId?: string;
   streamVersion?: number;
+  jti?: string;
 };
 
 export const parsedLoggerConfig = LoggerConfig.safeParse(process.env);
@@ -37,6 +38,7 @@ const logFormat = (
     eventVersion,
     streamId,
     streamVersion,
+    jti,
   }: LoggerMetadata
 ) => {
   const serviceLogPart = serviceName ? `[${serviceName}]` : undefined;
@@ -44,6 +46,7 @@ const logFormat = (
   const organizationLogPart = organizationId
     ? `[OID=${organizationId}]`
     : undefined;
+  const jtiLogPart = jti ? `[JTI=${jti}]` : undefined;
   const correlationLogPart = correlationId
     ? `[CID=${correlationId}]`
     : undefined;
@@ -61,6 +64,7 @@ const logFormat = (
     userLogPart,
     organizationLogPart,
     correlationLogPart,
+    jtiLogPart,
     spanIdLogPart,
     eventTypePart,
     eventVersionPart,

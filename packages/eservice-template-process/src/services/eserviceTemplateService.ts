@@ -115,6 +115,7 @@ import {
   assertRiskAnalysisIsValidForPublication,
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
+  versionStatesNotAllowingInterfaceOperations,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -502,7 +503,7 @@ export function eserviceTemplateServiceBuilder(
       );
 
       if (
-        eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft
+        versionStatesNotAllowingInterfaceOperations(eserviceTemplateVersion)
       ) {
         throw notValidEServiceTemplateVersionState(
           eserviceTemplateVersionId,
@@ -1159,9 +1160,7 @@ export function eserviceTemplateServiceBuilder(
       );
 
       if (
-        eserviceTemplateVersion.state !==
-          eserviceTemplateVersionState.published &&
-        eserviceTemplateVersion.state !== eserviceTemplateVersionState.suspended
+        eserviceTemplateVersion.state === eserviceTemplateVersionState.draft
       ) {
         throw notValidEServiceTemplateVersionState(
           eserviceTemplateVersionId,
@@ -1598,12 +1597,23 @@ export function eserviceTemplateServiceBuilder(
         eserviceTemplate.data
       );
 
-      if (document.kind === "INTERFACE" && version.interface !== undefined) {
+      const isInterface = document.kind === "INTERFACE";
+      const isDocument = document.kind === "DOCUMENT";
+
+      if (isInterface && versionStatesNotAllowingInterfaceOperations(version)) {
+        throw notValidEServiceTemplateVersionState(version.id, version.state);
+      }
+
+      if (isInterface && version.interface !== undefined) {
         throw interfaceAlreadyExists(version.id);
       }
 
+      if (isDocument && versionStatesNotAllowingDocumentOperations(version)) {
+        throw notValidEServiceTemplateVersionState(version.id, version.state);
+      }
+
       if (
-        document.kind === "DOCUMENT" &&
+        isDocument &&
         version.docs.some(
           (d) =>
             d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
@@ -1613,13 +1623,12 @@ export function eserviceTemplateServiceBuilder(
       }
 
       if (
-        document.kind === "DOCUMENT" &&
+        isDocument &&
         version.docs.some((d) => d.checksum === document.checksum)
       ) {
         throw checksumDuplicate(eserviceTemplate.data.id, version.id);
       }
 
-      const isInterface = document.kind === "INTERFACE";
       const newDocument: Document = {
         id: unsafeBrandId(document.documentId),
         name: document.fileName,
@@ -1644,24 +1653,23 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
 
-      const event =
-        document.kind === "INTERFACE"
-          ? toCreateEventEServiceTemplateVersionInterfaceAdded(
-              eserviceTemplateId,
-              eserviceTemplate.metadata.version,
-              eserviceTemplateVersionId,
-              unsafeBrandId(document.documentId),
-              updatedEServiceTemplate,
-              correlationId
-            )
-          : toCreateEventEServiceTemplateVersionDocumentAdded(
-              eserviceTemplateId,
-              eserviceTemplate.metadata.version,
-              eserviceTemplateVersionId,
-              unsafeBrandId(document.documentId),
-              updatedEServiceTemplate,
-              correlationId
-            );
+      const event = isInterface
+        ? toCreateEventEServiceTemplateVersionInterfaceAdded(
+            eserviceTemplateId,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            unsafeBrandId(document.documentId),
+            updatedEServiceTemplate,
+            correlationId
+          )
+        : toCreateEventEServiceTemplateVersionDocumentAdded(
+            eserviceTemplateId,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            unsafeBrandId(document.documentId),
+            updatedEServiceTemplate,
+            correlationId
+          );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1756,6 +1764,12 @@ export function eserviceTemplateServiceBuilder(
         documentId
       );
 
+      const isInterface = document.id === version?.interface?.id;
+
+      if (isInterface && versionStatesNotAllowingInterfaceOperations(version)) {
+        throw notValidEServiceTemplateVersionState(version.id, version.state);
+      }
+
       if (
         version.docs.some(
           (d) =>
@@ -1775,7 +1789,6 @@ export function eserviceTemplateServiceBuilder(
         prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
       };
 
-      const isInterface = document.id === version?.interface?.id;
       const newEserviceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         versions: eserviceTemplate.data.versions.map(
@@ -2232,7 +2245,7 @@ async function updateDraftEServiceTemplateVersion(
     eserviceTemplate.data
   );
 
-  if (eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft) {
+  if (versionStatesNotAllowingInterfaceOperations(eserviceTemplateVersion)) {
     throw notValidEServiceTemplateVersionState(
       eserviceTemplateVersionId,
       eserviceTemplateVersion.state
