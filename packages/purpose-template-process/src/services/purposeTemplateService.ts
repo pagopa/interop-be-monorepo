@@ -42,6 +42,7 @@ import { match } from "ts-pattern";
 import {
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
+  eServiceDescriptorPurposeTemplateNotFound,
   invalidAssociatedEServiceForPublication,
   missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
@@ -113,6 +114,25 @@ async function retrievePurposeTemplate(
     throw purposeTemplateNotFound(id);
   }
   return purposeTemplate;
+}
+
+async function retrievePurposeTemplateEserviceDescriptor(
+  purposeTemplateId: PurposeTemplateId,
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<EServiceDescriptorPurposeTemplate> {
+  const eServiceDescriptorPurposeTemplate =
+    await readModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+      purposeTemplateId,
+      eserviceId
+    );
+  if (!eServiceDescriptorPurposeTemplate) {
+    throw eServiceDescriptorPurposeTemplateNotFound(
+      purposeTemplateId,
+      eserviceId
+    );
+  }
+  return eServiceDescriptorPurposeTemplate;
 }
 
 function retrieveRiskAnalysisFormTemplate(
@@ -794,6 +814,29 @@ export function purposeTemplateServiceBuilder(
           offset,
           limit,
         }
+      );
+    },
+    async getPurposeTemplateEServiceDescriptor(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: EServiceId,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<EServiceDescriptorPurposeTemplate> {
+      logger.info(
+        `Retrieving e-service descriptor of eservice with id ${eserviceId} linked to purpose template ${purposeTemplateId}`
+      );
+
+      applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
+      );
+
+      return await retrievePurposeTemplateEserviceDescriptor(
+        purposeTemplateId,
+        eserviceId,
+        readModelService
       );
     },
     async linkEservicesToPurposeTemplate(

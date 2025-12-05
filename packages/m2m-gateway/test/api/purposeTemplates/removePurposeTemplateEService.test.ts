@@ -25,34 +25,28 @@ describe("POST /purposeTemplates/:purposeTemplateId/unlinkEservices route test",
   });
 
   const purposeTemplateId = generateId<PurposeTemplateId>();
-  const mockEserviceIds = [generateId<EServiceId>()];
-
-  const mockRequestBody = {
-    eserviceIds: mockEserviceIds,
-  };
+  const mockEserviceId = generateId<EServiceId>();
 
   const makeRequest = async (
     token: string,
     purposeTemplateId: PurposeTemplateId,
-    body: {
-      eserviceIds: string[];
-    }
+    eserviceId: EServiceId
   ) =>
     request(api)
-      .post(
-        `${appBasePath}/purposeTemplates/${purposeTemplateId}/unlinkEservices`
+      .delete(
+        `${appBasePath}/purposeTemplates/${purposeTemplateId}/eservices/${eserviceId}`
       )
       .set("Authorization", `Bearer ${token}`)
-      .send(body);
+      .send();
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeTemplateService.unlinkEServicesFromPurposeTemplate = vi.fn();
+      mockPurposeTemplateService.removePurposeTemplateEService = vi.fn();
 
       const token = generateToken(role);
-      const res = await makeRequest(token, purposeTemplateId, mockRequestBody);
+      const res = await makeRequest(token, purposeTemplateId, mockEserviceId);
 
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
@@ -62,10 +56,10 @@ describe("POST /purposeTemplates/:purposeTemplateId/unlinkEservices route test",
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    mockPurposeTemplateService.unlinkEServicesFromPurposeTemplate = vi.fn();
+    mockPurposeTemplateService.removePurposeTemplateEService = vi.fn();
 
     const token = generateToken(role);
-    const res = await makeRequest(token, generateId(), mockRequestBody);
+    const res = await makeRequest(token, generateId(), mockEserviceId);
     expect(res.status).toBe(403);
   });
 
@@ -74,26 +68,21 @@ describe("POST /purposeTemplates/:purposeTemplateId/unlinkEservices route test",
     const res = await makeRequest(
       token,
       "INVALID ID" as PurposeTemplateId,
-      mockRequestBody
+      mockEserviceId
     );
     expect(res.status).toBe(400);
   });
 
-  it.each([{}, { eserviceIds: [] }])(
-    "Should return 400 if passed an invalid request body",
-    async (body) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        generateId(),
-        body as {
-          eserviceIds: string[];
-        }
-      );
+  it("Should return 400 for incorrect value for eservice id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId(),
+      "INVALID ID" as EServiceId
+    );
 
-      expect(res.status).toBe(400);
-    }
-  );
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     missingMetadata(),
@@ -102,11 +91,11 @@ describe("POST /purposeTemplates/:purposeTemplateId/unlinkEservices route test",
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockPurposeTemplateService.unlinkEServicesFromPurposeTemplate = vi
+    mockPurposeTemplateService.removePurposeTemplateEService = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, generateId(), mockRequestBody);
+    const res = await makeRequest(token, generateId(), mockEserviceId);
 
     expect(res.status).toBe(500);
   });

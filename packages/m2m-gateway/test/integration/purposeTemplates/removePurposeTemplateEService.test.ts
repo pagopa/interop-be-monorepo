@@ -12,39 +12,28 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
+  mockDeletionPollingResponse,
   mockInteropBeClients,
-  mockPollingResponse,
   purposeTemplateService,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("unlinkEServicesFromPurposeTemplate", () => {
+describe("removePurposeTemplateEService", () => {
   const eserviceId1 = generateId<EServiceId>();
-  const eserviceId2 = generateId<EServiceId>();
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
-  const mockEserviceIds = [eserviceId1, eserviceId2];
 
   const mockApiEServiceDescriptorPurposeTemplate1 = {
     ...getMockedApiEServiceDescriptorPurposeTemplate(),
     eserviceId: eserviceId1,
     purposeTemplateId: mockPurposeTemplate.id,
   };
-  const mockApiEServiceDescriptorPurposeTemplate2 = {
-    ...getMockedApiEServiceDescriptorPurposeTemplate(),
-    eserviceId: eserviceId2,
-    purposeTemplateId: mockPurposeTemplate.id,
-  };
 
   const mockVersion = 2;
   const mockUnlinkEServicesFromPurposeTemplateResponse = getMockWithMetadata(
-    [
-      mockApiEServiceDescriptorPurposeTemplate1,
-      mockApiEServiceDescriptorPurposeTemplate2,
-    ],
+    [mockApiEServiceDescriptorPurposeTemplate1],
     mockVersion
   );
 
@@ -53,29 +42,33 @@ describe("unlinkEServicesFromPurposeTemplate", () => {
     .mockResolvedValue(mockUnlinkEServicesFromPurposeTemplateResponse);
 
   const mockPollRetries = 2;
-  const mockGetPurposeTemplateResponse = getMockWithMetadata(
-    mockPurposeTemplate,
+  const mockGetPurposeTemplateEServiceDescriptorResponse = getMockWithMetadata(
+    mockApiEServiceDescriptorPurposeTemplate1,
     2
   );
-  const mockGetPurposeTemplate = vi.fn(
-    mockPollingResponse(mockGetPurposeTemplateResponse, mockPollRetries)
+  const mockGetPurposeTemplateEServiceDescriptor = vi.fn(
+    mockDeletionPollingResponse(
+      mockGetPurposeTemplateEServiceDescriptorResponse,
+      mockPollRetries
+    )
   );
 
   mockInteropBeClients.purposeTemplateProcessClient = {
     unlinkEServicesFromPurposeTemplate: mockUnlinkEServicesFromPurposeTemplate,
-    getPurposeTemplate: mockGetPurposeTemplate,
+    getPurposeTemplateEServiceDescriptor:
+      mockGetPurposeTemplateEServiceDescriptor,
   } as unknown as PagoPAInteropBeClients["purposeTemplateProcessClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
     mockUnlinkEServicesFromPurposeTemplate.mockClear();
-    mockGetPurposeTemplate.mockClear();
+    mockGetPurposeTemplateEServiceDescriptor.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    await purposeTemplateService.unlinkEServicesFromPurposeTemplate(
+    await purposeTemplateService.removePurposeTemplateEService(
       unsafeBrandId(mockPurposeTemplate.id),
-      mockEserviceIds,
+      eserviceId1,
       getMockM2MAdminAppContext()
     );
 
@@ -87,46 +80,34 @@ describe("unlinkEServicesFromPurposeTemplate", () => {
         id: mockPurposeTemplate.id,
       },
       body: {
-        eserviceIds: mockEserviceIds,
+        eserviceIds: [eserviceId1],
       },
     });
     expect(mockUnlinkEServicesFromPurposeTemplate).toHaveBeenCalledOnce();
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,
-      params: { id: mockPurposeTemplate.id },
+        mockInteropBeClients.purposeTemplateProcessClient
+          .getPurposeTemplateEServiceDescriptor,
+      params: { id: mockPurposeTemplate.id, eserviceId: eserviceId1 },
     });
-    expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(mockPollRetries);
-  });
-
-  it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
-    mockGetPurposeTemplate.mockResolvedValueOnce({
-      ...mockGetPurposeTemplateResponse,
-      metadata: undefined,
-    });
-
-    await expect(
-      purposeTemplateService.unlinkEServicesFromPurposeTemplate(
-        unsafeBrandId(mockPurposeTemplate.id),
-        mockEserviceIds,
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(missingMetadata());
+    expect(mockGetPurposeTemplateEServiceDescriptor).toHaveBeenCalledTimes(
+      mockPollRetries
+    );
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetPurposeTemplate.mockImplementation(
-      mockPollingResponse(
-        mockGetPurposeTemplateResponse,
+    mockGetPurposeTemplateEServiceDescriptor.mockImplementation(
+      mockDeletionPollingResponse(
+        mockGetPurposeTemplateEServiceDescriptorResponse,
         config.defaultPollingMaxRetries + 1
       )
     );
 
     await expect(
-      purposeTemplateService.unlinkEServicesFromPurposeTemplate(
+      purposeTemplateService.removePurposeTemplateEService(
         unsafeBrandId(mockPurposeTemplate.id),
-        mockEserviceIds,
+        eserviceId1,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -135,7 +116,7 @@ describe("unlinkEServicesFromPurposeTemplate", () => {
         config.defaultPollingRetryDelay
       )
     );
-    expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(
+    expect(mockGetPurposeTemplateEServiceDescriptor).toHaveBeenCalledTimes(
       config.defaultPollingMaxRetries
     );
   });
