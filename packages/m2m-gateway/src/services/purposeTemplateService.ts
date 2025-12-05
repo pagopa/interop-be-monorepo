@@ -10,10 +10,10 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { pollResourceUntilDeletion } from "../utils/polling.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 
@@ -391,6 +391,24 @@ export function purposeTemplateServiceBuilder(
       );
 
       await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.deleteRiskAnalysisTemplateAnnotationDocument(
+          undefined,
+          {
+            params: { purposeTemplateId, documentId },
+            headers,
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
     },
   };
 }
