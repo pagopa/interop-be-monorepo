@@ -10,10 +10,10 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { pollResourceUntilDeletion } from "../utils/polling.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 
