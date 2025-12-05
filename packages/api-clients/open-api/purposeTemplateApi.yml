@@ -354,7 +354,7 @@ paths:
         "204":
           description: Purpose template deleted
         "403":
-          description: Purpose template is not in Draft state
+          description: Forbidden
           content:
             application/problem+json:
               schema:

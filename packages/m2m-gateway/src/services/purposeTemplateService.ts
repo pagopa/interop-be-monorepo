@@ -10,6 +10,7 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
+import { pollResourceUntilDeletion } from "../utils/polling.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
@@ -44,6 +45,15 @@ export function purposeTemplateServiceBuilder(
       },
       headers,
     });
+
+  const pollPurposeTemplateUntilDeletion = (
+    purposeTemplateId: PurposeTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
+    )({});
+
   const pollPurposeTemplate = (
     response: WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>,
     headers: M2MGatewayAppContext["headers"]
@@ -335,6 +345,37 @@ export function purposeTemplateServiceBuilder(
 
       return toM2MGatewayApiPurposeTemplate(data);
     },
+    async createPurposeTemplate(
+      purposeTemplateSeed: m2mGatewayApi.PurposeTemplateSeed,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(
+        `Creating purpose template for creator ${authData.organizationId}`
+      );
+
+      const purposeResponse =
+        await clients.purposeTemplateProcessClient.createPurposeTemplate(
+          {
+            targetDescription: purposeTemplateSeed.targetDescription,
+            targetTenantKind: purposeTemplateSeed.targetTenantKind,
+            purposeTitle: purposeTemplateSeed.purposeTitle,
+            purposeDescription: purposeTemplateSeed.purposeDescription,
+            purposeIsFreeOfCharge: purposeTemplateSeed.purposeIsFreeOfCharge,
+            purposeFreeOfChargeReason:
+              purposeTemplateSeed.purposeFreeOfChargeReason,
+            purposeDailyCalls: purposeTemplateSeed.purposeDailyCalls,
+            handlesPersonalData: purposeTemplateSeed.handlesPersonalData,
+          },
+          { headers }
+        );
+
+      const polledResource = await pollPurposeTemplate(
+        purposeResponse,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(polledResource.data);
+    },
     async updateDraftPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       seed: m2mGatewayApi.PurposeTemplateDraftUpdateSeed,
@@ -354,6 +395,22 @@ export function purposeTemplateServiceBuilder(
         );
       const polledResource = await pollPurposeTemplate(response, headers);
       return toM2MGatewayApiPurposeTemplate(polledResource.data);
+    },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      await clients.purposeTemplateProcessClient.deletePurposeTemplate(
+        undefined,
+        {
+          params: { id: purposeTemplateId },
+          headers,
+        }
+      );
+
+      await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
     },
   };
 }
