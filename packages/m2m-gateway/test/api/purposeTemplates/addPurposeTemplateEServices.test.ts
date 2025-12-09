@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
@@ -11,9 +10,9 @@ import {
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 
 describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () => {
   const mockDate = new Date();
@@ -25,22 +24,11 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
     vi.useRealTimers();
   });
 
-  const purposeTemplateId = generateId<PurposeTemplateId>();
   const mockEserviceIds = [generateId<EServiceId>()];
 
   const mockRequestBody = {
     eserviceIds: mockEserviceIds,
   };
-
-  const mockM2MLinkEserviceResponse: m2mGatewayApi.EServiceDescriptorPurposeTemplate[] =
-    [
-      {
-        purposeTemplateId,
-        descriptorId: generateId(),
-        eserviceId: mockEserviceIds[0],
-        createdAt: mockDate.toISOString(),
-      },
-    ];
 
   const makeRequest = async (
     token: string,
@@ -59,7 +47,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
       const purposeTemplateId = generateId<PurposeTemplateId>();
-      mockPurposeTemplateService.addPurposeTemplateEService = vi.fn();
+      mockPurposeTemplateService.addPurposeTemplateEServices = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, purposeTemplateId, mockRequestBody);
@@ -67,7 +55,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
       expect(
-        mockPurposeTemplateService.addPurposeTemplateEService
+        mockPurposeTemplateService.addPurposeTemplateEServices
       ).toHaveBeenCalledWith(
         purposeTemplateId,
         mockRequestBody,
@@ -85,9 +73,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
   });
 
   it("Should return 400 for incorrect value for purpose template id", async () => {
-    mockPurposeTemplateService.addPurposeTemplateEService = vi
-      .fn()
-      .mockResolvedValue(mockM2MLinkEserviceResponse);
+    mockPurposeTemplateService.addPurposeTemplateEServices = vi.fn();
 
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(
@@ -121,7 +107,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockPurposeTemplateService.addPurposeTemplateEService = vi
+    mockPurposeTemplateService.addPurposeTemplateEServices = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

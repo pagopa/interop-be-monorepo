@@ -548,7 +548,7 @@ export function purposeTemplateServiceBuilder(
 
       return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
     },
-    async addPurposeTemplateEService(
+    async addPurposeTemplateEServices(
       purposeTemplateId: PurposeTemplateId,
       { eserviceIds }: m2mGatewayApi.PurposeTemplateLinkEServices,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
