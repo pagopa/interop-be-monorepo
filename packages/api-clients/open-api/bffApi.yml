@@ -21708,7 +21708,7 @@ paths:
         - bearerAuth: []
       tags:
         - eserviceTemplates
-      summary: Update the quotas of the selecter template version
+      summary: Update the quotas of the selected template version
       description: Update the quotas of the selected template version
       operationId: updateTemplateVersionQuotas
       parameters:
