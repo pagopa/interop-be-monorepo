@@ -719,7 +719,39 @@ const purposeTemplateRouter = (
             await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
               {
                 purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-                answerId: unsafeBrandId(req.params.answerId),
+                answerId: unsafeBrandId<
+                  RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+                >(req.params.answerId),
+                documentId: unsafeBrandId(req.params.documentId),
+                ctx,
+              }
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const { metadata } =
+            await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+              {
+                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
                 documentId: unsafeBrandId(req.params.documentId),
                 ctx,
               }

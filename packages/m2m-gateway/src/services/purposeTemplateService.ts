@@ -412,5 +412,23 @@ export function purposeTemplateServiceBuilder(
 
       await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
     },
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.deleteRiskAnalysisTemplateAnnotationDocument(
+          undefined,
+          {
+            params: { purposeTemplateId, documentId },
+            headers,
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+    },
   };
 }
