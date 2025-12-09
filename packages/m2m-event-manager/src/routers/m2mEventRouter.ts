@@ -9,9 +9,18 @@ import {
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
+  AgreementM2MEventId,
   AttributeM2MEventId,
+  DelegationM2MEventId,
+  ClientM2MEventId,
   emptyErrorMapper,
   EServiceM2MEventId,
+  PurposeM2MEventId,
+  KeyM2MEventId,
+  ProducerKeychainM2MEventId,
+  ProducerKeyM2MEventId,
+  TenantM2MEventId,
+  EServiceTemplateM2MEventId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { m2mEventApi } from "pagopa-interop-api-clients";
@@ -19,6 +28,21 @@ import { M2MEventService } from "../services/m2mEventService.js";
 import { makeApiProblem } from "../model/errors.js";
 import { toApiAttributeM2MEvents } from "../model/attributeM2MEventApiConverter.js";
 import { toApiEServiceM2MEvents } from "../model/eserviceM2MEventApiConverter.js";
+import { toApiAgreementM2MEvents } from "../model/agreementM2MEventApiConverter.js";
+import { unsafeBrandDelegationIdParam } from "../model/types.js";
+import { toApiPurposeM2MEvents } from "../model/purposeM2MEventApiConverter.js";
+import {
+  toApiConsumerDelegationM2MEvents,
+  toApiProducerDelegationM2MEvents,
+} from "../model/delegationM2MEventConverter.js";
+import {
+  toApiClientM2MEvents,
+  toApiKeyM2MEvents,
+  toApiProducerKeychainM2MEvents,
+  toApiProducerKeyM2MEvents,
+} from "../model/authorizationM2MEventApiConverter.js";
+import { toApiTenantM2MEvents } from "../model/tenantM2MEventApiConverter.js";
+import { toApiEServiceTemplateM2MEvents } from "../model/eserviceTemplateM2MEventApiConverter.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -34,12 +58,13 @@ export const m2mEventRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
-        const { lastEventId, limit } = req.query;
+        const { lastEventId, limit, delegationId } = req.query;
         const events = await service.getEServiceM2MEvents(
           lastEventId
             ? unsafeBrandId<EServiceM2MEventId>(lastEventId)
             : undefined,
           limit,
+          unsafeBrandDelegationIdParam(delegationId),
           ctx
         );
         return res
@@ -62,7 +87,22 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit, delegationId } = req.query;
+        const events = await service.getAgreementM2MEvents(
+          lastEventId
+            ? unsafeBrandId<AgreementM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          unsafeBrandDelegationIdParam(delegationId),
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.AgreementM2MEvents.parse(
+              toApiAgreementM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -78,7 +118,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit, delegationId } = req.query;
+        const events = await service.getPurposeM2MEvents(
+          lastEventId
+            ? unsafeBrandId<PurposeM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          unsafeBrandDelegationIdParam(delegationId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.PurposeM2MEvents.parse(toApiPurposeM2MEvents(events))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -93,8 +147,21 @@ export const m2mEventRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
+        const { lastEventId, limit } = req.query;
 
-        return res.status(501);
+        const events = await service.getTenantM2MEvents(
+          lastEventId
+            ? unsafeBrandId<TenantM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.TenantM2MEvents.parse(toApiTenantM2MEvents(events))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -139,7 +206,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getConsumerDelegationM2MEvents(
+          lastEventId
+            ? unsafeBrandId<DelegationM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.ConsumerDelegationM2MEvents.parse(
+              toApiConsumerDelegationM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -155,7 +236,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getProducerDelegationM2MEvents(
+          lastEventId
+            ? unsafeBrandId<DelegationM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.ProducerDelegationM2MEvents.parse(
+              toApiProducerDelegationM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -171,7 +266,19 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getClientM2MEvents(
+          lastEventId
+            ? unsafeBrandId<ClientM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.ClientM2MEvents.parse(toApiClientM2MEvents(events))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -187,7 +294,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getProducerKeychainM2MEvents(
+          lastEventId
+            ? unsafeBrandId<ProducerKeychainM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.ProducerKeychainM2MEvents.parse(
+              toApiProducerKeychainM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -203,7 +324,15 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getKeyM2MEvents(
+          lastEventId ? unsafeBrandId<KeyM2MEventId>(lastEventId) : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(m2mEventApi.KeyM2MEvents.parse(toApiKeyM2MEvents(events)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -219,7 +348,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getProducerKeyM2MEvents(
+          lastEventId
+            ? unsafeBrandId<ProducerKeyM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.ProducerKeyM2MEvents.parse(
+              toApiProducerKeyM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -235,7 +378,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getEServiceTemplateM2MEvents(
+          lastEventId
+            ? unsafeBrandId<EServiceTemplateM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.EServiceTemplateM2MEvents.parse(
+              toApiEServiceTemplateM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

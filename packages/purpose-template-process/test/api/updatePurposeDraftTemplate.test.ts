@@ -25,7 +25,7 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.M2M_ADMIN_ROLE,
@@ -38,6 +38,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,
+    handlesPersonalData: false,
   };
 
   const purposeTemplateResponse = getMockWithMetadata(mockPurposeTemplate, 2);
@@ -158,7 +159,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 if purpose template is not in draft state", async () => {
+  it("Should return 409 if purpose template is not in draft state", async () => {
     purposeTemplateService.updatePurposeTemplate = vi
       .fn()
       .mockRejectedValue(
@@ -170,7 +171,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
       );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, validPurposeTemplateSeed);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(409);
   });
 
   it("Should return 404 if purpose template not found", async () => {

@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-bff}}/catalog/purposeTemplates?offset=0&limit=10
+  url: {{host-bff}}/catalog/purposeTemplates
   body: none
   auth: none
 }
@@ -17,6 +17,7 @@ params:query {
   ~eserviceIds: 
   ~targetTenantKind: 
   ~excludeExpiredRiskAnalysis: 
+  ~handlesPersonalData: false
 }
 
 headers {

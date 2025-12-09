@@ -12,61 +12,50 @@ export const errorCodes = {
   eserviceIsNotDraft: "0004",
   attributeNotExists: "0005",
   invalidEserviceRequester: "0006",
-  tenantLoginNotAllowed: "0008",
-  eServiceNotFound: "0010",
-  tenantNotFound: "0011",
-  agreementNotFound: "0012",
-  eserviceDescriptorNotFound: "0013",
-  dynamoReadingError: "0015",
-  missingInterface: "0016",
-  eserviceRiskNotFound: "0017",
-  noDescriptorInEservice: "0018",
-  missingDescriptorInClonedEservice: "0019",
-  invalidInterfaceFileDetected: "0021",
-  openapiVersionNotRecognized: "0022",
-  interfaceExtractingInfoError: "0023",
-  agreementDescriptorNotFound: "0024",
-  unknownTenantOrigin: "0025",
-  invalidJwtClaim: "0026",
-  samlNotValid: "0027",
-  missingSelfcareId: "0028",
-  invalidZipStructure: "0029",
-  contractNotFound: "0030",
-  contractException: "0031",
-  notValidDescriptor: "0032",
-  privacyNoticeNotFoundInConfiguration: "0033",
-  privacyNoticeNotFound: "0034",
-  privacyNoticeVersionIsNotTheLatest: "0035",
-  missingActivePurposeVersion: "0036",
-  activeAgreementByEserviceAndConsumerNotFound: "0037",
-  purposeIdNotFoundInClientAssertion: "0038",
-  delegationNotFound: "0039",
-  tenantNotAllowed: "0040",
-  cannotGetKeyWithClient: "0041",
-  clientAssertionPublicKeyNotFound: "0042",
-  eserviceDelegated: "0043",
-  delegatedEserviceNotExportable: "0044",
-  eserviceTemplateVersionNotFound: "0045",
-  catalogEServiceTemplatePublishedVersionNotFound: "0046",
-  eserviceTemplateNotFound: "0047",
-  eserviceTemplateIsNotPublished: "0048",
-  eserviceTemplateInterfaceNotFound: "0049",
-  eserviceTemplateInterfaceDataNotValid: "0050",
-  tooManyDescriptorForInterfaceWithTemplate: "0051",
-  eserviceDescriptorDraftNotFound: "0052",
-  templateDataNotFound: "0053",
-  missingUserRolesInIdentityToken: "0054",
-  noVersionInEServiceTemplate: "0055",
-  templateInstanceNotAllowed: "0056",
-  tenantBySelfcareIdNotFound: "0057",
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0058",
-  tooManyEServicesForPurposeTemplate: "0059",
-  associationEServicesForPurposeTemplateFailed: "0060",
-  purposeTemplateNotInValidState: "0061",
-  purposeTemplateNotFound: "0062",
-  operationForbidden: "0063",
-  disassociationEServicesFromPurposeTemplateFailed: "0064",
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0065",
+  tenantLoginNotAllowed: "0007",
+  eServiceNotFound: "0008",
+  tenantNotFound: "0009",
+  agreementNotFound: "0010",
+  eserviceDescriptorNotFound: "0011",
+  dynamoReadingError: "0012",
+  missingInterface: "0013",
+  eserviceRiskNotFound: "0014",
+  noDescriptorInEservice: "0015",
+  missingDescriptorInClonedEservice: "0016",
+  agreementDescriptorNotFound: "0017",
+  invalidJwtClaim: "0018",
+  samlNotValid: "0019",
+  missingSelfcareId: "0020",
+  invalidZipStructure: "0021",
+  contractNotFound: "0022",
+  contractException: "0023",
+  notValidDescriptor: "0024",
+  privacyNoticeNotFoundInConfiguration: "0025",
+  privacyNoticeNotFound: "0026",
+  privacyNoticeVersionIsNotTheLatest: "0027",
+  missingActivePurposeVersion: "0028",
+  activeAgreementByEserviceAndConsumerNotFound: "0029",
+  purposeIdNotFoundInClientAssertion: "0030",
+  delegationNotFound: "0031",
+  tenantNotAllowed: "0032",
+  cannotGetKeyWithClient: "0033",
+  clientAssertionPublicKeyNotFound: "0034",
+  delegatedEserviceNotExportable: "0035",
+  eserviceTemplateVersionNotFound: "0036",
+  catalogEServiceTemplatePublishedVersionNotFound: "0037",
+  eserviceTemplateNotFound: "0038",
+  eserviceTemplateIsNotPublished: "0039",
+  tooManyDescriptorForInterfaceWithTemplate: "0040",
+  missingUserRolesInIdentityToken: "0041",
+  templateInstanceNotAllowed: "0042",
+  tenantBySelfcareIdNotFound: "0043",
+  eserviceTemplateInterfaceNotFound: "0044",
+  invalidInterfaceFile: "0045",
+  eserviceTemplateInterfaceDataNotValid: "0046",
+  invalidEserviceInterfaceFileDetected: "0047",
+  operationForbidden: "0048",
+  noVersionInEServiceTemplate: "0049",
+  delegationContractNotFound: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -276,6 +265,15 @@ export function noDescriptorInEservice(
     title: "No descriptor found in Eservice",
   });
 }
+export function noVersionInEServiceTemplate(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No version found in Eservice template ${eserviceTemplateId}`,
+    code: "noVersionInEServiceTemplate",
+    title: "No version found in Eservice template",
+  });
+}
 
 export function missingDescriptorInClonedEservice(
   eserviceId: string
@@ -386,6 +384,16 @@ export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
     detail: `Delegation ${delegationId} not found`,
     code: "delegationNotFound",
     title: "Delegation not found",
+  });
+}
+
+export function delegationContractNotFound(
+  delegationId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation contract for delegation ${delegationId} not found`,
+    code: "delegationContractNotFound",
+    title: "Delegation contract not found",
   });
 }
 

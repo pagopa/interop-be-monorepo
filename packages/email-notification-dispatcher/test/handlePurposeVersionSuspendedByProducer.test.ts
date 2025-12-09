@@ -8,6 +8,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -27,11 +28,9 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handlePurposeVersionSuspendedByProducer", async () => {
@@ -46,9 +45,13 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
     producerId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
+  const producerTenant = {
+    ...getMockTenant(producerId),
+    name: "Producer Tenant",
+  };
   const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -62,9 +65,6 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -76,7 +76,12 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+        users.map((user) => ({
+          userId: user.id,
+          tenantId: user.tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        }))
       );
   });
 
@@ -86,7 +91,6 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
         purposeV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -113,7 +117,6 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -141,7 +144,6 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -163,7 +165,6 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
         purposeV2Msg: toPurposeV2(purpose),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -182,25 +183,33 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(3);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(messages.length).toEqual(2);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const purpose: Purpose = {
@@ -214,106 +223,19 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
-  });
-
-  it("should generate one message to the consumer whose agreement was rejected", async () => {
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOnePurpose(purpose);
-
-    const messages = await handlePurposeVersionSuspendedByProducer({
-      purposeV2Msg: toPurposeV2(purpose),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(3);
+    expect(messages.length).toEqual(1);
     expect(
       messages.some(
-        (message) => message.address === consumerTenant.mails[0].address
+        (message) => message.type === "User" && message.userId === users[0].id
       )
     ).toBe(true);
-  });
-
-  it("should generate a message using the latest consumer mail that was registered", async () => {
-    const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
-    const newMail = getMockTenantMail();
-    const consumerTenantWithMultipleMails: Tenant = {
-      ...getMockTenant(),
-      mails: [oldMail, newMail],
-    };
-    await addOneTenant(consumerTenantWithMultipleMails);
-
-    const purpose = {
-      ...getMockPurpose(),
-      eserviceId: eservice.id,
-      consumerId: consumerTenantWithMultipleMails.id,
-    };
-    await addOnePurpose(purpose);
-
-    const messages = await handlePurposeVersionSuspendedByProducer({
-      purposeV2Msg: toPurposeV2(purpose),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(3);
-    expect(
-      messages.some((message) => message.address === newMail.address)
-    ).toBe(true);
-  });
-
-  it("should not generate a message to the consumer if they disabled email notification", async () => {
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockResolvedValue({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenant.id,
-        enabled: false,
-        createAt: new Date(),
-      });
-
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOnePurpose(purpose);
-
-    const messages = await handlePurposeVersionSuspendedByProducer({
-      purposeV2Msg: toPurposeV2(purpose),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(2);
     expect(
       messages.some(
-        (message) => message.address === consumerTenant.mails[0].address
+        (message) => message.type === "User" && message.userId === users[1].id
       )
     ).toBe(false);
   });
@@ -330,11 +252,10 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
       purposeV2Msg: toPurposeV2(purpose),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(3);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");

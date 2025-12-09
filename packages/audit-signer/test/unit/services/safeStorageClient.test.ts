@@ -1,11 +1,15 @@
+/* eslint-disable functional/no-let */
+
 import "../setup.js";
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import axios from "axios";
-import { createSafeStorageApiClient } from "../../../src/services/safeStorageClient.js";
-import { safeStorageApiConfig } from "../../../src/config/config.js";
+import {
+  genericLogger,
+  createSafeStorageApiClient,
+} from "pagopa-interop-commons";
+import { config } from "../../../src/config/config.js";
 
 vi.mock("axios");
-
 const mockedAxios = axios as unknown as {
   create: Mock;
   put: Mock;
@@ -37,13 +41,16 @@ describe("SafeStorageApiClient", () => {
 
     mockAxiosInstance.post.mockResolvedValue({ data: mockResponseData });
 
-    const client = createSafeStorageApiClient(safeStorageApiConfig);
-    const result = await client.createFile({
-      contentType: "application/pdf",
-      documentType: "PN_NOTIFICATION_ATTACHMENTS",
-      status: "PRELOADED",
-      checksumValue: "mock-checksum",
-    });
+    const client = createSafeStorageApiClient(config);
+    const result = await client.createFile(
+      {
+        contentType: "application/pdf",
+        documentType: "PN_NOTIFICATION_ATTACHMENTS",
+        status: "PRELOADED",
+        checksumValue: "mock-checksum",
+      },
+      genericLogger
+    );
 
     expect(mockAxiosInstance.post).toHaveBeenCalledWith(
       "/safe-storage/v1/files",
@@ -55,8 +62,7 @@ describe("SafeStorageApiClient", () => {
       },
       expect.objectContaining({
         headers: expect.objectContaining({
-          "x-pagopa-safestorage-cx-id":
-            safeStorageApiConfig.safeStorageClientId,
+          "x-pagopa-safestorage-cx-id": config.safeStorageClientId,
           "x-checksum": "SHA-256",
           "x-checksum-value": "mock-checksum",
         }),
@@ -66,7 +72,7 @@ describe("SafeStorageApiClient", () => {
   });
 
   it("uploadFileContent should PUT file to presigned URL", async () => {
-    const client = createSafeStorageApiClient(safeStorageApiConfig);
+    const client = createSafeStorageApiClient(config);
 
     const putSpy = vi.spyOn(axios, "put").mockResolvedValue({ status: 200 });
 
@@ -76,7 +82,8 @@ describe("SafeStorageApiClient", () => {
       buffer,
       "application/pdf",
       "mock-secret",
-      "mock-checksum"
+      "mock-checksum",
+      genericLogger
     );
 
     expect(putSpy).toHaveBeenCalledWith(

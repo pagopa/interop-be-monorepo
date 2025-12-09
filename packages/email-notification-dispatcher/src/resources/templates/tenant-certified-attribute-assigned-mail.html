@@ -54,7 +54,7 @@
     >
       <p style="margin-bottom: 0px">
         Gentile
-        <strong>{{ tenantName }}</strong>,
+        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
       </p>
     </div>
   </td>
@@ -77,9 +77,9 @@
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
       <p>
-        L'ente certificatore {{ certifierName }} ti ha conferito l'attributo
-        certificato "{{ attributeName }}". Puoi ora utilizzarlo nelle richieste
-        di fruizione.
+        L'ente certificatore {{ certifierName }} ha conferito al tuo ente
+        l'attributo certificato "{{ attributeName }}". Puoi ora utilizzarlo
+        nelle richieste di fruizione.
       </p>
     </div>
   </td>

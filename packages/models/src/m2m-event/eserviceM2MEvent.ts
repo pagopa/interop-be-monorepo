@@ -31,6 +31,8 @@ export const EServiceM2MEventType = z.enum([
   "EServiceRiskAnalysisAdded",
   "EServiceRiskAnalysisUpdated",
   "EServiceRiskAnalysisDeleted",
+  "EServicePersonalDataFlagUpdatedAfterPublication",
+  "EServicePersonalDataFlagUpdatedByTemplateUpdate",
 
   // EService Descriptor events
   "EServiceDescriptorPublished",
@@ -70,6 +72,7 @@ export const EServiceM2MEvent = z.object({
   id: EServiceM2MEventId,
   eventType: EServiceM2MEventType,
   eventTimestamp: z.coerce.date(),
+  resourceVersion: z.number().int().min(0),
   eserviceId: EServiceId,
   descriptorId: DescriptorId.optional(),
   producerId: TenantId,

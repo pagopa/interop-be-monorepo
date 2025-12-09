@@ -13,6 +13,7 @@ import {
 import {
   AgreementHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -26,7 +27,6 @@ export async function handleAgreementActivatedToProducer(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = params;
 
@@ -48,7 +48,6 @@ export async function handleAgreementActivatedToProducer(
     tenants: [producer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
@@ -60,7 +59,7 @@ export async function handleAgreementActivatedToProducer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Richiesta di fruizione accettata automaticamente`,
@@ -68,11 +67,12 @@ export async function handleAgreementActivatedToProducer(
         title: "Richiesta di fruizione accettata automaticamente",
         notificationType,
         entityId: agreement.id,
-        producerName: producer.name,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

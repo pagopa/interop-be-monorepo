@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import {
   FileManager,
   getAllFromPaginated,
+  isFeatureFlagEnabled,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -43,6 +44,7 @@ import {
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
@@ -277,6 +279,37 @@ export function agreementServiceBuilder(
       const documentBytes = await fileManager.get(
         config.consumerDocumentsContainer,
         agreement.contract.path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
+    async getAgreementSignedContract(
+      agreementId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(`Retrieving signed contract for agreement ${agreementId}`);
+
+      const agreement = await agreementProcessClient.getAgreementById({
+        params: { agreementId },
+        headers,
+      });
+      if (!agreement.signedContract) {
+        if (
+          agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
+          agreement.state === agreementApi.AgreementState.Values.SUSPENDED ||
+          agreement.state === agreementApi.AgreementState.Values.ARCHIVED
+        ) {
+          throw contractException(agreementId);
+        }
+        throw contractNotFound(agreementId);
+      }
+
+      const path = agreement.signedContract.path;
+
+      const documentBytes = await fileManager.get(
+        config.consumerSignedDocumentsContainer,
+        path,
         logger
       );
 
@@ -656,6 +689,12 @@ async function enrichAgreementListEntry(
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
 
+  const notificationsPromise: Promise<string[]> = filterUnreadNotifications(
+    clients.inAppNotificationManagerClient,
+    agreements.map((agreement) => agreement.id),
+    ctx
+  );
+
   const agreementsResult = [];
   for (const agreement of agreements) {
     const { consumer, producer, eservice, delegation } =
@@ -714,7 +753,11 @@ async function enrichAgreementListEntry(
     });
   }
 
-  return agreementsResult;
+  const notifications = await notificationsPromise;
+  return agreementsResult.map((agreement) => ({
+    ...agreement,
+    hasUnreadNotifications: notifications.includes(agreement.id),
+  }));
 }
 
 export async function enrichAgreement(
@@ -822,6 +865,12 @@ export async function enrichAgreement(
     suspendedAt: agreement.suspendedAt,
     consumerNotes: agreement.consumerNotes,
     rejectionReason: agreement.rejectionReason,
+    isDocumentReady: isFeatureFlagEnabled(
+      config,
+      "featureFlagUseSignedDocument"
+    )
+      ? agreement.signedContract !== undefined
+      : agreement.contract !== undefined,
   };
 }
 

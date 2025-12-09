@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-purpose-template}}/purposeTemplates?offset=0&limit=10
+  url: {{host-purpose-template}}/purposeTemplates
   body: none
   auth: none
 }
@@ -13,11 +13,13 @@ get {
 params:query {
   offset: 0
   limit: 10
-  ~states: ["DRAFT", "ACTIVE"]
+  ~states: ["DRAFT", "PUBLISHED"]
   ~eserviceIds: ["{{eserviceId}}"]
   ~creatorIds: ["{{tenantId}}"]
   ~purposeTitle: title
   ~targetTenantKind: PA
+  ~excludeExpiredRiskAnalysis: false
+  ~handlesPersonalData: false
 }
 
 headers {

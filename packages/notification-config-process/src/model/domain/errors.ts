@@ -2,6 +2,7 @@ import {
   ApiError,
   TenantId,
   UserId,
+  UserRole,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -9,7 +10,8 @@ export const errorCodes = {
   tenantNotificationConfigNotFound: "0001",
   userNotificationConfigNotFound: "0002",
   tenantNotificationConfigAlreadyExists: "0003",
-  userNotificationConfigAlreadyExists: "0004",
+  userRoleNotInUserNotificationConfig: "0004",
+  notificationConfigNotAllowedForUserRoles: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -47,13 +49,25 @@ export function tenantNotificationConfigAlreadyExists(
   });
 }
 
-export function userNotificationConfigAlreadyExists(
+export function userRoleNotInUserNotificationConfig(
+  userId: UserId,
+  tenantId: TenantId,
+  userRole: UserRole
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User notification config for user ${userId} in tenant ${tenantId} does not include role ${userRole}`,
+    code: "userRoleNotInUserNotificationConfig",
+    title: "User notification config does not include role",
+  });
+}
+
+export function notificationConfigNotAllowedForUserRoles(
   userId: UserId,
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `User notification config for user ${userId} in tenant ${tenantId} already exists`,
-    code: "userNotificationConfigAlreadyExists",
-    title: "User notification config already exists",
+    detail: `Notification config not allowed for user ${userId} in tenant ${tenantId} due to role restrictions`,
+    code: "notificationConfigNotAllowedForUserRoles",
+    title: "Notification config not allowed due to role restrictions",
   });
 }

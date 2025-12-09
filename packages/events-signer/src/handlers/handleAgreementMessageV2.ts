@@ -8,20 +8,23 @@ import {
   generateId,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { FileManager, logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { AgreementEventData } from "../models/eventTypes.js";
-import { DbServiceBuilder } from "../services/dbService.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleAgreementMessageV2 = async (
   eventsWithTimestamp: Array<{
     agreementV2: AgreementEventV2;
-    timestamp: string;
+    timestamp: Date;
   }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -79,7 +82,9 @@ export const handleAgreementMessageV2 = async (
             "AgreementConsumerDocumentRemoved",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
-            "AgreementDeletedByRevokedDelegation"
+            "AgreementDeletedByRevokedDelegation",
+            "AgreementContractGenerated",
+            "AgreementSignedContractGenerated"
           ),
         },
         (event) => {
@@ -96,7 +101,7 @@ export const handleAgreementMessageV2 = async (
       allAgreementDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );

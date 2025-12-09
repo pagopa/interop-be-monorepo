@@ -7,20 +7,23 @@ import {
   generateId,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { FileManager, logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { DelegationEventData } from "../models/eventTypes.js";
-import { DbServiceBuilder } from "../services/dbService.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleDelegationMessageV2 = async (
   eventsWithTimestamp: Array<{
     delegationV2: DelegationEventV2;
-    timestamp: string;
+    timestamp: Date;
   }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -67,7 +70,9 @@ export const handleDelegationMessageV2 = async (
             "ProducerDelegationSubmitted",
             "ProducerDelegationRejected",
             "ConsumerDelegationSubmitted",
-            "ConsumerDelegationRejected"
+            "ConsumerDelegationRejected",
+            "DelegationContractGenerated",
+            "DelegationSignedContractGenerated"
           ),
         },
         (event) => {
@@ -84,7 +89,7 @@ export const handleDelegationMessageV2 = async (
       allDelegationDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );

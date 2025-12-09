@@ -30,6 +30,7 @@ describe("API POST /purposeTemplates", () => {
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,
+    handlesPersonalData: false,
   };
 
   const purposeTemplateResponse = getMockWithMetadata(mockPurposeTemplate, 0);
@@ -72,7 +73,7 @@ describe("API POST /purposeTemplates", () => {
     const res = await makeRequest(token, validPurposeTemplateSeed);
     expect(res.status).toBe(403);
   });
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
 
   it.each([
     {},

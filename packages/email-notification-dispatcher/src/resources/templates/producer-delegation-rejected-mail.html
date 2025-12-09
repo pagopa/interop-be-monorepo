@@ -54,7 +54,7 @@
     >
       <p style="margin-bottom: 0px">
         Gentile
-        <strong>{{ delegatorName }}</strong>,
+        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
       </p>
     </div>
   </td>
@@ -76,9 +76,11 @@
       "
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
-      Ti informiamo che l'ente {{ delegateName }} ha rifiutato la delega
-      all'erogazione che gli hai conferito per l'e-service "{{ eserviceName }}".
-      La delega non è stata attivata.
+      <p>
+        Ti informiamo che l'ente {{ delegateName }} ha rifiutato la delega
+        all'erogazione che il tuo ente gli ha conferito per l'e-service "{{
+        eserviceName }}". La delega non è stata attivata.
+      </p>
     </div>
   </td>
 </tr>

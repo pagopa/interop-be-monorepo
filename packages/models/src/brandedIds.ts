@@ -256,6 +256,52 @@ export type AttributeM2MEventId = z.infer<typeof AttributeM2MEventId>;
 export const EServiceM2MEventId = z.string().uuid().brand("EServiceM2MEventId");
 export type EServiceM2MEventId = z.infer<typeof EServiceM2MEventId>;
 
+export const AgreementM2MEventId = z
+  .string()
+  .uuid()
+  .brand("AgreementM2MEventId");
+export type AgreementM2MEventId = z.infer<typeof AgreementM2MEventId>;
+
+export const PurposeM2MEventId = z.string().uuid().brand("PurposeM2MEventId");
+export type PurposeM2MEventId = z.infer<typeof PurposeM2MEventId>;
+
+export const DelegationM2MEventId = z
+  .string()
+  .uuid()
+  .brand("DelegationM2MEventId");
+export type DelegationM2MEventId = z.infer<typeof DelegationM2MEventId>;
+
+export const EServiceTemplateM2MEventId = z
+  .string()
+  .uuid()
+  .brand("EServiceTemplateM2MEventId");
+export type EServiceTemplateM2MEventId = z.infer<
+  typeof EServiceTemplateM2MEventId
+>;
+
+export const ClientM2MEventId = z.string().uuid().brand("ClientM2MEventId");
+export type ClientM2MEventId = z.infer<typeof ClientM2MEventId>;
+
+export const KeyM2MEventId = z.string().uuid().brand("KeyM2MEventId");
+export type KeyM2MEventId = z.infer<typeof KeyM2MEventId>;
+
+export const ProducerKeychainM2MEventId = z
+  .string()
+  .uuid()
+  .brand("ProducerKeychainM2MEventId");
+export type ProducerKeychainM2MEventId = z.infer<
+  typeof ProducerKeychainM2MEventId
+>;
+
+export const ProducerKeyM2MEventId = z
+  .string()
+  .uuid()
+  .brand("ProducerKeyM2MEventId");
+export type ProducerKeyM2MEventId = z.infer<typeof ProducerKeyM2MEventId>;
+
+export const TenantM2MEventId = z.string().uuid().brand("TenantM2MEventId");
+export type TenantM2MEventId = z.infer<typeof TenantM2MEventId>;
+
 export const IDS = z.union([
   CorrelationId,
   SpanId,
@@ -300,6 +346,15 @@ export const IDS = z.union([
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   AttributeM2MEventId,
   EServiceM2MEventId,
+  AgreementM2MEventId,
+  PurposeM2MEventId,
+  DelegationM2MEventId,
+  EServiceTemplateM2MEventId,
+  ClientM2MEventId,
+  KeyM2MEventId,
+  ProducerKeychainM2MEventId,
+  ProducerKeyM2MEventId,
+  TenantM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

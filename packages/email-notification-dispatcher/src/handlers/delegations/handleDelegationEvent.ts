@@ -17,7 +17,6 @@ export async function handleDelegationEvent(
     logger,
     readModelService,
     templateService,
-    userService,
     correlationId,
   } = params;
   return match(decodedMessage)
@@ -27,7 +26,6 @@ export async function handleDelegationEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -37,7 +35,6 @@ export async function handleDelegationEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -47,7 +44,6 @@ export async function handleDelegationEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -57,7 +53,6 @@ export async function handleDelegationEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -67,7 +62,9 @@ export async function handleDelegationEvent(
           "ProducerDelegationSubmitted",
           "ProducerDelegationRevoked",
           "ConsumerDelegationSubmitted",
-          "ConsumerDelegationRevoked"
+          "ConsumerDelegationRevoked",
+          "DelegationContractGenerated",
+          "DelegationSignedContractGenerated"
         ),
       },
       () => {

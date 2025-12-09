@@ -13,9 +13,10 @@ import {
   retrieveTenant,
 } from "../../services/utils.js";
 import {
-  TenantHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAttribute,
+  TenantHandlerParams,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -30,7 +31,6 @@ export async function handleTenantVerifiedAttributeRevoked(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -54,7 +54,6 @@ export async function handleTenantVerifiedAttributeRevoked(
     tenants: [tenant],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
@@ -90,7 +89,7 @@ export async function handleTenantVerifiedAttributeRevoked(
 
   const verifierTenant = await retrieveTenant(verifierId, readModelService);
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Un tuo attributo verificato è stato revocato`,
@@ -98,11 +97,12 @@ export async function handleTenantVerifiedAttributeRevoked(
         title: `Un tuo attributo verificato è stato revocato`,
         notificationType,
         entityId: tenant.id,
+        ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
-        tenantName: tenant.name,
         attributeName: attribute.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

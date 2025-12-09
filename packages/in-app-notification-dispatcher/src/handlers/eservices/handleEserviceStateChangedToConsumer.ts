@@ -13,7 +13,8 @@ import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
-  retrieveLatestPublishedDescriptor,
+  getNotificationRecipients,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../handlerCommons.js";
 
@@ -25,18 +26,13 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorSuspended"
   | "EServiceDescriptorActivated"
   | "EServiceDescriptorQuotasUpdated"
-  | "EServiceDescriptorAgreementApprovalPolicyUpdated"
-  | "EServiceDescriptorInterfaceAdded"
   | "EServiceDescriptorDocumentAdded"
-  | "EServiceDescriptorDocumentDeleted"
-  | "EServiceDescriptorInterfaceUpdated"
   | "EServiceDescriptorDocumentUpdated"
   | "EServiceNameUpdatedByTemplateUpdate"
   | "EServiceDescriptionUpdatedByTemplateUpdate"
   | "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAddedByTemplateUpdate"
-  | "EServiceDescriptorDocumentDeletedByTemplateUpdate"
   | "EServiceDescriptorDocumentUpdatedByTemplateUpdate";
 
 type EServiceStateChangedEvent = Extract<
@@ -58,6 +54,8 @@ export async function handleEserviceStateChangedToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
 
+  const producer = await retrieveTenant(eservice.producerId, readModelService);
+
   const agreements = await readModelService.getAgreementsByEserviceId(
     eservice.id
   );
@@ -71,40 +69,34 @@ export async function handleEserviceStateChangedToConsumer(
       retrieveTenant(consumer.consumerId, readModelService)
     )
   );
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      consumers.map((consumer) => consumer.id),
-      "eserviceStateChangedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    consumers.map((consumer) => consumer.id),
+    "eserviceStateChangedToConsumer",
+    readModelService,
+    logger
+  );
 
   const { body, descriptorId: descriptorIdFromEvent } = getBodyAndDescriptorId(
     eserviceV2Msg,
-    eservice
+    eservice,
+    producer.name
   );
 
   const descriptorId = descriptorIdFromEvent
     ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
-    : retrieveLatestPublishedDescriptor(eservice).id;
+    : retrieveLatestDescriptor(eservice).id;
 
   const entityId = EServiceIdDescriptorId.parse(
     `${eservice.id}/${descriptorId}`
   );
 
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceStateChangedToConsumer",
     entityId,
   }));
-}
-
-function getInterfaceName(
-  eservice: EService,
-  descriptorId: string
-): string | undefined {
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  return descriptor?.interface?.prettyName;
 }
 
 function getDocumentName(
@@ -118,7 +110,8 @@ function getDocumentName(
 
 function getBodyAndDescriptorId(
   msg: EServiceStateChangedEvent,
-  eservice: EService
+  eservice: EService,
+  producerName: string
 ): {
   body: string;
   descriptorId?: string | undefined;
@@ -142,11 +135,16 @@ function getBodyAndDescriptorId(
           "EServiceDescriptionUpdatedByTemplateUpdate"
         ),
       },
-      () => ({
-        body: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
-          eservice.name
-        ),
-      })
+      () => {
+        const latestDescriptor = retrieveLatestDescriptor(eservice);
+        return {
+          body: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
+            eservice.name,
+            latestDescriptor?.version,
+            producerName
+          ),
+        };
+      }
     )
     .with(
       {
@@ -157,7 +155,8 @@ function getBodyAndDescriptorId(
       },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName
         ),
         descriptorId,
       })
@@ -166,7 +165,9 @@ function getBodyAndDescriptorId(
       { type: "EServiceDescriptorPublished" },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorPublishedToConsumer(
-          eservice.name
+          eservice.name,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version,
+          producerName
         ),
         descriptorId,
       })
@@ -175,7 +176,9 @@ function getBodyAndDescriptorId(
       { type: "EServiceDescriptorSuspended" },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version
         ),
         descriptorId,
       })
@@ -184,7 +187,9 @@ function getBodyAndDescriptorId(
       { type: "EServiceDescriptorActivated" },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorActivatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version
         ),
         descriptorId,
       })
@@ -198,32 +203,12 @@ function getBodyAndDescriptorId(
       },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
-          eservice.name
+          eservice.name,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version,
+          producerName
         ),
         descriptorId,
       })
-    )
-    .with(
-      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
-      ({ data: { descriptorId } }) => ({
-        body: inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
-          eservice.name
-        ),
-        descriptorId,
-      })
-    )
-    .with(
-      { type: "EServiceDescriptorInterfaceAdded" },
-      ({ data: { descriptorId } }) => {
-        const interfaceName = getInterfaceName(eservice, descriptorId);
-        return {
-          body: inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
-            eservice.name,
-            interfaceName
-          ),
-          descriptorId,
-        };
-      }
     )
     .with(
       {
@@ -232,55 +217,14 @@ function getBodyAndDescriptorId(
           "EServiceDescriptorDocumentAddedByTemplateUpdate"
         ),
       },
-      ({ data: { descriptorId, documentId } }) => {
-        const documentName = getDocumentName(
-          eservice,
-          descriptorId,
-          documentId
-        );
-        return {
-          body: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
-            eservice.name,
-            documentName
-          ),
-          descriptorId,
-        };
-      }
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate"
+      ({ data: { descriptorId } }) => ({
+        body: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
+          eservice.name,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version,
+          producerName
         ),
-      },
-      ({ data: { descriptorId, documentId } }) => {
-        const documentName = getDocumentName(
-          eservice,
-          descriptorId,
-          documentId
-        );
-        return {
-          body: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
-            eservice.name,
-            documentName
-          ),
-          descriptorId,
-        };
-      }
-    )
-    .with(
-      { type: "EServiceDescriptorInterfaceUpdated" },
-      ({ data: { descriptorId } }) => {
-        const interfaceName = getInterfaceName(eservice, descriptorId);
-        return {
-          body: inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
-            eservice.name,
-            interfaceName
-          ),
-          descriptorId,
-        };
-      }
+        descriptorId,
+      })
     )
     .with(
       {
@@ -298,7 +242,9 @@ function getBodyAndDescriptorId(
         return {
           body: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
             eservice.name,
-            documentName
+            documentName,
+            eservice.descriptors.find((d) => d.id === descriptorId)?.version,
+            producerName
           ),
           descriptorId,
         };

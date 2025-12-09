@@ -12,12 +12,14 @@ import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
+  getNotificationRecipients,
   retrieveTenant,
 } from "../handlerCommons.js";
 
 export async function handleEserviceTemplateStatusChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
+  eserviceTemplateVersionId: string,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
@@ -29,7 +31,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   }
 
   logger.info(
-    `Sending in-app notification for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplateV2Msg.id}`
+    `Sending in-app notification for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplateV2Msg.id}/${eserviceTemplateVersionId}`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
@@ -46,16 +48,17 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     return acc;
   }, {});
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      Object.keys(instantiatorEserviceMap).map((tenantId) =>
-        unsafeBrandId(tenantId)
-      ),
-      "eserviceTemplateStatusChangedToInstantiator"
-    );
-  if (!userNotificationConfigs) {
+  const usersWithNotifications = await getNotificationRecipients(
+    Object.keys(instantiatorEserviceMap).map((tenantId) =>
+      unsafeBrandId(tenantId)
+    ),
+    "eserviceTemplateStatusChangedToInstantiator",
+    readModelService,
+    logger
+  );
+  if (usersWithNotifications.length === 0) {
     logger.info(
-      `No user notification configs found for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplate.id}`
+      `No user notification configs found for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplate.id}/${eserviceTemplateVersionId}`
     );
     return [];
   }
@@ -65,11 +68,16 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     readModelService
   );
 
-  return userNotificationConfigs.flatMap(({ userId, tenantId }) => {
+  return usersWithNotifications.flatMap(({ userId, tenantId }) => {
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
+      const descriptor =
+        eservice.descriptors.find(
+          (d) => d.templateVersionRef?.id === eserviceTemplateVersionId
+        ) || retrieveLatestDescriptor(eservice);
+
       const entityId = EServiceIdDescriptorId.parse(
-        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+        `${eservice.id}/${descriptor?.id}`
       );
       return {
         userId,

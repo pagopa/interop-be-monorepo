@@ -1,0 +1,28 @@
+meta {
+  name: Create eservice descriptor declared attributes group
+  type: http
+  seq: 39
+}
+
+post {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes/groups
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "attributeIds": [
+      "a18f8257-4310-437b-ad52-a9f383bdd468"
+    ]
+  }
+}

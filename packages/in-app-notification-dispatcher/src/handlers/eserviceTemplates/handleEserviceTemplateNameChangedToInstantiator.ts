@@ -11,7 +11,10 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveLatestPublishedDescriptor } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveLatestDescriptor,
+} from "../handlerCommons.js";
 
 export async function handleEserviceTemplateNameChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -44,26 +47,27 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
     return acc;
   }, {});
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      Object.keys(instantiatorEserviceMap).map((tenantId) =>
-        unsafeBrandId(tenantId)
-      ),
-      "eserviceTemplateNameChangedToInstantiator"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    Object.keys(instantiatorEserviceMap).map((tenantId) =>
+      unsafeBrandId(tenantId)
+    ),
+    "eserviceTemplateNameChangedToInstantiator",
+    readModelService,
+    logger
+  );
 
-  if (!userNotificationConfigs) {
+  if (usersWithNotifications.length === 0) {
     logger.info(
       `No user notification configs found for handleEserviceTemplateNameChangedToInstantiator ${eserviceTemplate.id}`
     );
     return [];
   }
 
-  return userNotificationConfigs.flatMap(({ userId, tenantId }) => {
+  return usersWithNotifications.flatMap(({ userId, tenantId }) => {
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
       const entityId = EServiceIdDescriptorId.parse(
-        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+        `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
       );
       return {
         userId,

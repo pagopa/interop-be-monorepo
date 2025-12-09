@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 import { match } from "ts-pattern";
 import {
+  NotificationType,
   TenantId,
   UserNotificationConfig,
   emailNotificationPreference,
@@ -18,7 +19,6 @@ import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
 } from "../src/testUtils.js";
-import { NotificationType } from "../src/notification-config/utils.js";
 import { notificationConfigReadModelService } from "./notificationConfigUtils.js";
 import { readModelDB } from "./utils.js";
 
@@ -95,6 +95,9 @@ describe("Notification config queries", () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
+          purposeQuotaAdjustmentRequestToProducer: false,
+          purposeOverQuotaStateToConsumer: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -116,6 +119,9 @@ describe("Notification config queries", () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
+          purposeQuotaAdjustmentRequestToProducer: false,
+          purposeOverQuotaStateToConsumer: false,
         },
       };
       await insertUserNotificationConfig(
@@ -186,19 +192,23 @@ describe("Notification config queries", () => {
           setEnabled({
             ...getMockUserNotificationConfig(),
             tenantId: tenantId1,
+            userRoles: generateMock(UserNotificationConfig.shape.userRoles),
           }),
           setEnabled({ ...getMockUserNotificationConfig() }),
           setDisabled({
             ...getMockUserNotificationConfig(),
             tenantId: tenantId1,
+            userRoles: generateMock(UserNotificationConfig.shape.userRoles),
           }),
           setEnabled({
             ...getMockUserNotificationConfig(),
             tenantId: tenantId1,
+            userRoles: generateMock(UserNotificationConfig.shape.userRoles),
           }),
           setEnabled({
             ...getMockUserNotificationConfig(),
             tenantId: tenantId2,
+            userRoles: generateMock(UserNotificationConfig.shape.userRoles),
           }),
         ];
         await Promise.all(
@@ -216,9 +226,21 @@ describe("Notification config queries", () => {
         expect(retrievedUsers).toHaveLength(3);
         expect(retrievedUsers).toEqual(
           expect.arrayContaining([
-            { userId: userNotificationConfigs[0].userId, tenantId: tenantId1 },
-            { userId: userNotificationConfigs[3].userId, tenantId: tenantId1 },
-            { userId: userNotificationConfigs[4].userId, tenantId: tenantId2 },
+            {
+              userId: userNotificationConfigs[0].userId,
+              tenantId: tenantId1,
+              userRoles: userNotificationConfigs[0].userRoles,
+            },
+            {
+              userId: userNotificationConfigs[3].userId,
+              tenantId: tenantId1,
+              userRoles: userNotificationConfigs[3].userRoles,
+            },
+            {
+              userId: userNotificationConfigs[4].userId,
+              tenantId: tenantId2,
+              userRoles: userNotificationConfigs[4].userRoles,
+            },
           ])
         );
       }
@@ -235,14 +257,20 @@ describe("Notification config queries", () => {
           setDisabled({
             ...getMockUserNotificationConfig(),
             tenantId,
-          }),
-          setEnabled({ ...getMockUserNotificationConfig() }),
-          setDisabled({
-            ...getMockUserNotificationConfig(),
-            tenantId,
+            userRoles: generateMock(UserNotificationConfig.shape.userRoles),
           }),
           setEnabled({
             ...getMockUserNotificationConfig(),
+            userRoles: generateMock(UserNotificationConfig.shape.userRoles),
+          }),
+          setDisabled({
+            ...getMockUserNotificationConfig(),
+            tenantId,
+            userRoles: generateMock(UserNotificationConfig.shape.userRoles),
+          }),
+          setEnabled({
+            ...getMockUserNotificationConfig(),
+            userRoles: generateMock(UserNotificationConfig.shape.userRoles),
           }),
         ];
         await Promise.all(

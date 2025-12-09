@@ -14,6 +14,7 @@ import {
 import {
   DelegationHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -27,7 +28,6 @@ export async function handleConsumerDelegationSubmitted(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -42,7 +42,7 @@ export async function handleConsumerDelegationSubmitted(
 
   const [htmlTemplate, eservice, delegator, delegate] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.consumerDelegationApprovedMailTemplate
+      eventMailTemplateType.consumerDelegationSubmittedMailTemplate
     ),
     retrieveEService(delegation.eserviceId, readModelService),
     retrieveTenant(delegation.delegatorId, readModelService),
@@ -53,7 +53,6 @@ export async function handleConsumerDelegationSubmitted(
     tenants: [delegate],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
@@ -65,7 +64,7 @@ export async function handleConsumerDelegationSubmitted(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Hai ricevuto una richiesta di delega`,
@@ -73,12 +72,13 @@ export async function handleConsumerDelegationSubmitted(
         title: `Hai ricevuto una richiesta di delega`,
         notificationType,
         entityId: delegation.id,
+        ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
-        delegateName: delegate.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta di delega`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

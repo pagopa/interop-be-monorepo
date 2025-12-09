@@ -1,24 +1,27 @@
 /* eslint-disable functional/immutable-data */
-import { FileManager, logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import {
   AuthorizationEventV1,
   CorrelationId,
   generateId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { DbServiceBuilder } from "../services/dbService.js";
 import { config } from "../config/config.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleAuthorizationMessageV1 = async (
   eventsWithTimestamp: Array<{
     authV1: AuthorizationEventV1;
-    timestamp: string;
+    timestamp: Date;
   }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -92,7 +95,7 @@ export const handleAuthorizationMessageV1 = async (
       allAuthorizationDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );

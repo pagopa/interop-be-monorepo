@@ -10,10 +10,11 @@ import {
   retrieveHTMLTemplate,
 } from "../../services/utils.js";
 import {
-  TenantHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAttribute,
   retrieveTenantByCertifierId,
+  TenantHandlerParams,
 } from "../handlerCommons.js";
 import { certifierDatabaseOriginNames } from "../../config/constants.js";
 
@@ -29,7 +30,6 @@ export async function handleTenantCertifiedAttributeRevoked(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -60,7 +60,6 @@ export async function handleTenantCertifiedAttributeRevoked(
     tenants: [tenant],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
@@ -77,7 +76,7 @@ export async function handleTenantCertifiedAttributeRevoked(
     : (await retrieveTenantByCertifierId(attribute.origin, readModelService))
         .name;
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Un tuo attributo certificato è stato revocato`,
@@ -85,11 +84,12 @@ export async function handleTenantCertifiedAttributeRevoked(
         title: `Un tuo attributo certificato è stato revocato`,
         notificationType,
         entityId: tenant.id,
+        ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         certifierName,
-        tenantName: tenant.name,
         attributeName: attribute.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

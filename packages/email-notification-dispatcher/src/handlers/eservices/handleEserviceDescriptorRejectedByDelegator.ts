@@ -14,10 +14,11 @@ import {
 import {
   EServiceHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
-  "delegationSubmittedRevokedToDelegate";
+  "eserviceNewVersionApprovedRejectedToDelegate";
 
 export async function handleEserviceDescriptorRejectedByDelegator(
   data: EServiceHandlerParams
@@ -27,7 +28,6 @@ export async function handleEserviceDescriptorRejectedByDelegator(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -56,7 +56,6 @@ export async function handleEserviceDescriptorRejectedByDelegator(
     tenants: [delegate],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
@@ -68,7 +67,7 @@ export async function handleEserviceDescriptorRejectedByDelegator(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Rifiutata la pubblicazione della nuova versione`,
@@ -76,11 +75,12 @@ export async function handleEserviceDescriptorRejectedByDelegator(
         title: `Rifiutata la pubblicazione della nuova versione`,
         notificationType,
         entityId: eservice.id,
+        ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
-        delegateName: delegate.name,
         eserviceName: eservice.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

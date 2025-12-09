@@ -20,14 +20,16 @@ export async function handleEServiceTemplateEvent(
       {
         type: "EServiceTemplateVersionSuspended",
       },
-      async ({ data: { eserviceTemplate } }) => [
+      async ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) => [
         ...(await handleTemplateStatusChangedToProducer(
           eserviceTemplate,
+          eserviceTemplateVersionId,
           logger,
           readModelService
         )),
         ...(await handleEserviceTemplateStatusChangedToInstantiator(
           eserviceTemplate,
+          eserviceTemplateVersionId,
           logger,
           readModelService
         )),
@@ -79,7 +81,8 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionQuotasUpdated",
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
-          "EServiceTemplateVersionActivated"
+          "EServiceTemplateVersionActivated",
+          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
         ),
       },
       () => {

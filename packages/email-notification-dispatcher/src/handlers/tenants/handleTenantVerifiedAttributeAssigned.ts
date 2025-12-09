@@ -2,6 +2,8 @@ import {
   EmailNotificationMessagePayload,
   generateId,
   missingKafkaMessageDataError,
+} from "pagopa-interop-models";
+import {
   NotificationType,
   fromTenantV2,
   VerifiedTenantAttribute,
@@ -16,6 +18,7 @@ import {
   TenantHandlerParams,
   getRecipientsForTenants,
   retrieveAttribute,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -30,7 +33,6 @@ export async function handleTenantVerifiedAttributeAssigned(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -54,7 +56,6 @@ export async function handleTenantVerifiedAttributeAssigned(
     tenants: [tenant],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
@@ -90,7 +91,7 @@ export async function handleTenantVerifiedAttributeAssigned(
 
   const verifierTenant = await retrieveTenant(verifierId, readModelService);
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Hai ricevuto un nuovo attributo verificato`,
@@ -98,11 +99,12 @@ export async function handleTenantVerifiedAttributeAssigned(
         title: `Hai ricevuto un nuovo attributo verificato`,
         notificationType,
         entityId: tenant.id,
+        ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
-        tenantName: tenant.name,
         attributeName: attribute.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

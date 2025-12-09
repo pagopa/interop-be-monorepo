@@ -14,6 +14,7 @@ import {
 import {
   DelegationHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -27,7 +28,6 @@ export async function handleProducerDelegationRejected(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -53,7 +53,6 @@ export async function handleProducerDelegationRejected(
     tenants: [delegator],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
@@ -65,7 +64,7 @@ export async function handleProducerDelegationRejected(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `La tua richiesta di delega è stata rifiutata`,
@@ -73,11 +72,12 @@ export async function handleProducerDelegationRejected(
         title: `La tua richiesta di delega è stata rifiutata`,
         notificationType,
         entityId: delegation.id,
-        delegatorName: delegator.name,
+        ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

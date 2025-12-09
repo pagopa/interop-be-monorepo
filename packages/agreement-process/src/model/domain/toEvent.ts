@@ -5,6 +5,7 @@ import {
   AgreementEventV2,
   CorrelationId,
   DelegationId,
+  WithMetadata,
   toAgreementV2,
 } from "pagopa-interop-models";
 
@@ -407,6 +408,42 @@ export function toCreateEventAgreementSetMissingCertifiedAttributesByPlatform(
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementDocumentGenerated(
+  agreement: WithMetadata<Agreement>,
+  correlationId: CorrelationId
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.data.id,
+    version: agreement.metadata.version,
+    event: {
+      type: "AgreementContractGenerated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement.data),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementSignedContractGenerated(
+  agreement: WithMetadata<Agreement>,
+  correlationId: CorrelationId
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.data.id,
+    version: agreement.metadata.version,
+    event: {
+      type: "AgreementSignedContractGenerated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement.data),
       },
     },
     correlationId,

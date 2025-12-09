@@ -2,14 +2,16 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   DescriptorId,
   EServiceId,
-  PurposeTemplateId,
   TenantId,
   generateId,
   descriptorState,
+  PurposeTemplate,
+  EService,
 } from "pagopa-interop-models";
 import {
   getMockEService,
   getMockDescriptor,
+  getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   associationEServicesForPurposeTemplateFailed,
@@ -23,10 +25,13 @@ import {
   eserviceNotFound,
   invalidDescriptorStateError,
   missingDescriptorError,
+  purposeTemplateEServicePersonalDataFlagMismatch,
   unexpectedAssociationEServiceError,
   unexpectedEServiceError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
+  ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION,
+  ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION,
   validateEservicesAssociations,
   validateEservicesDisassociations,
 } from "../../src/services/validators.js";
@@ -43,48 +48,42 @@ describe("Purpose Template Validation", () => {
   });
 
   describe("validateEServicesForPurposeTemplate", () => {
-    const purposeTemplateId = generateId<PurposeTemplateId>();
+    const purposeTemplate: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      handlesPersonalData: true,
+    };
     const eserviceId1 = generateId<EServiceId>();
-    const eserviceId2 = generateId<EServiceId>();
     const descriptorId1 = generateId<DescriptorId>();
-    const descriptorId2 = generateId<DescriptorId>();
 
     const mockDescriptor1 = getMockDescriptor(descriptorState.published);
     mockDescriptor1.id = descriptorId1;
 
-    const mockDescriptor2 = getMockDescriptor(descriptorState.draft);
-    mockDescriptor2.id = descriptorId2;
-
-    const mockEService1 = getMockEService(eserviceId1, generateId<TenantId>(), [
-      mockDescriptor1,
-    ]);
-    const mockEService2 = getMockEService(eserviceId2, generateId<TenantId>(), [
-      mockDescriptor2,
-    ]);
+    const mockEService1: EService = {
+      ...getMockEService(eserviceId1, generateId<TenantId>(), [
+        mockDescriptor1,
+      ]),
+      personalData: true,
+    };
 
     it("should return valid result when all validations pass", async () => {
-      const eserviceIds = [eserviceId1, eserviceId2];
+      const eserviceIds = [eserviceId1];
 
       mockReadModelService.getEServiceById = vi
         .fn()
-        .mockResolvedValueOnce(mockEService1)
-        .mockResolvedValueOnce(mockEService2);
+        .mockResolvedValueOnce(mockEService1);
 
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
         vi.fn().mockResolvedValue(undefined); // No existing associations
 
       const result = await validateEservicesAssociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate,
         mockReadModelService
       );
 
       expect(result).toEqual({
         type: "valid",
-        value: [
-          { eservice: mockEService1, descriptorId: descriptorId1 },
-          { eservice: mockEService2, descriptorId: descriptorId2 },
-        ],
+        value: [{ eservice: mockEService1, descriptorId: descriptorId1 }],
       });
     });
 
@@ -98,14 +97,46 @@ describe("Purpose Template Validation", () => {
       await expect(
         validateEservicesAssociations(
           eserviceIds,
-          purposeTemplateId,
+          purposeTemplate,
           mockReadModelService
         )
       ).rejects.toThrow(
         associationEServicesForPurposeTemplateFailed(
           [eserviceNotFound(eserviceId1)],
           eserviceIds,
-          purposeTemplateId
+          purposeTemplate.id
+        )
+      );
+    });
+
+    it("should throw associationEServicesForPurposeTemplateFailed when the purpose template and eService personal data flags do not match (purposeTemplateEServicePersonalDataFlagMismatch)", async () => {
+      const eserviceIds = [eserviceId1];
+
+      const eserviceWithWrongPersonalDataFlag = {
+        ...mockEService1,
+        personalData: false,
+      };
+
+      mockReadModelService.getEServiceById = vi
+        .fn()
+        .mockResolvedValue(eserviceWithWrongPersonalDataFlag);
+
+      await expect(
+        validateEservicesAssociations(
+          eserviceIds,
+          purposeTemplate,
+          mockReadModelService
+        )
+      ).rejects.toThrow(
+        associationEServicesForPurposeTemplateFailed(
+          [
+            purposeTemplateEServicePersonalDataFlagMismatch(
+              eserviceWithWrongPersonalDataFlag,
+              purposeTemplate
+            ),
+          ],
+          eserviceIds,
+          purposeTemplate.id
         )
       );
     });
@@ -121,14 +152,14 @@ describe("Purpose Template Validation", () => {
       await expect(
         validateEservicesAssociations(
           eserviceIds,
-          purposeTemplateId,
+          purposeTemplate,
           mockReadModelService
         )
       ).rejects.toThrow(
         associationEServicesForPurposeTemplateFailed(
           [unexpectedEServiceError(errorMessage, eserviceId1)],
           eserviceIds,
-          purposeTemplateId
+          purposeTemplate.id
         )
       );
     });
@@ -140,7 +171,7 @@ describe("Purpose Template Validation", () => {
         createdAt: new Date(),
         eserviceId: eserviceId1,
         descriptorId: descriptorId1,
-        purposeTemplateId,
+        purposeTemplateId: purposeTemplate.id,
       };
 
       mockReadModelService.getEServiceById = vi
@@ -153,14 +184,14 @@ describe("Purpose Template Validation", () => {
       await expect(
         validateEservicesAssociations(
           eserviceIds,
-          purposeTemplateId,
+          purposeTemplate,
           mockReadModelService
         )
       ).rejects.toThrow(
         associationBetweenEServiceAndPurposeTemplateAlreadyExists(
-          [eserviceAlreadyAssociatedError(eserviceId1, purposeTemplateId)],
+          [eserviceAlreadyAssociatedError(eserviceId1, purposeTemplate.id)],
           eserviceIds,
-          purposeTemplateId
+          purposeTemplate.id
         )
       );
     });
@@ -178,7 +209,7 @@ describe("Purpose Template Validation", () => {
       await expect(
         validateEservicesAssociations(
           eserviceIds,
-          purposeTemplateId,
+          purposeTemplate,
           mockReadModelService
         )
       ).rejects.toThrow(
@@ -188,11 +219,10 @@ describe("Purpose Template Validation", () => {
 
     it("should return invalid result when eservice has no descriptors (validateEServiceDescriptors)", async () => {
       const eserviceIds = [eserviceId1];
-      const eserviceWithoutDescriptors = getMockEService(
-        eserviceId1,
-        generateId<TenantId>(),
-        []
-      );
+      const eserviceWithoutDescriptors: EService = {
+        ...getMockEService(eserviceId1, generateId<TenantId>(), []),
+        personalData: true,
+      };
 
       mockReadModelService.getEServiceById = vi
         .fn()
@@ -202,7 +232,7 @@ describe("Purpose Template Validation", () => {
 
       const result = await validateEservicesAssociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate,
         mockReadModelService
       );
 
@@ -212,46 +242,107 @@ describe("Purpose Template Validation", () => {
       });
     });
 
-    it("should return invalid result when eservice has no valid descriptor states (validateEServiceDescriptors)", async () => {
-      const eserviceIds = [eserviceId1];
-      const invalidDescriptor = getMockDescriptor(descriptorState.suspended);
-      invalidDescriptor.id = descriptorId1;
-      const eserviceWithInvalidDescriptors = getMockEService(
-        eserviceId1,
-        generateId<TenantId>(),
-        [invalidDescriptor]
-      );
-
-      mockReadModelService.getEServiceById = vi
-        .fn()
-        .mockResolvedValue(eserviceWithInvalidDescriptors);
-      mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
-        vi.fn().mockResolvedValue(undefined);
-
-      const result = await validateEservicesAssociations(
-        eserviceIds,
-        purposeTemplateId,
-        mockReadModelService
-      );
-
-      expect(result).toEqual({
-        type: "invalid",
-        issues: [
-          invalidDescriptorStateError(eserviceId1, [
-            descriptorState.published,
-            descriptorState.draft,
+    it.each(
+      Object.values(descriptorState).filter(
+        (state) =>
+          !ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION.includes(
+            state
+          )
+      )
+    )(
+      "should return invalid result (invalidDescriptorStateError) when associating an eservice that only has invalid descriptor state %s (validateEServiceDescriptors)",
+      async (invalidState) => {
+        const eserviceIds = [eserviceId1];
+        const invalidDescriptor = getMockDescriptor(invalidState);
+        invalidDescriptor.id = descriptorId1;
+        const eserviceWithInvalidDescriptors = {
+          ...getMockEService(eserviceId1, generateId<TenantId>(), [
+            invalidDescriptor,
           ]),
-        ],
-      });
-    });
+          personalData: true,
+        };
+
+        mockReadModelService.getEServiceById = vi
+          .fn()
+          .mockResolvedValue(eserviceWithInvalidDescriptors);
+        mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+          vi.fn().mockResolvedValue(undefined);
+
+        const result = await validateEservicesAssociations(
+          eserviceIds,
+          purposeTemplate,
+          mockReadModelService
+        );
+
+        expect(result).toEqual({
+          type: "invalid",
+          issues: [
+            invalidDescriptorStateError(eserviceId1, [
+              descriptorState.published,
+            ]),
+          ],
+        });
+      }
+    );
+
+    it.each(
+      Object.values(descriptorState).filter(
+        (state) =>
+          !ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION.includes(
+            state
+          )
+      )
+    )(
+      "should return invalid result (invalidDescriptorStateError) when disassociating an eservice that only has invalid descriptor state %s (validateEServiceDescriptors)",
+      async (invalidState) => {
+        const eserviceIds = [eserviceId1];
+        const invalidDescriptor = getMockDescriptor(invalidState);
+        invalidDescriptor.id = descriptorId1;
+        const eserviceWithInvalidDescriptors = {
+          ...getMockEService(eserviceId1, generateId<TenantId>(), [
+            invalidDescriptor,
+          ]),
+          personalData: true,
+        };
+
+        const existingAssociation = {
+          eserviceId: eserviceWithInvalidDescriptors.id,
+          descriptorId: invalidDescriptor.id,
+          purposeTemplateId: purposeTemplate.id,
+        };
+
+        mockReadModelService.getEServiceById = vi
+          .fn()
+          .mockResolvedValue(eserviceWithInvalidDescriptors);
+        mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+          vi.fn().mockResolvedValue(existingAssociation);
+
+        const result = await validateEservicesDisassociations(
+          eserviceIds,
+          purposeTemplate,
+          mockReadModelService
+        );
+
+        expect(result).toEqual({
+          type: "invalid",
+          issues: [
+            invalidDescriptorStateError(
+              eserviceId1,
+              ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+            ),
+          ],
+        });
+      }
+    );
 
     it("should return error when trying to unlink eservice that is not associated", async () => {
       const eserviceIds = [eserviceId1];
-      const mockEService1 = getMockEService(
-        eserviceId1,
-        generateId<TenantId>(),
-        [getMockDescriptor(descriptorState.published)]
-      );
+      const mockEService1 = {
+        ...getMockEService(eserviceId1, generateId<TenantId>(), [
+          getMockDescriptor(descriptorState.published),
+        ]),
+        personalData: true,
+      };
 
       mockReadModelService.getEServiceById = vi
         .fn()
@@ -263,14 +354,14 @@ describe("Purpose Template Validation", () => {
       await expect(
         validateEservicesDisassociations(
           eserviceIds,
-          purposeTemplateId,
+          purposeTemplate,
           mockReadModelService
         )
       ).rejects.toThrow(
         associationBetweenEServiceAndPurposeTemplateDoesNotExist(
-          [eserviceNotAssociatedError(eserviceId1, purposeTemplateId)],
+          [eserviceNotAssociatedError(eserviceId1, purposeTemplate.id)],
           eserviceIds,
-          purposeTemplateId
+          purposeTemplate.id
         )
       );
     });
@@ -279,16 +370,17 @@ describe("Purpose Template Validation", () => {
       const eserviceIds = [eserviceId1];
       const mockDescriptor = getMockDescriptor(descriptorState.published);
       mockDescriptor.id = descriptorId1;
-      const mockEService1 = getMockEService(
-        eserviceId1,
-        generateId<TenantId>(),
-        [mockDescriptor]
-      );
+      const mockEService1 = {
+        ...getMockEService(eserviceId1, generateId<TenantId>(), [
+          mockDescriptor,
+        ]),
+        personalData: true,
+      };
 
       const existingAssociation = {
         eserviceId: eserviceId1,
         descriptorId: descriptorId1,
-        purposeTemplateId,
+        purposeTemplateId: purposeTemplate.id,
       };
 
       mockReadModelService.getEServiceById = vi
@@ -300,7 +392,7 @@ describe("Purpose Template Validation", () => {
 
       const result = await validateEservicesDisassociations(
         eserviceIds,
-        purposeTemplateId,
+        purposeTemplate,
         mockReadModelService
       );
 

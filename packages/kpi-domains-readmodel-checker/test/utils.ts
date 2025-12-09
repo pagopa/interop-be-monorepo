@@ -8,6 +8,7 @@ import {
   EServiceTemplate,
   ProducerKeychain,
   Purpose,
+  PurposeTemplate,
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -33,6 +34,7 @@ import {
   splitProducerKeychainIntoObjectsSQL,
   splitPurposeIntoObjectsSQL,
   splitTenantIntoObjectsSQL,
+  splitPurposeTemplateIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { z } from "zod";
@@ -66,6 +68,8 @@ import { DelegationItemsSchema } from "../src/model/delegation/delegation.js";
 import { EserviceTemplateItemsSchema } from "../src/model/eserviceTemplate/eserviceTemplate.js";
 import { PurposeItemsSchema } from "../src/model/purpose/purpose.js";
 import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
+import { PurposeTemplateDbTable } from "../src/model/db/purposeTemplate.js";
+import { PurposeTemplateItemsSchema } from "../src/model/purposeTemplate/purposeTemplate.js";
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
     undefined,
@@ -271,6 +275,10 @@ export const addOneDelegation = async (
     DelegationDbTable.delegation_contract_document,
     splitResult.contractDocumentsSQL
   );
+  await writeInKpi(
+    DelegationDbTable.delegation_signed_contract_document,
+    splitResult.contractSignedDocumentsSQL
+  );
 };
 
 export const addOneAgreement = async (
@@ -293,6 +301,10 @@ export const addOneAgreement = async (
   await writeInKpi(
     AgreementDbTable.agreement_contract,
     splitResult.contractSQL ? [splitResult.contractSQL] : []
+  );
+  await writeInKpi(
+    AgreementDbTable.agreement_signed_contract,
+    splitResult.signedContractSQL ? [splitResult.signedContractSQL] : []
   );
 };
 
@@ -333,6 +345,43 @@ export const addOneProducerKeychain = async (
   await writeInKpi(
     ProducerKeychainDbTable.producer_keychain_key,
     splitResult.keysSQL
+  );
+};
+
+export const addOnePurposeTemplate = async (
+  purposeTemplate: WithMetadata<PurposeTemplate>
+): Promise<void> => {
+  const splitResult = PurposeTemplateItemsSchema.parse(
+    splitPurposeTemplateIntoObjectsSQL(
+      purposeTemplate.data,
+      purposeTemplate.metadata.version
+    )
+  );
+
+  await writeInKpi(PurposeTemplateDbTable.purpose_template, [
+    splitResult.purposeTemplateSQL,
+  ]);
+
+  await writeInKpi(
+    PurposeTemplateDbTable.purpose_template_risk_analysis_form,
+    splitResult.riskAnalysisFormTemplateSQL
+      ? [splitResult.riskAnalysisFormTemplateSQL]
+      : []
+  );
+
+  await writeInKpi(
+    PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
+    splitResult.riskAnalysisTemplateAnswersSQL
+  );
+
+  await writeInKpi(
+    PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
+    splitResult.riskAnalysisTemplateAnswersAnnotationsSQL
+  );
+
+  await writeInKpi(
+    PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
+    splitResult.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
   );
 };
 

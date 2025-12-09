@@ -25,6 +25,7 @@ import {
   eserviceTemplateNotFound,
   eserviceTemplateDuplicate,
   instanceNameConflict,
+  eServiceTemplateUpdateSameNameConflict,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -76,7 +77,7 @@ describe("updateEServiceTemplateName", () => {
       oldName: eserviceTemplate.name,
     });
     expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate)
+      toEServiceTemplateV2(returnedEServiceTemplate.data)
     );
   });
 
@@ -258,5 +259,28 @@ describe("updateEServiceTemplateName", () => {
         })
       )
     ).rejects.toThrowError(instanceNameConflict(eserviceTemplate.id));
+  });
+
+  it("should throw eServiceTemplateUpdateSameNameConflict trying to update the name to the same value", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName(
+        eserviceTemplate.id,
+        eserviceTemplate.name,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      eServiceTemplateUpdateSameNameConflict(eserviceTemplate.id)
+    );
   });
 });

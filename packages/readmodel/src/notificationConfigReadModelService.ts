@@ -1,9 +1,11 @@
 import { match } from "ts-pattern";
 import {
+  NotificationType,
   TenantId,
   TenantNotificationConfig,
   UserId,
   UserNotificationConfig,
+  UserRole,
   WithMetadata,
   emailNotificationPreference,
   unsafeBrandId,
@@ -21,7 +23,6 @@ import {
   aggregateUserNotificationConfig,
   toUserNotificationConfigAggregator,
 } from "./notification-config/aggregators.js";
-import { NotificationType } from "./notification-config/utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigReadModelServiceBuilder(
@@ -102,7 +103,9 @@ export function notificationConfigReadModelServiceBuilder(
       tenantIds: TenantId[],
       notificationType: NotificationType,
       notificationChannel: "inApp" | "email"
-    ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+    ): Promise<
+      Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
+    > {
       const enabledNotificationTable = match(notificationChannel)
         .with(
           "inApp",
@@ -119,6 +122,8 @@ export function notificationConfigReadModelServiceBuilder(
           userId: userNotificationConfigInReadmodelNotificationConfig.userId,
           tenantId:
             userNotificationConfigInReadmodelNotificationConfig.tenantId,
+          userRoles:
+            userNotificationConfigInReadmodelNotificationConfig.userRoles,
         })
         .from(userNotificationConfigInReadmodelNotificationConfig)
         .innerJoin(
@@ -154,6 +159,7 @@ export function notificationConfigReadModelServiceBuilder(
       return queryResult.map((row) => ({
         userId: unsafeBrandId(row.userId),
         tenantId: unsafeBrandId(row.tenantId),
+        userRoles: row.userRoles.map((r) => UserRole.parse(r)),
       }));
     },
   };

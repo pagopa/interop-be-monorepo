@@ -150,3 +150,38 @@ export function toCreateEventConsumerDelegationRejected(
     correlationId,
   };
 }
+export function toCreateEventDelegationContractGenerated(
+  delegation: WithMetadata<Delegation>,
+  correlationId: CorrelationId
+): CreateEvent<DelegationEventV2> {
+  return {
+    streamId: delegation.data.id,
+    version: delegation.metadata.version,
+    event: {
+      type: "DelegationContractGenerated",
+      event_version: 2,
+      data: {
+        delegation: toDelegationV2(delegation.data),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventDelegationSignedContractGenerated(
+  delegation: WithMetadata<Delegation>,
+  correlationId: CorrelationId
+): CreateEvent<DelegationEventV2> {
+  return {
+    streamId: delegation.data.id,
+    version: delegation.metadata.version,
+    event: {
+      type: "DelegationSignedContractGenerated",
+      event_version: 2,
+      data: {
+        delegation: toDelegationV2(delegation.data),
+      },
+    },
+    correlationId,
+  };
+}

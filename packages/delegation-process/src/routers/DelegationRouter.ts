@@ -10,9 +10,15 @@ import {
   validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationContractDocument,
+  EServiceId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   apiDelegationKindToDelegationKind,
+  apiDelegationSignedContractToDelegationSignedContract,
   apiDelegationStateToDelegationState,
   delegationContractToApiDelegationContract,
   delegationToApiDelegation,
@@ -30,6 +36,8 @@ import {
   getConsumerDelegatorsErrorMapper,
   getConsumerEservicesErrorMapper,
   getConsumerDelegatorsWithAgreementsErrorMapper,
+  generateDelegationContractErrorMapper,
+  generateDelegationSignedContractErrorMapper,
 } from "../utilities/errorMappers.js";
 import { DelegationService } from "../services/delegationService.js";
 
@@ -40,6 +48,7 @@ const {
   M2M_ROLE,
   SUPPORT_ROLE,
   M2M_ADMIN_ROLE,
+  INTERNAL_ROLE,
 } = authRole;
 
 const delegationRouter = (
@@ -171,6 +180,59 @@ const delegationRouter = (
             `Error retrieving contract ${req.params.contractId} of delegation ${req.params.delegationId}`
           );
 
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post("/internal/delegations/:delegationId/contract", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+        const { delegationId } = req.params;
+        const delegationContract = DelegationContractDocument.parse(req.body);
+
+        await delegationService.internalAddDelegationContract(
+          unsafeBrandId(delegationId),
+          delegationContract,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          generateDelegationContractErrorMapper,
+          ctx
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/internal/delegations/:delegationId/signedContract",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { delegationId } = req.params;
+          const delegationContract =
+            apiDelegationSignedContractToDelegationSignedContract(req.body);
+
+          await delegationService.internalAddDelegationSignedContract(
+            unsafeBrandId(delegationId),
+            delegationContract,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateDelegationSignedContractErrorMapper,
+            ctx
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }

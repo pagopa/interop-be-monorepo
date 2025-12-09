@@ -1,24 +1,28 @@
 import path from "path";
-import { FileManager, logger, Logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  Logger,
+  SafeStorageService,
+  FileCreationRequest,
+  SignatureServiceBuilder,
+  formatError,
+} from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import {
   CorrelationId,
   generateId,
   genericInternalError,
 } from "pagopa-interop-models";
-import { config, safeStorageApiConfig } from "../config/config.js";
-import { DbServiceBuilder } from "../services/dynamoService.js";
-import { SafeStorageService } from "../services/safeStorageClient.js";
+import { config } from "../config/config.js";
 import { decodeSQSEventMessage } from "../utils/decodeSQSEventMessage.js";
 import { gzipBuffer } from "../utils/compression.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
-import { formatError } from "../utils/errorFormatter.js";
 
 // eslint-disable-next-line max-params
 async function processMessage(
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   s3Key: string,
   safeStorageService: SafeStorageService,
   logger: Logger,
@@ -37,13 +41,14 @@ async function processMessage(
 
     const safeStorageRequest: FileCreationRequest = {
       contentType: "application/gzip",
-      documentType: safeStorageApiConfig.safeStorageDocType,
-      status: safeStorageApiConfig.safeStorageDocStatus,
+      documentType: config.safeStorageDocType,
+      status: config.safeStorageDocStatus,
       checksumValue: checksum,
     };
 
     const { uploadUrl, secret, key } = await safeStorageService.createFile(
-      safeStorageRequest
+      safeStorageRequest,
+      logger
     );
 
     await safeStorageService.uploadFileContent(
@@ -51,15 +56,19 @@ async function processMessage(
       zipped,
       "application/gzip",
       secret,
-      checksum
+      checksum,
+      logger
     );
 
-    await dbService.saveSignatureReference({
-      safeStorageId: key,
-      fileKind: "VOUCHER_AUDIT",
-      fileName,
-      correlationId,
-    });
+    await signatureService.saveSignatureReference(
+      {
+        safeStorageId: key,
+        fileKind: "VOUCHER_AUDIT",
+        fileName,
+        correlationId,
+      },
+      logger
+    );
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);
     throw error;
@@ -69,7 +78,7 @@ async function processMessage(
 export const sqsMessageHandler = async (
   messagePayload: Message,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -82,7 +91,7 @@ export const sqsMessageHandler = async (
     const s3Key = decodeSQSEventMessage(messagePayload);
     await processMessage(
       fileManager,
-      dbService,
+      signatureService,
       s3Key,
       safeStorageService,
       logInstance,

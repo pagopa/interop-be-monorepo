@@ -124,6 +124,14 @@ function toApiEServiceM2MEventType(
       "EServiceDescriptorInterfaceDeleted",
       () => "ESERVICE_DESCRIPTOR_INTERFACE_DELETED"
     )
+    .with(
+      "EServicePersonalDataFlagUpdatedAfterPublication",
+      () => "ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION"
+    )
+    .with(
+      "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+      () => "ESERVICE_PERSONAL_DATA_FLAG_UPDATED_BY_TEMPLATE_UPDATE"
+    )
     .exhaustive();
 }
 
@@ -136,6 +144,7 @@ function toApiEServiceM2MEvent(
     eventTimestamp: event.eventTimestamp.toJSON(),
     eserviceId: event.eserviceId,
     descriptorId: event.descriptorId,
+    producerDelegationId: event.producerDelegationId,
   };
 }
 

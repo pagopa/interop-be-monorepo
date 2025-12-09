@@ -8,13 +8,12 @@ import {
   Delegation,
   Attribute,
   EService,
+  EServiceTemplate,
   generateId,
   Purpose,
   Tenant,
   TenantId,
-  User,
   UserId,
-  UserRole,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
@@ -23,6 +22,7 @@ import {
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
@@ -30,20 +30,13 @@ import {
   upsertAttribute,
   upsertDelegation,
   upsertEService,
+  upsertEServiceTemplate,
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import {
-  user as userTable,
-  UserDB,
-} from "pagopa-interop-selfcare-user-db-models";
-import { z } from "zod";
-import { generateMock } from "@anatine/zod-mock";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { userServiceBuilderSQL } from "../src/services/userServiceSQL.js";
 
-export const { cleanup, readModelDB, userDB } = await setupTestContainersVitest(
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
@@ -52,8 +45,7 @@ export const { cleanup, readModelDB, userDB } = await setupTestContainersVitest(
   inject("readModelSQLConfig"),
   undefined,
   undefined,
-  undefined,
-  inject("userSQLConfig")
+  undefined
 );
 
 const agreementReadModelServiceSQL =
@@ -66,6 +58,7 @@ const delegationReadModelServiceSQL =
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -75,9 +68,8 @@ export const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 });
-
-export const userService = userServiceBuilderSQL(userDB);
 
 export const templateService = buildHTMLTemplateService();
 const filename = fileURLToPath(import.meta.url);
@@ -112,12 +104,14 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
 };
 
-export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
-  await upsertPurpose(readModelDB, purpose, 0);
+export const addOneEServiceTemplate = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
 };
 
-export const addOneUser = async (user: User): Promise<void> => {
-  await insertUser(userDB, user);
+export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
+  await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneDelegation = async (
@@ -126,29 +120,12 @@ export const addOneDelegation = async (
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
-const insertUser = async (
-  userDB: ReturnType<typeof drizzle>,
-  user: User
-): Promise<void> => {
-  const toInsert: UserDB = {
-    userId: user.id,
-    email: user.email,
-    familyName: user.familyName,
-    institutionId: generateId(),
-    name: user.name,
-    productRoles: [user.productRole],
-    tenantId: user.tenantId,
-  };
-  await userDB.insert(userTable).values(toInsert);
-};
-
 afterEach(cleanup);
 
-export const getMockUser = (tenantId?: TenantId, userId?: UserId): User => ({
-  email: generateMock(z.string().email()),
-  familyName: generateMock(z.string()),
-  name: generateMock(z.string()),
-  productRole: generateMock(UserRole),
+export const getMockUser = (
+  tenantId?: TenantId,
+  userId?: UserId
+): { tenantId: TenantId; id: UserId } => ({
   tenantId: tenantId ?? generateId<TenantId>(),
   id: userId ?? generateId<UserId>(),
 });

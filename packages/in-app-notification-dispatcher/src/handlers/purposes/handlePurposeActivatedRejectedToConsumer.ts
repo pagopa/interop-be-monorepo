@@ -7,7 +7,11 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveEservice,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
 export async function handlePurposeActivatedRejectedToConsumer(
@@ -24,11 +28,20 @@ export async function handlePurposeActivatedRejectedToConsumer(
   );
   const purpose = fromPurposeV2(purposeV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [purpose.consumerId],
-      "purposeActivatedRejectedToConsumer"
+  // Only send notification if there is only one version (version count = 1)
+  if (purpose.versions.length !== 1) {
+    logger.info(
+      `Purpose ${purpose.id} has more than one version, skipping purposeActivatedRejectedToConsumer notification`
     );
+    return [];
+  }
+
+  const usersWithNotifications = await getNotificationRecipients(
+    [purpose.consumerId],
+    "purposeActivatedRejectedToConsumer",
+    readModelService,
+    logger
+  );
   if (usersWithNotifications.length === 0) {
     logger.info(
       `No users with notifications enabled for ${type} purpose ${purpose.id}`
@@ -39,15 +52,22 @@ export async function handlePurposeActivatedRejectedToConsumer(
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
   const producer = await retrieveTenant(eservice.producerId, readModelService);
 
-  const body = inAppTemplates.purposeActivatedRejectedToConsumer(
-    purpose.title,
-    producer.name,
-    eservice.name,
-    match(type)
-      .with("PurposeVersionActivated", () => "attivato" as const)
-      .with("PurposeVersionRejected", () => "rifiutato" as const)
-      .exhaustive()
-  );
+  const body = match(type)
+    .with("PurposeVersionActivated", () =>
+      inAppTemplates.purposeActivatedToConsumer(
+        purpose.title,
+        producer.name,
+        eservice.name
+      )
+    )
+    .with("PurposeVersionRejected", () =>
+      inAppTemplates.purposeRejectedToConsumer(
+        purpose.title,
+        producer.name,
+        eservice.name
+      )
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,

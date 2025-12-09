@@ -12,7 +12,8 @@ import { EServiceTemplateV2 } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
+  getNotificationRecipients,
   retrieveTenant,
 } from "../handlerCommons.js";
 
@@ -47,15 +48,16 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
     return acc;
   }, {});
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      Object.keys(instantiatorEserviceMap).map((tenantId) =>
-        unsafeBrandId(tenantId)
-      ),
-      "newEserviceTemplateVersionToInstantiator"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    Object.keys(instantiatorEserviceMap).map((tenantId) =>
+      unsafeBrandId(tenantId)
+    ),
+    "newEserviceTemplateVersionToInstantiator",
+    readModelService,
+    logger
+  );
 
-  if (!userNotificationConfigs) {
+  if (usersWithNotifications.length === 0) {
     logger.info(
       `No user notification configs found for handleNewEserviceTemplateVersionToInstantiator ${eserviceTemplate.id}`
     );
@@ -71,11 +73,15 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
     (version) => version.id === eserviceTemplateVersionId
   );
 
-  return userNotificationConfigs.flatMap(({ userId, tenantId }) => {
+  return usersWithNotifications.flatMap(({ userId, tenantId }) => {
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
+      const descriptor =
+        eservice.descriptors.find(
+          (d) => d.templateVersionRef?.id === eserviceTemplateVersionId
+        ) || retrieveLatestDescriptor(eservice);
       const entityId = EServiceIdDescriptorId.parse(
-        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+        `${eservice.id}/${descriptor?.id}`
       );
       return {
         userId,

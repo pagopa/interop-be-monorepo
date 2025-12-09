@@ -278,7 +278,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/userNotificationConfigs:
+  /internal/ensureUserNotificationConfigExistsWithRole:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -286,8 +286,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Create a user's default notification configuration
-      operationId: createUserDefaultNotificationConfig
+      summary: Create a user's default notification configuration if missing or add role to it
+      operationId: ensureUserNotificationConfigExistsWithRole
       requestBody:
         description: A user notification config seed
         content:
@@ -296,12 +296,8 @@ paths:
               $ref: "#/components/schemas/UserNotificationConfigSeed"
         required: true
       responses:
-        "200":
-          description: The user's newly created notification configuration
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserNotificationConfig"
+        "204":
+          description: User notification config created or role added if missing
         "400":
           description: Invalid input
           content:
@@ -320,13 +316,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /internal/userNotificationConfigs/tenantId/{tenantId}/userId/{userId}:
+  /internal/userNotificationConfigs/tenantId/{tenantId}/userId/{userId}/userRole/{userRole}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantId
@@ -341,16 +331,21 @@ paths:
         schema:
           type: string
           format: uuid
+      - name: userRole
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UserRole"
     delete:
       security:
         - bearerAuth: []
       tags:
         - process
-      summary: Delete a user's notification configuration
-      operationId: deleteUserNotificationConfig
+      summary: Remove a role from the user's notification configuration (or delete it if it's the only role)
+      operationId: removeUserNotificationConfigRole
       responses:
         "204":
-          description: User notification config deleted
+          description: User notification config role removed or config deleted
         "400":
           description: Invalid input
           content:
@@ -370,7 +365,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: User notification config not found
+          description: User notification config or role not found
           content:
             application/problem+json:
               schema:
@@ -429,6 +424,7 @@ components:
         - id
         - userId
         - tenantId
+        - userRoles
         - inAppNotificationPreference
         - emailNotificationPreference
         - inAppConfig
@@ -444,6 +440,11 @@ components:
         tenantId:
           type: string
           format: uuid
+        userRoles:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/UserRole"
         inAppNotificationPreference:
           type: boolean
         emailNotificationPreference:
@@ -485,6 +486,9 @@ components:
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
+        - producerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
+        - purposeOverQuotaStateToConsumer
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -524,6 +528,12 @@ components:
           type: boolean
         clientKeyAddedDeletedToClientUsers:
           type: boolean
+        producerKeychainKeyAddedDeletedToClientUsers:
+          type: boolean
+        purposeQuotaAdjustmentRequestToProducer:
+          type: boolean
+        purposeOverQuotaStateToConsumer:
+          type: boolean
     TenantNotificationConfigSeed:
       type: object
       additionalProperties: false
@@ -539,6 +549,7 @@ components:
       required:
         - userId
         - tenantId
+        - userRole
       properties:
         userId:
           type: string
@@ -546,6 +557,8 @@ components:
         tenantId:
           type: string
           format: uuid
+        userRole:
+          $ref: "#/components/schemas/UserRole"
     TenantNotificationConfigUpdateSeed:
       type: object
       additionalProperties: false
@@ -575,6 +588,14 @@ components:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
           $ref: "#/components/schemas/NotificationConfig"
+    UserRole:
+      type: string
+      description: User role
+      enum:
+        - ADMIN
+        - API
+        - SECURITY
+        - SUPPORT
     Problem:
       properties:
         type:

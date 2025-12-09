@@ -1,5 +1,5 @@
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockDescriptor,
@@ -15,6 +15,7 @@ import {
   TenantId,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleEserviceTemplateStatusChangedToInstantiator } from "../src/handlers/eserviceTemplates/handleEserviceTemplateStatusChangedToInstantiator.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -27,15 +28,22 @@ import {
 describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
   const eserviceTemplate = getMockEServiceTemplate();
   const { logger } = getMockContext({});
+
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
   await addOneEServiceTemplate(eserviceTemplate);
 
   // Mock the getEServicesByTemplateId method to return an empty array by default
   readModelService.getEServicesByTemplateId = vi.fn().mockResolvedValue([]);
 
+  beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
+  });
+
   it("should throw missingKafkaMessageDataError when eserviceTemplate is undefined", async () => {
     await expect(() =>
       handleEserviceTemplateStatusChangedToInstantiator(
         undefined,
+        generateId(),
         logger,
         readModelService
       )
@@ -70,13 +78,12 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
       return Promise.resolve(null);
     });
 
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications =
       await handleEserviceTemplateStatusChangedToInstantiator(
         toEServiceTemplateV2(updatedEServiceTemplate),
+        updatedEServiceTemplate.versions[0].id,
         logger,
         readModelService
       );
@@ -117,9 +124,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     readModelService.getEServicesByTemplateId = vi
       .fn()
       .mockResolvedValue([eservice]);
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     readModelService.getTenantById = vi.fn().mockImplementation((tenantId) => {
       if (tenantId === creatorId) {
@@ -134,6 +139,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     const notifications =
       await handleEserviceTemplateStatusChangedToInstantiator(
         toEServiceTemplateV2(updatedEServiceTemplate),
+        updatedEServiceTemplate.versions[0].id,
         logger,
         readModelService
       );

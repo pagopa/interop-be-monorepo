@@ -14,12 +14,13 @@ import {
 } from "pagopa-interop-models";
 import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
   agreementStampDateNotFound,
   descriptorNotFound,
-  descriptorPublishedNotFound,
   eServiceNotFound,
+  eserviceWithoutDescriptors,
   htmlTemplateNotFound,
   tenantNotFound,
 } from "../models/errors.js";
@@ -33,6 +34,29 @@ export const eventMailTemplateType = {
   agreementSubmittedMailTemplate: "agreement-submitted-mail",
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
+  eserviceDescriptorSuspendedMailTemplate: "eservice-descriptor-suspended-mail",
+  eserviceDescriptorActivatedMailTemplate: "eservice-descriptor-activated-mail",
+  eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  producerKeychainEserviceAddedMailTemplate:
+    "producer-keychain-eservice-added-mail",
+  agreementSuspendedByConsumerMailTemplate:
+    "agreement-suspended-by-consumer-mail",
+  agreementSuspendedByPlatformToProducerMailTemplate:
+    "agreement-suspended-by-platform-to-producer-mail",
+  agreementUnsuspendedByConsumerMailTemplate:
+    "agreement-unsuspended-by-consumer-mail",
+  agreementUnsuspendedByPlatformToProducerMailTemplate:
+    "agreement-unsuspended-by-platform-to-producer-mail",
+  agreementSuspendedByPlatformToConsumerMailTemplate:
+    "agreement-suspended-by-platform-to-consumer-mail",
+  agreementUnsuspendedByPlatformToConsumerMailTemplate:
+    "agreement-unsuspended-by-platform-to-consumer-mail",
+  agreementSuspendedByProducerMailTemplate:
+    "agreement-suspended-by-producer-mail",
+  agreementUnsuspendedByProducerMailTemplate:
+    "agreement-unsuspended-by-producer-mail",
+  agreementArchivedByConsumerMailTemplate:
+    "agreement-archived-by-consumer-mail",
   clientPurposeAddedMailTemplate: "client-purpose-added-mail",
   clientPurposeRemovedMailTemplate: "client-purpose-removed-mail",
   purposeVersionSuspendedByConsumerMailTemplate:
@@ -48,7 +72,14 @@ export const eventMailTemplateType = {
     "purpose-version-unsuspended-by-producer-mail",
   newPurposeVersionWaitingForApprovalMailTemplate:
     "new-purpose-version-waiting-for-approval-mail",
-  eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  eserviceTemplateVersionSuspendedToCreatorMailTemplate:
+    "eservice-template-version-suspended-to-creator-mail",
+  eserviceTemplateVersionPublishedMailTemplate:
+    "eservice-template-version-published-mail",
+  eserviceTemplateNameUpdatedMailTemplate:
+    "eservice-template-name-updated-mail",
+  eserviceTemplateVersionSuspendedToInstantiatorMailTemplate:
+    "eservice-template-version-suspended-to-instantiator-mail",
   consumerDelegationApprovedMailTemplate: "consumer-delegation-approved-mail",
   consumerDelegationRejectedMailTemplate: "consumer-delegation-rejected-mail",
   consumerDelegationRevokedMailTemplate: "consumer-delegation-revoked-mail",
@@ -59,6 +90,7 @@ export const eventMailTemplateType = {
     "eservice-descriptor-rejected-by-delegator-mail",
   eserviceDescriptorSubmittedByDelegateMailTemplate:
     "eservice-descriptor-submitted-by-delegate-mail",
+  eserviceStateChangedMailTemplate: "eservice-state-changed-mail",
   producerDelegationApprovedMailTemplate: "producer-delegation-approved-mail",
   producerDelegationRejectedMailTemplate: "producer-delegation-rejected-mail",
   producerDelegationRevokedMailTemplate: "producer-delegation-revoked-mail",
@@ -71,6 +103,21 @@ export const eventMailTemplateType = {
     "tenant-verified-attribute-assigned-mail",
   tenantVerifiedAttributeRevokedMailTemplate:
     "tenant-verified-attribute-revoked-mail",
+  producerKeychainKeyDeletedMailTemplate: "producer-keychain-key-deleted-mail",
+  producerKeychainDeletedMailTemplate: "producer-keychain-deleted-mail",
+  clientKeyDeletedMailTemplate: "client-key-deleted-mail",
+  clientUserDeletedMailTemplate: "client-user-deleted-mail",
+  producerKeychainUserDeletedMailTemplate:
+    "producer-keychain-user-deleted-mail",
+  clientKeyAddedMailTemplate: "client-key-added-mail",
+  producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
+  newPurposeVersionQuotaAdjustmentRequestMailTemplate:
+    "new-purpose-version-quota-adjustment-request-mail",
+  purposeQuotaAdjustmentRequestMailTemplate:
+    "purpose-quota-adjustment-request-mail",
+  purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
+  purposeQuotaAdjustmentResponseMailTemplate:
+    "purpose-quota-adjustment-response-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -159,17 +206,28 @@ export function getFormattedAgreementStampDate(
   return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
-export function retrieveLatestPublishedDescriptor(
-  eservice: EService
-): Descriptor {
-  const latestDescriptor = eservice.descriptors
-    .filter((d) => d.state === descriptorState.published)
+export function retrieveLatestDescriptor(eservice: EService): Descriptor {
+  if (eservice.descriptors.length === 0) {
+    throw eserviceWithoutDescriptors(eservice.id);
+  }
+
+  const publishedDescriptor = eservice.descriptors.find(
+    (d) => d.state === descriptorState.published
+  );
+
+  if (publishedDescriptor) {
+    return publishedDescriptor;
+  }
+
+  const latestNotDraftDescriptor = eservice.descriptors
+    .filter((d) => d.state !== descriptorState.draft)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
-  if (!latestDescriptor) {
-    throw descriptorPublishedNotFound(eservice.id);
+  if (latestNotDraftDescriptor) {
+    return latestNotDraftDescriptor;
   }
-  return latestDescriptor;
+
+  return eservice.descriptors[0];
 }
 
 export function encodeEmailEvent(
@@ -181,6 +239,10 @@ export function encodeEmailEvent(
       subject: event.email.subject,
       body: event.email.body,
     },
-    address: event.address,
+    tenantId: event.tenantId,
+    ...match(event)
+      .with({ type: "User" }, ({ type, userId }) => ({ type, userId }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({ type, address }))
+      .exhaustive(),
   });
 }

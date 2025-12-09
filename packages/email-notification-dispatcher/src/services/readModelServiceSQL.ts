@@ -3,7 +3,9 @@ import {
   Delegation,
   delegationKind,
   delegationState,
+  NotificationType,
   TenantNotificationConfig,
+  UserRole,
 } from "pagopa-interop-models";
 import { WithMetadata } from "pagopa-interop-models";
 import {
@@ -12,7 +14,9 @@ import {
   Agreement,
   EService,
   EServiceId,
-  NotificationConfig,
+  EServiceTemplateId,
+  Purpose,
+  PurposeId,
   Tenant,
   TenantId,
   UserId,
@@ -24,12 +28,14 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   NotificationConfigReadModelService,
+  PurposeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -41,6 +47,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   agreementReadModelServiceSQL: AgreementReadModelService;
@@ -49,6 +56,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: DelegationReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
+  purposeReadModelServiceSQL: PurposeReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -89,8 +97,10 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationName: keyof NotificationConfig
-    ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+      notificationName: NotificationType
+    ): Promise<
+      Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
+    > {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
         notificationName,
@@ -106,6 +116,9 @@ export function readModelServiceBuilderSQL({
         );
 
       return notificationConfig?.data;
+    },
+    async getPurposeById(purposeId: PurposeId): Promise<Purpose | undefined> {
+      return (await purposeReadModelServiceSQL.getPurposeById(purposeId))?.data;
     },
     async getActiveProducerDelegation(
       eserviceId: EServiceId,
@@ -135,6 +148,13 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
       return attributeWithMetadata.data;
+    },
+    async getEServicesByTemplateId(
+      templateId: EServiceTemplateId
+    ): Promise<EService[]> {
+      return await catalogReadModelServiceSQL.getEServicesByFilter(
+        eq(eserviceInReadmodelCatalog.templateId, templateId)
+      );
     },
   };
 }

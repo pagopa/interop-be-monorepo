@@ -1,10 +1,21 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  getMockDescriptor,
+  getMockEService,
+  getMockPurposeTemplate,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
+import {
   Descriptor,
   EService,
+  EServiceId,
   PurposeTemplate,
   PurposeTemplateEServiceLinkedV2,
+  PurposeTemplateId,
   Tenant,
   descriptorState,
   generateId,
@@ -12,27 +23,25 @@ import {
   tenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
-  EServiceId,
-  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { config } from "../../src/config/config.js";
 import {
-  decodeProtobufPayload,
-  getMockEService,
-  getMockTenant,
-  getMockPurposeTemplate,
-  getMockDescriptor,
-  getMockAuthData,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+  eserviceAlreadyAssociatedError,
+  eserviceNotFound,
+  invalidDescriptorStateError,
+  missingDescriptorError,
+  purposeTemplateEServicePersonalDataFlagMismatch,
+} from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
-  associationEServicesForPurposeTemplateFailed,
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+  associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
-  tooManyEServicesForPurposeTemplate,
   purposeTemplateNotInExpectedStates,
   tenantNotAllowed,
+  tooManyEServicesForPurposeTemplate,
 } from "../../src/model/domain/errors.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION } from "../../src/services/validators.js";
 import {
   addOneEService,
   addOnePurposeTemplate,
@@ -41,13 +50,6 @@ import {
   purposeTemplateService,
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
-import {
-  eserviceNotFound,
-  invalidDescriptorStateError,
-  missingDescriptorError,
-  eserviceAlreadyAssociatedError,
-} from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("linkEservicesToPurposeTemplate", () => {
   const tenant: Tenant = {
@@ -69,12 +71,14 @@ describe("linkEservicesToPurposeTemplate", () => {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor1],
+    personalData: true,
   };
 
   const eService2: EService = {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor2],
+    personalData: true,
   };
 
   const purposeTemplate: PurposeTemplate = {
@@ -104,16 +108,22 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(linkResponse).toHaveLength(2);
     expect(linkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
     });
     expect(linkResponse[1]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService2.id,
-      descriptorId: descriptor2.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService2.id,
+        descriptorId: descriptor2.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 2 },
     });
 
     const lastWrittenEvent = await readLastPurposeTemplateEvent(
@@ -165,10 +175,13 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(linkResponse).toHaveLength(1);
     expect(linkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
-      createdAt: new Date(),
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 1 },
     });
 
     vi.useRealTimers();
@@ -256,6 +269,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [],
+      personalData: true,
     };
 
     await addOneTenant(tenant);
@@ -279,21 +293,27 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw associationEServicesForPurposeTemplateFailed if eservice has no valid descriptors (descriptors with state different from published or draft)", async () => {
-    const eserviceWithDeprecatedDescriptor: EService = {
+  it("should throw invalidDescriptorStateError when trying to link eservice that has no valid descriptors (descriptors with state different from published)", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.suspended),
+      version: "1",
+    };
+
+    const eService: EService = {
       ...getMockEService(),
       producerId: tenant.id,
-      descriptors: [getMockDescriptor(descriptorState.deprecated)],
+      descriptors: [descriptor],
+      personalData: true,
     };
 
     await addOneTenant(tenant);
-    await addOneEService(eserviceWithDeprecatedDescriptor);
     await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eService);
 
     await expect(
       purposeTemplateService.linkEservicesToPurposeTemplate(
         purposeTemplate.id,
-        [eserviceWithDeprecatedDescriptor.id],
+        [eService.id],
         getMockContext({
           authData: getMockAuthData(tenant.id),
         })
@@ -301,12 +321,44 @@ describe("linkEservicesToPurposeTemplate", () => {
     ).rejects.toThrowError(
       associationEServicesForPurposeTemplateFailed(
         [
-          invalidDescriptorStateError(eserviceWithDeprecatedDescriptor.id, [
-            descriptorState.published,
-            descriptorState.draft,
-          ]),
+          invalidDescriptorStateError(
+            eService.id,
+            ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION
+          ),
         ],
-        [eserviceWithDeprecatedDescriptor.id],
+        [eService.id],
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("should throw associationEServicesForPurposeTemplateFailed if the e-service has a different personal data flag than the purpose template", async () => {
+    const eserviceWithDifferentPersonalDataFlag: EService = {
+      ...eService1,
+      personalData: false,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEService(eserviceWithDifferentPersonalDataFlag);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [eserviceWithDifferentPersonalDataFlag.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      associationEServicesForPurposeTemplateFailed(
+        [
+          purposeTemplateEServicePersonalDataFlagMismatch(
+            eserviceWithDifferentPersonalDataFlag,
+            purposeTemplate
+          ),
+        ],
+        [eserviceWithDifferentPersonalDataFlag.id],
         purposeTemplate.id
       )
     );
@@ -359,7 +411,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       purposeTemplateNotInExpectedStates(
         suspendedPurposeTemplate.id,
         suspendedPurposeTemplate.state,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       )
     );
   });
@@ -387,7 +439,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       purposeTemplateNotInExpectedStates(
         archivedPurposeTemplate.id,
         archivedPurposeTemplate.state,
-        [purposeTemplateState.draft, purposeTemplateState.active]
+        [purposeTemplateState.draft, purposeTemplateState.published]
       )
     );
   });
@@ -429,16 +481,19 @@ describe("linkEservicesToPurposeTemplate", () => {
 
     expect(firstLinkResponse).toHaveLength(1);
     expect(firstLinkResponse[0]).toMatchObject({
-      purposeTemplateId: purposeTemplate.id,
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
+      data: {
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+      },
+      metadata: { version: 1 },
     });
 
     await addOnePurposeTemplateEServiceDescriptor({
       purposeTemplateId: purposeTemplate.id,
       eserviceId: eService1.id,
       descriptorId: descriptor1.id,
-      createdAt: firstLinkResponse[0].createdAt,
+      createdAt: firstLinkResponse[0].data.createdAt,
     });
 
     await expect(

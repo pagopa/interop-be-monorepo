@@ -7,6 +7,7 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   CorrelationId,
@@ -25,11 +26,9 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleAgreementUpgraded", async () => {
@@ -43,8 +42,14 @@ describe("handleAgreementUpgraded", async () => {
     id: eserviceId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = {
+    ...getMockTenant(producerId),
+    name: "Producer Tenant",
+  };
+  const consumerTenant = {
+    ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
+  };
   const users = [
     getMockUser(producerTenant.id),
     getMockUser(producerTenant.id),
@@ -56,13 +61,15 @@ describe("handleAgreementUpgraded", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+        users.map((user) => ({
+          userId: user.id,
+          tenantId: user.tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        }))
       );
   });
 
@@ -72,7 +79,6 @@ describe("handleAgreementUpgraded", async () => {
         agreementV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -99,7 +105,6 @@ describe("handleAgreementUpgraded", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -124,7 +129,6 @@ describe("handleAgreementUpgraded", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -149,7 +153,6 @@ describe("handleAgreementUpgraded", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -171,25 +174,33 @@ describe("handleAgreementUpgraded", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const agreement: Agreement = {
@@ -206,18 +217,21 @@ describe("handleAgreementUpgraded", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -238,7 +252,6 @@ describe("handleAgreementUpgraded", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

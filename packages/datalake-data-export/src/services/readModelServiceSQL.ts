@@ -25,6 +25,8 @@ import {
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -154,6 +156,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           attribute: sql<null>`NULL`,
           consumerDocument: sql<null>`NULL`,
           contract: sql<null>`NULL`,
+          signedContract: sql<null>`NULL`,
         })
         .from(agreementInReadmodelAgreement)
         .leftJoin(
@@ -200,8 +203,11 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purpose: purposeInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeRiskAnalysisForm: sql<null>`NULL`,
           purposeRiskAnalysisAnswer: sql<null>`NULL`,
+          purposeVersionSignedDocument:
+            purposeVersionSignedDocumentInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(subquery, eq(purposeInReadmodelPurpose.id, subquery.id))
@@ -218,6 +224,20 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
           )
+        )
+        .leftJoin(
+          purposeVersionStampInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionStampInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
         );
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult)).map(
@@ -230,6 +250,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           delegation: delegationInReadmodelDelegation,
           delegationStamp: delegationStampInReadmodelDelegation,
           delegationContractDocument: sql<null>`NULL`,
+          delegationSignedContractDocument: sql<null>`NULL`,
         })
         .from(delegationInReadmodelDelegation)
         .leftJoin(

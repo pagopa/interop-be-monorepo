@@ -102,12 +102,39 @@ export type DelegationProcessServerConfig = z.infer<
 export const EServiceTemplateProcessServerConfig = z
   .object({
     ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
+    ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
+    eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
+    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
   }));
 export type EServiceTemplateProcessServerConfig = z.infer<
   typeof EServiceTemplateProcessServerConfig
+>;
+
+export const EventManagerServerConfig = z
+  .object({
+    EVENT_MANAGER_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    eventManagerUrl: c.EVENT_MANAGER_URL,
+  }));
+export type EventManagerServerConfig = z.infer<typeof EventManagerServerConfig>;
+export const PurposeTemplateProcessServerConfig = z
+  .object({
+    PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
+    PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    purposeTemplateProcessUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
+    purposeTemplateDocumentsContainer: c.PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER,
+    purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
+  }));
+export type PurposeTemplateProcessServerConfig = z.infer<
+  typeof PurposeTemplateProcessServerConfig
 >;
 
 const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
@@ -119,6 +146,8 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
   .and(DelegationProcessServerConfig)
   .and(EServiceTemplateProcessServerConfig)
+  .and(EventManagerServerConfig)
+  .and(PurposeTemplateProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
   .and(

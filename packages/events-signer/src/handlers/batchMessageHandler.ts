@@ -18,9 +18,12 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { DbServiceBuilder } from "../services/dbService.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
+import {
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import { config } from "../config/config.js";
+import { getEventTimestamp } from "../utils/eventTimestamp.js";
 import { handleAgreementMessageV2 } from "./handleAgreementMessageV2.js";
 import { handleAuthorizationMessageV1 } from "./handleAuthorizationMessageV1.js";
 import { handleAuthorizationMessageV2 } from "./handleAuthorizationMessageV2.js";
@@ -35,7 +38,7 @@ import { handlePurposeMessageV2 } from "./handlePurposeMessageV2.js";
  * @param {string} topic - The Kafka topic from which the messages originate.
  * @param {Logger} logger - The logger instance for logging messages.
  * @param {FileManager} fileManager - The file manager responsible for storing s3 files.
- * @param {DbServiceBuilder} dbService - The database service builder with dynamo configs.
+ * @param {SignatureServiceBuilder} signatureService - The database service builder with dynamo configs.
  * @param {SafeStorageService} safeStorageService - The safe storage api client.
  * @returns {Promise<void>} A promise that resolves when all messages have been processed.
  * @throws {Error} If the topic is unknown.
@@ -45,14 +48,14 @@ export async function executeTopicHandler(
   kafkaMessages: KafkaMessage[],
   topic: string,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService
 ): Promise<void> {
   await match(topic)
     .with(config.catalogTopic, async () => {
       const eservicesV2WithTimestamp: Array<{
         eserviceV2: EServiceEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -62,7 +65,7 @@ export async function executeTopicHandler(
           .with({ event_version: 2 }, (msg) =>
             eservicesV2WithTimestamp.push({
               eserviceV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -71,7 +74,7 @@ export async function executeTopicHandler(
         await handleCatalogMessageV2(
           eservicesV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -79,7 +82,7 @@ export async function executeTopicHandler(
     .with(config.agreementTopic, async () => {
       const agreementsV2WithTimestamp: Array<{
         agreementV2: AgreementEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -89,7 +92,7 @@ export async function executeTopicHandler(
           .with({ event_version: 2 }, (msg) =>
             agreementsV2WithTimestamp.push({
               agreementV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -98,7 +101,7 @@ export async function executeTopicHandler(
         await handleAgreementMessageV2(
           agreementsV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -106,7 +109,7 @@ export async function executeTopicHandler(
     .with(config.purposeTopic, async () => {
       const purposesV2WithTimestamp: Array<{
         purposeV2: PurposeEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -116,7 +119,7 @@ export async function executeTopicHandler(
           .with({ event_version: 2 }, (msg) =>
             purposesV2WithTimestamp.push({
               purposeV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -125,7 +128,7 @@ export async function executeTopicHandler(
         await handlePurposeMessageV2(
           purposesV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -133,11 +136,11 @@ export async function executeTopicHandler(
     .with(config.authorizationTopic, async () => {
       const authorizationsV1WithTimestamp: Array<{
         authV1: AuthorizationEventEnvelopeV1;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
       const authorizationsV2WithTimestamp: Array<{
         authV2: AuthorizationEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -146,13 +149,13 @@ export async function executeTopicHandler(
           .with({ event_version: 1 }, (msg) =>
             authorizationsV1WithTimestamp.push({
               authV1: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .with({ event_version: 2 }, (msg) =>
             authorizationsV2WithTimestamp.push({
               authV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -161,7 +164,7 @@ export async function executeTopicHandler(
         await handleAuthorizationMessageV1(
           authorizationsV1WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -169,7 +172,7 @@ export async function executeTopicHandler(
         await handleAuthorizationMessageV2(
           authorizationsV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -177,7 +180,7 @@ export async function executeTopicHandler(
     .with(config.delegationTopic, async () => {
       const delegationsV2WithTimestamp: Array<{
         delegationV2: DelegationEventEnvelopeV2;
-        timestamp: string;
+        timestamp: Date;
       }> = [];
 
       for (const message of kafkaMessages) {
@@ -186,7 +189,7 @@ export async function executeTopicHandler(
           .with({ event_version: 2 }, (msg) =>
             delegationsV2WithTimestamp.push({
               delegationV2: msg,
-              timestamp: message.timestamp,
+              timestamp: getEventTimestamp(message),
             })
           )
           .exhaustive();
@@ -195,7 +198,7 @@ export async function executeTopicHandler(
         await handleDelegationMessageV2(
           delegationsV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }

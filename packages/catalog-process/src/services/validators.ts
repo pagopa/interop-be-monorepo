@@ -44,6 +44,8 @@ import {
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
   eserviceTemplateNameConflict,
+  eServiceUpdateSameDescriptionConflict,
+  eServiceUpdateSameNameConflict,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -64,6 +66,14 @@ export function descriptorStatesNotAllowingDocumentOperations(
       () => true
     )
     .exhaustive();
+}
+
+export function descriptorStatesNotAllowingInterfaceOperations(
+  descriptor: Descriptor
+): boolean {
+  return match(descriptor.state)
+    .with(descriptorState.draft, () => false)
+    .otherwise(() => true);
 }
 
 export const notActiveDescriptorState: DescriptorState[] = [
@@ -203,13 +213,15 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
     tenantKind,
-    dateForExpirationValidation
+    dateForExpirationValidation,
+    personalDataInEService
   );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
@@ -233,7 +245,8 @@ export function assertRiskAnalysisIsValidForPublication(
       ),
       false,
       tenantKind,
-      new Date()
+      new Date(),
+      eservice.personalData
     );
 
     if (result.type === "invalid") {
@@ -356,6 +369,23 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
   );
   if (!hasValidDescriptor) {
     throw eserviceWithoutValidDescriptors(eservice.id);
+  }
+}
+
+export function assertUpdatedNameDiffersFromCurrent(
+  newName: string,
+  eservice: EService
+): void {
+  if (newName === eservice.name) {
+    throw eServiceUpdateSameNameConflict(eservice.id);
+  }
+}
+export function assertUpdatedDescriptionDiffersFromCurrent(
+  newDescription: string,
+  eservice: EService
+): void {
+  if (newDescription === eservice.description) {
+    throw eServiceUpdateSameDescriptionConflict(eservice.id);
   }
 }
 

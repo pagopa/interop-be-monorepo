@@ -25,7 +25,6 @@ import {
   AnalyticsSQLDbConfig,
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
-  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -155,8 +154,7 @@ export async function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
-  m2mEventDbConfig?: M2MEventSQLDbConfig,
-  userDbConfig?: UserSQLDbConfig
+  m2mEventDbConfig?: M2MEventSQLDbConfig
 ): Promise<{
   postgresDB: DB;
   fileManager: FileManager;
@@ -167,7 +165,6 @@ export async function setupTestContainersVitest(
   analyticsPostgresDB: DB;
   inAppNotificationDB: DrizzleReturnType;
   m2mEventDB: DrizzleReturnType;
-  userDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -180,8 +177,7 @@ export async function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
-  m2mEventDbConfig?: M2MEventSQLDbConfig,
-  userDbConfig?: UserSQLDbConfig
+  m2mEventDbConfig?: M2MEventSQLDbConfig
 ): Promise<{
   postgresDB?: DB;
   fileManager?: FileManager;
@@ -192,7 +188,6 @@ export async function setupTestContainersVitest(
   analyticsPostgresDB?: DB;
   inAppNotificationDB?: DrizzleReturnType;
   m2mEventDB?: DrizzleReturnType;
-  userDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
   let postgresDB: DB | undefined;
@@ -205,7 +200,6 @@ export async function setupTestContainersVitest(
   let analyticsPostgresDB: DB | undefined;
   let inAppNotificationDB: DrizzleReturnType | undefined;
   let m2mEventDB: DrizzleReturnType | undefined;
-  let userDB: DrizzleReturnType | undefined;
 
   if (eventStoreConfig) {
     postgresDB = initDB({
@@ -291,18 +285,6 @@ export async function setupTestContainersVitest(
     m2mEventDB = drizzle({ client: pool });
   }
 
-  if (userDbConfig) {
-    const pool = new pg.Pool({
-      user: userDbConfig.userSQLDbUsername,
-      password: userDbConfig.userSQLDbPassword,
-      host: userDbConfig.userSQLDbHost,
-      port: userDbConfig.userSQLDbPort,
-      database: userDbConfig.userSQLDbName,
-      ssl: userDbConfig.userSQLDbUseSSL,
-    });
-    userDB = drizzle({ client: pool });
-  }
-
   return {
     postgresDB,
     fileManager,
@@ -312,7 +294,6 @@ export async function setupTestContainersVitest(
     readModelDB,
     analyticsPostgresDB,
     inAppNotificationDB,
-    userDB,
     m2mEventDB,
     cleanup: async (): Promise<void> => {
       await postgresDB?.none(
@@ -406,9 +387,9 @@ export async function setupTestContainersVitest(
       await analyticsPostgresDB?.none(
         "TRUNCATE TABLE domains.eservice_template CASCADE"
       );
-
-      // CLEANUP USER-SQL TABLES
-      await userDB?.execute(`TRUNCATE TABLE "user"."user" CASCADE`);
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.purpose_template CASCADE"
+      );
 
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =

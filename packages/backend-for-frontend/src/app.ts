@@ -106,7 +106,7 @@ import notificationConfigRouter from "./routers/notificationConfigRouter.js";
 import {
   InAppNotificationService,
   inAppNotificationServiceBuilder,
-} from "./services/inAppNotificationManagerService.js";
+} from "./services/inAppNotificationService.js";
 import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 
 export type BFFServices = {
@@ -175,6 +175,7 @@ export async function createServices(
       clients.attributeProcessClient,
       clients.delegationProcessClient,
       clients.eserviceTemplateProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager,
       config
     ),
@@ -183,6 +184,7 @@ export async function createServices(
       clients.delegationProcessClient,
       clients.tenantProcessClient,
       clients.catalogProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager
     ),
     eServiceTemplateService: eserviceTemplateServiceBuilder(
@@ -190,6 +192,7 @@ export async function createServices(
       clients.tenantProcessClient,
       clients.attributeProcessClient,
       clients.catalogProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager
     ),
     notificationConfigService: notificationConfigServiceBuilder(
@@ -207,7 +210,9 @@ export async function createServices(
     purposeService: purposeServiceBuilder(clients, fileManager),
     purposeTemplateService: purposeTemplateServiceBuilder(
       clients.purposeTemplateProcessClient,
-      clients.tenantProcessClient
+      clients.tenantProcessClient,
+      clients.catalogProcessClient,
+      fileManager
     ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(

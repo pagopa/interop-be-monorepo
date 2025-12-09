@@ -18,7 +18,6 @@ COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
 COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
-COPY ./packages/selfcare-user-db-models/package.json /app/packages/selfcare-user-db-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -31,7 +30,6 @@ COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/api-clients /app/packages/api-clients
 COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
-COPY ./packages/selfcare-user-db-models /app/packages/selfcare-user-db-models
 
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
@@ -46,13 +44,16 @@ RUN pnpm build && \
   packages/api-clients \
   packages/readmodel/ \
   packages/readmodel-models/ \
-  packages/selfcare-user-db-models/ \
   packages/notification-user-lifecycle-consumer/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
 FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS final
 
 COPY --from=build /out /app
+
+RUN groupadd -r app && useradd -rm -g app app
+RUN chown -R app:app /app && chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/notification-user-lifecycle-consumer
 EXPOSE 3000

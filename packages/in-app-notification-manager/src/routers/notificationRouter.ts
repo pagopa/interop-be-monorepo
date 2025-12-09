@@ -36,14 +36,35 @@ export const notificationRouter = (
   const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE } = authRole;
 
   notificationRouter
+    .get("/filterUnreadNotifications", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { entityIds } = req.query;
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+
+        const filterUnreadNotifications: string[] =
+          await service.hasUnreadNotifications(entityIds, ctx);
+        return res.status(200).send(filterUnreadNotifications);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error checking for unread notifications"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/notifications", async function (req, res) {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
 
-        const { limit, offset, q } = req.query;
+        const { limit, offset, q, unread, notificationTypes } = req.query;
         const { results, totalCount } = await service.getNotifications(
           q,
+          unread,
+          notificationTypes,
           limit,
           offset,
           ctx
@@ -149,6 +170,27 @@ export const notificationRouter = (
             markNotificationAsUnreadErrorMapper,
             ctx,
             "Error marking notification as unread"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/notifications/markAsReadByEntityId/:entityId",
+      async function (req, res) {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+
+          const { entityId } = req.params;
+          await service.markNotificationsAsReadByEntityId(entityId, ctx);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error marking notifications as read by entity ID"
           );
           return res.status(errorRes.status).send(errorRes);
         }

@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-models";
 import {
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 import {
@@ -29,7 +30,6 @@ export async function handlePurposeVersionUnsuspendedByProducer(
     readModelService,
     logger,
     templateService,
-    userService,
     correlationId,
   } = data;
 
@@ -56,7 +56,6 @@ export async function handlePurposeVersionUnsuspendedByProducer(
     tenants: [consumer],
     notificationType,
     readModelService,
-    userService,
     logger,
     includeTenantContactEmails: false,
   });
@@ -68,7 +67,7 @@ export async function handlePurposeVersionUnsuspendedByProducer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Riattivazione della finalità "${purpose.title}"`,
@@ -76,12 +75,13 @@ export async function handlePurposeVersionUnsuspendedByProducer(
         title: `Riattivazione della finalità "${purpose.title}"`,
         notificationType,
         entityId: purpose.id,
-        consumerName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         producerName: producer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

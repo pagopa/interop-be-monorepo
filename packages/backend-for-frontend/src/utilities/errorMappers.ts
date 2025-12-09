@@ -102,6 +102,14 @@ export const getAgreementContractErrorMapper = (
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getAgreementSignedContractErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("contractException", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const activateAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -238,14 +246,13 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
     .with(
       "eserviceTemplateIsNotPublished",
       "eserviceIsNotDraft",
-      "eserviceDescriptorDraftNotFound",
-      "eserviceTemplateNotFound",
-      "eserviceTemplateInterfaceNotFound",
-      "eserviceTemplateInterfaceDataNotValid",
-      "invalidContentTypeDetected",
-      "invalidEserviceInterfaceFileDetected",
       "interfaceExtractingInfoError",
-      "templateDataNotFound",
+      "eserviceTemplateNotFound",
+      "invalidEserviceInterfaceFileDetected",
+      "eserviceTemplateInterfaceNotFound",
+      "invalidContentTypeDetected",
+      "eserviceTemplateInterfaceDataNotValid",
+      "invalidInterfaceFile",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
@@ -267,43 +274,28 @@ export const getEServiceTemplateInstancesErrorMapper = (
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getCatalogPurposeTemplatesErrorMapper = (
+export const getPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const linkEServiceToPurposeTemplateErrorMapper = (
+export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with(
-      "associationEServicesForPurposeTemplateFailed",
-      "tooManyEServicesForPurposeTemplate",
-      "purposeTemplateNotInValidState",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
-      () => HTTP_STATUS_CONFLICT
+      "eServiceNotFound",
+      "eserviceDescriptorNotFound",
+      "tenantNotFound",
+      () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const unlinkEServicesFromPurposeTemplateErrorMapper = (
+export const addPurposeTemplateAnnotationDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "disassociationEServicesFromPurposeTemplateFailed",
-      "tooManyEServicesForPurposeTemplate",
-      "purposeTemplateNotInValidState",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("invalidContentTypeDetected", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

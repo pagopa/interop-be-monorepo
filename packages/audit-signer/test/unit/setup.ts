@@ -29,13 +29,23 @@ export const mockFileManager: FileManager = {
   listFiles: vi.fn(),
   generateGetPresignedUrl: vi.fn(),
   generatePutPresignedUrl: vi.fn(),
+  resumeOrStoreBytes: vi.fn(),
 };
 
-export const mockDbService = { saveSignatureReference: vi.fn() };
+export const mockDbService = {
+  saveSignatureReference: vi.fn(),
+  saveDocumentSignatureReference: vi.fn(),
+  readSignatureReference: vi.fn(),
+  deleteSignatureReference: vi.fn(),
+  readDocumentSignatureReference: vi.fn(),
+  readSignatureReferenceById: vi.fn(),
+};
 
 export const mockSafeStorageService = {
   createFile: vi.fn(),
   uploadFileContent: vi.fn(),
+  getFile: vi.fn(),
+  downloadFileContent: vi.fn(),
 };
 
 vi.mock("pagopa-interop-models", async (importOriginal) => {

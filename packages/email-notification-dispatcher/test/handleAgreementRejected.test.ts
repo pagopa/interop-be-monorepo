@@ -8,6 +8,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   CorrelationId,
@@ -15,11 +16,13 @@ import {
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  NotificationType,
   Tenant,
   TenantId,
   TenantMail,
   TenantNotificationConfigId,
   toAgreementV2,
+  unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -29,11 +32,9 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleAgreementRejected", async () => {
@@ -48,9 +49,13 @@ describe("handleAgreementRejected", async () => {
     producerId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
+  const producerTenant = {
+    ...getMockTenant(producerId),
+    name: "Producer Tenant",
+  };
   const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -64,9 +69,6 @@ describe("handleAgreementRejected", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -77,8 +79,17 @@ describe("handleAgreementRejected", async () => {
       });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+      .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
+        users
+          .filter((user) =>
+            tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
+          )
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -88,7 +99,6 @@ describe("handleAgreementRejected", async () => {
         agreementV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -115,7 +125,6 @@ describe("handleAgreementRejected", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -139,7 +148,6 @@ describe("handleAgreementRejected", async () => {
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -161,25 +169,33 @@ describe("handleAgreementRejected", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(3);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const agreement: Agreement = {
@@ -196,18 +212,21 @@ describe("handleAgreementRejected", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate one message to the consumer whose agreement was rejected", async () => {
@@ -225,7 +244,6 @@ describe("handleAgreementRejected", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -233,7 +251,9 @@ describe("handleAgreementRejected", async () => {
     expect(messages.length).toEqual(3);
     expect(
       messages.some(
-        (message) => message.address === consumerTenant.mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenant.mails[0].address
       )
     ).toBe(true);
   });
@@ -244,11 +264,11 @@ describe("handleAgreementRejected", async () => {
       createdAt: new Date(1999),
     };
     const newMail = getMockTenantMail();
-    const consumerTenant: Tenant = {
+    const consumerTenantWithMultipleMails: Tenant = {
       ...getMockTenant(),
       mails: [oldMail, newMail],
     };
-    await addOneTenant(consumerTenant);
+    await addOneTenant(consumerTenantWithMultipleMails);
 
     const agreement: Agreement = {
       ...getMockAgreement(),
@@ -256,7 +276,7 @@ describe("handleAgreementRejected", async () => {
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
+      consumerId: consumerTenantWithMultipleMails.id,
     };
     await addOneAgreement(agreement);
 
@@ -264,14 +284,16 @@ describe("handleAgreementRejected", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(3);
+    expect(messages.length).toEqual(1);
     expect(
-      messages.some((message) => message.address === newMail.address)
+      messages.some(
+        (message) =>
+          message.type === "Tenant" && message.address === newMail.address
+      )
     ).toBe(true);
   });
 
@@ -299,7 +321,6 @@ describe("handleAgreementRejected", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -307,7 +328,9 @@ describe("handleAgreementRejected", async () => {
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
-        (message) => message.address === consumerTenant.mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenant.mails[0].address
       )
     ).toBe(false);
   });
@@ -327,7 +350,6 @@ describe("handleAgreementRejected", async () => {
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

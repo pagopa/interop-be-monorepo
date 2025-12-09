@@ -4,6 +4,7 @@ import {
   authorizationApi,
   purposeApi,
   tenantApi,
+  catalogApi,
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
@@ -13,6 +14,7 @@ import {
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
@@ -40,13 +42,20 @@ export const errorCodes = {
   unexpectedClientKind: "0021",
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
-  notAnActiveConsumerDelegation: "0024",
   requesterIsNotTheDelegateConsumer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
   tenantVerifiedAttributeNotFound: "0028",
   cannotDeleteLastEServiceDescriptor: "0029",
   eserviceRiskAnalysisNotFound: "0030",
+  eserviceTemplateRiskAnalysisNotFound: "0031",
+  delegationEServiceMismatch: "0032",
+  cannotDeleteLastEServiceTemplateVersion: "0033",
+  eserviceDescriptorAttributeNotFound: "0034",
+  eserviceTemplateVersionAttributeNotFound: "0035",
+  eserviceDescriptorAttributeGroupNotFound: "0036",
+  eserviceTemplateVersionAttributeGroupNotFound: "0037",
+  purposeTemplateRiskAnalysisFormNotFound: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -258,15 +267,14 @@ export function agreementContractNotFound(
   });
 }
 
-export function notAnActiveConsumerDelegation(
-  requesterTenantId: TenantId,
+export function delegationEServiceMismatch(
   eserviceId: string,
   delegation: delegationApi.Delegation
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`,
-    code: "notAnActiveConsumerDelegation",
-    title: "Not an active consumer delegation",
+    detail: `Delegation ${delegation.id} is not a delegation for e-service ${eserviceId}`,
+    code: "delegationEServiceMismatch",
+    title: "Delegation e-service mismatch",
   });
 }
 
@@ -336,5 +344,83 @@ export function cannotDeleteLastEServiceDescriptor(
     detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
     code: "cannotDeleteLastEServiceDescriptor",
     title: "Cannot delete last e-service descriptor",
+  });
+}
+
+export function cannotDeleteLastEServiceTemplateVersion(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete version ${versionId} for e-service template ${templateId} because it is the last remaining version`,
+    code: "cannotDeleteLastEServiceTemplateVersion",
+    title: "Cannot delete last e-service template version",
+  });
+}
+
+export function eserviceTemplateRiskAnalysisNotFound(
+  templateId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found for e-service template ${templateId}`,
+    code: "eserviceTemplateRiskAnalysisNotFound",
+    title: "E-Service Template risk analysis not found",
+  });
+}
+
+export function eserviceDescriptorAttributeNotFound(
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute not found for descriptor ${descriptorId}`,
+    code: "eserviceDescriptorAttributeNotFound",
+    title: "E-Service Descriptor Attribute Not Found",
+  });
+}
+
+export function eserviceTemplateVersionAttributeNotFound(
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute not found for eservice template version ${versionId}`,
+    code: "eserviceTemplateVersionAttributeNotFound",
+    title: "E-Service Template Version Attribute Not Found",
+  });
+}
+
+export function eserviceDescriptorAttributeGroupNotFound(
+  kind: keyof catalogApi.Attributes,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  groupIndex: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `${kind} Attribute group with index ${groupIndex} not found for descriptor ${descriptorId} of e-service ${eserviceId}`,
+    code: "eserviceDescriptorAttributeGroupNotFound",
+    title: "E-Service Descriptor Attribute Group Not Found",
+  });
+}
+
+export function eserviceTemplateVersionAttributeGroupNotFound(
+  kind: keyof catalogApi.Attributes,
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId,
+  groupIndex: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `${kind} Attribute group with index ${groupIndex} not found for e-service template version ${versionId} of template ${templateId}`,
+    code: "eserviceTemplateVersionAttributeGroupNotFound",
+    title: "E-Service Template Version Attribute Group Not Found",
+  });
+}
+
+export function purposeTemplateRiskAnalysisFormNotFound(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Template Form found for Purpose Template ${purposeTemplateId}`,
+    code: "purposeTemplateRiskAnalysisFormNotFound",
+    title: "Purpose Template Risk Analysis Form Not Found",
   });
 }

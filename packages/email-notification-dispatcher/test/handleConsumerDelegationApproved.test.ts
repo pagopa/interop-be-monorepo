@@ -8,6 +8,7 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -22,17 +23,16 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleConsumerDelegationApproved } from "../src/handlers/delegations/handleConsumerDelegationApproved.js";
 import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
-  addOneUser,
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleConsumerDelegationApproved", async () => {
@@ -49,9 +49,13 @@ describe("handleConsumerDelegationApproved", async () => {
   };
   const delegatorTenant: Tenant = {
     ...getMockTenant(delegatorId),
+    name: "Delegator Tenant",
     mails: [getMockTenantMail()],
   };
-  const delegateTenant = getMockTenant(delegateId);
+  const delegateTenant = {
+    ...getMockTenant(delegateId),
+    name: "Delegate Tenant",
+  };
   const users = [
     getMockUser(delegatorTenant.id),
     getMockUser(delegatorTenant.id),
@@ -65,9 +69,6 @@ describe("handleConsumerDelegationApproved", async () => {
     await addOneEService(eservice);
     await addOneTenant(delegatorTenant);
     await addOneTenant(delegateTenant);
-    for (const user of users) {
-      await addOneUser(user);
-    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -83,7 +84,12 @@ describe("handleConsumerDelegationApproved", async () => {
           .filter((user) =>
             tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
           )
-          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+          .map((user) => ({
+            userId: user.id,
+            tenantId: user.tenantId,
+            // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+            userRoles: [authRole.ADMIN_ROLE],
+          }))
       );
   });
 
@@ -93,7 +99,6 @@ describe("handleConsumerDelegationApproved", async () => {
         delegationV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -118,7 +123,6 @@ describe("handleConsumerDelegationApproved", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -141,7 +145,6 @@ describe("handleConsumerDelegationApproved", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -163,7 +166,6 @@ describe("handleConsumerDelegationApproved", async () => {
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -183,25 +185,33 @@ describe("handleConsumerDelegationApproved", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
+        {
+          userId: users[0].id,
+          tenantId: users[0].tenantId,
+          // Only consider ADMIN_ROLE since role restrictions are tested separately in getRecipientsForTenants.test.ts
+          userRoles: [authRole.ADMIN_ROLE],
+        },
       ]);
 
     const delegation = getMockDelegation({
@@ -216,18 +226,21 @@ describe("handleConsumerDelegationApproved", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -243,7 +256,6 @@ describe("handleConsumerDelegationApproved", async () => {
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -255,9 +267,18 @@ describe("handleConsumerDelegationApproved", async () => {
       expect(message.email.body).toContain(
         `La tua richiesta di delega è stata accettata`
       );
-      expect(message.email.body).toContain(delegatorTenant.name);
-      expect(message.email.body).toContain(delegateTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(delegatorTenant.name);
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
     });
   });
 });

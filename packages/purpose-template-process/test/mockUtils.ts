@@ -1,14 +1,73 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { RiskAnalysisFormTemplate, tenantKind } from "pagopa-interop-models";
-import { riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate } from "pagopa-interop-commons";
+import {
+  RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  tenantKind,
+} from "pagopa-interop-models";
 import { getMockValidRiskAnalysisFormTemplate } from "pagopa-interop-commons-test";
+
+function toAnswerDocumentToValidate(
+  document: RiskAnalysisTemplateAnswerAnnotationDocument
+): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocumentSeed {
+  return {
+    documentId: document.id,
+    name: document.name,
+    contentType: document.contentType,
+    prettyName: document.prettyName,
+    path: document.path,
+    checksum: document.checksum,
+  };
+}
 
 export const buildRiskAnalysisFormTemplateSeed = (
   riskAnalysisFormTemplate: RiskAnalysisFormTemplate
-): purposeTemplateApi.RiskAnalysisFormTemplateSeed =>
-  riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
-    riskAnalysisFormTemplate
-  );
+): purposeTemplateApi.RiskAnalysisFormTemplateSeed => ({
+  version: riskAnalysisFormTemplate.version,
+  answers: {
+    ...riskAnalysisFormTemplate.singleAnswers.reduce(
+      (acc, singleAnswer) => ({
+        ...acc,
+        [singleAnswer.key]: {
+          values: singleAnswer.value ? [singleAnswer.value] : [],
+          editable: singleAnswer.editable,
+          suggestedValues: singleAnswer.suggestedValues,
+          ...(singleAnswer.annotation
+            ? {
+                annotation: {
+                  ...singleAnswer.annotation,
+                  docs: singleAnswer.annotation.docs.map(
+                    toAnswerDocumentToValidate
+                  ),
+                },
+              }
+            : {}),
+        },
+      }),
+      {}
+    ),
+    ...riskAnalysisFormTemplate.multiAnswers.reduce(
+      (acc, multiAnswer) => ({
+        ...acc,
+        [multiAnswer.key]: {
+          values: multiAnswer.values,
+          editable: multiAnswer.editable,
+          suggestedValues: [],
+          ...(multiAnswer.annotation
+            ? {
+                annotation: {
+                  ...multiAnswer.annotation,
+                  docs: multiAnswer.annotation.docs.map(
+                    toAnswerDocumentToValidate
+                  ),
+                },
+              }
+            : {}),
+        },
+      }),
+      {}
+    ),
+  },
+});
 
 export const getMockPurposeTemplateSeed = (
   riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed = buildRiskAnalysisFormTemplateSeed(
@@ -24,4 +83,5 @@ export const getMockPurposeTemplateSeed = (
   purposeIsFreeOfCharge: true,
   purposeFreeOfChargeReason: "Test reason",
   purposeDailyCalls: 10,
+  handlesPersonalData: true,
 });

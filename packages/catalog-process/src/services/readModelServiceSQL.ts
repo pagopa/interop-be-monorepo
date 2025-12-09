@@ -70,6 +70,8 @@ import {
   tenantInReadmodelTenant,
   eserviceTemplateInReadmodelEserviceTemplate,
   DrizzleTransactionType,
+  agreementSignedContractInReadmodelAgreement,
+  delegationSignedContractDocumentInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
@@ -81,6 +83,7 @@ import {
   exists,
   ilike,
   inArray,
+  isNotNull,
   isNull,
   notExists,
   or,
@@ -144,6 +147,7 @@ export function readModelServiceBuilderSQL(
         isClientAccessDelegable,
         delegated,
         templatesIds,
+        personalData,
       } = filters;
 
       return await readmodelDB.transaction(async (tx) => {
@@ -234,7 +238,19 @@ export function readModelServiceBuilderSQL(
                 // templateIds filter
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
-                  : undefined
+                  : undefined,
+                match(personalData)
+                  .with("TRUE", () =>
+                    eq(eserviceInReadmodelCatalog.personalData, true)
+                  )
+                  .with("FALSE", () =>
+                    eq(eserviceInReadmodelCatalog.personalData, false)
+                  )
+                  .with("DEFINED", () =>
+                    isNotNull(eserviceInReadmodelCatalog.personalData)
+                  )
+                  .with(undefined, () => undefined)
+                  .exhaustive()
               )
             )
             .as("subqueryWithEserviceFilters");
@@ -637,6 +653,7 @@ export function readModelServiceBuilderSQL(
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .where(
@@ -684,6 +701,13 @@ export function readModelServiceBuilderSQL(
           eq(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         );
 
@@ -735,6 +759,8 @@ export function readModelServiceBuilderSQL(
           delegationStamp: delegationStampInReadmodelDelegation,
           delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
+          delegationSignedContractDocument:
+            delegationSignedContractDocumentInReadmodelDelegation,
         })
         .from(delegationInReadmodelDelegation)
         .where(
@@ -761,6 +787,13 @@ export function readModelServiceBuilderSQL(
           eq(
             delegationInReadmodelDelegation.id,
             delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          delegationSignedContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationSignedContractDocumentInReadmodelDelegation.delegationId
           )
         )
         .orderBy(desc(delegationInReadmodelDelegation.createdAt));

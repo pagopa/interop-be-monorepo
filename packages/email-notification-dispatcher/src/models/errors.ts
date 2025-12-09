@@ -15,7 +15,12 @@ type EmailNotificationDispatcherErrorCode =
   | "descriptorNotFound"
   | "activeProducerDelegationNotFound"
   | "eserviceAgreementsNotFound"
+  | "eserviceWithoutDescriptors"
   | "descriptorPublishedNotFound"
+  | "certifierTenantNotFound"
+  | "clientKeyNotFound"
+  | "producerKeychainKeyNotFound"
+  | "purposeNotFound"
   | "certifierTenantNotFound";
 
 export class EmailNotificationDispatcherError extends InternalError<EmailNotificationDispatcherErrorCode> {
@@ -95,12 +100,12 @@ export function descriptorNotFound(
   });
 }
 
-export function descriptorPublishedNotFound(
+export function eserviceWithoutDescriptors(
   eServiceId: EServiceId
 ): EmailNotificationDispatcherError {
   return new InternalError({
-    detail: `Published descriptor not found in EService ${eServiceId}`,
-    code: "descriptorPublishedNotFound",
+    detail: `EService ${eServiceId} does not have any descriptor`,
+    code: "eserviceWithoutDescriptors",
   });
 }
 
@@ -119,5 +124,34 @@ export function attributeNotFound(
   return new InternalError({
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
+  });
+}
+
+export function clientKeyNotFound(
+  clientId: string,
+  kid: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Client key ${kid} not found in client ${clientId}`,
+    code: "clientKeyNotFound",
+  });
+}
+
+export function producerKeychainKeyNotFound(
+  producerKeychainId: string,
+  kid: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Producer keychain key ${kid} not found in producer keychain ${producerKeychainId}`,
+    code: "producerKeychainKeyNotFound",
+  });
+}
+
+export function purposeNotFound(
+  purposeId: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
   });
 }

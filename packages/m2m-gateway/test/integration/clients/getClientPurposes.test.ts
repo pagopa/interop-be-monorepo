@@ -112,6 +112,7 @@ describe("getClientPurposes", () => {
     suspendedByProducer: undefined,
     updatedAt: mockApiPurpose1.updatedAt,
     waitingForApprovalVersion: undefined,
+    purposeTemplateId: mockApiPurpose1.purposeTemplateId,
   };
 
   const expectedM2MPurpose2: m2mGatewayApi.Purpose = {
@@ -131,6 +132,7 @@ describe("getClientPurposes", () => {
     suspendedByProducer: undefined,
     updatedAt: mockApiPurpose2.updatedAt,
     waitingForApprovalVersion: undefined,
+    purposeTemplateId: mockApiPurpose2.purposeTemplateId,
   };
 
   const expectedM2MPurpose3: m2mGatewayApi.Purpose = {
