@@ -177,8 +177,7 @@ function getAnswerAnnotation(
         ${docs}`;
 }
 
-// TODO: remove export
-export function formatSingleAnswer(
+function formatSingleAnswer(
   questionRules: FormQuestionRules,
   singleAnswer: RiskAnalysisTemplateSingleAnswer,
   language: Language
@@ -193,8 +192,7 @@ export function formatSingleAnswer(
   );
 }
 
-// TODO: remove export
-export function formatMultiAnswer(
+function formatMultiAnswer(
   questionRules: FormQuestionRules,
   multiAnswer: RiskAnalysisTemplateMultiAnswer,
   language: Language
