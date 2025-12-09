@@ -425,7 +425,8 @@ export function tenantServiceBuilder(
              * If not, the kind will be evaluated when certified attributes are added.
              */
             .with(tenantKind.SCP, tenantKind.PRIVATE, (kind) => kind)
-            .otherwise(() => undefined),
+            .with(tenantKind.GSP, tenantKind.PA, () => undefined)
+            .exhaustive(),
         };
         await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
