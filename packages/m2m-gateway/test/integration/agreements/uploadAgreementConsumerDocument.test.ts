@@ -177,4 +177,65 @@ describe("addAgreementConsumerDocument", () => {
       config.defaultPollingMaxRetries
     );
   });
+
+  it("Should attempt to upload document, fail the API client call, and delete the stored file", async () => {
+    const mockApiError = new Error(
+      "Simulated API client failure during document creation"
+    );
+    const mockAddAgreementConsumerDocument = vi
+      .fn()
+      .mockRejectedValue(mockApiError);
+
+    mockInteropBeClients.agreementProcessClient = {
+      addAgreementConsumerDocument: mockAddAgreementConsumerDocument,
+      getAgreementById: vi.fn(),
+    } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
+
+    const mockStoragePath =
+      "agreement-documents-container/agreements/1234/uuid-doc/test.json";
+    vi.spyOn(fileManager, "storeBytes").mockResolvedValue(mockStoragePath);
+
+    vi.spyOn(fileManager, "delete").mockResolvedValue(undefined);
+
+    await expect(
+      agreementService.uploadAgreementConsumerDocument(
+        unsafeBrandId(mockGetAgreementResponse.data.id),
+        mockFileUpload,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrow(mockApiError);
+
+    const uuidSimpleRegex = "[a-zA-Z0-9-]+";
+    const matchUUID = expect.stringMatching(`^${uuidSimpleRegex}$`);
+
+    expect(fileManager.storeBytes).toHaveBeenCalledWith(
+      {
+        bucket: config.agreementConsumerDocumentsContainer,
+        path: `${config.agreementConsumerDocumentsPath}/${mockGetAgreementResponse.data.id}`,
+        resourceId: matchUUID,
+        name: mockFileUpload.file.name,
+        content: mockFileBuffer,
+      },
+      expect.any(Object) // Logger instance
+    );
+
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost: mockAddAgreementConsumerDocument,
+      body: expect.objectContaining({
+        id: matchUUID,
+        prettyName: mockFileUpload.prettyName,
+      }),
+      params: { agreementId: mockGetAgreementResponse.data.id },
+    });
+
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.agreementConsumerDocumentsContainer,
+      mockStoragePath,
+      expect.any(Object) // Logger instance
+    );
+
+    expect(
+      mockInteropBeClients.agreementProcessClient.getAgreementById
+    ).not.toHaveBeenCalled();
+  });
 });
