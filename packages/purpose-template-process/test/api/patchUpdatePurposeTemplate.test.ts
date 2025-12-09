@@ -126,7 +126,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
       purposeFreeOfChargeReason: null,
-      purposeDailyCalls: 10,
+      purposeDailyCalls: null,
       handlesPersonalData: true,
     },
   ] satisfies purposeTemplateApi.PatchUpdatePurposeTemplateSeed[])(
