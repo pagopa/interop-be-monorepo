@@ -4,24 +4,18 @@ meta {
   seq: 17
 }
 
-post {
-  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/unlinkEservices
+delete {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/eservices/:eserviceId
   body: json
   auth: none
 }
 
 params:path {
   purposeTemplateId: {{purposeTemplateId}}
+  eserviceId: {{eserviceId}}
 }
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
 }
 
-body:json {
-  {
-    "eserviceIds": [
-      ""
-    ]
-  }
-}

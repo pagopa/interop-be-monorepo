@@ -21300,27 +21300,6 @@ components:
       required:
         - version
         - answers
-    EServiceDescriptorPurposeTemplate:
-      type: object
-      additionalProperties: false
-      properties:
-        purposeTemplateId:
-          type: string
-          format: uuid
-        eserviceId:
-          type: string
-          format: uuid
-        descriptorId:
-          type: string
-          format: uuid
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - purposeTemplateId
-        - eserviceId
-        - descriptorId
-        - createdAt
     EServiceRiskAnalysisSeed:
       type: object
       additionalProperties: false
