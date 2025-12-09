@@ -182,4 +182,59 @@ describe("EventRepository tests", async () => {
       ),
     });
   });
+
+  it("should save events for multiple streamIds and track latestNewVersions for each", async () => {
+    const correlationId: CorrelationId = generateId();
+
+    const eservice1 = getMockEService();
+
+    const eservice2 = getMockEService();
+
+    const eservice1CreationEvent = toCreateEventEServiceAdded(
+      { ...eservice1, descriptors: [] },
+      correlationId
+    );
+    const eservice2CreationEvent = toCreateEventEServiceAdded(
+      { ...eservice2, descriptors: [] },
+      correlationId
+    );
+
+    const descriptor1 = getMockDescriptor(descriptorState.draft);
+    const descriptor2 = getMockDescriptor(descriptorState.draft);
+
+    const eservice1DescriptorEvent = toCreateEventEServiceDescriptorAdded(
+      { ...eservice1, descriptors: [descriptor1] },
+      0,
+      descriptor1.id,
+      correlationId
+    );
+    const eservice2DescriptorEvent = toCreateEventEServiceDescriptorAdded(
+      { ...eservice2, descriptors: [descriptor2] },
+      0,
+      descriptor2.id,
+      correlationId
+    );
+
+    expect(
+      await repository.createEvents([
+        eservice1CreationEvent,
+        eservice2CreationEvent,
+        eservice1DescriptorEvent,
+        eservice2DescriptorEvent,
+      ])
+    ).toStrictEqual({
+      events: [
+        { streamId: eservice1.id, newVersion: 0 },
+        { streamId: eservice2.id, newVersion: 0 },
+        { streamId: eservice1.id, newVersion: 1 },
+        { streamId: eservice2.id, newVersion: 1 },
+      ],
+      latestNewVersions: new Map(
+        Object.entries({
+          [eservice1.id]: 1,
+          [eservice2.id]: 1,
+        })
+      ),
+    });
+  });
 });
