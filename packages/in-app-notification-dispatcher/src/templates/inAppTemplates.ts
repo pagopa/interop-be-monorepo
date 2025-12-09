@@ -75,11 +75,11 @@ export const inAppTemplates = {
     eservice: EService,
     oldName: string | undefined
   ): string =>
-    `Ti informiamo che l'e-service ${
+    `Ti informiamo che l'e-service <strong>${
       oldName ?? eservice.id
-    } è stato rinominato in ${
+    }</strong> è stato rinominato in <strong>${
       eservice.name
-    } dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
+    }</strong> dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
   eserviceDescriptionUpdatedToConsumer: (
     eserviceName: string,
     version: string | undefined,
@@ -106,7 +106,7 @@ export const inAppTemplates = {
     producerName: string,
     version: string | undefined
   ): string =>
-    `L'ente erogatore <strong>${producerName}</strong> ha sospeso ha sospeso la versione ${
+    `L'ente erogatore <strong>${producerName}</strong> ha sospeso la versione ${
       version ?? ""
     } dell'e-service <strong>${eserviceName}</strong>, a cui sei iscritto.`,
   eserviceDescriptorActivatedToConsumer: (
