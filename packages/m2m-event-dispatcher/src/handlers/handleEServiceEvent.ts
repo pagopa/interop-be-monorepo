@@ -1,4 +1,5 @@
 import {
+  EServiceEventEnvelope,
   EServiceEventEnvelopeV2,
   fromEServiceV2,
   unsafeBrandId,
@@ -15,6 +16,27 @@ import { toEServiceM2MEventSQL } from "../models/eserviceM2MEventAdapterSQL.js";
 import { assertEServiceExistsInEvent } from "../services/validators.js";
 
 export async function handleEServiceEvent(
+  eserviceEvent: EServiceEventEnvelope,
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterServiceSQL,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  await match(eserviceEvent)
+    .with({ event_version: 1 }, () => Promise.resolve())
+    .with({ event_version: 2 }, (msg) =>
+      handleEServiceEventV2(
+        msg,
+        eventTimestamp,
+        logger,
+        m2mEventWriterService,
+        readModelService
+      )
+    )
+    .exhaustive();
+}
+
+async function handleEServiceEventV2(
   decodedMessage: EServiceEventEnvelopeV2,
   eventTimestamp: Date,
   logger: Logger,

@@ -7,7 +7,10 @@ import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
 import { assertDelegationExistsInEvent } from "../services/validators.js";
-import { createDelegationM2MEvent } from "../services/event-builders/delegationM2MEventBuilder.js";
+import {
+  createConsumerDelegationM2MEvent,
+  createProducerDelegationM2MEvent,
+} from "../services/event-builders/delegationM2MEventBuilder.js";
 import {
   toConsumerDelegationM2MEventSQL,
   toProducerDelegationM2MEventSQL,
@@ -38,7 +41,7 @@ export async function handleDelegationEvent(
           ),
         },
         async (event) => {
-          const m2mEvent = createDelegationM2MEvent(
+          const m2mEvent = createConsumerDelegationM2MEvent(
             delegation,
             event.version,
             event.type,
@@ -70,7 +73,7 @@ export async function handleDelegationEvent(
           ),
         },
         async (event) => {
-          const m2mEvent = createDelegationM2MEvent(
+          const m2mEvent = createProducerDelegationM2MEvent(
             delegation,
             event.version,
             event.type,
@@ -100,24 +103,29 @@ export async function handleDelegationEvent(
       .with(
         { type: P.union("DelegationSignedContractGenerated") },
         async (event) => {
-          const m2mEvent = createDelegationM2MEvent(
-            delegation,
-            event.version,
-            event.type,
-            eventTimestamp
-          );
-
           await match(delegation.kind)
-            .with(delegationKind.delegatedConsumer, () =>
-              m2mEventWriterService.insertConsumerDelegationM2MEvent(
+            .with(delegationKind.delegatedConsumer, () => {
+              const m2mEvent = createConsumerDelegationM2MEvent(
+                delegation,
+                event.version,
+                event.type,
+                eventTimestamp
+              );
+              return m2mEventWriterService.insertConsumerDelegationM2MEvent(
                 toConsumerDelegationM2MEventSQL(m2mEvent)
-              )
-            )
-            .with(delegationKind.delegatedProducer, () =>
-              m2mEventWriterService.insertProducerDelegationM2MEvent(
+              );
+            })
+            .with(delegationKind.delegatedProducer, () => {
+              const m2mEvent = createProducerDelegationM2MEvent(
+                delegation,
+                event.version,
+                event.type,
+                eventTimestamp
+              );
+              return m2mEventWriterService.insertProducerDelegationM2MEvent(
                 toProducerDelegationM2MEventSQL(m2mEvent)
-              )
-            )
+              );
+            })
             .exhaustive();
         }
       )
