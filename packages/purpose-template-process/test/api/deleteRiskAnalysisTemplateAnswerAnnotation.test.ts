@@ -77,7 +77,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, purposeTemplateId);
+    const res = await makeRequest(token);
 
     expect(res.status).toBe(403);
   });
@@ -100,10 +100,10 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
       expectedStatus: 500,
     },
     {
-      error: riskAnalysisTemplateAnswerNotFound(
+      error: riskAnalysisTemplateAnswerNotFound({
         purposeTemplateId,
-        serviceResponse.data.id
-      ),
+        answerId: serviceResponse.data.id,
+      }),
       expectedStatus: 404,
     },
     {
@@ -126,23 +126,20 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
 
   it.each([
     {
-      name: "purpose template id",
-      run: (token: string) =>
-        makeRequest(token, "invalid" as PurposeTemplateId),
+      purposeTemplateId: "invalid-id" as PurposeTemplateId,
+      answerId: generateId<RiskAnalysisSingleAnswerId>(),
     },
     {
-      name: "answer id",
-      run: (token: string) =>
-        makeRequest(
-          token,
-          purposeTemplateId,
-          "invalid" as RiskAnalysisSingleAnswerId
-        ),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+      answerId: "invalid-id" as RiskAnalysisSingleAnswerId,
     },
-  ])("Should return 400 if an invalid $name is passed", async ({ run }) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await run(token);
+  ])(
+    "Should return 400 if invalid parameters are passed: %s",
+    async ({ purposeTemplateId, answerId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, purposeTemplateId, answerId);
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

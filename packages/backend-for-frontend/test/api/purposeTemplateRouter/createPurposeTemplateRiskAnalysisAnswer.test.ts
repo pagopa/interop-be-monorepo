@@ -22,7 +22,6 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
         suggestedValues: [],
         annotation: {
           text: "Risk analysis template answer annotation text",
-          docs: [],
         },
       },
     };

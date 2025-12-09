@@ -1,0 +1,59 @@
+import { z } from "zod";
+import { DelegationId, DelegationM2MEventId } from "../brandedIds.js";
+import { DelegationEvent } from "../delegation/delegationEvents.js";
+
+export const ConsumerDelegationM2MEventType = z.enum([
+  "ConsumerDelegationSubmitted",
+  "ConsumerDelegationApproved",
+  "ConsumerDelegationRejected",
+  "ConsumerDelegationRevoked",
+  "DelegationSignedContractGenerated",
+]);
+
+export const ProducerDelegationM2MEventType = z.enum([
+  "ProducerDelegationSubmitted",
+  "ProducerDelegationApproved",
+  "ProducerDelegationRejected",
+  "ProducerDelegationRevoked",
+  "DelegationSignedContractGenerated",
+]);
+
+export type ConsumerDelegationM2MEventType = z.infer<
+  typeof ConsumerDelegationM2MEventType
+>;
+export type ProducerDelegationM2MEventType = z.infer<
+  typeof ProducerDelegationM2MEventType
+>;
+
+const _: DelegationEvent["type"] = {} as
+  | ProducerDelegationM2MEventType
+  | ConsumerDelegationM2MEventType;
+
+// ^ Type check: ensure DelegationM2MEventType options are a subset of DelegationEvent["type"].
+//   This is required because Zod does not have an equivalent of TS Extract<...>.
+
+void _; // avoid unused variable TS error, cannot use ts-ignore for a type check
+
+export const ConsumerDelegationM2MEvent = z.object({
+  id: DelegationM2MEventId,
+  eventType: ConsumerDelegationM2MEventType,
+  eventTimestamp: z.coerce.date(),
+  resourceVersion: z.number().int().min(0),
+  delegationId: DelegationId,
+});
+
+export type ConsumerDelegationM2MEvent = z.infer<
+  typeof ConsumerDelegationM2MEvent
+>;
+
+export const ProducerDelegationM2MEvent = z.object({
+  id: DelegationM2MEventId,
+  eventType: ProducerDelegationM2MEventType,
+  eventTimestamp: z.coerce.date(),
+  resourceVersion: z.number().int().min(0),
+  delegationId: DelegationId,
+});
+
+export type ProducerDelegationM2MEvent = z.infer<
+  typeof ProducerDelegationM2MEvent
+>;

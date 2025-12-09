@@ -1,4 +1,5 @@
 import {
+  AgreementEventEnvelope,
   AgreementEventEnvelopeV2,
   fromAgreementV2,
 } from "pagopa-interop-models";
@@ -11,6 +12,27 @@ import { toAgreementM2MEventSQL } from "../models/agreementM2MEventAdapterSQL.js
 import { createAgreementM2MEvent } from "../services/event-builders/agreementM2MEventBuilder.js";
 
 export async function handleAgreementEvent(
+  agreementEvent: AgreementEventEnvelope,
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterServiceSQL,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  await match(agreementEvent)
+    .with({ event_version: 1 }, () => Promise.resolve())
+    .with({ event_version: 2 }, (msg) =>
+      handleAgreementEventV2(
+        msg,
+        eventTimestamp,
+        logger,
+        m2mEventWriterService,
+        readModelService
+      )
+    )
+    .exhaustive();
+}
+
+async function handleAgreementEventV2(
   decodedMessage: AgreementEventEnvelopeV2,
   eventTimestamp: Date,
   logger: Logger,
@@ -45,7 +67,7 @@ export async function handleAgreementEvent(
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
           "AgreementArchivedByRevokedDelegation",
-          "AgreementContractGenerated"
+          "AgreementSignedContractGenerated"
         ),
       },
       async (event) => {
@@ -54,15 +76,28 @@ export async function handleAgreementEvent(
         );
         const m2mEvent = await createAgreementM2MEvent(
           agreement,
+          event.version,
           event.type,
           eventTimestamp,
-          await readModelService.getActiveDelegationsForAgreement(agreement)
+          await readModelService.getActiveDelegationsForAgreementOrPurpose(
+            agreement
+          )
         );
 
         await m2mEventWriterService.insertAgreementM2MEvent(
           toAgreementM2MEventSQL(m2mEvent)
         );
       }
+    )
+    .with(
+      {
+        /**
+         * We avoid exposing the unsigned document generation.
+         * The user will only be able to see only the signed one.
+         */
+        type: P.union("AgreementContractGenerated"),
+      },
+      () => Promise.resolve(void 0)
     )
     .exhaustive();
 }

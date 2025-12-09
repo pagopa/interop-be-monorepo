@@ -14,8 +14,9 @@ import {
   FileManager,
   WithLogger,
   createPollingByCondition,
-  formatDateyyyyMMddThhmmss,
+  formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
+  getRulesetExpiration,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
@@ -35,11 +36,12 @@ import {
   toBffCatalogApiEService,
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiEserviceRiskAnalysisSeed,
-  toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
   toBffEServiceTemplateInstance,
   toCatalogCreateEServiceSeed,
   toCompactProducerDescriptor,
+  enhanceEServiceToBffCatalogApiProducerDescriptorEService,
+  enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
 import {
   AgreementProcessClient,
@@ -472,10 +474,11 @@ export function catalogServiceBuilder(
         dailyCallsTotal: descriptor.dailyCallsTotal,
         agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
         attributes: descriptorAttributes,
-        eservice: toBffCatalogApiProducerDescriptorEService(
-          eservice,
-          producerTenant
-        ),
+        eservice:
+          await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
+            eservice,
+            producerTenant
+          ),
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
         archivedAt: descriptor.archivedAt,
@@ -531,6 +534,13 @@ export function catalogServiceBuilder(
           headers,
         });
 
+      const producer = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+
       await assertRequesterCanActAsProducer(
         delegationProcessClient,
         headers,
@@ -544,8 +554,9 @@ export function catalogServiceBuilder(
         description: eservice.description,
         technology: eservice.technology,
         mode: eservice.mode,
-        riskAnalysis: eservice.riskAnalysis.map(
-          toBffCatalogApiEserviceRiskAnalysis
+        riskAnalysis: await enhanceEServiceRiskAnalysisArray(
+          eservice.riskAnalysis,
+          producer.kind
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
@@ -991,7 +1002,7 @@ export function catalogServiceBuilder(
           descriptor.interface &&
           toBffCatalogApiDescriptorDoc(descriptor.interface),
         docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
-        eservice: toBffCatalogDescriptorEService(
+        eservice: await toBffCatalogDescriptorEService(
           eservice,
           descriptor,
           producerTenant,
@@ -1022,7 +1033,7 @@ export function catalogServiceBuilder(
         eserviceId
       );
 
-      const currentDate = formatDateyyyyMMddThhmmss(new Date());
+      const currentDate = formatDateyyyyMMddTHHmmss(new Date());
       const filename = `${currentDate}-lista-fruitori-${eservice.name}.csv`;
 
       const buildCsv = (consumers: catalogApi.EServiceConsumer[]): string =>
@@ -1112,9 +1123,22 @@ export function catalogServiceBuilder(
           headers,
         });
 
+      const producer = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
-      return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+      return toBffCatalogApiEserviceRiskAnalysis(
+        riskAnalysis,
+        getRulesetExpiration(
+          producer.kind,
+          riskAnalysis.riskAnalysisForm.version
+        )?.toJSON()
+      );
     },
     getEServiceDocumentById: async (
       eServiceId: EServiceId,

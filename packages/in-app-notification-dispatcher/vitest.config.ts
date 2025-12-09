@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import "dotenv-flow/config";
 
 export default defineConfig({
   test: {
@@ -8,5 +9,6 @@ export default defineConfig({
     hookTimeout: 60000,
     fileParallelism: false,
     pool: "forks",
+    reporters: ["verbose"],
   },
 });

@@ -407,6 +407,56 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/delegations/{delegationId}/signedContract:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of a signed contract document to the delegation
+      summary: Add signed contract metadata to delegation
+      tags:
+        - delegation
+      operationId: addSignedDelegationContractMetadata
+      requestBody:
+        description: The signed contract document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationSignedContractDocument"
+      responses:
+        "204":
+          description: Contract metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /consumer/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -963,6 +1013,10 @@ components:
           $ref: "#/components/schemas/DelegationContractDocument"
         revocationContract:
           $ref: "#/components/schemas/DelegationContractDocument"
+        activationSignedContract:
+          $ref: "#/components/schemas/DelegationSignedContractDocument"
+        revocationSignedContract:
+          $ref: "#/components/schemas/DelegationSignedContractDocument"
         stamps:
           $ref: "#/components/schemas/DelegationStamps"
       required:
@@ -1002,6 +1056,34 @@ components:
         path:
           type: string
         createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - path
+        - createdAt
+    DelegationSignedContractDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
           type: string
           format: date-time
       required:

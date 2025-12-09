@@ -17,6 +17,7 @@ import {
   RefreshableInteropToken,
   getInteropHeaders,
 } from "pagopa-interop-commons";
+import { delegationApi } from "pagopa-interop-api-clients";
 import { contractBuilder } from "../service/delegation/delegationContractBuilder.js";
 import { config } from "../config/config.js";
 import {
@@ -24,9 +25,7 @@ import {
   retrieveEserviceById,
 } from "../service/delegation/delegationService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { getInteropBeClients } from "../clients/clientProvider.js";
-
-const { delegationProcessClient } = getInteropBeClients();
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
 export async function handleDelegationMessageV2(
@@ -35,6 +34,7 @@ export async function handleDelegationMessageV2(
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
+  clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -79,7 +79,9 @@ export async function handleDelegationMessageV2(
           contract,
           refreshableToken,
           delegation,
-          correlationId
+          correlationId,
+          clients,
+          logger
         );
 
         logger.info(`Delegation event ${msg.type} handled successfully`);
@@ -123,7 +125,9 @@ export async function handleDelegationMessageV2(
           contract,
           refreshableToken,
           delegation,
-          correlationId
+          correlationId,
+          clients,
+          logger
         );
         logger.info(`Delegation event ${msg.type} handled successfully`);
       }
@@ -135,7 +139,8 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
           "ProducerDelegationSubmitted",
-          "DelegationContractGenerated"
+          "DelegationContractGenerated",
+          "DelegationSignedContractGenerated"
         ),
       },
       () => Promise.resolve()
@@ -143,19 +148,24 @@ export async function handleDelegationMessageV2(
     .exhaustive();
 }
 
+// eslint-disable-next-line max-params
 async function sendContractMetadataToProcess(
   contract: DelegationContractDocument,
   refreshableToken: RefreshableInteropToken,
   delegation: Delegation,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  clients: PagoPAInteropBeClients,
+  logger: Logger
 ): Promise<void> {
-  const contractWithIsoString = {
+  const contractWithIsoString: delegationApi.DelegationContractDocument = {
     ...contract,
     createdAt: contract.createdAt.toISOString(),
   };
   const token = (await refreshableToken.get()).serialized;
-
-  await delegationProcessClient.delegation.addUnsignedDelegationContractMetadata(
+  logger.info(
+    `delegation document generated with id ${contractWithIsoString.id}`
+  );
+  await clients.delegationProcessClient.delegation.addUnsignedDelegationContractMetadata(
     contractWithIsoString,
     {
       params: { delegationId: delegation.id },

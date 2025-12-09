@@ -11,34 +11,30 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
-  FileManager,
   getInteropHeaders,
   getIpaCode,
   Logger,
-  PDFGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   retrieveEService,
   retrievePurposeDelegation,
   retrieveTenant,
 } from "../service/purpose/purposeService.js";
-import { config } from "../config/config.js";
 import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
-import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
-import { eServiceNotFound, tenantKindNotFound } from "../model/errors.js";
+import { RiskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
+import { tenantKindNotFound } from "../model/errors.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { getInteropBeClients } from "../clients/clientProvider.js";
-
-const { purposeProcessClient } = getInteropBeClients();
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
 export async function handlePurposeMessageV2(
   decodedMessage: PurposeEventEnvelopeV2,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
+  riskAnalysisDocumentBuilder: RiskAnalysisDocumentBuilder,
+  clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -66,12 +62,10 @@ export async function handlePurposeMessageV2(
           purpose.eserviceId,
           readModelService
         );
-        if (!eservice) {
-          throw eServiceNotFound(purpose.eserviceId);
-        }
+
         const [producer, consumer, producerDelegation, consumerDelegation] =
           await Promise.all([
-            retrieveTenant(eservice?.data.producerId, readModelService),
+            retrieveTenant(eservice.data.producerId, readModelService),
             retrieveTenant(purpose.consumerId, readModelService),
             readModelService.getActiveProducerDelegationByEserviceId(
               purpose.eserviceId
@@ -115,25 +109,26 @@ export async function handlePurposeMessageV2(
           .with(eserviceMode.receive, () => getTenantKind(producer))
           .exhaustive();
 
-        const contract = await riskAnalysisDocumentBuilder(
-          pdfGenerator,
-          fileManager,
-          config,
-          logger
-        ).createRiskAnalysisDocument(
-          purpose,
-          purposeVersion.dailyCalls,
-          eserviceInfo,
-          purposeVersion.stamps?.creation.who,
-          tenantKind,
-          "it"
-        );
-        const contractWithIsoString = {
+        const contract =
+          await riskAnalysisDocumentBuilder.createRiskAnalysisDocument(
+            purpose,
+            purposeVersion.dailyCalls,
+            eserviceInfo,
+            purposeVersion.stamps?.creation.who,
+            tenantKind,
+            "it"
+          );
+        const contractWithIsoString: purposeApi.PurposeVersionDocument = {
           ...contract,
           createdAt: contract.createdAt.toISOString(),
         };
+
+        logger.info(
+          `purpose version document generated with id ${contractWithIsoString.id}`
+        );
+
         const token = (await refreshableToken.get()).serialized;
-        await purposeProcessClient.addUnsignedRiskAnalysisDocumentMetadata(
+        await clients.purposeProcessClient.addUnsignedRiskAnalysisDocumentMetadata(
           contractWithIsoString,
           {
             params: { purposeId: purpose.id, versionId: purposeVersion.id },
@@ -165,7 +160,8 @@ export async function handlePurposeMessageV2(
           "PurposeVersionOverQuotaUnsuspended",
           "PurposeArchived",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisDocumentGenerated"
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => Promise.resolve()

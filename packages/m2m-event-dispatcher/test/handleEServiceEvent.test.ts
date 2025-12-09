@@ -4,6 +4,7 @@ import {
   getMockDescriptor,
   getMockEService,
   randomArrayItem,
+  toEServiceV1,
 } from "pagopa-interop-commons-test";
 import {
   toEServiceV2,
@@ -17,6 +18,8 @@ import {
   TenantId,
   Delegation,
   EServiceId,
+  EServiceEventEnvelopeV1,
+  EServiceEventV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
@@ -24,7 +27,8 @@ import { handleEServiceEvent } from "../src/handlers/handleEServiceEvent.js";
 import {
   addOneDelegationToReadModel,
   getMockEventEnvelopeCommons,
-  retrieveLastEServiceM2MEvent,
+  retrieveAllEServiceM2MEvents,
+  retrieveEServiceM2MEventByEServiceIdAndDescriptorId,
   testM2mEventWriterService,
   testReadModelService,
 } from "./utils.js";
@@ -298,11 +302,17 @@ describe("handleEServiceEvent test", async () => {
               ).toHaveBeenCalledTimes(1);
               vi.clearAllMocks();
 
-              const actualM2MEvent = await retrieveLastEServiceM2MEvent();
+              const actualM2MEvent =
+                await retrieveEServiceM2MEventByEServiceIdAndDescriptorId(
+                  eservice.id,
+                  descriptorId
+                );
+              expect(actualM2MEvent).toBeDefined();
               expect(actualM2MEvent).toEqual({
                 id: expect.any(String),
                 eventType,
                 eventTimestamp,
+                resourceVersion: message.version,
                 eserviceId: eservice.id,
                 descriptorId,
                 producerId: eservice.producerId,
@@ -314,4 +324,83 @@ describe("handleEServiceEvent test", async () => {
           })
       )
   );
+
+  it.each(EServiceEventV1.options.map((o) => o.shape.type.value))(
+    "should ignore catalog %s v1 event",
+    async (eventType: EServiceEventV1["type"]) => {
+      const eservice = getMockEService();
+
+      const message = {
+        ...getMockEventEnvelopeCommons(),
+        stream_id: eservice.id,
+        type: eventType,
+        event_version: 1,
+        data: {
+          eservice: toEServiceV1(eservice),
+        },
+      } as EServiceEventEnvelopeV1;
+
+      const eventTimestamp = new Date();
+
+      await handleEServiceEvent(
+        message,
+        eventTimestamp,
+        genericLogger,
+        testM2mEventWriterService,
+        testReadModelService
+      );
+
+      expect(
+        testM2mEventWriterService.insertEServiceM2MEvent
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("should not write the event if the same resource version is already present", async () => {
+    const eservice = getMockEService();
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: eservice.id,
+      type: "EServiceAdded",
+      data: {
+        eservice: toEServiceV2(eservice),
+      },
+    } as EServiceEventEnvelopeV2;
+
+    const eventTimestamp = new Date();
+
+    // Insert the event for the first time
+    await handleEServiceEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    // Try to insert the same event again: should be skipped
+    await handleEServiceEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    // Try to insert one with a further resource version: should be inserted
+    await handleEServiceEvent(
+      { ...message, version: message.version + 1 },
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    expect(
+      testM2mEventWriterService.insertEServiceM2MEvent
+    ).toHaveBeenCalledTimes(3);
+
+    expect(await retrieveAllEServiceM2MEvents({ limit: 10 })).toHaveLength(2);
+  });
 });

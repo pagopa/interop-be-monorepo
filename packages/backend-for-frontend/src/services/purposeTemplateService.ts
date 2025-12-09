@@ -16,7 +16,7 @@ import {
   PurposeTemplateId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
-  TenantKind,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
 import {
   CatalogProcessClient,
@@ -29,6 +29,7 @@ import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
   toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
+  toBffPurposeTemplate,
   toBffPurposeTemplateWithCompactCreator,
   toCompactPurposeTemplateEService,
 } from "../api/purposeTemplateApiConverter.js";
@@ -179,7 +180,7 @@ export function purposeTemplateServiceBuilder(
       ctx,
     }: {
       purposeTitle: string | undefined;
-      targetTenantKind: TenantKind | undefined;
+      targetTenantKind: bffApi.TargetTenantKind | undefined;
       creatorIds: string[];
       eserviceIds: string[];
       excludeExpiredRiskAnalysis: boolean;
@@ -192,7 +193,7 @@ export function purposeTemplateServiceBuilder(
       const { headers, logger } = ctx;
 
       logger.info(
-        `Retrieving catalog purpose templates with title ${purposeTitle}, eserviceIds ${eserviceIds.toString()} offset ${offset}, limit ${limit}`
+        `Retrieving catalog purpose templates with purposeTitle ${purposeTitle}, targetTenantKind ${targetTenantKind}, creatorIds ${creatorIds.toString()}, eserviceIds ${eserviceIds.toString()}, excludeExpiredRiskAnalysis ${excludeExpiredRiskAnalysis}, handlesPersonalData ${handlesPersonalData}, offset ${offset}, limit ${limit}`
       );
 
       const catalogPurposeTemplatesResponse =
@@ -396,78 +397,58 @@ export function purposeTemplateServiceBuilder(
     async publishPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Publishing purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.publishPurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
+      await purposeTemplateClient.publishPurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
     },
     async unsuspendPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.unsuspendPurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
+      await purposeTemplateClient.unsuspendPurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
     },
     async suspendPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Suspending purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.suspendPurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
+      await purposeTemplateClient.suspendPurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
     },
     async archivePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Archiving purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.archivePurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
+      await purposeTemplateClient.archivePurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
     },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
@@ -476,10 +457,13 @@ export function purposeTemplateServiceBuilder(
     ): Promise<bffApi.PurposeTemplate> {
       logger.info(`Updating purpose template ${id}`);
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-      return await purposeTemplateClient.updatePurposeTemplate(seed, {
-        headers,
-        params: { id },
-      });
+      const updatedPurposeTemplate =
+        await purposeTemplateClient.updatePurposeTemplate(seed, {
+          headers,
+          params: { id },
+        });
+
+      return toBffPurposeTemplate(updatedPurposeTemplate);
     },
     async addRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
@@ -488,7 +472,7 @@ export function purposeTemplateServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
       logger.info(
-        `Adding annotation document to purpose template with id ${purposeTemplateId}`
+        `Adding annotation document to purpose template ${purposeTemplateId} and answer ${answerId}`
       );
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
@@ -552,7 +536,7 @@ export function purposeTemplateServiceBuilder(
     async addRiskAnalysisAnswerAnnotation(
       purposeTemplateId: PurposeTemplateId,
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationText,
+      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotation> {
       logger.info(
@@ -620,7 +604,7 @@ export function purposeTemplateServiceBuilder(
       ctx,
     }: {
       purposeTemplateId: PurposeTemplateId;
-      answerId: PurposeTemplateId;
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
       documentId: string;
       ctx: WithLogger<BffAppContext>;
     }): Promise<void> {
@@ -643,6 +627,61 @@ export function purposeTemplateServiceBuilder(
           headers,
         }
       );
+    },
+    async updateRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      body: bffApi.UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Updating risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      return await purposeTemplateClient.updateRiskAnalysisTemplateAnswerAnnotationDocument(
+        body,
+        {
+          headers,
+          params: {
+            purposeTemplateId,
+            answerId,
+            documentId,
+          },
+        }
+      );
+    },
+    async getPublishedPurposeTemplateCreators(
+      name: string | undefined,
+      offset: number,
+      limit: number,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> {
+      logger.info(
+        `Getting Purpose Templates creators with name ${name}, limit ${limit}, offset ${offset}`
+      );
+      const { results, totalCount } =
+        await purposeTemplateClient.getPublishedPurposeTemplateCreators({
+          queries: {
+            creatorName: name,
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: results.map((t) => ({ id: t.id, name: t.name })),
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
+      };
     },
   };
 }

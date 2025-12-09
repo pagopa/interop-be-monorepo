@@ -54,39 +54,45 @@ export async function handlePurposeDocument(
 
         const fileName = path.basename(s3Key);
         const checksum = await calculateSha256Base64(Buffer.from(file));
+        const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
-          contentType: "application/gzip",
+          contentType,
           documentType: config.safeStorageDocType,
           status: config.safeStorageDocStatus,
           checksumValue: checksum,
         };
 
         const { uploadUrl, secret, key } = await safeStorageService.createFile(
-          safeStorageRequest
+          safeStorageRequest,
+          logger
         );
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
           Buffer.from(file),
-          "application/pdf",
+          contentType,
           secret,
-          checksum
+          checksum,
+          logger
         );
 
-        await signatureService.saveDocumentSignatureReference({
-          safeStorageId: key,
-          fileKind: "RISK_ANALYSIS_DOCUMENT",
-          streamId: msg.data.purpose.id,
-          subObjectId: msg.data.versionId,
-          contentType: "application/gzip",
-          path: s3Key,
-          prettyname: "",
-          fileName,
-          version: msg.event_version,
-          createdAt: msg.data.purpose.createdAt,
-          correlationId: msg.correlation_id ?? "",
-        });
+        await signatureService.saveDocumentSignatureReference(
+          {
+            safeStorageId: key,
+            fileKind: "RISK_ANALYSIS_DOCUMENT",
+            streamId: msg.data.purpose.id,
+            subObjectId: msg.data.versionId,
+            contentType,
+            path: s3Key,
+            prettyname: "",
+            fileName,
+            version: msg.event_version,
+            createdAt: msg.data.purpose.createdAt,
+            correlationId: msg.correlation_id ?? "",
+          },
+          logger
+        );
       }
     })
     .with(
@@ -111,7 +117,8 @@ export async function handlePurposeDocument(
           "PurposeVersionUnsuspendedByProducer",
           "PurposeVersionUnsuspendedByConsumer",
           "PurposeVersionRejected",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => Promise.resolve()

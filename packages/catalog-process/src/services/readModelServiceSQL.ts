@@ -70,6 +70,8 @@ import {
   tenantInReadmodelTenant,
   eserviceTemplateInReadmodelEserviceTemplate,
   DrizzleTransactionType,
+  agreementSignedContractInReadmodelAgreement,
+  delegationSignedContractDocumentInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
@@ -651,6 +653,7 @@ export function readModelServiceBuilderSQL(
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .where(
@@ -698,6 +701,13 @@ export function readModelServiceBuilderSQL(
           eq(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         );
 
@@ -749,6 +759,8 @@ export function readModelServiceBuilderSQL(
           delegationStamp: delegationStampInReadmodelDelegation,
           delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
+          delegationSignedContractDocument:
+            delegationSignedContractDocumentInReadmodelDelegation,
         })
         .from(delegationInReadmodelDelegation)
         .where(
@@ -775,6 +787,13 @@ export function readModelServiceBuilderSQL(
           eq(
             delegationInReadmodelDelegation.id,
             delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          delegationSignedContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationSignedContractDocumentInReadmodelDelegation.delegationId
           )
         )
         .orderBy(desc(delegationInReadmodelDelegation.createdAt));
