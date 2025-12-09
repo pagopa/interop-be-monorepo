@@ -1,0 +1,70 @@
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { and, eq, gte } from "drizzle-orm";
+import { TenantId, UserId } from "pagopa-interop-models";
+import { digestEmailSent, DigestEmailSentInsert } from "../model/schema.js";
+
+export type DigestTrackingDb = NodePgDatabase<
+  Record<string, typeof digestEmailSent>
+>;
+
+export type DigestTrackingService = {
+  /**
+   * Records that a digest email was sent to a user.
+   * Uses upsert to handle both insert and update cases.
+   */
+  recordDigestSent: (userId: UserId, tenantId: TenantId) => Promise<void>;
+
+  /**
+   * Checks if a user has received a digest email within the specified number of days.
+   */
+  hasReceivedDigestRecently: (
+    userId: UserId,
+    tenantId: TenantId,
+    days: number
+  ) => Promise<boolean>;
+};
+
+export function digestTrackingServiceBuilder(
+  db: DigestTrackingDb
+): DigestTrackingService {
+  return {
+    async recordDigestSent(userId: UserId, tenantId: TenantId): Promise<void> {
+      const record: DigestEmailSentInsert = {
+        userId,
+        tenantId,
+        sentAt: new Date(),
+      };
+
+      await db
+        .insert(digestEmailSent)
+        .values(record)
+        .onConflictDoUpdate({
+          target: [digestEmailSent.userId, digestEmailSent.tenantId],
+          set: { sentAt: new Date() },
+        });
+    },
+
+    async hasReceivedDigestRecently(
+      userId: UserId,
+      tenantId: TenantId,
+      days: number
+    ): Promise<boolean> {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+
+      const result = await db
+        .select({ sentAt: digestEmailSent.sentAt })
+        .from(digestEmailSent)
+        .where(
+          and(
+            eq(digestEmailSent.userId, userId),
+            eq(digestEmailSent.tenantId, tenantId),
+            gte(digestEmailSent.sentAt, cutoffDate)
+          )
+        )
+        .limit(1);
+
+      return result.length > 0;
+    },
+  };
+}

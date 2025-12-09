@@ -1,0 +1,148 @@
+import { initProducer } from "kafka-iam-auth";
+import { buildHTMLTemplateService, logger } from "pagopa-interop-commons";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import { CorrelationId, generateId, TenantId } from "pagopa-interop-models";
+import { config } from "./config/config.js";
+import {
+  readModelServiceBuilder,
+  DigestUser,
+} from "./services/readModelService.js";
+import { TenantDigestData } from "./services/digestDataService.js";
+import { digestDataServiceBuilder } from "./services/digestDataService.js";
+import { digestTemplateServiceBuilder } from "./services/templateService.js";
+import {
+  emailProducerServiceBuilder,
+  createDigestEmailPayload,
+} from "./services/emailProducerService.js";
+import { makeDigestTrackingDbConnection } from "./model/digestTrackingDb.js";
+import { digestTrackingServiceBuilder } from "./services/digestTrackingService.js";
+import {
+  createResultsCollector,
+  ProcessResult,
+} from "./utils/resultsCollector.js";
+
+const correlationId = generateId<CorrelationId>();
+const log = logger({
+  serviceName: "email-notification-digest",
+  correlationId,
+});
+
+log.info("Email Notification Digest job started");
+
+const readModelDB = makeDrizzleConnection(config);
+const readModelService = readModelServiceBuilder(readModelDB);
+const digestDataService = digestDataServiceBuilder(log);
+const htmlTemplateService = buildHTMLTemplateService();
+const templateService = digestTemplateServiceBuilder(htmlTemplateService);
+const producer = await initProducer(config, config.emailDispatchTopic);
+const emailProducerService = emailProducerServiceBuilder(producer);
+const trackingDb = makeDigestTrackingDbConnection(config);
+const trackingService = digestTrackingServiceBuilder(trackingDb);
+
+try {
+  log.info("Fetching users with digest preference enabled");
+  const digestUsers = await readModelService.getUsersWithDigestPreference();
+  log.info(`Found ${digestUsers.length} users with digest preference enabled`);
+
+  if (digestUsers.length === 0) {
+    log.info("No users with digest preference found. Exiting.");
+    await emailProducerService.disconnect();
+    process.exit(0);
+  }
+
+  const usersByTenant = digestUsers.reduce<Map<TenantId, DigestUser[]>>(
+    (acc, user) => {
+      const existing = acc.get(user.tenantId) ?? [];
+      return new Map(acc).set(user.tenantId, [...existing, user]);
+    },
+    new Map()
+  );
+
+  log.info(`Grouped into ${usersByTenant.size} tenants`);
+
+  const processUserWithTenantData = async (
+    user: DigestUser,
+    tenantData: TenantDigestData,
+    emailBody: string
+  ): Promise<ProcessResult> => {
+    try {
+      log.info(
+        `Processing digest for user ${user.userId} of tenant ${user.tenantId}`
+      );
+
+      const hasReceivedRecently =
+        await trackingService.hasReceivedDigestRecently(
+          user.userId,
+          user.tenantId,
+          config.digestThrottleDays
+        );
+
+      if (hasReceivedRecently) {
+        log.info(
+          `User ${user.userId} already received digest in last ${config.digestThrottleDays} days, skipping`
+        );
+        return "skipped";
+      }
+
+      const payload = createDigestEmailPayload(
+        user.userId,
+        tenantData.tenantId,
+        emailBody,
+        correlationId
+      );
+
+      await trackingService.recordDigestSent(user.userId, user.tenantId);
+
+      await emailProducerService.sendDigestEmail(payload, log);
+
+      log.info(`Successfully processed digest for user ${user.userId}`);
+      return "processed";
+    } catch (userError) {
+      // Per-user error: log and continue to next user
+      // No DB write happened = user will be retried next run
+      log.error(
+        `Error processing digest for user ${user.userId} of tenant ${user.tenantId}: ${userError}`
+      );
+      return "error";
+    }
+  };
+
+  const resultsCollector = createResultsCollector();
+
+  for (const [tenantId, users] of usersByTenant) {
+    log.info(`Processing tenant ${tenantId} with ${users.length} users`);
+
+    const tenantData = await digestDataService.getDigestDataForTenant(tenantId);
+
+    if (!digestDataService.hasDigestContent(tenantData)) {
+      log.info(`No digest content for tenant ${tenantId}, skipping all users`);
+      resultsCollector.addMany(users.map(() => "skipped"));
+      continue;
+    }
+
+    const emailBody = templateService.compileDigestEmail(tenantData);
+
+    for (const user of users) {
+      const result = await processUserWithTenantData(
+        user,
+        tenantData,
+        emailBody
+      );
+      resultsCollector.add(result);
+    }
+  }
+
+  const { processed, skipped, errors } = resultsCollector.getStats();
+
+  log.info(
+    `Email Notification Digest job completed. Processed: ${processed}, Skipped: ${skipped}, Errors: ${errors}`
+  );
+} catch (error) {
+  // Error outside user loop: crash the service
+  log.error(`Email Notification Digest job failed: ${error}`);
+  await emailProducerService.disconnect();
+  process.exit(1);
+}
+
+await emailProducerService.disconnect();
+process.exit(0);
