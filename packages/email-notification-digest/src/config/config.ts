@@ -32,16 +32,16 @@ export const DigestTrackingDbConfig = z
 
 export type DigestTrackingDbConfig = z.infer<typeof DigestTrackingDbConfig>;
 
-// Config for digest throttling
-export const DigestThrottleConfig = z
+// Config for digest frequency
+export const DigestFrequencyConfig = z
   .object({
-    DIGEST_THROTTLE_DAYS: z.coerce.number().min(1).default(7),
+    DIGEST_FREQUENCY_DAYS: z.coerce.number().min(1).default(7),
   })
   .transform((c) => ({
-    digestThrottleDays: c.DIGEST_THROTTLE_DAYS,
+    digestFrequencyDays: c.DIGEST_FREQUENCY_DAYS,
   }));
 
-export type DigestThrottleConfig = z.infer<typeof DigestThrottleConfig>;
+export type DigestFrequencyConfig = z.infer<typeof DigestFrequencyConfig>;
 
 export const EmailNotificationDigestConfig = LoggerConfig.and(
   ReadModelSQLDbConfig
@@ -49,7 +49,7 @@ export const EmailNotificationDigestConfig = LoggerConfig.and(
   .and(KafkaProducerConfig)
   .and(EmailDispatchTopicConfig)
   .and(DigestTrackingDbConfig)
-  .and(DigestThrottleConfig);
+  .and(DigestFrequencyConfig);
 
 export type EmailNotificationDigestConfig = z.infer<
   typeof EmailNotificationDigestConfig
