@@ -11,3 +11,8 @@ rules:
   missing-retry-after: off
   http-request-DELETE-no-body: off # Disabled to allow DELETE requests with bodies
   no-method-name-in-operationId: off # Disabled to avoid warnings on method names in operationIds
+overrides:
+  - files:
+      - "packages/api-clients/open-api/authorizationApi.yml#/components/schemas/Visibility"
+    rules:
+      oas3-unused-component: off # Schema used in generated code but not referenced in OpenAPI spec
