@@ -15553,7 +15553,7 @@ paths:
         "200":
           description: returns the corresponding key
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/PublicKey"
           headers:
@@ -16738,7 +16738,7 @@ paths:
         "200":
           description: returns the corresponding base 64 encoded key
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/EncodedClientKey"
           headers:
@@ -17948,7 +17948,7 @@ paths:
         "200":
           description: Request succeed
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CompactUsers"
           headers:
@@ -18618,7 +18618,7 @@ paths:
         "200":
           description: returns the corresponding key
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/PublicKey"
           headers:
