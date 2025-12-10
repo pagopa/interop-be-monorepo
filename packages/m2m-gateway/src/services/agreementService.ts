@@ -418,7 +418,7 @@ export function agreementServiceBuilder(
       let result;
 
       try {
-        const resultedocument =
+        result =
           await clients.agreementProcessClient.addAgreementConsumerDocument(
             documentSeed,
             {
@@ -426,8 +426,6 @@ export function agreementServiceBuilder(
               headers,
             }
           );
-
-        result = resultedocument;
       } catch (error) {
         await fileManager.delete(
           config.agreementConsumerDocumentsContainer,
