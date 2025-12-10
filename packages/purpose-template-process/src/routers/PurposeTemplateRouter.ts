@@ -42,6 +42,7 @@ import {
   getRiskAnalysisTemplateAnnotationDocumentsErrorMapper,
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
   updatePurposeTemplateRiskAnalysisErrorMapper,
+  getPurposeTemplateEServiceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
@@ -302,6 +303,43 @@ const purposeTemplateRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposeTemplateEServiceDescriptorsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposeTemplates/:id/eservices/:eserviceId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          M2M_ADMIN_ROLE,
+          M2M_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const eServiceDescriptorPurposeTemplate =
+          await purposeTemplateService.getPurposeTemplateEServiceDescriptor(
+            unsafeBrandId(req.params.id),
+            unsafeBrandId(req.params.eserviceId),
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            purposeTemplateApi.EServiceDescriptorPurposeTemplate.parse(
+              eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
+                eServiceDescriptorPurposeTemplate
+              )
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateEServiceDescriptorErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

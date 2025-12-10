@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   generateId,
+  EServiceId,
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   unsafeBrandId,
@@ -53,12 +54,42 @@ export function purposeTemplateServiceBuilder(
       headers,
     });
 
+  const retrieveEServiceDescriptorPurposeTemplate = async (
+    purposeTemplateId: PurposeTemplateId,
+    eserviceId: EServiceId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<
+    WithMaybeMetadata<purposeTemplateApi.EServiceDescriptorPurposeTemplate>
+  > =>
+    await clients.purposeTemplateProcessClient.getPurposeTemplateEServiceDescriptor(
+      {
+        params: {
+          id: purposeTemplateId,
+          eserviceId,
+        },
+        headers,
+      }
+    );
+
   const pollPurposeTemplateUntilDeletion = (
     purposeTemplateId: PurposeTemplateId,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> =>
     pollResourceUntilDeletion(() =>
       retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
+    )({});
+
+  const pollServiceDescriptorPurposeTemplateUntilDeletion = (
+    purposeTemplateId: PurposeTemplateId,
+    eserviceId: EServiceId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveEServiceDescriptorPurposeTemplate(
+        purposeTemplateId,
+        eserviceId,
+        headers
+      )
     )({});
 
   const pollPurposeTemplate = (
@@ -496,6 +527,33 @@ export function purposeTemplateServiceBuilder(
       await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
 
       return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
+    },
+    async removePurposeTemplateEService(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: EServiceId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
+      );
+
+      await clients.purposeTemplateProcessClient.unlinkEServicesFromPurposeTemplate(
+        {
+          eserviceIds: [eserviceId],
+        },
+        {
+          headers,
+          params: {
+            id: purposeTemplateId,
+          },
+        }
+      );
+
+      await pollServiceDescriptorPurposeTemplateUntilDeletion(
+        purposeTemplateId,
+        eserviceId,
+        headers
+      );
     },
   };
 }

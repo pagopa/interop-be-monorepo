@@ -252,6 +252,31 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete(
+      "/purposeTemplates/:purposeTemplateId/eservices/:eserviceId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.removePurposeTemplateEService(
+            unsafeBrandId(req.params.purposeTemplateId),
+            unsafeBrandId(req.params.eserviceId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error unlinking e-service ${req.params.eserviceId} from purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/purposeTemplates/:purposeTemplateId/publish", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 

@@ -39,6 +39,7 @@ export const errorCodes = {
   purposeTemplateNotInValidState: "0022",
   invalidAssociatedEServiceForPublicationError: "0023",
   missingRiskAnalysisFormTemplate: "0024",
+  eServiceDescriptorPurposeTemplateNotFound: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -307,5 +308,16 @@ export function missingRiskAnalysisFormTemplate(
     detail: `No Risk Analysis Form Template provided for purpose template ${purposeTemplateId}`,
     code: "missingRiskAnalysisFormTemplate",
     title: "Missing Risk Analysis Form Template",
+  });
+}
+
+export function eServiceDescriptorPurposeTemplateNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  eServiceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No e-service descriptor found for purpose template ${purposeTemplateId} and e-service id ${eServiceId}`,
+    code: "eServiceDescriptorPurposeTemplateNotFound",
+    title: "E-Service Descriptor Purpose Template not found",
   });
 }

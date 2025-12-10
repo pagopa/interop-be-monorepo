@@ -515,6 +515,46 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/eservices/{eserviceId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: eserviceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposeTemplate
+      summary: Get a Purpose Template E-Service
+      operationId: getPurposeTemplateEServiceDescriptor
+      description: Retrieve a sigle E-Service linked to the Purpose Template
+      responses:
+        "200":
+          description: Purpose Template E-Service retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/suspend:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
