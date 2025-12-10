@@ -74,12 +74,12 @@ try {
         await trackingService.hasReceivedDigestRecently(
           user.userId,
           user.tenantId,
-          config.digestThrottleDays
+          config.digestFrequencyDays
         );
 
       if (hasReceivedRecently) {
         log.info(
-          `User ${user.userId} already received digest in last ${config.digestThrottleDays} days, skipping`
+          `User ${user.userId} already received digest in last ${config.digestFrequencyDays} days, skipping`
         );
         return "skipped";
       }
