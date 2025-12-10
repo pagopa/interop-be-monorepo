@@ -13910,7 +13910,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/CertifiedAttributeSeed"
         description: Contains the attribute data to save.
@@ -16628,7 +16628,7 @@ paths:
         "200":
           description: returns the corresponding array of keys
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/PublicKeys"
           headers:
