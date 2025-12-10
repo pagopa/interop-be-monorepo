@@ -278,8 +278,7 @@ function formatAnswer<
 `;
 }
 
-// TODO: remove export
-export function formatFreeOfCharge(
+function formatFreeOfCharge(
   purposeIsFreeOfCharge: boolean,
   purposeFreeOfChargeReason?: string
 ): { purposeFreeOfChargeHtml: string; purposeFreeOfChargeReasonHtml: string } {
