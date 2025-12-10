@@ -171,6 +171,33 @@ const purposeTemplateRouter = (
         }
       }
     )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const document =
+            await purposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.body,
+              ctx
+            );
+
+          return res.status(201).send(m2mGatewayApi.Document.parse(document));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error uploading annotation document for purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId",
       async (req, res) => {
