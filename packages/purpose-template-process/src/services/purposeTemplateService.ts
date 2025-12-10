@@ -43,6 +43,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
   invalidAssociatedEServiceForPublication,
+  missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
@@ -70,6 +71,7 @@ import {
   cleanupAnnotationDocsForRemovedAnswers,
   deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
 } from "../utilities/riskAnalysisDocUtils.js";
+import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
@@ -1701,6 +1703,75 @@ export function purposeTemplateServiceBuilder(
         limit,
         offset,
       });
+    },
+    async updatePurposeTemplateRiskAnalysis(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisFormTemplateSeed: purposeTemplateApi.RiskAnalysisFormTemplateSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<RiskAnalysisFormTemplate>> {
+      logger.info(
+        `Updating risk analysis form template for purpose template ${purposeTemplateId}`
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateIsDraft(purposeTemplate.data);
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+
+      const validRiskAnalysisFormTemplate =
+        validateAndTransformRiskAnalysisTemplate(
+          riskAnalysisFormTemplateSeed,
+          purposeTemplate.data.targetTenantKind,
+          purposeTemplate.data.handlesPersonalData
+        );
+
+      if (!validRiskAnalysisFormTemplate) {
+        throw missingRiskAnalysisFormTemplate(purposeTemplateId);
+      }
+
+      const purposeRiskAnalysisFormWithDocuments = purposeTemplate.data
+        .purposeRiskAnalysisForm
+        ? addAnnotationDocumentToUpdatedAnswerIfNeeded(
+            purposeTemplateToApiPurposeTemplateSeed(purposeTemplate.data),
+            purposeTemplate.data.purposeRiskAnalysisForm,
+            validRiskAnalysisFormTemplate
+          )
+        : validRiskAnalysisFormTemplate;
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        purposeRiskAnalysisForm: purposeRiskAnalysisFormWithDocuments,
+        updatedAt: new Date(),
+      };
+
+      await cleanupAnnotationDocsForRemovedAnswers(
+        purposeTemplateToApiPurposeTemplateSeed(updatedPurposeTemplate),
+        purposeTemplate.data,
+        fileManager,
+        logger
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated(
+          updatedPurposeTemplate,
+          correlationId,
+          purposeTemplate.metadata.version
+        )
+      );
+
+      return {
+        data: purposeRiskAnalysisFormWithDocuments,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
   };
 }

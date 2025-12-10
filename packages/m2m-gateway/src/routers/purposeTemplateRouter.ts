@@ -106,6 +106,38 @@ const purposeTemplateRouter = (
         }
       }
     )
+    .put(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const riskAnalysisFormTemplate =
+            await purposeTemplateService.replacePurposeTemplateRiskAnalysis(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.body,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.RiskAnalysisFormTemplate.parse(
+                riskAnalysisFormTemplate
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating risk analysis form template for purpose template with id ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments",
       async (req, res) => {

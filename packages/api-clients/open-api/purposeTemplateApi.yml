@@ -744,6 +744,61 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - purposeTemplate
+      summary: Update a Purpose Template Risk Analysis
+      description: Update a Purpose Template Risk Analysis in Draft state
+      operationId: updatePurposeTemplateRiskAnalysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk Analysis Form Template updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments:
     parameters:
       - name: purposeTemplateId
