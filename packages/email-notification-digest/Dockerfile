@@ -55,4 +55,4 @@ USER app
 
 WORKDIR /app/packages/email-notification-digest
 
-CMD [ "node", "." ]
+CMD ["node", "."]
