@@ -115,7 +115,9 @@ try {
     const tenantData = await digestDataService.getDigestDataForTenant(tenantId);
 
     if (!digestDataService.hasDigestContent(tenantData)) {
-      log.info(`No digest content for tenant ${tenantId}, skipping all users`);
+      log.info(
+        `No digest content for tenant ${tenantId}, skipping all tenant users`
+      );
       resultsCollector.addMany(users.map(() => "skipped"));
       continue;
     }
