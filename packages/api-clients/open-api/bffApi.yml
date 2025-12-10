@@ -5486,7 +5486,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
@@ -5772,7 +5772,7 @@ paths:
         description: A payload containing the new flags
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceDelegationFlagsUpdateSeed"
       responses:
@@ -6016,7 +6016,7 @@ paths:
         description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
       responses:
