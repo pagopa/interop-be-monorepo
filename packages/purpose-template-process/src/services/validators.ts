@@ -114,7 +114,7 @@ export const assertConsistentFreeOfCharge = (
     throw missingFreeOfChargeReason();
   }
 
-  if (!isFreeOfCharge && freeOfChargeReason) {
+  if (!isFreeOfCharge && typeof freeOfChargeReason === "string") {
     throw invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason);
   }
 };

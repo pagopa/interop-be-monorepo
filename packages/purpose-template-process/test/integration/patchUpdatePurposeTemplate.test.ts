@@ -272,29 +272,32 @@ describe("patch update purpose template", () => {
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
 
-  it("should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false", async () => {
-    const purposeTemplate: PurposeTemplate = {
-      ...mockPurposeTemplate,
-      purposeIsFreeOfCharge: true,
-      purposeFreeOfChargeReason: "Some reason 1",
-    };
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    "should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false",
+    async ({ freeOfChargeReason }) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: "Some reason",
+      };
 
-    await addOnePurposeTemplate(purposeTemplate);
+      await addOnePurposeTemplate(purposeTemplate);
 
-    const updatedFreeOfChargeReason = "Some reason 2";
-    expect(
-      purposeTemplateService.patchUpdatePurposeTemplate(
-        purposeTemplate.id,
-        {
-          purposeIsFreeOfCharge: false,
-          purposeFreeOfChargeReason: updatedFreeOfChargeReason,
-        },
-        getMockContextM2MAdmin({
-          organizationId: purposeTemplate.creatorId,
-        })
-      )
-    ).rejects.toThrowError(
-      invalidFreeOfChargeReason(false, updatedFreeOfChargeReason)
-    );
-  });
+      const isFreeOfCharge = false;
+      expect(
+        purposeTemplateService.patchUpdatePurposeTemplate(
+          purposeTemplate.id,
+          {
+            purposeIsFreeOfCharge: isFreeOfCharge,
+            purposeFreeOfChargeReason: freeOfChargeReason,
+          },
+          getMockContextM2MAdmin({
+            organizationId: purposeTemplate.creatorId,
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
+      );
+    }
+  );
 });

@@ -390,29 +390,31 @@ describe("createPurposeTemplate", () => {
     ).rejects.toThrowError(ruleSetNotFoundError(invalidTenantKind));
   });
 
-  it("should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false", async () => {
-    const purposeTemplate: PurposeTemplate = {
-      ...mockPurposeTemplate,
-      purposeIsFreeOfCharge: true,
-      purposeFreeOfChargeReason: "Some reason 1",
-    };
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    `should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false (seed #%#)`,
+    async ({ freeOfChargeReason }) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: "Some reason",
+      };
 
-    await addOnePurposeTemplate(purposeTemplate);
+      await addOnePurposeTemplate(purposeTemplate);
 
-    const updatedFreeOfChargeReason = "Some reason 2";
-    expect(
-      purposeTemplateService.createPurposeTemplate(
-        {
-          ...purposeTemplateSeed,
-          purposeIsFreeOfCharge: false,
-          purposeFreeOfChargeReason: updatedFreeOfChargeReason,
-        },
-        getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(
-      invalidFreeOfChargeReason(false, updatedFreeOfChargeReason)
-    );
-  });
+      expect(
+        purposeTemplateService.createPurposeTemplate(
+          {
+            ...purposeTemplateSeed,
+            purposeIsFreeOfCharge: false,
+            purposeFreeOfChargeReason: freeOfChargeReason,
+          },
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(false, freeOfChargeReason)
+      );
+    }
+  );
 });

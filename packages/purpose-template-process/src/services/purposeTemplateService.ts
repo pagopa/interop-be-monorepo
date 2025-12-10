@@ -662,16 +662,15 @@ async function updateDraftPurposeTemplate(
     ...purposeTemplate.data,
     ...typeAndSeed.seed,
     purposeFreeOfChargeReason:
-      purposeFreeOfChargeReason ??
-      (purposeFreeOfChargeReason === null
+      purposeFreeOfChargeReason === null
         ? undefined
-        : purposeTemplate.data.purposeFreeOfChargeReason),
+        : purposeFreeOfChargeReason ??
+          purposeTemplate.data.purposeFreeOfChargeReason,
     purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
     purposeDailyCalls:
-      purposeDailyCalls ??
-      (purposeDailyCalls === null
+      purposeDailyCalls === null
         ? undefined
-        : purposeTemplate.data.purposeDailyCalls),
+        : purposeDailyCalls ?? purposeTemplate.data.purposeDailyCalls,
     updatedAt: new Date(),
   };
 

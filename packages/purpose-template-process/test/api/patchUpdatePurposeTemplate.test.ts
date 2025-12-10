@@ -201,7 +201,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {
-      error: invalidFreeOfChargeReason(false, "Some reason"),
+      error: invalidFreeOfChargeReason(false, ""),
       expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
   ])(

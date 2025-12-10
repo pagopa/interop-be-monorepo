@@ -594,30 +594,33 @@ describe("updatePurposeTemplate", () => {
     expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
   });
 
-  it("should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false", async () => {
-    const purposeTemplate: PurposeTemplate = {
-      ...existingPurposeTemplate,
-      purposeIsFreeOfCharge: true,
-      purposeFreeOfChargeReason: "Some reason 1",
-    };
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    "should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false",
+    async ({ freeOfChargeReason }) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...existingPurposeTemplate,
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: "Some reason",
+      };
 
-    await addOnePurposeTemplate(purposeTemplate);
+      await addOnePurposeTemplate(purposeTemplate);
 
-    const updatedFreeOfChargeReason = "Some reason 2";
-    expect(
-      purposeTemplateService.updatePurposeTemplate(
-        purposeTemplate.id,
-        {
-          ...purposeTemplateSeed,
-          purposeIsFreeOfCharge: false,
-          purposeFreeOfChargeReason: updatedFreeOfChargeReason,
-        },
-        getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(
-      invalidFreeOfChargeReason(false, updatedFreeOfChargeReason)
-    );
-  });
+      const isFreeOfCharge = false;
+      expect(
+        purposeTemplateService.updatePurposeTemplate(
+          purposeTemplate.id,
+          {
+            ...purposeTemplateSeed,
+            purposeIsFreeOfCharge: isFreeOfCharge,
+            purposeFreeOfChargeReason: freeOfChargeReason,
+          },
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
+      );
+    }
+  );
 });
