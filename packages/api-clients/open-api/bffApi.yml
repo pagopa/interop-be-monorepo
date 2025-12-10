@@ -488,7 +488,7 @@ paths:
         - agreements
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/AgreementPayload"
         description: payload for agreement creation
@@ -918,7 +918,7 @@ paths:
             format: uuid
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/DelegationRef"
       responses:
@@ -1073,7 +1073,7 @@ paths:
         "200":
           description: Agreement cloned
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
           headers:
@@ -1677,7 +1677,7 @@ paths:
             format: uuid
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/AgreementSubmissionPayload"
         description: payload for agreement submission
@@ -1832,7 +1832,7 @@ paths:
             format: uuid
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/DelegationRef"
       responses:
@@ -1955,7 +1955,7 @@ paths:
       operationId: rejectAgreement
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/AgreementRejectionPayload"
         required: true
@@ -2217,7 +2217,7 @@ paths:
             format: uuid
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/AgreementUpdatePayload"
         required: true
@@ -2351,7 +2351,7 @@ paths:
         "200":
           description: New Agreement created
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
           headers:
@@ -2596,7 +2596,7 @@ paths:
         "200":
           description: Tenant has required certified attributes
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/HasCertifiedAttributes"
           headers:
@@ -2791,7 +2791,7 @@ paths:
         "200":
           description: A list of EServices
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CatalogEServices"
           headers:
@@ -6880,7 +6880,7 @@ paths:
         "200":
           description: Upgraded EService Instance
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
           headers:
@@ -7466,7 +7466,7 @@ paths:
         "200":
           description: EServices found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CompactEServicesLight"
           headers:
@@ -7570,7 +7570,7 @@ paths:
         "200":
           description: The corresponding eService descriptor
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/ProducerEServiceDetails"
           headers:
@@ -7681,7 +7681,7 @@ paths:
         "200":
           description: The corresponding eService descriptor
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/ProducerEServiceDescriptor"
           headers:
@@ -7884,7 +7884,7 @@ paths:
       description: Updates a reverse Purpose
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/ReversePurposeUpdateContent"
         required: true
@@ -8025,7 +8025,7 @@ paths:
         "200":
           description: The corresponding eService descriptor
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CatalogEServiceDescriptor"
           headers:
@@ -8229,7 +8229,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Users"
           headers:
@@ -8397,7 +8397,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/User"
           headers:
@@ -8569,7 +8569,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CertifiedAttributesResponse"
           headers:
@@ -8811,7 +8811,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeSeed"
         required: true
@@ -9162,7 +9162,7 @@ paths:
       description: Creates a draft Purpose Version
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeVersionSeed"
         required: true
@@ -9541,7 +9541,7 @@ paths:
       operationId: rejectPurposeVersion
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/RejectPurposeVersionPayload"
         required: true
@@ -9676,7 +9676,7 @@ paths:
         "200":
           description: Purpose Version Archived
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/PurposeVersionResource"
           headers:
@@ -9804,7 +9804,7 @@ paths:
       operationId: suspendPurposeVersion
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/DelegationRef"
       responses:
@@ -9916,7 +9916,7 @@ paths:
       operationId: activatePurposeVersion
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/DelegationRef"
       responses:
@@ -10343,7 +10343,7 @@ paths:
       description: Updates a Purpose if not yet activated
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeUpdateContent"
         required: true
@@ -10572,7 +10572,7 @@ paths:
       operationId: createPurposeTemplate
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeTemplateSeed"
         required: true
@@ -11037,7 +11037,7 @@ paths:
         "200":
           description: Purpose Template E-Services retrieved
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptorsPurposeTemplate"
           headers:
@@ -11116,7 +11116,7 @@ paths:
       description: Creates the Purpose from a Purpose Template
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeFromTemplateSeed"
         required: true
@@ -11254,7 +11254,7 @@ paths:
       description: Partially update a Purpose from a Purpose Template
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PatchPurposeUpdateFromTemplateContent"
         required: true
@@ -11420,7 +11420,7 @@ paths:
         "200":
           description: Creator's Purpose Templates retrieved
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CreatorPurposeTemplates"
           headers:
@@ -11682,7 +11682,7 @@ paths:
       description: Updates a Purpose Template (Draft state)
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeTemplateSeed"
         required: true
@@ -12060,7 +12060,7 @@ paths:
         "200":
           description: OK - Request successful. The response contains the created resource metadata (not the file)
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
           headers:
@@ -13159,7 +13159,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/DeclaredAttributesResponse"
           headers:
@@ -13821,7 +13821,7 @@ paths:
         "200":
           description: Attribute created
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Attribute"
           headers:
@@ -14370,7 +14370,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
           headers:
@@ -14819,7 +14819,7 @@ paths:
         "200":
           description: Clients found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CompactClients"
           headers:
@@ -14945,7 +14945,7 @@ paths:
         "200":
           description: Client retrieved
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Client"
           headers:
@@ -15163,7 +15163,7 @@ paths:
         "200":
           description: Client with user added as Admin
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Client"
           headers:
@@ -16194,7 +16194,7 @@ paths:
         "200":
           description: Request succeed
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CompactUsers"
           headers:
@@ -16328,7 +16328,7 @@ paths:
         "200":
           description: Users added
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
           headers:
@@ -17163,7 +17163,7 @@ paths:
         "200":
           description: Retrieve Privacy Notice
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/PrivacyNotice"
           headers:
@@ -17745,7 +17745,7 @@ paths:
         "200":
           description: Producer keychain retrieved
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/ProducerKeychain"
           headers:
