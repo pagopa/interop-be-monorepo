@@ -3359,7 +3359,7 @@ paths:
       requestBody:
         description: An E-Service Descriptor seed
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorSeed"
         required: true
@@ -3457,7 +3457,7 @@ paths:
       requestBody:
         description: An E-Service Descriptor seed
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorTemplateInstanceSeed"
         required: true
@@ -3588,7 +3588,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "400":
@@ -3772,7 +3772,7 @@ paths:
         description: Payload
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorQuotas"
       responses:
@@ -3892,7 +3892,7 @@ paths:
         description: Payload
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateInstanceDescriptorQuotas"
       responses:
@@ -4012,7 +4012,7 @@ paths:
         description: Payload
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorAgreementApprovalPolicySeed"
       responses:
@@ -4348,7 +4348,7 @@ paths:
         description: A payload containing eservice's interface API REST URLs and contacts
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/TemplateInstanceInterfaceRESTSeed"
       responses:
@@ -4826,7 +4826,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CreatedEServiceDescriptor"
         "400":
@@ -4908,7 +4908,7 @@ paths:
         description: A payload containing the possible document updatable fields
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
       responses:
@@ -5078,7 +5078,7 @@ paths:
         description: An E-Service update seed containing the possible updatable fields
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceSeed"
       responses:
@@ -5303,7 +5303,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
@@ -5413,7 +5413,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/EServiceRiskAnalysis"
         "400":
@@ -5659,7 +5659,7 @@ paths:
         description: A payload containing the new description
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
       responses:
@@ -5907,7 +5907,7 @@ paths:
         description: A payload containing the new name
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceNameUpdateSeed"
       responses:
@@ -6075,7 +6075,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -6508,7 +6508,7 @@ paths:
       requestBody:
         description: Payload containing the reason of the rejection
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/RejectDelegatedEServiceDescriptorSeed"
         required: true
@@ -6652,7 +6652,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/FileResource"
         "400":
@@ -6754,7 +6754,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/PresignedUrl"
         "403":
@@ -7096,7 +7096,7 @@ paths:
         description: Template instantiation parameters
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/InstanceEServiceSeed"
       responses:
@@ -7197,7 +7197,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CompactOrganizations"
         "429":
@@ -7776,7 +7776,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeEServiceSeed"
       responses:
@@ -8762,7 +8762,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "400":
@@ -10021,7 +10021,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/DeclaredTenantAttributeSeed"
       responses:
@@ -10221,7 +10221,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "404":
@@ -10690,7 +10690,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CompactOrganizations"
         "429":
@@ -11928,7 +11928,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/RiskAnalysisTemplateAnswerRequest"
       responses:
@@ -12358,7 +12358,7 @@ paths:
         description: A payload containing the possible document updatable fields
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed"
       responses:
@@ -12473,7 +12473,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationSeed"
       responses:
@@ -13313,7 +13313,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/VerifiedTenantAttributeSeed"
       responses:
@@ -13576,7 +13576,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateVerifiedTenantAttributeSeed"
       responses:
@@ -14013,7 +14013,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/AttributeSeed"
         description: Contains the attribute data to save.
@@ -14116,7 +14116,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/AttributeSeed"
         description: Contains the attribute data to save.
@@ -14671,7 +14671,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Tenants"
         "400":
@@ -15891,7 +15891,7 @@ paths:
         required: true
         description: Details of the Purpose to add
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PurposeAdditionDetailsSeed"
       responses:
@@ -16445,7 +16445,7 @@ paths:
         required: true
         description: an array of base64 encoded PEM keys.
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/KeySeed"
       description: Creates one or more keys for the corresponding client.
@@ -16855,7 +16855,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/ClientSeed"
       responses:
@@ -17234,7 +17234,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/PrivacyNoticeSeed"
       responses:
@@ -17422,7 +17422,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/SAMLTokenRequest"
       responses:
@@ -17502,7 +17502,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/ProducerKeychainSeed"
       responses:
@@ -18324,7 +18324,7 @@ paths:
         required: true
         description: a base64 encoded PEM key.
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/KeySeed"
       description: Creates a key for the corresponding producer keychain.
@@ -18508,7 +18508,7 @@ paths:
         "200":
           description: returns the corresponding array of keys
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/PublicKeys"
           headers:
@@ -18827,7 +18827,7 @@ paths:
         required: true
         description: Details of the EService to add
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceAdditionDetailsSeed"
       responses:
@@ -19047,7 +19047,7 @@ paths:
         "200":
           description: returns the corresponding base 64 encoded key
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/EncodedClientKey"
           headers:
@@ -19224,7 +19224,7 @@ paths:
         "200":
           description: Delegations found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CompactDelegations"
           headers:
@@ -19340,7 +19340,7 @@ paths:
       operationId: createProducerDelegation
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/DelegationSeed"
         description: payload for producer delegation creation
@@ -19542,7 +19542,7 @@ paths:
       description: Rejects a producer delegation
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/RejectDelegationPayload"
       operationId: rejectProducerDelegation
@@ -19694,7 +19694,7 @@ paths:
         "200":
           description: Delegated eservices
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CompactEServices"
           headers:
@@ -19947,7 +19947,7 @@ paths:
       operationId: rejectConsumerDelegation
       requestBody:
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/RejectDelegationPayload"
       parameters:
@@ -20084,7 +20084,7 @@ paths:
         "200":
           description: delegation retrieved
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Delegation"
           headers:
@@ -20603,7 +20603,7 @@ paths:
       requestBody:
         description: An E-Service template seed
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateSeed"
         required: true
@@ -20693,7 +20693,7 @@ paths:
         description: An E-Service template update seed containing the possible updatable fields
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateSeed"
       responses:
@@ -21114,7 +21114,7 @@ paths:
         description: A payload containing the new name
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateNameUpdateSeed"
       responses:
@@ -21223,7 +21223,7 @@ paths:
         description: A payload containing the new description
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateIntendedTargetUpdateSeed"
       responses:
@@ -21332,7 +21332,7 @@ paths:
         description: A payload containing the new e-service description
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
       responses:
@@ -21446,7 +21446,7 @@ paths:
         "200":
           description: The corresponding eService template version
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplateVersionDetails"
           headers:
@@ -21542,7 +21542,7 @@ paths:
       requestBody:
         description: An E-Service template version seed
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateVersionSeed"
         required: true
@@ -21730,7 +21730,7 @@ paths:
         description: A payload containing the new e-service template version quotas
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionQuotasUpdateSeed"
       responses:
@@ -21839,7 +21839,7 @@ paths:
         description: A payload containing the risk analysis
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
@@ -21955,7 +21955,7 @@ paths:
         description: A payload containing the risk analysis to update
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
@@ -22164,7 +22164,7 @@ paths:
         description: A payload containing the attributes
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/DescriptorAttributesSeed"
       responses:
@@ -22323,7 +22323,7 @@ paths:
         "200":
           description: A list of EService templates
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CatalogEServiceTemplates"
           headers:
@@ -22706,7 +22706,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "400":
@@ -22958,7 +22958,7 @@ paths:
         description: A payload containing the possible document updatable fields
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateVersionDocumentSeed"
       responses:
@@ -23045,7 +23045,7 @@ paths:
         description: A payload containing a boolean that describes the personalData flag
         required: true
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/EServiceTemplatePersonalDataFlagUpdateSeed"
       responses:
@@ -23264,7 +23264,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Notifications"
           headers:
@@ -24284,7 +24284,7 @@ paths:
         "200":
           description: The count of notifications grouped by section and subsection
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/NotificationsCountBySection"
           headers:
@@ -24404,7 +24404,7 @@ paths:
         "200":
           description: The tenant's notification configuration
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/TenantNotificationConfig"
           headers:
@@ -24521,7 +24521,7 @@ paths:
       requestBody:
         description: A notification config seed
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/TenantNotificationConfigUpdateSeed"
         required: true
@@ -24645,7 +24645,7 @@ paths:
         "200":
           description: The user's notification configuration
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/UserNotificationConfig"
           headers:
@@ -24762,7 +24762,7 @@ paths:
       requestBody:
         description: A user notification config seed
         content:
-          application/problem+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/UserNotificationConfigUpdateSeed"
         required: true
