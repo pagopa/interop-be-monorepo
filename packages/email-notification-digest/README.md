@@ -26,10 +26,3 @@ pnpm start
 ```bash
 pnpm build
 ```
-
-## TODO
-
-- Implement actual data retrieval from readmodel (currently mockup)
-- Finalize email template design
-- Add filtering for users with actual content to report
-- Add tests
