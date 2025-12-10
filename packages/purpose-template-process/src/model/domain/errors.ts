@@ -40,6 +40,7 @@ export const errorCodes = {
   invalidAssociatedEServiceForPublicationError: "0023",
   missingRiskAnalysisFormTemplate: "0024",
   eServiceDescriptorPurposeTemplateNotFound: "0025",
+  invalidFreeOfChargeReason: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -319,5 +320,16 @@ export function eServiceDescriptorPurposeTemplateNotFound(
     detail: `No e-service descriptor found for purpose template ${purposeTemplateId} and e-service id ${eServiceId}`,
     code: "eServiceDescriptorPurposeTemplateNotFound",
     title: "E-Service Descriptor Purpose Template not found",
+  });
+}
+
+export function invalidFreeOfChargeReason(
+  purposeIsFreeOfCharge: boolean,
+  purposeFreeOfChargeReason: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid purposeFreeOfChargeReason: "${purposeFreeOfChargeReason}" for purposeIsFreeOfCharge: "${purposeIsFreeOfCharge}"`,
+    code: "invalidFreeOfChargeReason",
+    title: "Invalid free of charge reason",
   });
 }

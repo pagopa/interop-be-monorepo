@@ -468,6 +468,26 @@ export function purposeTemplateServiceBuilder(
 
       return toM2MGatewayApiPurposeTemplate(polledResource.data);
     },
+    async updateDraftPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      seed: m2mGatewayApi.PurposeTemplateDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeTemplate> {
+      logger.info(
+        `Updating draft Purpose Template with id ${purposeTemplateId}`
+      );
+
+      const response =
+        await clients.purposeTemplateProcessClient.patchUpdateDraftPurposeTemplateById(
+          seed,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+      const polledResource = await pollPurposeTemplate(response, headers);
+      return toM2MGatewayApiPurposeTemplate(polledResource.data);
+    },
     async deletePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
