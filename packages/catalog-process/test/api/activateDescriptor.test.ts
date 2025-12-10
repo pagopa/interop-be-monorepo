@@ -99,7 +99,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/activate author
       expectedStatus: 403,
     },
     {
-      error: notValidDescriptorState(descriptor.id, descriptorState.suspended),
+      error: notValidDescriptorState(descriptor.id, descriptorState.published),
       expectedStatus: 409,
     },
   ])(
