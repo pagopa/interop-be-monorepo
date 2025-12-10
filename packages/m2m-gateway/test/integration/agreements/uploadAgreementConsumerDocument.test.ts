@@ -216,7 +216,7 @@ describe("addAgreementConsumerDocument", () => {
         name: mockFileUpload.file.name,
         content: mockFileBuffer,
       },
-      expect.any(Object) // Logger instance
+      expect.any(Object)
     );
 
     expectApiClientPostToHaveBeenCalledWith({
@@ -231,7 +231,7 @@ describe("addAgreementConsumerDocument", () => {
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.agreementConsumerDocumentsContainer,
       mockStoragePath,
-      expect.any(Object) // Logger instance
+      expect.any(Object)
     );
 
     expect(

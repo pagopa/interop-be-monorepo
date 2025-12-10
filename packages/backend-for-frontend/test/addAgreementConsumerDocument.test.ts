@@ -93,7 +93,7 @@ describe("addAgreementConsumerDocument", () => {
       .mockRejectedValue(mockApiError);
 
     vi.spyOn(fileManager, "storeBytes").mockResolvedValue(mockStoragePath);
-    vi.spyOn(fileManager, "delete").mockResolvedValue(undefined); // Mock per la cancellazione
+    vi.spyOn(fileManager, "delete").mockResolvedValue(undefined);
 
     const mockClients = {
       agreementProcessClient: {
