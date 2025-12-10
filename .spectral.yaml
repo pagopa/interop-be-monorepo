@@ -15,4 +15,4 @@ overrides:
   - files:
       - "packages/api-clients/open-api/authorizationApi.yml#/components/schemas/Visibility"
     rules:
-      oas3-unused-component: off # Schema used in generated code but not referenced in OpenAPI spec
+      oas3-unused-component: off # Schema used in code but not referenced in OpenAPI spec
