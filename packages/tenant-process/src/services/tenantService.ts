@@ -564,14 +564,11 @@ export function tenantServiceBuilder(
           tenantKindUpdatedEvent,
         ]);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedTenant,
-          metadata: { version: newVersion },
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
         };
       }
       const { newVersion } = await repository.createEvent(
@@ -771,14 +768,11 @@ export function tenantServiceBuilder(
           tenantKindUpdatedEvent,
         ]);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedTenant,
-          metadata: { version: newVersion },
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
         };
       }
 
@@ -1534,11 +1528,10 @@ export function tenantServiceBuilder(
           tenantWithUpdatedKind,
           correlationId
         );
-
-        await repository.createEvents([...events, tenantKindUpdatedEvent]);
-      } else {
-        await repository.createEvents([...events]);
+        // eslint-disable-next-line functional/immutable-data
+        events.push(tenantKindUpdatedEvent);
       }
+      await repository.createEvents(events);
 
       return tenantWithUpdatedKind;
     },
@@ -1640,11 +1633,10 @@ export function tenantServiceBuilder(
           tenantWithUpdatedKind,
           correlationId
         );
-
-        await repository.createEvents([...events, tenantKindUpdatedEvent]);
-      } else {
-        await repository.createEvents([...events]);
+        // eslint-disable-next-line functional/immutable-data
+        events.push(tenantKindUpdatedEvent);
       }
+      await repository.createEvents(events);
 
       return tenantWithUpdatedKind;
     },

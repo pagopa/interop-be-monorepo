@@ -1,27 +1,26 @@
 meta {
-  name: Create Purpose Template
+  name: Update Purpose Template Risk Analysis
   type: http
-  seq: 1
+  seq: 19
 }
 
-post {
-  url: {{host-bff}}/purposeTemplates
+put {
+  url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/riskAnalysis
   body: json
   auth: none
 }
 
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
 headers {
-  Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT}}
 }
 
 body:json {
   {
-    "targetDescription": "{{randomTargetDescription}}",
-    "targetTenantKind": "PA",
-    "purposeTitle": "{{randomPurposeTitle}}",
-    "purposeDescription": "{{randomPurposeDescription}}",
-    "purposeRiskAnalysisForm": {
     "version": "3.1",
     "answers": {
       "purpose": {
@@ -35,7 +34,7 @@ body:json {
       "institutionalPurpose": {
         "values": [],
         "editable": false,
-        "suggestedValues": ["Purpose1", "Purpose2"]
+        "suggestedValues": ["Purpose1", "Purpose3"]
       },
       "personalDataTypes": {
         "values": ["WITH_NON_IDENTIFYING_DATA"],
@@ -150,29 +149,5 @@ body:json {
         }
       }
     }
-  },
-    "purposeIsFreeOfCharge": {{randomBoolean}},
-    "purposeFreeOfChargeReason": "{{randomFreeOfChargeReason}}",
-    "purposeDailyCalls": {{randomDailyCalls}},
-    "handlesPersonalData": true
   }
-}
-
-vars:post-response {
-  purposeTemplateId: res.body.id
-}
-
-script:pre-request {
-  const random = Math.round(Math.random() * 1000)
-  
-  bru.setVar("randomTargetDescription", `Test target description ${random}`)
-  bru.setVar("randomPurposeTitle", `Test purpose title ${random}`)
-  bru.setVar("randomPurposeDescription", `Test purpose description ${random}`)
-  bru.setVar("randomBoolean", Math.random() > 0.5)
-  bru.setVar("randomFreeOfChargeReason", `Free of charge reason ${random}`)
-  bru.setVar("randomDailyCalls", Math.floor(Math.random() * 1000) + 1)
-}
-
-docs {
-  Creates a Purpose Template through the BFF API
 }
