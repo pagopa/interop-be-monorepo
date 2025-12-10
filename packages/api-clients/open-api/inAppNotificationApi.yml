@@ -468,9 +468,7 @@ components:
           type: string
           description: Content of the notification
         notificationType:
-          description: Type of the notification
-          allOf:
-            - $ref: "#/components/schemas/NotificationType"
+          $ref: "#/components/schemas/NotificationType"
         entityId:
           type: string
           description: ID of the related entity

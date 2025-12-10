@@ -26400,11 +26400,7 @@ components:
         title:
           type: string
         riskAnalysisForm:
-          description: |
-            Optional in the purpose model, but a purpose cannot exist without a risk analysis.
-            There is no practical use in letting the user remove it, we don't make it nullable.
-          allOf:
-            - $ref: "#/components/schemas/RiskAnalysisFormSeed"
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
         dailyCalls:
           description: Maximum number of daily calls that this version can perform
           type: integer
