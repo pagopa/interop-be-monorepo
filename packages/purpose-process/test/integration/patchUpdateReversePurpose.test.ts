@@ -45,6 +45,7 @@ import {
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   eserviceNotFound,
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeDelegationNotFound,
   purposeNotFound,
@@ -253,7 +254,7 @@ describe("patchUpdateReversePurpose", () => {
       dailyCalls: undefined, // This keeps the existing dailyCalls, same as not setting it
     },
     { dailyCalls: 99 },
-    { isFreeOfCharge: false },
+    { isFreeOfCharge: false, freeOfChargeReason: null },
     { freeOfChargeReason: "updated freeOfChargeReason" },
     { isFreeOfCharge: true, freeOfChargeReason: "updated freeOfChargeReason" },
     {
@@ -292,7 +293,9 @@ describe("patchUpdateReversePurpose", () => {
         description: seed.description ?? draftPurpose.description,
         isFreeOfCharge: seed.isFreeOfCharge ?? draftPurpose.isFreeOfCharge,
         freeOfChargeReason:
-          seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
+          seed.freeOfChargeReason === null
+            ? undefined
+            : seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
         versions: [
           {
             ...draftPurpose.versions[0],
@@ -403,6 +406,31 @@ describe("patchUpdateReversePurpose", () => {
           })
         )
       ).rejects.toThrowError(missingFreeOfChargeReason());
+    }
+  );
+
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    `Should throw invalidFreeOfChargeReason if isFreeOfCharge is set to false
+    and freeOfChargeReason is defined (seed #%#)`,
+    async ({ freeOfChargeReason }) => {
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await addOnePurpose(draftPurpose);
+      await addOneEService(eservice);
+      expect(
+        purposeService.patchUpdateReversePurpose(
+          draftPurpose.id,
+          {
+            isFreeOfCharge: false,
+            freeOfChargeReason,
+          },
+          getMockContextM2MAdmin({
+            organizationId: consumer.id,
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(false, freeOfChargeReason)
+      );
     }
   );
 

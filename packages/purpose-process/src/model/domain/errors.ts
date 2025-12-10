@@ -56,6 +56,7 @@ export const errorCodes = {
   riskAnalysisVersionMismatch: "0037",
   invalidPersonalData: "0038",
   purposeDraftVersionNotFound: "0039",
+  invalidFreeOfChargeReason: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -472,5 +473,16 @@ export function invalidPersonalData(
     }`,
     code: "invalidPersonalData",
     title: "Invalid personal data",
+  });
+}
+
+export function invalidFreeOfChargeReason(
+  isFreeOfCharge: boolean,
+  freeOfChargeReason: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid freeOfChargeReason: "${freeOfChargeReason}" for isFreeOfCharge: "${isFreeOfCharge}"`,
+    code: "invalidFreeOfChargeReason",
+    title: "Invalid free of charge reason",
   });
 }

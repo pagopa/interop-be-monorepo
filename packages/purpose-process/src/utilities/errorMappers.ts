@@ -74,6 +74,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
       "eServiceModeNotAllowed",
+      "invalidFreeOfChargeReason",
       "missingFreeOfChargeReason",
       "riskAnalysisValidationFailed",
       "purposeNotInDraftState",
@@ -159,6 +160,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
+      "invalidFreeOfChargeReason",
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
@@ -180,6 +182,7 @@ export const createReversePurposeErrorMapper = (
       "eserviceNotFound",
       "eServiceModeNotAllowed",
       "eserviceRiskAnalysisNotFound",
+      "invalidFreeOfChargeReason",
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",

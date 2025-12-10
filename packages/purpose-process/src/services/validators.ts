@@ -35,6 +35,7 @@ import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
+  invalidFreeOfChargeReason,
   invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
@@ -113,6 +114,10 @@ export const assertConsistentFreeOfCharge = (
 ): void => {
   if (isFreeOfCharge && !freeOfChargeReason) {
     throw missingFreeOfChargeReason();
+  }
+
+  if (!isFreeOfCharge && typeof freeOfChargeReason === "string") {
+    throw invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason);
   }
 };
 

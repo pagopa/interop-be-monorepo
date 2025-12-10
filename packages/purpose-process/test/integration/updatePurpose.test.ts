@@ -53,6 +53,7 @@ import {
   duplicatedPurposeTitle,
   tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
+  invalidFreeOfChargeReason,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -755,6 +756,29 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    "Should throw invalidFreeOfChargeReason if isFreeOfCharge is false and freeOfChargeReason is defined (seed #%#)",
+    async ({ freeOfChargeReason }) => {
+      await addOnePurpose(purposeForDeliver);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const isFreeOfCharge = false;
+      expect(
+        purposeService.updatePurpose(
+          purposeForDeliver.id,
+          {
+            ...purposeUpdateContent,
+            isFreeOfCharge,
+            freeOfChargeReason,
+          },
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
+      );
+    }
+  );
   it("Should throw tenantNotFound if the tenant does not exist", async () => {
     await addOnePurpose(purposeForDeliver);
     await addOneEService(eServiceDeliver);
