@@ -1,9 +1,9 @@
 {
-  "name": "pagopa-interop-email-notification-digest",
+  "name": "pagopa-interop-email-digest-dispatcher",
   "private": true,
   "version": "1.0.0",
   "license": "MPL-2.0",
-  "description": "PagoPA Interoperability Email Notification Digest",
+  "description": "PagoPA Interoperability Email Notification Digest Dispatcher",
   "main": "dist",
   "type": "module",
   "scripts": {
