@@ -7,19 +7,13 @@ import {
   readModelServiceBuilder,
   DigestUser,
 } from "./services/readModelService.js";
-import { TenantDigestData } from "./services/digestDataService.js";
 import { digestDataServiceBuilder } from "./services/digestDataService.js";
 import { digestTemplateServiceBuilder } from "./services/templateService.js";
-import {
-  emailProducerServiceBuilder,
-  createDigestEmailPayload,
-} from "./services/emailProducerService.js";
+import { emailProducerServiceBuilder } from "./services/emailProducerService.js";
 import { makeDigestTrackingDbConnection } from "./model/digestTrackingDb.js";
 import { digestTrackingServiceBuilder } from "./services/digestTrackingService.js";
-import {
-  createResultsCollector,
-  ProcessResult,
-} from "./utils/resultsCollector.js";
+import { createResultsCollector } from "./utils/resultsCollector.js";
+import { processUserWithTenantData } from "./utils/processUserWithTenantData.js";
 
 const correlationId = generateId<CorrelationId>();
 const log = logger({
@@ -60,53 +54,6 @@ try {
 
   log.info(`Grouped into ${usersByTenant.size} tenants`);
 
-  const processUserWithTenantData = async (
-    user: DigestUser,
-    tenantData: TenantDigestData,
-    emailBody: string
-  ): Promise<ProcessResult> => {
-    try {
-      log.info(
-        `Processing digest for user ${user.userId} of tenant ${user.tenantId}`
-      );
-
-      const hasReceivedRecently =
-        await trackingService.hasReceivedDigestRecently(
-          user.userId,
-          user.tenantId,
-          config.digestFrequencyDays
-        );
-
-      if (hasReceivedRecently) {
-        log.info(
-          `User ${user.userId} already received digest in last ${config.digestFrequencyDays} days, skipping`
-        );
-        return "skipped";
-      }
-
-      const payload = createDigestEmailPayload(
-        user.userId,
-        tenantData.tenantId,
-        emailBody,
-        correlationId
-      );
-
-      await trackingService.recordDigestSent(user.userId, user.tenantId);
-
-      await emailProducerService.sendDigestEmail(payload, log);
-
-      log.info(`Successfully processed digest for user ${user.userId}`);
-      return "processed";
-    } catch (userError) {
-      // Per-user error: log and continue to next user
-      // No DB write happened = user will be retried next run
-      log.error(
-        `Error processing digest for user ${user.userId} of tenant ${user.tenantId}: ${userError}`
-      );
-      return "error";
-    }
-  };
-
   const resultsCollector = createResultsCollector();
 
   for (const [tenantId, users] of usersByTenant) {
@@ -128,7 +75,12 @@ try {
       const result = await processUserWithTenantData(
         user,
         tenantData,
-        emailBody
+        emailBody,
+        log,
+        trackingService,
+        emailProducerService,
+        correlationId,
+        config.digestFrequencyDays
       );
       resultsCollector.add(result);
     }
