@@ -142,7 +142,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
     ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
-  it("should send notifications to remaining key owners when a key is deleted", async () => {
+  it("should send notifications to remaining users when a key is deleted", async () => {
     // key1 has been deleted, so producerKeychain only has key2 and key3
     const producerKeychainAfterDeletion: ProducerKeychain = {
       ...producerKeychain,
@@ -160,23 +160,23 @@ describe("handleProducerKeychainKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    // Should send to userId2 and userId3 (remaining key owners), not userId1 (deleted key owner)
+    // Should send to userId2 and userId3 (remaining users), not userId1 (deleted key)
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
       )
-    ).toBe(false); // userId1 - deleted key owner
+    ).toBe(false);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[1].id
       )
-    ).toBe(true); // userId2 - remaining key owner
+    ).toBe(true);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[2].id
       )
-    ).toBe(true); // userId3 - remaining key owner
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -208,23 +208,23 @@ describe("handleProducerKeychainKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    // Only userId3 has notifications enabled and still has a key
+    // Only userId3 has notifications enabled and still is part of producerKeychain
     expect(messages.length).toEqual(1);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
       )
-    ).toBe(false); // userId1 - deleted key owner
+    ).toBe(false);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[1].id
       )
-    ).toBe(false); // userId2 - notifications disabled
+    ).toBe(false);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[2].id
       )
-    ).toBe(true); // userId3 - has notifications enabled and still has key3
+    ).toBe(true);
   });
 
   it("should generate a complete and correct message", async () => {
