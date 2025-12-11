@@ -33,6 +33,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getEServiceM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/DelegationId"
@@ -71,6 +72,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getAgreementM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/DelegationId"
@@ -109,6 +111,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getPurposeM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/DelegationId"
@@ -147,6 +150,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getTenantM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -184,6 +188,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getAttributeM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -221,6 +226,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getConsumerDelegationM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -258,6 +264,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getProducerDelegationM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -295,6 +302,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getClientM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -332,6 +340,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getProducerKeychainM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -369,6 +378,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getKeyM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -406,6 +416,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getProducerKeyM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -443,6 +454,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getEServiceTemplateM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -518,10 +530,9 @@ components:
             (public resources, resources accessible as consumer/producer, owned resources, etc.)
       required: false
       schema:
-        oneOf:
-          - type: "null"
-          - type: string
-            format: uuid
+        type: string
+        format: uuid
+        nullable: true
     CorrelationIdHeader:
       in: header
       name: X-Correlation-Id

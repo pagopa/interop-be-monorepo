@@ -222,12 +222,21 @@ export function agreementServiceBuilder(
         path: storagePath,
       };
 
-      await agreementProcessClient.addAgreementConsumerDocument(seed, {
-        params: { agreementId },
-        headers,
-      });
+      try {
+        await agreementProcessClient.addAgreementConsumerDocument(seed, {
+          params: { agreementId },
+          headers,
+        });
 
-      return documentContent;
+        return documentContent;
+      } catch (error) {
+        await fileManager.delete(
+          config.consumerDocumentsContainer,
+          storagePath,
+          logger
+        );
+        throw error;
+      }
     },
 
     async getAgreementConsumerDocument(
