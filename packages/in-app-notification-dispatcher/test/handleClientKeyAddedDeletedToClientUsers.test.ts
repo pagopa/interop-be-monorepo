@@ -181,7 +181,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
   });
 
   describe("ClientKeyDeleted event", () => {
-    it("should generate notifications for remaining key owners after deletion", async () => {
+    it("should generate notifications for remaining client users after deletion", async () => {
       // key1 has been deleted, so client only has key2 and key3
       const clientAfterDeletion: Client = {
         ...client,
@@ -198,14 +198,14 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         log_date: new Date(),
         data: {
           client: toClientV2(clientAfterDeletion),
-          kid: key1.kid, // key1 (userId1's key) was deleted
+          kid: key1.kid, // key1 was deleted
         },
       };
 
       const userNotificationConfigs = [
-        { userId: userId1, tenantId: consumerId }, // Deleted key owner - should NOT receive notification
-        { userId: userId2, tenantId: consumerId }, // Still has key2 - should receive notification
-        { userId: userId3, tenantId: consumerId }, // Still has key3 - should receive notification
+        { userId: userId1, tenantId: consumerId },
+        { userId: userId2, tenantId: consumerId },
+        { userId: userId3, tenantId: consumerId },
       ];
 
       mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
@@ -216,7 +216,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         readModelService
       );
 
-      // Should include only users who still have keys (userId2 and userId3)
+      // Should include only users that are part of the client (userId2 and userId3)
       expect(notifications).toHaveLength(2);
 
       const expectedBody = inAppTemplates.clientKeyDeletedToClientUsers(
@@ -252,7 +252,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
       expect(userIds).toContain(userId3); // Remaining key owner
     });
 
-    it("should only notify users who still have keys after deletion", async () => {
+    it("should only notify users who still are part of client after deletion", async () => {
       // key3 has been deleted, so client only has key1 and key2
       const clientAfterDeletion: Client = {
         ...client,
@@ -286,7 +286,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         readModelService
       );
 
-      // Should include both userId1 and userId2 who still have keys
+      // Should include both userId1 and userId2 who still are part of the client
       expect(notifications).toHaveLength(2);
 
       const userIds = notifications.map((n) => n.userId);

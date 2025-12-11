@@ -52,7 +52,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   return match(decodedMessage)
     .with({ type: "ProducerKeychainKeyDeleted" }, ({ data: { kid } }) =>
       usersWithNotifications
-        .filter(({ userId }) => producerKeychain.users.includes(userId)) // Send to remaining key owners
+        .filter(({ userId }) => producerKeychain.users.includes(userId)) // Send to remaining users
         .map(({ userId, tenantId }) => ({
           userId,
           tenantId,
