@@ -215,6 +215,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
       // key1 has been deleted, so producerKeychain only has key2 and key3
       const producerKeychainAfterDeletion = {
         ...producerKeychain,
+        users: [userId2, userId3],
         keys: [key2, key3],
       };
 
