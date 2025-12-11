@@ -211,7 +211,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
   });
 
   describe("ProducerKeychainKeyDeleted event", () => {
-    it("should generate notifications for remaining key owners after deletion", async () => {
+    it("should generate notifications for remaining producerKeychain users after deletion", async () => {
       // key1 has been deleted, so producerKeychain only has key2 and key3
       const producerKeychainAfterDeletion = {
         ...producerKeychain,
@@ -233,9 +233,9 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
       };
 
       const userNotificationConfigs = [
-        { userId: userId1, tenantId: producerId }, // Deleted key owner - should NOT receive
-        { userId: userId2, tenantId: producerId }, // Still has key2 - should receive
-        { userId: userId3, tenantId: producerId }, // Still has key3 - should receive
+        { userId: userId1, tenantId: producerId },
+        { userId: userId2, tenantId: producerId },
+        { userId: userId3, tenantId: producerId },
       ];
 
       mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
@@ -277,11 +277,11 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
         expect.arrayContaining(expectedNotifications)
       );
 
-      // Verify deleted key owner is NOT included, but remaining key owners are
+      // Verify remaining key owners are included
       const userIds = notifications.map((n) => n.userId);
-      expect(userIds).not.toContain(userId1); // Deleted key owner
-      expect(userIds).toContain(userId2); // Remaining key owner
-      expect(userIds).toContain(userId3); // Remaining key owner
+      expect(userIds).not.toContain(userId1);
+      expect(userIds).toContain(userId2);
+      expect(userIds).toContain(userId3);
     });
 
     it("should only notify users who still have keys after deletion", async () => {
