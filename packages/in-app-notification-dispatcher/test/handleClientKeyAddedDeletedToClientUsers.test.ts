@@ -12,6 +12,8 @@ import {
   UserId,
   AuthorizationEventEnvelopeV2,
   toClientV2,
+  Key,
+  Client,
 } from "pagopa-interop-models";
 import { handleClientKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleClientKeyAddedDeletedToClientUsers.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -25,25 +27,25 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
   const userId2 = generateId<UserId>();
   const userId3 = generateId<UserId>();
 
-  const key1 = {
+  const key1: Key = {
     ...getMockKey(),
     userId: userId1,
     kid: "key1-kid",
   };
 
-  const key2 = {
+  const key2: Key = {
     ...getMockKey(),
     userId: userId2,
     kid: "key2-kid",
   };
 
-  const key3 = {
+  const key3: Key = {
     ...getMockKey(),
     userId: userId3,
     kid: "key3-kid",
   };
 
-  const client = {
+  const client: Client = {
     ...getMockClient({
       consumerId,
       users: [userId1, userId2, userId3],
@@ -181,7 +183,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
   describe("ClientKeyDeleted event", () => {
     it("should generate notifications for remaining key owners after deletion", async () => {
       // key1 has been deleted, so client only has key2 and key3
-      const clientAfterDeletion = {
+      const clientAfterDeletion: Client = {
         ...client,
         keys: [key2, key3], // key1 is no longer in the client
       };
@@ -251,7 +253,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
 
     it("should only notify users who still have keys after deletion", async () => {
       // key3 has been deleted, so client only has key1 and key2
-      const clientAfterDeletion = {
+      const clientAfterDeletion: Client = {
         ...client,
         keys: [key1, key2], // key3 is no longer in the client
       };
@@ -456,7 +458,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
 
     it("should use correct template for ClientKeyDeleted", async () => {
       // key1 has been deleted, so client only has key2 and key3
-      const clientAfterDeletion = {
+      const clientAfterDeletion: Client = {
         ...client,
         keys: [key2, key3],
       };
