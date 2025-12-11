@@ -1,0 +1,201 @@
+/* Load fonts */
+@font-face {
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-Regular.ttf") format("truetype");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-Medium.ttf") format("truetype");
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("../assets/font/Montserrat-Bold.ttf") format("truetype");
+  font-weight: 700;
+}
+
+@page {
+  margin: 2.5cm 2cm 3.5cm 2cm;
+  size: a4;
+
+  @top-center {
+    content: element(header);
+    vertical-align: top;
+  }
+
+  @bottom-center {
+    content: element(footer);
+    vertical-align: bottom;
+  }
+}
+
+.header {
+  position: running(header);
+}
+
+.footer {
+  position: running(footer);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Montserrat", arial, sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  margin: 0;
+}
+
+.header img {
+  width: 85px;
+}
+
+.header {
+  margin-top: 48px;
+}
+
+h1 {
+  font-size: 14px;
+  line-height: 16px;
+  margin: 0 0 16px;
+  font-weight: 700;
+}
+
+.purpose-template-info {
+  margin: 16px 0;
+}
+
+.purpose-template-info .label {
+  float: left;
+}
+
+.purpose-template-info .label,
+.purpose-template-info .value {
+  width: 50%;
+  display: inline-block;
+}
+
+.purpose-template-info .value {
+  font-weight: 600;
+}
+
+.purpose-template-answers .item {
+  position: relative;
+  margin: 16px 0;
+}
+
+.purpose-template-answers .item .answer-label {
+  font-weight: 600;
+}
+
+.purpose-template-answers .item .suggested-values .title {
+  font-weight: 600;
+}
+
+.purpose-template-answers .item .suggested-values .suggested-value-list {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 24px;
+}
+.purpose-template-answers .item .suggested-values .option-label {
+  font-weight: 600;
+}
+
+.purpose-template-answers .item .doc {
+  font-weight: 600;
+}
+
+.free-of-charge label {
+  font-style: italic;
+}
+
+.free-of-charge .value {
+  font-weight: 600;
+}
+
+.free-of-charge .item {
+  margin: 16px 0;
+}
+
+.free-of-charge .item-not-visible {
+  display: none;
+}
+
+.purpose-template-answers .info-label {
+  font-style: italic;
+}
+
+.purpose-template-answers .answer {
+  font-weight: 600;
+}
+
+.footer hr {
+  border: 0;
+  border-top: 1px solid #e3e7eb;
+  margin: 8px 0;
+  padding: 0;
+  height: 1px;
+}
+
+.footer .page-number:after {
+  content: counter(page) " di " counter(pages);
+  color: #898989;
+}
+
+.footer .pagopa {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.footer .pagopa-data {
+  color: #475a6d;
+  display: inline-block;
+}
+
+.footer .pictogram {
+  float: right;
+}
+
+.footer {
+  margin-bottom: 12px;
+  font-size: 6px;
+  line-height: 7.5px;
+}
+
+.release-date {
+  margin: 32px 0;
+}
+
+.release-date::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.release-date .date {
+  float: left;
+}
+
+.release-date .date {
+  display: inline-block;
+  width: 50%;
+}
