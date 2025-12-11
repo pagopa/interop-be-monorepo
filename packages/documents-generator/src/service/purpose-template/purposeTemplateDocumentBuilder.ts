@@ -7,6 +7,7 @@ import {
   dataType,
   dateAtRomeZone,
   incompatibleConfigError,
+  unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
 } from "pagopa-interop-commons";
 import {
   PurposeTemplate,
@@ -103,8 +104,9 @@ function getSingleAnswerText(
   return match(questionRules)
     .with({ dataType: dataType.freeText }, () => {
       if (answer.value) {
-        // TODO: change error
-        throw new Error("Free text answers should not have a value. ");
+        throw unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          questionRules.id
+        );
       }
       return NO_ANSWER;
     })
