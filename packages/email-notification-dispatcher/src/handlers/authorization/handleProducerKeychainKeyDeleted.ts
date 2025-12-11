@@ -47,9 +47,6 @@ export async function handleProducerKeychainKeyDeleted(
     retrieveTenant(producerKeychain.producerId, readModelService),
   ]);
 
-  // Get remaining key owners (the deleted key is no longer in producerKeychain.keys)
-  const remainingKeyOwnerIds = producerKeychain.keys.map((k) => k.userId);
-
   const targets = (
     await getRecipientsForTenants({
       tenants: [producer],
@@ -60,7 +57,7 @@ export async function handleProducerKeychainKeyDeleted(
     })
   ).filter(
     (target) =>
-      target.type !== "User" || remainingKeyOwnerIds.includes(target.userId)
+      target.type !== "User" || producerKeychain.users.includes(target.userId)
   );
 
   if (targets.length === 0) {
