@@ -1,23 +1,37 @@
+import { fileURLToPath } from "url";
+import path from "path";
 import Handlebars from "handlebars";
 import {
+  FileManager,
   FormQuestionRules,
   LocalizedText,
+  PDFGenerator,
   RiskAnalysisFormRules,
   answerNotFoundInConfigError,
   dataType,
+  Logger,
   dateAtRomeZone,
+  formatDateyyyyMMddHHmmss,
+  getFormRulesByVersion,
   incompatibleConfigError,
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
 } from "pagopa-interop-commons";
 import {
+  generateId,
   PurposeTemplate,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
+  TenantKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTemplateModels.js";
+import { DocumentsGeneratorConfig } from "../../config/config.js";
+import {
+  missingRiskAnalysis,
+  riskAnalysisConfigVersionNotFound,
+} from "../../model/errors.js";
 
 const YES = "Sì";
 const NO = "No";
@@ -25,11 +39,100 @@ const YES_PERSONAL_DATA = "Sì, tratta dati personali";
 const NO_PERSONAL_DATA = "No, non tratta dati personali";
 const NOT_AVAILABLE = "N/A";
 const NO_ANSWER = "-";
+const CONTENT_TYPE_PDF = "application/pdf";
 
 type Language = keyof LocalizedText;
 
-// TODO: remove export
-export const getPdfPayload = ({
+const createRiskAnalysisTemplateDocumentName = (): string =>
+  `${formatDateyyyyMMddHHmmss(
+    new Date()
+  )}_${generateId()}_risk_analysis_template.pdf`;
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const riskAnalysisTemplateDocumentBuilder = (
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager,
+  config: DocumentsGeneratorConfig,
+  logger: Logger
+) => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+
+  return {
+    createRiskAnalysisTemplateDocument: async (
+      purposeTemplate: PurposeTemplate,
+      creatorName: string,
+      creatorIPACode: string | undefined,
+      tenantKind: TenantKind,
+      language: Language
+    ): Promise<PurposeVersionDocument> => {
+      const templateFilePath = path.resolve(
+        dirname,
+        "../..",
+        "resources/purpose-template",
+        "purposeTemplateRiskAnalysisTemplate.html"
+      );
+
+      if (!purposeTemplate.purposeRiskAnalysisForm) {
+        throw missingRiskAnalysis(purposeTemplate.id);
+      }
+
+      const riskAnalysisVersion =
+        purposeTemplate.purposeRiskAnalysisForm.version;
+
+      const riskAnalysisFormConfig = getFormRulesByVersion(
+        tenantKind,
+        riskAnalysisVersion
+      );
+
+      if (!riskAnalysisFormConfig) {
+        throw riskAnalysisConfigVersionNotFound(
+          riskAnalysisVersion,
+          tenantKind
+        );
+      }
+
+      const pdfPayload = getPdfPayload({
+        riskAnalysisFormConfig,
+        purposeTemplate,
+        riskAnalysisFormTemplate: purposeTemplate.purposeRiskAnalysisForm,
+        creatorName,
+        creatorIPACode,
+        purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason,
+        language,
+      });
+
+      const pdfBuffer: Buffer = await pdfGenerator.generate(
+        templateFilePath,
+        pdfPayload
+      );
+
+      const documentId = generateId<PurposeVersionDocumentId>();
+      const documentName = createRiskAnalysisTemplateDocumentName();
+
+      const documentPath = await fileManager.resumeOrStoreBytes(
+        {
+          bucket: config.s3Bucket,
+          path: config.riskAnalysisTemplateDocumentsPath,
+          resourceId: documentId,
+          name: documentName,
+          content: pdfBuffer,
+        },
+        logger
+      );
+
+      return {
+        id: documentId,
+        contentType: CONTENT_TYPE_PDF,
+        path: documentPath,
+        createdAt: new Date(),
+      };
+    },
+  };
+};
+
+const getPdfPayload = ({
   riskAnalysisFormConfig,
   purposeTemplate,
   riskAnalysisFormTemplate,
