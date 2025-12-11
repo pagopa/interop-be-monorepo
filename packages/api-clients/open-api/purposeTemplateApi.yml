@@ -217,7 +217,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: id
         in: path
-        description: the purpose template id
+        description: the Purpose Template Id
         required: true
         schema:
           type: string
@@ -1160,12 +1160,86 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - purposeTemplate
+      summary: Get a Risk Analysis Template unsigned document
+      description: Retrieve a risk analysis Template unsigned document
+      operationId: getRiskAnalysisTemplateDocument
+      responses:
+        "200":
+          description: Risk Analysis Template unsigned document retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateDocument"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument/signed:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - purposeTemplate
+      summary: Get a Risk Analysis Template signed document
+      description: Retrieve a Risk Analysis Template signed document
+      operationId: getRiskAnalysisTemplateSignedDocument
+      responses:
+        "200":
+          description: Risk Analysis Template signed document retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateSignedDocument"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /internal/purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeTemplateId
         in: path
-        description: The purpose template id
+        description: The Purpose Template Id
         required: true
         schema:
           type: string
@@ -1209,7 +1283,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeTemplateId
         in: path
-        description: The purpose template id
+        description: The Purpose Template Id
         required: true
         schema:
           type: string
