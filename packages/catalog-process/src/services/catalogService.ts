@@ -17,11 +17,11 @@ import {
   WithLogger,
   formatDateddMMyyyyHHmmss,
   assertFeatureFlagEnabled,
-  isFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -177,6 +177,9 @@ import {
   assertEServiceUpdatableAfterPublish,
   hasRoleToAccessInactiveDescriptors,
   assertEServiceNameNotConflictingWithTemplate,
+  assertUpdatedNameDiffersFromCurrent,
+  assertUpdatedDescriptionDiffersFromCurrent,
+  descriptorStatesNotAllowingInterfaceOperations,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -484,15 +487,6 @@ export async function parseAndCheckAttributes(
   };
 }
 
-function isTenantInSignalHubWhitelist(
-  organizationId: TenantId,
-  isSignalHubEnabled: boolean | undefined
-): boolean | undefined {
-  return config.signalhubWhitelistProducer?.includes(organizationId)
-    ? isSignalHubEnabled
-    : false;
-}
-
 async function innerCreateEService(
   {
     seed,
@@ -539,15 +533,7 @@ async function innerCreateEService(
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: template?.riskAnalysis ?? [],
-    isSignalHubEnabled: isFeatureFlagEnabled(
-      config,
-      "featureFlagSignalhubWhitelist"
-    )
-      ? isTenantInSignalHubWhitelist(
-          authData.organizationId,
-          seed.isSignalHubEnabled
-        )
-      : seed.isSignalHubEnabled,
+    isSignalHubEnabled: seed.isSignalHubEnabled,
     isConsumerDelegable: seed.isConsumerDelegable,
     isClientAccessDelegable: match(seed.isConsumerDelegable)
       .with(P.nullish, () => undefined)
@@ -633,16 +619,26 @@ async function innerAddDocumentToEserviceEvent(
 }> {
   const descriptor = retrieveDescriptor(descriptorId, eService);
 
-  if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
+  const isInterface = documentSeed.kind === "INTERFACE";
+  const isDocument = documentSeed.kind === "DOCUMENT";
+
+  if (
+    isInterface &&
+    descriptorStatesNotAllowingInterfaceOperations(descriptor)
+  ) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 
-  if (documentSeed.kind === "INTERFACE" && descriptor.interface !== undefined) {
+  if (isInterface && descriptor.interface !== undefined) {
     throw interfaceAlreadyExists(descriptor.id);
   }
 
+  if (isDocument && descriptorStatesNotAllowingDocumentOperations(descriptor)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+
   if (
-    documentSeed.kind === "DOCUMENT" &&
+    isDocument &&
     descriptor.docs.some(
       (d) =>
         d.prettyName.toLowerCase() === documentSeed.prettyName.toLowerCase()
@@ -652,13 +648,12 @@ async function innerAddDocumentToEserviceEvent(
   }
 
   if (
-    documentSeed.kind === "DOCUMENT" &&
+    isDocument &&
     descriptor.docs.some((d) => d.checksum === documentSeed.checksum)
   ) {
     throw checksumDuplicate(eService.data.id, descriptor.id);
   }
 
-  const isInterface = documentSeed.kind === "INTERFACE";
   const createdDocument: Document = {
     id: unsafeBrandId(documentSeed.documentId),
     name: documentSeed.fileName,
@@ -682,27 +677,26 @@ async function innerAddDocumentToEserviceEvent(
     updatedDescriptor
   );
 
-  const event =
-    documentSeed.kind === "INTERFACE"
-      ? toCreateEventEServiceInterfaceAdded(
-          eService.data.id,
-          eService.metadata.version,
-          {
-            descriptorId,
-            documentId: unsafeBrandId(documentSeed.documentId),
-            eservice: updatedEService,
-          },
-          ctx.correlationId
-        )
-      : toCreateEventEServiceDocumentAdded(
-          eService.metadata.version,
-          {
-            descriptorId,
-            documentId: unsafeBrandId(documentSeed.documentId),
-            eservice: updatedEService,
-          },
-          ctx.correlationId
-        );
+  const event = isInterface
+    ? toCreateEventEServiceInterfaceAdded(
+        eService.data.id,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId: unsafeBrandId(documentSeed.documentId),
+          eservice: updatedEService,
+        },
+        ctx.correlationId
+      )
+    : toCreateEventEServiceDocumentAdded(
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId: unsafeBrandId(documentSeed.documentId),
+          eservice: updatedEService,
+        },
+        ctx.correlationId
+      );
 
   return {
     eService: updatedEService,
@@ -921,14 +915,11 @@ export function catalogServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: eService,
-        metadata: { version: newVersion },
+        metadata: {
+          version: createdEvents.latestNewVersions.get(eService.id) ?? 0,
+        },
       };
     },
 
@@ -984,12 +975,7 @@ export function catalogServiceBuilder(
 
       const updatedEService: EService = {
         ...eservice.data,
-        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
-          ? isTenantInSignalHubWhitelist(
-              authData.organizationId,
-              eserviceSeed.isSignalHubEnabled
-            )
-          : eserviceSeed.isSignalHubEnabled,
+        isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
@@ -1230,6 +1216,15 @@ export function catalogServiceBuilder(
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
 
+      const isInterface = document.id === descriptor?.interface?.id;
+
+      if (
+        isInterface &&
+        descriptorStatesNotAllowingInterfaceOperations(descriptor)
+      ) {
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
+      }
+
       if (
         descriptor.docs.some(
           (d) =>
@@ -1249,7 +1244,6 @@ export function catalogServiceBuilder(
         prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
       };
 
-      const isInterface = document.id === descriptor?.interface?.id;
       const newEservice: EService = {
         ...eservice.data,
         descriptors: eservice.data.descriptors.map((d: Descriptor) =>
@@ -1406,17 +1400,16 @@ export function catalogServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: {
           eservice: updatedEServiceWithDocs,
           createdDescriptorId: newDescriptor.id,
         },
-        metadata: { version: newVersion },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedEServiceWithDocs.id) ??
+            0,
+        },
       };
     },
 
@@ -2405,6 +2398,8 @@ export function catalogServiceBuilder(
         description,
       };
 
+      assertUpdatedDescriptionDiffersFromCurrent(description, eservice.data);
+
       const event = await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(
           eservice.metadata.version,
@@ -2564,14 +2559,12 @@ export function catalogServiceBuilder(
       if (events) {
         const createdEvents = await repository.createEvents(events);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedEservice,
-          metadata: { version: newVersion },
+          metadata: {
+            version:
+              createdEvents.latestNewVersions.get(updatedEservice.id) ?? 0,
+          },
         };
       }
       return eservice;
@@ -2589,6 +2582,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      assertUpdatedNameDiffersFromCurrent(name, eservice.data);
       assertEServiceNotTemplateInstance(
         eservice.data.id,
         eservice.data.templateId
@@ -4117,15 +4111,7 @@ async function updateDraftEService(
           serverUrls: [],
         }))
       : eservice.data.descriptors,
-    isSignalHubEnabled: isFeatureFlagEnabled(
-      config,
-      "featureFlagSignalhubWhitelist"
-    )
-      ? isTenantInSignalHubWhitelist(
-          authData.organizationId,
-          updatedIsSignalHubEnabled
-        )
-      : updatedIsSignalHubEnabled,
+    isSignalHubEnabled: updatedIsSignalHubEnabled,
     isConsumerDelegable: updatedIsConsumerDelegable,
     isClientAccessDelegable: match(updatedIsConsumerDelegable)
       .with(P.nullish, () => undefined)

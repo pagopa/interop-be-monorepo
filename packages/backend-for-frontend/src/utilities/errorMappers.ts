@@ -102,6 +102,14 @@ export const getAgreementContractErrorMapper = (
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getAgreementSignedContractErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("contractException", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const activateAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -283,4 +291,11 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
       "tenantNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addPurposeTemplateAnnotationDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("invalidContentTypeDetected", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

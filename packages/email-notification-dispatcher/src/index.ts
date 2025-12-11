@@ -21,6 +21,7 @@ import {
   AuthorizationEventV2,
   EmailNotificationMessagePayload,
   TenantEventV2,
+  EServiceTemplateEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -44,6 +45,7 @@ import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 import { HandlerParams } from "./models/handlerParams.js";
 import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
 import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -52,6 +54,7 @@ interface TopicNames {
   delegationTopic: string;
   authorizationTopic: string;
   tenantTopic: string;
+  eserviceTemplateTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
@@ -86,7 +89,7 @@ const templateService = buildHTMLTemplateService();
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 function registerPartial(name: string, path: string): void {
-  const buffer = fs.readFileSync(`${dirname}/..${path}`);
+  const buffer = fs.readFileSync(`${dirname}/${path}`);
   templateService.registerPartial(name, buffer.toString());
 }
 
@@ -108,6 +111,7 @@ function processMessage(topicHandlers: TopicNames) {
       delegationTopic,
       authorizationTopic,
       tenantTopic,
+      eserviceTemplateTopic,
     } = topicHandlers;
 
     const handleWith = <T extends z.ZodType>(
@@ -164,6 +168,9 @@ function processMessage(topicHandlers: TopicNames) {
       .with(tenantTopic, async () =>
         handleWith(TenantEventV2, handleTenantEvent)
       )
+      .with(eserviceTemplateTopic, async () =>
+        handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
+      )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -183,6 +190,7 @@ await runConsumer(
     config.delegationTopic,
     config.authorizationTopic,
     config.tenantTopic,
+    config.eserviceTemplateTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
@@ -191,5 +199,6 @@ await runConsumer(
     delegationTopic: config.delegationTopic,
     authorizationTopic: config.authorizationTopic,
     tenantTopic: config.tenantTopic,
+    eserviceTemplateTopic: config.eserviceTemplateTopic,
   })
 );

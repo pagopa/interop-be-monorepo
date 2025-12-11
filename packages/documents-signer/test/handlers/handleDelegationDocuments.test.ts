@@ -63,16 +63,18 @@ describe("handleDelegationDocument", () => {
     );
     expect(safeStorageServiceMock.createFile).toHaveBeenCalledWith(
       expect.objectContaining({
-        contentType: "application/gzip",
+        contentType: "application/pdf",
         checksumValue: "fake-checksum",
-      })
+      }),
+      expect.any(Object)
     );
     expect(safeStorageServiceMock.uploadFileContent).toHaveBeenCalledWith(
       uploadUrl,
       Buffer.from(fileContent),
       "application/pdf",
       secret,
-      "fake-checksum"
+      "fake-checksum",
+      expect.any(Object)
     );
     expect(
       signatureServiceMock.saveDocumentSignatureReference
@@ -88,7 +90,8 @@ describe("handleDelegationDocument", () => {
         createdAt: BigInt(123432),
         prettyname: undefined,
         contentType: "application/pdf",
-      })
+      }),
+      expect.any(Object)
     );
   });
 

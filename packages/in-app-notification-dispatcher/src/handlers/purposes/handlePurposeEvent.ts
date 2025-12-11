@@ -5,6 +5,9 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
+import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
+import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
+import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 
 export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelopeV2,
@@ -47,19 +50,46 @@ export async function handlePurposeEvent(
       {
         type: P.union("PurposeVersionActivated", "PurposeVersionRejected"),
       },
-      ({ data: { purpose }, type }) =>
-        handlePurposeActivatedRejectedToConsumer(
+      async ({ data: { purpose }, type }) => [
+        ...(await handlePurposeActivatedRejectedToConsumer(
           purpose,
           logger,
           readModelService,
           type
-        )
+        )),
+        ...(await handlePurposeQuotaAdjustmentResponseToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
     )
     .with(
       {
         type: P.union(
           "NewPurposeVersionWaitingForApproval",
-          "PurposeWaitingForApproval",
+          "PurposeWaitingForApproval"
+        ),
+      },
+      async ({ data: { purpose }, type }) => [
+        ...(await handlePurposeQuotaAdjustmentRequestToProducer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )),
+        ...(await handlePurposeOverQuotaToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
+    )
+    .with(
+      {
+        type: P.union(
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
@@ -71,7 +101,8 @@ export async function handlePurposeEvent(
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisDocumentGenerated"
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => {

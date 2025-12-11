@@ -5,10 +5,12 @@ import {
   CatalogTopicConfig,
   ReadModelSQLDbConfig,
   KafkaProducerConfig,
-  EmailSenderTopicConfig,
+  EmailDispatchTopicConfig,
   DelegationTopicConfig,
   AuthorizationTopicConfig,
   TenantTopicConfig,
+  NotificationTypeBlocklistConfig,
+  EServiceTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -22,7 +24,9 @@ export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(TenantTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(ReadModelSQLDbConfig)
-  .and(EmailSenderTopicConfig);
+  .and(EmailDispatchTopicConfig)
+  .and(NotificationTypeBlocklistConfig)
+  .and(EServiceTemplateTopicConfig);
 
 export type EmailNotificationDispatcherConfig = z.infer<
   typeof EmailNotificationDispatcherConfig

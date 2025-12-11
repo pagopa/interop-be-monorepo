@@ -1,27 +1,6 @@
 import { featureFlagNotEnabled } from "pagopa-interop-models";
 import { z } from "zod";
 
-export const FeatureFlagSignalhubWhitelistConfig = z
-  .object({
-    FEATURE_FLAG_SIGNALHUB_WHITELIST: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-    SIGNALHUB_WHITELIST_PRODUCER: z
-      .string()
-      .transform((value) => value.split(","))
-      .pipe(z.array(z.string().uuid()))
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST ?? false,
-    signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
-  }));
-export type FeatureFlagSignalhubWhitelistConfig = z.infer<
-  typeof FeatureFlagSignalhubWhitelistConfig
->;
-
 export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
   .object({
     FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
@@ -130,14 +109,80 @@ export type FeatureFlagEServicePersonalDataConfig = z.infer<
   typeof FeatureFlagEServicePersonalDataConfig
 >;
 
-type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
-  FeatureFlagAgreementApprovalPolicyUpdateConfig &
+export const FeatureFlagDelegationsProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDelegationsContractBuilder:
+      c.FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagDelegationsProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagDelegationsProcessContractBuilderConfig
+>;
+
+export const FeatureFlagAgreementsProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAgreementsContractBuilder:
+      c.FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagAgreementsProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagAgreementsProcessContractBuilderConfig
+>;
+
+export const FeatureFlagPurposesProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagPurposesContractBuilder:
+      c.FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagPurposesProcessContractBuilderConfig
+>;
+
+export const FeatureFlagUseSignedDocumentConfig = z
+  .object({
+    FEATURE_FLAG_USE_SIGNED_DOCUMENT: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagUseSignedDocument: c.FEATURE_FLAG_USE_SIGNED_DOCUMENT ?? false,
+  }));
+export type FeatureFlagUseSignedDocumentConfig = z.infer<
+  typeof FeatureFlagUseSignedDocumentConfig
+>;
+
+type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
   FeatureFlagNotificationConfig &
   FeatureFlagPurposeTemplateConfig &
-  FeatureFlagEServicePersonalDataConfig;
+  FeatureFlagEServicePersonalDataConfig &
+  FeatureFlagDelegationsProcessContractBuilderConfig &
+  FeatureFlagAgreementsProcessContractBuilderConfig &
+  FeatureFlagPurposesProcessContractBuilderConfig &
+  FeatureFlagUseSignedDocumentConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

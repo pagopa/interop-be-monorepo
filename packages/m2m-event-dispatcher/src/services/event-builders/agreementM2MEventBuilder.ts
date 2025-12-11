@@ -11,6 +11,7 @@ import { Delegations } from "../../models/delegations.js";
 
 export async function createAgreementM2MEvent(
   agreement: Agreement,
+  resourceVersion: number,
   eventType: AgreementM2MEvent["eventType"],
   eventTimestamp: Date,
   delegations: Delegations
@@ -19,6 +20,7 @@ export async function createAgreementM2MEvent(
     id: generateM2MEventId(),
     eventType,
     eventTimestamp,
+    resourceVersion,
     agreementId: agreement.id,
     producerId: agreement.producerId,
     consumerId: agreement.consumerId,
@@ -32,7 +34,7 @@ export async function createAgreementM2MEvent(
 
 /**
  * Helper function to determine the visibility of an AgreementM2MEvent,
- * based on the event type; fallback to the state of the E-Service and its Descriptors if needed.
+ * based on the event type; fallback to the state of the Agreement if needed.
  */
 function getAgreementM2MEventVisibility(
   eventType: AgreementM2MEvent["eventType"],
@@ -67,7 +69,7 @@ function getAgreementM2MEventVisibility(
         "AgreementArchivedByConsumer",
         "AgreementArchivedByUpgrade",
         "AgreementArchivedByRevokedDelegation",
-        "AgreementContractGenerated"
+        "AgreementSignedContractGenerated"
       ),
       () => m2mEventVisibility.restricted
     )

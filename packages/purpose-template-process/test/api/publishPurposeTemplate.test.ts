@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import request from "supertest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
 } from "pagopa-interop-models";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PurposeTemplateValidationIssue } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
+  invalidAssociatedEServiceForPublication,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
@@ -21,6 +22,7 @@ import {
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /purposeTemplates/{id}/publish", () => {
   const purposeTemplate = getMockPurposeTemplate();
@@ -79,7 +81,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
         purposeTemplateState.suspended,
         [purposeTemplateState.draft]
       ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
@@ -90,6 +92,12 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       error: purposeTemplateStateConflict(
         generateId(),
         purposeTemplateState.published
+      ),
+      expectedStatus: 409,
+    },
+    {
+      error: invalidAssociatedEServiceForPublication(
+        expect.any(Array<PurposeTemplateValidationIssue>)
       ),
       expectedStatus: 409,
     },
@@ -105,7 +113,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
     }
   );
 
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
   it.each([
     {},
     {

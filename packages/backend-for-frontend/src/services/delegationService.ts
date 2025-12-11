@@ -24,7 +24,10 @@ import {
   InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
-import { delegationNotFound } from "../model/errors.js";
+import {
+  delegationContractNotFound,
+  delegationNotFound,
+} from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
@@ -323,6 +326,43 @@ export function delegationServiceBuilder(
         logger
       );
 
+      return Buffer.from(contractBytes);
+    },
+
+    async getDelegationSignedContract(
+      delegationId: DelegationId,
+      contractId: DelegationContractId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(
+        `Retrieving delegation signed contract from delegation ${delegationId}`
+      );
+
+      const delegation: delegationApi.Delegation =
+        await delegationClients.delegation.getDelegation({
+          params: { delegationId },
+          headers,
+        });
+
+      const { activationSignedContract, revocationSignedContract } = delegation;
+
+      const contracts = [activationSignedContract, revocationSignedContract];
+
+      const foundSignedContract = contracts.find(
+        (contract) => contract?.id === contractId
+      );
+
+      if (!foundSignedContract) {
+        throw delegationContractNotFound(delegationId);
+      }
+
+      const path = foundSignedContract.path;
+
+      const contractBytes = await fileManager.get(
+        config.delegationSignedContractsContainer,
+        path,
+        logger
+      );
       return Buffer.from(contractBytes);
     },
 

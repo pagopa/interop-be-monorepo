@@ -33,6 +33,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getEServiceM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/DelegationId"
@@ -71,6 +72,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getAgreementM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/DelegationId"
@@ -109,6 +111,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getPurposeM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/DelegationId"
@@ -147,6 +150,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getTenantM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -184,6 +188,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getAttributeM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -221,6 +226,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getConsumerDelegationM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -258,6 +264,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getProducerDelegationM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -295,6 +302,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getClientM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -332,6 +340,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getProducerKeychainM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -369,6 +378,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getKeyM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -406,6 +416,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getProducerKeyM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -443,6 +454,7 @@ paths:
         Results are ordered in ascending order (oldest events first).
       operationId: getEServiceTemplateM2MEvents
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -518,10 +530,9 @@ components:
             (public resources, resources accessible as consumer/producer, owned resources, etc.)
       required: false
       schema:
-        oneOf:
-          - type: "null"
-          - type: string
-            format: uuid
+        type: string
+        format: uuid
+        nullable: true
     CorrelationIdHeader:
       in: header
       name: X-Correlation-Id
@@ -538,6 +549,50 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - ESERVICE_ADDED
+            - DRAFT_ESERVICE_UPDATED
+            - ESERVICE_CLONED
+            - ESERVICE_DELETED
+            - ESERVICE_DESCRIPTOR_PUBLISHED
+            - ESERVICE_DESCRIPTOR_ACTIVATED
+            - ESERVICE_DESCRIPTOR_APPROVED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_SUSPENDED
+            - ESERVICE_DESCRIPTOR_ARCHIVED
+            - ESERVICE_DESCRIPTOR_ADDED
+            - ESERVICE_DRAFT_DESCRIPTOR_DELETED
+            - ESERVICE_DRAFT_DESCRIPTOR_UPDATED
+            - ESERVICE_DESCRIPTOR_SUBMITTED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_REJECTED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_DOCUMENT_ADDED
+            - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED
+            - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED
+            - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
+            - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
+            - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
+            - ESERVICE_RISK_ANALYSIS_ADDED
+            - ESERVICE_RISK_ANALYSIS_UPDATED
+            - ESERVICE_RISK_ANALYSIS_DELETED
+            - ESERVICE_NAME_UPDATED
+            - ESERVICE_DESCRIPTION_UPDATED
+            - ESERVICE_IS_CONSUMER_DELEGABLE_ENABLED
+            - ESERVICE_IS_CONSUMER_DELEGABLE_DISABLED
+            - ESERVICE_IS_CLIENT_ACCESS_DELEGABLE_ENABLED
+            - ESERVICE_IS_CLIENT_ACCESS_DELEGABLE_DISABLED
+            - ESERVICE_SIGNAL_HUB_ENABLED
+            - ESERVICE_SIGNAL_HUB_DISABLED
+            - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED
+            - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED
+            - ESERVICE_DESCRIPTOR_AGREEMENT_APPROVAL_POLICY_UPDATED
+            - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
+            - ESERVICE_NAME_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTION_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_ADDED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
         eventTimestamp:
           type: string
           format: date-time
@@ -574,6 +629,29 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - AGREEMENT_ADDED
+            - DRAFT_AGREEMENT_UPDATED
+            - AGREEMENT_DELETED
+            - AGREEMENT_ACTIVATED
+            - AGREEMENT_REJECTED
+            - AGREEMENT_UPGRADED
+            - AGREEMENT_SUBMITTED
+            - AGREEMENT_ARCHIVED_BY_CONSUMER
+            - AGREEMENT_SUSPENDED_BY_CONSUMER
+            - AGREEMENT_UNSUSPENDED_BY_CONSUMER
+            - AGREEMENT_SUSPENDED_BY_PRODUCER
+            - AGREEMENT_UNSUSPENDED_BY_PRODUCER
+            - AGREEMENT_SUSPENDED_BY_PLATFORM
+            - AGREEMENT_UNSUSPENDED_BY_PLATFORM
+            - AGREEMENT_ARCHIVED_BY_UPGRADE
+            - AGREEMENT_CONSUMER_DOCUMENT_ADDED
+            - AGREEMENT_CONSUMER_DOCUMENT_REMOVED
+            - AGREEMENT_ARCHIVED_BY_REVOKED_DELEGATION
+            - AGREEMENT_DELETED_BY_REVOKED_DELEGATION
+            - AGREEMENT_SET_MISSING_CERTIFIED_ATTRIBUTES_BY_PLATFORM
+            - AGREEMENT_SET_DRAFT_BY_PLATFORM
+            - AGREEMENT_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -610,6 +688,28 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - DRAFT_PURPOSE_DELETED
+            - WAITING_FOR_APPROVAL_PURPOSE_DELETED
+            - PURPOSE_DELETED_BY_REVOKED_DELEGATION
+            - PURPOSE_ADDED
+            - DRAFT_PURPOSE_UPDATED
+            - NEW_PURPOSE_VERSION_ACTIVATED
+            - NEW_PURPOSE_VERSION_WAITING_FOR_APPROVAL
+            - PURPOSE_ACTIVATED
+            - PURPOSE_ARCHIVED
+            - PURPOSE_VERSION_OVER_QUOTA_UNSUSPENDED
+            - PURPOSE_VERSION_REJECTED
+            - PURPOSE_VERSION_SUSPENDED_BY_CONSUMER
+            - PURPOSE_VERSION_SUSPENDED_BY_PRODUCER
+            - PURPOSE_VERSION_UNSUSPENDED_BY_CONSUMER
+            - PURPOSE_VERSION_UNSUSPENDED_BY_PRODUCER
+            - PURPOSE_WAITING_FOR_APPROVAL
+            - WAITING_FOR_APPROVAL_PURPOSE_VERSION_DELETED
+            - PURPOSE_VERSION_ACTIVATED
+            - PURPOSE_CLONED
+            - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
+            - RISK_ANALYSIS_DOCUMENT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -649,6 +749,27 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - MAINTENANCE_TENANT_DELETED
+            - TENANT_PROMOTED_TO_CERTIFIER
+            - MAINTENANCE_TENANT_UPDATED
+            - TENANT_CERTIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_CERTIFIED_ATTRIBUTE_REVOKED
+            - TENANT_DECLARED_ATTRIBUTE_ASSIGNED
+            - TENANT_DECLARED_ATTRIBUTE_REVOKED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_ADDED
+            - TENANT_DELEGATED_CONSUMER_FEATURE_REMOVED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_ADDED
+            - TENANT_DELEGATED_PRODUCER_FEATURE_REMOVED
+            - TENANT_KIND_UPDATED
+            - TENANT_MAIL_ADDED
+            - TENANT_MAIL_DELETED
+            - TENANT_ONBOARD_DETAILS_UPDATED
+            - TENANT_ONBOARDED
+            - TENANT_VERIFIED_ATTRIBUTE_ASSIGNED
+            - TENANT_VERIFIED_ATTRIBUTE_EXPIRATION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
+            - TENANT_VERIFIED_ATTRIBUTE_REVOKED
         eventTimestamp:
           type: string
           format: date-time
@@ -711,6 +832,12 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - CONSUMER_DELEGATION_APPROVED
+            - CONSUMER_DELEGATION_REVOKED
+            - CONSUMER_DELEGATION_REJECTED
+            - CONSUMER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -741,6 +868,12 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - PRODUCER_DELEGATION_APPROVED
+            - PRODUCER_DELEGATION_REVOKED
+            - PRODUCER_DELEGATION_REJECTED
+            - PRODUCER_DELEGATION_SUBMITTED
+            - DELEGATION_CONTRACT_GENERATED
         eventTimestamp:
           type: string
           format: date-time
@@ -771,6 +904,11 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - CLIENT_ADDED
+            - CLIENT_DELETED
+            - CLIENT_PURPOSE_ADDED
+            - CLIENT_PURPOSE_REMOVED
         eventTimestamp:
           type: string
           format: date-time
@@ -801,6 +939,11 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - PRODUCER_KEYCHAIN_ADDED
+            - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_ESERVICE_ADDED
+            - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
         eventTimestamp:
           type: string
           format: date-time
@@ -831,10 +974,15 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - CLIENT_KEY_ADDED
+            - CLIENT_KEY_DELETED
         eventTimestamp:
           type: string
           format: date-time
         kid:
+          type: string
+        clientId:
           type: string
           format: uuid
       required:
@@ -842,6 +990,7 @@ components:
         - eventType
         - eventTimestamp
         - kid
+        - clientId
     KeyM2MEvents:
       type: object
       additionalProperties: false
@@ -861,10 +1010,15 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - PRODUCER_KEYCHAIN_KEY_ADDED
+            - PRODUCER_KEYCHAIN_KEY_DELETED
         eventTimestamp:
           type: string
           format: date-time
         kid:
+          type: string
+        producerKeychainId:
           type: string
           format: uuid
       required:
@@ -872,6 +1026,7 @@ components:
         - eventType
         - eventTimestamp
         - kid
+        - producerKeychainId
     ProducerKeyM2MEvents:
       type: object
       additionalProperties: false
@@ -891,6 +1046,31 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - ESERVICE_TEMPLATE_DELETED
+            - ESERVICE_TEMPLATE_VERSION_ACTIVATED
+            - ESERVICE_TEMPLATE_ADDED
+            - ESERVICE_TEMPLATE_INTENDED_TARGET_UPDATED
+            - ESERVICE_TEMPLATE_DESCRIPTION_UPDATED
+            - ESERVICE_TEMPLATE_DRAFT_VERSION_DELETED
+            - ESERVICE_TEMPLATE_DRAFT_VERSION_UPDATED
+            - ESERVICE_TEMPLATE_DRAFT_UPDATED
+            - ESERVICE_TEMPLATE_NAME_UPDATED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_ADDED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_DELETED
+            - ESERVICE_TEMPLATE_RISK_ANALYSIS_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_SUSPENDED
+            - ESERVICE_TEMPLATE_VERSION_ADDED
+            - ESERVICE_TEMPLATE_VERSION_ATTRIBUTES_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_ADDED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_DELETED
+            - ESERVICE_TEMPLATE_VERSION_DOCUMENT_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
+            - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_PUBLISHED
+            - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
+            - ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
         eventTimestamp:
           type: string
           format: date-time

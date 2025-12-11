@@ -203,6 +203,44 @@ export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
   ]
 );
 
+export const agreementSignedContractInReadmodelAgreement =
+  readmodelAgreement.table(
+    "agreement_signed_contract",
+    {
+      id: uuid().notNull(),
+      agreementId: uuid("agreement_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      name: varchar().notNull(),
+      prettyName: varchar("pretty_name").notNull(),
+      contentType: varchar("content_type").notNull(),
+      path: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.agreementId],
+        foreignColumns: [agreementInReadmodelAgreement.id],
+        name: "agreement_signed_contract_agreement_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.agreementId, table.metadataVersion],
+        foreignColumns: [
+          agreementInReadmodelAgreement.id,
+          agreementInReadmodelAgreement.metadataVersion,
+        ],
+        name: "agreement_signed_contract_agreement_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.id, table.agreementId],
+        name: "agreement_signed_contract_pkey",
+      }),
+    ]
+  );
+
 export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
   readmodelEserviceTemplate.table(
     "eservice_template_version_interface",
@@ -544,6 +582,45 @@ export const delegationContractDocumentInReadmodelDelegation =
         table.delegationId,
         table.kind
       ),
+    ]
+  );
+
+export const delegationSignedContractDocumentInReadmodelDelegation =
+  readmodelDelegation.table(
+    "delegation_signed_contract_document",
+    {
+      id: uuid().primaryKey().notNull(),
+      delegationId: uuid("delegation_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      name: varchar().notNull(),
+      contentType: varchar("content_type").notNull(),
+      prettyName: varchar("pretty_name").notNull(),
+      path: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      kind: varchar().notNull(),
+      signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.delegationId],
+        foreignColumns: [delegationInReadmodelDelegation.id],
+        name: "delegation_signed_contract_document_delegation_id_fkey",
+      }).onDelete("cascade"),
+
+      foreignKey({
+        columns: [table.delegationId, table.metadataVersion],
+        foreignColumns: [
+          delegationInReadmodelDelegation.id,
+          delegationInReadmodelDelegation.metadataVersion,
+        ],
+        name: "delegation_signed_contract_do_delegation_id_metadata_versi_fkey",
+      }),
+      unique(
+        "delegation_signed_contract_document_delegation_id_kind_unique"
+      ).on(table.delegationId, table.kind),
     ]
   );
 
@@ -988,6 +1065,51 @@ export const purposeVersionStampInReadmodelPurpose = readmodelPurpose.table(
     }),
   ]
 );
+
+export const purposeVersionSignedDocumentInReadmodelPurpose =
+  readmodelPurpose.table(
+    "purpose_version_signed_document",
+    {
+      purposeId: uuid("purpose_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      purposeVersionId: uuid("purpose_version_id").notNull(),
+      id: uuid().notNull(),
+      contentType: varchar("content_type").notNull(),
+      path: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeId],
+        foreignColumns: [purposeInReadmodelPurpose.id],
+        name: "purpose_version_signed_document_purpose_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeVersionId],
+        foreignColumns: [purposeVersionInReadmodelPurpose.id],
+        name: "purpose_version_signed_document_purpose_version_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeId, table.metadataVersion],
+        foreignColumns: [
+          purposeInReadmodelPurpose.id,
+          purposeInReadmodelPurpose.metadataVersion,
+        ],
+        name: "purpose_version_signed_documen_purpose_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.purposeVersionId, table.id],
+        name: "purpose_version_signed_document_pkey",
+      }),
+      unique("purpose_version_signed_document_purpose_version_id_key").on(
+        table.purposeVersionId
+      ),
+    ]
+  );
 
 export const tenantInReadmodelTenant = readmodelTenant.table(
   "tenant",

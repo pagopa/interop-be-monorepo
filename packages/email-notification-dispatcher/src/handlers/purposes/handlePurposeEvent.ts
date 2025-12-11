@@ -7,10 +7,16 @@ import { HandlerParams } from "../../models/handlerParams.js";
 import { handlePurposeVersionSuspendedByConsumer } from "./handlePurposeVersionSuspendedByConsumer.js";
 import { handlePurposeVersionUnsuspendedByConsumer } from "./handlePurposeVersionUnsuspendedByConsumer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
-import { handlePurposeVersionActivated } from "./handlePurposeVersionActivated.js";
-import { handlePurposeVersionRejected } from "./handlePurposeVersionRejected.js";
+import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
+import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
 import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
 import { handlePurposeVersionUnsuspendedByProducer } from "./handlePurposeVersionUnsuspendedByProducer.js";
+import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
+import { handlePurposeWaitingForApprovalToProducer } from "./handlePurposeWaitingForApprovalToProducer.js";
+import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
+import { handlePurposeWaitingForApprovalToConsumer } from "./handlePurposeWaitingForApprovalToConsumer.js";
+import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
+import { handlePurposeVersionRejectedOtherVersion } from "./handlePurposeVersionRejectedOtherVersion.js";
 
 export async function handlePurposeEvent(
   params: HandlerParams<typeof PurposeEventV2>
@@ -23,24 +29,41 @@ export async function handlePurposeEvent(
     correlationId,
   } = params;
   return match(decodedMessage)
-    .with({ type: "PurposeVersionActivated" }, ({ data: { purpose } }) =>
-      handlePurposeVersionActivated({
+    .with(
+      { type: "PurposeVersionActivated" },
+      async ({ data: { purpose } }) => [
+        ...(await handlePurposeVersionActivatedFirstVersion({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+        ...(await handlePurposeVersionActivatedOtherVersion({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+      ]
+    )
+    .with({ type: "PurposeVersionRejected" }, async ({ data: { purpose } }) => [
+      ...(await handlePurposeVersionRejectedFirstVersion({
         purposeV2Msg: purpose,
         logger,
         readModelService,
         templateService,
         correlationId,
-      })
-    )
-    .with({ type: "PurposeVersionRejected" }, ({ data: { purpose } }) =>
-      handlePurposeVersionRejected({
+      })),
+      ...(await handlePurposeVersionRejectedOtherVersion({
         purposeV2Msg: purpose,
         logger,
         readModelService,
         templateService,
         correlationId,
-      })
-    )
+      })),
+    ])
     .with(
       { type: "PurposeVersionSuspendedByProducer" },
       ({ data: { purpose } }) =>
@@ -95,10 +118,46 @@ export async function handlePurposeEvent(
       })
     )
     .with(
+      { type: "NewPurposeVersionWaitingForApproval" },
+      async ({ data: { purpose } }) => [
+        ...(await handleNewPurposeVersionWaitingForApprovalToProducer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+        ...(await handleNewPurposeVersionWaitingForApprovalToConsumer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+      ]
+    )
+    .with(
+      { type: "PurposeWaitingForApproval" },
+      async ({ data: { purpose } }) => [
+        ...(await handlePurposeWaitingForApprovalToProducer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+        ...(await handlePurposeWaitingForApprovalToConsumer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+      ]
+    )
+    .with(
       {
         type: P.union(
-          "NewPurposeVersionWaitingForApproval",
-          "PurposeWaitingForApproval",
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
@@ -110,7 +169,8 @@ export async function handlePurposeEvent(
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisDocumentGenerated"
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => {
