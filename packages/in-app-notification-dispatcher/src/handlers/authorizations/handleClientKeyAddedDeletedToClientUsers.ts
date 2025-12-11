@@ -51,9 +51,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
   return match(decodedMessage)
     .with({ type: "ClientKeyDeleted" }, ({ data: { kid } }) =>
       usersWithNotifications
-        .filter(({ userId }) =>
-          client.keys.map((k) => k.userId).includes(userId)
-        ) // Send to all other users
+        .filter(({ userId }) => client.users.includes(userId)) // Send to all other users
         .map(({ userId, tenantId }) => ({
           userId,
           tenantId,

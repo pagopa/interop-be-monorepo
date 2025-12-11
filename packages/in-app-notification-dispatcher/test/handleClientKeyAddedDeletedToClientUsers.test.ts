@@ -185,6 +185,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
       // key1 has been deleted, so client only has key2 and key3
       const clientAfterDeletion: Client = {
         ...client,
+        users: [userId2, userId3],
         keys: [key2, key3], // key1 is no longer in the client
       };
 

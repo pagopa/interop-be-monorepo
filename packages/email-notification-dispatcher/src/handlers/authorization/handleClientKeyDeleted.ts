@@ -41,9 +41,6 @@ export async function handleClientKeyDeleted(
     retrieveTenant(client.consumerId, readModelService),
   ]);
 
-  // Get remaining key owners (the deleted key is no longer in client.keys)
-  const remainingKeyOwnerIds = client.keys.map((k) => k.userId);
-
   const targets = (
     await getRecipientsForTenants({
       tenants: [consumer],
@@ -53,8 +50,7 @@ export async function handleClientKeyDeleted(
       includeTenantContactEmails: false,
     })
   ).filter(
-    (target) =>
-      target.type !== "User" || remainingKeyOwnerIds.includes(target.userId)
+    (target) => target.type !== "User" || client.users.includes(target.userId)
   );
 
   if (targets.length === 0) {

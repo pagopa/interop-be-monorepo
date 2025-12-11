@@ -145,6 +145,7 @@ describe("handleClientKeyDeleted", async () => {
     // key1 has been deleted, so client only has key2 and key3
     const clientAfterDeletion: Client = {
       ...client,
+      users: [userId2, userId3],
       keys: [key2, key3],
     };
 
@@ -174,41 +175,6 @@ describe("handleClientKeyDeleted", async () => {
         (message) => message.type === "User" && message.userId === users[2].id
       )
     ).toBe(true); // userId3 - remaining key owner
-  });
-
-  it("should only notify users who still have keys after deletion", async () => {
-    // key3 has been deleted, so client only has key1 and key2
-    const clientAfterDeletion: Client = {
-      ...client,
-      keys: [key1, key2],
-    };
-
-    const messages = await handleClientKeyDeleted({
-      clientV2Msg: toClientV2(clientAfterDeletion),
-      kid: key3.kid,
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    // Should send to userId1 and userId2 (remaining key owners), not userId3 (deleted key owner)
-    expect(messages.length).toEqual(2);
-    expect(
-      messages.some(
-        (message) => message.type === "User" && message.userId === users[0].id
-      )
-    ).toBe(true); // userId1 - remaining key owner
-    expect(
-      messages.some(
-        (message) => message.type === "User" && message.userId === users[1].id
-      )
-    ).toBe(true); // userId2 - remaining key owner
-    expect(
-      messages.some(
-        (message) => message.type === "User" && message.userId === users[2].id
-      )
-    ).toBe(false); // userId3 - deleted key owner
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -261,6 +227,7 @@ describe("handleClientKeyDeleted", async () => {
     // key1 has been deleted, so client only has key2 and key3
     const clientAfterDeletion: Client = {
       ...client,
+      users: [userId2, userId3],
       keys: [key2, key3],
     };
 
