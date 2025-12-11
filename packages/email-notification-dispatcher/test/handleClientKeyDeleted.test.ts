@@ -164,17 +164,17 @@ describe("handleClientKeyDeleted", async () => {
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
       )
-    ).toBe(false); // userId1 - deleted key owner
+    ).toBe(false);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[1].id
       )
-    ).toBe(true); // userId2 - remaining key owner
+    ).toBe(true);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[2].id
       )
-    ).toBe(true); // userId3 - remaining key owner
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
