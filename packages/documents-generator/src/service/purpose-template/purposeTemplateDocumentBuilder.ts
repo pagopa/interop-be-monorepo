@@ -21,6 +21,8 @@ import {
   PurposeTemplate,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
   TenantKind,
@@ -40,6 +42,8 @@ const NO_PERSONAL_DATA = "No, non tratta dati personali";
 const NOT_AVAILABLE = "N/A";
 const NO_ANSWER = "-";
 const CONTENT_TYPE_PDF = "application/pdf";
+const RISK_ANALYSIS_TEMPLATE_DOCUMENT_PRETTY_NAME =
+  "Template Analisi del rischio";
 
 type Language = keyof LocalizedText;
 
@@ -65,7 +69,7 @@ export const riskAnalysisTemplateDocumentBuilder = (
       creatorIPACode: string | undefined,
       tenantKind: TenantKind,
       language: Language
-    ): Promise<PurposeVersionDocument> => {
+    ): Promise<RiskAnalysisTemplateDocument> => {
       const templateFilePath = path.resolve(
         dirname,
         "../..",
@@ -108,7 +112,7 @@ export const riskAnalysisTemplateDocumentBuilder = (
         pdfPayload
       );
 
-      const documentId = generateId<PurposeVersionDocumentId>();
+      const documentId = generateId<RiskAnalysisTemplateDocumentId>();
       const documentName = createRiskAnalysisTemplateDocumentName();
 
       const documentPath = await fileManager.resumeOrStoreBytes(
@@ -124,6 +128,8 @@ export const riskAnalysisTemplateDocumentBuilder = (
 
       return {
         id: documentId,
+        name: documentName,
+        prettyName: RISK_ANALYSIS_TEMPLATE_DOCUMENT_PRETTY_NAME,
         contentType: CONTENT_TYPE_PDF,
         path: documentPath,
         createdAt: new Date(),
