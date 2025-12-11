@@ -245,11 +245,11 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         expect.arrayContaining(expectedNotifications)
       );
 
-      // Verify deleted key owner is NOT included, but remaining key owners are
+      // Verify remaining users are included
       const userIds = notifications.map((n) => n.userId);
-      expect(userIds).not.toContain(userId1); // Deleted key owner
-      expect(userIds).toContain(userId2); // Remaining key owner
-      expect(userIds).toContain(userId3); // Remaining key owner
+      expect(userIds).not.toContain(userId1);
+      expect(userIds).toContain(userId2);
+      expect(userIds).toContain(userId3);
     });
 
     it("should only notify users who still are part of client after deletion", async () => {

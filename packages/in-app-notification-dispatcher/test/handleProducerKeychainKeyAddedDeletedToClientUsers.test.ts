@@ -247,7 +247,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
           readModelService
         );
 
-      // Should include only users who still have keys (userId2 and userId3)
+      // Should include only users who still are users of the producerKeychain
       expect(notifications).toHaveLength(2);
 
       const expectedBody =
@@ -277,14 +277,14 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
         expect.arrayContaining(expectedNotifications)
       );
 
-      // Verify remaining key owners are included
+      // Verify remaining users are included
       const userIds = notifications.map((n) => n.userId);
       expect(userIds).not.toContain(userId1);
       expect(userIds).toContain(userId2);
       expect(userIds).toContain(userId3);
     });
 
-    it("should only notify users who still have keys after deletion", async () => {
+    it("should only notify users who still are part of producerKeychain after deletion", async () => {
       // key3 has been deleted, so producerKeychain only has key1 and key2
       const producerKeychainAfterDeletion = {
         ...producerKeychain,
@@ -319,7 +319,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
           readModelService
         );
 
-      // Should include both userId1 and userId2 who still have keys
+      // Should include both userId1 and userId2 who still are part of producerKeychain
       expect(notifications).toHaveLength(2);
 
       const userIds = notifications.map((n) => n.userId);
