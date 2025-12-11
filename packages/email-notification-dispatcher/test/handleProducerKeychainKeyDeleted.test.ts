@@ -147,6 +147,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
     const producerKeychainAfterDeletion: ProducerKeychain = {
       ...producerKeychain,
       keys: [key2, key3],
+      users: [userId2, userId3],
     };
 
     const messages = await handleProducerKeychainKeyDeleted({
@@ -184,6 +185,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
     const producerKeychainAfterDeletion: ProducerKeychain = {
       ...producerKeychain,
       keys: [key2, key3],
+      users: [userId2, userId3],
     };
 
     readModelService.getTenantUsersWithNotificationEnabled = vi
@@ -232,6 +234,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
     const producerKeychainAfterDeletion: ProducerKeychain = {
       ...producerKeychain,
       keys: [key2, key3],
+      users: [userId2, userId3],
     };
 
     const messages = await handleProducerKeychainKeyDeleted({
