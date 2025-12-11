@@ -141,7 +141,7 @@ describe("handleClientKeyDeleted", async () => {
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
-  it("should send notifications to remaining key owners when a key is deleted", async () => {
+  it("should send notifications to remaining client users when a key is deleted", async () => {
     // key1 has been deleted, so client only has key2 and key3
     const clientAfterDeletion: Client = {
       ...client,
@@ -158,7 +158,7 @@ describe("handleClientKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    // Should send to userId2 and userId3 (remaining key owners), not userId1 (deleted key owner)
+    // Should send to userId2 and userId3 (remaining client users), not userId1
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
@@ -204,7 +204,7 @@ describe("handleClientKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    // Only userId3 has notifications enabled and still has a key
+    // Only userId3 has notifications enabled and still is part of client users
     expect(messages.length).toEqual(1);
     expect(
       messages.some(
