@@ -12,7 +12,7 @@ import {
   getMockedConsumerDelegationM2MEvent,
 } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { toApiConsumerDelegationM2MEventType } from "../../src/model/delegationM2MEventConverter.js";
+import { toApiConsumerDelegationM2MEventType } from "../../src/model/delegationM2MEventApiConverter.js";
 
 describe("API /events/consumerDelegations test", () => {
   const mockConsumerDelegationM2MEvents = ConsumerDelegationM2MEventType.options
