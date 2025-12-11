@@ -94,7 +94,7 @@ describe("API /events/agreements test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([generateId(), null, undefined])(
+  it.each([generateId(), "null", undefined])(
     "Should accept delegationId query param as %s",
     async (delegationId) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -115,6 +115,7 @@ describe("API /events/agreements test", () => {
     { ...mockQueryParams, lastEventId: -1 },
     { ...mockQueryParams, lastEventId: "invalidLastEventId" },
     { ...mockQueryParams, delegationId: 1 },
+    { ...mockQueryParams, delegationId: "invalidDelegationId" },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(

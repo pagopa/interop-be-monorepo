@@ -1,5 +1,5 @@
 import { randomInt } from "crypto";
-import { desc } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   agreementInM2MEvent,
@@ -20,12 +20,13 @@ import {
   AgreementM2MEvent,
   AttributeM2MEvent,
   ClientM2MEvent,
+  ConsumerDelegationM2MEvent,
   Delegation,
-  DelegationM2MEvent,
   EService,
   EServiceM2MEvent,
   EServiceTemplateM2MEvent,
   KeyM2MEvent,
+  ProducerDelegationM2MEvent,
   ProducerKeyM2MEvent,
   ProducerKeychainM2MEvent,
   PurposeM2MEvent,
@@ -106,6 +107,37 @@ export async function retrieveLastEServiceM2MEvent(): Promise<EServiceM2MEvent> 
   return (await retrieveAllEServiceM2MEvents({ limit: 1 }))[0];
 }
 
+export async function retrieveEServiceM2MEventByEServiceIdAndDescriptorId(
+  eserviceId: string,
+  descriptorId: string | undefined
+): Promise<EServiceM2MEvent | undefined> {
+  const conditions = [eq(eserviceInM2MEvent.eserviceId, eserviceId)];
+
+  if (descriptorId === undefined) {
+    conditions.push(isNull(eserviceInM2MEvent.descriptorId));
+  } else {
+    conditions.push(eq(eserviceInM2MEvent.descriptorId, descriptorId));
+  }
+
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(eserviceInM2MEvent)
+    .where(and(...conditions))
+    .orderBy(desc(eserviceInM2MEvent.id))
+    .limit(1);
+
+  if (sqlEvents.length === 0) {
+    return undefined;
+  }
+
+  return EServiceM2MEvent.parse({
+    ...sqlEvents[0],
+    descriptorId: sqlEvents[0].descriptorId ?? undefined,
+    producerDelegationId: sqlEvents[0].producerDelegationId ?? undefined,
+    producerDelegateId: sqlEvents[0].producerDelegateId ?? undefined,
+  });
+}
+
 export async function retrieveAllEServiceM2MEvents({
   limit,
 }: {
@@ -184,17 +216,17 @@ export async function retrieveAllConsumerDelegationM2MEvents({
   limit,
 }: {
   limit: number;
-}): Promise<DelegationM2MEvent[]> {
+}): Promise<ConsumerDelegationM2MEvent[]> {
   const sqlEvents = await m2mEventDB
     .select()
     .from(consumerDelegationInM2MEvent)
     .limit(limit)
     .orderBy(desc(consumerDelegationInM2MEvent.id));
 
-  return sqlEvents.map((e) => DelegationM2MEvent.parse(e));
+  return sqlEvents.map((e) => ConsumerDelegationM2MEvent.parse(e));
 }
 
-export async function retrieveLastConsumerDelegationM2MEvent(): Promise<DelegationM2MEvent> {
+export async function retrieveLastConsumerDelegationM2MEvent(): Promise<ConsumerDelegationM2MEvent> {
   return (await retrieveAllConsumerDelegationM2MEvents({ limit: 1 }))[0];
 }
 
@@ -202,17 +234,17 @@ export async function retrieveAllProducerDelegationM2MEvents({
   limit,
 }: {
   limit: number;
-}): Promise<DelegationM2MEvent[]> {
+}): Promise<ProducerDelegationM2MEvent[]> {
   const sqlEvents = await m2mEventDB
     .select()
     .from(producerDelegationInM2MEvent)
     .limit(limit)
     .orderBy(desc(producerDelegationInM2MEvent.id));
 
-  return sqlEvents.map((e) => DelegationM2MEvent.parse(e));
+  return sqlEvents.map((e) => ProducerDelegationM2MEvent.parse(e));
 }
 
-export async function retrieveLastProducerDelegationM2MEvent(): Promise<DelegationM2MEvent> {
+export async function retrieveLastProducerDelegationM2MEvent(): Promise<ProducerDelegationM2MEvent> {
   return (await retrieveAllProducerDelegationM2MEvents({ limit: 1 }))[0];
 }
 
