@@ -11,6 +11,7 @@ import {
   CorrelationId,
   DelegationId,
   EServiceId,
+  eserviceMode,
   PurposeId,
   PurposeTemplateId,
   PurposeVersionDocumentId,
@@ -223,7 +224,14 @@ export function purposeServiceBuilder(
     let rulesetExpiration: Date | undefined;
 
     if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
-      if (
+      // purpose for eservice in RECEIVE mode, then the ruleset is based on the producer kind
+      if (eservice.mode === catalogApi.EServiceMode.Values.RECEIVE) {
+        rulesetExpiration = getRulesetExpiration(
+          producer.kind,
+          purpose.riskAnalysisForm.version
+        );
+      } else if (
+        // no delegation, requester is the consumer
         delegation === undefined &&
         authData.organizationId === purpose.consumerId
       ) {
@@ -232,6 +240,7 @@ export function purposeServiceBuilder(
           purpose.riskAnalysisForm.version
         );
       } else if (
+        // delegated consumer
         delegation !== undefined &&
         authData.organizationId === delegation?.delegate.id
       ) {
