@@ -2361,12 +2361,6 @@ async function activatePurposeLogic({
     .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
     .exhaustive();
 
-  assertRequesterCanActAsConsumer(
-    purpose.data,
-    authData,
-    await retrievePurposeDelegation(purpose.data, readModelService)
-  );
-
   const riskAnalysis = isFeatureFlagEnabled(
     config,
     "featureFlagPurposesContractBuilder"
