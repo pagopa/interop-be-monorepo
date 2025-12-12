@@ -48,14 +48,9 @@ message UserNotificationConfigV2 {
   int64 createdAt = 6;
   optional int64 updatedAt = 7;
   bool inAppNotificationPreference = 8;
-  EmailNotificationPreferenceV2 emailNotificationPreference = 9;
+  bool emailNotificationPreference = 9;
   repeated UserRoleV2 userRoles = 10;
-}
-
-enum EmailNotificationPreferenceV2 {
-  DISABLED = 0;
-  ENABLED = 1;
-  DIGEST = 2;
+  bool emailDigestPreference = 11;
 }
 
 enum UserRoleV2 {

@@ -435,6 +435,7 @@ components:
         - userRoles
         - inAppNotificationPreference
         - emailNotificationPreference
+        - emailDigestPreference
         - inAppConfig
         - emailConfig
         - createdAt
@@ -456,11 +457,9 @@ components:
         inAppNotificationPreference:
           type: boolean
         emailNotificationPreference:
-          type: string
-          enum:
-            - ENABLED
-            - DISABLED
-            - DIGEST
+          type: boolean
+        emailDigestPreference:
+          type: boolean
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
@@ -581,17 +580,16 @@ components:
       required:
         - inAppNotificationPreference
         - emailNotificationPreference
+        - emailDigestPreference
         - inAppConfig
         - emailConfig
       properties:
         inAppNotificationPreference:
           type: boolean
         emailNotificationPreference:
-          type: string
-          enum:
-            - ENABLED
-            - DISABLED
-            - DIGEST
+          type: boolean
+        emailDigestPreference:
+          type: boolean
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:

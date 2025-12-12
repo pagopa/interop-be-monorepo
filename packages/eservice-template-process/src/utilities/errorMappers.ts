@@ -147,7 +147,11 @@ export const deleteRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eserviceTemplateNotFound",
+      "riskAnalysisNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateNotInDraftState",
