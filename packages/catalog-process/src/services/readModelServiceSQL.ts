@@ -5,7 +5,6 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
-  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -580,56 +579,70 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
-      const res = await readmodelDB
-        .selectDistinctOn(
-          [tenantInReadmodelTenant.id],
-          withTotalCount({
-            tenant: tenantInReadmodelTenant,
-            agreement: agreementInReadmodelAgreement,
-            descriptor: eserviceDescriptorInReadmodelCatalog,
-          })
-        )
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          and(
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.consumerId
-            ),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-            ])
+      return await readmodelDB.transaction(async (tx) => {
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) =>
+          query
+            .innerJoin(
+              agreementInReadmodelAgreement,
+              and(
+                eq(
+                  tenantInReadmodelTenant.id,
+                  agreementInReadmodelAgreement.consumerId
+                ),
+                inArray(agreementInReadmodelAgreement.state, [
+                  agreementState.active,
+                  agreementState.suspended,
+                ])
+              )
+            )
+            .innerJoin(
+              eserviceDescriptorInReadmodelCatalog,
+              and(
+                eq(
+                  agreementInReadmodelAgreement.descriptorId,
+                  eserviceDescriptorInReadmodelCatalog.id
+                ),
+                eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
+                inArray(eserviceDescriptorInReadmodelCatalog.state, [
+                  descriptorState.published,
+                  descriptorState.deprecated,
+                  descriptorState.suspended,
+                ])
+              )
+            )
+            .$dynamic();
+        const [queryResult, totalCount] = await Promise.all([
+          buildQuery(
+            tx
+              .selectDistinctOn([tenantInReadmodelTenant.id], {
+                tenant: tenantInReadmodelTenant,
+                agreement: agreementInReadmodelAgreement,
+                descriptor: eserviceDescriptorInReadmodelCatalog,
+              })
+              .from(tenantInReadmodelTenant)
+              .$dynamic()
           )
-        )
-        .innerJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          and(
-            eq(
-              agreementInReadmodelAgreement.descriptorId,
-              eserviceDescriptorInReadmodelCatalog.id
-            ),
-            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
-            inArray(eserviceDescriptorInReadmodelCatalog.state, [
-              descriptorState.published,
-              descriptorState.deprecated,
-              descriptorState.suspended,
-            ])
-          )
-        )
-        .limit(limit)
-        .offset(offset);
+            .limit(limit)
+            .offset(offset),
+          buildQuery(
+            tx
+              .select({ count: countDistinct(tenantInReadmodelTenant.id) })
+              .from(tenantInReadmodelTenant)
+              .$dynamic()
+          ),
+        ]);
 
-      const consumers: Consumer[] = res.map((row) => ({
-        descriptorVersion: row.descriptor.version,
-        descriptorState: DescriptorState.parse(row.descriptor.state),
-        agreementState: AgreementState.parse(row.agreement.state),
-        consumerName: row.tenant.name,
-        consumerExternalId: row.tenant.externalIdValue,
-      }));
+        const consumers: Consumer[] = queryResult.map((row) => ({
+          descriptorVersion: row.descriptor.version,
+          descriptorState: DescriptorState.parse(row.descriptor.state),
+          agreementState: AgreementState.parse(row.agreement.state),
+          consumerName: row.tenant.name,
+          consumerExternalId: row.tenant.externalIdValue,
+        }));
 
-      return createListResult(consumers, res[0]?.totalCount);
+        return createListResult(consumers, totalCount[0]?.count);
+      });
     },
     async listAgreements({
       eservicesIds,
@@ -817,52 +830,64 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Document>> {
-      const resultsSet = await readmodelDB
-        .select(
-          withTotalCount({
-            id: eserviceDescriptorDocumentInReadmodelCatalog.id,
-            path: eserviceDescriptorDocumentInReadmodelCatalog.path,
-            name: eserviceDescriptorDocumentInReadmodelCatalog.name,
-            prettyName: eserviceDescriptorDocumentInReadmodelCatalog.prettyName,
-            contentType:
-              eserviceDescriptorDocumentInReadmodelCatalog.contentType,
-            checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
-            uploadDate: eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
-          })
-        )
-        .from(eserviceDescriptorDocumentInReadmodelCatalog)
-        .where(
-          and(
-            eq(
-              eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
-              eserviceId
-            ),
-            eq(
-              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
-              descriptorId
-            )
+      return await readmodelDB.transaction(async (tx) => {
+        const filters = and(
+          eq(
+            eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
+            eserviceId
+          ),
+          eq(
+            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
+            descriptorId
           )
-        )
-        .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
-        .limit(limit)
-        .offset(offset)
-        .$dynamic();
+        );
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              id: eserviceDescriptorDocumentInReadmodelCatalog.id,
+              path: eserviceDescriptorDocumentInReadmodelCatalog.path,
+              name: eserviceDescriptorDocumentInReadmodelCatalog.name,
+              prettyName:
+                eserviceDescriptorDocumentInReadmodelCatalog.prettyName,
+              contentType:
+                eserviceDescriptorDocumentInReadmodelCatalog.contentType,
+              checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
+              uploadDate:
+                eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
+            })
+            .from(eserviceDescriptorDocumentInReadmodelCatalog)
+            .where(filters)
+            .orderBy(
+              asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate)
+            )
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({
+              count: countDistinct(
+                eserviceDescriptorDocumentInReadmodelCatalog.id
+              ),
+            })
+            .from(eserviceDescriptorDocumentInReadmodelCatalog)
+            .where(filters),
+        ]);
 
-      return createListResult(
-        resultsSet.map(
-          (doc) =>
-            ({
-              id: unsafeBrandId<EServiceDocumentId>(doc.id),
-              path: doc.path,
-              name: doc.name,
-              prettyName: doc.prettyName,
-              contentType: doc.contentType,
-              checksum: doc.checksum,
-              uploadDate: stringToDate(doc.uploadDate),
-            } satisfies Document)
-        ),
-        resultsSet[0]?.totalCount
-      );
+        return createListResult(
+          queryResult.map(
+            (doc) =>
+              ({
+                id: unsafeBrandId<EServiceDocumentId>(doc.id),
+                path: doc.path,
+                name: doc.name,
+                prettyName: doc.prettyName,
+                contentType: doc.contentType,
+                checksum: doc.checksum,
+                uploadDate: stringToDate(doc.uploadDate),
+              } satisfies Document)
+          ),
+          totalCount[0]?.count
+        );
+      });
     },
   };
 }
