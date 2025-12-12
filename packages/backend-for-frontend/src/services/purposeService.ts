@@ -11,7 +11,6 @@ import {
   CorrelationId,
   DelegationId,
   EServiceId,
-  eserviceMode,
   PurposeId,
   PurposeTemplateId,
   PurposeVersionDocumentId,
