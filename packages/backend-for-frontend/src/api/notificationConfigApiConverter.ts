@@ -33,6 +33,7 @@ export function toBffApiUserNotificationConfig(
       userNotificationConfig.inAppNotificationPreference,
     emailNotificationPreference:
       userNotificationConfig.emailNotificationPreference,
+    emailDigestPreference: userNotificationConfig.emailDigestPreference,
     inAppConfig: mapNotificationConfig(userNotificationConfig.inAppConfig),
     emailConfig: mapNotificationConfig(userNotificationConfig.emailConfig),
   };

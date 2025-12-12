@@ -672,15 +672,11 @@ export function agreementServiceBuilder(
         ...archivedAgreementsUpdates,
       ]);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: submittedAgreement,
         metadata: {
-          version: newVersion,
+          version:
+            createdEvents.latestNewVersions.get(submittedAgreement.id) ?? 0,
         },
       };
     },
@@ -808,17 +804,10 @@ export function agreementServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents
-          .filter((e) => e.streamId === agreement.id)
-          .map((event) => event.newVersion)
-      );
-
       return {
         data: agreement,
         metadata: {
-          version: newVersion,
+          version: createdEvents.latestNewVersions.get(agreement.id) ?? 0,
         },
       };
     },
@@ -1424,14 +1413,12 @@ export function agreementServiceBuilder(
         ...archiveEvents,
       ]);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: updatedAgreement,
-        metadata: { version: newVersion },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedAgreement.id) ?? 0,
+        },
       };
     },
     async archiveAgreement(
@@ -1609,12 +1596,6 @@ export function agreementServiceBuilder(
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
-      );
-
-      assertExpectedState(
-        agreementId,
-        agreement.state,
-        agreementUpgradableStates
       );
 
       const agreementWithDocument: Agreement = {
