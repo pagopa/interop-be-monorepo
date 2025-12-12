@@ -9,12 +9,12 @@ import {
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { isNotNull } from "drizzle-orm";
-import { CreateDefaultUserNotificationConfigConfig } from "./config/config.js";
 import { match } from "ts-pattern";
+import { CreateDefaultUserNotificationConfigConfig } from "./config/config.js";
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
-  
+
 export function userRoleToApiUserRole(
   role: UserRole
 ): notificationConfigApi.UserRole {
@@ -25,7 +25,6 @@ export function userRoleToApiUserRole(
     .with(userRole.SUPPORT_ROLE, () => "SUPPORT" as const)
     .exhaustive();
 }
-
 
 export async function processTenantsUsers(
   db: DrizzleReturnType,
@@ -169,7 +168,9 @@ async function ensureUserNotificationConfig(
     );
 
     logger.info(
-      `Successfully ensured notification config for user ${userId}, tenant ${tenantId}, role ${userRole}`
+      `Successfully ensured notification config for user ${userId}, tenant ${tenantId}, role ${userRoleToApiUserRole(
+        userRole
+      )}`
     );
   } catch (error) {
     logger.error(
