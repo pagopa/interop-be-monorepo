@@ -15,6 +15,7 @@ import {
   retrievePurpose,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "clientAddedRemovedToProducer";
 
@@ -67,6 +68,7 @@ export async function handleClientPurposeAdded(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza richiesta`,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: producer.id,

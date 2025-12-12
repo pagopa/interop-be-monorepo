@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { clientKeyNotFound } from "../../models/errors.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "clientKeyAddedDeletedToClientUsers";
 
@@ -74,6 +75,7 @@ export async function handleClientKeyAdded(
         entityId: client.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         clientName: client.name,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

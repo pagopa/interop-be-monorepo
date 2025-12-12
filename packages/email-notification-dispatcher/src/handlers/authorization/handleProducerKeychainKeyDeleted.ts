@@ -15,6 +15,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";
@@ -78,6 +79,7 @@ export async function handleProducerKeychainKeyDeleted(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         keyId: kid,
         producerKeychainName: producerKeychain.name,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,
