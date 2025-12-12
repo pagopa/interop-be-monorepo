@@ -11,6 +11,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AttributeValue,
+  ConditionalCheckFailedException,
   DeleteItemCommand,
   DeleteItemInput,
   DynamoDBClient,
@@ -239,6 +240,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
         descriptorState,
         dynamoDBClient,
         tokenGenStatesEntries.data,
+        eserviceId_descriptorId,
         logger
       );
 
@@ -367,34 +369,47 @@ const updateDescriptorStateInTokenGenerationStatesEntries = async (
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient,
   entriesToUpdate: TokenGenStatesConsumerClientGSIDescriptor[],
+  GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
   logger: Logger
 ): Promise<void> => {
   for (const entry of entriesToUpdate) {
-    const input: UpdateItemInput = {
-      ConditionExpression: "attribute_exists(PK)",
-      Key: {
-        PK: {
-          S: entry.PK,
+    try {
+      const input: UpdateItemInput = {
+        ConditionExpression:
+          "attribute_exists(PK) AND GSIPK_eserviceId_descriptorId = :gsiValue",
+        Key: {
+          PK: {
+            S: entry.PK,
+          },
         },
-      },
-      ExpressionAttributeValues: {
-        ":newState": {
-          S: descriptorState,
+        ExpressionAttributeValues: {
+          ":newState": {
+            S: descriptorState,
+          },
+          ":newUpdatedAt": {
+            S: new Date().toISOString(),
+          },
+          ":gsiValue": { S: GSIPK_eserviceId_descriptorId },
         },
-        ":newUpdatedAt": {
-          S: new Date().toISOString(),
-        },
-      },
-      UpdateExpression:
-        "SET descriptorState = :newState, updatedAt = :newUpdatedAt",
-      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-      ReturnValues: "NONE",
-    };
-    const command = new UpdateItemCommand(input);
-    await dynamoDBClient.send(command);
-    logger.info(
-      `Token-generation-states. Updated descriptor state in entry ${entry.PK}`
-    );
+        UpdateExpression:
+          "SET descriptorState = :newState, updatedAt = :newUpdatedAt",
+        TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+        ReturnValues: "NONE",
+      };
+      const command = new UpdateItemCommand(input);
+      await dynamoDBClient.send(command);
+      logger.info(
+        `Token-generation-states. Updated descriptor state in entry ${entry.PK}`
+      );
+    } catch (error) {
+      if (error instanceof ConditionalCheckFailedException) {
+        logger.info(
+          `Token-generation-states. Skipping update of descriptor state in entry ${entry.PK} due to conditional check failure: ${error}`
+        );
+        continue;
+      }
+      throw error;
+    }
   }
 };
 
