@@ -137,7 +137,7 @@ export function purposeServiceBuilder(
     headers: Headers,
     correlationId: CorrelationId,
     notifications: string[]
-    // eslint-disable-next-line max-params
+    // eslint-disable-next-line max-params, sonarjs/cognitive-complexity
   ): Promise<bffApi.Purpose> => {
     const eservice = eservices.find((e) => e.id === purpose.eserviceId);
     if (!eservice) {
