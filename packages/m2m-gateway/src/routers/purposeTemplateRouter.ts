@@ -259,7 +259,7 @@ const purposeTemplateRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await purposeTemplateService.addPurposeTemplateEServices(
+          await purposeTemplateService.addPurposeTemplateEService(
             unsafeBrandId(req.params.purposeTemplateId),
             req.body,
             ctx

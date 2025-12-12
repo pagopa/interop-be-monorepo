@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
@@ -24,18 +25,14 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
     vi.useRealTimers();
   });
 
-  const mockEserviceIds = [generateId<EServiceId>()];
-
   const mockRequestBody = {
-    eserviceIds: mockEserviceIds,
+    eserviceId: generateId<EServiceId>(),
   };
 
   const makeRequest = async (
     token: string,
     purposeTemplateId: PurposeTemplateId,
-    body: {
-      eserviceIds: string[];
-    }
+    body: m2mGatewayApi.PurposeTemplateLinkEService
   ) =>
     request(api)
       .post(`${appBasePath}/purposeTemplates/${purposeTemplateId}/eservices`)
@@ -47,7 +44,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
       const purposeTemplateId = generateId<PurposeTemplateId>();
-      mockPurposeTemplateService.addPurposeTemplateEServices = vi.fn();
+      mockPurposeTemplateService.addPurposeTemplateEService = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, purposeTemplateId, mockRequestBody);
@@ -55,7 +52,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
       expect(
-        mockPurposeTemplateService.addPurposeTemplateEServices
+        mockPurposeTemplateService.addPurposeTemplateEService
       ).toHaveBeenCalledWith(
         purposeTemplateId,
         mockRequestBody,
@@ -73,7 +70,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
   });
 
   it("Should return 400 for incorrect value for purpose template id", async () => {
-    mockPurposeTemplateService.addPurposeTemplateEServices = vi.fn();
+    mockPurposeTemplateService.addPurposeTemplateEService = vi.fn();
 
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(
@@ -84,21 +81,20 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
     expect(res.status).toBe(400);
   });
 
-  it.each([{}, { eserviceIds: [] }])(
-    "Should return 400 if passed an invalid request body",
-    async (body) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        generateId(),
-        body as {
-          eserviceIds: string[];
-        }
-      );
+  it.each([
+    {},
+    { eserviceId: undefined },
+    { eserviceId: "invalid-eservice-id" },
+  ])("Should return 400 if passed an invalid request body", async (body) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId(),
+      body as m2mGatewayApi.PurposeTemplateLinkEService
+    );
 
-      expect(res.status).toBe(400);
-    }
-  );
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     missingMetadata(),
@@ -107,7 +103,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockPurposeTemplateService.addPurposeTemplateEServices = vi
+    mockPurposeTemplateService.addPurposeTemplateEService = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
