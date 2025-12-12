@@ -224,7 +224,7 @@ export function purposeServiceBuilder(
     // eslint-disable-next-line functional/no-let
     let rulesetExpiration: Date | undefined;
 
-    // purpose for eservice in RECEIVE mode, then the ruleset is based on the producer kind
+    // for purpose towards eservice in RECEIVE mode, the ruleset is based on the producer kind
     const isReversePurpose =
       eservice.mode === catalogApi.EServiceMode.Values.RECEIVE;
     if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
