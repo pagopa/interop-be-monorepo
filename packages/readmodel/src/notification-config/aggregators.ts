@@ -1,5 +1,4 @@
 import {
-  EmailNotificationPreference,
   NotificationConfig,
   NotificationType,
   stringToDate,
@@ -56,6 +55,7 @@ export const aggregateUserNotificationConfig = ({
     userRoles: userRolesSQL,
     inAppNotificationPreference,
     emailNotificationPreference,
+    emailDigestPreference,
     createdAt,
     updatedAt,
     ...rest
@@ -226,9 +226,8 @@ export const aggregateUserNotificationConfig = ({
       tenantId: unsafeBrandId(tenantId),
       userRoles,
       inAppNotificationPreference,
-      emailNotificationPreference: EmailNotificationPreference.parse(
-        emailNotificationPreference
-      ),
+      emailNotificationPreference,
+      emailDigestPreference,
       inAppConfig,
       emailConfig,
       createdAt: stringToDate(createdAt),

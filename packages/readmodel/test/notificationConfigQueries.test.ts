@@ -7,13 +7,11 @@ import {
   NotificationType,
   TenantId,
   UserNotificationConfig,
-  emailNotificationPreference,
   generateId,
 } from "pagopa-interop-models";
 import {
   getMockTenantNotificationConfig,
   getMockUserNotificationConfig,
-  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   insertTenantNotificationConfig,
@@ -170,9 +168,7 @@ describe("Notification config queries", () => {
           }))
           .with("email", () => ({
             ...config,
-            emailNotificationPreference: enabled
-              ? emailNotificationPreference.enabled
-              : emailNotificationPreference.disabled,
+            emailNotificationPreference: enabled,
             emailConfig: {
               ...config.emailConfig,
               [notificationType]: enabled,
@@ -309,10 +305,7 @@ describe("Notification config queries", () => {
           }))
           .with("email", () => ({
             ...enabledConfig,
-            emailNotificationPreference: randomArrayItem([
-              emailNotificationPreference.disabled,
-              emailNotificationPreference.digest,
-            ]),
+            emailNotificationPreference: false,
           }))
           .exhaustive();
 
