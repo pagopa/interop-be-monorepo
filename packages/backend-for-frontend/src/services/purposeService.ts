@@ -126,6 +126,7 @@ export function purposeServiceBuilder(
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
+  // eslint-disable-next-line complexity
   const enhancePurpose = async (
     authData: UIAuthData,
     purpose: purposeApi.Purpose,
@@ -223,20 +224,17 @@ export function purposeServiceBuilder(
     // eslint-disable-next-line functional/no-let
     let rulesetExpiration: Date | undefined;
 
+    // purpose for eservice in RECEIVE mode, then the ruleset is based on the producer kind
+    const isReversePurpose =
+      eservice.mode === catalogApi.EServiceMode.Values.RECEIVE;
     if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
-      // purpose for eservice in RECEIVE mode, then the ruleset is based on the producer kind
-      if (eservice.mode === catalogApi.EServiceMode.Values.RECEIVE) {
-        rulesetExpiration = getRulesetExpiration(
-          producer.kind,
-          purpose.riskAnalysisForm.version
-        );
-      } else if (
+      if (
         // no delegation, requester is the consumer
         delegation === undefined &&
         authData.organizationId === purpose.consumerId
       ) {
         rulesetExpiration = getRulesetExpiration(
-          consumer.kind,
+          isReversePurpose ? producer.kind : consumer.kind,
           purpose.riskAnalysisForm.version
         );
       } else if (
@@ -245,7 +243,7 @@ export function purposeServiceBuilder(
         authData.organizationId === delegation?.delegate.id
       ) {
         rulesetExpiration = getRulesetExpiration(
-          delegation.delegator.kind,
+          isReversePurpose ? producer.kind : delegation.delegator.kind,
           purpose.riskAnalysisForm.version
         );
         rulesetExpiration = undefined;
