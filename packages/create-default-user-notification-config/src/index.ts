@@ -40,14 +40,7 @@ const run = async (): Promise<void> => {
   });
 
   const notificationConfigClient = notificationConfigApi.createProcessApiClient(
-    config.notificationConfigProcessUrl,
-    {
-      axiosConfig: {
-        headers: {
-          Authorization: `Bearer ${config.internalToken}`,
-        },
-      },
-    }
+    config.notificationConfigProcessUrl
   );
 
   try {

@@ -94,13 +94,22 @@ async function processTenant(
   );
 
   for (const user of users) {
-    await processUser(user, tenant, notificationConfigClient, config, logger);
+    await processUser(
+      user,
+      tenant,
+      config.internalToken,
+      notificationConfigClient,
+      config,
+      logger
+    );
   }
 }
 
+// eslint-disable-next-line max-params
 async function processUser(
   user: { id: string; roles?: string[] },
   tenant: TenantSQL,
+  internalToken: string,
   notificationConfigClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
@@ -136,6 +145,7 @@ async function processUser(
       user.id,
       tenant.id,
       mappedRole.data,
+      internalToken,
       notificationConfigClient,
       logger
     );
@@ -144,10 +154,12 @@ async function processUser(
   }
 }
 
+// eslint-disable-next-line max-params
 async function ensureUserNotificationConfig(
   userId: string,
   tenantId: string,
   userRole: UserRole,
+  internalToken: string,
   notificationConfigClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
@@ -163,6 +175,7 @@ async function ensureUserNotificationConfig(
       {
         headers: {
           "X-Correlation-Id": `create-default-${userId}-${Date.now()}`,
+          Authorization: `Bearer ${internalToken}`,
         },
       }
     );
