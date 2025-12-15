@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "eserviceNewVersionSubmittedToDelegator";
@@ -79,6 +80,7 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
         delegateName: delegate.name,
         eserviceName: eservice.name,
         ctaLabel: "Valuta la richiesta",
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,
