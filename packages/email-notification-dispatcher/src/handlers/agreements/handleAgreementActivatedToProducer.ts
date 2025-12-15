@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "agreementManagementToProducer";
 
@@ -70,6 +71,7 @@ export async function handleAgreementActivatedToProducer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,
