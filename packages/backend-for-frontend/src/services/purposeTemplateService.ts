@@ -532,7 +532,7 @@ export function purposeTemplateServiceBuilder(
         });
 
       return await fileManager.get(
-        config.purposeTemplateDocumentsContainer,
+        config.riskAnalysisTemplateDocumentsContainer,
         unsignedDocument.path,
         logger
       );
@@ -555,7 +555,7 @@ export function purposeTemplateServiceBuilder(
         });
 
       return await fileManager.get(
-        config.purposeTemplateSignedDocumentsContainer,
+        config.riskAnalysisTemplateSignedDocumentsContainer,
         signedDocument.path,
         logger
       );

@@ -92,15 +92,20 @@ export const PurposeTemplateProcessServerConfig = z
   .object({
     PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
     PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
-    PURPOSE_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER: z.string(),
     PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+    RISK_ANALYSIS_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     purposeTemplateUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
     purposeTemplateDocumentsContainer: c.PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER,
-    purposeTemplateSignedDocumentsContainer:
-      c.PURPOSE_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER,
     purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
+    riskAnalysisTemplateDocumentsContainer:
+      c.RISK_ANALYSIS_TEMPLATE_DOCUMENTS_CONTAINER,
+    riskAnalysisTemplateDocumentsPath: c.RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH,
+    riskAnalysisTemplateSignedDocumentsContainer:
+      c.RISK_ANALYSIS_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER,
   }));
 export type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
