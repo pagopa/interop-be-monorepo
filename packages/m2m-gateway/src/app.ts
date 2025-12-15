@@ -40,8 +40,8 @@ import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
 import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
-import eventRouter from "./routers/eventRouter.js";
 import { EventService } from "./services/eventService.js";
+import eventRouter from "./routers/eventRouter.js";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;

@@ -36,7 +36,6 @@ import {
   EServiceDocumentId,
   EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
-  badRequestError,
   AttributeKind,
   attributeKind,
   TenantId,
@@ -114,6 +113,7 @@ import {
   hasRoleToAccessDraftTemplateVersions,
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
+  assertRiskAnalysisExists,
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
@@ -1039,6 +1039,7 @@ export function eserviceTemplateServiceBuilder(
       assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
       assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
+      assertRiskAnalysisExists(template.data, riskAnalysisId);
 
       const newTemplate: EServiceTemplate = {
         ...template.data,
@@ -1161,9 +1162,7 @@ export function eserviceTemplateServiceBuilder(
       );
 
       if (
-        eserviceTemplateVersion.state !==
-          eserviceTemplateVersionState.published &&
-        eserviceTemplateVersion.state !== eserviceTemplateVersionState.suspended
+        eserviceTemplateVersion.state === eserviceTemplateVersionState.draft
       ) {
         throw notValidEServiceTemplateVersionState(
           eserviceTemplateVersionId,
@@ -1280,12 +1279,6 @@ export function eserviceTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Creating EService template with name ${seed.name}`);
-
-      if (seed.mode === eserviceTemplateApi.EServiceMode.Values.RECEIVE) {
-        throw badRequestError(
-          "EService template in RECEIVE mode is not supported"
-        );
-      }
 
       const origin = await retrieveOriginFromAuthData(
         authData,
@@ -1522,16 +1515,17 @@ export function eserviceTemplateServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
       return {
         data: {
           eserviceTemplate: updatedEServiceTemplateWithDocs,
           createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
         },
-        metadata: { version: newVersion },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(
+              updatedEServiceTemplateWithDocs.id
+            ) ?? 0,
+        },
       };
     },
     async getEServiceTemplates(

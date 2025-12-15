@@ -17,9 +17,10 @@ import {
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 
-const notificationType: NotificationType = "purposeActivatedRejectedToConsumer";
+const notificationType: NotificationType =
+  "purposeQuotaAdjustmentRequestToProducer";
 
-export async function handlePurposeVersionRejected(
+export async function handlePurposeWaitingForApprovalToProducer(
   data: PurposeHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -31,13 +32,13 @@ export async function handlePurposeVersionRejected(
   } = data;
 
   if (!purposeV2Msg) {
-    throw missingKafkaMessageDataError("purpose", "PurposeVersionRejected");
+    throw missingKafkaMessageDataError("purpose", "PurposeWaitingForApproval");
   }
   const purpose = fromPurposeV2(purposeV2Msg);
 
   const [htmlTemplate, eservice, consumer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.purposeVersionActivatedMailTemplate
+      eventMailTemplateType.purposeQuotaAdjustmentRequestMailTemplate
     ),
     retrieveEService(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
@@ -46,11 +47,11 @@ export async function handlePurposeVersionRejected(
   const producer = await retrieveTenant(eservice.producerId, readModelService);
 
   const targets = await getRecipientsForTenants({
-    tenants: [consumer],
+    tenants: [producer],
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: true,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {
@@ -63,19 +64,19 @@ export async function handlePurposeVersionRejected(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `La tua finalità "${purpose.title}" è stata rifiutata`,
+      subject: `Finalità "${purpose.title}" con piano di carico superiore alla soglia`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `La tua finalità "${purpose.title}" è stata rifiutata`,
+        title: `Finalità "${purpose.title}" con piano di carico superiore alla soglia`,
         notificationType,
         entityId: purpose.id,
-        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
-        producerName: producer.name,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
+        consumerName: consumer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
       }),
     },
-    tenantId: consumer.id,
+    tenantId: producer.id,
     ...mapRecipientToEmailPayload(t),
   }));
 }
