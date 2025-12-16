@@ -698,7 +698,10 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "invalidContentTypeDetected",
       "documentPrettyNameDuplicate",
       "notValidDescriptor",
+      "interfaceExtractingSoapFieldValueError",
+      "soapFileParsingError",
       "openapiVersionNotRecognized",
+      "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
