@@ -15,7 +15,6 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleProducerKeychainKeyAddedDeletedToClientUsers.js";
-import { producerKeychainKeyNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { addOneTenant, readModelService } from "./utils.js";
@@ -39,11 +38,17 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
     kid: "key2-kid",
   };
 
+  const key3 = {
+    ...getMockKey(),
+    userId: userId3,
+    kid: "key3-kid",
+  };
+
   const producerKeychain = {
     ...getMockProducerKeychain({ producerId }),
     id: producerKeychainId,
     name: "Test Producer Keychain",
-    keys: [key1, key2],
+    keys: [key1, key2, key3],
     users: [userId1, userId2, userId3],
   };
 
@@ -85,38 +90,6 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
           "producerKeychain",
           "ProducerKeychainKeyAdded"
         )
-      );
-    });
-
-    it("should throw producerKeychainKeyNotFound when key is not found in ProducerKeychainKeyDeleted event", async () => {
-      const unknownKid = "unknown-kid";
-      const messageWithUnknownKey: AuthorizationEventEnvelopeV2 = {
-        type: "ProducerKeychainKeyDeleted",
-        event_version: 2,
-        sequence_num: 1,
-        version: 1,
-        stream_id: generateId(),
-        log_date: new Date(),
-        data: {
-          producerKeychain: toProducerKeychainV2(producerKeychain),
-          kid: unknownKid,
-        },
-      };
-
-      // Mock notification recipients so the check doesn't exit early
-      mockGetNotificationRecipients.mockResolvedValue([
-        { userId: userId1, tenantId: producerId },
-        { userId: userId2, tenantId: producerId },
-      ]);
-
-      await expect(() =>
-        handleProducerKeychainKeyAddedDeletedToClientUsers(
-          messageWithUnknownKey,
-          logger,
-          readModelService
-        )
-      ).rejects.toThrow(
-        producerKeychainKeyNotFound(producerKeychainId, unknownKid)
       );
     });
   });
@@ -238,7 +211,14 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
   });
 
   describe("ProducerKeychainKeyDeleted event", () => {
-    it("should generate notifications for all users except the key owner", async () => {
+    it("should generate notifications for remaining producerKeychain users after deletion", async () => {
+      // key1 has been deleted, so producerKeychain only has key2 and key3
+      const producerKeychainAfterDeletion = {
+        ...producerKeychain,
+        users: [userId2, userId3],
+        keys: [key2, key3],
+      };
+
       const message: AuthorizationEventEnvelopeV2 = {
         type: "ProducerKeychainKeyDeleted",
         event_version: 2,
@@ -247,13 +227,13 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
         stream_id: generateId(),
         log_date: new Date(),
         data: {
-          producerKeychain: toProducerKeychainV2(producerKeychain),
-          kid: key1.kid, // key1 belongs to userId1
+          producerKeychain: toProducerKeychainV2(producerKeychainAfterDeletion),
+          kid: key1.kid, // key1 (userId1's key) was deleted
         },
       };
 
       const userNotificationConfigs = [
-        { userId: userId1, tenantId: producerId }, // This user should be filtered out
+        { userId: userId1, tenantId: producerId },
         { userId: userId2, tenantId: producerId },
         { userId: userId3, tenantId: producerId },
       ];
@@ -267,13 +247,13 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
           readModelService
         );
 
-      // Should exclude the key owner (userId1)
+      // Should include only users who still are users of the producerKeychain
       expect(notifications).toHaveLength(2);
 
       const expectedBody =
         inAppTemplates.producerKeychainKeyDeletedToClientUsers(
           producerKeychain.name,
-          key1.userId
+          key1.kid
         );
 
       const expectedNotifications = [
@@ -297,12 +277,20 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
         expect.arrayContaining(expectedNotifications)
       );
 
-      // Verify the key owner is not included
+      // Verify remaining users are included
       const userIds = notifications.map((n) => n.userId);
       expect(userIds).not.toContain(userId1);
+      expect(userIds).toContain(userId2);
+      expect(userIds).toContain(userId3);
     });
 
-    it("should handle case where key owner is not in notification configs", async () => {
+    it("should only notify users who still are part of producerKeychain after deletion", async () => {
+      // key3 has been deleted, so producerKeychain only has key1 and key2
+      const producerKeychainAfterDeletion = {
+        ...producerKeychain,
+        keys: [key1, key2],
+      };
+
       const message: AuthorizationEventEnvelopeV2 = {
         type: "ProducerKeychainKeyDeleted",
         event_version: 2,
@@ -311,15 +299,15 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
         stream_id: generateId(),
         log_date: new Date(),
         data: {
-          producerKeychain: toProducerKeychainV2(producerKeychain),
-          kid: key1.kid, // key1 belongs to userId1
+          producerKeychain: toProducerKeychainV2(producerKeychainAfterDeletion),
+          kid: key3.kid, // key3 (userId3's key) was deleted
         },
       };
 
-      // userId1 (key owner) is not in the notification configs
+      // Only userId1 and userId2 have notifications enabled
       const userNotificationConfigs = [
-        { userId: userId2, tenantId: producerId },
-        { userId: userId3, tenantId: producerId },
+        { userId: userId1, tenantId: producerId }, // Still has key1
+        { userId: userId2, tenantId: producerId }, // Still has key2
       ];
 
       mockGetNotificationRecipients.mockResolvedValue(userNotificationConfigs);
@@ -331,12 +319,12 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
           readModelService
         );
 
-      // Should include all users since key owner wasn't in the list anyway
+      // Should include both userId1 and userId2 who still are part of producerKeychain
       expect(notifications).toHaveLength(2);
 
       const userIds = notifications.map((n) => n.userId);
+      expect(userIds).toContain(userId1);
       expect(userIds).toContain(userId2);
-      expect(userIds).toContain(userId3);
     });
   });
 
@@ -510,6 +498,12 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
     });
 
     it("should use correct template for ProducerKeychainKeyDeleted", async () => {
+      // key1 has been deleted, so producerKeychain only has key2 and key3
+      const producerKeychainAfterDeletion = {
+        ...producerKeychain,
+        keys: [key2, key3],
+      };
+
       const message: AuthorizationEventEnvelopeV2 = {
         type: "ProducerKeychainKeyDeleted",
         event_version: 2,
@@ -518,14 +512,14 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
         stream_id: generateId(),
         log_date: new Date(),
         data: {
-          producerKeychain: toProducerKeychainV2(producerKeychain),
+          producerKeychain: toProducerKeychainV2(producerKeychainAfterDeletion),
           kid: key1.kid,
         },
       };
 
       mockGetNotificationRecipients.mockResolvedValue([
         { userId: userId2, tenantId: producerId },
-      ]); // Different user than key owner
+      ]); // userId2 still has key2, so will receive notification
 
       const notifications =
         await handleProducerKeychainKeyAddedDeletedToClientUsers(
@@ -537,7 +531,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
       expect(notifications[0].body).toBe(
         inAppTemplates.producerKeychainKeyDeletedToClientUsers(
           producerKeychain.name,
-          key1.userId
+          key1.kid
         )
       );
     });
