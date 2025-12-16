@@ -4,8 +4,12 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
+  interfaceExtractingInfoError,
+  interfaceExtractingSoapFiledError,
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
+  openapiVersionNotRecognized,
+  parsingSoapFileError,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
@@ -86,6 +90,22 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", 
         id: generateId(),
         isEserviceTemplate: false,
       }),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingSoapFiledError("field-name"),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingInfoError(),
+      expectedStatus: 400,
+    },
+    {
+      error: parsingSoapFileError(),
+      expectedStatus: 400,
+    },
+    {
+      error: openapiVersionNotRecognized("invalid-version"),
       expectedStatus: 400,
     },
   ])(
