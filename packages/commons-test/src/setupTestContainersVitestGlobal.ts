@@ -92,9 +92,7 @@ export function setupTestContainersVitestGlobal() {
   const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
 
-  return async function (
-    project: TestProject
-  ): Promise<() => Promise<void>> {
+  return async function (project: TestProject): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
