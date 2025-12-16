@@ -101,9 +101,10 @@ export function inAppNotificationServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
-      logger.info("Marking in-app notifications as read by entity id");
+      logger.info(
+        `Marking in-app notifications as read by entity id ${entityId}`
+      );
 
-      logger.info(entityId);
       return inAppNotificationManagerClient.markNotificationsAsReadByEntityId(
         undefined,
         {
