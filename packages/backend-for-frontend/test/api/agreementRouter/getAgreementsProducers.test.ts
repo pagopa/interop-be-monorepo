@@ -23,7 +23,9 @@ describe("API GET /agreements/filter/producers", () => {
     totalCount: 3,
   };
   const mockApiCompactOrganizations = {
-    results: mockCompactOrganizations.results.map(toBffCompactOrganization),
+    results: mockCompactOrganizations.results.map((o) =>
+      toBffCompactOrganization(o)
+    ),
     pagination: {
       offset: defaultQuery.offset,
       limit: defaultQuery.limit,
@@ -35,6 +37,9 @@ describe("API GET /agreements/filter/producers", () => {
     clients.agreementProcessClient.getAgreementsProducers = vi
       .fn()
       .mockResolvedValue(mockCompactOrganizations);
+    clients.inAppNotificationManagerClient.filterUnreadNotifications = vi
+      .fn()
+      .mockResolvedValue([]);
   });
 
   const makeRequest = async (

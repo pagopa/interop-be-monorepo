@@ -1,6 +1,7 @@
 import {
   EService,
   Purpose,
+  PurposeTemplateId,
   TenantId,
   delegationKind,
   delegationState,
@@ -60,6 +61,7 @@ describe("getPurposes", async () => {
     consumerId: consumerId1,
     eserviceId: mockEService1ByTenant1.id,
     versions: [getMockPurposeVersion(purposeVersionState.draft)],
+    purposeTemplateId: generateId<PurposeTemplateId>(),
   };
 
   const mockPurpose2: Purpose = {

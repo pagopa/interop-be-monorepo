@@ -8,6 +8,7 @@ import {
   toAuthorizationKeySeed,
   toBffApiCompactProducerKeychain,
 } from "../api/authorizationApiConverter.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { decorateKey } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertProducerKeychainVisibilityIsFull } from "./validators.js";
@@ -15,7 +16,11 @@ import { assertProducerKeychainVisibilityIsFull } from "./validators.js";
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients
 ) {
-  const { authorizationClient, selfcareV2UserClient } = apiClients;
+  const {
+    authorizationClient,
+    selfcareV2UserClient,
+    inAppNotificationManagerClient,
+  } = apiClients;
 
   return {
     async getProducerKeychains(
@@ -32,8 +37,9 @@ export function producerKeychainServiceBuilder(
         name?: string;
         eserviceId?: string;
       },
-      { logger, headers, authData }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactProducerKeychains> {
+      const { logger, headers, authData } = ctx;
       logger.info(`Retrieving producer keychains`);
 
       const producerKeychains =
@@ -49,8 +55,19 @@ export function producerKeychainServiceBuilder(
           headers,
         });
 
+      const notifications = await filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        producerKeychains.results.map((pk) => pk.id),
+        ctx
+      );
+
+      const enrichedKeychains = producerKeychains.results.map((pk) => ({
+        ...pk,
+        hasUnreadNotifications: notifications.includes(pk.id),
+      }));
+
       return {
-        results: producerKeychains.results.map(toBffApiCompactProducerKeychain),
+        results: enrichedKeychains.map(toBffApiCompactProducerKeychain),
         pagination: {
           limit,
           offset,

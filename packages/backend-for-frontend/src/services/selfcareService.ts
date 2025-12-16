@@ -16,6 +16,7 @@ import {
   toBffApiCompactUser,
 } from "../api/selfcareApiConverter.js";
 import { config } from "../config/config.js";
+import { assertRequesterCanRetrieveUsers } from "./validators.js";
 
 export async function getSelfcareCompactUserById(
   selfcareClient: SelfcareV2UserClient,
@@ -61,7 +62,7 @@ export function selfcareServiceBuilder({
       }: WithLogger<BffAppContext>
     ): Promise<bffApi.User> {
       logger.info(
-        `Retrieving User with with istitution id ${institutionId}, user ${userId}`
+        `Retrieving User with institution id ${institutionId}, user ${userId}`
       );
 
       const users: selfcareV2ClientApi.UserResource[] =
@@ -134,9 +135,11 @@ export function selfcareServiceBuilder({
       userId: string | undefined,
       roles: string[],
       query: string | undefined,
-      { logger, correlationId, headers }: WithLogger<BffAppContext>
+      { logger, correlationId, headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.Users> {
       logger.info(`Retrieving users for institutions ${tenantId}`);
+
+      assertRequesterCanRetrieveUsers(authData.organizationId, tenantId);
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },

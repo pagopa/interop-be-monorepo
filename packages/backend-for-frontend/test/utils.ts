@@ -1,5 +1,6 @@
+/* eslint-disable max-params */
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
+import { inject, afterEach, expect } from "vitest";
 import {
   AppContext,
   FileManager,
@@ -7,13 +8,19 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  catalogApi,
+  eserviceTemplateApi,
+  inAppNotificationApi,
+} from "pagopa-interop-api-clients";
 import {
   ApiError,
   Descriptor,
   EService,
   EServiceTemplate,
   EServiceTemplateVersion,
+  TenantId,
+  UserId,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateService,
@@ -23,13 +30,13 @@ import {
   AttributeProcessClient,
   CatalogProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
+export const { cleanup, postgresDB, fileManager } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")
   );
@@ -41,6 +48,7 @@ export const createEServiceTeamplateService = (
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   catalogProcessClient: CatalogProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager
 ): EServiceTemplateService =>
   eserviceTemplateServiceBuilder(
@@ -48,6 +56,7 @@ export const createEServiceTeamplateService = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
+    inAppNotificationManagerClient,
     fileManager
   );
 
@@ -155,3 +164,37 @@ export function eserviceInterfaceDataNotValid(): ApiError<CatalogErrorCodes> {
     title: "EService template interface data not valid",
   });
 }
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+export const expectedOrganizationId = (organizationId: TenantId) =>
+  expect.objectContaining({
+    authData: expect.objectContaining({
+      organizationId,
+    }),
+  });
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+export const expectedUserIdAndOrganizationId = (
+  userId: UserId,
+  organizationId: TenantId
+) =>
+  expect.objectContaining({
+    authData: expect.objectContaining({
+      userId,
+      organizationId,
+    }),
+  });
+
+export const getMockNotification = (
+  notificationType: inAppNotificationApi.NotificationType,
+  entityId: string = "test-entity-id"
+): inAppNotificationApi.Notification => ({
+  id: "notification-id",
+  tenantId: "tenant-id",
+  userId: "user-id",
+  body: "Test notification body",
+  notificationType,
+  entityId,
+  createdAt: "2024-01-01T00:00:00Z",
+  readAt: undefined,
+});

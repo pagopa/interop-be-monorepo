@@ -1,16 +1,12 @@
 import {
   AWSSesConfig,
-  FeatureFlagSQLConfig,
   LoggerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const PnConsumersConfig = LoggerConfig.and(ReadModelDbConfig)
+const PnConsumersConfig = LoggerConfig.and(ReadModelSQLDbConfig)
   .and(AWSSesConfig)
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional())
   .and(
     z
       .object({

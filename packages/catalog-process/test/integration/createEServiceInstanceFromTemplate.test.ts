@@ -63,6 +63,7 @@ describe("create eService from template", () => {
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [publishedVersion],
+      personalData: false,
     };
 
     const tenant: Tenant = {
@@ -121,6 +122,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       isClientAccessDelegable: false,
       templateId: eServiceTemplate.id,
+      personalData: eServiceTemplate.personalData,
     };
 
     const expectedEServiceWithDescriptor: EService = {
@@ -133,6 +135,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
+      personalData: eServiceTemplate.personalData,
       descriptors: [
         {
           ...mockDescriptor,
@@ -184,6 +187,7 @@ describe("create eService from template", () => {
         validEServiceTemplateRiskAnalysisPrivate,
       ],
       versions: [publishedVersion],
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -212,6 +216,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
       riskAnalysis: [validRiskAnalysisPA1, validRiskAnalysisPA2],
+      personalData: eserviceTemplate.personalData,
       descriptors: [
         {
           ...mockDescriptor,
@@ -258,6 +263,7 @@ describe("create eService from template", () => {
         validEServiceTemplateRiskAnalysisPrivate,
       ],
       versions: [publishedVersion],
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -284,6 +290,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
       riskAnalysis: [validRiskAnalysisPrivate],
+      personalData: eserviceTemplate.personalData,
       descriptors: [
         {
           ...mockDescriptor,
@@ -337,6 +344,7 @@ describe("create eService from template", () => {
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [eserviceTemplatePublishedVersion],
+      personalData: false,
     };
 
     const tenant: Tenant = {
@@ -463,6 +471,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
+      personalData: eServiceTemplate.personalData,
       descriptors: [
         {
           ...mockDescriptor,
@@ -633,6 +642,35 @@ describe("create eService from template", () => {
       )
     ).rejects.toMatchObject({
       code: "eServiceTemplateWithoutPublishedVersion",
+    });
+  });
+
+  it("should throw eServiceTemplateWithoutPersonalDataFlag when the template has no personalData flag and the feature flag is enabled", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    await expect(
+      catalogService.createEServiceInstanceFromTemplate(
+        eServiceTemplate.id,
+        {},
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toMatchObject({
+      code: "eServiceTemplateWithoutPersonalDataFlag",
     });
   });
 });

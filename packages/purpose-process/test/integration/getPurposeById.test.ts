@@ -29,6 +29,7 @@ import {
   eserviceMode,
   purposeVersionState,
   DelegationId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -62,6 +63,7 @@ describe("getPurposeById", () => {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+      purposeTemplateId: generateId<PurposeTemplateId>(),
     };
     const mockPurpose2: Purpose = {
       ...getMockPurpose(),

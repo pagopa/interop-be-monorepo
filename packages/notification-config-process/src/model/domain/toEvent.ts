@@ -7,6 +7,8 @@ import {
   toUserNotificationConfigV2,
   TenantNotificationConfig,
   UserNotificationConfig,
+  UserRole,
+  toUserRoleV2,
 } from "pagopa-interop-models";
 
 export const toCreateEventTenantNotificationConfigCreated = (
@@ -122,6 +124,50 @@ export const toCreateEventUserNotificationConfigDeleted = (
       userNotificationConfig: toUserNotificationConfigV2(
         userNotificationConfig
       ),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventUserNotificationConfigRoleAdded = (
+  streamId: string,
+  version: number,
+  userNotificationConfig: UserNotificationConfig,
+  userRole: UserRole,
+  correlationId: CorrelationId
+): CreateEvent<NotificationConfigEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "UserNotificationConfigRoleAdded",
+    event_version: 2,
+    data: {
+      userNotificationConfig: toUserNotificationConfigV2(
+        userNotificationConfig
+      ),
+      userRole: toUserRoleV2(userRole),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventUserNotificationConfigRoleRemoved = (
+  streamId: string,
+  version: number,
+  userNotificationConfig: UserNotificationConfig,
+  userRole: UserRole,
+  correlationId: CorrelationId
+): CreateEvent<NotificationConfigEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "UserNotificationConfigRoleRemoved",
+    event_version: 2,
+    data: {
+      userNotificationConfig: toUserNotificationConfigV2(
+        userNotificationConfig
+      ),
+      userRole: toUserRoleV2(userRole),
     },
   },
   correlationId,

@@ -1,13 +1,13 @@
 {
   "name": "pagopa-interop-dtd-catalog-exporter-job",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "private": true,
   "description": "PagoPA Interoperability catalog exporter job",
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
-    "test:old": "echo \"Old readmodel\" && vitest --config vitest.config.ts ",
+    "test": "vitest --config vitest.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -17,13 +17,10 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "dependencies": {
     "csv-stringify": "6.5.2",
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
-    "mongodb": "6.7.0",
     "octokit": "4.1.4",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",

@@ -4,6 +4,7 @@ import { EventEnvelope } from "../events/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import {
   PurposeTemplateAddedV2,
+  PurposeTemplateAnnotationDocumentDeletedV2,
   PurposeTemplateArchivedV2,
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
@@ -12,6 +13,8 @@ import {
   PurposeTemplatePublishedV2,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
+  PurposeTemplateAnnotationDocumentAddedV2,
+  PurposeTemplateAnnotationDocumentUpdatedV2,
 } from "../gen/v2/purpose-template/events.js";
 
 export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
@@ -60,6 +63,21 @@ export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
     type: z.literal("PurposeTemplateArchived"),
     data: protobufDecoder(PurposeTemplateArchivedV2),
   }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateAnnotationDocumentAdded"),
+    data: protobufDecoder(PurposeTemplateAnnotationDocumentAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateAnnotationDocumentDeleted"),
+    data: protobufDecoder(PurposeTemplateAnnotationDocumentDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateAnnotationDocumentUpdated"),
+    data: protobufDecoder(PurposeTemplateAnnotationDocumentUpdatedV2),
+  }),
 ]);
 export type PurposeTemplateEventV2 = z.infer<typeof PurposeTemplateEventV2>;
 
@@ -93,6 +111,18 @@ export function purposeTemplateEventToBinaryDataV2(
     )
     .with({ type: "PurposeTemplateArchived" }, (e) =>
       PurposeTemplateArchivedV2.toBinary(e.data)
+    )
+    .with(
+      {
+        type: "PurposeTemplateAnnotationDocumentAdded",
+      },
+      (e) => PurposeTemplateAnnotationDocumentAddedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateAnnotationDocumentDeleted" }, (e) =>
+      PurposeTemplateAnnotationDocumentDeletedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateAnnotationDocumentUpdated" }, (e) =>
+      PurposeTemplateAnnotationDocumentUpdatedV2.toBinary(e.data)
     )
     .exhaustive();
 }

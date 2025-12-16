@@ -26,6 +26,9 @@ import {
   PurposeEvent,
   purposeEventToBinaryData,
   PurposeId,
+  PurposeTemplateEvent,
+  purposeTemplateEventToBinaryDataV2,
+  PurposeTemplateId,
   TenantEvent,
   tenantEventToBinaryData,
   TenantId,
@@ -41,6 +44,7 @@ type EventStoreSchema =
   | "catalog"
   | "tenant"
   | "purpose"
+  | "purpose_template"
   | '"authorization"'
   | "delegation"
   | "eservice_template"
@@ -71,6 +75,8 @@ export async function writeInEventstore<T extends EventStoreSchema>(
     ? StoredEvent<TenantEvent>
     : T extends "purpose"
     ? StoredEvent<PurposeEvent>
+    : T extends "purpose_template"
+    ? StoredEvent<PurposeTemplateEvent>
     : T extends '"authorization"'
     ? StoredEvent<AuthorizationEvent>
     : T extends "delegation"
@@ -106,6 +112,11 @@ export async function writeInEventstore<T extends EventStoreSchema>(
         .with("purpose", () =>
           purposeEventToBinaryData(event.event as PurposeEvent)
         )
+        .with("purpose_template", () =>
+          purposeTemplateEventToBinaryDataV2(
+            event.event as PurposeTemplateEvent
+          )
+        )
         .with('"authorization"', () =>
           authorizationEventToBinaryData(event.event as AuthorizationEvent)
         )
@@ -138,6 +149,8 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     ? TenantId
     : T extends "purpose"
     ? PurposeId
+    : T extends "purpose_template"
+    ? PurposeTemplateId
     : T extends '"authorization"'
     ? ClientId | ProducerKeychainId
     : T extends "delegation"
@@ -161,6 +174,8 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
       ? TenantEvent
       : T extends "purpose"
       ? PurposeEvent
+      : T extends "purpose_template"
+      ? PurposeTemplateEvent
       : T extends '"authorization"'
       ? AuthorizationEvent
       : T extends "delegation"
@@ -189,6 +204,8 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
     ? TenantId
     : T extends "purpose"
     ? PurposeId
+    : T extends "purpose_template"
+    ? PurposeTemplateId
     : T extends '"authorization"'
     ? ClientId | ProducerKeychainId
     : T extends "delegation"
@@ -213,6 +230,8 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
       ? TenantEvent
       : T extends "purpose"
       ? PurposeEvent
+      : T extends "purpose_template"
+      ? PurposeTemplateEvent
       : T extends '"authorization"'
       ? AuthorizationEvent
       : T extends "delegation"

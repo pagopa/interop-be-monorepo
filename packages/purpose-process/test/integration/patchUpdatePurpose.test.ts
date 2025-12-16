@@ -33,7 +33,7 @@ import {
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   addOnePurpose,
   readLastPurposeEvent,
@@ -653,7 +653,9 @@ describe("patchUpdatePurpose", () => {
         })
       )
     ).rejects.toThrowError(
-      riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
+      riskAnalysisValidationFailed([
+        rulesVersionNotFoundError(consumer.kind!, "0"),
+      ])
     );
   });
 });

@@ -21,6 +21,7 @@ import {
   getMockTenant,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
+import { match } from "ts-pattern";
 import { selfcareIdConflict } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -113,7 +114,10 @@ describe("selfcareUpsertTenant", async () => {
       const expectedTenant: Tenant = {
         externalId: tenantSeed.externalId,
         id: unsafeBrandId(id),
-        kind: origin === SCP ? tenantKind.SCP : undefined,
+        kind: match(origin)
+          .with(SCP, () => tenantKind.SCP)
+          .with("Private", () => tenantKind.PRIVATE)
+          .otherwise(() => undefined),
         selfcareId: tenantSeed.selfcareId,
         onboardedAt: mockTenant.onboardedAt!,
         createdAt: new Date(),

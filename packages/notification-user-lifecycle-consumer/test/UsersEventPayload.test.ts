@@ -34,9 +34,6 @@ describe("UsersEventPayload", () => {
         eventType: "add",
         user: {
           userId: "123e4567-e89b-12d3-a456-426614174000",
-          name: "John",
-          familyName: "Doe",
-          email: "john.doe@example.com",
           productRole: "admin" as const,
         },
       });
@@ -84,9 +81,6 @@ describe("UsersEventPayload", () => {
         eventType: "update",
         user: {
           userId: "123e4567-e89b-12d3-a456-426614174000",
-          name: "John",
-          familyName: "Doe",
-          email: "john.doe.updated@example.com",
           productRole: "admin" as const,
         },
       });
@@ -121,9 +115,6 @@ describe("UsersEventPayload", () => {
         eventType: "delete",
         user: {
           userId: "123e4567-e89b-12d3-a456-426614174000",
-          name: "John",
-          familyName: "Doe",
-          email: "john.doe@example.com",
           productRole: "admin" as const,
         },
       });

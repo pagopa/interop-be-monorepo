@@ -167,7 +167,9 @@ describe("update descriptor", () => {
         payload: writtenEvent.data,
       });
       expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload.eservice).toEqual(
+        toEServiceV2(returnedEService.data)
+      );
     }
   );
 
@@ -229,7 +231,9 @@ describe("update descriptor", () => {
         payload: writtenEvent.data,
       });
       expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload.eservice).toEqual(
+        toEServiceV2(returnedEService.data)
+      );
     }
   );
 

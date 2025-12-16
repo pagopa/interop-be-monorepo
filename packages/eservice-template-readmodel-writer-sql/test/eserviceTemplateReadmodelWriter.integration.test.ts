@@ -933,5 +933,48 @@ describe("database test", async () => {
       expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
       expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
+
+    it("EServiceTemplatePersonalDataFlagUpdatedAfterPublication", async () => {
+      const publishedVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        interface: getMockDocument(),
+        state: eserviceTemplateVersionState.published,
+        publishedAt: new Date(),
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [publishedVersion],
+      };
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
+        eserviceTemplate,
+        1
+      );
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate,
+        personalData: false,
+      };
+      const payload = {
+        eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+      };
+      const message: EServiceTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEServiceTemplate.id,
+        version: 2,
+        type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      await handleMessageV2(message, eserviceTemplateWriterService);
+
+      const retrievedEservice =
+        await eserviceTemplateReadModelService.getEServiceTemplateById(
+          mockEServiceTemplate.id
+        );
+
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
+    });
   });
 });

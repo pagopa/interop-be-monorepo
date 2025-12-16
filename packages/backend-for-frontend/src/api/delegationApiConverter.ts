@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 import {
   bffApi,
   catalogApi,
@@ -71,6 +72,7 @@ export function toBffDelegationApiDelegation(
   delegator: tenantApi.Tenant,
   delegate: tenantApi.Tenant,
   eservice: catalogApi.EService | undefined,
+  _: boolean | undefined,
   producer: tenantApi.Tenant
 ): bffApi.Delegation {
   return {
@@ -102,6 +104,7 @@ export function toBffDelegationApiDelegation(
     rejectionReason: delegation.rejectionReason,
     state: delegation.state,
     kind: delegation.kind,
+    isDocumentReady: delegation.signedActivationContract !== undefined,
   };
 }
 
@@ -109,7 +112,8 @@ export function toBffDelegationApiCompactDelegation(
   delegation: delegationApi.Delegation,
   delegator: tenantApi.Tenant,
   delegate: tenantApi.Tenant,
-  eservice: catalogApi.EService | undefined
+  eservice: catalogApi.EService | undefined,
+  hasNotifications: boolean | undefined
 ): bffApi.CompactDelegation {
   return {
     id: delegation.id,
@@ -124,5 +128,6 @@ export function toBffDelegationApiCompactDelegation(
     },
     state: delegation.state,
     kind: delegation.kind,
+    hasUnreadNotifications: hasNotifications || false,
   };
 }

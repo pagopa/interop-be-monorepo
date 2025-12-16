@@ -18,14 +18,16 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
+import { match } from "ts-pattern";
 import {
   addOneEServiceTemplate,
   addOneTenant,
   eserviceTemplateService,
 } from "../integrationUtils.js";
 import { getContextsAllowedToSeeDraftVersions } from "../mockUtils.js";
+import { PersonalDataFilter } from "../../src/services/readModelService.js";
 
-describe("get eservices", () => {
+describe("get eservice templates", () => {
   const organizationId1: TenantId = generateId();
   const organizationId2: TenantId = generateId();
   const organizationId3: TenantId = generateId();
@@ -47,6 +49,7 @@ describe("get eservices", () => {
       name: "eservice 001 test",
       versions: [eserviceTemplateVersion1],
       creatorId: organizationId1,
+      personalData: true,
     };
     await addOneEServiceTemplate(eserviceTemplate1);
 
@@ -61,6 +64,7 @@ describe("get eservices", () => {
       name: "eservice template 002 test",
       versions: [eserviceTemplateVersion2],
       creatorId: organizationId1,
+      personalData: true,
     };
     await addOneEServiceTemplate(eserviceTemplate2);
 
@@ -74,6 +78,7 @@ describe("get eservices", () => {
       name: "eservice template 003 test",
       versions: [eserviceTemplateVersion3],
       creatorId: organizationId1,
+      personalData: false,
     };
     await addOneEServiceTemplate(eserviceTemplate3);
 
@@ -87,6 +92,7 @@ describe("get eservices", () => {
       name: "eservice template 004 test",
       creatorId: organizationId2,
       versions: [eserviceTemplateVersion4],
+      personalData: false,
     };
     await addOneEServiceTemplate(eserviceTemplate4);
 
@@ -556,6 +562,53 @@ describe("get eservices", () => {
         eserviceTemplate5,
         { ...eserviceTemplate6, versions: [eserviceTemplateVersion6a] },
       ]);
+    }
+  );
+
+  it.each(["TRUE", "FALSE", "DEFINED", undefined] as PersonalDataFilter[])(
+    "should get the eService templates if they exist (parameters: personalData = %s)",
+    async (personalData) => {
+      const result = await eserviceTemplateService.getEServiceTemplates(
+        {
+          eserviceTemplatesIds: [],
+          creatorsIds: [],
+          states: [],
+          personalData,
+        },
+        0,
+        50,
+        getMockContext({
+          authData: getMockAuthData(organizationId3),
+        })
+      );
+
+      const expectedEServiceTemplates = match(personalData)
+        .with("TRUE", () => [eserviceTemplate1, eserviceTemplate2])
+        .with("FALSE", () => [eserviceTemplate3, eserviceTemplate4])
+        .with("DEFINED", () => [
+          eserviceTemplate1,
+          eserviceTemplate2,
+          eserviceTemplate3,
+          eserviceTemplate4,
+        ])
+        .with(undefined, () => [
+          eserviceTemplate1,
+          eserviceTemplate2,
+          eserviceTemplate3,
+          eserviceTemplate4,
+          eserviceTemplate5,
+        ])
+        .exhaustive();
+
+      expect(result.totalCount).toBe(expectedEServiceTemplates.length);
+      expect(result.results).toEqual(
+        expect.arrayContaining(
+          expectedEServiceTemplates.map((t) => ({
+            ...t,
+            versions: expect.arrayContaining(t.versions),
+          }))
+        )
+      );
     }
   );
 });

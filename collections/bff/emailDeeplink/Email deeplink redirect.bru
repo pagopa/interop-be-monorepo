@@ -1,0 +1,16 @@
+meta {
+  name: Email deepLink redirect
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/emailDeeplink/:notificationType/:entityId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  entityId: 08a6f113-8ab9-4925-ae0f-250e5f1ae449
+  notificationType: eserviceNewVersionSubmittedToDelegator
+}

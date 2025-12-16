@@ -59,6 +59,10 @@ import {
   userNotificationConfigInReadmodelNotificationConfig,
   userEnabledInAppNotificationInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
+  purposeVersionStampInReadmodelPurpose,
+  agreementSignedContractInReadmodelAgreement,
+  purposeVersionSignedDocumentInReadmodelPurpose,
+  delegationSignedContractDocumentInReadmodelDelegation,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -147,6 +151,9 @@ export type AgreementConsumerDocumentSQL = InferSelectModel<
 export type AgreementContractSQL = InferSelectModel<
   typeof agreementContractInReadmodelAgreement
 >;
+export type AgreementSignedContractSQL = InferSelectModel<
+  typeof agreementSignedContractInReadmodelAgreement
+>;
 export type AgreementStampSQL = InferSelectModel<
   typeof agreementStampInReadmodelAgreement
 >;
@@ -159,6 +166,7 @@ export type AgreementItemsSQL = {
   attributesSQL: AgreementAttributeSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractSQL: AgreementContractSQL | undefined;
+  signedContractSQL: AgreementSignedContractSQL | undefined;
 };
 
 export type TenantSQL = InferSelectModel<typeof tenantInReadmodelTenant>;
@@ -201,11 +209,18 @@ export type PurposeVersionSQL = InferSelectModel<
 export type PurposeVersionDocumentSQL = InferSelectModel<
   typeof purposeVersionDocumentInReadmodelPurpose
 >;
+
+export type PurposeVersionSignedDocumentSQL = InferSelectModel<
+  typeof purposeVersionSignedDocumentInReadmodelPurpose
+>;
 export type PurposeRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeRiskAnalysisFormInReadmodelPurpose
 >;
 export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
   typeof purposeRiskAnalysisAnswerInReadmodelPurpose
+>;
+export type PurposeVersionStampSQL = InferSelectModel<
+  typeof purposeVersionStampInReadmodelPurpose
 >;
 export type PurposeItemsSQL = {
   purposeSQL: PurposeSQL;
@@ -213,6 +228,8 @@ export type PurposeItemsSQL = {
   riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
+  versionStampsSQL: PurposeVersionStampSQL[];
+  versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
 };
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
@@ -267,10 +284,14 @@ export type DelegationStampSQL = InferSelectModel<
 export type DelegationContractDocumentSQL = InferSelectModel<
   typeof delegationContractDocumentInReadmodelDelegation
 >;
+export type DelegationSignedContractDocumentSQL = InferSelectModel<
+  typeof delegationSignedContractDocumentInReadmodelDelegation
+>;
 export type DelegationItemsSQL = {
   delegationSQL: DelegationSQL;
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
+  contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[];
 };
 
 export type TenantNotificationConfigSQL = InferSelectModel<
@@ -318,3 +339,14 @@ export type PurposeTemplateItemsSQL = {
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 };
+export const purposeTemplateChildTables = [
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+];
+export const purposeTemplateTables = [
+  purposeTemplateInReadmodelPurposeTemplate,
+  ...purposeTemplateChildTables,
+];

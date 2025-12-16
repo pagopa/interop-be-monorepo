@@ -20,6 +20,8 @@ import {
   generateId,
   Descriptor,
   EService,
+  descriptorState,
+  EServiceDescriptorPublishedV2,
 } from "pagopa-interop-models";
 import {
   getMockEService,
@@ -1255,6 +1257,73 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
         id: risk.id,
       })
     ).forEach((r) => expect(r.deleted).toBe(true));
+  });
+
+  it.each([
+    "EServicePersonalDataFlagUpdatedAfterPublication",
+    "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+  ] as const)("%s: updates eService personalData flag", async (eventType) => {
+    const publishedDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      audience: ["pagopa.it/test1", "pagopa.it/test2"],
+      interface: getMockDocument(),
+      state: descriptorState.published,
+      publishedAt: new Date(),
+    };
+
+    const eService: EService = {
+      ...getMockEService(),
+      descriptors: [publishedDescriptor],
+    };
+
+    const eServiceAddedMsg: EServiceEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: eService.id,
+      version: 1,
+      type: "EServiceAdded",
+      event_version: 2,
+      data: { eservice: toEServiceV2(eService) } as EServiceAddedV2,
+      log_date: new Date(),
+    };
+
+    const eServicePublishPayload: EServiceDescriptorPublishedV2 = {
+      eservice: toEServiceV2(eService),
+      descriptorId: publishedDescriptor.id,
+    };
+    const eServicePublishMsg: EServiceEventEnvelopeV2 = {
+      sequence_num: 2,
+      stream_id: eService.id,
+      version: 2,
+      type: "EServiceDescriptorPublished",
+      event_version: 2,
+      data: eServicePublishPayload,
+      log_date: new Date(),
+    };
+
+    const eServiceUpdated: EService = { ...eService, personalData: true };
+    const eServiceUpdateMsg: EServiceEventEnvelopeV2 = {
+      sequence_num: 3,
+      stream_id: eService.id,
+      version: 3,
+      type: eventType,
+      event_version: 2,
+      data: { eservice: toEServiceV2(eServiceUpdated) },
+      log_date: new Date(),
+    };
+
+    await handleCatalogMessageV2(
+      [eServiceAddedMsg, eServicePublishMsg, eServiceUpdateMsg],
+      dbContext
+    );
+
+    const retrievedEService = await getOneFromDb(
+      dbContext,
+      CatalogDbTable.eservice,
+      { id: eService.id }
+    );
+
+    expect(retrievedEService?.personalData).toBe(true);
+    expect(retrievedEService?.metadataVersion).toBe(3);
   });
 });
 

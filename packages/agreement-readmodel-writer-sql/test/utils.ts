@@ -28,7 +28,6 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  undefined,
   inject("readModelSQLConfig")
 );
 
@@ -94,5 +93,6 @@ export const getCustomMockAgreement = (): Agreement => {
   delete agreement.contract;
   delete agreement.rejectionReason;
   delete agreement.suspendedAt;
+  delete agreement.signedContract;
   return agreement;
 };

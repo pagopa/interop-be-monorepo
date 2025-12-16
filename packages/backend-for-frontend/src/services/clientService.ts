@@ -13,11 +13,16 @@ import {
   toAuthorizationKeySeed,
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertClientVisibilityIsFull } from "./validators.js";
 
 export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
-  const { authorizationClient, selfcareV2UserClient } = apiClients;
+  const {
+    authorizationClient,
+    selfcareV2UserClient,
+    inAppNotificationManagerClient,
+  } = apiClients;
 
   return {
     async getClients(
@@ -34,8 +39,9 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         name?: string;
         kind?: bffApi.ClientKind;
       },
-      { logger, headers, correlationId, authData }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactClients> {
+      const { logger, headers, correlationId, authData } = ctx;
       logger.info(`Retrieving clients`);
 
       const clients = await authorizationClient.client.getClientsWithKeys({
@@ -51,6 +57,12 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         headers,
       });
 
+      const notifications = await filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        clients.results.map((c) => c.client.id),
+        ctx
+      );
+
       return {
         results: await Promise.all(
           clients.results.map((client) =>
@@ -58,7 +70,8 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
               selfcareV2UserClient,
               client,
               authData.selfcareId,
-              correlationId
+              correlationId,
+              notifications.includes(client.client.id)
             )
           )
         ),

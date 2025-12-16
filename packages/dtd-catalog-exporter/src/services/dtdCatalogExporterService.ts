@@ -16,8 +16,8 @@ import {
   PublicEService,
   FlattenedPublicTenant,
 } from "../models/models.js";
-import { readModelServiceBuilder } from "./readModelService.js";
 import { GithubClient } from "./github-client.services.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const convertTenantsToCSV = (tenants: PublicTenant[]): string => {
   const records: FlattenedPublicTenant[] = tenants.map((tenant) => ({
@@ -80,7 +80,7 @@ export function dtdCatalogExporterServiceBuilder({
   fileManager,
   loggerInstance,
 }: {
-  readModelService: ReturnType<typeof readModelServiceBuilder>;
+  readModelService: ReadModelServiceSQL;
   fileManager: FileManager;
   loggerInstance: Logger;
 }) {

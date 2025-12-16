@@ -650,6 +650,7 @@ export const toCreateEventEServiceIsClientAccessDelegableDisabled = (
 export const toCreateEventEServiceNameUpdated = (
   version: number,
   eservice: EService,
+  oldName: string,
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
@@ -659,6 +660,7 @@ export const toCreateEventEServiceNameUpdated = (
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
+      oldName,
     },
   },
   correlationId,
@@ -667,6 +669,7 @@ export const toCreateEventEServiceNameUpdated = (
 export const toCreateEventEServiceNameUpdatedByTemplateUpdate = (
   version: number,
   eservice: EService,
+  oldName: string,
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
@@ -676,6 +679,7 @@ export const toCreateEventEServiceNameUpdatedByTemplateUpdate = (
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
+      oldName,
     },
   },
   correlationId,
@@ -690,6 +694,23 @@ export const toCreateEventEServiceDescriptionUpdatedByTemplateUpdate = (
   version,
   event: {
     type: "EServiceDescriptionUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServicePersonalDataFlagUpdatedByTemplateUpdate",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
@@ -849,6 +870,23 @@ export const toCreateEventEServiceSignalhubFlagDisabled = (
   version,
   event: {
     type: "EServiceSignalHubDisabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServicePersonalDataFlagUpdatedAfterPublication = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServicePersonalDataFlagUpdatedAfterPublication",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),

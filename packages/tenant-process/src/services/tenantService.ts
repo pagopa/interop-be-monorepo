@@ -108,11 +108,11 @@ import {
   getTenantKind,
   isFeatureAssigned,
 } from "./validators.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -128,7 +128,7 @@ const retrieveTenantByExternalId = async ({
 }: {
   tenantOrigin: string;
   tenantExternalId: string;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
 }): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantByExternalId({
     origin: tenantOrigin,
@@ -142,7 +142,7 @@ const retrieveTenantByExternalId = async ({
 
 export async function retrieveAttribute(
   attributeId: AttributeId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Attribute> {
   const attribute = await readModelService.getAttributeById(attributeId);
   if (!attribute) {
@@ -154,7 +154,7 @@ export async function retrieveAttribute(
 async function retrieveTenantVerifiedAttribute(
   tenantId: TenantId,
   attributeId: AttributeId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<{ tenant: WithMetadata<Tenant> }> {
   const tenant = await retrieveTenant(tenantId, readModelService);
 
@@ -177,7 +177,7 @@ async function retrieveCertifiedAttribute({
 }: {
   attributeOrigin: string;
   attributeExternalId: string;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
 }): Promise<Attribute> {
   const attribute = await readModelService.getAttributeByOriginAndCode({
     origin: attributeOrigin,
@@ -192,7 +192,7 @@ async function retrieveCertifiedAttribute({
 
 async function retrieveAgreement(
   agreementId: AgreementId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Agreement> {
   const agreement = await readModelService.getAgreementById(agreementId);
   if (!agreement) {
@@ -204,7 +204,7 @@ async function retrieveAgreement(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ) {
   const repository = eventRepository(dbInstance, tenantEventToBinaryData);
   return {
@@ -419,10 +419,14 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
-          kind:
-            getTenantKind([], tenantSeed.externalId) === tenantKind.SCP
-              ? tenantKind.SCP
-              : undefined,
+          kind: match(getTenantKind([], tenantSeed.externalId))
+            /**
+             * If the tenant kind is SCP or PRIVATE, set the kind straight away.
+             * If not, the kind will be evaluated when certified attributes are added.
+             */
+            .with(tenantKind.SCP, tenantKind.PRIVATE, (kind) => kind)
+            .with(tenantKind.GSP, tenantKind.PA, () => undefined)
+            .exhaustive(),
         };
         await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)

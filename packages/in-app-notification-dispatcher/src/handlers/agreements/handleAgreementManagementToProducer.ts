@@ -8,7 +8,11 @@ import {
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
+import {
+  retrieveTenant,
+  retrieveEservice,
+  getNotificationRecipients,
+} from "../handlerCommons.js";
 
 export async function handleAgreementManagementToProducer(
   agreementV2Msg: AgreementV2 | undefined,
@@ -25,11 +29,12 @@ export async function handleAgreementManagementToProducer(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [agreement.producerId],
-      "agreementManagementToProducer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [agreement.producerId],
+    "agreementManagementToProducer",
+    readModelService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(
@@ -44,15 +49,17 @@ export async function handleAgreementManagementToProducer(
     readModelService
   );
 
-  const body = inAppTemplates.agreementManagementToProducer(
-    consumer.name,
-    eservice.name,
-    match(eventType)
-      .with("AgreementActivated", () => "attivato" as const)
-      .with("AgreementSubmitted", () => "creato" as const)
-      .with("AgreementUpgraded", () => "aggiornato" as const)
-      .exhaustive()
-  );
+  const body = match(eventType)
+    .with("AgreementActivated", () =>
+      inAppTemplates.agreementActivatedToProducer(consumer.name, eservice.name)
+    )
+    .with("AgreementSubmitted", () =>
+      inAppTemplates.agreementSubmittedToProducer(consumer.name, eservice.name)
+    )
+    .with("AgreementUpgraded", () =>
+      inAppTemplates.agreementUpgradedToProducer(consumer.name, eservice.name)
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,

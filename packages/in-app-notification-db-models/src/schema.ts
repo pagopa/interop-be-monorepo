@@ -1,7 +1,6 @@
-import { pgSchema, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { InferSelectModel } from "drizzle-orm";
-
-export const notificationSchema = pgSchema("notification");
+import { notificationSchema } from "./pgSchema.js";
 
 export const notification = notificationSchema.table("notification", {
   id: uuid().primaryKey().notNull(),
@@ -9,7 +8,7 @@ export const notification = notificationSchema.table("notification", {
   tenantId: uuid("tenant_id").notNull(),
   body: varchar("body").notNull(),
   notificationType: varchar("notification_type").notNull(),
-  entityId: uuid("entity_id").notNull(),
+  entityId: varchar("entity_id").notNull(),
   readAt: timestamp("read_at", {
     withTimezone: true,
     mode: "string",

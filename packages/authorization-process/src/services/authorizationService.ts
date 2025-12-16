@@ -99,8 +99,7 @@ import {
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
-} from "./readModelServiceSQL.js";
-import { ReadModelService } from "./readModelService.js";
+} from "./readModelService.js";
 import {
   assertClientKeysCountIsBelowThreshold,
   assertKeyDoesNotAlreadyExist,
@@ -116,10 +115,11 @@ import {
   assertClientIsAPI,
   assertAdminInClient,
 } from "./validators.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveClient = async (
   clientId: ClientId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Client>> => {
   const client = await readModelService.getClientById(clientId);
   if (!client) {
@@ -130,7 +130,7 @@ const retrieveClient = async (
 
 const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
@@ -141,7 +141,7 @@ const retrieveEService = async (
 
 const retrievePurpose = async (
   purposeId: PurposeId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Purpose> => {
   const purpose = await readModelService.getPurposeById(purposeId);
   if (purpose === undefined) {
@@ -152,7 +152,7 @@ const retrievePurpose = async (
 
 const retrievePurposeDelegation = async (
   purpose: Purpose,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Delegation | undefined> => {
   if (!purpose.delegationId) {
     return undefined;
@@ -185,7 +185,7 @@ const retrieveDescriptor = (
 
 const retrieveProducerKeychain = async (
   producerKeychainId: ProducerKeychainId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<ProducerKeychain>> => {
   const producerKeychain = await readModelService.getProducerKeychainById(
     producerKeychainId
@@ -199,7 +199,7 @@ const retrieveProducerKeychain = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   const repository = eventRepository(
@@ -330,7 +330,13 @@ export function authorizationServiceBuilder(
           : filters.userIds;
 
       return await readModelService.getClients(
-        { ...filters, userIds, consumerId },
+        {
+          name: filters.name,
+          kind: filters.kind,
+          purposeId: filters.purposeId,
+          userIds,
+          consumerId,
+        },
         {
           offset,
           limit,
@@ -970,7 +976,12 @@ export function authorizationServiceBuilder(
           : filters.userIds;
 
       return await readModelService.getProducerKeychains(
-        { ...filters, userIds, producerId },
+        {
+          eserviceId: filters.eserviceId,
+          name: filters.name,
+          userIds,
+          producerId,
+        },
         {
           offset,
           limit,

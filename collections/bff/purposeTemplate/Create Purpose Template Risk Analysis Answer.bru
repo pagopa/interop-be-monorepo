@@ -1,0 +1,52 @@
+meta {
+  name: Create Purpose Template Risk Analysis Answer
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-bff}}/purposeTemplates/{{purposeTemplateId}}/riskAnalysis/answers
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "answerKey": "{{answerKey}}",
+    "answerData": {
+      "values": {{answerValues}},
+      "editable": {{editable}},
+      "suggestedValues": {{suggestedValues}},
+      "annotation": {
+        "text": "{{annotationText}}",
+        "docs": {{annotationDocs}}
+      }
+    }
+  }
+}
+
+vars:post-response {
+  riskAnalysisAnswerId: res.body.id
+}
+
+script:pre-request {
+  // Generate random values for testing
+  const random = Math.round(Math.random() * 1000);
+  
+  // Set default values that can be overridden
+  bru.setVar("answerKey", "purpose");
+  bru.setVar("answerValues", ["INSTITUTIONAL"]);
+  bru.setVar("editable", false);
+  bru.setVar("suggestedValues", []);
+  bru.setVar("annotationText", `Risk analysis template answer annotation text ${random}`);
+  bru.setVar("annotationDocs", []);
+}
+
+docs {
+  Creates a risk analysis answer for a purpose template through the BFF API.
+}

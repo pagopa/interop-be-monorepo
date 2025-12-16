@@ -6,8 +6,10 @@ import {
   DelegationTopicConfig,
   ReadModelSQLDbConfig,
   InAppNotificationDBConfig,
-  AttributeTopicConfig,
   AuthorizationTopicConfig,
+  TenantTopicConfig,
+  EServiceTemplateTopicConfig,
+  NotificationTypeBlocklistConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -17,10 +19,12 @@ export const InAppNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
   .and(DelegationTopicConfig)
-  .and(AttributeTopicConfig)
+  .and(TenantTopicConfig)
   .and(AuthorizationTopicConfig)
+  .and(EServiceTemplateTopicConfig)
   .and(InAppNotificationDBConfig)
-  .and(ReadModelSQLDbConfig);
+  .and(ReadModelSQLDbConfig)
+  .and(NotificationTypeBlocklistConfig);
 
 export type InAppNotificationDispatcherConfig = z.infer<
   typeof InAppNotificationDispatcherConfig

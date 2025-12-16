@@ -33,7 +33,7 @@ import {
   tenantDigitalAddressNotFound,
   tenantNotFound,
 } from "../models/errors.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // Be careful to change this enum, it's used to find the html template files
 export const certifiedMailTemplateEventType = {
@@ -62,7 +62,7 @@ const retrieveTenantDigitalAddress = (tenant: Tenant): TenantMail => {
 
 async function retrieveAgreementEservice(
   agreement: Agreement,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> {
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
@@ -75,7 +75,7 @@ async function retrieveAgreementEservice(
 
 async function retrieveTenant(
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Tenant> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -130,7 +130,7 @@ export function getFormattedAgreementStampDate(
 export function certifiedEmailSenderServiceBuilder(
   pecEmailManager: EmailManagerPEC,
   pecSenderData: { label: string; mail: string },
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   templateService: HtmlTemplateService
 ) {
   return {

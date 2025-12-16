@@ -3,6 +3,8 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockPurposeVersionDocument,
+  getMockPurposeVersionSignedDocument,
+  getMockPurposeVersionStamps,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
@@ -14,6 +16,10 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionSignedDocument,
+  PurposeVersionStampKind,
+  PurposeVersionStamps,
+  purposeVersionState,
   riskAnalysisAnswerKind,
   RiskAnalysisId,
   tenantKind,
@@ -24,6 +30,8 @@ import {
   PurposeSQL,
   PurposeVersionDocumentSQL,
   PurposeVersionSQL,
+  PurposeVersionSignedDocumentSQL,
+  PurposeVersionStampSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitPurposeIntoObjectsSQL } from "../src/purpose/splitters.js";
 
@@ -39,14 +47,18 @@ describe("Purpose splitter", () => {
 
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
+    const purposeVersionSignedContract: PurposeVersionSignedDocument =
+      getMockPurposeVersionSignedDocument();
 
+    const purposeVersionStamps = getMockPurposeVersionStamps();
     const purposeVersion: PurposeVersion = {
-      ...getMockPurposeVersion(),
+      ...getMockPurposeVersion(purposeVersionState.draft, purposeVersionStamps),
       rejectionReason,
       suspendedAt,
       updatedAt,
       firstActivationAt,
       riskAnalysis: purposeVersionRiskAnalysis,
+      signedContract: purposeVersionSignedContract,
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
@@ -65,13 +77,14 @@ describe("Purpose splitter", () => {
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
     };
-
     const {
       purposeSQL,
       riskAnalysisFormSQL,
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
+      versionStampsSQL,
+      versionSignedDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -147,7 +160,41 @@ describe("Purpose splitter", () => {
       createdAt: purposeVersionRiskAnalysis.createdAt.toISOString(),
       contentType: purposeVersionRiskAnalysis.contentType,
       path: purposeVersionRiskAnalysis.path,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     };
+
+    const expectedPurposeVersionSignedDocumentSQL: PurposeVersionSignedDocumentSQL =
+      {
+        id: purposeVersionSignedContract.id,
+        metadataVersion: 1,
+        purposeId: purpose.id,
+        purposeVersionId: purposeVersion.id,
+        createdAt: purposeVersionSignedContract.createdAt.toISOString(),
+        contentType: purposeVersionSignedContract.contentType,
+        path: purposeVersionSignedContract.path,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+        signedAt: purposeVersionSignedContract.signedAt?.toISOString()!,
+      };
+
+    const expectedPurposeVersionStampsSQL: PurposeVersionStampSQL[] = [];
+
+    for (const [key, stamp] of Object.entries(purposeVersionStamps) as Array<
+      [
+        keyof PurposeVersionStamps,
+        PurposeVersionStamps[keyof PurposeVersionStamps]
+      ]
+    >) {
+      if (stamp) {
+        expectedPurposeVersionStampsSQL.push({
+          purposeId: purpose.id,
+          purposeVersionId: purposeVersion.id,
+          metadataVersion: 1,
+          kind: PurposeVersionStampKind.enum[key],
+          who: stamp.who,
+          when: stamp.when.toISOString(),
+        });
+      }
+    }
 
     expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
     expect(riskAnalysisFormSQL).toStrictEqual(
@@ -160,11 +207,18 @@ describe("Purpose splitter", () => {
     expect(versionDocumentsSQL).toStrictEqual([
       expectedPurposeVersionDocumentSQL,
     ]);
+    expect(versionStampsSQL).toStrictEqual(expectedPurposeVersionStampsSQL);
+    expect(versionSignedDocumentsSQL).toStrictEqual([
+      expectedPurposeVersionSignedDocumentSQL,
+    ]);
   });
 
   it("should convert an incomplete purpose into purpose SQL objects (undefined -> null)", () => {
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
+
+    const purposeVersionSignedDocument: PurposeVersionSignedDocument =
+      getMockPurposeVersionSignedDocument();
 
     const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -173,6 +227,8 @@ describe("Purpose splitter", () => {
       updatedAt: undefined,
       firstActivationAt: undefined,
       riskAnalysis: purposeVersionRiskAnalysis,
+      stamps: undefined,
+      signedContract: purposeVersionSignedDocument,
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
@@ -195,6 +251,8 @@ describe("Purpose splitter", () => {
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
+      versionStampsSQL,
+      versionSignedDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -271,6 +329,20 @@ describe("Purpose splitter", () => {
       contentType: purposeVersionRiskAnalysis.contentType,
       path: purposeVersionRiskAnalysis.path,
     };
+    const expectedPurposeVersionSignedDocumentSQL: PurposeVersionSignedDocumentSQL =
+      {
+        id: purposeVersionSignedDocument.id,
+        metadataVersion: 1,
+        purposeId: purpose.id,
+        purposeVersionId: purposeVersion.id,
+        createdAt: purposeVersionSignedDocument.createdAt.toISOString(),
+        contentType: purposeVersionSignedDocument.contentType,
+        path: purposeVersionSignedDocument.path,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+        signedAt: purposeVersionSignedDocument.signedAt?.toISOString()!,
+      };
+
+    const expectedpurposeVersionStampsSQL: PurposeVersion[] = [];
 
     expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
     expect(riskAnalysisFormSQL).toStrictEqual(
@@ -282,6 +354,10 @@ describe("Purpose splitter", () => {
     expect(versionsSQL).toStrictEqual([expectedPurposeVersionSQL]);
     expect(versionDocumentsSQL).toStrictEqual([
       expectedPurposeVersionDocumentSQL,
+    ]);
+    expect(versionStampsSQL).toStrictEqual(expectedpurposeVersionStampsSQL);
+    expect(versionSignedDocumentsSQL).toStrictEqual([
+      expectedPurposeVersionSignedDocumentSQL,
     ]);
   });
 });

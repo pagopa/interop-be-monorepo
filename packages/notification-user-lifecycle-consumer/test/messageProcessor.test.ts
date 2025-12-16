@@ -15,22 +15,15 @@ import { AxiosError } from "axios";
 import { processUserEvent } from "../src/services/messageProcessor.js";
 import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
-import { UserServiceSQL } from "../src/services/userServiceSQL.js";
 
 describe("processUserEvent", () => {
   const mockReadModelServiceSQL: ReadModelServiceSQL = {
     getTenantIdBySelfcareId: vi.fn(),
   };
 
-  const mockUserServiceSQL: UserServiceSQL = {
-    insertUser: vi.fn(),
-    updateUser: vi.fn(),
-    deleteUser: vi.fn(),
-  };
-
   const mockNotificationConfigProcessClient = {
-    createUserDefaultNotificationConfig: vi.fn(),
-    deleteUserNotificationConfig: vi.fn(),
+    ensureUserNotificationConfigExistsWithRole: vi.fn(),
+    removeUserNotificationConfigRole: vi.fn(),
   } as unknown as ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >;
@@ -48,6 +41,8 @@ describe("processUserEvent", () => {
   const userId = unsafeBrandId<UserId>("123e4567-e89b-12d3-a456-426614174000");
   const institutionId = unsafeBrandId<SelfcareId>("inst-123");
   const tenantId = "tenant-123";
+  const productRole = "admin";
+  const apiProductRole = "ADMIN";
   const correlationId = generateId<CorrelationId>();
 
   beforeEach(() => {
@@ -74,59 +69,12 @@ describe("processUserEvent", () => {
 
     vi.spyOn(
       mockNotificationConfigProcessClient,
-      "createUserDefaultNotificationConfig"
-    ).mockResolvedValue({
-      id: "123",
-      createdAt: "2022-01-01T00:00:00.000Z",
-      tenantId,
-      userId,
-      inAppConfig: {
-        agreementSuspendedUnsuspendedToProducer: false,
-        agreementManagementToProducer: false,
-        clientAddedRemovedToProducer: false,
-        purposeStatusChangedToProducer: false,
-        templateStatusChangedToProducer: false,
-        agreementSuspendedUnsuspendedToConsumer: false,
-        eserviceStateChangedToConsumer: false,
-        agreementActivatedRejectedToConsumer: false,
-        purposeActivatedRejectedToConsumer: false,
-        purposeSuspendedUnsuspendedToConsumer: false,
-        newEserviceTemplateVersionToInstantiator: true,
-        eserviceTemplateNameChangedToInstantiator: false,
-        eserviceTemplateStatusChangedToInstantiator: false,
-        delegationApprovedRejectedToDelegator: false,
-        eserviceNewVersionSubmittedToDelegator: false,
-        eserviceNewVersionApprovedRejectedToDelegate: false,
-        delegationSubmittedRevokedToDelegate: false,
-        certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-        clientKeyAddedDeletedToClientUsers: false,
-      },
-      emailConfig: {
-        agreementSuspendedUnsuspendedToProducer: false,
-        agreementManagementToProducer: false,
-        clientAddedRemovedToProducer: false,
-        purposeStatusChangedToProducer: false,
-        templateStatusChangedToProducer: false,
-        agreementSuspendedUnsuspendedToConsumer: false,
-        eserviceStateChangedToConsumer: false,
-        agreementActivatedRejectedToConsumer: false,
-        purposeActivatedRejectedToConsumer: false,
-        purposeSuspendedUnsuspendedToConsumer: false,
-        newEserviceTemplateVersionToInstantiator: true,
-        eserviceTemplateNameChangedToInstantiator: false,
-        eserviceTemplateStatusChangedToInstantiator: false,
-        delegationApprovedRejectedToDelegator: false,
-        eserviceNewVersionSubmittedToDelegator: false,
-        eserviceNewVersionApprovedRejectedToDelegate: false,
-        delegationSubmittedRevokedToDelegate: false,
-        certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-        clientKeyAddedDeletedToClientUsers: false,
-      },
-    });
+      "ensureUserNotificationConfigExistsWithRole"
+    ).mockResolvedValue(undefined);
 
     vi.spyOn(
       mockNotificationConfigProcessClient,
-      "deleteUserNotificationConfig"
+      "removeUserNotificationConfigRole"
     ).mockResolvedValue(undefined);
   });
 
@@ -143,109 +91,6 @@ describe("processUserEvent", () => {
     },
   };
 
-  it("should call insertUser for 'add' event", async () => {
-    const addEvent: UsersEventPayload = {
-      ...baseEvent,
-      eventType: "add",
-    };
-
-    await processUserEvent(
-      addEvent,
-      mockReadModelServiceSQL,
-      mockUserServiceSQL,
-      mockNotificationConfigProcessClient,
-      mockInteropTokenGenerator,
-      mockLogger,
-      correlationId
-    );
-
-    expect(mockUserServiceSQL.insertUser).toHaveBeenCalledWith({
-      userId: unsafeBrandId(userId),
-      tenantId: unsafeBrandId(tenantId),
-      institutionId: unsafeBrandId(institutionId),
-      name: "John",
-      familyName: "Doe",
-      email: "john.doe@example.com",
-      productRole: "admin",
-    });
-
-    expect(
-      mockNotificationConfigProcessClient.createUserDefaultNotificationConfig
-    ).toHaveBeenCalledWith(
-      {
-        userId: unsafeBrandId(userId),
-        tenantId: unsafeBrandId(tenantId),
-      },
-      {
-        headers: {
-          "X-Correlation-Id": correlationId,
-          Authorization: "Bearer mock-token",
-        },
-      }
-    );
-  });
-
-  it("should call updateUser for 'update' event", async () => {
-    const updateEvent: UsersEventPayload = {
-      ...baseEvent,
-      eventType: "update",
-    };
-
-    await processUserEvent(
-      updateEvent,
-      mockReadModelServiceSQL,
-      mockUserServiceSQL,
-      mockNotificationConfigProcessClient,
-      mockInteropTokenGenerator,
-      mockLogger,
-      correlationId
-    );
-
-    expect(mockUserServiceSQL.updateUser).toHaveBeenCalledWith({
-      userId: unsafeBrandId(userId),
-      tenantId: unsafeBrandId(tenantId),
-      institutionId: unsafeBrandId(institutionId),
-      name: "John",
-      familyName: "Doe",
-      email: "john.doe@example.com",
-      productRole: "admin",
-    });
-  });
-
-  it("should call deleteUser for 'delete' event", async () => {
-    const deleteEvent: UsersEventPayload = {
-      ...baseEvent,
-      eventType: "delete",
-    };
-
-    await processUserEvent(
-      deleteEvent,
-      mockReadModelServiceSQL,
-      mockUserServiceSQL,
-      mockNotificationConfigProcessClient,
-      mockInteropTokenGenerator,
-      mockLogger,
-      correlationId
-    );
-
-    expect(mockUserServiceSQL.deleteUser).toHaveBeenCalledWith(
-      unsafeBrandId(userId)
-    );
-
-    expect(
-      mockNotificationConfigProcessClient.deleteUserNotificationConfig
-    ).toHaveBeenCalledWith(undefined, {
-      params: {
-        userId: unsafeBrandId(userId),
-        tenantId: unsafeBrandId(tenantId),
-      },
-      headers: {
-        "X-Correlation-Id": correlationId,
-        Authorization: "Bearer mock-token",
-      },
-    });
-  });
-
   it("should throw an error if tenant is not found", async () => {
     const addEvent: UsersEventPayload = {
       ...baseEvent,
@@ -261,7 +106,6 @@ describe("processUserEvent", () => {
       processUserEvent(
         addEvent,
         mockReadModelServiceSQL,
-        mockUserServiceSQL,
         mockNotificationConfigProcessClient,
         mockInteropTokenGenerator,
         mockLogger,
@@ -272,63 +116,103 @@ describe("processUserEvent", () => {
     );
   });
 
-  it("should throw an error on notification config creation error for 'add' event", async () => {
-    const addEvent: UsersEventPayload = {
-      ...baseEvent,
-      eventType: "add",
-    };
+  it.each(["add" as const, "update" as const])(
+    "should call the ensureUserNotificationConfigExistsWithRole process endpoint for '%s' events",
+    async (eventType) => {
+      const addEvent: UsersEventPayload = {
+        ...baseEvent,
+        eventType,
+      };
 
-    const apiError = new Error("API Error");
-    vi.spyOn(
-      mockNotificationConfigProcessClient,
-      "createUserDefaultNotificationConfig"
-    ).mockRejectedValueOnce(apiError);
-
-    await expect(
-      processUserEvent(
+      await processUserEvent(
         addEvent,
         mockReadModelServiceSQL,
-        mockUserServiceSQL,
         mockNotificationConfigProcessClient,
         mockInteropTokenGenerator,
         mockLogger,
         correlationId
-      )
-    ).rejects.toThrow(
-      genericInternalError(
-        `Error creating default notification config for user ${userId} and tenant ${tenantId}. Reason: ${apiError}`
-      )
-    );
-    expect(mockUserServiceSQL.insertUser).not.toHaveBeenCalled();
-  });
+      );
 
-  it("should not throw an error on 409 notification config creation for 'add' event", async () => {
+      expect(
+        mockNotificationConfigProcessClient.ensureUserNotificationConfigExistsWithRole
+      ).toHaveBeenCalledWith(
+        {
+          userId,
+          tenantId: unsafeBrandId<TenantId>(tenantId),
+          userRole: apiProductRole,
+        },
+        {
+          headers: {
+            "X-Correlation-Id": correlationId,
+            Authorization: `Bearer mock-token`,
+          },
+        }
+      );
+    }
+  );
+
+  it.each(["add" as const, "update" as const])(
+    "should throw an error if the client request for '%s' events responds with an error",
+    async (eventType) => {
+      const addEvent: UsersEventPayload = {
+        ...baseEvent,
+        eventType,
+      };
+
+      const apiError = new Error("API Error");
+      vi.spyOn(
+        mockNotificationConfigProcessClient,
+        "ensureUserNotificationConfigExistsWithRole"
+      ).mockRejectedValueOnce(apiError);
+
+      await expect(
+        processUserEvent(
+          addEvent,
+          mockReadModelServiceSQL,
+          mockNotificationConfigProcessClient,
+          mockInteropTokenGenerator,
+          mockLogger,
+          correlationId
+        )
+      ).rejects.toThrow(
+        genericInternalError(
+          `Error in request to ensure a notification config exists for user ${userId} in tenant ${tenantId} with role ${productRole}. Reason: ${apiError}`
+        )
+      );
+    }
+  );
+
+  it("should call the removeUserNotificationConfigRole process endpoint for '%s' events", async () => {
     const addEvent: UsersEventPayload = {
       ...baseEvent,
-      eventType: "add",
+      eventType: "delete",
     };
-
-    vi.spyOn(
-      mockNotificationConfigProcessClient,
-      "createUserDefaultNotificationConfig"
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-    ).mockRejectedValueOnce(new AxiosError("", "", {}, {}, { status: 409 }));
 
     await processUserEvent(
       addEvent,
       mockReadModelServiceSQL,
-      mockUserServiceSQL,
       mockNotificationConfigProcessClient,
       mockInteropTokenGenerator,
       mockLogger,
       correlationId
     );
 
-    expect(mockUserServiceSQL.insertUser).toHaveBeenCalled();
+    expect(
+      mockNotificationConfigProcessClient.removeUserNotificationConfigRole
+    ).toHaveBeenCalledWith(undefined, {
+      params: {
+        userId,
+        tenantId: unsafeBrandId<TenantId>(tenantId),
+        userRole: apiProductRole,
+      },
+      headers: {
+        "X-Correlation-Id": correlationId,
+        Authorization: `Bearer mock-token`,
+      },
+    });
   });
 
-  it("should throw an error on notification config deletion error for 'delete' event", async () => {
+  it("should throw an error if the client request for 'delete' events responds with a non-404 error", async () => {
     const deleteEvent: UsersEventPayload = {
       ...baseEvent,
       eventType: "delete",
@@ -337,14 +221,13 @@ describe("processUserEvent", () => {
     const apiError = new Error("API Error");
     vi.spyOn(
       mockNotificationConfigProcessClient,
-      "deleteUserNotificationConfig"
+      "removeUserNotificationConfigRole"
     ).mockRejectedValueOnce(apiError);
 
     await expect(
       processUserEvent(
         deleteEvent,
         mockReadModelServiceSQL,
-        mockUserServiceSQL,
         mockNotificationConfigProcessClient,
         mockInteropTokenGenerator,
         mockLogger,
@@ -352,13 +235,12 @@ describe("processUserEvent", () => {
       )
     ).rejects.toThrow(
       genericInternalError(
-        `Error deleting default notification config for user ${userId} and tenant ${tenantId}. Reason: ${apiError}`
+        `Error removing role ${productRole} from notification config for user ${userId} in tenant ${tenantId}. Reason: ${apiError}`
       )
     );
-    expect(mockUserServiceSQL.deleteUser).not.toHaveBeenCalled();
   });
 
-  it("should not throw an error on 404 notification config deletion for 'delete' event", async () => {
+  it("should not throw an error if the client request for 'delete' events responds with a 404 error", async () => {
     const deleteEvent: UsersEventPayload = {
       ...baseEvent,
       eventType: "delete",
@@ -366,7 +248,7 @@ describe("processUserEvent", () => {
 
     vi.spyOn(
       mockNotificationConfigProcessClient,
-      "deleteUserNotificationConfig"
+      "removeUserNotificationConfigRole"
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
     ).mockRejectedValueOnce(new AxiosError("", "", {}, {}, { status: 404 }));
@@ -374,13 +256,10 @@ describe("processUserEvent", () => {
     await processUserEvent(
       deleteEvent,
       mockReadModelServiceSQL,
-      mockUserServiceSQL,
       mockNotificationConfigProcessClient,
       mockInteropTokenGenerator,
       mockLogger,
       correlationId
     );
-
-    expect(mockUserServiceSQL.deleteUser).toHaveBeenCalled();
   });
 });

@@ -2,6 +2,7 @@
   "name": "pagopa-interop-kpi-domains-readmodel-checker",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability kpi-domains-readmodel-checker job",
   "main": "dist",
   "type": "module",
@@ -16,8 +17,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@types/json-diff": "1.0.3",
     "@pagopa/eslint-config": "3.0.0",

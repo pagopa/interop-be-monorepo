@@ -13,6 +13,7 @@ export function toM2MGatewayEServiceTemplate(
     name: template.name,
     technology: template.technology,
     isSignalHubEnabled: template.isSignalHubEnabled,
+    personalData: template.personalData,
   };
 }
 
@@ -69,5 +70,23 @@ export function toM2MGatewayApiDocument(
     prettyName: document.prettyName,
     createdAt: document.uploadDate,
     contentType: document.contentType,
+  };
+}
+
+export function toEServiceTemplateApiEServiceTemplateVersionSeed(
+  version: m2mGatewayApi.EServiceTemplateVersionSeed
+): eserviceTemplateApi.EServiceTemplateVersionSeed {
+  return {
+    description: version.description,
+    voucherLifespan: version.voucherLifespan,
+    dailyCallsPerConsumer: version.dailyCallsPerConsumer,
+    dailyCallsTotal: version.dailyCallsTotal,
+    agreementApprovalPolicy: version.agreementApprovalPolicy,
+    attributes: {
+      declared: [],
+      verified: [],
+      certified: [],
+    },
+    docs: [],
   };
 }

@@ -37,6 +37,7 @@ export function toM2MGatewayApiEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     templateId: eservice.templateId,
+    personalData: eservice.personalData,
   };
 }
 

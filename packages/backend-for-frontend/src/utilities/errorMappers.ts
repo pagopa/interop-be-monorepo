@@ -102,6 +102,14 @@ export const getAgreementContractErrorMapper = (
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getAgreementSignedContractErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("contractException", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const activateAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -238,14 +246,13 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
     .with(
       "eserviceTemplateIsNotPublished",
       "eserviceIsNotDraft",
-      "eserviceDescriptorDraftNotFound",
-      "eserviceTemplateNotFound",
-      "eserviceTemplateInterfaceNotFound",
-      "eserviceTemplateInterfaceDataNotValid",
-      "invalidContentTypeDetected",
-      "invalidEserviceInterfaceFileDetected",
       "interfaceExtractingInfoError",
-      "templateDataNotFound",
+      "eserviceTemplateNotFound",
+      "invalidEserviceInterfaceFileDetected",
+      "eserviceTemplateInterfaceNotFound",
+      "invalidContentTypeDetected",
+      "eserviceTemplateInterfaceDataNotValid",
+      "invalidInterfaceFile",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
@@ -265,4 +272,23 @@ export const getEServiceTemplateInstancesErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eserviceDescriptorNotFound",
+      "tenantNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -23,6 +23,10 @@ import {
   EserviceTemplateDbTableReadModel,
 } from "./eserviceTemplate.js";
 import { TenantDbTableConfig, TenantDbTableReadModel } from "./tenant.js";
+import {
+  PurposeTemplateDbTableConfig,
+  PurposeTemplateDbTableReadModel,
+} from "./purposeTemplate.js";
 
 export const DomainDbTable = {
   ...AttributeDbTableConfig,
@@ -34,6 +38,7 @@ export const DomainDbTable = {
   ...ClientDbTableConfig,
   ...ProducerKeychainDbTableConfig,
   ...EserviceTemplateDbTableConfig,
+  ...PurposeTemplateDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
 export type DomainDbTable = keyof DomainDbTableSchemas;
@@ -48,5 +53,6 @@ export const DomainDbTableReadModels = {
   ...ClientDbTableReadModel,
   ...ProducerKeychainDbTableReadModel,
   ...EserviceTemplateDbTableReadModel,
+  ...PurposeTemplateDbTableReadModel,
 } as const;
 export type DomainDbTableReadModels = typeof DomainDbTableReadModels;

@@ -23,6 +23,7 @@ import {
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
+import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
 describe("downloadPurposeVersionRiskAnalysisDocument", () => {
   const testFileContent = `This is a mock file content for testing purposes.
@@ -95,7 +96,7 @@ On multiple lines.`;
       prettyName: undefined,
     };
 
-    expect(result).toEqual(expectedServiceResponse);
+    await expectDownloadedDocumentToBeEqual(result, expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: { id: mockPurposeProcessResponse.data.id },

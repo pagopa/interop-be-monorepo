@@ -27,7 +27,6 @@ import { notificationConfigServiceBuilder } from "../src/services/notificationCo
 
 export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
-    undefined,
     inject("eventStoreConfig"),
     undefined,
     undefined,

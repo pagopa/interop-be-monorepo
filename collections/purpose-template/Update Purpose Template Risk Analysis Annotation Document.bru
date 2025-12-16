@@ -1,0 +1,34 @@
+meta {
+  name: Update Purpose Template Risk Analysis Annotation Document
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  answerId: {{answerId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "prettyName": "{{randomNewPrettyName}}"
+  }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomNewPrettyName",`new pretty name ${random}`)
+}

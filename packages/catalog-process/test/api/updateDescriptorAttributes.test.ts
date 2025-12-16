@@ -16,6 +16,7 @@ import {
   getMockAttribute,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -27,6 +28,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
   inconsistentAttributesSeedGroupsCount,
+  notValidDescriptorState,
   templateInstanceNotAllowed,
   unchangedAttributes,
 } from "../../src/model/domain/errors.js";
@@ -104,13 +106,13 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     descriptors: [descriptor],
   };
 
-  const apiEservice = catalogApi.EService.parse(
-    eServiceToApiEService(mockEService)
-  );
+  const apiEservice = eServiceToApiEService(mockEService);
+
+  const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
 
   catalogService.updateDescriptorAttributes = vi
     .fn()
-    .mockResolvedValue(mockEService);
+    .mockResolvedValue(mockEserviceWithMetadata);
 
   const makeRequest = async (
     token: string,
@@ -138,6 +140,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       const res = await makeRequest(token, mockEService.id, descriptor.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        mockEserviceWithMetadata.metadata.version.toString()
+      );
     }
   );
 
@@ -195,6 +200,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     },
     {
       error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: notValidDescriptorState(generateId(), ""),
       expectedStatus: 400,
     },
   ])(

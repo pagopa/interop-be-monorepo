@@ -1,0 +1,28 @@
+meta {
+  name: Create eservice template version certified attributes group
+  type: http
+  seq: 32
+}
+
+post {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId/certifiedAttributes/groups
+  body: json
+  auth: none
+}
+
+params:path {
+  versionId: {{versionId}}
+  templateId: {{templateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "attributeIds": [
+      "c7aeac5c-b31f-444e-a0ba-a630d32423e2"
+    ]
+  }
+}

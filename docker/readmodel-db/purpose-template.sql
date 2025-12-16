@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template (
   purpose_is_free_of_charge BOOLEAN NOT NULL,
   purpose_free_of_charge_reason VARCHAR,
   purpose_daily_calls INTEGER,
+  handles_personal_data BOOLEAN NOT NULL,
   PRIMARY KEY (id),
   UNIQUE (id, metadata_version)
 );
@@ -73,6 +74,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  checksum VARCHAR NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

@@ -31,6 +31,7 @@ import {
   eServiceNameDuplicateForProducer,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
+  eServiceUpdateSameNameConflict,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -74,6 +75,7 @@ describe("update eService name on published eservice", () => {
     });
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEService),
+      oldName: eservice.name,
     });
     expect(returnedEService).toEqual({
       data: expectedEService,
@@ -119,6 +121,7 @@ describe("update eService name on published eservice", () => {
     });
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEService),
+      oldName: eservice.name,
     });
     expect(returnedEService).toEqual({
       data: expectedEService,
@@ -341,5 +344,23 @@ describe("update eService name on published eservice", () => {
         getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
+  it("should throw eserviceNameConflict if the new name is the same as the current one", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    expect(
+      catalogService.updateEServiceName(
+        eservice.id,
+        eservice.name,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(eServiceUpdateSameNameConflict(eservice.id));
   });
 });

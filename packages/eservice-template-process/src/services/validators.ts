@@ -27,8 +27,10 @@ import {
   eserviceTemplateDuplicate,
   missingRiskAnalysis,
   riskAnalysisValidationFailed,
+  eServiceTemplateUpdateSameNameConflict,
+  eServiceTemplateUpdateSameDescriptionConflict,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
@@ -82,6 +84,14 @@ export function versionStatesNotAllowingDocumentOperations(
     )
     .with(eserviceTemplateVersionState.deprecated, () => true)
     .exhaustive();
+}
+
+export function versionStatesNotAllowingInterfaceOperations(
+  version: EServiceTemplateVersion
+): boolean {
+  return match(version.state)
+    .with(eserviceTemplateVersionState.draft, () => false)
+    .otherwise(() => true);
 }
 
 export function assertConsistentDailyCalls({
@@ -138,7 +148,7 @@ export function hasRoleToAccessDraftTemplateVersions(
 
 export async function assertEServiceTemplateNameAvailable(
   name: string,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   const isEServiceTemplateNameAvailable =
     await readModelService.isEServiceTemplateNameAvailable({
@@ -163,11 +173,31 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
-      riskAnalysis.tenantKind
+      riskAnalysis.tenantKind,
+      new Date(),
+      eserviceTemplate.personalData
     );
 
     if (result.type === "invalid") {
       throw riskAnalysisValidationFailed(result.issues);
     }
   });
+}
+
+export function assertUpdatedNameDiffersFromCurrent(
+  newName: string,
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (newName === eserviceTemplate.name) {
+    throw eServiceTemplateUpdateSameNameConflict(eserviceTemplate.id);
+  }
+}
+
+export function assertUpdatedDescriptionDiffersFromCurrent(
+  newDescription: string,
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (newDescription === eserviceTemplate.description) {
+    throw eServiceTemplateUpdateSameDescriptionConflict(eserviceTemplate.id);
+  }
 }

@@ -16,6 +16,8 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
+  PurposeProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
@@ -208,6 +210,8 @@ describe("getCatalogEServiceDescriptor", () => {
   const mockEServiceTemplateProcessClient =
     {} as unknown as EServiceTemplateProcessClient;
 
+  const mockInAppNotificationManagerClient =
+    {} as unknown as InAppNotificationManagerClient;
   vi.spyOn(attributeService, "getAllBulkAttributes").mockResolvedValue([
     {
       id: certifiedAttributeId,
@@ -231,6 +235,8 @@ describe("getCatalogEServiceDescriptor", () => {
       creationTime: new Date().toTimeString(),
     },
   ]);
+
+  const mockPurposeProcessClient = {} as unknown as PurposeProcessClient;
 
   vi.spyOn(delegationService, "getAllDelegations").mockResolvedValue([]);
 
@@ -257,7 +263,7 @@ describe("getCatalogEServiceDescriptor", () => {
   vi.spyOn(
     catalogApiConverter,
     "toBffCatalogDescriptorEService"
-  ).mockReturnValue(catalogDescriptorEService);
+  ).mockReturnValue(Promise.resolve(catalogDescriptorEService));
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,
@@ -266,6 +272,8 @@ describe("getCatalogEServiceDescriptor", () => {
     mockAttributeProcessClient,
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
+    mockInAppNotificationManagerClient,
+    mockPurposeProcessClient,
     fileManager,
     config
   );

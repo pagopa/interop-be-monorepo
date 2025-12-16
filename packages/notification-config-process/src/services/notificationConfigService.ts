@@ -1,3 +1,4 @@
+import { P, match } from "ts-pattern";
 import {
   AppContext,
   DB,
@@ -5,6 +6,8 @@ import {
   eventRepository,
   UIAuthData,
   InternalAuthData,
+  overrideNotificationConfigByAdmittedRoles,
+  isNotificationConfigAllowedForUserRoles,
 } from "pagopa-interop-commons";
 import {
   notificationConfigEventToBinaryDataV2,
@@ -16,6 +19,8 @@ import {
   UserId,
   TenantId,
   NotificationConfig,
+  emailNotificationPreference,
+  UserRole,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
@@ -28,20 +33,26 @@ import {
   toCreateEventTenantNotificationConfigUpdated,
   toCreateEventUserNotificationConfigCreated,
   toCreateEventUserNotificationConfigDeleted,
+  toCreateEventUserNotificationConfigRoleAdded,
+  toCreateEventUserNotificationConfigRoleRemoved,
   toCreateEventUserNotificationConfigUpdated,
 } from "../model/domain/toEvent.js";
 import {
+  notificationConfigNotAllowedForUserRoles,
   tenantNotificationConfigAlreadyExists,
   tenantNotificationConfigNotFound,
-  userNotificationConfigAlreadyExists,
   userNotificationConfigNotFound,
+  userRoleNotInUserNotificationConfig,
 } from "../model/domain/errors.js";
+import { apiEmailNotificationPreferenceToEmailNotificationPreference } from "../model/domain/apiConverter.js";
 
 const defaultNotificationConfigs = {
   tenant: {
     enabled: true,
   },
   user: {
+    inAppNotificationPreference: false,
+    emailNotificationPreference: emailNotificationPreference.disabled,
     inApp: {
       agreementSuspendedUnsuspendedToProducer: false,
       agreementManagementToProducer: false,
@@ -62,6 +73,7 @@ const defaultNotificationConfigs = {
       delegationSubmittedRevokedToDelegate: false,
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
       clientKeyAddedDeletedToClientUsers: false,
+      producerKeychainKeyAddedDeletedToClientUsers: false,
     } satisfies NotificationConfig,
     email: {
       agreementSuspendedUnsuspendedToProducer: false,
@@ -83,6 +95,7 @@ const defaultNotificationConfigs = {
       delegationSubmittedRevokedToDelegate: false,
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
       clientKeyAddedDeletedToClientUsers: false,
+      producerKeychainKeyAddedDeletedToClientUsers: false,
     } satisfies NotificationConfig,
   },
 };
@@ -116,7 +129,7 @@ export function notificationConfigServiceBuilder(
     },
 
     async getUserNotificationConfig({
-      authData: { userId, organizationId },
+      authData: { userId, organizationId, userRoles },
       logger,
     }: WithLogger<AppContext<UIAuthData>>): Promise<UserNotificationConfig> {
       logger.info(
@@ -130,7 +143,13 @@ export function notificationConfigServiceBuilder(
       if (config === undefined) {
         throw userNotificationConfigNotFound(userId, organizationId);
       }
-      return config.data;
+      const overrideByUserRoles =
+        overrideNotificationConfigByAdmittedRoles(userRoles);
+      return {
+        ...config.data,
+        inAppConfig: overrideByUserRoles(config.data.inAppConfig),
+        emailConfig: overrideByUserRoles(config.data.emailConfig),
+      };
     },
 
     async updateTenantNotificationConfig(
@@ -175,7 +194,7 @@ export function notificationConfigServiceBuilder(
     async updateUserNotificationConfig(
       seed: notificationConfigApi.UserNotificationConfigUpdateSeed,
       {
-        authData: { userId, organizationId },
+        authData: { userId, organizationId, userRoles },
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData>>
@@ -183,6 +202,13 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Updating notification configuration for user ${userId} in tenant ${organizationId}`
       );
+
+      if (
+        !isNotificationConfigAllowedForUserRoles(seed.inAppConfig, userRoles) ||
+        !isNotificationConfigAllowedForUserRoles(seed.emailConfig, userRoles)
+      ) {
+        throw notificationConfigNotAllowedForUserRoles(userId, organizationId);
+      }
 
       const existingConfig =
         await readModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -198,6 +224,12 @@ export function notificationConfigServiceBuilder(
         id: existingConfig.data.id,
         userId,
         tenantId: organizationId,
+        userRoles: existingConfig.data.userRoles,
+        inAppNotificationPreference: seed.inAppNotificationPreference,
+        emailNotificationPreference:
+          apiEmailNotificationPreferenceToEmailNotificationPreference(
+            seed.emailNotificationPreference
+          ),
         inAppConfig: seed.inAppConfig,
         emailConfig: seed.emailConfig,
         createdAt: existingConfig.data.createdAt,
@@ -254,13 +286,14 @@ export function notificationConfigServiceBuilder(
       return tenantNotificationConfig;
     },
 
-    async createUserDefaultNotificationConfig(
+    async ensureUserNotificationConfigExistsWithRole(
       userId: UserId,
       tenantId: TenantId,
+      userRole: UserRole,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<UserNotificationConfig> {
       logger.info(
-        `Updating default notification configuration for user ${userId} in tenant ${tenantId}`
+        `Checking to ensure that a user notification configuration for user ${userId} in tenant ${tenantId} exists and includes role ${userRole}`
       );
 
       const existingConfig =
@@ -269,27 +302,63 @@ export function notificationConfigServiceBuilder(
           tenantId
         );
 
-      if (existingConfig !== undefined) {
-        throw userNotificationConfigAlreadyExists(userId, tenantId);
-      }
-
-      const userNotificationConfig: UserNotificationConfig = {
-        id: generateId<UserNotificationConfigId>(),
-        userId,
-        tenantId,
-        inAppConfig: defaultNotificationConfigs.user.inApp,
-        emailConfig: defaultNotificationConfigs.user.email,
-        createdAt: new Date(),
-        updatedAt: undefined,
-      };
-
-      const event = toCreateEventUserNotificationConfigCreated(
-        userNotificationConfig.id,
-        userNotificationConfig,
-        correlationId
-      );
-      await repository.createEvent(event);
-      return userNotificationConfig;
+      return match(existingConfig)
+        .with(undefined, async () => {
+          logger.info(
+            `Creating new default user notification configuration for user ${userId} in tenant ${tenantId} with role ${userRole}`
+          );
+          const userNotificationConfig: UserNotificationConfig = {
+            id: generateId<UserNotificationConfigId>(),
+            userId,
+            tenantId,
+            userRoles: [userRole],
+            inAppNotificationPreference:
+              defaultNotificationConfigs.user.inAppNotificationPreference,
+            emailNotificationPreference:
+              defaultNotificationConfigs.user.emailNotificationPreference,
+            inAppConfig: defaultNotificationConfigs.user.inApp,
+            emailConfig: defaultNotificationConfigs.user.email,
+            createdAt: new Date(),
+            updatedAt: undefined,
+          };
+          const event = toCreateEventUserNotificationConfigCreated(
+            userNotificationConfig.id,
+            userNotificationConfig,
+            correlationId
+          );
+          await repository.createEvent(event);
+          return userNotificationConfig;
+        })
+        .with(
+          P.when((existingConfig) =>
+            existingConfig.data.userRoles.includes(userRole)
+          ),
+          (existingConfig) => {
+            logger.info(
+              `User notification configuration for user ${userId} in tenant ${tenantId} already exists and has role ${userRole}, no update needed`
+            );
+            return existingConfig.data;
+          }
+        )
+        .otherwise(async (existingConfig) => {
+          logger.info(
+            `Adding role ${userRole} to existing user notification configuration for user ${userId} in tenant ${tenantId}`
+          );
+          const userNotificationConfig: UserNotificationConfig = {
+            ...existingConfig.data,
+            userRoles: [...existingConfig.data.userRoles, userRole],
+            updatedAt: new Date(),
+          };
+          const event = toCreateEventUserNotificationConfigRoleAdded(
+            existingConfig.data.id,
+            existingConfig.metadata.version,
+            userNotificationConfig,
+            userRole,
+            correlationId
+          );
+          await repository.createEvent(event);
+          return userNotificationConfig;
+        });
     },
 
     async deleteTenantNotificationConfig(
@@ -322,13 +391,14 @@ export function notificationConfigServiceBuilder(
       await repository.createEvent(event);
     },
 
-    async deleteUserNotificationConfig(
+    async removeUserNotificationConfigRole(
       userId: UserId,
       tenantId: TenantId,
+      userRole: UserRole,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Deleting notification configuration for user ${userId} in tenant ${tenantId}`
+        `Removing role ${userRole} from notification configuration for user ${userId} in tenant ${tenantId}`
       );
 
       const existingConfig =
@@ -341,13 +411,40 @@ export function notificationConfigServiceBuilder(
         throw userNotificationConfigNotFound(userId, tenantId);
       }
 
-      const event = toCreateEventUserNotificationConfigDeleted(
-        existingConfig.data.id,
-        existingConfig.metadata.version,
-        existingConfig.data,
-        correlationId
+      if (!existingConfig.data.userRoles.includes(userRole)) {
+        throw userRoleNotInUserNotificationConfig(userId, tenantId, userRole);
+      }
+
+      const updatedUserRoles = existingConfig.data.userRoles.filter(
+        (role) => role !== userRole
       );
-      await repository.createEvent(event);
+
+      if (updatedUserRoles.length === 0) {
+        logger.info(
+          `Role ${userRole} was the only role for user ${userId} in tenant ${tenantId}, deleting the notification configuration`
+        );
+        const event = toCreateEventUserNotificationConfigDeleted(
+          existingConfig.data.id,
+          existingConfig.metadata.version,
+          existingConfig.data,
+          correlationId
+        );
+        await repository.createEvent(event);
+      } else {
+        const userNotificationConfig: UserNotificationConfig = {
+          ...existingConfig.data,
+          userRoles: [updatedUserRoles[0], ...updatedUserRoles.slice(1)],
+          updatedAt: new Date(),
+        };
+        const event = toCreateEventUserNotificationConfigRoleRemoved(
+          existingConfig.data.id,
+          existingConfig.metadata.version,
+          userNotificationConfig,
+          userRole,
+          correlationId
+        );
+        await repository.createEvent(event);
+      }
     },
   };
 }

@@ -71,7 +71,9 @@ export async function handleAgreementMessageV2(
             "AgreementConsumerDocumentRemoved",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
-            "AgreementArchivedByRevokedDelegation"
+            "AgreementArchivedByRevokedDelegation",
+            "AgreementContractGenerated",
+            "AgreementSignedContractGenerated"
           ),
         },
         (msg) => {

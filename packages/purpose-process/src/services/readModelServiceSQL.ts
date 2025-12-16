@@ -21,6 +21,9 @@ import {
   Delegation,
   delegationKind,
   DelegationId,
+  PurposeTemplateId,
+  PurposeTemplate,
+  purposeTemplateState,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -30,8 +33,11 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregatePurposeArray,
@@ -39,6 +45,7 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   PurposeReadModelService,
+  PurposeTemplateReadModelService,
   TenantReadModelService,
   toPurposeAggregatorArray,
 } from "pagopa-interop-readmodel";
@@ -197,6 +204,7 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   purposeReadModelServiceSQL: PurposeReadModelService;
@@ -204,6 +212,7 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
   agreementReadModelServiceSQL: AgreementReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
+  purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -282,6 +291,9 @@ export function readModelServiceBuilderSQL({
             purposeRiskAnalysisAnswerInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
+          purposeVersionSignedDocument:
+            purposeVersionSignedDocumentInReadmodelPurpose,
           totalCount: subquery.totalCount,
         })
         .from(purposeInReadmodelPurpose)
@@ -321,6 +333,20 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionStampInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionStampInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
           )
         )
         .leftJoin(
@@ -421,6 +447,21 @@ export function readModelServiceBuilderSQL({
             eq(
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer
+            )
+          )
+        )
+      )?.data;
+    },
+    async getPublishedPurposeTemplateById(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<PurposeTemplate | undefined> {
+      return (
+        await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
+          and(
+            eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplateId),
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.state,
+              purposeTemplateState.published
             )
           )
         )

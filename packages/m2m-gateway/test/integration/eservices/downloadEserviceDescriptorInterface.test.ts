@@ -20,6 +20,7 @@ import {
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
+import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
 describe("downloadEServiceDescriptorInterface", () => {
   const testFileContent =
@@ -89,7 +90,7 @@ describe("downloadEServiceDescriptorInterface", () => {
       }),
       prettyName: mockInterface.prettyName,
     };
-    expect(result).toEqual(expectedServiceResponse);
+    await expectDownloadedDocumentToBeEqual(result, expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },

@@ -1,0 +1,25 @@
+meta {
+  name: List eservice template version verified attributes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId/verifiedAttributes?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  versionId: {{versionId}}
+  templateId: {{templateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

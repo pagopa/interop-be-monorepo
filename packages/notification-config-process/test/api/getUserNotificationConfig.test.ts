@@ -37,7 +37,11 @@ describe("API GET /userNotificationConfigs test", () => {
       .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+  ];
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",

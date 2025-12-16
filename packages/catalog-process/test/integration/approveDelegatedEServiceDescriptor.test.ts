@@ -28,6 +28,7 @@ import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
+  missingPersonalDataFlag,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -38,8 +39,8 @@ import {
   addOneDelegation,
 } from "../integrationUtils.js";
 
-describe("publish descriptor", () => {
-  const mockEService = getMockEService();
+describe("publish descriptor (after delegator's approval)", () => {
+  const mockEService: EService = { ...getMockEService(), personalData: false };
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
   beforeAll(() => {
@@ -335,4 +336,28 @@ describe("publish descriptor", () => {
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
+
+  it("should throw missingPersonalDataFlag if the eservice has personalData undefined", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      personalData: undefined,
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
+  });
 });

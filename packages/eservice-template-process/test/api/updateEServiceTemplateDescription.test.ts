@@ -15,6 +15,7 @@ import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   eserviceTemplateNotFound,
+  eServiceTemplateUpdateSameDescriptionConflict,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
@@ -104,6 +105,12 @@ describe("API POST /templates/:templateId/description/update", () => {
     {
       error: operationForbidden,
       expectedStatus: 403,
+    },
+    {
+      error: eServiceTemplateUpdateSameDescriptionConflict(
+        mockEserviceTemplate.id
+      ),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",

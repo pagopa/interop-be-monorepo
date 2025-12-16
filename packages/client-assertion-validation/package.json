@@ -2,6 +2,7 @@
   "name": "pagopa-interop-client-assertion-validation",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability utility to validate client assertion",
   "main": "dist",
   "type": "module",
@@ -17,7 +18,6 @@
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
-  "license": "Apache-2.0",
   "dependencies": {
     "jose": "5.9.4",
     "pagopa-interop-commons-test": "workspace:*",

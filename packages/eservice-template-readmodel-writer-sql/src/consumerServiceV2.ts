@@ -49,6 +49,7 @@ export async function handleMessageV2(
       { type: "EServiceTemplateVersionInterfaceUpdated" },
       { type: "EServiceTemplateVersionPublished" },
       { type: "EServiceTemplateVersionQuotasUpdated" },
+      { type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication" },
       async (message) => {
         await eserviceTemplateWriterService.upsertEServiceTemplate(
           fromEServiceTemplateV2(eserviceTemplate),

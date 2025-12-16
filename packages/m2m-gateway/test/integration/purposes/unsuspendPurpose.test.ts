@@ -45,12 +45,12 @@ describe("unsuspendPurposeVersion", () => {
     metadata: { version: 0 },
   };
 
-  const pollingTentatives = 2;
+  const pollingAttempts = 2;
   const mockActivatePurposeVersion = vi
     .fn()
     .mockResolvedValue(activatePurposeApiResponse);
   const mockGetPurpose = vi.fn(
-    mockPollingResponse(mockApiPurpose, pollingTentatives)
+    mockPollingResponse(mockApiPurpose, pollingAttempts)
   );
 
   mockInteropBeClients.purposeProcessClient = {
@@ -79,6 +79,7 @@ describe("unsuspendPurposeVersion", () => {
       freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
       updatedAt: mockApiPurpose.data.updatedAt,
       currentVersion: mockApiPurposeVersion2,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const purpose = await purposeService.unsuspendPurpose(
@@ -103,7 +104,7 @@ describe("unsuspendPurposeVersion", () => {
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
-    ).toHaveBeenCalledTimes(pollingTentatives + 1);
+    ).toHaveBeenCalledTimes(pollingAttempts + 1);
   });
 
   it("Should throw missingPurposeVersionWithState in case of missing version to unsuspend", async () => {

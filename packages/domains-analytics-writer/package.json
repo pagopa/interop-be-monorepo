@@ -2,6 +2,7 @@
   "name": "pagopa-interop-domains-analytics-writer",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability domains analytics writer",
   "main": "dist",
   "type": "module",
@@ -19,13 +20,11 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",
-    "pagopa-interop-commons-test": "workspace:*",
     "camelcase-keys": "9.1.3",
+    "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",

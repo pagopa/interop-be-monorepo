@@ -77,6 +77,7 @@ describe("updateDraftPurpose", () => {
       suspendedByProducer: undefined,
       updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
       waitingForApprovalVersion: undefined,
+      purposeTemplateId: mockPurposeProcessGetResponse.data.purposeTemplateId,
     };
 
     expect(result).toEqual(expectedM2MPurpose);

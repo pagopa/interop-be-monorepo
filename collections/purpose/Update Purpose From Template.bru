@@ -1,0 +1,46 @@
+meta {
+  name: Update Purpose From Template
+  type: http
+  seq: 22
+}
+
+patch {
+  url: {{host-purpose}}/templates/:purposeTemplateId/purposes/:purposeId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "title": "{{randomName}}",
+      "dailyCalls": 1000000000,
+      "riskAnalysisForm": {
+          "version": "3.0",
+          "answers": {
+            "institutionalPurpose": ["Any"],
+            "legalObligationReference": ["Decreto Legislativo n. 196/2003, art. 15"]
+        }
+      }
+  }
+}
+
+vars:post-response {
+  purposeId: res.body.id
+  purposeVersionId: res.body.versions.at(-1).id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -11,11 +11,19 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
-  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 import { config } from "../../../src/config/config.js";
 
 describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
+  const mockDate = new Date();
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   const mockFileUpload = {
     fileContent: Buffer.from("test content"),
     filename: "test_document.pdf",
@@ -28,7 +36,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
     prettyName: mockFileUpload.prettyName,
     name: mockFileUpload.filename,
     contentType: mockFileUpload.contentType,
-    createdAt: new Date().toISOString(),
+    createdAt: mockDate.toISOString(),
   };
 
   const makeRequest = async (
@@ -61,10 +69,10 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
         mockAgreementService.uploadAgreementConsumerDocument
       ).toHaveBeenCalledWith(
         agreementId,
-        {
-          file: fileFromTestMultipartFileUpload(mockFileUpload),
+        expect.objectContaining({
+          file: expect.any(File),
           prettyName: mockFileUpload.prettyName,
-        },
+        }),
         expect.any(Object) // Context object
       );
     }

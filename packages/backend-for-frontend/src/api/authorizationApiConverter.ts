@@ -22,7 +22,8 @@ export const toBffApiCompactClient = async (
   selfcareClient: SelfcareV2UserClient,
   { client, keys }: authorizationApi.ClientWithKeys,
   selfcareId: string,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  hasNotifications?: boolean
 ): Promise<bffApi.CompactClient> => {
   assertClientVisibilityIsFull(client);
   return {
@@ -37,6 +38,7 @@ export const toBffApiCompactClient = async (
           correlationId
         )
       : undefined,
+    hasUnreadNotifications: hasNotifications || false,
   };
 };
 

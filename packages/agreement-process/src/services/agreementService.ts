@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -13,6 +14,7 @@ import {
   UIAuthData,
   WithLogger,
   eventRepository,
+  isFeatureFlagEnabled,
   ownership,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
@@ -39,6 +41,7 @@ import {
   CompactTenant,
   CorrelationId,
   DelegationId,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -84,6 +87,8 @@ import {
   toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
+  toCreateEventAgreementDocumentGenerated,
+  toCreateEventAgreementSignedContractGenerated,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -147,12 +152,12 @@ import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
-  ReadModelService,
 } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
@@ -163,7 +168,7 @@ export const retrieveEService = async (
 
 export const retrieveAgreement = async (
   agreementId: AgreementId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Agreement>> => {
   const agreement = await readModelService.getAgreementById(agreementId);
   if (!agreement) {
@@ -175,7 +180,7 @@ export const retrieveAgreement = async (
 
 export const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -213,7 +218,7 @@ function retrieveAgreementDocument(
 
 export const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   cachedActiveDelegations?: ActiveDelegations
 ): Promise<ActiveDelegations> => ({
   producerDelegation:
@@ -229,7 +234,7 @@ export const getActiveConsumerAndProducerDelegations = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   pdfGenerator: PDFGenerator
 ) {
@@ -1563,6 +1568,74 @@ export function agreementServiceBuilder(
           ),
       };
     },
+    async internalAddAgreementContract(
+      agreementId: AgreementId,
+      agreementDocument: AgreementDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(`Adding agreement contract to agreement ${agreementId}`);
+      const { data: agreement, metadata } = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+
+      assertExpectedState(
+        agreementId,
+        agreement.state,
+        agreementUpgradableStates
+      );
+
+      const agreementWithDocument: Agreement = {
+        ...agreement,
+        contract: agreementDocument,
+      };
+      const event = await repository.createEvent(
+        toCreateEventAgreementDocumentGenerated(
+          { data: agreementWithDocument, metadata },
+          correlationId
+        )
+      );
+      return {
+        data: agreement,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async internalAddAgreementSignedContract(
+      agreementId: AgreementId,
+      agreementContract: AgreementSignedContract,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(`Adding signed contract to agreement ${agreementId}`);
+      const { data: agreement, metadata } = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+
+      assertExpectedState(
+        agreementId,
+        agreement.state,
+        agreementUpgradableStates
+      );
+
+      const agreementWithDocument: Agreement = {
+        ...agreement,
+        signedContract: agreementContract,
+      };
+      const event = await repository.createEvent(
+        toCreateEventAgreementSignedContractGenerated(
+          { data: agreementWithDocument, metadata },
+          correlationId
+        )
+      );
+      return {
+        data: agreement,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
   };
 }
 
@@ -1712,7 +1785,10 @@ async function addContractOnFirstActivation(
   agreement: Agreement,
   activeDelegations: ActiveDelegations
 ): Promise<Agreement> {
-  if (isFirstActivation) {
+  if (
+    isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
+    isFirstActivation
+  ) {
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
@@ -1734,11 +1810,10 @@ async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
   authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Tenant> {
   const delegations =
     await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
-
   if (delegationId) {
     // If a delegation has been passed, the consumer is the delegator
 

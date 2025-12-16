@@ -88,9 +88,13 @@ describe("API GET /catalog", () => {
     { query: { offset: 0, limit: 201 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
-  ])("Should return 400 if passed an invalid parameter", async ({ query }) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query as typeof defaultQuery);
-    expect(res.status).toBe(400);
-  });
+    { query: { ...defaultQuery, personalData: "invalid" } },
+  ])(
+    "Should return 400 if passed an invalid parameter $query",
+    async ({ query }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, query as typeof defaultQuery);
+      expect(res.status).toBe(400);
+    }
+  );
 });

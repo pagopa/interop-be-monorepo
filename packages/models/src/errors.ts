@@ -13,6 +13,7 @@ const {
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_NOT_IMPLEMENTED,
 } = constants;
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
@@ -248,7 +249,7 @@ export function makeApiProblemBuilder<T extends string>(
         }
       )
       .with(P.instanceOf(ZodError), (error) => {
-        // Zod errors shall always be catched and handled throwing
+        // Zod errors shall always be caught and handled throwing
         // an ApiError. If a ZodError arrives here we log it and
         // return a generic problem
         const zodError = fromZodError(error);
@@ -305,6 +306,7 @@ export const commonErrorCodes = {
   decodeSQSMessageError: "10024",
   pollingMaxRetriesExceeded: "10025",
   invalidServerUrl: "10026",
+  hyperlinkDetectionError: "10027",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -403,6 +405,15 @@ export function tokenGenerationError(
   });
 }
 
+export function hyperlinkDetectionError(
+  text: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "hyperlinkDetectionError",
+    detail: `Hyperlink detection error for text ${text}`,
+  });
+}
+
 export function kafkaMessageProcessError(
   topic: string,
   partition: number,
@@ -475,10 +486,10 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
       "unauthorizedError",
-      "featureFlagNotEnabled",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -776,5 +787,15 @@ export function invalidServerUrl(resource: {
     } with ID ${resource.id} has invalid server URL`,
     code: "invalidServerUrl",
     title: "Invalid server URL",
+  });
+}
+
+export function invalidDocumentDetected(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The document for Purpose template with ID ${resourceId} is invalid`,
+    code: "invalidContentTypeDetected",
+    title: "Invalid document detected",
   });
 }

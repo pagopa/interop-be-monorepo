@@ -22,6 +22,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
+  missingPersonalDataFlag,
 } from "../../src/model/domain/errors.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
@@ -95,6 +96,10 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authoriza
     {
       error: operationForbidden,
       expectedStatus: 403,
+    },
+    {
+      error: missingPersonalDataFlag(mockEService.id, descriptor.id),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

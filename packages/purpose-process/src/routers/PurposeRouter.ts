@@ -1,49 +1,57 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
+  authRole,
   ExpressContext,
+  fromAppContext,
+  setMetadataVersionHeader,
+  validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
-  authRole,
-  validateAuthorization,
-  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   DelegationId,
   EServiceId,
+  PurposeTemplateId,
+  PurposeVersionDocument,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import {
+  apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
+  purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { PurposeService } from "../services/purposeService.js";
 import {
   activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
-  createPurposeVersionErrorMapper,
   clonePurposeErrorMapper,
   createPurposeErrorMapper,
+  createPurposeFromTemplateErrorMapper,
+  createPurposeVersionErrorMapper,
   createReversePurposeErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
+  generateRiskAnalysisDocumentErrorMapper,
+  generateRiskAnalysisSignedDocumentErrorMapper,
   getPurposeErrorMapper,
+  getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
+  retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
   suspendPurposeVersionErrorMapper,
+  updatePurposeByTemplateErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
-  getPurposesErrorMapper,
-  retrieveLatestRiskAnalysisConfigurationErrorMapper,
 } from "../utilities/errorMappers.js";
-import { PurposeService } from "../services/purposeService.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -695,8 +703,161 @@ const purposeRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/templates/:purposeTemplateId/purposes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.createPurposeFromTemplate(
+          unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createPurposeFromTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const { purposeId, versionId } = req.params;
+          const riskAnalysisDocument = PurposeVersionDocument.parse(req.body);
+
+          await purposeService.internalAddUnsignedRiskAnalysisDocumentMetadata(
+            unsafeBrandId(purposeId),
+            unsafeBrandId(versionId),
+            riskAnalysisDocument,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateRiskAnalysisDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument/signed",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const { purposeId, versionId } = req.params;
+          const signedRiskAnalysis =
+            apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys(req.body);
+
+          await purposeService.internalAddSignedRiskAnalysisDocumentMetadata(
+            unsafeBrandId(purposeId),
+            unsafeBrandId(versionId),
+            signedRiskAnalysis,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateRiskAnalysisSignedDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .patch(
+      "/templates/:purposeTemplateId/purposes/:purposeId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const updatedPurpose =
+            await purposeService.patchUpdatePurposeFromTemplate(
+              unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.purposeId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, updatedPurpose.metadata);
+
+          return res
+            .status(200)
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(updatedPurpose.data, true)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updatePurposeByTemplateErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposes/:purposeId/versions/:versionId/signedDocuments/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+
+          const document = await purposeService.getRiskAnalysisSignedDocument({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            documentId: unsafeBrandId(req.params.documentId),
+            ctx,
+          });
+          return res
+            .status(200)
+            .send(
+              purposeApi.PurposeVersionSignedDocument.parse(
+                purposeVersionSignedDocumentToApiPurposeVersionSignedDocument(
+                  document
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
   return purposeRouter;
 };
 export default purposeRouter;

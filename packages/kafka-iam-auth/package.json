@@ -2,6 +2,7 @@
   "name": "kafka-iam-auth",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability KafkaJS AWS IAM Authetication module",
   "main": "dist",
   "type": "module",
@@ -16,7 +17,6 @@
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
-  "license": "Apache-2.0",
   "dependencies": {
     "@aws-sdk/client-sso-oidc": "3.840.0",
     "@aws-sdk/client-sts": "3.840.0",

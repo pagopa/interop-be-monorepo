@@ -1,5 +1,7 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
+import { NotificationType } from "pagopa-interop-models";
+import { z } from "zod";
 import {
   fromApiTenantMail,
   toBffTenantMail,
@@ -49,3 +51,84 @@ export function getLatestTenantContactEmail(
 
   return mail ? toBffTenantMail(mail) : undefined;
 }
+
+export type UiSection =
+  | "/erogazione"
+  | "/erogazione/richieste"
+  | "/erogazione/finalita"
+  | "/erogazione/template-eservice"
+  | "/erogazione/e-service"
+  | "/erogazione/portachiavi"
+  | "/fruizione"
+  | "/fruizione/richieste"
+  | "/fruizione/finalita"
+  | "/catalogo-e-service"
+  | "/aderente"
+  | "/aderente/deleghe"
+  | "/aderente/anagrafica"
+  | "/gestione-client"
+  | "/gestione-client/api-e-service";
+
+export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
+  {
+    agreementManagementToProducer: "/erogazione/richieste",
+    agreementSuspendedUnsuspendedToProducer: "/erogazione/richieste",
+    agreementSuspendedUnsuspendedToConsumer: "/fruizione/richieste",
+    clientAddedRemovedToProducer: "/erogazione/finalita",
+    purposeStatusChangedToProducer: "/erogazione/finalita",
+    templateStatusChangedToProducer: "/erogazione/template-eservice",
+    newEserviceTemplateVersionToInstantiator: "/erogazione/e-service",
+    eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service",
+    eserviceTemplateStatusChangedToInstantiator: "/erogazione/e-service",
+    clientKeyAddedDeletedToClientUsers: "/gestione-client/api-e-service",
+    agreementActivatedRejectedToConsumer: "/fruizione/richieste",
+    purposeActivatedRejectedToConsumer: "/fruizione/finalita",
+    purposeSuspendedUnsuspendedToConsumer: "/fruizione/finalita",
+    eserviceStateChangedToConsumer: "/catalogo-e-service",
+    delegationApprovedRejectedToDelegator: "/aderente/deleghe",
+    eserviceNewVersionSubmittedToDelegator: "/aderente/deleghe",
+    eserviceNewVersionApprovedRejectedToDelegate: "/aderente/deleghe",
+    delegationSubmittedRevokedToDelegate: "/aderente/deleghe",
+    certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
+    producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
+  } as const;
+
+export const Category = z.enum([
+  "Subscribers",
+  "Providers",
+  "Delegations",
+  "AttributesAndKeys",
+]);
+export type Category = z.infer<typeof Category>;
+
+export const notificationTypeToCategory: Record<NotificationType, Category> = {
+  agreementManagementToProducer: "Providers",
+  agreementSuspendedUnsuspendedToProducer: "Providers",
+  agreementSuspendedUnsuspendedToConsumer: "Subscribers",
+  clientAddedRemovedToProducer: "Providers",
+  purposeStatusChangedToProducer: "Providers",
+  templateStatusChangedToProducer: "Providers",
+  newEserviceTemplateVersionToInstantiator: "Providers",
+  eserviceTemplateNameChangedToInstantiator: "Providers",
+  eserviceTemplateStatusChangedToInstantiator: "Providers",
+  clientKeyAddedDeletedToClientUsers: "Providers",
+  agreementActivatedRejectedToConsumer: "Subscribers",
+  purposeActivatedRejectedToConsumer: "Subscribers",
+  purposeSuspendedUnsuspendedToConsumer: "Subscribers",
+  eserviceStateChangedToConsumer: "Subscribers",
+  delegationApprovedRejectedToDelegator: "Delegations",
+  eserviceNewVersionSubmittedToDelegator: "Delegations",
+  eserviceNewVersionApprovedRejectedToDelegate: "Delegations",
+  delegationSubmittedRevokedToDelegate: "Delegations",
+  certifiedVerifiedAttributeAssignedRevokedToAssignee: "AttributesAndKeys",
+  producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
+};
+
+export const categoryToNotificationTypes: Record<Category, NotificationType[]> =
+  Object.entries(notificationTypeToCategory).reduce(
+    (acc, [type, category]) => ({
+      ...acc,
+      [category]: [...(acc[category] || []), type as NotificationType],
+    }),
+    {} as Record<Category, NotificationType[]>
+  );

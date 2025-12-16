@@ -284,6 +284,11 @@ export const aggregateEservice = ({
           templateId: unsafeBrandId<EServiceTemplateId>(eserviceSQL.templateId),
         }
       : {}),
+    ...(eserviceSQL.personalData !== null
+      ? {
+          personalData: eserviceSQL.personalData,
+        }
+      : {}),
   };
   return {
     data: eservice,

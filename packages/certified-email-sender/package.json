@@ -2,6 +2,7 @@
   "name": "pagopa-interop-certified-email-sender",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "Pagopa Interop Certified Email Sender",
   "main": "dist",
   "type": "module",
@@ -9,8 +10,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
-    "test:old": "echo \"Old readmodel\" && vitest --config vitest.config.ts ",
+    "test": "vitest --config vitest.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -20,14 +20,12 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",
     "@types/nodemailer": "6.4.17",
     "cpx2": "7.0.2",
-    "axios": "1.8.2",
+    "axios": "1.12.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",

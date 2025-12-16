@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getMockPurpose,
   getMockPurposeVersion,
+  getMockPurposeVersionStamps,
   toPurposeV1,
   toPurposeVersionV1,
 } from "pagopa-interop-commons-test";
@@ -617,8 +618,10 @@ describe("Integration tests", async () => {
       await purposeWriterService.upsertPurpose(purpose, 1);
 
       const waitingForApprovalVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: "WaitingForApproval",
+        ...getMockPurposeVersion(
+          purposeVersionState.waitingForApproval,
+          getMockPurposeVersionStamps()
+        ),
       };
 
       const updatedPurpose: Purpose = {
@@ -667,7 +670,14 @@ describe("Integration tests", async () => {
       const date = new Date();
       const updatedPurpose: Purpose = {
         ...purpose,
-        versions: [{ ...draftVersion, updatedAt: date, state: "Active" }],
+        versions: [
+          {
+            ...draftVersion,
+            updatedAt: date,
+            state: "Active",
+            stamps: getMockPurposeVersionStamps(),
+          },
+        ],
       };
 
       const payload: PurposeActivatedV2 = {
@@ -1170,6 +1180,7 @@ describe("Integration tests", async () => {
             state: "Active",
             updatedAt: new Date(),
             firstActivationAt: new Date(),
+            stamps: getMockPurposeVersionStamps(),
           },
         ],
       };

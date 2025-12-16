@@ -64,6 +64,7 @@ export function toM2MGatewayApiPurpose(
     rejectedVersion: rejectedVersion
       ? toM2mGatewayApiPurposeVersion(rejectedVersion)
       : undefined,
+    purposeTemplateId: purpose.purposeTemplateId,
   };
 }
 

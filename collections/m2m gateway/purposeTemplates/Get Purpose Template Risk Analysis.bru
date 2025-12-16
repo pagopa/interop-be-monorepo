@@ -1,0 +1,19 @@
+meta {
+  name: Get Purpose Template Risk Analysis
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

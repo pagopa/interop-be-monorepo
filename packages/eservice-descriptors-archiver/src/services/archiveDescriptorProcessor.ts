@@ -6,14 +6,14 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ReadModelService } from "./readModelService.js";
 import { CatalogProcessClient } from "./catalogProcessClient.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line max-params
 export async function archiveDescriptorForArchivedAgreement(
   archivedAgreement: Agreement,
   refreshableToken: RefreshableInteropToken,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   catalogProcessClient: CatalogProcessClient,
   logger: Logger,
   correlationId: CorrelationId
