@@ -102,12 +102,14 @@ export function inAppNotificationServiceBuilder(
     ): Promise<void> => {
       assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info("Marking in-app notifications as read by entity id");
+
+      logger.info(entityId);
       return inAppNotificationManagerClient.markNotificationsAsReadByEntityId(
         undefined,
         {
           headers,
           params: {
-            entityId,
+            entityId: encodeURIComponent(entityId),
           },
         }
       );

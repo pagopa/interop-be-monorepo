@@ -1,0 +1,16 @@
+meta {
+  name: Notification mark as read by entity id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-bff}}/inAppNotifications/count
+  body: none
+  auth: none
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
