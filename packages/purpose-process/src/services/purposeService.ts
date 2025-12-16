@@ -862,7 +862,7 @@ export function purposeServiceBuilder(
           return purposesIds;
         }
         const client = await clientReadModelService.getClientById(clientId);
-        // TODO: do we need to assert the client visibility to be FULL? @ecamellini
+        // TODO: do we need to assert the client visibility to be FULL?
         const clientPurposes = client?.data.purposes ?? [];
 
         return purposesIds.length > 0
