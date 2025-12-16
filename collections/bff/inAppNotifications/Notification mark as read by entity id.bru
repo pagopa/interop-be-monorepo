@@ -4,10 +4,14 @@ meta {
   seq: 3
 }
 
-get {
-  url: {{host-bff}}/inAppNotifications/count
+post {
+  url: {{host-bff}}/inAppNotifications/markAsReadByEntityId/:entityId
   body: none
   auth: none
+}
+
+params:path {
+  entityId: 8619e7a2-a647-4c58-92ae-5236d412e5da%2F711c78d6-a6ee-4226-9488-3f10c392dbfd
 }
 
 headers {
