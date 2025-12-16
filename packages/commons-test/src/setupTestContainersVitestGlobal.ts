@@ -20,7 +20,7 @@ import {
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
-import type { GlobalSetupContext } from "vitest/node";
+import type { TestProject } from "vitest/node";
 import {
   TEST_AWS_SES_PORT,
   TEST_DYNAMODB_PORT,
@@ -92,9 +92,9 @@ export function setupTestContainersVitestGlobal() {
   const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
 
-  return async function ({
-    provide,
-  }: GlobalSetupContext): Promise<() => Promise<void>> {
+  return async function (
+    project: TestProject
+  ): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
@@ -131,7 +131,7 @@ export function setupTestContainersVitestGlobal() {
        *
        * The comment applies to the other containers setup after this one as well.
        */
-      provide("eventStoreConfig", eventStoreConfig.data);
+      project.provide("eventStoreConfig", eventStoreConfig.data);
     }
 
     if (readModelSQLConfig.success) {
@@ -144,7 +144,7 @@ export function setupTestContainersVitestGlobal() {
           TEST_POSTGRES_DB_PORT
         );
 
-      provide("readModelSQLConfig", readModelSQLConfig.data);
+      project.provide("readModelSQLConfig", readModelSQLConfig.data);
     }
 
     if (analyticsSQLConfig.success) {
@@ -156,7 +156,7 @@ export function setupTestContainersVitestGlobal() {
           TEST_POSTGRES_DB_PORT
         );
 
-      provide("analyticsSQLConfig", analyticsSQLConfig.data);
+      project.provide("analyticsSQLConfig", analyticsSQLConfig.data);
     }
 
     // Setting up the Minio container if the config is provided
@@ -173,7 +173,7 @@ export function setupTestContainersVitestGlobal() {
       fileManagerConfig.data.s3ServerPort =
         startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
 
-      provide("fileManagerConfig", {
+      project.provide("fileManagerConfig", {
         ...fileManagerConfig.data,
         s3Bucket,
       });
@@ -187,14 +187,14 @@ export function setupTestContainersVitestGlobal() {
       emailManagerConfig.data.mailpitAPIPort =
         startedMailpitContainer.getMappedPort(TEST_MAILPIT_HTTP_PORT);
       emailManagerConfig.data.smtpAddress = startedMailpitContainer.getHost();
-      provide("emailManagerConfig", emailManagerConfig.data);
+      project.provide("emailManagerConfig", emailManagerConfig.data);
     }
 
     // Setting up the DynamoDB container if the config is provided
     if (tokenGenerationReadModelConfig.success) {
       startedDynamoDbContainer = await dynamoDBContainer().start();
 
-      provide("tokenGenerationReadModelConfig", {
+      project.provide("tokenGenerationReadModelConfig", {
         ...tokenGenerationReadModelConfig.data,
         tokenGenerationReadModelDbPort:
           startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
@@ -204,7 +204,7 @@ export function setupTestContainersVitestGlobal() {
     if (dpopConfig.success) {
       startedDynamoDbContainer = await dynamoDBContainer().start();
 
-      provide("dpopConfig", {
+      project.provide("dpopConfig", {
         ...dpopConfig.data,
         dpopDbPort: startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
       });
@@ -214,12 +214,12 @@ export function setupTestContainersVitestGlobal() {
       startedRedisContainer = await redisContainer().start();
       redisRateLimiterConfig.data.rateLimiterRedisPort =
         startedRedisContainer.getMappedPort(TEST_REDIS_PORT);
-      provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
+      project.provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
     }
 
     if (awsSESConfig.success) {
       startedAWSSesContainer = await awsSESContainer().start();
-      provide("sesEmailManagerConfig", {
+      project.provide("sesEmailManagerConfig", {
         awsRegion: awsSESConfig.data.awsRegion,
         awsSesEndpoint: `http://localhost:${startedAWSSesContainer.getMappedPort(
           TEST_AWS_SES_PORT
@@ -231,7 +231,7 @@ export function setupTestContainersVitestGlobal() {
       startedInAppNotificationContainer = await inAppNotificationDBContainer(
         inAppNotificationDbConfig.data
       ).start();
-      provide("inAppNotificationDbConfig", {
+      project.provide("inAppNotificationDbConfig", {
         ...inAppNotificationDbConfig.data,
         inAppNotificationDBPort:
           startedInAppNotificationContainer.getMappedPort(
@@ -243,7 +243,7 @@ export function setupTestContainersVitestGlobal() {
     if (dynamoDBClientConfig.success) {
       startedDynamoDbContainer = await dynamoDBContainer().start();
 
-      provide("dynamoDBClientConfig", {
+      project.provide("dynamoDBClientConfig", {
         ...dynamoDBClientConfig.data,
         dynamoDbTestPort:
           startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
@@ -254,7 +254,7 @@ export function setupTestContainersVitestGlobal() {
       startedInAppNotificationContainer = await m2mEventDBContainer(
         m2mEventDbConfig.data
       ).start();
-      provide("m2mEventDbConfig", {
+      project.provide("m2mEventDbConfig", {
         ...m2mEventDbConfig.data,
         m2mEventSQLDbPort: startedInAppNotificationContainer.getMappedPort(
           TEST_M2M_EVENT_DB_PORT
