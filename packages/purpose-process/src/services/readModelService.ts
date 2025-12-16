@@ -1,4 +1,5 @@
 import {
+  ClientId,
   EServiceId,
   TenantId,
   PurposeVersionState,
@@ -13,4 +14,8 @@ export type GetPurposesFilters = {
   purposesIds: PurposeId[];
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
+};
+
+export type GetPurposesInputFilters = GetPurposesFilters & {
+  clientId?: ClientId;
 };

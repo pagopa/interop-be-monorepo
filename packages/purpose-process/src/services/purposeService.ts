@@ -26,6 +26,7 @@ import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
+import { ClientReadModelService } from "pagopa-interop-readmodel";
 import {
   Agreement,
   CorrelationId,
@@ -112,7 +113,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
   toCreateEventRiskAnalysisSignedDocumentGenerated,
 } from "../model/domain/toEvent.js";
-import { GetPurposesFilters } from "./readModelService.js";
+import { GetPurposesInputFilters } from "./readModelService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 import {
@@ -310,6 +311,7 @@ async function retrievePublishedPurposeTemplate(
 export function purposeServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelServiceSQL,
+  clientReadModelService: ClientReadModelService,
   fileManager: FileManager,
   pdfGenerator: PDFGenerator
 ) {
@@ -840,7 +842,7 @@ export function purposeServiceBuilder(
       };
     },
     async getPurposes(
-      filters: GetPurposesFilters,
+      filters: GetPurposesInputFilters,
       { offset, limit }: { offset: number; limit: number },
       {
         authData,
@@ -853,10 +855,30 @@ export function purposeServiceBuilder(
         )}, limit = ${limit}, offset = ${offset}`
       );
 
+      const { clientId, purposesIds, ...otherFilters } = filters;
+
+      const effectivePurposesIds = await (async (): Promise<PurposeId[]> => {
+        if (!clientId) {
+          return purposesIds;
+        }
+        const client = await clientReadModelService.getClientById(clientId);
+        // TODO: do we need to assert the client visibility to be FULL? @ecamellini
+        const clientPurposes = client?.data.purposes ?? [];
+
+        return purposesIds.length > 0
+          ? purposesIds
+              .concat(clientPurposes)
+              .filter((id, index, arr) => arr.indexOf(id) === index)
+          : clientPurposes;
+      })();
+
       // Permissions are checked in the readModelService
       return await readModelService.getPurposes(
         authData.organizationId,
-        filters,
+        {
+          ...otherFilters,
+          purposesIds: effectivePurposesIds,
+        },
         {
           offset,
           limit,
