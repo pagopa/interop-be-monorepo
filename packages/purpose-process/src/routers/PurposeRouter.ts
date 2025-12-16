@@ -23,7 +23,6 @@ import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
-  purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
@@ -843,9 +842,7 @@ const purposeRouter = (
             .status(200)
             .send(
               purposeApi.PurposeVersionSignedDocument.parse(
-                purposeVersionSignedDocumentToApiPurposeVersionSignedDocument(
-                  document
-                )
+                purposeVersionDocumentToApiPurposeVersionDocument(document)
               )
             );
         } catch (error) {
