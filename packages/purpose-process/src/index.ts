@@ -7,6 +7,7 @@ import {
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   purposeReadModelServiceBuilder,
@@ -28,6 +29,7 @@ const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
@@ -53,6 +55,7 @@ const service = purposeServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelServiceSQL,
+  clientReadModelServiceSQL,
   fileManager,
   pdfGenerator
 );

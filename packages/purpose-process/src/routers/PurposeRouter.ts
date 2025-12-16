@@ -11,6 +11,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
+  ClientId,
   DelegationId,
   EServiceId,
   PurposeId,
@@ -90,6 +91,7 @@ const purposeRouter = (
           consumersIds,
           producersIds,
           purposesIds,
+          clientId,
           states,
           excludeDraft,
           offset,
@@ -102,6 +104,7 @@ const purposeRouter = (
             consumersIds: consumersIds?.map(unsafeBrandId<TenantId>),
             producersIds: producersIds?.map(unsafeBrandId<TenantId>),
             purposesIds: purposesIds?.map(unsafeBrandId<PurposeId>),
+            clientId: clientId ? unsafeBrandId<ClientId>(clientId) : undefined,
             states: states?.map(apiPurposeVersionStateToPurposeVersionState),
             excludeDraft,
           },

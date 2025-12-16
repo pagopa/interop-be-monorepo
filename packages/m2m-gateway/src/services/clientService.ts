@@ -10,7 +10,6 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 import {
   toGetClientsApiQueryParams,
   toM2MGatewayApiConsumerClient,
@@ -20,6 +19,7 @@ import {
   toM2MGatewayApiPurpose,
 } from "../api/purposeApiConverter.js";
 import { toM2MJWK } from "../api/keysApiConverter.js";
+import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -159,7 +159,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         offset,
         eserviceIds,
         states,
-        purposesIds: clientPurposesIds,
+        clientId,
       });
 
       const { data } = await clients.purposeProcessClient.getPurposes({
