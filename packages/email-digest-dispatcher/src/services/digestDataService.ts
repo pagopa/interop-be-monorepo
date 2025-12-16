@@ -8,14 +8,128 @@ import { Logger } from "pagopa-interop-commons";
 export type TenantDigestData = {
   tenantId: TenantId;
   tenantName: string;
-  // TODO: Add actual digest data fields when design is finalized
-  summaryItems: DigestSummaryItem[];
+  timePeriod: string;
+  eservices?: EservicesData;
+  eserviceTemplate?: EserviceTemplateData;
+  agreements?: AgreementsData;
+  purposes?: PurposesData;
+  delegations?: DelegationsData;
+  attributes?: AttributesData;
+  catalogLink?: string;
+  templateCatalogLink?: string;
+  agreementsSentLink?: string;
+  agreementsReceivedLink?: string;
+  purposesSentLink?: string;
+  purposesReceivedLink?: string;
+  delegationsSentLink?: string;
+  delegationsReceivedLink?: string;
+  attributesLink?: string;
 };
 
-export type DigestSummaryItem = {
-  category: string;
+export type EserviceItem = {
+  name: string;
+  link: string;
+};
+
+export type EserviceUpdatedItem = EserviceItem & {
+  version: string;
+};
+
+export type EservicesData = {
+  updated?: {
+    items: EserviceUpdatedItem[];
+    additionalCount?: number;
+  };
+  new?: {
+    items: EserviceItem[];
+  };
+  templatesUpdated?: {
+    items: EserviceItem[];
+  };
+};
+
+export type TemplateWithInstancesItem = {
+  name: string;
+  link: string;
+  instanceCount: number;
+};
+
+export type EserviceTemplateData = {
+  templateWithInstances?: {
+    items: TemplateWithInstancesItem[];
+  };
+};
+
+export type AgreementItem = {
+  name: string;
+  link: string;
+};
+
+export type AgreementsByState = {
+  state: string;
+  stateLink: string;
   count: number;
-  description: string;
+  items: AgreementItem[];
+};
+
+export type AgreementsData = {
+  consumerAgreements?: {
+    byState: AgreementsByState[];
+  };
+  producerAgreements?: {
+    byState: AgreementsByState[];
+  };
+};
+
+export type PurposeItem = {
+  name: string;
+  link: string;
+};
+
+export type PurposesByState = {
+  state: string;
+  count: number;
+  items: PurposeItem[];
+};
+
+export type PurposesData = {
+  consumerPurposes?: {
+    byState: PurposesByState[];
+  };
+  producerPurposes?: {
+    byState: PurposesByState[];
+  };
+};
+
+export type DelegationItem = {
+  name: string;
+  link: string;
+  delegationType: string;
+};
+
+export type DelegationsByState = {
+  state: string;
+  count: number;
+  items: DelegationItem[];
+};
+
+export type DelegationsData = {
+  delegatorDelegations?: {
+    byState: DelegationsByState[];
+  };
+  delegateDelegations?: {
+    byState: DelegationsByState[];
+  };
+};
+
+export type AttributeItem = {
+  type: string;
+  name: string;
+  action: string;
+};
+
+export type AttributesData = {
+  items?: AttributeItem[];
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -41,23 +155,14 @@ export function digestDataServiceBuilder(
       return {
         tenantId,
         tenantName: "Tenant Name Placeholder", // TODO: Retrieve from tenant readmodel
-        summaryItems: [
-          {
-            category: "Nuove richieste di fruizione",
-            count: 0,
-            description: "Nessuna nuova richiesta",
-          },
-          {
-            category: "E-service aggiornati",
-            count: 0,
-            description: "Nessun aggiornamento",
-          },
-          {
-            category: "Finalità in attesa",
-            count: 0,
-            description: "Nessuna finalità in attesa",
-          },
-        ],
+        timePeriod: "ultima settimana",
+        // TODO: Populate these fields with actual data from readmodel
+        // eservices: undefined,
+        // eserviceTemplate: undefined,
+        // agreements: undefined,
+        // purposes: undefined,
+        // delegations: undefined,
+        // attributes: undefined,
       };
     },
 
@@ -66,7 +171,19 @@ export function digestDataServiceBuilder(
      * If there's nothing to report, we might skip sending the email.
      */
     hasDigestContent(data: TenantDigestData): boolean {
-      return data.summaryItems.some((item) => item.count > 0);
+      return !!(
+        data.eservices?.updated?.items.length ||
+        data.eservices?.new?.items.length ||
+        data.eservices?.templatesUpdated?.items.length ||
+        data.eserviceTemplate?.templateWithInstances?.items.length ||
+        data.agreements?.consumerAgreements?.byState.length ||
+        data.agreements?.producerAgreements?.byState.length ||
+        data.purposes?.consumerPurposes?.byState.length ||
+        data.purposes?.producerPurposes?.byState.length ||
+        data.delegations?.delegatorDelegations?.byState.length ||
+        data.delegations?.delegateDelegations?.byState.length ||
+        data.attributes?.items?.length
+      );
     },
   };
 }
