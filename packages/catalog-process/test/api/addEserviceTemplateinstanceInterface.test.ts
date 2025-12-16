@@ -11,9 +11,13 @@ import {
   EServiceId,
   generateId,
   interfaceExtractingInfoError,
+  interfaceExtractingSoapFiledError,
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
+  invalidServerUrl,
+  openapiVersionNotRecognized,
   operationForbidden,
+  parsingSoapFileError,
   technology,
   Technology,
   TenantId,
@@ -181,6 +185,25 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
         {
           error: notValidDescriptorState(descriptor.id, descriptor.state),
+          expectedStatus: 400,
+        },
+        {
+          error: interfaceExtractingSoapFiledError("field-name"),
+          expectedStatus: 400,
+        },
+        {
+          error: parsingSoapFileError(),
+          expectedStatus: 400,
+        },
+        {
+          error: openapiVersionNotRecognized("invalid-version"),
+          expectedStatus: 400,
+        },
+        {
+          error: invalidServerUrl({
+            id: "invalid",
+            isEserviceTemplate: true,
+          }),
           expectedStatus: 400,
         },
       ])(
