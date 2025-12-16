@@ -23,7 +23,6 @@
         color: #17324d;
       "
     >
-      <!-- H4 Desktop (from MUI Italia)-->
       <h1 style="font-size: 32px; line-height: 40px; margin: 0">{{ title }}</h1>
     </div>
   </td>
@@ -75,20 +74,312 @@
         color: #17324d;
       "
     >
-      <!-- Body 1 Desktop (from MUI Italia)-->
-      <p>
-        Ecco il riepilogo delle notifiche per l'ente
-        <strong>{{ tenantName }}</strong>.
-      </p>
-      <p>Di seguito trovi un riepilogo delle attività:</p>
+      {{#if eservices}}
+      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
+        Eservices
+      </h2>
+      {{#if eservices.updated}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        In questo {{ timePeriod }}, {{ eservices.updated.items.length }}
+        eservices a cui sei iscritto hanno pubblicato una nuova versione:
+      </h3>
       <ul>
-        {{#each summaryItems}} {{#if count}}
+        {{#each eservices.updated.items}}
         <li>
-          <strong>{{ category }}</strong>: {{ count }} - {{ description }}
+          <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+            >{{ name }}</a
+          >
+          è stato aggiornato alla versione {{ version }}
         </li>
-        {{/if}} {{/each}}
+        {{/each}}
       </ul>
-      <p>Accedi alla piattaforma per visualizzare tutti i dettagli.</p>
+      {{#if eservices.updated.additionalCount}}
+      <p>
+        Inoltre, altri {{ eservices.updated.additionalCount }} eservices sono
+        stati aggiornati
+      </p>
+      {{/if}} {{/if}} {{#if eservices.new}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        In questo {{ timePeriod }}, {{ eservices.new.items.length }} nuovi
+        eservices sono stati pubblicati:
+      </h3>
+      <ul>
+        {{#each eservices.new.items}}
+        <li>
+          <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+            >{{ name }}</a
+          >
+        </li>
+        {{/each}}
+      </ul>
+      {{#if catalogLink}}
+      <p>
+        <a href="{{ catalogLink }}" style="color: #0073e6; text-decoration: none"
+          >Vai al catalogo</a
+        >
+      </p>
+      {{/if}} {{/if}} {{#if eservices.templatesUpdated}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        In questo {{ timePeriod }},
+        {{ eservices.templatesUpdated.items.length }} template da cui hai creato
+        i degli eservices hanno pubblicato una nuova versione:
+      </h3>
+      <ul>
+        {{#each eservices.templatesUpdated.items}}
+        <li>
+          <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+            >{{ name }}</a
+          >
+        </li>
+        {{/each}}
+      </ul>
+      {{#if templateCatalogLink}}
+      <p>
+        <a
+          href="{{ templateCatalogLink }}"
+          style="color: #0073e6; text-decoration: none"
+          >Vai al catalogo template</a
+        >
+      </p>
+      {{/if}} {{/if}} {{/if}} {{#if eserviceTemplate}}
+      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
+        Eservice Template
+      </h2>
+      {{#if eserviceTemplate.templateWithInstances}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        In questo {{ timePeriod }},
+        {{ eserviceTemplate.templateWithInstances.items.length }} enti hanno
+        usato i tuoi template e-service:
+      </h3>
+      <ul>
+        {{#each eserviceTemplate.templateWithInstances.items}}
+        <li>
+          <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+            >{{ name }}</a
+          >
+          : {{ instanceCount }} istanze
+        </li>
+        {{/each}}
+      </ul>
+      {{#if templateCatalogLink}}
+      <p>
+        <a
+          href="{{ templateCatalogLink }}"
+          style="color: #0073e6; text-decoration: none"
+          >Vai al catalogo template</a
+        >
+      </p>
+      {{/if}} {{/if}} {{/if}} {{#if agreements}}
+      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
+        Richieste di Fruizione
+      </h2>
+      {{#if agreements.consumerAgreements}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        Inoltre, lo stato delle richieste di fruizione che hai inoltrato è il
+        seguente:
+      </h3>
+      <ul>
+        {{#each agreements.consumerAgreements.byState}}
+        <li>
+          ci sono {{ count }} richieste in
+          <a href="{{ stateLink }}" style="color: #0073e6; text-decoration: none"
+            >{{ state }}</a
+          >
+          <ul>
+            {{#each items}}
+            <li>
+              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+                >{{ name }}</a
+              >
+            </li>
+            {{/each}}
+          </ul>
+        </li>
+        {{/each}}
+      </ul>
+      {{/if}} {{#if agreements.producerAgreements}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        Inoltre, lo stato delle richieste di fruizione che hai ricevuto è il
+        seguente:
+      </h3>
+      <ul>
+        {{#each agreements.producerAgreements.byState}}
+        <li>
+          ci sono {{ count }} richieste in
+          <a href="{{ stateLink }}" style="color: #0073e6; text-decoration: none"
+            >{{ state }}</a
+          >
+          <ul>
+            {{#each items}}
+            <li>
+              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+                >{{ name }}</a
+              >
+            </li>
+            {{/each}}
+          </ul>
+        </li>
+        {{/each}}
+      </ul>
+      {{#if agreementsReceivedLink}}
+      <p>
+        <a
+          href="{{ agreementsReceivedLink }}"
+          style="color: #0073e6; text-decoration: none"
+          >Vai alle richieste di fruizione ricevute</a
+        >
+      </p>
+      {{/if}} {{/if}} {{/if}} {{#if purposes}}
+      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
+        Finalità
+      </h2>
+      {{#if purposes.consumerPurposes}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        In questo {{ timePeriod }}, lo stato delle finalità che hai inoltrato è
+        il seguente:
+      </h3>
+      <ul>
+        {{#each purposes.consumerPurposes.byState}}
+        <li>
+          ci sono {{ count }} richieste in {{ state }}
+          <ul>
+            {{#each items}}
+            <li>
+              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+                >{{ name }}</a
+              >
+            </li>
+            {{/each}}
+          </ul>
+        </li>
+        {{/each}}
+      </ul>
+      {{#if purposesSentLink}}
+      <p>
+        <a
+          href="{{ purposesSentLink }}"
+          style="color: #0073e6; text-decoration: none"
+          >Vai alle finalità inoltrate</a
+        >
+      </p>
+      {{/if}} {{/if}} {{#if purposes.producerPurposes}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        In questo {{ timePeriod }}, lo stato delle finalità che hai ricevuto è
+        il seguente:
+      </h3>
+      <ul>
+        {{#each purposes.producerPurposes.byState}}
+        <li>
+          ci sono {{ count }} richieste in {{ state }}
+          <ul>
+            {{#each items}}
+            <li>
+              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+                >{{ name }}</a
+              >
+            </li>
+            {{/each}}
+          </ul>
+        </li>
+        {{/each}}
+      </ul>
+      {{#if purposesReceivedLink}}
+      <p>
+        <a
+          href="{{ purposesReceivedLink }}"
+          style="color: #0073e6; text-decoration: none"
+          >Vai alle finalità ricevute</a
+        >
+      </p>
+      {{/if}} {{/if}} {{/if}} {{#if delegations}}
+      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
+        Deleghe
+      </h2>
+      {{#if delegations.delegatorDelegations}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        In questo {{ timePeriod }} lo stato delle deleghe che hai inoltrato come
+        delegante è il seguente:
+      </h3>
+      <ul>
+        {{#each delegations.delegatorDelegations.byState}}
+        <li>
+          ci sono {{ count }} deleghe in {{ state }}
+          <ul>
+            {{#each items}}
+            <li>
+              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+                >{{ name }}</a
+              >
+              in {{ delegationType }}
+            </li>
+            {{/each}}
+          </ul>
+        </li>
+        {{/each}}
+      </ul>
+      {{#if delegationsSentLink}}
+      <p>
+        <a
+          href="{{ delegationsSentLink }}"
+          style="color: #0073e6; text-decoration: none"
+          >Vai alle deleghe inoltrate</a
+        >
+      </p>
+      {{/if}} {{/if}} {{#if delegations.delegateDelegations}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        Inoltre, lo stato delle deleghe che hai ricevuto come delegato è il
+        seguente:
+      </h3>
+      <ul>
+        {{#each delegations.delegateDelegations.byState}}
+        <li>
+          ci sono {{ count }} deleghe in {{ state }}
+          <ul>
+            {{#each items}}
+            <li>
+              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
+                >{{ name }}</a
+              >
+              in {{ delegationType }}
+            </li>
+            {{/each}}
+          </ul>
+        </li>
+        {{/each}}
+      </ul>
+      {{#if delegationsReceivedLink}}
+      <p>
+        <a
+          href="{{ delegationsReceivedLink }}"
+          style="color: #0073e6; text-decoration: none"
+          >Vai alle deleghe ricevute</a
+        >
+      </p>
+      {{/if}} {{/if}} {{/if}} {{#if attributes}}
+      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
+        Gestione attributi
+      </h2>
+      {{#if attributes.items}}
+      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
+        In questo {{ timePeriod }} {{ attributes.items.length }} dei tuoi
+        attributi hanno ricevuto le seguenti modifiche:
+      </h3>
+      <ul>
+        {{#each attributes.items}}
+        <li>
+          L'attributo {{ type }} {{ name }} è stato {{ action }}
+        </li>
+        {{/each}}
+      </ul>
+      {{#if attributesLink}}
+      <p>
+        <a
+          href="{{ attributesLink }}"
+          style="color: #0073e6; text-decoration: none"
+          >Vai alla gestione attributi</a
+        >
+      </p>
+      {{/if}} {{/if}} {{/if}}
     </div>
   </td>
 </tr>
