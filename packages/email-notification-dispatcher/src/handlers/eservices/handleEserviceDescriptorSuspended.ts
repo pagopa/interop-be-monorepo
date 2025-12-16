@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -95,6 +96,7 @@ export async function handleEserviceDescriptorSuspended(
             producerName: producer.name,
             eserviceVersion: descriptor.version,
             ctaLabel: `Visualizza e-service`,
+            bffUrl: config.bffUrl,
           }),
         },
         tenantId: producer.id,

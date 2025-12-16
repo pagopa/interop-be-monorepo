@@ -7,6 +7,7 @@ import {
   getTableColumns,
   ilike,
   inArray,
+  isNotNull,
   isNull,
   like,
   or,
@@ -76,6 +77,14 @@ export function inAppNotificationServiceBuilder(
       }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<Notification>> => {
       logger.info("Getting notifications");
+
+      const readAtFilter =
+        unread === undefined
+          ? undefined
+          : unread
+          ? isNull(notification.readAt)
+          : isNotNull(notification.readAt);
+
       const notifications = await db
         .select(withTotalCount(getTableColumns(notification)))
         .from(notification)
@@ -84,7 +93,7 @@ export function inAppNotificationServiceBuilder(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
             q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined,
-            unread ? isNull(notification.readAt) : undefined,
+            readAtFilter,
             notificationTypes.length > 0
               ? inArray(notification.notificationType, notificationTypes)
               : undefined
