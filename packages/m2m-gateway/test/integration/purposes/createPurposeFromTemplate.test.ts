@@ -38,7 +38,7 @@ describe("createPurposeFromTemplate", () => {
   const mockPurposeProcessGetResponse: WithMetadata<purposeApi.Purpose> =
     getMockWithMetadata({
       ...getMockedApiPurpose(),
-      purposeTemplateId: undefined,
+      purposeTemplateId: mockPurposeTemplate.id,
     });
 
   const mockPurposeFromTemplateSeed: m2mGatewayApi.PurposeFromTemplateSeed = {
@@ -87,6 +87,7 @@ describe("createPurposeFromTemplate", () => {
     suspendedByProducer: undefined,
     updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
     waitingForApprovalVersion: undefined,
+    purposeTemplateId: mockPurposeTemplate.id,
   };
 
   const mockAppContext = getMockM2MAdminAppContext();
