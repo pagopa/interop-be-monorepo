@@ -52,7 +52,7 @@ describe("POST /purposeTemplates/{purposeTemplateId}/purposes router test", () =
   it.each(authorizedRoles)(
     "Should return 201 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeService.createPurposeFromPurposeTemplate = vi
+      mockPurposeService.createPurposeFromTemplate = vi
         .fn()
         .mockResolvedValue(mockM2MPurpose);
 
@@ -105,7 +105,7 @@ describe("POST /purposeTemplates/{purposeTemplateId}/purposes router test", () =
     delegationEServiceMismatch(generateId(), getMockedApiDelegation()),
     requesterIsNotTheDelegateConsumer(getMockedApiDelegation()),
   ])("Should return 403 in case of $code error", async (error) => {
-    mockPurposeService.createPurposeFromPurposeTemplate = vi
+    mockPurposeService.createPurposeFromTemplate = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -125,7 +125,7 @@ describe("POST /purposeTemplates/{purposeTemplateId}/purposes router test", () =
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockPurposeService.createPurposeFromPurposeTemplate = vi
+    mockPurposeService.createPurposeFromTemplate = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -146,7 +146,7 @@ describe("POST /purposeTemplates/{purposeTemplateId}/purposes router test", () =
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockPurposeService.createPurposeFromPurposeTemplate = vi
+      mockPurposeService.createPurposeFromTemplate = vi
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

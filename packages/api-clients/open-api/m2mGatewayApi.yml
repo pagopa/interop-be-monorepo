@@ -17271,7 +17271,7 @@ paths:
         - purposes
       summary: Create a new Purpose from a Purpose Template
       description: Create a new Purpose in Draft state from a Purpose Template
-      operationId: createPurposeFromPurposeTemplate
+      operationId: createPurposeFromTemplate
       requestBody:
         content:
           application/json:

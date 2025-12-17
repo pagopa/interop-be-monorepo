@@ -33,7 +33,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("createPurposeFromPurposeTemplate", () => {
+describe("createPurposeFromTemplate", () => {
   const mockPurposeTemplate = getMockPurposeTemplate();
   const mockPurposeProcessGetResponse: WithMetadata<purposeApi.Purpose> =
     getMockWithMetadata({
@@ -103,7 +103,7 @@ describe("createPurposeFromPurposeTemplate", () => {
       mockPollingResponse(mockPurposeProcessGetResponse, 2)
     );
 
-    const result = await purposeService.createPurposeFromPurposeTemplate(
+    const result = await purposeService.createPurposeFromTemplate(
       mockPurposeTemplate.id,
       mockPurposeFromTemplateSeed,
       mockAppContext
@@ -154,7 +154,7 @@ describe("createPurposeFromPurposeTemplate", () => {
         delegationId: mockConsumerDelegation.id,
       };
 
-    const result = await purposeService.createPurposeFromPurposeTemplate(
+    const result = await purposeService.createPurposeFromTemplate(
       mockPurposeTemplate.id,
       mockPurposeSeedWithDelegation,
       mockAppContext
@@ -206,7 +206,7 @@ describe("createPurposeFromPurposeTemplate", () => {
       };
 
     await expect(
-      purposeService.createPurposeFromPurposeTemplate(
+      purposeService.createPurposeFromTemplate(
         mockPurposeTemplate.id,
         mockPurposeSeedWithDelegation,
         mockAppContext
@@ -253,7 +253,7 @@ describe("createPurposeFromPurposeTemplate", () => {
         };
 
       await expect(
-        purposeService.createPurposeFromPurposeTemplate(
+        purposeService.createPurposeFromTemplate(
           mockPurposeTemplate.id,
           mockPurposeSeedWithDelegation,
           mockAppContext
@@ -269,7 +269,7 @@ describe("createPurposeFromPurposeTemplate", () => {
     });
 
     await expect(
-      purposeService.createPurposeFromPurposeTemplate(
+      purposeService.createPurposeFromTemplate(
         mockPurposeTemplate.id,
         mockPurposeFromTemplateSeed,
         getMockM2MAdminAppContext()
@@ -284,7 +284,7 @@ describe("createPurposeFromPurposeTemplate", () => {
     });
 
     await expect(
-      purposeService.createPurposeFromPurposeTemplate(
+      purposeService.createPurposeFromTemplate(
         mockPurposeTemplate.id,
         mockPurposeFromTemplateSeed,
         getMockM2MAdminAppContext()
@@ -301,7 +301,7 @@ describe("createPurposeFromPurposeTemplate", () => {
     );
 
     await expect(
-      purposeService.createPurposeFromPurposeTemplate(
+      purposeService.createPurposeFromTemplate(
         mockPurposeTemplate.id,
         mockPurposeFromTemplateSeed,
         getMockM2MAdminAppContext()

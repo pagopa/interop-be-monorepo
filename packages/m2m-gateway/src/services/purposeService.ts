@@ -599,7 +599,7 @@ export function purposeServiceBuilder(
 
       return toM2MGatewayApiPurpose(polledResource.data);
     },
-    async createPurposeFromPurposeTemplate(
+    async createPurposeFromTemplate(
       purposeTemplateId: PurposeTemplateId,
       purposeFromTemplateSeed: m2mGatewayApi.PurposeFromTemplateSeed,
       { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
