@@ -49,7 +49,9 @@ async function processMessage(kafkaMessage: EachMessagePayload): Promise<void> {
       );
 
       const event = toPurposeEventNotification(decodedMessage);
-      const message = buildPurposeMessage(decodedMessage, event);
+      const message = event
+        ? buildPurposeMessage(decodedMessage, event)
+        : undefined;
       return { decodedMessage, message };
     })
     .with(config.agreementTopic, () => {
@@ -59,7 +61,9 @@ async function processMessage(kafkaMessage: EachMessagePayload): Promise<void> {
       );
 
       const event = toAgreementEventNotification(decodedMessage);
-      const message = buildAgreementMessage(decodedMessage, event);
+      const message = event 
+        ? buildAgreementMessage(decodedMessage, event)
+        : undefined;
       return { decodedMessage, message };
     })
     .with(config.authorizationTopic, () => {
