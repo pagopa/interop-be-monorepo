@@ -61,7 +61,7 @@ async function processMessage(kafkaMessage: EachMessagePayload): Promise<void> {
       );
 
       const event = toAgreementEventNotification(decodedMessage);
-      const message = event 
+      const message = event
         ? buildAgreementMessage(decodedMessage, event)
         : undefined;
       return { decodedMessage, message };

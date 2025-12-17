@@ -42,7 +42,7 @@ const getDocument = (
 
 export const toAgreementEventNotification = (
   event: AgreementEventEnvelopeV2
-): AgreementEventNotification | undefined=>
+): AgreementEventNotification | undefined =>
   match(event)
     .with(
       { type: "AgreementAdded" },
@@ -61,7 +61,7 @@ export const toAgreementEventNotification = (
       { type: "AgreementRejected" },
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementArchivedByConsumer" },
-      { type: "AgreementArchivedByRevokedDelegation" }, 
+      { type: "AgreementArchivedByRevokedDelegation" },
       (event): AgreementNotification => ({
         agreement: getAgreement(event),
       })
