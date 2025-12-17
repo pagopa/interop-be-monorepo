@@ -83,17 +83,23 @@ describe("POST /purposeTemplates/{purposeTemplateId}/purposes router test", () =
   it.each([
     { invalidParam: "invalidValue" },
     { ...mockPurposeFromTemplateSeed, extraParam: -1 },
-    { ...mockPurposeFromTemplateSeed, description: "short" },
-  ])("Should return 400 if passed invalid purpose seed", async (body) => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      purposeTemplateId,
-      body as m2mGatewayApi.PurposeSeed
-    );
+    // Fields that are required in PurposeSeed
+    { ...mockPurposeFromTemplateSeed, description: "valid description" },
+    { ...mockPurposeFromTemplateSeed, freeOfCharge: true },
+    { ...mockPurposeFromTemplateSeed, freeOfChargeReason: "valid reason" },
+  ])(
+    "Should return 400 if passed invalid purpose from template seed",
+    async (body) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        purposeTemplateId,
+        body as m2mGatewayApi.PurposeFromTemplateSeed
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([
     delegationEServiceMismatch(generateId(), getMockedApiDelegation()),

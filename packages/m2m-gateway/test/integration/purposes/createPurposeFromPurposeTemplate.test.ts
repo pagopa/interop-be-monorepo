@@ -41,12 +41,9 @@ describe("createPurposeFromPurposeTemplate", () => {
       purposeTemplateId: undefined,
     });
 
-  const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
+  const mockPurposeFromTemplateSeed: m2mGatewayApi.PurposeFromTemplateSeed = {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
-    description: mockPurposeProcessGetResponse.data.description,
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
-    isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-    freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
     title: mockPurposeProcessGetResponse.data.title,
     riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
     delegationId: undefined,
@@ -96,7 +93,7 @@ describe("createPurposeFromPurposeTemplate", () => {
   const mockConsumerDelegation: delegationApi.Delegation =
     getMockedApiDelegation({
       kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-      eserviceId: mockPurposeSeed.eserviceId,
+      eserviceId: mockPurposeFromTemplateSeed.eserviceId,
       state: delegationApi.DelegationState.Values.ACTIVE,
       delegateId: mockAppContext.authData.organizationId,
     });
@@ -108,7 +105,7 @@ describe("createPurposeFromPurposeTemplate", () => {
 
     const result = await purposeService.createPurposeFromPurposeTemplate(
       mockPurposeTemplate.id,
-      mockPurposeSeed,
+      mockPurposeFromTemplateSeed,
       mockAppContext
     );
 
@@ -117,10 +114,10 @@ describe("createPurposeFromPurposeTemplate", () => {
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromTemplate,
       body: {
-        dailyCalls: mockPurposeSeed.dailyCalls,
-        eserviceId: mockPurposeSeed.eserviceId,
-        riskAnalysisForm: mockPurposeSeed.riskAnalysisForm,
-        title: mockPurposeSeed.title,
+        dailyCalls: mockPurposeFromTemplateSeed.dailyCalls,
+        eserviceId: mockPurposeFromTemplateSeed.eserviceId,
+        riskAnalysisForm: mockPurposeFromTemplateSeed.riskAnalysisForm,
+        title: mockPurposeFromTemplateSeed.title,
         consumerId: mockAppContext.authData.organizationId,
       },
       params: { purposeTemplateId: mockPurposeTemplate.id },
@@ -151,10 +148,11 @@ describe("createPurposeFromPurposeTemplate", () => {
       getMockWithMetadata(mockConsumerDelegation)
     );
 
-    const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeSeed = {
-      ...mockPurposeSeed,
-      delegationId: mockConsumerDelegation.id,
-    };
+    const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeFromTemplateSeed =
+      {
+        ...mockPurposeFromTemplateSeed,
+        delegationId: mockConsumerDelegation.id,
+      };
 
     const result = await purposeService.createPurposeFromPurposeTemplate(
       mockPurposeTemplate.id,
@@ -167,10 +165,10 @@ describe("createPurposeFromPurposeTemplate", () => {
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromTemplate,
       body: {
-        dailyCalls: mockPurposeSeed.dailyCalls,
-        eserviceId: mockPurposeSeed.eserviceId,
-        riskAnalysisForm: mockPurposeSeed.riskAnalysisForm,
-        title: mockPurposeSeed.title,
+        dailyCalls: mockPurposeFromTemplateSeed.dailyCalls,
+        eserviceId: mockPurposeFromTemplateSeed.eserviceId,
+        riskAnalysisForm: mockPurposeFromTemplateSeed.riskAnalysisForm,
+        title: mockPurposeFromTemplateSeed.title,
         consumerId: mockConsumerDelegation.delegatorId,
       },
       params: { purposeTemplateId: mockPurposeTemplate.id },
@@ -201,10 +199,11 @@ describe("createPurposeFromPurposeTemplate", () => {
     };
     mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
-    const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeSeed = {
-      ...mockPurposeSeed,
-      delegationId: mockDelegation.id,
-    };
+    const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeFromTemplateSeed =
+      {
+        ...mockPurposeFromTemplateSeed,
+        delegationId: mockDelegation.id,
+      };
 
     await expect(
       purposeService.createPurposeFromPurposeTemplate(
@@ -213,7 +212,10 @@ describe("createPurposeFromPurposeTemplate", () => {
         mockAppContext
       )
     ).rejects.toThrowError(
-      delegationEServiceMismatch(mockPurposeSeed.eserviceId, mockDelegation)
+      delegationEServiceMismatch(
+        mockPurposeFromTemplateSeed.eserviceId,
+        mockDelegation
+      )
     );
   });
 
@@ -244,10 +246,11 @@ describe("createPurposeFromPurposeTemplate", () => {
     async (mockDelegation) => {
       mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
-      const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeSeed = {
-        ...mockPurposeSeed,
-        delegationId: mockDelegation.id,
-      };
+      const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeFromTemplateSeed =
+        {
+          ...mockPurposeFromTemplateSeed,
+          delegationId: mockDelegation.id,
+        };
 
       await expect(
         purposeService.createPurposeFromPurposeTemplate(
@@ -268,7 +271,7 @@ describe("createPurposeFromPurposeTemplate", () => {
     await expect(
       purposeService.createPurposeFromPurposeTemplate(
         mockPurposeTemplate.id,
-        mockPurposeSeed,
+        mockPurposeFromTemplateSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -283,7 +286,7 @@ describe("createPurposeFromPurposeTemplate", () => {
     await expect(
       purposeService.createPurposeFromPurposeTemplate(
         mockPurposeTemplate.id,
-        mockPurposeSeed,
+        mockPurposeFromTemplateSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -300,7 +303,7 @@ describe("createPurposeFromPurposeTemplate", () => {
     await expect(
       purposeService.createPurposeFromPurposeTemplate(
         mockPurposeTemplate.id,
-        mockPurposeSeed,
+        mockPurposeFromTemplateSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
