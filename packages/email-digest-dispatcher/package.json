@@ -14,7 +14,8 @@
     "format:write": "prettier --write src",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
-    "check": "tsc --project tsconfig.check.json"
+    "check": "tsc --project tsconfig.check.json",
+    "generate-mock-email": "tsx ./scripts/generate-mock-email.ts"
   },
   "keywords": [],
   "devDependencies": {

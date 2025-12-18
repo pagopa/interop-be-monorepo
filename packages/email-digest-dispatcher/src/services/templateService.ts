@@ -11,24 +11,26 @@ export type DigestTemplateService = {
 export function digestTemplateServiceBuilder(
   templateService: HtmlTemplateService
 ): DigestTemplateService {
-  // Register partials
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
 
-  function registerPartial(name: string, partialPath: string): void {
-    const buffer = fs.readFileSync(`${dirname}/../${partialPath}`);
-    templateService.registerPartial(name, buffer.toString());
-  }
+  // Register icon partials
+  const iconPartials = [
+    "icon-grid",
+    "icon-inbox",
+    "icon-delegation",
+    "icon-code",
+    "icon-external-link",
+    "icon-success",
+    "icon-warning",
+    "icon-error",
+  ];
 
-  // Register common partials
-  registerPartial(
-    "common-header",
-    "resources/templates/headers/common-header.hbs"
-  );
-  registerPartial(
-    "common-footer",
-    "resources/templates/footers/common-footer.hbs"
-  );
+  iconPartials.forEach((iconName) => {
+    const iconPath = `${dirname}/../resources/templates/partials/${iconName}.svg`;
+    const iconContent = fs.readFileSync(iconPath).toString();
+    templateService.registerPartial(iconName, iconContent);
+  });
 
   // Load digest template
   const digestTemplatePath = `${dirname}/../resources/templates/digest-mail.html`;
