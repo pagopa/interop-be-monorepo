@@ -5082,9 +5082,6 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
-      pg-promise:
-        specifier: 11.8.0
-        version: 11.8.0
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0

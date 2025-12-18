@@ -45,7 +45,6 @@
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "pg-promise": "11.8.0",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }
