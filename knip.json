@@ -9,5 +9,8 @@
   ],
   "workspaces": {
     ".": {}
-  }
+  },
+  "ignoreDependencies": [
+    "@pagopa/eslint-config"
+  ]
 }
