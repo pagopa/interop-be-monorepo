@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import {
   TenantId,
   UserId,
@@ -8,7 +9,6 @@ import {
   DrizzleReturnType,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
-import { eq } from "drizzle-orm";
 
 export type DigestUser = {
   userId: UserId;
@@ -33,7 +33,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType) {
         })
         .from(userNotificationConfigInReadmodelNotificationConfig)
         .where(
-          userNotificationConfigInReadmodelNotificationConfig.emailNotificationPreference
+          eq(
+            userNotificationConfigInReadmodelNotificationConfig.emailNotificationPreference,
+            true
+          )
         );
 
       return queryResult.map((row) => ({
