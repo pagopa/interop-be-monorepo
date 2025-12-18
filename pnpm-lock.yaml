@@ -2648,7 +2648,7 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/email-notification-digest:
+  packages/email-digest-dispatcher:
     dependencies:
       dotenv-flow:
         specifier: 4.1.0
