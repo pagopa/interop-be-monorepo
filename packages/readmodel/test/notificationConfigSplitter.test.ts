@@ -105,6 +105,8 @@ describe("Notification config splitters", () => {
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
             "clientKeyAddedDeletedToClientUsers",
             "producerKeychainKeyAddedDeletedToClientUsers",
+            "purposeQuotaAdjustmentRequestToProducer",
+            "purposeOverQuotaStateToConsumer",
           ] as const
         )
           .filter(
@@ -139,6 +141,8 @@ describe("Notification config splitters", () => {
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
             "clientKeyAddedDeletedToClientUsers",
             "producerKeychainKeyAddedDeletedToClientUsers",
+            "purposeQuotaAdjustmentRequestToProducer",
+            "purposeOverQuotaStateToConsumer",
           ] as const
         )
           .filter(

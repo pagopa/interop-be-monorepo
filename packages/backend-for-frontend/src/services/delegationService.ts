@@ -10,18 +10,13 @@ import {
   getAllFromPaginated,
   WithLogger,
 } from "pagopa-interop-commons";
-import {
-  DelegationContractId,
-  DelegationId,
-  delegationState,
-} from "pagopa-interop-models";
+import { DelegationContractId, DelegationId } from "pagopa-interop-models";
 import { isAxiosError } from "axios";
 import { match } from "ts-pattern";
 import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
-  toDelegationState,
 } from "../api/delegationApiConverter.js";
 import {
   CatalogProcessClient,
@@ -336,6 +331,7 @@ export function delegationServiceBuilder(
 
     async getDelegationSignedContract(
       delegationId: DelegationId,
+      contractId: DelegationContractId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
       logger.info(
@@ -348,10 +344,13 @@ export function delegationServiceBuilder(
           headers,
         });
 
-      const foundSignedContract =
-        delegation.state === toDelegationState(delegationState.revoked)
-          ? delegation.signedRevocationContract
-          : delegation.signedActivationContract;
+      const { activationSignedContract, revocationSignedContract } = delegation;
+
+      const contracts = [activationSignedContract, revocationSignedContract];
+
+      const foundSignedContract = contracts.find(
+        (contract) => contract?.id === contractId
+      );
 
       if (!foundSignedContract) {
         throw delegationContractNotFound(delegationId);
@@ -360,7 +359,7 @@ export function delegationServiceBuilder(
       const path = foundSignedContract.path;
 
       const contractBytes = await fileManager.get(
-        config.delegationContractsContainer,
+        config.delegationSignedContractsContainer,
         path,
         logger
       );
