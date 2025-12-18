@@ -857,6 +857,23 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
+      // retrieve risk analysis ruleset only if the requester is the consumer
+      const riskAnalysisRuleset =
+        purpose.riskAnalysisForm?.version &&
+        authData.organizationId === purpose.consumerId
+          ? await purposeProcessClient.retrieveRiskAnalysisConfigurationByVersion(
+              {
+                params: {
+                  riskAnalysisVersion: purpose.riskAnalysisForm.version,
+                },
+                headers,
+                queries: {
+                  eserviceId: purpose.eserviceId,
+                },
+              }
+            )
+          : undefined;
+
       return await enhancePurpose(
         authData,
         purpose,
