@@ -15816,9 +15816,9 @@ components:
             (public resources, resources accessible as consumer/producer, owned resources, etc.)
       required: false
       schema:
-          type: string
-          format: uuid
-          nullable: true
+        type: string
+        format: uuid
+        nullable: true
   schemas:
     AgreementEvent:
       type: object
@@ -19008,4 +19008,4 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT  
+      bearerFormat: JWT

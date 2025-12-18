@@ -1,0 +1,45 @@
+{
+    "name": "pagopa-interop-m2m-gateway-v3",
+    "version": "1.0.0",
+    "description": "PagoPA Interop M2M Gateway V3",
+    "main": "dist",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"No test specified\"",
+        "lint": "eslint . --ext .ts,.tsx",
+        "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+        "format:check": "prettier --check src",
+        "format:write": "prettier --write src",
+        "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+        "build": "tsc",
+        "check": "tsc --project tsconfig.check.json"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "Apache-2.0",
+    "devDependencies": {
+        "@pagopa/eslint-config": "3.0.0",
+        "@types/adm-zip": "0.5.5",
+        "@types/express": "4.17.21",
+        "@types/multer": "1.4.11",
+        "@types/node": "20.14.6",
+        "@types/qs": "6.9.15",
+        "prettier": "2.8.8",
+        "tsx": "4.19.1",
+        "typescript": "5.4.5"
+    },
+    "dependencies": {
+        "@zodios/core": "10.9.6",
+        "@zodios/express": "10.6.1",
+        "axios": "1.7.4",
+        "dotenv-flow": "4.1.0",
+        "express": "4.20.0",
+        "pagopa-interop-api-clients": "workspace:*",
+        "pagopa-interop-application-audit": "workspace:*",
+        "pagopa-interop-commons": "workspace:*",
+        "pagopa-interop-models": "workspace:*",
+        "qs": "6.12.3",
+        "ts-pattern": "5.2.0",
+        "zod": "3.23.8"
+    }
+}
