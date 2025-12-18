@@ -1,386 +1,498 @@
 {{> common-header }}
+
+<!-- Main Content -->
 <tr>
-  <td
-    align="left"
-    class="title"
-    style="
-      font-size: 0px;
-      padding: 10px 25px;
-      padding-top: 24px;
-      padding-right: 0px;
-      padding-bottom: 8px;
-      padding-left: 0px;
-      word-break: break-word;
-    "
-  >
-    <div
-      style="
-        font-family: Titillium Web, system-ui, sans-serif;
-        font-size: 13px;
-        font-weight: bold;
-        line-height: 1;
-        text-align: left;
-        color: #17324d;
-      "
-    >
-      <h1 style="font-size: 32px; line-height: 40px; margin: 0">{{ title }}</h1>
+  <td align="left" style="padding: 24px 25px 0px 25px; background-color: #FAFAFA;">
+    
+    <!-- Nuovi E-services -->
+    {{#if newEservices.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Nuovi e-service
+            </h2>
+          </td>
+          {{#if viewAllNewEservicesLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllNewEservicesLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutti</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 8px 0 16px 0;">
+        Sono stati pubblicati <strong>{{ newEservices.totalCount }} nuovi e-service</strong>. Ecco i più recenti:
+      </p>
+
+      <!-- Grid Wrapper -->
+      <div style="font-size: 0; text-align: left; margin: 0 -8px;">
+        {{#each newEservices.items}}
+        <div style="display: inline-block; width: 240px; vertical-align: top; padding: 0 8px; margin-bottom: 16px;">
+          <div style="border: 1px solid #E3E7EB; border-radius: 8px; padding: 16px; height: 100%; box-sizing: border-box; background-color: #FFFFFF;">
+            <p style="font-family: 'Titillium Web', sans-serif; font-size: 12px; color: #5C6F82; margin: 0 0 4px 0; font-weight: 600;">
+              {{ producerName }}
+            </p>
+            <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; font-weight: 700; color: #17324D; margin: 0 0 16px 0; line-height: 1.4;">
+              {{ name }}
+            </p>
+            <a href="{{ link }}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">
+              Visualizza <img src="https://placehold.co/10x10/0073E6/ffffff.png?text=>" style="vertical-align: middle; margin-left: 4px;" alt="arrow">
+            </a>
+          </div>
+        </div>
+        {{/each}}
+      </div>
     </div>
+    {{/if}}
+
+    <!-- E-services Aggiornati -->
+    {{#if updatedEservices.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              E-service aggiornati
+            </h2>
+          </td>
+          {{#if viewAllUpdatedEservicesLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllUpdatedEservicesLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutti</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 8px 0 16px 0;">
+        Sono stati aggiornati <strong>{{ updatedEservices.totalCount }} e-service</strong> a cui sei iscritto. Ecco i più recenti:
+      </p>
+
+      <!-- Grid Wrapper -->
+      <div style="font-size: 0; text-align: left; margin: 0 -8px;">
+        {{#each updatedEservices.items}}
+        <div style="display: inline-block; width: 240px; vertical-align: top; padding: 0 8px; margin-bottom: 16px;">
+          <div style="border: 1px solid #E3E7EB; border-radius: 8px; padding: 16px; height: 100%; box-sizing: border-box; background-color: #FFFFFF;">
+            <p style="font-family: 'Titillium Web', sans-serif; font-size: 12px; color: #5C6F82; margin: 0 0 4px 0; font-weight: 600;">
+              {{ producerName }}
+            </p>
+            <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; font-weight: 700; color: #17324D; margin: 0 0 16px 0; line-height: 1.4;">
+              {{ name }}
+            </p>
+            <a href="{{ link }}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">
+              Visualizza <img src="https://placehold.co/10x10/0073E6/ffffff.png?text=>" style="vertical-align: middle; margin-left: 4px;" alt="arrow">
+            </a>
+          </div>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Richieste di fruizione inoltrate (Sent Agreements) -->
+    {{#if acceptedSentAgreements.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Richieste di fruizione inoltrate
+            </h2>
+          </td>
+           {{#if viewAllSentAgreementsLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllSentAgreementsLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutte</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+      
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Sono state accettate <strong>{{ acceptedSentAgreements.totalCount }} richieste</strong> per:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each acceptedSentAgreements.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a> 
+          <span style="color: #5C6F82;">da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+
+      <!-- Green Alert -->
+      <div style="border-left: 4px solid #00C853; background-color: #F4FBF6; padding: 12px 16px; border-radius: 4px;">
+         <p style="font-family: 'Titillium Web', sans-serif; font-size: 14px; color: #17324D; margin: 0;">
+           Puoi proseguire formulando almeno una finalità per ciascuna richiesta accettata.
+         </p>
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if rejectedSentAgreements.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+       <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Sono state rifiutate <strong>{{ rejectedSentAgreements.totalCount }} richieste</strong> per:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each rejectedSentAgreements.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a> 
+          <span style="color: #5C6F82;">da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    {{#if suspendedSentAgreements.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+       <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Sono state sospese <strong>{{ suspendedSentAgreements.totalCount }} richieste</strong> per:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each suspendedSentAgreements.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a> 
+          <span style="color: #5C6F82;">da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    <!-- Finalità inoltrate (Sent Purposes) -->
+    {{#if publishedSentPurposes.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Finalità inoltrate
+            </h2>
+          </td>
+          {{#if viewAllSentPurposesLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllSentPurposesLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutte</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Sono state pubblicate <strong>{{ publishedSentPurposes.totalCount }} finalità</strong>:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each publishedSentPurposes.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+          <span style="color: #5C6F82;">da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+
+      <!-- Green Alert -->
+       <div style="border-left: 4px solid #00C853; background-color: #F4FBF6; padding: 12px 16px; border-radius: 4px;">
+         <p style="font-family: 'Titillium Web', sans-serif; font-size: 14px; color: #17324D; margin: 0;">
+           Puoi proseguire associando almeno un client per ciascuna finalità.
+         </p>
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if rejectedSentPurposes.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Sono state rifiutate <strong>{{ rejectedSentPurposes.totalCount }} finalità</strong>:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each rejectedSentPurposes.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+          <span style="color: #5C6F82;">da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+    
+    {{#if suspendedSentPurposes.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Sono state sospese <strong>{{ suspendedSentPurposes.totalCount }} finalità</strong>:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each suspendedSentPurposes.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+          <span style="color: #5C6F82;">da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    <!-- Richieste di fruizione che hai ricevuto (Received Agreements) -->
+    {{#if waitingForApprovalReceivedAgreements.totalCount}}
+     <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Richieste di fruizione che hai ricevuto
+            </h2>
+          </td>
+          {{#if viewAllReceivedAgreementsLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllReceivedAgreementsLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutte</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+
+       <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Hai ricevuto <strong>{{ waitingForApprovalReceivedAgreements.totalCount }} richieste di fruizione</strong> di tuoi servizi che richiedono la tua approvazione: 
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each waitingForApprovalReceivedAgreements.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+           <span style="color: #5C6F82;">richiesta da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+
+      <!-- Yellow Alert -->
+      <div style="border-left: 4px solid #FFAB00; background-color: #FFF8E1; padding: 12px 16px; border-radius: 4px;">
+         <p style="font-family: 'Titillium Web', sans-serif; font-size: 14px; color: #17324D; margin: 0;">
+           <img src="https://placehold.co/16x16/FFAB00/ffffff.png?text=!" style="vertical-align: middle; margin-right: 8px;" alt="warning"> Verifica le richieste per permettere agli enti Fruitori di completare l'implementazione.
+         </p>
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Finalità che hai ricevuto (Received Purposes) -->
+    {{#if publishedReceivedPurposes.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Finalità che hai ricevuto
+            </h2>
+          </td>
+          {{#if viewAllReceivedPurposesLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllReceivedPurposesLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutte</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+      
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Hai ricevuto <strong>{{ publishedReceivedPurposes.totalCount }} Finalità</strong>:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each publishedReceivedPurposes.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+           <span style="color: #5C6F82;">richiesta da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    {{#if waitingForApprovalReceivedPurposes.totalCount}}
+     <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+       <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Hai <strong>{{ waitingForApprovalReceivedPurposes.totalCount }} Finalità</strong> in attesa di approvazione da parte tua:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+        {{#each waitingForApprovalReceivedPurposes.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+          <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+           <span style="color: #5C6F82;">richiesta da {{ producerName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+
+      <!-- Yellow Alert -->
+      <div style="border-left: 4px solid #FFAB00; background-color: #FFF8E1; padding: 12px 16px; border-radius: 4px;">
+         <p style="font-family: 'Titillium Web', sans-serif; font-size: 14px; color: #17324D; margin: 0;">
+           <img src="https://placehold.co/16x16/FFAB00/ffffff.png?text=!" style="vertical-align: middle; margin-right: 8px;" alt="warning"> Verifica le finalità per permettere agli enti Fruitori di completare l'implementazione.
+         </p>
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Deleghe -->
+    {{#if activeSentDelegations.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Deleghe Inviate
+            </h2>
+          </td>
+          {{#if viewAllSentDelegationsLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllSentDelegationsLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutte</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+      
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Hai delegato i seguenti enti:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+         {{#each activeSentDelegations.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+           <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+           <span style="color: #5C6F82;"> - delegato a {{ producerName }}</span>
+        </li>
+         {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    {{#if rejectedSentDelegations.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Le seguenti deleghe sono state rifiutate:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+         {{#each rejectedSentDelegations.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+           <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+           <span style="color: #5C6F82;"> - delegato a {{ producerName }}</span>
+        </li>
+         {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    {{#if waitingForApprovalReceivedDelegations.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+       <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Deleghe Ricevute
+            </h2>
+          </td>
+          {{#if viewAllReceivedDelegationsLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllReceivedDelegationsLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutte</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+      
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Alcuni enti ti hanno chiesto l'approvazione per pubblicare un e-service o una nuova versione:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+         {{#each waitingForApprovalReceivedDelegations.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+           <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+           <span style="color: #5C6F82;"> - richiesto da {{ producerName }}</span>
+        </li>
+         {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    {{#if revokedReceivedDelegations.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Le seguenti deleghe sono state revocate:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+         {{#each revokedReceivedDelegations.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+           <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+           <span style="color: #5C6F82;"> - da {{ producerName }}</span>
+        </li>
+         {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    <!-- Attributi -->
+    {{#if receivedAttributes.totalCount}}
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+       <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Attributi
+            </h2>
+          </td>
+          {{#if viewAllAttributesLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllAttributesLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutti</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+
+      <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Ti sono stati assegnati <strong>{{ receivedAttributes.totalCount }} nuovi attributi</strong>:
+      </p>
+      <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+         {{#each receivedAttributes.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+           <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+            <span style="color: #5C6F82;"> - certificato conferito da {{ producerName }}</span>
+        </li>
+         {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+     <!-- Revoked Attributes -->
+    {{#if revokedAttributes.totalCount}}
+     <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #E3E7EB;">
+       {{#unless receivedAttributes.totalCount}}
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td valign="middle">
+             <h2 style="font-family: 'Titillium Web', sans-serif; font-size: 24px; font-weight: 700; color: #17324D; margin: 0;">
+              Attributi
+            </h2>
+          </td>
+           {{#if viewAllAttributesLink}}
+          <td valign="middle" align="right">
+            <a href="{{viewAllAttributesLink}}" style="font-family: 'Titillium Web', sans-serif; font-size: 14px; font-weight: 600; color: #0073E6; text-decoration: none;">Visualizza tutti</a>
+          </td>
+          {{/if}}
+        </tr>
+      </table>
+       {{/unless}}
+
+       <p style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin: 16px 0 8px 0;">
+        Ti è stato revocato un attributo:
+      </p>
+       <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 16px;">
+         {{#each revokedAttributes.items}}
+        <li style="font-family: 'Titillium Web', sans-serif; font-size: 16px; color: #17324D; margin-bottom: 4px;">
+           <a href="{{ link }}" style="color: #0073E6; text-decoration: none;">{{ name }}</a>
+           <span style="color: #5C6F82;"> - certificato revocato da {{ producerName }}</span>
+        </li>
+         {{/each}}
+      </ul>
+
+      <!-- Red Alert -->
+      <div style="border-left: 4px solid #D50000; background-color: #FFEBEE; padding: 12px 16px; border-radius: 4px;">
+         <p style="font-family: 'Titillium Web', sans-serif; font-size: 14px; color: #17324D; margin: 0;">
+           <img src="https://placehold.co/16x16/D50000/ffffff.png?text=!" style="vertical-align: middle; margin-right: 8px;" alt="alert"> Ricorda che la rimozione di un attributo interrompe la generazione dei voucher e l'accesso ai dati per gli e-service collegati.
+         </p>
+      </div>
+     </div>
+    {{/if}}
+
   </td>
 </tr>
-<tr>
-  <td
-    align="left"
-    class="text"
-    style="
-      font-size: 0px;
-      padding: 10px 25px;
-      padding-top: 8px;
-      padding-right: 0px;
-      padding-bottom: 0px;
-      padding-left: 0px;
-      word-break: break-word;
-    "
-  >
-    <div
-      style="
-        font-family: Titillium Web, system-ui, sans-serif;
-        font-size: 16px;
-        font-weight: regular;
-        line-height: 24px;
-        text-align: left;
-        color: #17324d;
-      "
-    >
-      <p style="margin-bottom: 0px">
-        Gentile
-        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
-      </p>
-    </div>
-  </td>
-</tr>
-<tr>
-  <td
-    align="left"
-    class="text"
-    style="font-size: 0px; padding: 0px; word-break: break-word"
-  >
-    <div
-      style="
-        font-family: Titillium Web, system-ui, sans-serif;
-        font-size: 16px;
-        font-weight: regular;
-        line-height: 24px;
-        text-align: left;
-        color: #17324d;
-      "
-    >
-      {{#if eservices}}
-      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
-        Eservices
-      </h2>
-      {{#if eservices.updated}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        In questo {{ timePeriod }}, {{ eservices.updated.items.length }}
-        eservices a cui sei iscritto hanno pubblicato una nuova versione:
-      </h3>
-      <ul>
-        {{#each eservices.updated.items}}
-        <li>
-          <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-            >{{ name }}</a
-          >
-          è stato aggiornato alla versione {{ version }}
-        </li>
-        {{/each}}
-      </ul>
-      {{#if eservices.updated.additionalCount}}
-      <p>
-        Inoltre, altri {{ eservices.updated.additionalCount }} eservices sono
-        stati aggiornati
-      </p>
-      {{/if}} {{/if}} {{#if eservices.new}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        In questo {{ timePeriod }}, {{ eservices.new.items.length }} nuovi
-        eservices sono stati pubblicati:
-      </h3>
-      <ul>
-        {{#each eservices.new.items}}
-        <li>
-          <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-            >{{ name }}</a
-          >
-        </li>
-        {{/each}}
-      </ul>
-      {{#if catalogLink}}
-      <p>
-        <a href="{{ catalogLink }}" style="color: #0073e6; text-decoration: none"
-          >Vai al catalogo</a
-        >
-      </p>
-      {{/if}} {{/if}} {{#if eservices.templatesUpdated}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        In questo {{ timePeriod }},
-        {{ eservices.templatesUpdated.items.length }} template da cui hai creato
-        i degli eservices hanno pubblicato una nuova versione:
-      </h3>
-      <ul>
-        {{#each eservices.templatesUpdated.items}}
-        <li>
-          <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-            >{{ name }}</a
-          >
-        </li>
-        {{/each}}
-      </ul>
-      {{#if templateCatalogLink}}
-      <p>
-        <a
-          href="{{ templateCatalogLink }}"
-          style="color: #0073e6; text-decoration: none"
-          >Vai al catalogo template</a
-        >
-      </p>
-      {{/if}} {{/if}} {{/if}} {{#if eserviceTemplate}}
-      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
-        Eservice Template
-      </h2>
-      {{#if eserviceTemplate.templateWithInstances}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        In questo {{ timePeriod }},
-        {{ eserviceTemplate.templateWithInstances.items.length }} enti hanno
-        usato i tuoi template e-service:
-      </h3>
-      <ul>
-        {{#each eserviceTemplate.templateWithInstances.items}}
-        <li>
-          <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-            >{{ name }}</a
-          >
-          : {{ instanceCount }} istanze
-        </li>
-        {{/each}}
-      </ul>
-      {{#if templateCatalogLink}}
-      <p>
-        <a
-          href="{{ templateCatalogLink }}"
-          style="color: #0073e6; text-decoration: none"
-          >Vai al catalogo template</a
-        >
-      </p>
-      {{/if}} {{/if}} {{/if}} {{#if agreements}}
-      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
-        Richieste di Fruizione
-      </h2>
-      {{#if agreements.consumerAgreements}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        Inoltre, lo stato delle richieste di fruizione che hai inoltrato è il
-        seguente:
-      </h3>
-      <ul>
-        {{#each agreements.consumerAgreements.byState}}
-        <li>
-          ci sono {{ count }} richieste in
-          <a href="{{ stateLink }}" style="color: #0073e6; text-decoration: none"
-            >{{ state }}</a
-          >
-          <ul>
-            {{#each items}}
-            <li>
-              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-                >{{ name }}</a
-              >
-            </li>
-            {{/each}}
-          </ul>
-        </li>
-        {{/each}}
-      </ul>
-      {{/if}} {{#if agreements.producerAgreements}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        Inoltre, lo stato delle richieste di fruizione che hai ricevuto è il
-        seguente:
-      </h3>
-      <ul>
-        {{#each agreements.producerAgreements.byState}}
-        <li>
-          ci sono {{ count }} richieste in
-          <a href="{{ stateLink }}" style="color: #0073e6; text-decoration: none"
-            >{{ state }}</a
-          >
-          <ul>
-            {{#each items}}
-            <li>
-              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-                >{{ name }}</a
-              >
-            </li>
-            {{/each}}
-          </ul>
-        </li>
-        {{/each}}
-      </ul>
-      {{#if agreementsReceivedLink}}
-      <p>
-        <a
-          href="{{ agreementsReceivedLink }}"
-          style="color: #0073e6; text-decoration: none"
-          >Vai alle richieste di fruizione ricevute</a
-        >
-      </p>
-      {{/if}} {{/if}} {{/if}} {{#if purposes}}
-      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
-        Finalità
-      </h2>
-      {{#if purposes.consumerPurposes}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        In questo {{ timePeriod }}, lo stato delle finalità che hai inoltrato è
-        il seguente:
-      </h3>
-      <ul>
-        {{#each purposes.consumerPurposes.byState}}
-        <li>
-          ci sono {{ count }} richieste in {{ state }}
-          <ul>
-            {{#each items}}
-            <li>
-              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-                >{{ name }}</a
-              >
-            </li>
-            {{/each}}
-          </ul>
-        </li>
-        {{/each}}
-      </ul>
-      {{#if purposesSentLink}}
-      <p>
-        <a
-          href="{{ purposesSentLink }}"
-          style="color: #0073e6; text-decoration: none"
-          >Vai alle finalità inoltrate</a
-        >
-      </p>
-      {{/if}} {{/if}} {{#if purposes.producerPurposes}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        In questo {{ timePeriod }}, lo stato delle finalità che hai ricevuto è
-        il seguente:
-      </h3>
-      <ul>
-        {{#each purposes.producerPurposes.byState}}
-        <li>
-          ci sono {{ count }} richieste in {{ state }}
-          <ul>
-            {{#each items}}
-            <li>
-              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-                >{{ name }}</a
-              >
-            </li>
-            {{/each}}
-          </ul>
-        </li>
-        {{/each}}
-      </ul>
-      {{#if purposesReceivedLink}}
-      <p>
-        <a
-          href="{{ purposesReceivedLink }}"
-          style="color: #0073e6; text-decoration: none"
-          >Vai alle finalità ricevute</a
-        >
-      </p>
-      {{/if}} {{/if}} {{/if}} {{#if delegations}}
-      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
-        Deleghe
-      </h2>
-      {{#if delegations.delegatorDelegations}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        In questo {{ timePeriod }} lo stato delle deleghe che hai inoltrato come
-        delegante è il seguente:
-      </h3>
-      <ul>
-        {{#each delegations.delegatorDelegations.byState}}
-        <li>
-          ci sono {{ count }} deleghe in {{ state }}
-          <ul>
-            {{#each items}}
-            <li>
-              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-                >{{ name }}</a
-              >
-              in {{ delegationType }}
-            </li>
-            {{/each}}
-          </ul>
-        </li>
-        {{/each}}
-      </ul>
-      {{#if delegationsSentLink}}
-      <p>
-        <a
-          href="{{ delegationsSentLink }}"
-          style="color: #0073e6; text-decoration: none"
-          >Vai alle deleghe inoltrate</a
-        >
-      </p>
-      {{/if}} {{/if}} {{#if delegations.delegateDelegations}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        Inoltre, lo stato delle deleghe che hai ricevuto come delegato è il
-        seguente:
-      </h3>
-      <ul>
-        {{#each delegations.delegateDelegations.byState}}
-        <li>
-          ci sono {{ count }} deleghe in {{ state }}
-          <ul>
-            {{#each items}}
-            <li>
-              <a href="{{ link }}" style="color: #0073e6; text-decoration: none"
-                >{{ name }}</a
-              >
-              in {{ delegationType }}
-            </li>
-            {{/each}}
-          </ul>
-        </li>
-        {{/each}}
-      </ul>
-      {{#if delegationsReceivedLink}}
-      <p>
-        <a
-          href="{{ delegationsReceivedLink }}"
-          style="color: #0073e6; text-decoration: none"
-          >Vai alle deleghe ricevute</a
-        >
-      </p>
-      {{/if}} {{/if}} {{/if}} {{#if attributes}}
-      <h2 style="font-size: 24px; line-height: 32px; margin: 24px 0 16px 0">
-        Gestione attributi
-      </h2>
-      {{#if attributes.items}}
-      <h3 style="font-size: 18px; line-height: 24px; margin: 16px 0 8px 0">
-        In questo {{ timePeriod }} {{ attributes.items.length }} dei tuoi
-        attributi hanno ricevuto le seguenti modifiche:
-      </h3>
-      <ul>
-        {{#each attributes.items}}
-        <li>
-          L'attributo {{ type }} {{ name }} è stato {{ action }}
-        </li>
-        {{/each}}
-      </ul>
-      {{#if attributesLink}}
-      <p>
-        <a
-          href="{{ attributesLink }}"
-          style="color: #0073e6; text-decoration: none"
-          >Vai alla gestione attributi</a
-        >
-      </p>
-      {{/if}} {{/if}} {{/if}}
-    </div>
-  </td>
-</tr>
+
 {{> common-footer }}

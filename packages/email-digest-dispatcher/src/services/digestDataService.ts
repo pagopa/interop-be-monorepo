@@ -1,135 +1,46 @@
-import { TenantId } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { TenantId } from "pagopa-interop-models";
 
-/**
- * Represents the digest data for a tenant.
- * This data is queried once per tenant and shared across all users of that tenant.
- */
+export type BaseDigest = {
+  items: Array<{
+    name: string;
+    producerName: string;
+    link: string;
+  }>;
+  totalCount: number;
+};
+export type DelegationDigest = BaseDigest & {
+  items: Array<{
+    delegationKind: "producer" | "consumer";
+  }>;
+};
+
+export type AttributeDigest = BaseDigest & {
+  items: Array<{
+    attributeKind: "certified" | "verified";
+  }>;
+};
+
 export type TenantDigestData = {
-  tenantId: TenantId;
   tenantName: string;
   timePeriod: string;
-  eservices?: EservicesData;
-  eserviceTemplate?: EserviceTemplateData;
-  agreements?: AgreementsData;
-  purposes?: PurposesData;
-  delegations?: DelegationsData;
-  attributes?: AttributesData;
-  catalogLink?: string;
-  templateCatalogLink?: string;
-  agreementsSentLink?: string;
-  agreementsReceivedLink?: string;
-  purposesSentLink?: string;
-  purposesReceivedLink?: string;
-  delegationsSentLink?: string;
-  delegationsReceivedLink?: string;
-  attributesLink?: string;
-};
-
-export type EserviceItem = {
-  name: string;
-  link: string;
-};
-
-export type EserviceUpdatedItem = EserviceItem & {
-  version: string;
-};
-
-export type EservicesData = {
-  updated?: {
-    items: EserviceUpdatedItem[];
-    additionalCount?: number;
-  };
-  new?: {
-    items: EserviceItem[];
-  };
-  templatesUpdated?: {
-    items: EserviceItem[];
-  };
-};
-
-export type TemplateWithInstancesItem = {
-  name: string;
-  link: string;
-  instanceCount: number;
-};
-
-export type EserviceTemplateData = {
-  templateWithInstances?: {
-    items: TemplateWithInstancesItem[];
-  };
-};
-
-export type AgreementItem = {
-  name: string;
-  link: string;
-};
-
-export type AgreementsByState = {
-  state: string;
-  stateLink: string;
-  count: number;
-  items: AgreementItem[];
-};
-
-export type AgreementsData = {
-  consumerAgreements?: {
-    byState: AgreementsByState[];
-  };
-  producerAgreements?: {
-    byState: AgreementsByState[];
-  };
-};
-
-export type PurposeItem = {
-  name: string;
-  link: string;
-};
-
-export type PurposesByState = {
-  state: string;
-  count: number;
-  items: PurposeItem[];
-};
-
-export type PurposesData = {
-  consumerPurposes?: {
-    byState: PurposesByState[];
-  };
-  producerPurposes?: {
-    byState: PurposesByState[];
-  };
-};
-
-export type DelegationItem = {
-  name: string;
-  link: string;
-  delegationType: string;
-};
-
-export type DelegationsByState = {
-  state: string;
-  count: number;
-  items: DelegationItem[];
-};
-
-export type DelegationsData = {
-  delegatorDelegations?: {
-    byState: DelegationsByState[];
-  };
-  delegateDelegations?: {
-    byState: DelegationsByState[];
-  };
-};
-
-export type AttributeItem = {
-  type: string;
-  name: string;
-  action: string;
-};
-
-export type AttributesData = {
-  items?: AttributeItem[];
+  newEservices?: BaseDigest;
+  updatedEservices?: BaseDigest;
+  acceptedSentAgreements?: BaseDigest;
+  rejectedSentAgreements?: BaseDigest;
+  suspendedSentAgreements?: BaseDigest;
+  publishedSentPurposes?: BaseDigest;
+  rejectedSentPurposes?: BaseDigest;
+  suspendedSentPurposes?: BaseDigest;
+  waitingForApprovalReceivedAgreements?: BaseDigest;
+  publishedReceivedPurposes?: BaseDigest;
+  waitingForApprovalReceivedPurposes?: BaseDigest;
+  activeSentDelegations?: DelegationDigest;
+  rejectedSentDelegations?: DelegationDigest;
+  waitingForApprovalReceivedDelegations?: DelegationDigest;
+  revokedReceivedDelegations?: DelegationDigest;
+  receivedAttributes?: AttributeDigest;
+  revokedAttributes?: AttributeDigest;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -153,36 +64,98 @@ export function digestDataServiceBuilder(
 
       // MOCKUP: Return placeholder data
       return {
-        tenantId,
-        tenantName: "Tenant Name Placeholder", // TODO: Retrieve from tenant readmodel
-        timePeriod: "ultima settimana",
-        // TODO: Populate these fields with actual data from readmodel
-        // eservices: undefined,
-        // eserviceTemplate: undefined,
-        // agreements: undefined,
-        // purposes: undefined,
-        // delegations: undefined,
-        // attributes: undefined,
+        tenantName: "Tenant Name Placeholder",
+        timePeriod: "Time Period Placeholder",
+        newEservices: {
+          items: [],
+          totalCount: 0,
+        },
+        updatedEservices: {
+          items: [],
+          totalCount: 0,
+        },
+        acceptedSentAgreements: {
+          items: [],
+          totalCount: 0,
+        },
+        rejectedSentAgreements: {
+          items: [],
+          totalCount: 0,
+        },
+        suspendedSentAgreements: {
+          items: [],
+          totalCount: 0,
+        },
+        publishedSentPurposes: {
+          items: [],
+          totalCount: 0,
+        },
+        rejectedSentPurposes: {
+          items: [],
+          totalCount: 0,
+        },
+        suspendedSentPurposes: {
+          items: [],
+          totalCount: 0,
+        },
+        waitingForApprovalReceivedAgreements: {
+          items: [],
+          totalCount: 0,
+        },
+        publishedReceivedPurposes: {
+          items: [],
+          totalCount: 0,
+        },
+        waitingForApprovalReceivedPurposes: {
+          items: [],
+          totalCount: 0,
+        },
+        activeSentDelegations: {
+          items: [],
+          totalCount: 0,
+        },
+        rejectedSentDelegations: {
+          items: [],
+          totalCount: 0,
+        },
+        waitingForApprovalReceivedDelegations: {
+          items: [],
+          totalCount: 0,
+        },
+        revokedReceivedDelegations: {
+          items: [],
+          totalCount: 0,
+        },
+        receivedAttributes: {
+          items: [],
+          totalCount: 0,
+        },
+        revokedAttributes: {
+          items: [],
+          totalCount: 0,
+        },
       };
     },
 
-    /**
-     * Checks if there is any meaningful data to include in the digest.
-     * If there's nothing to report, we might skip sending the email.
-     */
     hasDigestContent(data: TenantDigestData): boolean {
       return !!(
-        data.eservices?.updated?.items.length ||
-        data.eservices?.new?.items.length ||
-        data.eservices?.templatesUpdated?.items.length ||
-        data.eserviceTemplate?.templateWithInstances?.items.length ||
-        data.agreements?.consumerAgreements?.byState.length ||
-        data.agreements?.producerAgreements?.byState.length ||
-        data.purposes?.consumerPurposes?.byState.length ||
-        data.purposes?.producerPurposes?.byState.length ||
-        data.delegations?.delegatorDelegations?.byState.length ||
-        data.delegations?.delegateDelegations?.byState.length ||
-        data.attributes?.items?.length
+        data.newEservices?.totalCount ||
+        data.updatedEservices?.totalCount ||
+        data.acceptedSentAgreements?.totalCount ||
+        data.rejectedSentAgreements?.totalCount ||
+        data.suspendedSentAgreements?.totalCount ||
+        data.publishedSentPurposes?.totalCount ||
+        data.rejectedSentPurposes?.totalCount ||
+        data.suspendedSentPurposes?.totalCount ||
+        data.waitingForApprovalReceivedAgreements?.totalCount ||
+        data.publishedReceivedPurposes?.totalCount ||
+        data.waitingForApprovalReceivedPurposes?.totalCount ||
+        data.activeSentDelegations?.totalCount ||
+        data.rejectedSentDelegations?.totalCount ||
+        data.waitingForApprovalReceivedDelegations?.totalCount ||
+        data.revokedReceivedDelegations?.totalCount ||
+        data.receivedAttributes?.totalCount ||
+        data.revokedAttributes?.totalCount
       );
     },
   };
