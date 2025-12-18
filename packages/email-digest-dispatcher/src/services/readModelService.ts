@@ -2,7 +2,6 @@ import {
   TenantId,
   UserId,
   UserRole,
-  emailNotificationPreference,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -34,10 +33,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType) {
         })
         .from(userNotificationConfigInReadmodelNotificationConfig)
         .where(
-          eq(
-            userNotificationConfigInReadmodelNotificationConfig.emailNotificationPreference,
-            emailNotificationPreference.digest
-          )
+          userNotificationConfigInReadmodelNotificationConfig.emailNotificationPreference
         );
 
       return queryResult.map((row) => ({
