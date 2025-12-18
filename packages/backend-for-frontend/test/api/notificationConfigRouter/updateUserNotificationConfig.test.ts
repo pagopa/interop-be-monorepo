@@ -27,7 +27,8 @@ describe("API POST /userNotificationConfigs", () => {
 
   const notificationConfigSeed: bffApi.UserNotificationConfigUpdateSeed = {
     inAppNotificationPreference: true,
-    emailNotificationPreference: "ENABLED",
+    emailNotificationPreference: true,
+    emailDigestPreference: false,
     inAppConfig: {
       ...restConfigMock,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
@@ -77,6 +78,7 @@ describe("API POST /userNotificationConfigs", () => {
           notificationConfigSeed.inAppNotificationPreference,
         emailNotificationPreference:
           notificationConfigSeed.emailNotificationPreference,
+        emailDigestPreference: notificationConfigSeed.emailDigestPreference,
         inAppConfig: {
           ...restConfigMock,
           clientKeyAddedDeletedToClientUsers:

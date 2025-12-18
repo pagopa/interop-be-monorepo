@@ -1898,9 +1898,10 @@ export const userNotificationConfigInReadmodelNotificationConfig =
       inAppNotificationPreference: boolean(
         "in_app_notification_preference"
       ).notNull(),
-      emailNotificationPreference: varchar(
+      emailNotificationPreference: boolean(
         "email_notification_preference"
       ).notNull(),
+      emailDigestPreference: boolean("email_digest_preference").notNull(),
       createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "string",

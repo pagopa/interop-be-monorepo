@@ -12,12 +12,10 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
-  agreementStampDateNotFound,
   descriptorNotFound,
   eServiceNotFound,
   eserviceWithoutDescriptors,
@@ -192,18 +190,6 @@ export async function retrieveHTMLTemplate(
   } catch {
     throw htmlTemplateNotFound(templatePath);
   }
-}
-
-export function getFormattedAgreementStampDate(
-  agreement: Agreement,
-  stamp: keyof Agreement["stamps"]
-): string {
-  const stampDate = agreement.stamps[stamp]?.when;
-
-  if (stampDate === undefined) {
-    throw agreementStampDateNotFound(stamp, agreement.id);
-  }
-  return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
 export function retrieveLatestDescriptor(eservice: EService): Descriptor {
