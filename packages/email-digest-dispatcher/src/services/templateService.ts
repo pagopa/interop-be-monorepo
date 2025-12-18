@@ -38,8 +38,7 @@ export function digestTemplateServiceBuilder(
     compileDigestEmail(data: TenantDigestData): string {
       return templateService.compileHtml(digestTemplate, {
         title: "Riepilogo notifiche",
-        tenantName: data.tenantName,
-        summaryItems: data.summaryItems,
+        ...data,
       });
     },
   };

@@ -22,8 +22,18 @@ export type AttributeDigest = BaseDigest & {
 };
 
 export type TenantDigestData = {
+  tenantId: TenantId;
   tenantName: string;
   timePeriod: string;
+  viewAllNewEservicesLink: string;
+  viewAllUpdatedEservicesLink: string;
+  viewAllSentAgreementsLink: string;
+  viewAllSentPurposesLink: string;
+  viewAllReceivedAgreementsLink: string;
+  viewAllReceivedPurposesLink: string;
+  viewAllSentDelegationsLink: string;
+  viewAllReceivedDelegationsLink: string;
+  viewAllAttributesLink: string;
   newEservices?: BaseDigest;
   updatedEservices?: BaseDigest;
   acceptedSentAgreements?: BaseDigest;
@@ -64,8 +74,18 @@ export function digestDataServiceBuilder(
 
       // MOCKUP: Return placeholder data
       return {
+        tenantId,
         tenantName: "Tenant Name Placeholder",
         timePeriod: "Time Period Placeholder",
+        viewAllNewEservicesLink: "#",
+        viewAllUpdatedEservicesLink: "#",
+        viewAllSentAgreementsLink: "#",
+        viewAllSentPurposesLink: "#",
+        viewAllReceivedAgreementsLink: "#",
+        viewAllReceivedPurposesLink: "#",
+        viewAllSentDelegationsLink: "#",
+        viewAllReceivedDelegationsLink: "#",
+        viewAllAttributesLink: "#",
         newEservices: {
           items: [],
           totalCount: 0,
