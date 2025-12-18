@@ -49,7 +49,7 @@ app.use(
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
-  agreementRouter(zodiosCtx, clients),
+  agreementRouter(zodiosCtx, clients)
 );
 
 export default app;
