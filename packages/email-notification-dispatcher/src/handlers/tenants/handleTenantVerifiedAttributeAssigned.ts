@@ -20,6 +20,7 @@ import {
   retrieveAttribute,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "certifiedVerifiedAttributeAssignedRevokedToAssignee";
@@ -102,6 +103,7 @@ export async function handleTenantVerifiedAttributeAssigned(
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
         attributeName: attribute.name,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

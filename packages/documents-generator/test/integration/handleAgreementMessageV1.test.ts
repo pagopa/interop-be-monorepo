@@ -546,6 +546,8 @@ describe("handleAgreementMessageV1", () => {
   });
 
   it("should throw tenantNotFound error if Consumer Tenant is missing for an 'AgreementActivated' event", async () => {
+    const mockProducer: Tenant = getMockTenant(mockProducerId);
+    await addOneTenant(mockProducer);
     const mockAgreement = {
       ...getMockAgreement(mockEServiceId, mockConsumerId, "Active"),
       producerId: mockProducerId,
