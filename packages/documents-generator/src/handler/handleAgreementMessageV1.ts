@@ -124,7 +124,7 @@ export async function handleAgreementMessageV1(
     .exhaustive();
 }
 
-export function hasStamp<S extends keyof AgreementStamps>(
+function hasStamp<S extends keyof AgreementStamps>(
   stamps: AgreementStamps | undefined,
   stamp: S
 ): stamps is AgreementStamps & { [key in S]: AgreementStamp } {
