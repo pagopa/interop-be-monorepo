@@ -28,12 +28,14 @@ import {
 } from "../utils/polling.js";
 import {
   purposeAgreementNotFound,
+  purposeNotFound,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
 } from "../model/errors.js";
 import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
+  assertSeedPatchPurposeUpdateFromTemplateContent,
 } from "../utils/validators/purposeValidator.js";
 import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
@@ -104,6 +106,19 @@ export function purposeServiceBuilder(
       condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
+  const retrievePurpose = async (
+    purposeId: PurposeId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<purposeApi.Purpose> => {
+    const purpose = await retrievePurposeById(purposeId, headers);
+
+    if (!purpose.data) {
+      throw purposeNotFound(purposeId);
+    }
+
+    return purpose.data;
+  };
+
   const retrieveLatestPurposeVersionByState = (
     purpose: purposeApi.Purpose,
     state: purposeApi.PurposeVersionState
@@ -151,6 +166,33 @@ export function purposeServiceBuilder(
       );
       return unsafeBrandId<TenantId>(delegation.delegatorId);
     }
+  };
+
+  const innerUpdateDraftPurpose = async (
+    purposeId: PurposeId,
+    updateSeed: m2mGatewayApi.PurposeDraftUpdateSeed,
+    purpose: purposeApi.Purpose,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<purposeApi.Purpose>> => {
+    if (purpose.purposeTemplateId) {
+      assertSeedPatchPurposeUpdateFromTemplateContent(updateSeed);
+
+      return clients.purposeProcessClient.patchUpdatePurposeFromTemplate(
+        updateSeed,
+        {
+          params: {
+            purposeId,
+            purposeTemplateId: purpose.purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    }
+
+    return await clients.purposeProcessClient.patchUpdatePurpose(updateSeed, {
+      params: { id: purposeId },
+      headers,
+    });
   };
 
   return {
@@ -560,16 +602,21 @@ export function purposeServiceBuilder(
     },
     async updateDraftPurpose(
       purposeId: PurposeId,
-      updateSeed: m2mGatewayApi.PurposeDraftUpdateSeed,
+      updateSeed:
+        | m2mGatewayApi.PurposeDraftUpdateSeed
+        | m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Updating draft purpose with id ${purposeId}`);
 
-      const updatedPurpose =
-        await clients.purposeProcessClient.patchUpdatePurpose(updateSeed, {
-          params: { id: purposeId },
-          headers,
-        });
+      const purpose = await retrievePurpose(purposeId, headers);
+
+      const updatedPurpose = await innerUpdateDraftPurpose(
+        purposeId,
+        updateSeed,
+        purpose,
+        headers
+      );
 
       const polledResource = await pollPurpose(updatedPurpose, headers);
 

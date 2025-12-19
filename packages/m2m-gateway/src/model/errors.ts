@@ -18,6 +18,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
+import { ZodError } from "zod";
 
 export const errorCodes = {
   missingMetadata: "0002",
@@ -56,6 +57,7 @@ export const errorCodes = {
   eserviceDescriptorAttributeGroupNotFound: "0036",
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
+  invalidSeedForPurposeFromTemplate: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -131,6 +133,14 @@ export function eserviceTemplateVersionNotFound(
     detail: `Version ${versionId} not found in eservice template ${templateId}`,
     code: "eserviceTemplateVersionNotFound",
     title: "EService template version not found",
+  });
+}
+
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose with id ${purposeId} not found`,
+    code: "purposeNotFound",
+    title: "Purpose not found",
   });
 }
 
@@ -422,5 +432,17 @@ export function purposeTemplateRiskAnalysisFormNotFound(
     detail: `No Risk Analysis Template Form found for Purpose Template ${purposeTemplateId}`,
     code: "purposeTemplateRiskAnalysisFormNotFound",
     title: "Purpose Template Risk Analysis Form Not Found",
+  });
+}
+
+export function invalidSeedForPurposeFromTemplate(
+  parsingError: ZodError
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid seed to update Purpose created from Purpose Template: ${parsingError.issues
+      .map((error) => error.message)
+      .join(", ")}`,
+    code: "invalidSeedForPurposeFromTemplate",
+    title: "Invalid seed for purpose from template",
   });
 }
