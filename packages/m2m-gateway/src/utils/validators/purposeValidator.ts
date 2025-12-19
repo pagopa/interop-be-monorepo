@@ -29,6 +29,8 @@ export function assertSeedPatchPurposeUpdateFromTemplateContent(
   const result =
     m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed.safeParse(updateSeed);
   if (!result.success) {
-    throw invalidSeedForPurposeFromTemplate(result.error);
+    throw invalidSeedForPurposeFromTemplate(
+      result.error.issues.map((i) => i.message)
+    );
   }
 }

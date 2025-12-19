@@ -18,7 +18,6 @@ import {
   PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
-import { ZodError } from "zod";
 
 export const errorCodes = {
   missingMetadata: "0002",
@@ -436,12 +435,12 @@ export function purposeTemplateRiskAnalysisFormNotFound(
 }
 
 export function invalidSeedForPurposeFromTemplate(
-  parsingError: ZodError
+  parsingErrors: string[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid seed to update Purpose created from Purpose Template: ${parsingError.issues
-      .map((error) => error.message)
-      .join(", ")}`,
+    detail: `Invalid seed to update Purpose created from Purpose Template: ${parsingErrors.join(
+      ", "
+    )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",
   });

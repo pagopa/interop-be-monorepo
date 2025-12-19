@@ -6,11 +6,18 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  invalidSeedForPurposeFromTemplate,
+  missingMetadata,
+  purposeNotFound,
+} from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 import { config } from "../../../src/config/config.js";
 
@@ -116,18 +123,35 @@ describe("PATCH /purposes/:purposeId router test", () => {
   });
 
   it.each([
-    missingMetadata(),
-    pollingMaxRetriesExceeded(
-      config.defaultPollingMaxRetries,
-      config.defaultPollingRetryDelay
-    ),
-  ])("Should return 500 in case of $code error", async (error) => {
-    mockPurposeService.updateDraftPurpose = vi.fn().mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
+    {
+      error: invalidSeedForPurposeFromTemplate(["invalid"]),
+      errorStatus: 400,
+    },
+    {
+      error: purposeNotFound(unsafeBrandId(mockPurpose.id)),
+      errorStatus: 404,
+    },
+    {
+      error: missingMetadata(),
+      errorStatus: 500,
+    },
+    {
+      error: pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      ),
+      errorStatus: 500,
+    },
+  ])(
+    "Should return 500 in case of $error.code error",
+    async ({ error, errorStatus }) => {
+      mockPurposeService.updateDraftPurpose = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
 
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(errorStatus);
+    }
+  );
 
   it.each([
     { ...mockM2MPurpose, createdAt: undefined },
