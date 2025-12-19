@@ -1,6 +1,8 @@
 /* eslint-disable functional/immutable-data */
 import {
   AgreementEventEnvelopeV1,
+  AgreementStamp,
+  AgreementStamps,
   CorrelationId,
   agreementState,
   fromAgreementV1,
@@ -47,8 +49,19 @@ export async function handleAgreementMessageV1(
           ? unsafeBrandId<CorrelationId>(msg.correlation_id)
           : generateId<CorrelationId>();
         const agreement = fromAgreementV1(msg.data.agreement);
+
         if (agreement.state !== agreementState.active) {
           logger.info(`Agreement ${agreement.id} state not active `);
+          return;
+        }
+
+        if (
+          !hasStamp(agreement.stamps, "submission") ||
+          !hasStamp(agreement.stamps, "activation")
+        ) {
+          logger.info(
+            `Skipping agreement ${agreement.id}: missing submission or activation stamps`
+          );
           return;
         }
 
@@ -109,4 +122,11 @@ export async function handleAgreementMessageV1(
       () => Promise.resolve()
     )
     .exhaustive();
+}
+
+export function hasStamp<S extends keyof AgreementStamps>(
+  stamps: AgreementStamps | undefined,
+  stamp: S
+): stamps is AgreementStamps & { [key in S]: AgreementStamp } {
+  return !!stamps && !!stamps[stamp];
 }
