@@ -7,7 +7,7 @@ import {
   generateId,
   ListResult,
   PurposeTemplate,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
@@ -38,7 +38,7 @@ describe("API GET /purposeTemplates", () => {
     creatorIds: `${generateId()},${generateId()}`,
     states: `${purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED},${purposeTemplateApi.PurposeTemplateState.Enum.DRAFT}`,
     excludeExpiredRiskAnalysis: false,
-    targetTenantKind: tenantKind.PA,
+    targetTenantKind: targetTenantKind.PA,
     handlesPersonalData: false,
   };
 

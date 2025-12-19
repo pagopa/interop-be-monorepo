@@ -16,7 +16,7 @@ import {
   PurposeTemplate,
   purposeTemplateState,
   TenantId,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -46,7 +46,7 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Published Purpose Template 1 - test",
     state: purposeTemplateState.published,
     creatorId: creatorId1,
-    targetTenantKind: tenantKind.PA,
+    targetTenantKind: targetTenantKind.PA,
     handlesPersonalData: true,
   };
   const draftPurposeTemplateByCreator1: PurposeTemplate = {
@@ -54,7 +54,7 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Draft Purpose Template 1",
     state: purposeTemplateState.draft,
     creatorId: creatorId1,
-    targetTenantKind: tenantKind.PRIVATE,
+    targetTenantKind: targetTenantKind.PRIVATE,
     handlesPersonalData: false,
   };
   const suspendedPurposeTemplateByCreator1: PurposeTemplate = {
@@ -62,7 +62,7 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Suspended Purpose Template 1",
     state: purposeTemplateState.suspended,
     creatorId: creatorId1,
-    targetTenantKind: tenantKind.GSP,
+    targetTenantKind: targetTenantKind.PRIVATE,
     handlesPersonalData: false,
   };
   const archivedPurposeTemplateByCreator1: PurposeTemplate = {
@@ -70,7 +70,7 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Archived Purpose Template 1",
     state: purposeTemplateState.archived,
     creatorId: creatorId1,
-    targetTenantKind: tenantKind.SCP,
+    targetTenantKind: targetTenantKind.PRIVATE,
     handlesPersonalData: false,
   };
 
@@ -79,7 +79,7 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Published Purpose Template 2",
     state: purposeTemplateState.published,
     creatorId: creatorId2,
-    targetTenantKind: tenantKind.PA,
+    targetTenantKind: targetTenantKind.PA,
     handlesPersonalData: false,
   };
   const draftPurposeTemplateByCreator2: PurposeTemplate = {
@@ -87,7 +87,7 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Draft Purpose Template 2",
     state: purposeTemplateState.draft,
     creatorId: creatorId2,
-    targetTenantKind: tenantKind.PRIVATE,
+    targetTenantKind: targetTenantKind.PRIVATE,
     handlesPersonalData: false,
   };
   const suspendedPurposeTemplateByCreator2: PurposeTemplate = {
@@ -95,7 +95,7 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Suspended Purpose Template 2 - test",
     state: purposeTemplateState.suspended,
     creatorId: creatorId2,
-    targetTenantKind: tenantKind.GSP,
+    targetTenantKind: targetTenantKind.PRIVATE,
     handlesPersonalData: true,
   };
   const archivedPurposeTemplateByCreator2: PurposeTemplate = {
@@ -103,7 +103,7 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Archived Purpose Template 2",
     state: purposeTemplateState.archived,
     creatorId: creatorId2,
-    targetTenantKind: tenantKind.SCP,
+    targetTenantKind: targetTenantKind.PRIVATE,
     handlesPersonalData: false,
   };
 
@@ -195,7 +195,7 @@ describe("getPurposeTemplates", async () => {
   it("should get purpose templates with filters: targetTenantKind", async () => {
     const result = await purposeTemplateService.getPurposeTemplates(
       {
-        targetTenantKind: tenantKind.PA,
+        targetTenantKind: targetTenantKind.PA,
         eserviceIds: [],
         creatorIds: [],
         states: [],
@@ -319,7 +319,7 @@ describe("getPurposeTemplates", async () => {
       ...getMockPurposeTemplate(),
       purposeTitle: "Purpose Template with Expired Risk Analysis 1",
       purposeRiskAnalysisForm: {
-        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA),
+        ...getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA),
         version: "1.0",
       },
       state: purposeTemplateState.published,
@@ -327,9 +327,9 @@ describe("getPurposeTemplates", async () => {
     const purposeTemplateWithExpiredRiskAnalysis2: PurposeTemplate = {
       ...getMockPurposeTemplate(),
       purposeTitle: "Purpose Template with Expired Risk Analysis 2",
-      targetTenantKind: tenantKind.PRIVATE,
+      targetTenantKind: targetTenantKind.PRIVATE,
       purposeRiskAnalysisForm: {
-        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PRIVATE),
+        ...getMockValidRiskAnalysisFormTemplate(targetTenantKind.PRIVATE),
         version: "1.0",
       },
       state: purposeTemplateState.published,
@@ -365,16 +365,16 @@ describe("getPurposeTemplates", async () => {
       ...getMockPurposeTemplate(),
       purposeTitle: "Purpose Template with Expired Risk Analysis 1",
       purposeRiskAnalysisForm: {
-        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA),
+        ...getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA),
         version: "2.0",
       },
     };
     const purposeTemplateWithExpiredRiskAnalysis2: PurposeTemplate = {
       ...getMockPurposeTemplate(),
       purposeTitle: "Purpose Template with Expired Risk Analysis 2",
-      targetTenantKind: tenantKind.PRIVATE,
+      targetTenantKind: targetTenantKind.PRIVATE,
       purposeRiskAnalysisForm: {
-        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PRIVATE),
+        ...getMockValidRiskAnalysisFormTemplate(targetTenantKind.PRIVATE),
         version: "1.0",
       },
     };

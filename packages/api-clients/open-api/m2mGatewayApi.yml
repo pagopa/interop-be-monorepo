@@ -16205,7 +16205,7 @@ paths:
           name: targetTenantKind
           description: Filter Purpose Templates by target tenant kind. If not specified, return Purpose Templates for any tenant kind.
           schema:
-            $ref: "#/components/schemas/TenantKind"
+            $ref: "#/components/schemas/TargetTenantKind"
         - in: query
           name: handlesPersonalData
           description: Filter Purpose Templates by whether they handle personal data. If not specified, return Purpose Templates that both handle and do not handle personal data.
@@ -20416,6 +20416,12 @@ components:
         - createdAt
         - mails
         - name
+    TargetTenantKind:
+      type: string
+      description: The Target Tenant Kind of a Purpose Template
+      enum:
+        - PA
+        - PRIVATE
     TenantKind:
       type: string
       enum:
@@ -20750,7 +20756,7 @@ components:
         targetDescription:
           type: string
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         creatorId:
           type: string
           format: uuid

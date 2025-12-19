@@ -10,7 +10,7 @@ import {
   descriptorState,
   generateId,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
   EServiceId,
@@ -51,7 +51,7 @@ import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION 
 describe("unlinkEservicesFromPurposeTemplate", () => {
   const tenant: Tenant = {
     ...getMockTenant(),
-    kind: tenantKind.PA,
+    kind: targetTenantKind.PA,
   };
 
   const descriptor1: Descriptor = {

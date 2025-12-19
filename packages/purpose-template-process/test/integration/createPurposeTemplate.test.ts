@@ -13,9 +13,9 @@ import {
   PurposeTemplate,
   PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
-  TenantKind,
+  TargetTenantKind,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
   toPurposeTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -51,7 +51,7 @@ describe("createPurposeTemplate", () => {
   };
 
   const mockValidRiskAnalysisTemplateForm =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
 
   const purposeTemplateSeed = getMockPurposeTemplateSeed(
     buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm)
@@ -295,7 +295,7 @@ describe("createPurposeTemplate", () => {
 
   it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has unexpected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
-      getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+      getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA)
     );
 
     const seedWithUnexpectedField: purposeTemplateApi.PurposeTemplateSeed = {
@@ -331,7 +331,7 @@ describe("createPurposeTemplate", () => {
 
   it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has missing expected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
-      getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+      getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA)
     );
 
     // Remove otherPurpose field which is required when purpose is OTHER
@@ -371,7 +371,7 @@ describe("createPurposeTemplate", () => {
   });
 
   it("should throw ruleSetNotFoundError if not exists rules for provided target tenant kind", async () => {
-    const invalidTenantKind = "INVALID" as TenantKind;
+    const invalidTenantKind = "INVALID" as TargetTenantKind;
     const seedWithInvalidTargetTenantKind: purposeTemplateApi.PurposeTemplateSeed =
       {
         ...purposeTemplateSeed,

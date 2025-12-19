@@ -12,7 +12,7 @@ import {
 import {
   PurposeTemplateDraftDeletedV2,
   RiskAnalysisFormTemplate,
-  tenantKind,
+  targetTenantKind,
   PurposeTemplate,
   toPurposeTemplateV2,
   purposeTemplateState,
@@ -47,7 +47,7 @@ describe("deletePurposeTemplate", () => {
   };
 
   const incompleteRiskAnalysisFormTemplate =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
   const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
     ...incompleteRiskAnalysisFormTemplate,
     singleAnswers: [

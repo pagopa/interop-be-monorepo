@@ -21,7 +21,7 @@ import {
   fromPurposeTemplateV2,
   generateId,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -61,7 +61,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
     };
 
   const mockValidRiskAnalysisTemplateForm =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
 
   const subjectSingleAnswer =
     mockValidRiskAnalysisTemplateForm.singleAnswers.find(

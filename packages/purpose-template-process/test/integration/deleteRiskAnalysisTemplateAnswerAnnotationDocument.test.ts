@@ -12,7 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   RiskAnalysisFormTemplate,
-  tenantKind,
+  targetTenantKind,
   PurposeTemplate,
   toPurposeTemplateV2,
   purposeTemplateState,
@@ -51,7 +51,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   };
 
   const incompleteRiskAnalysisFormTemplate =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
   const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
     ...incompleteRiskAnalysisFormTemplate,
     singleAnswers: [

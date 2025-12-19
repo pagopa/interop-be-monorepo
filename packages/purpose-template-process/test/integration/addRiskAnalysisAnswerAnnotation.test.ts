@@ -12,7 +12,7 @@ import {
 import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
-  tenantKind,
+  targetTenantKind,
   generateId,
   TenantId,
   RiskAnalysisSingleAnswerId,
@@ -37,7 +37,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
   const mockPurposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-      tenantKind.PA
+      targetTenantKind.PA
     ),
   };
 
@@ -120,10 +120,10 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     const mockPurposeTemplateWithAnnotation: PurposeTemplate = {
       ...getMockPurposeTemplate(),
       purposeRiskAnalysisForm: {
-        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA),
+        ...getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA),
         singleAnswers: [
           {
-            ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+            ...getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA)
               .singleAnswers[0],
             annotation: {
               id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
@@ -132,7 +132,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
             },
           },
           ...getMockValidRiskAnalysisFormTemplate(
-            tenantKind.PA
+            targetTenantKind.PA
           ).singleAnswers.slice(1),
         ],
       },

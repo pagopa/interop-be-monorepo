@@ -20,7 +20,7 @@ import {
   descriptorState,
   generateId,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
@@ -54,7 +54,7 @@ import {
 describe("linkEservicesToPurposeTemplate", () => {
   const tenant: Tenant = {
     ...getMockTenant(),
-    kind: tenantKind.PA,
+    kind: targetTenantKind.PA,
   };
 
   const descriptor1: Descriptor = {
@@ -447,7 +447,7 @@ describe("linkEservicesToPurposeTemplate", () => {
   it("should throw tenantNotAllowed when user is not the creator of the purpose template", async () => {
     const differentTenant: Tenant = {
       ...getMockTenant(),
-      kind: tenantKind.PA,
+      kind: targetTenantKind.PA,
     };
 
     await addOneTenant(tenant);
