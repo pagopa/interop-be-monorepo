@@ -59,7 +59,7 @@ export async function handleAgreementMessageV1(
           !hasStamp(agreement.stamps, "submission") ||
           !hasStamp(agreement.stamps, "activation")
         ) {
-          logger.info(
+          logger.warn(
             `Skipping agreement ${agreement.id}: missing submission or activation stamps`
           );
           return;
