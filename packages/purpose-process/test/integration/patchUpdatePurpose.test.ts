@@ -51,6 +51,7 @@ import {
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   eserviceNotFound,
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeDelegationNotFound,
   purposeNotFound,
@@ -264,7 +265,7 @@ describe("patchUpdatePurpose", () => {
     },
     { dailyCalls: 99 },
     { riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis) },
-    { isFreeOfCharge: false },
+    { isFreeOfCharge: false, freeOfChargeReason: null },
     { freeOfChargeReason: "updated freeOfChargeReason" },
     { isFreeOfCharge: true, freeOfChargeReason: "updated freeOfChargeReason" },
     {
@@ -302,7 +303,9 @@ describe("patchUpdatePurpose", () => {
         description: seed.description ?? draftPurpose.description,
         isFreeOfCharge: seed.isFreeOfCharge ?? draftPurpose.isFreeOfCharge,
         freeOfChargeReason:
-          seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
+          seed.freeOfChargeReason === null
+            ? undefined
+            : seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
         riskAnalysisForm: seed.riskAnalysisForm
           ? createUpdatedRiskAnalysisForm(
               draftPurpose.riskAnalysisForm!,
@@ -417,6 +420,30 @@ describe("patchUpdatePurpose", () => {
           })
         )
       ).rejects.toThrowError(missingFreeOfChargeReason());
+    }
+  );
+
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    `Should throw invalidFreeOfChargeReason if isFreeOfCharge is set to false
+    and freeOfChargeReason is defined (seed #%#)`,
+    async ({ freeOfChargeReason }) => {
+      await addOneTenant(consumer);
+      await addOnePurpose(draftPurpose);
+      await addOneEService(eservice);
+      expect(
+        purposeService.patchUpdatePurpose(
+          draftPurpose.id,
+          {
+            isFreeOfCharge: false,
+            freeOfChargeReason,
+          },
+          getMockContextM2MAdmin({
+            organizationId: consumer.id,
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(false, freeOfChargeReason)
+      );
     }
   );
 
