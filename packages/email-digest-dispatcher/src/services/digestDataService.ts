@@ -1,5 +1,6 @@
 import { Logger } from "pagopa-interop-commons";
 import { TenantId } from "pagopa-interop-models";
+import { NewEservice } from "./readModelService.js";
 
 export type BaseDigest = {
   items: Array<{
@@ -71,6 +72,7 @@ export function digestDataServiceBuilder(
       logger.info(`Retrieving digest data for tenant ${tenantId}`);
 
       // TODO: Implement actual data retrieval from readmodel
+      // TODO: ask for the priority list of tenants for eservices retrieval
 
       // MOCKUP: Return placeholder data
       return {
@@ -86,10 +88,7 @@ export function digestDataServiceBuilder(
         viewAllSentDelegationsLink: "#",
         viewAllReceivedDelegationsLink: "#",
         viewAllAttributesLink: "#",
-        newEservices: {
-          items: [],
-          totalCount: 0,
-        },
+        newEservices: this.getNewEservicesDigest([]),
         updatedEservices: {
           items: [],
           totalCount: 0,
@@ -177,6 +176,18 @@ export function digestDataServiceBuilder(
         data.receivedAttributes?.totalCount ||
         data.revokedAttributes?.totalCount
       );
+    },
+
+    getNewEservicesDigest(data: NewEservice[]): BaseDigest {
+      const items = data.map((eservice) => ({
+        name: eservice.eserviceName,
+        producerName: eservice.eserviceProducer,
+        link: `#`, // TODO
+      }));
+      return {
+        items,
+        totalCount: data[0]?.totalCount || 0,
+      };
     },
   };
 }

@@ -55,6 +55,7 @@ describe("ReadModelService - getNewEservices", () => {
         eserviceId: recentService.id,
         eserviceDescriptorId: recentService.descriptors[0].id,
         eserviceName: recentService.name,
+        eserviceProducer: producer.id,
         agreementCount: 0,
         totalCount: 1,
       });
@@ -457,6 +458,7 @@ describe("ReadModelService - getNewEservices", () => {
       expect(typeof item.eserviceId).toBe("string");
       expect(typeof item.eserviceDescriptorId).toBe("string");
       expect(typeof item.eserviceName).toBe("string");
+      expect(typeof item.eserviceProducer).toBe("string");
       expect(typeof item.agreementCount).toBe("number");
       expect(typeof item.totalCount).toBe("number");
 

@@ -37,6 +37,7 @@ export type NewEservice = {
   eserviceId: EServiceId;
   eserviceDescriptorId: DescriptorId;
   eserviceName: string;
+  eserviceProducer: TenantId;
   agreementCount: number;
   totalCount: number;
 };
@@ -60,6 +61,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType) {
             eserviceId: eserviceInReadmodelCatalog.id,
             eserviceDescriptorId: eserviceDescriptorInReadmodelCatalog.id,
             eserviceName: eserviceInReadmodelCatalog.name,
+            eserviceproducer: eserviceInReadmodelCatalog.producerId,
             agreementCount: count(agreementInReadmodelAgreement.id).as(
               "agreementCount"
             ),
@@ -110,6 +112,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType) {
           row.eserviceDescriptorId
         ),
         eserviceName: row.eserviceName,
+        eserviceProducer: unsafeBrandId<TenantId>(row.eserviceproducer),
         agreementCount: row.agreementCount,
         totalCount: row.totalCount,
       }));
