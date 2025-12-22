@@ -14960,6 +14960,7 @@ paths:
     get:
       tags:
         - health
+      summary: Retrieve the status of the API
       operationId: getStatus
       description: Retrieve the status of the API
       responses:
