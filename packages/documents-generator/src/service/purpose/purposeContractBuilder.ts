@@ -81,6 +81,11 @@ export const riskAnalysisDocumentBuilder = (
       if (!purpose.riskAnalysisForm) {
         throw missingRiskAnalysis(purpose.id);
       }
+      // Fixing legacy data: an event from event store was incorrectly stored with version '0.1'
+      if (purpose.riskAnalysisForm.version === "0.1") {
+        // eslint-disable-next-line functional/immutable-data
+        purpose.riskAnalysisForm.version = "1.0";
+      }
 
       const riskAnalysisVersion = purpose.riskAnalysisForm.version;
 

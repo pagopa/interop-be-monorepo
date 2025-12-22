@@ -28,6 +28,9 @@ export async function handleAgreementDocument(
       }
       if (msg.data.agreement.contract) {
         const s3Key = msg.data.agreement.contract.path;
+
+        logger.info(`Processing and signing agreement file with key: ${s3Key}`);
+
         const file: Uint8Array = await fileManager.get(
           config.s3Bucket,
           s3Key,
@@ -49,6 +52,8 @@ export async function handleAgreementDocument(
           safeStorageRequest,
           logger
         );
+
+        logger.info(`Created file on safe storage with key: ${key}`);
 
         await safeStorageService.uploadFileContent(
           uploadUrl,

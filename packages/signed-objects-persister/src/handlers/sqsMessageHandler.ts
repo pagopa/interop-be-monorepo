@@ -73,6 +73,7 @@ async function processMessage(
     }
     const fileContent = await safeStorageService.downloadFileContent(
       fileRef.download.url,
+      fileKey,
       logger
     );
 

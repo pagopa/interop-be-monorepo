@@ -29,6 +29,7 @@ async function processMessage(
   correlationId: CorrelationId
 ): Promise<void> {
   try {
+    logger.info(`Processing and signing file ${s3Key}`);
     const file: Uint8Array = await fileManager.get(
       config.s3Bucket,
       s3Key,
@@ -50,6 +51,7 @@ async function processMessage(
       safeStorageRequest,
       logger
     );
+    logger.info(`Created file on safe storage with key: ${key}`);
 
     await safeStorageService.uploadFileContent(
       uploadUrl,
@@ -68,6 +70,9 @@ async function processMessage(
         correlationId,
       },
       logger
+    );
+    logger.info(
+      `Processed voucher audit with key: ${key} and file: ${fileName}`
     );
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);

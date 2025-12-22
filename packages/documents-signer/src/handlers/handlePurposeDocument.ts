@@ -40,6 +40,10 @@ export async function handlePurposeDocument(
 
         const s3Key = purposeVersion.riskAnalysis?.path;
 
+        logger.info(
+          `Processing and signing riskAnalysis file with key ${s3Key}`
+        );
+
         if (!s3Key) {
           throw genericInternalError(
             `Handle Purpose Document - riskAnalysis path not found for id: ${msg.data.versionId}`
@@ -67,6 +71,8 @@ export async function handlePurposeDocument(
           safeStorageRequest,
           logger
         );
+
+        logger.info(`Created file on safe storage with key: ${key}`);
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
