@@ -1,6 +1,5 @@
 import {
   eq,
-  sql,
   desc,
   asc,
   and,
