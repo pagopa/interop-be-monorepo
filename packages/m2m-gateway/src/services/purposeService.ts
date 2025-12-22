@@ -155,7 +155,9 @@ export function purposeServiceBuilder(
   };
 
   const innerUpdateDraftPurpose = async (
-    updateSeed: m2mGatewayApi.PurposeDraftUpdateSeed,
+    updateSeed:
+      | m2mGatewayApi.PurposeDraftUpdateSeed
+      | m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed,
     purpose: purposeApi.Purpose,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<WithMaybeMetadata<purposeApi.Purpose>> => {
