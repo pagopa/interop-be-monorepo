@@ -18,10 +18,7 @@ import {
   addOnePurposeTemplate,
   purposeTemplateService,
 } from "../integrationUtils.js";
-import {
-  purposeTemplateNotFound,
-  tenantNotAllowed,
-} from "../../src/model/domain/errors.js";
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("getPurposeTemplateById", () => {
   it.each(Object.values(purposeTemplateState))(

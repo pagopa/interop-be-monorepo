@@ -22,10 +22,7 @@ import {
   addOnePurposeTemplateEServiceDescriptor,
   purposeTemplateService,
 } from "../integrationUtils.js";
-import {
-  purposeTemplateNotFound,
-  tenantNotAllowed,
-} from "../../src/model/domain/errors.js";
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("getPurposeTemplateEServiceDescriptors", async () => {
   const creatorId = generateId<TenantId>();

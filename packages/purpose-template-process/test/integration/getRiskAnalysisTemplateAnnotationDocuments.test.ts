@@ -25,10 +25,7 @@ import {
   purposeTemplateService,
   readModelDB,
 } from "../integrationUtils.js";
-import {
-  purposeTemplateNotFound,
-  tenantNotAllowed,
-} from "../../src/model/domain/errors.js";
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
 const sortByCreatedAtDate = (
   a: RiskAnalysisTemplateAnswerAnnotationDocument,

@@ -22,7 +22,6 @@ import {
   purposeTemplateNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
