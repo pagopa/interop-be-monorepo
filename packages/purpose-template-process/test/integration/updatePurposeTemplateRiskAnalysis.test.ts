@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   genericLogger,
   getLatestVersionFormRules,
@@ -30,13 +29,11 @@ import {
   TenantId,
   tenantKind,
   toPurposeTemplateV2,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { config } from "../../src/config/config.js";
 import {
-  invalidFreeOfChargeReason,
-  missingFreeOfChargeReason,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   tenantNotAllowed,
@@ -56,7 +53,7 @@ import {
   getMockPurposeTemplateSeed,
 } from "../mockUtils.js";
 
-describe("updatePurposeTemplate", () => {
+describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
   const mockDate = new Date();
 
   beforeAll(() => {
@@ -79,6 +76,10 @@ describe("updatePurposeTemplate", () => {
   const mockValidRiskAnalysisTemplateForm =
     getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
 
+  const riskAnalysisFormTemplateSeed = buildRiskAnalysisFormTemplateSeed(
+    mockValidRiskAnalysisTemplateForm
+  );
+
   const purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed =
     getMockPurposeTemplateSeed(
       buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm)
@@ -96,23 +97,25 @@ describe("updatePurposeTemplate", () => {
       riskAnalysisVersion: riskAnalysisPrivateVersion,
     },
   ])(
-    "should successfully update a purpose template in draft state with valid data and targetTenantKind %s",
+    "should successfully update a purpose template in draft state with valid data and targetTenantKind $kind",
     async ({ kind: tenantKind, riskAnalysisVersion }) => {
       const spy = vi.spyOn(
         validators,
         "validateAndTransformRiskAnalysisTemplate"
       );
 
-      const mockValidRiskAnalysisTemplateForm =
+      const mockValidRiskAnalysisTemplateFormWithKind =
         getMockValidRiskAnalysisFormTemplate(tenantKind);
 
-      const riskAnalysisFormTemplateSeed = {
-        ...buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm),
+      const riskAnalysisFormTemplateSeedWithKind = {
+        ...buildRiskAnalysisFormTemplateSeed(
+          mockValidRiskAnalysisTemplateFormWithKind
+        ),
         version: riskAnalysisVersion,
       };
 
       const updatedAnswers = Object.fromEntries([
-        ...Object.entries(riskAnalysisFormTemplateSeed.answers)
+        ...Object.entries(riskAnalysisFormTemplateSeedWithKind.answers)
           .map(([key, answer]) =>
             key === "purpose"
               ? [
@@ -141,21 +144,16 @@ describe("updatePurposeTemplate", () => {
         ],
       ]);
 
-      const validPurposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed = {
-        ...getMockPurposeTemplateSeed(),
-        targetTenantKind: tenantKind,
-        purposeTitle: "Updated Purpose Template title", // updated field
-        purposeRiskAnalysisForm: {
-          ...riskAnalysisFormTemplateSeed,
-          answers: updatedAnswers,
-        },
+      const updatedRiskAnalysisFormTemplateSeed = {
+        ...riskAnalysisFormTemplateSeedWithKind,
+        answers: updatedAnswers,
       };
 
       const existingPurposeTemplate: PurposeTemplate = {
         ...getMockPurposeTemplate(creatorId),
         targetTenantKind: tenantKind,
         purposeRiskAnalysisForm: {
-          ...mockValidRiskAnalysisTemplateForm,
+          ...mockValidRiskAnalysisTemplateFormWithKind,
           version: riskAnalysisVersion,
         },
       };
@@ -163,71 +161,57 @@ describe("updatePurposeTemplate", () => {
       await addOnePurposeTemplate(existingPurposeTemplate);
       await addOneTenant(creator);
 
-      const updatedPurposeTemplateResponse =
-        await purposeTemplateService.updatePurposeTemplate(
+      const updatedPurposeTemplateRiskAnalysisResponse =
+        await purposeTemplateService.updatePurposeTemplateRiskAnalysis(
           existingPurposeTemplate.id,
-          validPurposeTemplateSeed,
+          updatedRiskAnalysisFormTemplateSeed,
           getMockContext({
             authData: getMockAuthData(creatorId),
           })
         );
 
+      const expectedRiskAnalysisTemplateForm: RiskAnalysisFormTemplate = {
+        id: expect.anything(),
+        version: riskAnalysisVersion,
+        singleAnswers: mockValidRiskAnalysisTemplateFormWithKind.singleAnswers
+          // change "purpose" value to OTHER to enable "otherPurpose"
+          .map((a: RiskAnalysisTemplateSingleAnswer) =>
+            a.key === "purpose"
+              ? {
+                  ...a,
+                  id: expect.anything(),
+                  value: "OTHER",
+                }
+              : {
+                  ...a,
+                  id: expect.anything(),
+                }
+          )
+          // "institutionalPurpose" not allow if "purpose" = OTHER
+          .filter((a) => a.key !== "institutionalPurpose")
+          // add new value to answer "otherPurpose"
+          .concat({
+            id: expect.anything(),
+            value: undefined,
+            key: "otherPurpose",
+            editable: false,
+            suggestedValues: ["Updated Answer value", "Updated Answer value 2"],
+          }),
+        multiAnswers:
+          mockValidRiskAnalysisTemplateFormWithKind.multiAnswers.map((a) => ({
+            ...a,
+            id: expect.anything(),
+          })),
+      };
+
       const expectedPurposeTemplate: PurposeTemplate = {
-        id: unsafeBrandId(updatedPurposeTemplateResponse.data.id),
-        createdAt: mockDate,
+        ...existingPurposeTemplate,
+        purposeRiskAnalysisForm: expectedRiskAnalysisTemplateForm,
         updatedAt: mockDate,
-        targetDescription: validPurposeTemplateSeed.targetDescription,
-        targetTenantKind: validPurposeTemplateSeed.targetTenantKind,
-        creatorId: unsafeBrandId(existingPurposeTemplate.creatorId),
-        state: purposeTemplateState.draft,
-        purposeTitle: validPurposeTemplateSeed.purposeTitle,
-        purposeDescription: validPurposeTemplateSeed.purposeDescription,
-        purposeDailyCalls: validPurposeTemplateSeed.purposeDailyCalls,
-        purposeIsFreeOfCharge: validPurposeTemplateSeed.purposeIsFreeOfCharge,
-        purposeFreeOfChargeReason:
-          validPurposeTemplateSeed.purposeFreeOfChargeReason || undefined,
-        purposeRiskAnalysisForm: {
-          id: expect.anything(),
-          version: riskAnalysisVersion,
-          singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers
-            // change "purpose" value to OTHER to enable "otherPurpose"
-            .map((a: RiskAnalysisTemplateSingleAnswer) =>
-              a.key === "purpose"
-                ? {
-                    ...a,
-                    id: expect.anything(),
-                    value: "OTHER",
-                  }
-                : {
-                    ...a,
-                    id: expect.anything(),
-                  }
-            )
-            // "institutionalPurpose" not allow if "purpose" = OTHER
-            .filter((a) => a.key !== "institutionalPurpose")
-            // add new value to answer "otherPurpose"
-            .concat({
-              id: expect.anything(),
-              value: undefined,
-              key: "otherPurpose",
-              editable: false,
-              suggestedValues: [
-                "Updated Answer value",
-                "Updated Answer value 2",
-              ],
-            }),
-          multiAnswers: mockValidRiskAnalysisTemplateForm.multiAnswers.map(
-            (a) => ({
-              ...a,
-              id: expect.anything(),
-            })
-          ),
-        },
-        handlesPersonalData: validPurposeTemplateSeed.handlesPersonalData,
       };
 
       const writtenEvent = await readLastPurposeTemplateEvent(
-        updatedPurposeTemplateResponse.data.id
+        expectedPurposeTemplate.id
       );
 
       if (!writtenEvent) {
@@ -235,7 +219,7 @@ describe("updatePurposeTemplate", () => {
       }
 
       expect(writtenEvent).toMatchObject({
-        stream_id: updatedPurposeTemplateResponse.data.id,
+        stream_id: expectedPurposeTemplate.id,
         version: "1",
         type: "PurposeTemplateDraftUpdated",
         event_version: 2,
@@ -250,28 +234,28 @@ describe("updatePurposeTemplate", () => {
         purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
       });
 
-      expect(updatedPurposeTemplateResponse).toEqual({
-        data: expectedPurposeTemplate,
+      expect(updatedPurposeTemplateRiskAnalysisResponse).toEqual({
+        data: expectedRiskAnalysisTemplateForm,
         metadata: { version: 1 },
       });
 
       expect(spy).toHaveBeenCalledTimes(1);
       expect(spy).toHaveBeenCalledWith(
         {
-          ...riskAnalysisFormTemplateSeed,
+          ...riskAnalysisFormTemplateSeedWithKind,
           answers: updatedAnswers,
         },
         tenantKind,
-        existingPurposeTemplate.handlesPersonalData
+        expectedPurposeTemplate.handlesPersonalData
       );
     }
   );
 
   it("Should throw a purposeTemplateNotFound error if purpose template does not exist", async () => {
     expect(
-      purposeTemplateService.updatePurposeTemplate(
+      purposeTemplateService.updatePurposeTemplateRiskAnalysis(
         existingPurposeTemplate.id,
-        purposeTemplateSeed,
+        riskAnalysisFormTemplateSeed,
         getMockContext({
           authData: getMockAuthData(creatorId),
         })
@@ -289,9 +273,9 @@ describe("updatePurposeTemplate", () => {
     await addOnePurposeTemplate(purposeTemplateInPublishedState);
 
     expect(
-      purposeTemplateService.updatePurposeTemplate(
+      purposeTemplateService.updatePurposeTemplateRiskAnalysis(
         purposeTemplateInPublishedState.id,
-        purposeTemplateSeed,
+        riskAnalysisFormTemplateSeed,
         getMockContext({
           authData: getMockAuthData(creatorId),
         })
@@ -305,67 +289,24 @@ describe("updatePurposeTemplate", () => {
     );
   });
 
-  it("Should throw a tenantNotAllowed error if the creator tenant is not template creator", async () => {
+  it("Should throw a tenantNotAllowed error if the requester tenant is not template creator", async () => {
+    const requesterId = generateId<TenantId>();
+
     await addOneTenant(creator);
-    await addOnePurposeTemplate({
-      ...existingPurposeTemplate,
-      creatorId: generateId(),
-    });
-
-    expect(
-      purposeTemplateService.updatePurposeTemplate(
-        existingPurposeTemplate.id,
-        purposeTemplateSeed,
-        getMockContext({
-          authData: getMockAuthData(creatorId),
-        })
-      )
-    ).rejects.toThrowError(tenantNotAllowed(creatorId));
-  });
-
-  it("Should throw a missingFreeOfChargeReason error if purposeIsFreeOfCharge is false and purposeFreeOfChargeReason is not provided", async () => {
     await addOnePurposeTemplate(existingPurposeTemplate);
+
     expect(
-      purposeTemplateService.updatePurposeTemplate(
+      purposeTemplateService.updatePurposeTemplateRiskAnalysis(
         existingPurposeTemplate.id,
-        {
-          ...purposeTemplateSeed,
-          purposeIsFreeOfCharge: true,
-          purposeFreeOfChargeReason: undefined,
-        },
+        riskAnalysisFormTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(existingPurposeTemplate.creatorId),
+          authData: getMockAuthData(requesterId),
         })
       )
-    ).rejects.toThrowError(missingFreeOfChargeReason());
+    ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 
-  it("Should not trigger duplicate title check when updating with case-insensitive same title", async () => {
-    const purposeTemplateWithTitle: PurposeTemplate = {
-      ...existingPurposeTemplate,
-      purposeTitle: "Template Title",
-    };
-
-    await addOneTenant(creator);
-    await addOnePurposeTemplate(purposeTemplateWithTitle);
-
-    // Update with same title but different case - should not trigger duplicate check
-    const updatedPurposeTemplate =
-      await purposeTemplateService.updatePurposeTemplate(
-        purposeTemplateWithTitle.id,
-        {
-          ...purposeTemplateSeed,
-          purposeTitle: "template title", // lowercase version
-        },
-        getMockContext({
-          authData: getMockAuthData(creatorId),
-        })
-      );
-
-    expect(updatedPurposeTemplate.data.purposeTitle).toBe("template title");
-  });
-
-  it("Should remove annotations documents for each answer deleted in purpose template seed, all annotation documents of answers not affected by update still remains in S3", async () => {
+  it("Should remove annotations documents for each answer deleted in risk analysis form template seed, all annotation documents of answers not affected by update still remain in S3", async () => {
     vi.spyOn(fileManager, "delete");
 
     // Risk Analysis Form must be defined in existing purpose template for this test
@@ -459,10 +400,10 @@ describe("updatePurposeTemplate", () => {
         )
         .build();
 
-    const actualPurposeTemplate =
-      await purposeTemplateService.updatePurposeTemplate(
+    const actualPurposeTemplateRiskAnalysis =
+      await purposeTemplateService.updatePurposeTemplateRiskAnalysis(
         existingPurposeTemplateWithAnnotations.id,
-        purposeTemplateSeedUpdated,
+        purposeTemplateSeedUpdated.purposeRiskAnalysisForm!,
         getMockContext({
           authData: getMockAuthData(creatorId),
         })
@@ -470,7 +411,7 @@ describe("updatePurposeTemplate", () => {
 
     // Expect that removed answer is not present in updated purpose template returned
     expect(
-      actualPurposeTemplate.data.purposeRiskAnalysisForm?.singleAnswers.find(
+      actualPurposeTemplateRiskAnalysis.data?.singleAnswers.find(
         (a) => a.key === removedAnswerKey
       )
     ).toBeUndefined();
@@ -566,9 +507,9 @@ describe("updatePurposeTemplate", () => {
         .build();
 
     const actualPurposeTemplate =
-      await purposeTemplateService.updatePurposeTemplate(
+      await purposeTemplateService.updatePurposeTemplateRiskAnalysis(
         existingPurposeTemplateWithAnnotations.id,
-        purposeTemplateSeedUpdated,
+        purposeTemplateSeedUpdated.purposeRiskAnalysisForm!,
         getMockContext({
           authData: getMockAuthData(creatorId),
         })
@@ -576,7 +517,7 @@ describe("updatePurposeTemplate", () => {
 
     // Expect that updated answer returned have document that already exists in purpose template
     const answerUpdatedWithDocs =
-      actualPurposeTemplate.data.purposeRiskAnalysisForm?.singleAnswers.find(
+      actualPurposeTemplate.data?.singleAnswers.find(
         (a) => a.key === answerKeyWithAnnotationDocs
       );
     expect(answerUpdatedWithDocs).toBeDefined();
@@ -593,34 +534,4 @@ describe("updatePurposeTemplate", () => {
     // Expect that remains only valid annotation documents in S3
     expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
   });
-
-  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
-    "should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false",
-    async ({ freeOfChargeReason }) => {
-      const purposeTemplate: PurposeTemplate = {
-        ...existingPurposeTemplate,
-        purposeIsFreeOfCharge: true,
-        purposeFreeOfChargeReason: "Some reason",
-      };
-
-      await addOnePurposeTemplate(purposeTemplate);
-
-      const isFreeOfCharge = false;
-      expect(
-        purposeTemplateService.updatePurposeTemplate(
-          purposeTemplate.id,
-          {
-            ...purposeTemplateSeed,
-            purposeIsFreeOfCharge: isFreeOfCharge,
-            purposeFreeOfChargeReason: freeOfChargeReason,
-          },
-          getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
-          })
-        )
-      ).rejects.toThrowError(
-        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
-      );
-    }
-  );
 });

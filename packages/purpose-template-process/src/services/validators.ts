@@ -64,6 +64,7 @@ import {
   conflictDuplicatedDocument,
   disassociationEServicesFromPurposeTemplateFailed,
   hyperlinkDetectionError,
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedStates,
@@ -107,10 +108,14 @@ export const isPurposeTemplateDraft = (
 
 export const assertConsistentFreeOfCharge = (
   isFreeOfCharge: boolean,
-  freeOfChargeReason: string | undefined
+  freeOfChargeReason: string | undefined | null
 ): void => {
   if (isFreeOfCharge && !freeOfChargeReason) {
     throw missingFreeOfChargeReason();
+  }
+
+  if (!isFreeOfCharge && typeof freeOfChargeReason === "string") {
+    throw invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason);
   }
 };
 

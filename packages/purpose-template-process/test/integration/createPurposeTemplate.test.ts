@@ -27,6 +27,7 @@ import {
   missingExpectedRiskAnalysisTemplateFieldError,
 } from "pagopa-interop-commons";
 import {
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
@@ -388,4 +389,32 @@ describe("createPurposeTemplate", () => {
       )
     ).rejects.toThrowError(ruleSetNotFoundError(invalidTenantKind));
   });
+
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    `should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false (seed #%#)`,
+    async ({ freeOfChargeReason }) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: "Some reason",
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      expect(
+        purposeTemplateService.createPurposeTemplate(
+          {
+            ...purposeTemplateSeed,
+            purposeIsFreeOfCharge: false,
+            purposeFreeOfChargeReason: freeOfChargeReason,
+          },
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(false, freeOfChargeReason)
+      );
+    }
+  );
 });
