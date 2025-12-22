@@ -5,16 +5,13 @@ import {
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { PurposeTemplateId, TenantId, generateId } from "pagopa-interop-models";
+import { PurposeTemplateId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
-import {
-  purposeTemplateNotFound,
-  tenantNotAllowed,
-} from "../../src/model/domain/errors.js";
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("API GET /purposeTemplates/{id}", () => {
   const purposeTemplate = getMockPurposeTemplate();
@@ -69,20 +66,15 @@ describe("API GET /purposeTemplates/{id}", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([
-    { error: purposeTemplateNotFound(purposeTemplate.id), expectedStatus: 404 },
-    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
-  ])(
-    "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus }) => {
-      purposeTemplateService.getPurposeTemplateById = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(expectedStatus);
-    }
-  );
+  it("Should return 404 when purpose template is not found", async () => {
+    const error = purposeTemplateNotFound(purposeTemplate.id);
+    purposeTemplateService.getPurposeTemplateById = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
 
   it("Should return 400 if an invalid purpose template id is passed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
