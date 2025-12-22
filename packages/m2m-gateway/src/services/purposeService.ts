@@ -28,7 +28,6 @@ import {
 } from "../utils/polling.js";
 import {
   purposeAgreementNotFound,
-  purposeNotFound,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
 } from "../model/errors.js";
@@ -106,19 +105,6 @@ export function purposeServiceBuilder(
       condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
-  const retrievePurpose = async (
-    purposeId: PurposeId,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<purposeApi.Purpose> => {
-    const purpose = await retrievePurposeById(purposeId, headers);
-
-    if (!purpose.data) {
-      throw purposeNotFound(purposeId);
-    }
-
-    return purpose.data;
-  };
-
   const retrieveLatestPurposeVersionByState = (
     purpose: purposeApi.Purpose,
     state: purposeApi.PurposeVersionState
@@ -169,7 +155,6 @@ export function purposeServiceBuilder(
   };
 
   const innerUpdateDraftPurpose = async (
-    purposeId: PurposeId,
     updateSeed: m2mGatewayApi.PurposeDraftUpdateSeed,
     purpose: purposeApi.Purpose,
     headers: M2MGatewayAppContext["headers"]
@@ -181,7 +166,7 @@ export function purposeServiceBuilder(
         updateSeed,
         {
           params: {
-            purposeId,
+            purposeId: purpose.id,
             purposeTemplateId: purpose.purposeTemplateId,
           },
           headers,
@@ -190,7 +175,7 @@ export function purposeServiceBuilder(
     }
 
     return await clients.purposeProcessClient.patchUpdatePurpose(updateSeed, {
-      params: { id: purposeId },
+      params: { id: purpose.id },
       headers,
     });
   };
@@ -609,12 +594,11 @@ export function purposeServiceBuilder(
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Updating draft purpose with id ${purposeId}`);
 
-      const purpose = await retrievePurpose(purposeId, headers);
+      const purpose = await retrievePurposeById(purposeId, headers);
 
       const updatedPurpose = await innerUpdateDraftPurpose(
-        purposeId,
         updateSeed,
-        purpose,
+        purpose.data,
         headers
       );
 

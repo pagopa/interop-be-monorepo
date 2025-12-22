@@ -25,7 +25,7 @@ export function assertPurposeCurrentVersionExists(
 }
 export function assertSeedPatchPurposeUpdateFromTemplateContent(
   updateSeed: m2mGatewayApi.PurposeDraftUpdateSeed
-): void {
+): asserts updateSeed is m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed {
   const result =
     m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed.safeParse(updateSeed);
   if (!result.success) {

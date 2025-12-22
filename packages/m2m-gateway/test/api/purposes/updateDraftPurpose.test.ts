@@ -6,17 +6,13 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import {
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   invalidSeedForPurposeFromTemplate,
   missingMetadata,
-  purposeNotFound,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 import { config } from "../../../src/config/config.js";
@@ -126,10 +122,6 @@ describe("PATCH /purposes/:purposeId router test", () => {
     {
       error: invalidSeedForPurposeFromTemplate(["invalid"]),
       errorStatus: 400,
-    },
-    {
-      error: purposeNotFound(unsafeBrandId(mockPurpose.id)),
-      errorStatus: 404,
     },
     {
       error: missingMetadata(),

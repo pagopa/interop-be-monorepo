@@ -22,7 +22,6 @@ import { config } from "../../../src/config/config.js";
 import {
   invalidSeedForPurposeFromTemplate,
   missingMetadata,
-  purposeNotFound,
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
@@ -215,24 +214,6 @@ describe("updateDraftPurpose", () => {
         ).error!.issues.map((i) => i.message)
       )
     );
-
-    expect(
-      mockInteropBeClients.purposeProcessClient.getPurpose
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  it("Should throw purposeNotFound in case the purpose user is trying to update does not exist", async () => {
-    mockGetPurpose.mockRejectedValueOnce(
-      purposeNotFound(unsafeBrandId(mockPurpose.id))
-    );
-
-    await expect(
-      purposeService.updateDraftPurpose(
-        unsafeBrandId(mockPurpose.id),
-        mockPurposeSeed,
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(purposeNotFound(unsafeBrandId(mockPurpose.id)));
 
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose

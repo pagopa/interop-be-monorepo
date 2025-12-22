@@ -110,7 +110,6 @@ export const updateDraftPurposeErrorMapper = (
 ): number =>
   match(error.code)
     .with("invalidSeedForPurposeFromTemplate", () => HTTP_STATUS_BAD_REQUEST)
-    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const downloadPurposeVersionRiskAnalysisDocumentErrorMapper = (

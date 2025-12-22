@@ -135,14 +135,6 @@ export function eserviceTemplateVersionNotFound(
   });
 }
 
-export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose with id ${purposeId} not found`,
-    code: "purposeNotFound",
-    title: "Purpose not found",
-  });
-}
-
 export function purposeVersionNotFound(
   purposeId: PurposeId,
   versionId: string
