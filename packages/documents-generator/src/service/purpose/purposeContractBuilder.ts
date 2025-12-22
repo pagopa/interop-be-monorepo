@@ -90,10 +90,13 @@ export const riskAnalysisDocumentBuilder = (
       const riskAnalysisVersion = purpose.riskAnalysisForm.version;
 
       // Handle GSP that were previously PA and have access to PA risk analysis versions (3.0, 3.1)
+      const usePAFallback =
+        tenantKind === TenantKind.Enum.GSP &&
+        ["3.0", "3.1"].includes(riskAnalysisVersion);
+
       const riskAnalysisFormConfig =
-        getFormRulesByVersion(tenantKind, riskAnalysisVersion) ||
-        (tenantKind === TenantKind.Enum.GSP &&
-        ["3.0", "3.1"].includes(riskAnalysisVersion)
+        getFormRulesByVersion(tenantKind, riskAnalysisVersion) ??
+        (usePAFallback
           ? getFormRulesByVersion(TenantKind.Enum.PA, riskAnalysisVersion)
           : undefined);
 
