@@ -16,7 +16,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export function purposeTemplateStateToApiPurposeTemplateState(
+function purposeTemplateStateToApiPurposeTemplateState(
   input: PurposeTemplateState
 ): purposeTemplateApi.PurposeTemplateState {
   return match<PurposeTemplateState, purposeTemplateApi.PurposeTemplateState>(
@@ -126,7 +126,7 @@ function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
   };
 }
 
-export const multiAnswersToApiMultiAnswers = (
+const multiAnswersToApiMultiAnswers = (
   multiAnswers: RiskAnalysisTemplateMultiAnswer[]
 ): Array<{
   responseKey: string;
@@ -146,7 +146,7 @@ export const multiAnswersToApiMultiAnswers = (
     },
   }));
 
-export const singleAnswersToApiSingleAnswers = (
+const singleAnswersToApiSingleAnswers = (
   singleAnswers: RiskAnalysisTemplateSingleAnswer[]
 ): Array<{
   responseKey: string;
