@@ -1,0 +1,19 @@
+meta {
+  name: Get Producer Key Events
+  type: http
+  seq: 40
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/producerKeyEvents/?limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
