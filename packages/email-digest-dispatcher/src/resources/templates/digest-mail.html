@@ -195,19 +195,19 @@
       }
       .alert-success {
         border-left: 4px solid #00c853;
-        background-color: #f4fbf6;
+        background-color: #ffffff;
         padding: 12px 16px;
         border-radius: 4px;
       }
       .alert-warning {
         border-left: 4px solid #ffab00;
-        background-color: #fff8e1;
+        background-color: #ffffff;
         padding: 12px 16px;
         border-radius: 4px;
       }
       .alert-error {
         border-left: 4px solid #d50000;
-        background-color: #ffebee;
+        background-color: #ffffff;
         padding: 12px 16px;
         border-radius: 4px;
       }
@@ -215,6 +215,49 @@
         font-size: 14px;
         color: #17324d;
         margin: 0;
+      }
+      .card-grid-item {
+        display: inline-block;
+        width: 100%;
+        max-width: 310px;
+        vertical-align: top;
+        padding: 0 8px;
+        margin-bottom: 16px;
+      }
+      .card-grid-wrapper {
+        font-size: 0;
+        text-align: left;
+        margin: 0 -8px;
+      }
+      .list-items {
+        padding-left: 20px;
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      .content-wrapper {
+        padding: 24px 25px 0px 25px;
+        background-color: #fafafa;
+      }
+      .title-cell {
+        font-size: 0px;
+        padding: 10px 25px;
+        padding-top: 24px;
+        padding-right: 0px;
+        padding-bottom: 8px;
+        padding-left: 0px;
+        word-break: break-word;
+      }
+      .page-title {
+        font-size: 20px;
+        line-height: 24px;
+        margin: 0;
+      }
+      .title-wrapper {
+        font-size: 13px;
+        font-weight: bold;
+        line-height: 1;
+        text-align: left;
+        color: #17324d;
       }
 
       /* Light Mode */
@@ -232,7 +275,7 @@
       }
 
       /* Desktop */
-      @media (min-width: 600px) {
+      @media (min-width: 730px) {
         .mobile {
           display: none;
         }
@@ -242,7 +285,7 @@
       }
 
       /* Mobile Responsive Styles */
-      @media only screen and (max-width: 599px) {
+      @media only screen and (max-width: 729px) {
         .card-grid-item {
           display: block !important;
           width: 100% !important;
@@ -365,8 +408,8 @@
 
   <body style="word-spacing: normal">
     <div class="mail-body" style="">
-      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-      <div style="margin: 0px auto; max-width: 600px">
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:730px;" width="730" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+      <div style="margin: 0px auto; max-width: 730px">
         <table
           align="center"
           border="0"
@@ -387,8 +430,8 @@
                   text-align: center;
                 "
               >
-                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="section-outlook" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="section-outlook" style="width:560px;" width="560" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-                <div class="section" style="margin: 0px auto; max-width: 560px">
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="section-outlook" width="730px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="section-outlook" style="width:690px;" width="690" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                <div class="section" style="margin: 0px auto; max-width: 690px">
                   <table
                     align="center"
                     border="0"
@@ -407,7 +450,7 @@
                             text-align: center;
                           "
                         >
-                          <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:560px;" ><![endif]-->
+                          <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:690px;" ><![endif]-->
                           <div
                             class="mj-column-per-100 mj-outlook-group-fix"
                             style="
@@ -430,36 +473,10 @@
                               <tbody>
                                 <!-- Title & Main Message -->
                                 <tr>
-                                  <td
-                                    align="left"
-                                    class="title"
-                                    style="
-                                      font-size: 0px;
-                                      padding: 10px 25px;
-                                      padding-top: 24px;
-                                      padding-right: 0px;
-                                      padding-bottom: 8px;
-                                      padding-left: 0px;
-                                      word-break: break-word;
-                                    "
-                                  >
-                                    <div
-                                      style="
-                                        font-size: 13px;
-                                        font-weight: bold;
-                                        line-height: 1;
-                                        text-align: left;
-                                        color: #17324d;
-                                      "
-                                    >
+                                  <td align="left" class="title title-cell">
+                                    <div class="title-wrapper">
                                       <!-- H4 Desktop (from MUI Italia)-->
-                                      <h2
-                                        style="
-                                          font-size: 20px;
-                                          line-height: 24px;
-                                          margin: 0;
-                                        "
-                                      >
+                                      <h2 class="page-title">
                                         PDND Interoperabilità
                                       </h2>
                                     </div>
@@ -470,11 +487,7 @@
                                 <tr>
                                   <td
                                     align="left"
-                                    class="mobile-padding"
-                                    style="
-                                      padding: 24px 25px 0px 25px;
-                                      background-color: #fafafa;
-                                    "
+                                    class="mobile-padding content-wrapper"
                                   >
                                     <!-- Nuovi E-services -->
                                     {{#if newEservices.totalCount}}
@@ -522,17 +535,7 @@
                                         "
                                       >
                                         {{#each newEservices.items}}
-                                        <div
-                                          class="card-grid-item"
-                                          style="
-                                            display: inline-block;
-                                            width: 100%;
-                                            max-width: 240px;
-                                            vertical-align: top;
-                                            padding: 0 8px;
-                                            margin-bottom: 16px;
-                                          "
-                                        >
+                                        <div class="card-grid-item">
                                           <div class="card">
                                             <p class="card-producer">
                                               {{ producerName }}
@@ -591,26 +594,9 @@
                                       </p>
 
                                       <!-- Grid Wrapper -->
-                                      <div
-                                        class="card-grid-wrapper"
-                                        style="
-                                          font-size: 0;
-                                          text-align: left;
-                                          margin: 0 -8px;
-                                        "
-                                      >
+                                      <div class="card-grid-wrapper">
                                         {{#each updatedEservices.items}}
-                                        <div
-                                          class="card-grid-item"
-                                          style="
-                                            display: inline-block;
-                                            width: 100%;
-                                            max-width: 240px;
-                                            vertical-align: top;
-                                            padding: 0 8px;
-                                            margin-bottom: 16px;
-                                          "
-                                        >
+                                        <div class="card-grid-item">
                                           <div class="card">
                                             <p class="card-producer">
                                               {{ producerName }}
@@ -668,21 +654,12 @@
                                         >
                                         per:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each acceptedSentAgreements.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -712,21 +689,12 @@
                                         >
                                         per:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each rejectedSentAgreements.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -747,21 +715,12 @@
                                         >
                                         per:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each suspendedSentAgreements.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -786,7 +745,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-inbox }} Finalità
+                                              {{> icon-purpose }} Finalità
                                               inoltrate
                                             </h2>
                                           </td>
@@ -810,21 +769,12 @@
                                           }} finalità</strong
                                         >:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each publishedSentPurposes.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -853,21 +803,12 @@
                                           finalità</strong
                                         >:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each rejectedSentPurposes.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -887,21 +828,12 @@
                                           }} finalità</strong
                                         >:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each suspendedSentPurposes.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -954,22 +886,13 @@
                                         di tuoi servizi che richiedono la tua
                                         approvazione:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each
                                         waitingForApprovalReceivedAgreements.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -1005,8 +928,8 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-inbox }} Finalità che hai
-                                              ricevuto
+                                              {{> icon-purpose }} Finalità che
+                                              hai ricevuto
                                             </h2>
                                           </td>
                                           {{#if viewAllReceivedPurposesLink}}
@@ -1030,22 +953,13 @@
                                           }} Finalità</strong
                                         >:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each
                                         publishedReceivedPurposes.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -1068,22 +982,13 @@
                                         >
                                         in attesa di approvazione da parte tua:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each
                                         waitingForApprovalReceivedPurposes.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
@@ -1097,16 +1002,9 @@
                                       <!-- Yellow Alert -->
                                       <div class="alert-warning">
                                         <p class="alert-text">
-                                          <img
-                                            src="https://placehold.co/16x16/FFAB00/ffffff.png?text=!"
-                                            style="
-                                              vertical-align: middle;
-                                              margin-right: 8px;
-                                            "
-                                            alt="warning"
-                                          />
-                                          Verifica le finalità per permettere
-                                          agli enti Fruitori di completare
+                                          {{> icon-warning }} Verifica le
+                                          finalità per permettere agli enti
+                                          Fruitori di completare
                                           l'implementazione.
                                         </p>
                                       </div>
@@ -1146,21 +1044,12 @@
                                       <p class="body-text-no-margin">
                                         Hai delegato i seguenti enti:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each activeSentDelegations.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">
@@ -1178,21 +1067,12 @@
                                         Le seguenti deleghe sono state
                                         rifiutate:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each rejectedSentDelegations.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">
@@ -1238,22 +1118,13 @@
                                         l'approvazione per pubblicare un
                                         e-service o una nuova versione:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each
                                         waitingForApprovalReceivedDelegations.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">
@@ -1270,22 +1141,13 @@
                                       <p class="body-text-no-margin">
                                         Le seguenti deleghe sono state revocate:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each
                                         revokedReceivedDelegations.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">
@@ -1333,21 +1195,12 @@
                                           nuovi attributi</strong
                                         >:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each receivedAttributes.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">
@@ -1394,21 +1247,12 @@
                                       <p class="body-text-no-margin">
                                         Ti è stato revocato un attributo:
                                       </p>
-                                      <ul
-                                        style="
-                                          padding-left: 20px;
-                                          margin-top: 0;
-                                          margin-bottom: 16px;
-                                        "
-                                      >
+                                      <ul class="list-items">
                                         {{#each revokedAttributes.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
-                                            style="
-                                              color: #0073e6;
-                                              text-decoration: none;
-                                            "
+                                            class="link-primary"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">

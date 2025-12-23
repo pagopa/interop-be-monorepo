@@ -18,6 +18,7 @@ export function digestTemplateServiceBuilder(
   const iconPartials = [
     "icon-grid",
     "icon-inbox",
+    "icon-purpose",
     "icon-delegation",
     "icon-code",
     "icon-external-link",
