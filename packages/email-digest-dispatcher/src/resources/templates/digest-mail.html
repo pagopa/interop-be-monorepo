@@ -237,6 +237,7 @@
       .content-wrapper {
         padding: 24px 25px 0px 25px;
         background-color: #fafafa;
+        border-radius: 8px;
       }
       .title-cell {
         font-size: 0px;
@@ -467,7 +468,11 @@
                               cellpadding="0"
                               cellspacing="0"
                               role="presentation"
-                              style="vertical-align: top"
+                              style="
+                                vertical-align: top;
+                                border-spacing: 10px;
+                                border-collapse: separate;
+                              "
                               width="100%"
                             >
                               <tbody>
@@ -615,7 +620,13 @@
                                       </div>
                                     </div>
                                     {{/if}}
-
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td
+                                    align="left"
+                                    class="mobile-padding content-wrapper"
+                                  >
                                     <!-- Richieste di fruizione inoltrate (Sent Agreements) -->
                                     {{#if acceptedSentAgreements.totalCount}}
                                     <div class="section-divider">
@@ -844,7 +855,14 @@
                                       </ul>
                                     </div>
                                     {{/if}}
+                                  </td>
+                                </tr>
 
+                                <tr>
+                                  <td
+                                    align="left"
+                                    class="mobile-padding content-wrapper"
+                                  >
                                     <!-- Richieste di fruizione che hai ricevuto (Received Agreements) -->
                                     {{#if
                                     waitingForApprovalReceivedAgreements.totalCount}}
@@ -1010,7 +1028,14 @@
                                       </div>
                                     </div>
                                     {{/if}}
+                                  </td>
+                                </tr>
 
+                                <tr>
+                                  <td
+                                    align="left"
+                                    class="mobile-padding content-wrapper"
+                                  >
                                     <!-- Deleghe -->
                                     {{#if activeSentDelegations.totalCount}}
                                     <div class="section-divider">
@@ -1158,7 +1183,14 @@
                                       </ul>
                                     </div>
                                     {{/if}}
+                                  </td>
+                                </tr>
 
+                                <tr>
+                                  <td
+                                    align="left"
+                                    class="mobile-padding content-wrapper"
+                                  >
                                     <!-- Attributi -->
                                     {{#if receivedAttributes.totalCount}}
                                     <div class="section-divider">
