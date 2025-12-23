@@ -96,6 +96,7 @@ describe("authorization server tests", () => {
   });
   afterEach(async () => {
     await deleteDynamoDBTables(dynamoDBClient);
+    mockProducer.send.mockClear();
     vi.restoreAllMocks();
   });
 
@@ -114,7 +115,7 @@ describe("authorization server tests", () => {
       },
     };
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -148,7 +149,7 @@ describe("authorization server tests", () => {
       },
     };
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -185,7 +186,7 @@ describe("authorization server tests", () => {
       kid: clientAssertion.header.kid!,
       purposeId,
     });
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -233,7 +234,7 @@ describe("authorization server tests", () => {
       tokenGenStatesConsumerClient,
       dynamoDBClient
     );
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -280,7 +281,7 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -337,7 +338,7 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -394,7 +395,7 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -532,7 +533,7 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -585,7 +586,7 @@ describe("authorization server tests", () => {
 
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -646,7 +647,7 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -679,7 +680,7 @@ describe("authorization server tests", () => {
       },
     };
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -719,7 +720,7 @@ describe("authorization server tests", () => {
       },
     };
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -767,7 +768,7 @@ describe("authorization server tests", () => {
       },
     };
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
@@ -1513,7 +1514,7 @@ describe("authorization server tests", () => {
 
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
-    expect(
+    await expect(
       tokenService.generateToken(
         request.headers,
         request.body,
