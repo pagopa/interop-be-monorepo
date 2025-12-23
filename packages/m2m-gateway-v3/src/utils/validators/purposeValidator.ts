@@ -22,3 +22,17 @@ export function assertPurposeCurrentVersionExists(
     throw missingPurposeCurrentVersion(purposeId);
   }
 }
+
+// export function assertSeedPatchPurposeUpdateFromTemplateContent(
+//   updateSeed:
+//     | m2mGatewayApiV3.PurposeDraftUpdateSeed
+//     | m2mGatewayApiV3.PurposeDraftFromTemplateUpdateSeed
+// ): asserts updateSeed is m2mGatewayApiV3.PurposeDraftFromTemplateUpdateSeed {
+//   const result =
+//     m2mGatewayApiV3.PurposeDraftFromTemplateUpdateSeed.safeParse(updateSeed);
+//   if (!result.success) {
+//     throw invalidSeedForPurposeFromTemplate(
+//       result.error.issues.map((i) => i.message)
+//     );
+//   }
+// }

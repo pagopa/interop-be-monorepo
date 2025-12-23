@@ -401,6 +401,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
+          // updateDraftPurposeErrorMapper, delete emptyErrorMapper later
           ctx,
           `Error updating purpose with id ${req.params.purposeId}`
         );
@@ -429,6 +430,29 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     });
+  // delete the ; at the end of the last route
+  // .post("/purposeTemplates/:purposeTemplateId/purposes", async (req, res) => {
+  //   const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+  //   try {
+  //     validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+  //     const purpose = await purposeService.createPurposeFromTemplate(
+  //       unsafeBrandId(req.params.purposeTemplateId),
+  //       req.body,
+  //       ctx
+  //     );
+
+  //     return res.status(201).send(m2mGatewayApiV3.Purpose.parse(purpose));
+  //   } catch (error) {
+  //     const errorRes = makeApiProblem(
+  //       error,
+  //       createPurposeErrorMapper,
+  //       ctx,
+  //       `Error creating purpose from purpose template with id ${req.params.purposeTemplateId}`
+  //     );
+  //     return res.status(errorRes.status).send(errorRes);
+  //   }
+  // });
 
   return purposeRouter;
 };
