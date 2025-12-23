@@ -200,10 +200,10 @@ export function readModelServiceBuilderSQL({
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
-    async getPurposeTemplate(
+    async getPurposeTemplatesByTitle(
       title: string
-    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
+    ): Promise<Array<WithMetadata<PurposeTemplate>>> {
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplatesByFilter(
         ilike(
           purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
           escapeRegExp(title)
