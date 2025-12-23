@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomInt } from "crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -18,6 +19,9 @@ import {
   generateId,
   Client,
   ProducerKeychain,
+  toClientV1,
+  AuthorizationEventEnvelopeV1,
+  AuthorizationEventV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
@@ -141,6 +145,40 @@ describe("handleAuthorizationEvent test", async () => {
           })
           .exhaustive();
       });
+
+      it.each(AuthorizationEventV1.options.map((o) => o.shape.type.value))(
+        "should ignore authorization %s v1 event",
+        async (eventType: AuthorizationEventV1["type"]) => {
+          const client = getMockClient();
+
+          const message = {
+            ...getMockEventEnvelopeCommons(),
+            stream_id: client.id,
+            type: eventType,
+            event_version: 1,
+            data: {
+              client: toClientV1(client),
+            },
+          } as AuthorizationEventEnvelopeV1;
+
+          const eventTimestamp = new Date();
+
+          await handleAuthorizationEvent(
+            message,
+            eventTimestamp,
+            genericLogger,
+            testM2mEventWriterService
+          );
+
+          expect(
+            testM2mEventWriterService.insertClientM2MEvent
+          ).not.toHaveBeenCalled();
+
+          expect(
+            testM2mEventWriterService.insertKeyM2MEvent
+          ).not.toHaveBeenCalled();
+        }
+      );
 
       it(`should not write the event ${eventType} if the same resource version is already present`, async () => {
         const testCase = buildTestCaseData(new Date(), eventType);

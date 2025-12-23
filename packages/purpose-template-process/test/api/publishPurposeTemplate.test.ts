@@ -113,7 +113,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
     }
   );
 
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
   it.each([
     {},
     {

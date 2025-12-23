@@ -19,7 +19,6 @@ import {
   UserId,
   TenantId,
   NotificationConfig,
-  emailNotificationPreference,
   UserRole,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
@@ -44,7 +43,6 @@ import {
   userNotificationConfigNotFound,
   userRoleNotInUserNotificationConfig,
 } from "../model/domain/errors.js";
-import { apiEmailNotificationPreferenceToEmailNotificationPreference } from "../model/domain/apiConverter.js";
 
 const defaultNotificationConfigs = {
   tenant: {
@@ -52,7 +50,8 @@ const defaultNotificationConfigs = {
   },
   user: {
     inAppNotificationPreference: false,
-    emailNotificationPreference: emailNotificationPreference.disabled,
+    emailNotificationPreference: false,
+    emailDigestPreference: false,
     inApp: {
       agreementSuspendedUnsuspendedToProducer: false,
       agreementManagementToProducer: false,
@@ -230,10 +229,8 @@ export function notificationConfigServiceBuilder(
         tenantId: organizationId,
         userRoles: existingConfig.data.userRoles,
         inAppNotificationPreference: seed.inAppNotificationPreference,
-        emailNotificationPreference:
-          apiEmailNotificationPreferenceToEmailNotificationPreference(
-            seed.emailNotificationPreference
-          ),
+        emailNotificationPreference: seed.emailNotificationPreference,
+        emailDigestPreference: seed.emailDigestPreference,
         inAppConfig: seed.inAppConfig,
         emailConfig: seed.emailConfig,
         createdAt: existingConfig.data.createdAt,
@@ -320,6 +317,8 @@ export function notificationConfigServiceBuilder(
               defaultNotificationConfigs.user.inAppNotificationPreference,
             emailNotificationPreference:
               defaultNotificationConfigs.user.emailNotificationPreference,
+            emailDigestPreference:
+              defaultNotificationConfigs.user.emailDigestPreference,
             inAppConfig: defaultNotificationConfigs.user.inApp,
             emailConfig: defaultNotificationConfigs.user.email,
             createdAt: new Date(),

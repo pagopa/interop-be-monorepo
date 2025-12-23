@@ -25,6 +25,7 @@ import {
   eserviceTemplateNotInDraftState,
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
+  riskAnalysisNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
@@ -115,6 +116,10 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
     {
       error: templateNotInReceiveMode(eserviceTemplateId),
       expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisNotFound(eserviceTemplateId, mockValidRiskAnalysis.id),
+      expectedStatus: 404,
     },
     {
       error: riskAnalysisValidationFailed([
