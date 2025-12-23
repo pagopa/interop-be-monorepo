@@ -131,6 +131,10 @@ export function purposeServiceBuilder(
     purposeSeed:
       | m2mGatewayApiV3.PurposeSeed
       | m2mGatewayApiV3.ReversePurposeSeed,
+    // purposeSeed:
+    //   | m2mGatewayApiV3.PurposeSeed
+    //   | m2mGatewayApiV3.ReversePurposeSeed
+    //   | m2mGatewayApiV3.PurposeFromTemplateSeed,
     authData: M2MAdminAuthData,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<TenantId> => {
@@ -154,6 +158,33 @@ export function purposeServiceBuilder(
       return unsafeBrandId<TenantId>(delegation.delegatorId);
     }
   };
+  // const innerUpdateDraftPurpose = async (
+  //   updateSeed:
+  //     | m2mGatewayApiV3.PurposeDraftUpdateSeed
+  //     | m2mGatewayApiV3.PurposeDraftFromTemplateUpdateSeed,
+  //   purpose: purposeApi.Purpose,
+  //   headers: M2MGatewayAppContext["headers"]
+  // ): Promise<WithMaybeMetadata<purposeApi.Purpose>> => {
+  //   if (purpose.purposeTemplateId) {
+  //     assertSeedPatchPurposeUpdateFromTemplateContent(updateSeed);
+
+  //     return clients.purposeProcessClient.patchUpdatePurposeFromTemplate(
+  //       updateSeed,
+  //       {
+  //         params: {
+  //           purposeId: purpose.id,
+  //           purposeTemplateId: purpose.purposeTemplateId,
+  //         },
+  //         headers,
+  //       }
+  //     );
+  //   }
+
+  //   return await clients.purposeProcessClient.patchUpdatePurpose(updateSeed, {
+  //     params: { id: purpose.id },
+  //     headers,
+  //   });
+  // };
 
   return {
     async getPurposes(
@@ -563,9 +594,20 @@ export function purposeServiceBuilder(
     async updateDraftPurpose(
       purposeId: PurposeId,
       updateSeed: m2mGatewayApiV3.PurposeDraftUpdateSeed,
+      // updateSeed:
+      // | m2mGatewayApiV3.PurposeDraftUpdateSeed
+      // | m2mGatewayApiV3.PurposeDraftFromTemplateUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(`Updating draft purpose with id ${purposeId}`);
+
+      // const purpose = await retrievePurposeById(purposeId, headers);
+
+      // const updatedPurpose = await innerUpdateDraftPurpose(
+      //   updateSeed,
+      //   purpose.data,
+      //   headers
+      // );
 
       const updatedPurpose =
         await clients.purposeProcessClient.patchUpdatePurpose(updateSeed, {
@@ -597,5 +639,34 @@ export function purposeServiceBuilder(
 
       return toM2MGatewayApiPurpose(polledResource.data);
     },
+    // async createPurposeFromTemplate(
+    //   purposeTemplateId: PurposeTemplateId,
+    //   purposeFromTemplateSeed: m2mGatewayApiV3.PurposeFromTemplateSeed,
+    //   { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    // ): Promise<m2mGatewayApiV3.Purpose> {
+    //   logger.info(
+    //     `Creating purpose from template ${purposeTemplateId} and consumer ${authData.organizationId}`
+    //   );
+
+    //   const purposeResponse =
+    //     await clients.purposeProcessClient.createPurposeFromTemplate(
+    //       {
+    //         consumerId: await getConsumerIdForPurposeCreation(
+    //           purposeFromTemplateSeed,
+    //           authData,
+    //           headers
+    //         ),
+    //         eserviceId: purposeFromTemplateSeed.eserviceId,
+    //         dailyCalls: purposeFromTemplateSeed.dailyCalls,
+    //         riskAnalysisForm: purposeFromTemplateSeed.riskAnalysisForm,
+    //         title: purposeFromTemplateSeed.title,
+    //       },
+    //       { params: { purposeTemplateId }, headers }
+    //     );
+
+    //   const polledResource = await pollPurpose(purposeResponse, headers);
+
+    //   return toM2MGatewayApiPurpose(polledResource.data);
+    // },
   };
 }

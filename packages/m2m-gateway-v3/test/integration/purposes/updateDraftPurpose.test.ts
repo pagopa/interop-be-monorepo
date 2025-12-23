@@ -22,6 +22,8 @@ import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
+// Copy of the test suite for updateDraftPurpose service method from m2m-gateway
+
 describe("updateDraftPurpose", () => {
   const mockPurpose = getMockedApiPurpose();
   const mockPurposeProcessGetResponse = getMockWithMetadata(mockPurpose);
