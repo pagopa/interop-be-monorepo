@@ -6,6 +6,10 @@ import {
   generateId,
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
+  interfaceExtractingInfoError,
+  interfaceExtractingSoapFiledError,
+  openapiVersionNotRecognized,
+  parsingSoapFileError,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
@@ -86,6 +90,22 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
         id: generateId(),
         isEserviceTemplate: true,
       }),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingSoapFiledError("field-name"),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingInfoError(),
+      expectedStatus: 400,
+    },
+    {
+      error: parsingSoapFileError(),
+      expectedStatus: 400,
+    },
+    {
+      error: openapiVersionNotRecognized("invalid-version"),
       expectedStatus: 400,
     },
   ])(

@@ -1,7 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  generateId,
+  interfaceExtractingInfoError,
+  interfaceExtractingSoapFiledError,
+  invalidContentTypeDetected,
+  invalidInterfaceFileDetected,
+  invalidServerUrl,
+  openapiVersionNotRecognized,
+  parsingSoapFileError,
+  pollingMaxRetriesExceeded,
+} from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -147,6 +157,66 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       );
 
       expect(res.status).toBe(400);
+    }
+  );
+
+  it.each([
+    {
+      error: invalidContentTypeDetected(
+        {
+          id: generateId(),
+          isEserviceTemplate: true,
+        },
+        "contentType",
+        "REST"
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidInterfaceFileDetected({
+        id: generateId(),
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingSoapFiledError("invalid-field"),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingInfoError(),
+      expectedStatus: 400,
+    },
+    {
+      error: parsingSoapFileError(),
+      expectedStatus: 400,
+    },
+    {
+      error: openapiVersionNotRecognized("invalid-version"),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidServerUrl({
+        id: generateId(),
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus in case of $error",
+    async ({ error, expectedStatus }) => {
+      mockEserviceService.uploadEServiceDescriptorInterface = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        generateId(),
+        generateId(),
+        mockFileUpload
+      );
+
+      expect(res.status).toBe(expectedStatus);
     }
   );
 
