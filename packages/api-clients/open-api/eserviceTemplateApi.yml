@@ -1374,6 +1374,7 @@ paths:
       tags:
         - process
       summary: Set personalData flag for published e-service templates
+      description: Set personalData flag for published e-service templates
       operationId: updateEServiceTemplatePersonalDataFlagAfterPublication
       parameters:
         - name: templateId
@@ -1400,25 +1401,25 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/creators":
