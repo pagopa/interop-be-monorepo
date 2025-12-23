@@ -279,6 +279,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
     .with(
       "documentPrettyNameDuplicate",
       "checksumDuplicate",
+      "notValidEServiceTemplateVersionState",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
