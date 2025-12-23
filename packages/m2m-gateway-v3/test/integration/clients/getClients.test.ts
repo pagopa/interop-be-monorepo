@@ -51,13 +51,13 @@ describe("getClients", () => {
   });
   const mockPartialClients = [mockPartialClient1, mockPartialClient2];
   const mockPartialClientsResponse: WithMaybeMetadata<authorizationApi.Clients> =
-  {
-    data: {
-      results: mockPartialClients,
-      totalCount: mockPartialClients.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockPartialClients,
+        totalCount: mockPartialClients.length,
+      },
+      metadata: undefined,
+    };
 
   mockInteropBeClients.authorizationClient = {
     client: {

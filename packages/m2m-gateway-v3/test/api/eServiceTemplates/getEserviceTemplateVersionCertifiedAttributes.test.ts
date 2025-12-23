@@ -8,7 +8,10 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import {
   eserviceTemplateVersionAttributeNotFound,
@@ -88,16 +91,16 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttr
   ];
 
   const mockM2MEserviceTemplateVersionCertifiedAttributesResponse: m2mGatewayApiV3.EServiceTemplateVersionCertifiedAttributes =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 3 },
-    results,
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 3 },
+      results,
+    };
 
   const mockQueryParams: m2mGatewayApiV3.GetEServiceTemplateVersionCertifiedAttributesQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   mockEServiceTemplateService.getEserviceTemplateVersionCertifiedAttributes = vi
     .fn()

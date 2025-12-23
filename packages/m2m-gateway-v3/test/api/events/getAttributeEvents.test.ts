@@ -21,10 +21,11 @@ describe("GET /attributeEvents router test", () => {
     events,
   };
 
-  const mockQueryParams: m2mGatewayApiV3.GetEventManagerAttributesQueryParams = {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+  const mockQueryParams: m2mGatewayApiV3.GetEventManagerAttributesQueryParams =
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,

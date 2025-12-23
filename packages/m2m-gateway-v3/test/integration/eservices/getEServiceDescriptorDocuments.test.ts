@@ -13,10 +13,10 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getEServiceDescriptorDocuments", () => {
   const mockQueryParams: m2mGatewayApiV3.GetEServiceDescriptorDocumentsQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockApiEServiceDoc1 = getMockedApiEserviceDoc();
   const mockApiEServiceDoc2 = getMockedApiEserviceDoc();
@@ -24,13 +24,13 @@ describe("getEServiceDescriptorDocuments", () => {
   const mockApiEServiceDocs = [mockApiEServiceDoc1, mockApiEServiceDoc2];
 
   const mockEServiceProcessResponse: WithMaybeMetadata<catalogApi.EServiceDocs> =
-  {
-    data: {
-      results: mockApiEServiceDocs,
-      totalCount: mockApiEServiceDocs.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiEServiceDocs,
+        totalCount: mockApiEServiceDocs.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetEServiceDescriptorDocuments = vi
     .fn()

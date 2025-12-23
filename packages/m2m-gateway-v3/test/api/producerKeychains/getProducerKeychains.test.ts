@@ -15,13 +15,14 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiProducerKeychain } from "../../../src/api/producerKeychainApiConverter.js";
 
 describe("GET /producerKeychains router test", () => {
-  const m2mPartialProducerKeychainsResponse: m2mGatewayApiV3.ProducerKeychains = {
-    pagination: { offset: 0, limit: 10, totalCount: 2 },
-    results: [
-      toM2MGatewayApiProducerKeychain(getMockedApiPartialProducerKeychain()),
-      toM2MGatewayApiProducerKeychain(getMockedApiPartialProducerKeychain()),
-    ],
-  };
+  const m2mPartialProducerKeychainsResponse: m2mGatewayApiV3.ProducerKeychains =
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        toM2MGatewayApiProducerKeychain(getMockedApiPartialProducerKeychain()),
+        toM2MGatewayApiProducerKeychain(getMockedApiPartialProducerKeychain()),
+      ],
+    };
 
   const m2mFullProducerKeychainsResponse: m2mGatewayApiV3.ProducerKeychains = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },

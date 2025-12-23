@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiEServiceTemplate,
@@ -120,19 +123,21 @@ describe("getEServiceTemplateVersions", () => {
   });
 
   it("Should correctly apply pagination from the retrieved template (offset, limit)", async () => {
-    const expectedM2MTemplateVersion: m2mGatewayApiV3.EServiceTemplateVersion = {
-      id: mockApiTemplateVersion2.id,
-      state: mockApiTemplateVersion2.state,
-      version: mockApiTemplateVersion2.version,
-      voucherLifespan: mockApiTemplateVersion2.voucherLifespan,
-      agreementApprovalPolicy: mockApiTemplateVersion2.agreementApprovalPolicy,
-      dailyCallsPerConsumer: mockApiTemplateVersion2.dailyCallsPerConsumer,
-      dailyCallsTotal: mockApiTemplateVersion2.dailyCallsTotal,
-      deprecatedAt: mockApiTemplateVersion2.deprecatedAt,
-      description: mockApiTemplateVersion2.description,
-      publishedAt: mockApiTemplateVersion2.publishedAt,
-      suspendedAt: mockApiTemplateVersion2.suspendedAt,
-    };
+    const expectedM2MTemplateVersion: m2mGatewayApiV3.EServiceTemplateVersion =
+      {
+        id: mockApiTemplateVersion2.id,
+        state: mockApiTemplateVersion2.state,
+        version: mockApiTemplateVersion2.version,
+        voucherLifespan: mockApiTemplateVersion2.voucherLifespan,
+        agreementApprovalPolicy:
+          mockApiTemplateVersion2.agreementApprovalPolicy,
+        dailyCallsPerConsumer: mockApiTemplateVersion2.dailyCallsPerConsumer,
+        dailyCallsTotal: mockApiTemplateVersion2.dailyCallsTotal,
+        deprecatedAt: mockApiTemplateVersion2.deprecatedAt,
+        description: mockApiTemplateVersion2.description,
+        publishedAt: mockApiTemplateVersion2.publishedAt,
+        suspendedAt: mockApiTemplateVersion2.suspendedAt,
+      };
     const m2mTemplateResponse: m2mGatewayApiV3.EServiceTemplateVersions = {
       pagination: {
         limit: mockParams.limit,

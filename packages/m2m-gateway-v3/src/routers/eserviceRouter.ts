@@ -440,7 +440,9 @@ const eserviceRouter = (
               ctx
             );
 
-          return res.status(200).send(m2mGatewayApiV3.Documents.parse(documents));
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.Documents.parse(documents));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

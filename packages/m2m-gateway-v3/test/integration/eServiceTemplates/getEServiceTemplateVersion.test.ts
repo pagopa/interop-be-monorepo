@@ -4,7 +4,10 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import {
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
@@ -45,19 +48,21 @@ describe("getEServiceTemplateVersion", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const expectedM2MTemplateVersion: m2mGatewayApiV3.EServiceTemplateVersion = {
-      id: mockApiTemplateVersion1.id,
-      state: mockApiTemplateVersion1.state,
-      version: mockApiTemplateVersion1.version,
-      voucherLifespan: mockApiTemplateVersion1.voucherLifespan,
-      agreementApprovalPolicy: mockApiTemplateVersion1.agreementApprovalPolicy,
-      dailyCallsPerConsumer: mockApiTemplateVersion1.dailyCallsPerConsumer,
-      dailyCallsTotal: mockApiTemplateVersion1.dailyCallsTotal,
-      deprecatedAt: mockApiTemplateVersion1.deprecatedAt,
-      description: mockApiTemplateVersion1.description,
-      publishedAt: mockApiTemplateVersion1.publishedAt,
-      suspendedAt: mockApiTemplateVersion1.suspendedAt,
-    };
+    const expectedM2MTemplateVersion: m2mGatewayApiV3.EServiceTemplateVersion =
+      {
+        id: mockApiTemplateVersion1.id,
+        state: mockApiTemplateVersion1.state,
+        version: mockApiTemplateVersion1.version,
+        voucherLifespan: mockApiTemplateVersion1.voucherLifespan,
+        agreementApprovalPolicy:
+          mockApiTemplateVersion1.agreementApprovalPolicy,
+        dailyCallsPerConsumer: mockApiTemplateVersion1.dailyCallsPerConsumer,
+        dailyCallsTotal: mockApiTemplateVersion1.dailyCallsTotal,
+        deprecatedAt: mockApiTemplateVersion1.deprecatedAt,
+        description: mockApiTemplateVersion1.description,
+        publishedAt: mockApiTemplateVersion1.publishedAt,
+        suspendedAt: mockApiTemplateVersion1.suspendedAt,
+      };
 
     const result = await eserviceTemplateService.getEServiceTemplateVersion(
       unsafeBrandId(mockApiTemplate.data.id),

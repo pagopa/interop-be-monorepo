@@ -12,10 +12,10 @@ describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/verifiers route
   const tenantId = generateId();
   const attributeId = generateId();
   const mockQueryParams: m2mGatewayApiV3.GetTenantVerifiedAttributesQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockVerifier1: tenantApi.TenantVerifier = {
     id: generateId(),

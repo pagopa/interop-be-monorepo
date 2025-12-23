@@ -251,14 +251,14 @@ export function eserviceServiceBuilder(
     const updatedGroups =
       attributeGroupWithoutAttribute.length === 0
         ? [
-          ...kindAttributeGroups.slice(0, groupIndex),
-          ...kindAttributeGroups.slice(groupIndex + 1),
-        ]
+            ...kindAttributeGroups.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(groupIndex + 1),
+          ]
         : [
-          ...kindAttributeGroups.slice(0, groupIndex),
-          attributeGroupWithoutAttribute,
-          ...kindAttributeGroups.slice(groupIndex + 1),
-        ];
+            ...kindAttributeGroups.slice(0, groupIndex),
+            attributeGroupWithoutAttribute,
+            ...kindAttributeGroups.slice(groupIndex + 1),
+          ];
 
     const response =
       await clients.catalogProcessClient.patchUpdateDraftDescriptor(
@@ -346,17 +346,17 @@ export function eserviceServiceBuilder(
     };
 
     const response = await (descriptor.state ===
-      catalogApi.EServiceDescriptorState.Values.DRAFT
+    catalogApi.EServiceDescriptorState.Values.DRAFT
       ? clients.catalogProcessClient.patchUpdateDraftDescriptor(
-        {
-          attributes: updatedAttributes,
-        },
-        configOptions
-      )
+          {
+            attributes: updatedAttributes,
+          },
+          configOptions
+        )
       : clients.catalogProcessClient.updateDescriptorAttributes(
-        updatedAttributes,
-        configOptions
-      ));
+          updatedAttributes,
+          configOptions
+        ));
     await pollEService(response, headers);
   }
 
@@ -411,7 +411,11 @@ export function eserviceServiceBuilder(
     },
     async getEServiceDescriptors(
       eserviceId: EServiceId,
-      { state, offset, limit }: m2mGatewayApiV3.GetEServiceDescriptorsQueryParams,
+      {
+        state,
+        offset,
+        limit,
+      }: m2mGatewayApiV3.GetEServiceDescriptorsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServiceDescriptors> {
       logger.info(

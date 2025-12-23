@@ -169,14 +169,15 @@ describe("getEserviceTemplateVersionDeclaredAttributes", () => {
   });
 
   it("Should apply filters (offset, limit)", async () => {
-    const response1: m2mGatewayApiV3.EServiceTemplateVersionDeclaredAttributes = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [response[0], response[1]],
-    };
+    const response1: m2mGatewayApiV3.EServiceTemplateVersionDeclaredAttributes =
+      {
+        pagination: {
+          offset: 0,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [response[0], response[1]],
+      };
 
     const result =
       await eserviceTemplateService.getEserviceTemplateVersionDeclaredAttributes(
@@ -188,14 +189,15 @@ describe("getEserviceTemplateVersionDeclaredAttributes", () => {
 
     expect(result).toEqual(response1);
 
-    const response2: m2mGatewayApiV3.EServiceTemplateVersionDeclaredAttributes = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [response[2]],
-    };
+    const response2: m2mGatewayApiV3.EServiceTemplateVersionDeclaredAttributes =
+      {
+        pagination: {
+          offset: 2,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [response[2]],
+      };
 
     const result2 =
       await eserviceTemplateService.getEserviceTemplateVersionDeclaredAttributes(
@@ -228,21 +230,21 @@ describe("getEserviceTemplateVersionDeclaredAttributes", () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
     const descriptorWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion =
-    {
-      ...getMockedApiEserviceTemplateVersion(),
-      attributes: {
-        certified: [],
-        declared: [
-          [
-            {
-              id: MISSING_ATTRIBUTE_ID,
-              explicitAttributeVerification: false,
-            },
+      {
+        ...getMockedApiEserviceTemplateVersion(),
+        attributes: {
+          certified: [],
+          declared: [
+            [
+              {
+                id: MISSING_ATTRIBUTE_ID,
+                explicitAttributeVerification: false,
+              },
+            ],
           ],
-        ],
-        verified: [],
-      },
-    };
+          verified: [],
+        },
+      };
 
     const eserviceWithDescriptorWithoutAttribute: eserviceTemplateApi.EServiceTemplate =
       getMockedApiEServiceTemplate({

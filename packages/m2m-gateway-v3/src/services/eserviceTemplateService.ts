@@ -296,14 +296,14 @@ export function eserviceTemplateServiceBuilder(
     const updatedGroups =
       attributeGroupWithoutAttribute.length === 0
         ? [
-          ...kindAttributeGroups.slice(0, groupIndex),
-          ...kindAttributeGroups.slice(groupIndex + 1),
-        ]
+            ...kindAttributeGroups.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(groupIndex + 1),
+          ]
         : [
-          ...kindAttributeGroups.slice(0, groupIndex),
-          attributeGroupWithoutAttribute,
-          ...kindAttributeGroups.slice(groupIndex + 1),
-        ];
+            ...kindAttributeGroups.slice(0, groupIndex),
+            attributeGroupWithoutAttribute,
+            ...kindAttributeGroups.slice(groupIndex + 1),
+          ];
 
     const response =
       await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
@@ -364,17 +364,17 @@ export function eserviceTemplateServiceBuilder(
     };
 
     const response = await (version.state ===
-      eserviceTemplateApi.EServiceTemplateVersionState.Values.DRAFT
+    eserviceTemplateApi.EServiceTemplateVersionState.Values.DRAFT
       ? clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
-        {
-          attributes: updatedAttributes,
-        },
-        configOptions
-      )
+          {
+            attributes: updatedAttributes,
+          },
+          configOptions
+        )
       : clients.eserviceTemplateProcessClient.updateTemplateVersionAttributes(
-        updatedAttributes,
-        configOptions
-      ));
+          updatedAttributes,
+          configOptions
+        ));
     await pollEServiceTemplate(response, headers);
   }
 

@@ -35,13 +35,13 @@ describe("getAgreements", () => {
   const mockApiAgreements = [mockApiAgreement1, mockApiAgreement2];
 
   const mockAgreementProcessResponse: WithMaybeMetadata<agreementApi.Agreements> =
-  {
-    data: {
-      results: mockApiAgreements,
-      totalCount: mockApiAgreements.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiAgreements,
+        totalCount: mockApiAgreements.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetAgreements = vi
     .fn()

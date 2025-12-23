@@ -98,29 +98,30 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
     versions: [version],
   };
 
-  const response: m2mGatewayApiV3.EServiceTemplateVersionCertifiedAttribute[] = [
-    {
-      groupIndex: 0,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute1,
-        logger: genericLogger,
-      }),
-    },
-    {
-      groupIndex: 0,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute2,
-        logger: genericLogger,
-      }),
-    },
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute3,
-        logger: genericLogger,
-      }),
-    },
-  ];
+  const response: m2mGatewayApiV3.EServiceTemplateVersionCertifiedAttribute[] =
+    [
+      {
+        groupIndex: 0,
+        attribute: toM2MGatewayApiCertifiedAttribute({
+          attribute: bulkAttribute1,
+          logger: genericLogger,
+        }),
+      },
+      {
+        groupIndex: 0,
+        attribute: toM2MGatewayApiCertifiedAttribute({
+          attribute: bulkAttribute2,
+          logger: genericLogger,
+        }),
+      },
+      {
+        groupIndex: 1,
+        attribute: toM2MGatewayApiCertifiedAttribute({
+          attribute: bulkAttribute3,
+          logger: genericLogger,
+        }),
+      },
+    ];
 
   const mockEserviceTemplateResponse = getMockWithMetadata(eserviceTemplate);
   const mockGetEServiceTemplateById = vi
@@ -170,14 +171,14 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
 
   it("Should apply filters (offset, limit)", async () => {
     const response1: m2mGatewayApiV3.EServiceTemplateVersionCertifiedAttributes =
-    {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [response[0], response[1]],
-    };
+      {
+        pagination: {
+          offset: 0,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [response[0], response[1]],
+      };
 
     const result =
       await eserviceTemplateService.getEserviceTemplateVersionCertifiedAttributes(
@@ -190,14 +191,14 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
     expect(result).toEqual(response1);
 
     const response2: m2mGatewayApiV3.EServiceTemplateVersionCertifiedAttributes =
-    {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [response[2]],
-    };
+      {
+        pagination: {
+          offset: 2,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [response[2]],
+      };
 
     const result2 =
       await eserviceTemplateService.getEserviceTemplateVersionCertifiedAttributes(
@@ -230,21 +231,21 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
     const descriptorWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion =
-    {
-      ...getMockedApiEserviceTemplateVersion(),
-      attributes: {
-        certified: [
-          [
-            {
-              id: MISSING_ATTRIBUTE_ID,
-              explicitAttributeVerification: false,
-            },
+      {
+        ...getMockedApiEserviceTemplateVersion(),
+        attributes: {
+          certified: [
+            [
+              {
+                id: MISSING_ATTRIBUTE_ID,
+                explicitAttributeVerification: false,
+              },
+            ],
           ],
-        ],
-        declared: [],
-        verified: [],
-      },
-    };
+          declared: [],
+          verified: [],
+        },
+      };
 
     const eserviceWithDescriptorWithoutAttribute: eserviceTemplateApi.EServiceTemplate =
       getMockedApiEServiceTemplate({

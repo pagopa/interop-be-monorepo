@@ -27,7 +27,8 @@ describe("toM2MGatewayApiPurpose", () => {
   it.each(
     m2mGatewayApiV3.PurposeVersionState.options.filter(
       (state) =>
-        state !== m2mGatewayApiV3.PurposeVersionState.Enum.WAITING_FOR_APPROVAL &&
+        state !==
+          m2mGatewayApiV3.PurposeVersionState.Enum.WAITING_FOR_APPROVAL &&
         state !== m2mGatewayApiV3.PurposeVersionState.Enum.REJECTED
     )
   )(

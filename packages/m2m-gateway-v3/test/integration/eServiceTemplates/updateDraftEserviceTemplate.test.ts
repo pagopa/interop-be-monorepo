@@ -27,14 +27,14 @@ describe("updateDraftEServiceTemplate", () => {
     getMockWithMetadata(mockEServiceTemplate);
 
   const mockEServiceTemplateSeed: m2mGatewayApiV3.EServiceTemplateDraftUpdateSeed =
-  {
-    name: "updated name",
-    description: "updated description",
-    technology: "REST",
-    isSignalHubEnabled: true,
-    mode: "RECEIVE",
-    intendedTarget: "intendedTarget",
-  };
+    {
+      name: "updated name",
+      description: "updated description",
+      technology: "REST",
+      isSignalHubEnabled: true,
+      mode: "RECEIVE",
+      intendedTarget: "intendedTarget",
+    };
 
   const mockPatchUpdateEServiceTemplate = vi
     .fn()

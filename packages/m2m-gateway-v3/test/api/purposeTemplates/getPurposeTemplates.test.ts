@@ -105,7 +105,10 @@ describe("API GET /purposeTemplates router test", () => {
     {
       query: {
         ...mockQueryParams,
-        states: [m2mGatewayApiV3.PurposeTemplateState.Enum.PUBLISHED, "invalid"],
+        states: [
+          m2mGatewayApiV3.PurposeTemplateState.Enum.PUBLISHED,
+          "invalid",
+        ],
       },
     },
     { query: { ...mockQueryParams, targetTenantKind: "invalid" } },

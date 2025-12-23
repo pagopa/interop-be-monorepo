@@ -82,10 +82,10 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttribu
   ];
 
   const mockM2MEserviceDeclaredAttributesResponse: m2mGatewayApiV3.EServiceDescriptorDeclaredAttributes =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 3 },
-    results,
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 3 },
+      results,
+    };
 
   const mockQueryParams: m2mGatewayApiV3.GetDeclaredAttributesQueryParams = {
     offset: 0,

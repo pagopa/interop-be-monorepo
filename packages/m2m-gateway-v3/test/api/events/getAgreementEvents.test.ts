@@ -23,11 +23,12 @@ describe("GET /agreementEvents router test", () => {
     events,
   };
 
-  const mockQueryParams: m2mGatewayApiV3.GetEventManagerAgreementsQueryParams = {
-    lastEventId: generateId(),
-    limit: 10,
-    delegationId: generateId(),
-  };
+  const mockQueryParams: m2mGatewayApiV3.GetEventManagerAgreementsQueryParams =
+    {
+      lastEventId: generateId(),
+      limit: 10,
+      delegationId: generateId(),
+    };
 
   const makeRequest = async (
     token: string,

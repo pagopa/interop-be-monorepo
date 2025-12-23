@@ -17,15 +17,16 @@ describe("GET /consumerDelegationEvents router test", () => {
     },
   ];
 
-  const mockConsumerDelegationEvents: m2mGatewayApiV3.ConsumerDelegationEvents = {
-    events,
-  };
+  const mockConsumerDelegationEvents: m2mGatewayApiV3.ConsumerDelegationEvents =
+    {
+      events,
+    };
 
   const mockQueryParams: m2mGatewayApiV3.GetEventManagerConsumerDelegationsQueryParams =
-  {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,

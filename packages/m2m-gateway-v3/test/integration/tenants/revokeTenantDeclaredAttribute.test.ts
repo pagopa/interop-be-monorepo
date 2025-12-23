@@ -74,12 +74,13 @@ describe("revokeTenantDeclaredAttribute", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantDeclaredAttribute = {
-      id: mockDeclaredAttribute1.id,
-      assignedAt: mockDeclaredAttribute1.assignmentTimestamp,
-      revokedAt: mockDeclaredAttribute1.revocationTimestamp,
-      delegationId: mockDeclaredAttribute1.delegationId,
-    };
+    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantDeclaredAttribute =
+      {
+        id: mockDeclaredAttribute1.id,
+        assignedAt: mockDeclaredAttribute1.assignmentTimestamp,
+        revokedAt: mockDeclaredAttribute1.revocationTimestamp,
+        delegationId: mockDeclaredAttribute1.delegationId,
+      };
 
     const result = await tenantService.revokeTenantDeclaredAttribute(
       unsafeBrandId(mockTenantProcessResponse.data.id),

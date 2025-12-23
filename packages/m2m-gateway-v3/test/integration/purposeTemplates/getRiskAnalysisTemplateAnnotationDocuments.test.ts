@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApiV3, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApiV3,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 import { generateId, PurposeTemplateId } from "pagopa-interop-models";
 import { getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId } from "pagopa-interop-commons-test/index.js";
 import {
@@ -13,10 +16,10 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
   const mockQueryParams: m2mGatewayApiV3.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockApiRiskAnalysisTemplateAnswerAnnotationDoc1 =
     getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId();
@@ -29,13 +32,13 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
   ];
 
   const mockPurposeTemplateProcessResponse: WithMaybeMetadata<purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerId> =
-  {
-    data: {
-      results: mockApiRiskAnalysisTemplateAnswerAnnotationDocs,
-      totalCount: mockApiRiskAnalysisTemplateAnswerAnnotationDocs.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiRiskAnalysisTemplateAnswerAnnotationDocs,
+        totalCount: mockApiRiskAnalysisTemplateAnswerAnnotationDocs.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetRiskAnalysisTemplateAnnotationDocuments = vi
     .fn()
@@ -52,43 +55,47 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mDocument1: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocument = {
-      answerId: mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.answerId,
-      document: {
-        id: mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.id,
-        name: mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.name,
-        contentType:
-          mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.contentType,
-        createdAt:
-          mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.createdAt,
-        prettyName:
-          mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.prettyName,
-      },
-    };
+    const m2mDocument1: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocument =
+      {
+        answerId: mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.answerId,
+        document: {
+          id: mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.id,
+          name: mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.name,
+          contentType:
+            mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document
+              .contentType,
+          createdAt:
+            mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.createdAt,
+          prettyName:
+            mockApiRiskAnalysisTemplateAnswerAnnotationDoc1.document.prettyName,
+        },
+      };
 
-    const m2mDocument2: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocument = {
-      answerId: mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.answerId,
-      document: {
-        id: mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.id,
-        name: mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.name,
-        contentType:
-          mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.contentType,
-        createdAt:
-          mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.createdAt,
-        prettyName:
-          mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.prettyName,
-      },
-    };
+    const m2mDocument2: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocument =
+      {
+        answerId: mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.answerId,
+        document: {
+          id: mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.id,
+          name: mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.name,
+          contentType:
+            mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document
+              .contentType,
+          createdAt:
+            mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.createdAt,
+          prettyName:
+            mockApiRiskAnalysisTemplateAnswerAnnotationDoc2.document.prettyName,
+        },
+      };
 
     const m2mDocumentsResponse: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocuments =
-    {
-      pagination: {
-        limit: mockQueryParams.limit,
-        offset: mockQueryParams.offset,
-        totalCount: mockPurposeTemplateProcessResponse.data.totalCount,
-      },
-      results: [m2mDocument1, m2mDocument2],
-    };
+      {
+        pagination: {
+          limit: mockQueryParams.limit,
+          offset: mockQueryParams.offset,
+          totalCount: mockPurposeTemplateProcessResponse.data.totalCount,
+        },
+        results: [m2mDocument1, m2mDocument2],
+      };
 
     const purposeTemplateId = generateId<PurposeTemplateId>();
     const result =

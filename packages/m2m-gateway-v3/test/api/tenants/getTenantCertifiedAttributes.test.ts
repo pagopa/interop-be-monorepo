@@ -13,10 +13,10 @@ import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenant
 
 describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
   const mockQueryParams: m2mGatewayApiV3.GetTenantCertifiedAttributesQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockTenantAttribute1 = getMockedApiCertifiedTenantAttribute();
 

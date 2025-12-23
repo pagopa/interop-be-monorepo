@@ -13,17 +13,18 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument } from "../../../src/api/purposeTemplateApiConverter.js";
 
 describe("GET /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments route test", () => {
-  const mockResponse: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocuments = {
-    results: [
-      getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId(),
-      getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId(),
-    ].map(toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument),
-    pagination: {
-      limit: 10,
-      offset: 0,
-      totalCount: 2,
-    },
-  };
+  const mockResponse: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocuments =
+    {
+      results: [
+        getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId(),
+        getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId(),
+      ].map(toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument),
+      pagination: {
+        limit: 10,
+        offset: 0,
+        totalCount: 2,
+      },
+    };
 
   const makeRequest = async (
     token: string,
@@ -43,10 +44,10 @@ describe("GET /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocume
   ];
 
   const mockQueryParams: m2mGatewayApiV3.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",

@@ -23,10 +23,10 @@ describe("GET /eserviceTemplateEvents router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApiV3.GetEventManagerEServiceTemplatesQueryParams =
-  {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,

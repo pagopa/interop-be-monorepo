@@ -48,11 +48,11 @@ describe("assignTenantVerifiedAttribute", () => {
   );
 
   const mockTenantVerifiedAttributeSeed: m2mGatewayApiV3.TenantVerifiedAttributeSeed =
-  {
-    id: mockVerifiedAttribute2.id,
-    agreementId: generateId(),
-    expirationDate: new Date().toISOString(),
-  };
+    {
+      id: mockVerifiedAttribute2.id,
+      agreementId: generateId(),
+      expirationDate: new Date().toISOString(),
+    };
 
   const mockAddVerifiedAttribute = vi
     .fn()
@@ -78,10 +78,11 @@ describe("assignTenantVerifiedAttribute", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantVerifiedAttribute = {
-      id: mockVerifiedAttribute2.id,
-      assignedAt: mockVerifiedAttribute2.assignmentTimestamp,
-    };
+    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantVerifiedAttribute =
+      {
+        id: mockVerifiedAttribute2.id,
+        assignedAt: mockVerifiedAttribute2.assignmentTimestamp,
+      };
 
     const result = await tenantService.assignTenantVerifiedAttribute(
       unsafeBrandId(mockTenantProcessResponse.data.id),

@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApiV3, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApiV3,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 import { getMockedApiPurposeTemplate } from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
@@ -31,13 +34,13 @@ describe("getPurposeTemplates", () => {
   ];
 
   const mockPurposeTemplateProcessResponse: WithMaybeMetadata<purposeTemplateApi.PurposeTemplates> =
-  {
-    data: {
-      results: mockApiPurposeTemplates,
-      totalCount: mockApiPurposeTemplates.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiPurposeTemplates,
+        totalCount: mockApiPurposeTemplates.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetPurposeTemplates = vi
     .fn()

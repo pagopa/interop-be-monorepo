@@ -59,18 +59,18 @@ export function agreementServiceBuilder(
     agreement.stamps.submission
       ? agreement.stamps.submission.delegationId
       : (
-        await clients.delegationProcessClient.delegation.getDelegations({
-          headers,
-          queries: {
-            eserviceIds: [agreement.eserviceId],
-            delegatorIds: [agreement.consumerId],
-            kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-            delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
-            limit: 1,
-            offset: 0,
-          },
-        })
-      ).data.results.at(0)?.id;
+          await clients.delegationProcessClient.delegation.getDelegations({
+            headers,
+            queries: {
+              eserviceIds: [agreement.eserviceId],
+              delegatorIds: [agreement.consumerId],
+              kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+              delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+              limit: 1,
+              offset: 0,
+            },
+          })
+        ).data.results.at(0)?.id;
   /* ^ For an unsubmitted Agreement (no submission stamp yet), retrieve the
     Delegation ID from the Active Delegation. The Delegation, if present, can only
     be active here, since on Delegation revocation:
@@ -205,7 +205,7 @@ export function agreementServiceBuilder(
     ): Promise<m2mGatewayApiV3.Agreement> {
       logger.info(
         `Creating agreement for e-service ${seed.eserviceId} and descriptor ${seed.descriptorId}` +
-        (seed.delegationId ? ` with delegation ${seed.delegationId}` : "")
+          (seed.delegationId ? ` with delegation ${seed.delegationId}` : "")
       );
 
       const response = await clients.agreementProcessClient.createAgreement(
@@ -362,7 +362,10 @@ export function agreementServiceBuilder(
     },
     async getAgreementConsumerDocuments(
       agreementId: AgreementId,
-      { offset, limit }: m2mGatewayApiV3.GetAgreementConsumerDocumentsQueryParams,
+      {
+        offset,
+        limit,
+      }: m2mGatewayApiV3.GetAgreementConsumerDocumentsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Documents> {
       logger.info(

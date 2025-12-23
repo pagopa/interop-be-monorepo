@@ -50,9 +50,9 @@ describe("assignTenantCertifiedAttribute", () => {
   );
 
   const mockTenantCertifiedAttributeSeed: m2mGatewayApiV3.TenantCertifiedAttributeSeed =
-  {
-    id: mockCertifiedAttribute2.id,
-  };
+    {
+      id: mockCertifiedAttribute2.id,
+    };
 
   const mockAddCertifiedAttribute = vi
     .fn()
@@ -78,11 +78,12 @@ describe("assignTenantCertifiedAttribute", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantCertifiedAttribute = {
-      id: mockCertifiedAttribute2.id,
-      assignedAt: mockCertifiedAttribute2.assignmentTimestamp,
-      revokedAt: mockCertifiedAttribute2.revocationTimestamp,
-    };
+    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantCertifiedAttribute =
+      {
+        id: mockCertifiedAttribute2.id,
+        assignedAt: mockCertifiedAttribute2.assignmentTimestamp,
+        revokedAt: mockCertifiedAttribute2.revocationTimestamp,
+      };
 
     const result = await tenantService.assignTenantCertifiedAttribute(
       unsafeBrandId(mockTenantProcessResponse.data.id),

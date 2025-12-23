@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import {
   RiskAnalysisId,
   generateId,

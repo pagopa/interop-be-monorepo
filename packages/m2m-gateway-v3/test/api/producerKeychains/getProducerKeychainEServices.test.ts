@@ -35,10 +35,10 @@ describe("GET /producerKeychains/:producerKeychainId/eservices router test", () 
   };
 
   const mockQueryParams: m2mGatewayApiV3.GetProducerKeychainEServicesQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,

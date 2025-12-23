@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApiV3, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApiV3,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 import {
   getMockedApiEservice,
   getMockedApiEServiceDescriptorPurposeTemplate,
@@ -38,28 +41,28 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   const mockApiPurposeTemplateEServiceDescriptor1: purposeTemplateApi.EServiceDescriptorPurposeTemplate =
-  {
-    ...getMockedApiEServiceDescriptorPurposeTemplate(),
-    eserviceId: mockApiEService1.id,
-  };
+    {
+      ...getMockedApiEServiceDescriptorPurposeTemplate(),
+      eserviceId: mockApiEService1.id,
+    };
   const mockApiPurposeTemplateEServiceDescriptor2: purposeTemplateApi.EServiceDescriptorPurposeTemplate =
-  {
-    ...getMockedApiEServiceDescriptorPurposeTemplate(),
-    eserviceId: mockApiEService2.id,
-  };
+    {
+      ...getMockedApiEServiceDescriptorPurposeTemplate(),
+      eserviceId: mockApiEService2.id,
+    };
   const mockApiPurposeTemplateEServiceDescriptors = [
     mockApiPurposeTemplateEServiceDescriptor1,
     mockApiPurposeTemplateEServiceDescriptor2,
   ];
 
   const mockPurposeTemplateEServiceDescriptorsProcessResponse: WithMaybeMetadata<purposeTemplateApi.EServiceDescriptorsPurposeTemplate> =
-  {
-    data: {
-      results: mockApiPurposeTemplateEServiceDescriptors,
-      totalCount: mockApiPurposeTemplateEServiceDescriptors.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiPurposeTemplateEServiceDescriptors,
+        totalCount: mockApiPurposeTemplateEServiceDescriptors.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetPurposeTemplateEServices = vi
     .fn()

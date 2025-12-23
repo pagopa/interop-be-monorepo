@@ -59,9 +59,9 @@ describe("assignTenantDeclaredAttribute", () => {
   const mockTenantProcessResponse = getMockWithMetadata(mockTenant);
 
   const mockTenantDeclaredAttributeSeed: m2mGatewayApiV3.TenantDeclaredAttributeSeed =
-  {
-    id: mockDeclaredAttribute2.id,
-  };
+    {
+      id: mockDeclaredAttribute2.id,
+    };
 
   const mockConsumerDelegation: delegationApi.Delegation =
     getMockedApiDelegation({
@@ -102,12 +102,13 @@ describe("assignTenantDeclaredAttribute", () => {
   });
 
   it("Should succeed and perform API clients calls when requester is target tenant", async () => {
-    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantDeclaredAttribute = {
-      id: mockDeclaredAttribute2.id,
-      assignedAt: mockDeclaredAttribute2.assignmentTimestamp,
-      revokedAt: mockDeclaredAttribute2.revocationTimestamp,
-      delegationId: mockDeclaredAttribute2.delegationId,
-    };
+    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantDeclaredAttribute =
+      {
+        id: mockDeclaredAttribute2.id,
+        assignedAt: mockDeclaredAttribute2.assignmentTimestamp,
+        revokedAt: mockDeclaredAttribute2.revocationTimestamp,
+        delegationId: mockDeclaredAttribute2.delegationId,
+      };
 
     const result = await tenantService.assignTenantDeclaredAttribute(
       unsafeBrandId(mockTenantId),
@@ -140,12 +141,13 @@ describe("assignTenantDeclaredAttribute", () => {
       getMockWithMetadata(mockConsumerDelegation)
     );
 
-    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantDeclaredAttribute = {
-      id: mockDeclaredAttribute2.id,
-      assignedAt: mockDeclaredAttribute2.assignmentTimestamp,
-      revokedAt: mockDeclaredAttribute2.revocationTimestamp,
-      delegationId: mockDeclaredAttribute2.delegationId,
-    };
+    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantDeclaredAttribute =
+      {
+        id: mockDeclaredAttribute2.id,
+        assignedAt: mockDeclaredAttribute2.assignmentTimestamp,
+        revokedAt: mockDeclaredAttribute2.revocationTimestamp,
+        delegationId: mockDeclaredAttribute2.delegationId,
+      };
 
     const result = await tenantService.assignTenantDeclaredAttribute(
       unsafeBrandId(mockTenantId),

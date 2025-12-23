@@ -41,10 +41,10 @@ describe("GET /agreements/:agreementId/consumerDocuments route test", () => {
   ];
 
   const mockQueryParams: m2mGatewayApiV3.GetAgreementConsumerDocumentsQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",

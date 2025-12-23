@@ -90,20 +90,21 @@ describe("getEserviceDescriptors", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mEserviceDescriptorsResponse: m2mGatewayApiV3.EServiceDescriptors = {
-      pagination: {
-        offset: 0,
-        limit: 10,
-        totalCount: mockCatalogProcessResponse.data.descriptors.length,
-      },
-      results: [
-        m2mEserviceDescriptorResponse1,
-        m2mEserviceDescriptorResponse2,
-        m2mEserviceDescriptorResponse3,
-        m2mEserviceDescriptorResponse4,
-        m2mEserviceDescriptorResponse5,
-      ],
-    };
+    const m2mEserviceDescriptorsResponse: m2mGatewayApiV3.EServiceDescriptors =
+      {
+        pagination: {
+          offset: 0,
+          limit: 10,
+          totalCount: mockCatalogProcessResponse.data.descriptors.length,
+        },
+        results: [
+          m2mEserviceDescriptorResponse1,
+          m2mEserviceDescriptorResponse2,
+          m2mEserviceDescriptorResponse3,
+          m2mEserviceDescriptorResponse4,
+          m2mEserviceDescriptorResponse5,
+        ],
+      };
 
     const result = await eserviceService.getEServiceDescriptors(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
@@ -122,14 +123,18 @@ describe("getEserviceDescriptors", () => {
   });
 
   it("Should apply filters (offset, limit)", async () => {
-    const m2mEserviceDescriptorsResponse1: m2mGatewayApiV3.EServiceDescriptors = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: mockCatalogProcessResponse.data.descriptors.length,
-      },
-      results: [m2mEserviceDescriptorResponse1, m2mEserviceDescriptorResponse2],
-    };
+    const m2mEserviceDescriptorsResponse1: m2mGatewayApiV3.EServiceDescriptors =
+      {
+        pagination: {
+          offset: 0,
+          limit: 2,
+          totalCount: mockCatalogProcessResponse.data.descriptors.length,
+        },
+        results: [
+          m2mEserviceDescriptorResponse1,
+          m2mEserviceDescriptorResponse2,
+        ],
+      };
     const result = await eserviceService.getEServiceDescriptors(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
       {
@@ -140,14 +145,18 @@ describe("getEserviceDescriptors", () => {
     );
     expect(result).toEqual(m2mEserviceDescriptorsResponse1);
 
-    const m2mEserviceDescriptorsResponse2: m2mGatewayApiV3.EServiceDescriptors = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: mockCatalogProcessResponse.data.descriptors.length,
-      },
-      results: [m2mEserviceDescriptorResponse3, m2mEserviceDescriptorResponse4],
-    };
+    const m2mEserviceDescriptorsResponse2: m2mGatewayApiV3.EServiceDescriptors =
+      {
+        pagination: {
+          offset: 2,
+          limit: 2,
+          totalCount: mockCatalogProcessResponse.data.descriptors.length,
+        },
+        results: [
+          m2mEserviceDescriptorResponse3,
+          m2mEserviceDescriptorResponse4,
+        ],
+      };
     const result2 = await eserviceService.getEServiceDescriptors(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
       {
@@ -158,14 +167,15 @@ describe("getEserviceDescriptors", () => {
     );
     expect(result2).toEqual(m2mEserviceDescriptorsResponse2);
 
-    const m2mEserviceDescriptorsResponse3: m2mGatewayApiV3.EServiceDescriptors = {
-      pagination: {
-        offset: 4,
-        limit: 2,
-        totalCount: mockCatalogProcessResponse.data.descriptors.length,
-      },
-      results: [m2mEserviceDescriptorResponse5],
-    };
+    const m2mEserviceDescriptorsResponse3: m2mGatewayApiV3.EServiceDescriptors =
+      {
+        pagination: {
+          offset: 4,
+          limit: 2,
+          totalCount: mockCatalogProcessResponse.data.descriptors.length,
+        },
+        results: [m2mEserviceDescriptorResponse5],
+      };
     const result3 = await eserviceService.getEServiceDescriptors(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
       {
@@ -178,14 +188,18 @@ describe("getEserviceDescriptors", () => {
   });
 
   it("Should apply filters (offset, limit, state)", async () => {
-    const m2mEserviceDescriptorsResponse1: m2mGatewayApiV3.EServiceDescriptors = {
-      pagination: {
-        offset: 0,
-        limit: 10,
-        totalCount: 2,
-      },
-      results: [m2mEserviceDescriptorResponse1, m2mEserviceDescriptorResponse2],
-    };
+    const m2mEserviceDescriptorsResponse1: m2mGatewayApiV3.EServiceDescriptors =
+      {
+        pagination: {
+          offset: 0,
+          limit: 10,
+          totalCount: 2,
+        },
+        results: [
+          m2mEserviceDescriptorResponse1,
+          m2mEserviceDescriptorResponse2,
+        ],
+      };
     const result = await eserviceService.getEServiceDescriptors(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
       {
@@ -197,14 +211,15 @@ describe("getEserviceDescriptors", () => {
     );
     expect(result).toEqual(m2mEserviceDescriptorsResponse1);
 
-    const m2mEserviceDescriptorsResponse2: m2mGatewayApiV3.EServiceDescriptors = {
-      pagination: {
-        offset: 0,
-        limit: 10,
-        totalCount: 1,
-      },
-      results: [m2mEserviceDescriptorResponse4],
-    };
+    const m2mEserviceDescriptorsResponse2: m2mGatewayApiV3.EServiceDescriptors =
+      {
+        pagination: {
+          offset: 0,
+          limit: 10,
+          totalCount: 1,
+        },
+        results: [m2mEserviceDescriptorResponse4],
+      };
     const result2 = await eserviceService.getEServiceDescriptors(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
       {
@@ -215,14 +230,15 @@ describe("getEserviceDescriptors", () => {
       getMockM2MAdminAppContext()
     );
     expect(result2).toEqual(m2mEserviceDescriptorsResponse2);
-    const m2mEserviceDescriptorsResponse3: m2mGatewayApiV3.EServiceDescriptors = {
-      pagination: {
-        offset: 0,
-        limit: 1,
-        totalCount: 2,
-      },
-      results: [m2mEserviceDescriptorResponse1],
-    };
+    const m2mEserviceDescriptorsResponse3: m2mGatewayApiV3.EServiceDescriptors =
+      {
+        pagination: {
+          offset: 0,
+          limit: 1,
+          totalCount: 2,
+        },
+        results: [m2mEserviceDescriptorResponse1],
+      };
     const result3 = await eserviceService.getEServiceDescriptors(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
       {

@@ -68,13 +68,13 @@ describe("getProducerKeychain", () => {
     );
 
     const m2mFullProducerKeychainResponse: m2mGatewayApiV3.FullProducerKeychain =
-    {
-      id: mockFullProducerKeychainFromProcess.data.id,
-      producerId: mockFullProducerKeychainFromProcess.data.producerId,
-      name: mockFullProducerKeychainFromProcess.data.name,
-      description: mockFullProducerKeychainFromProcess.data.description,
-      createdAt: mockFullProducerKeychainFromProcess.data.createdAt,
-    };
+      {
+        id: mockFullProducerKeychainFromProcess.data.id,
+        producerId: mockFullProducerKeychainFromProcess.data.producerId,
+        name: mockFullProducerKeychainFromProcess.data.name,
+        description: mockFullProducerKeychainFromProcess.data.description,
+        createdAt: mockFullProducerKeychainFromProcess.data.createdAt,
+      };
 
     const result = await producerKeychainService.getProducerKeychain(
       unsafeBrandId(mockFullProducerKeychainFromProcess.data.id),

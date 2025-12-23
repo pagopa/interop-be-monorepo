@@ -1,5 +1,8 @@
 import request from "supertest";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import {
   getMockedApiEServiceTemplate,
   generateToken,
@@ -34,11 +37,11 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/quotas router
     versions: [mockVersion],
   };
   const mockUpdateSeed: m2mGatewayApiV3.EServiceTemplateVersionQuotasUpdateSeed =
-  {
-    voucherLifespan: 3600,
-    dailyCallsPerConsumer: 1000,
-    dailyCallsTotal: 10000,
-  };
+    {
+      voucherLifespan: 3600,
+      dailyCallsPerConsumer: 1000,
+      dailyCallsTotal: 10000,
+    };
 
   const mockApiEserviceTemplateVersionResponse: m2mGatewayApiV3.EServiceTemplateVersion =
     toM2MGatewayEServiceTemplateVersion(mockVersion);

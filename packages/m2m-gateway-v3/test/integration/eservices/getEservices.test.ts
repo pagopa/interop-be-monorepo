@@ -25,13 +25,13 @@ describe("getEservices", () => {
   const mockApiEservices = [mockApiEservice1, mockApiEservice2];
 
   const mockEservicesProcessResponse: WithMaybeMetadata<catalogApi.EServices> =
-  {
-    data: {
-      results: mockApiEservices,
-      totalCount: mockApiEservices.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiEservices,
+        totalCount: mockApiEservices.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetEservices = vi
     .fn()

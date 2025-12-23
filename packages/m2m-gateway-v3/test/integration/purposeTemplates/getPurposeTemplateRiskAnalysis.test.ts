@@ -35,12 +35,12 @@ describe("getPurposeTemplateRiskAnalysis", () => {
     const mockRiskAnalysisFormTemplate =
       mockApiPurposeTemplateResponse.data.purposeRiskAnalysisForm!;
     const expectedM2MRiskAnalysisFormTemplate: m2mGatewayApiV3.RiskAnalysisFormTemplate =
-    {
-      version: mockRiskAnalysisFormTemplate.version,
-      answers: toM2MGatewayApiRiskAnalysisTemplateAnswers(
-        mockRiskAnalysisFormTemplate.answers
-      ),
-    };
+      {
+        version: mockRiskAnalysisFormTemplate.version,
+        answers: toM2MGatewayApiRiskAnalysisTemplateAnswers(
+          mockRiskAnalysisFormTemplate.answers
+        ),
+      };
 
     const result = await purposeTemplateService.getPurposeTemplateRiskAnalysis(
       unsafeBrandId(mockApiPurposeTemplateResponse.data.id),

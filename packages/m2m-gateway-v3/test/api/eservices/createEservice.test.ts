@@ -17,13 +17,13 @@ describe("POST /eservices router test", () => {
   const mockApiEservice = getMockedApiEservice();
 
   const mockApiEserviceWithDescriptor: m2mGatewayApiV3.DescriptorSeedForEServiceCreation =
-  {
-    audience: ["audience"],
-    voucherLifespan: 1000,
-    dailyCallsPerConsumer: 100,
-    dailyCallsTotal: 100,
-    agreementApprovalPolicy: "AUTOMATIC",
-  };
+    {
+      audience: ["audience"],
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 100,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockEserviceSeed: m2mGatewayApiV3.EServiceSeed = {
     name: mockApiEservice.name,
@@ -36,7 +36,10 @@ describe("POST /eservices router test", () => {
   const mockM2MEserviceResponse: m2mGatewayApiV3.EService =
     toM2MGatewayApiEService(mockApiEservice);
 
-  const makeRequest = async (token: string, body: m2mGatewayApiV3.EServiceSeed) =>
+  const makeRequest = async (
+    token: string,
+    body: m2mGatewayApiV3.EServiceSeed
+  ) =>
     request(api)
       .post(`${appBasePath}/eservices`)
       .set("Authorization", `Bearer ${token}`)
@@ -129,7 +132,10 @@ describe("POST /eservices router test", () => {
     "Should return 400 if passed an invalid Eservice seed (seed #%#)",
     async (body) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, body as m2mGatewayApiV3.EServiceSeed);
+      const res = await makeRequest(
+        token,
+        body as m2mGatewayApiV3.EServiceSeed
+      );
 
       expect(res.status).toBe(400);
     }

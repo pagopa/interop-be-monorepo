@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiEServiceTemplate,
@@ -80,20 +83,20 @@ describe("getEserviceTemplateRiskAnalyses", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mRiskAnalysesResponse: m2mGatewayApiV3.EServiceTemplateRiskAnalyses =
-    {
-      pagination: {
-        offset: 0,
-        limit: 10,
-        totalCount: mockEServiceTemplate.riskAnalysis.length,
-      },
-      results: [
-        m2mEServiceTemplateRiskAnalysis1,
-        m2mEServiceTemplateRiskAnalysis2,
-        m2mEServiceTemplateRiskAnalysis3,
-        m2mEServiceTemplateRiskAnalysis4,
-        m2mEServiceTemplateRiskAnalysis5,
-      ],
-    };
+      {
+        pagination: {
+          offset: 0,
+          limit: 10,
+          totalCount: mockEServiceTemplate.riskAnalysis.length,
+        },
+        results: [
+          m2mEServiceTemplateRiskAnalysis1,
+          m2mEServiceTemplateRiskAnalysis2,
+          m2mEServiceTemplateRiskAnalysis3,
+          m2mEServiceTemplateRiskAnalysis4,
+          m2mEServiceTemplateRiskAnalysis5,
+        ],
+      };
 
     const result =
       await eserviceTemplateService.getEServiceTemplateRiskAnalyses(

@@ -25,9 +25,9 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttri
   const mockDescriptor = mockEService.descriptors[0]!;
 
   const mockAttributeSeed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed =
-  {
-    attributeIds: [generateId(), generateId(), generateId()],
-  };
+    {
+      attributeIds: [generateId(), generateId(), generateId()],
+    };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
@@ -39,24 +39,24 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttri
   });
 
   const mockResponse: m2mGatewayApiV3.EServiceDescriptorCertifiedAttributesGroup =
-  {
-    attributes: [
-      {
-        groupIndex: 0,
-        attribute: toM2MGatewayApiCertifiedAttribute({
-          attribute: mockAttribute1,
-          logger: genericLogger,
-        }),
-      },
-      {
-        groupIndex: 0,
-        attribute: toM2MGatewayApiCertifiedAttribute({
-          attribute: mockAttribute2,
-          logger: genericLogger,
-        }),
-      },
-    ],
-  };
+    {
+      attributes: [
+        {
+          groupIndex: 0,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: mockAttribute1,
+            logger: genericLogger,
+          }),
+        },
+        {
+          groupIndex: 0,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: mockAttribute2,
+            logger: genericLogger,
+          }),
+        },
+      ],
+    };
 
   const makeRequest = async (
     token: string,

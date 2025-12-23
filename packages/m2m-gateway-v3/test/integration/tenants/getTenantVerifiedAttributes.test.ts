@@ -124,14 +124,14 @@ describe("getVerifiedAttributes", () => {
 
   it("Should apply filters (offset, limit)", async () => {
     const m2mVerifiedAttributesResponse1: m2mGatewayApiV3.TenantVerifiedAttributes =
-    {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: mockTenantProcessResponse.data.attributes.length,
-      },
-      results: [m2mVerifiedAttributeResponse1, m2mVerifiedAttributeResponse2],
-    };
+      {
+        pagination: {
+          offset: 0,
+          limit: 2,
+          totalCount: mockTenantProcessResponse.data.attributes.length,
+        },
+        results: [m2mVerifiedAttributeResponse1, m2mVerifiedAttributeResponse2],
+      };
 
     const result1 = await tenantService.getTenantVerifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
@@ -144,14 +144,14 @@ describe("getVerifiedAttributes", () => {
     expect(result1).toEqual(m2mVerifiedAttributesResponse1);
 
     const m2mVerifiedAttributesResponse2: m2mGatewayApiV3.TenantVerifiedAttributes =
-    {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: mockTenantProcessResponse.data.attributes.length,
-      },
-      results: [m2mVerifiedAttributeResponse3, m2mVerifiedAttributeResponse4],
-    };
+      {
+        pagination: {
+          offset: 2,
+          limit: 2,
+          totalCount: mockTenantProcessResponse.data.attributes.length,
+        },
+        results: [m2mVerifiedAttributeResponse3, m2mVerifiedAttributeResponse4],
+      };
     const result2 = await tenantService.getTenantVerifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
@@ -163,14 +163,14 @@ describe("getVerifiedAttributes", () => {
     expect(result2).toEqual(m2mVerifiedAttributesResponse2);
 
     const m2mVerifiedAttributesResponse3: m2mGatewayApiV3.TenantVerifiedAttributes =
-    {
-      pagination: {
-        offset: 4,
-        limit: 2,
-        totalCount: mockTenantProcessResponse.data.attributes.length,
-      },
-      results: [m2mVerifiedAttributeResponse5],
-    };
+      {
+        pagination: {
+          offset: 4,
+          limit: 2,
+          totalCount: mockTenantProcessResponse.data.attributes.length,
+        },
+        results: [m2mVerifiedAttributeResponse5],
+      };
     const result3 = await tenantService.getTenantVerifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {

@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApiV3, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApiV3,
+  eserviceTemplateApi,
+} from "pagopa-interop-api-clients";
 import {
   getMockedApiEserviceDoc,
   getMockedApiEServiceTemplate,
@@ -24,10 +27,10 @@ describe("getEServiceTemplateVersionDocuments", () => {
   };
 
   const mockQueryParams: m2mGatewayApiV3.GetEServiceTemplateVersionDocumentsQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockApiEServiceTemplateDoc1 = getMockedApiEserviceDoc();
   const mockApiEServiceTemplateDoc2 = getMockedApiEserviceDoc();

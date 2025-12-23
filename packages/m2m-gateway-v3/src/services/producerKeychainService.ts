@@ -88,7 +88,10 @@ export function producerKeychainServiceBuilder(
     },
     async getProducerKeychainEServices(
       keychainId: ProducerKeychainId,
-      { limit, offset }: m2mGatewayApiV3.GetProducerKeychainEServicesQueryParams,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApiV3.GetProducerKeychainEServicesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServices> {
       logger.info(

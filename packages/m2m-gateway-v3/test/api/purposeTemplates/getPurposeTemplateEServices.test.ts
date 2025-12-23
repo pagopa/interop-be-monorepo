@@ -45,12 +45,12 @@ describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
   };
 
   const mockQueryParams: m2mGatewayApiV3.GetPurposeTemplateEServicesQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-    eserviceName: generateMock(z.string().optional()),
-    producerIds: [generateId(), generateId()],
-  };
+    {
+      offset: 0,
+      limit: 10,
+      eserviceName: generateMock(z.string().optional()),
+      producerIds: [generateId(), generateId()],
+    };
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",

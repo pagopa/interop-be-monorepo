@@ -35,7 +35,10 @@ describe("POST /purposes router test", () => {
   const mockM2MPurpose: m2mGatewayApiV3.Purpose =
     toM2MGatewayApiPurpose(mockPurpose);
 
-  const makeRequest = async (token: string, body: m2mGatewayApiV3.PurposeSeed) =>
+  const makeRequest = async (
+    token: string,
+    body: m2mGatewayApiV3.PurposeSeed
+  ) =>
     request(api)
       .post(`${appBasePath}/purposes`)
       .set("Authorization", `Bearer ${token}`)

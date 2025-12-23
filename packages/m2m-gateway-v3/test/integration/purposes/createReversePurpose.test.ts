@@ -245,10 +245,11 @@ describe("createReversePurpose", () => {
     async (mockDelegation) => {
       mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
-      const mockPurposeSeedWithDelegation: m2mGatewayApiV3.ReversePurposeSeed = {
-        ...mockReversePurposeSeed,
-        delegationId: mockDelegation.id,
-      };
+      const mockPurposeSeedWithDelegation: m2mGatewayApiV3.ReversePurposeSeed =
+        {
+          ...mockReversePurposeSeed,
+          delegationId: mockDelegation.id,
+        };
 
       await expect(
         purposeService.createReversePurpose(

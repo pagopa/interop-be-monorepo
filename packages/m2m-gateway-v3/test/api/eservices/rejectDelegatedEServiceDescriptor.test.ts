@@ -32,9 +32,9 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/reject router te
     toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
 
   const mockRejectionReason: catalogApi.RejectDelegatedEServiceDescriptorSeed =
-  {
-    rejectionReason: "reason",
-  };
+    {
+      rejectionReason: "reason",
+    };
 
   const makeRequest = async (
     token: string,

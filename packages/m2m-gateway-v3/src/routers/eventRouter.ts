@@ -62,7 +62,9 @@ const eventRouter = (
         ctx
       );
 
-      return res.status(200).send(m2mGatewayApiV3.AttributeEvents.parse(events));
+      return res
+        .status(200)
+        .send(m2mGatewayApiV3.AttributeEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
@@ -162,7 +164,9 @@ const eventRouter = (
         ctx
       );
 
-      return res.status(200).send(m2mGatewayApiV3.AgreementEvents.parse(events));
+      return res
+        .status(200)
+        .send(m2mGatewayApiV3.AgreementEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,

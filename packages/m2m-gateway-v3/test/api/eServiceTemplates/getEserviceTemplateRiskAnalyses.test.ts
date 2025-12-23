@@ -5,7 +5,10 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -20,23 +23,23 @@ describe("GET /eservices/:templateId/riskAnalyses router test", () => {
     getMockedApiEServiceTemplate().riskAnalysis[0]!;
 
   const mockM2MEserviceTemplateRiskAnalysesResponse: m2mGatewayApiV3.EServiceTemplateRiskAnalyses =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 2 },
-    results: [
-      toM2MGatewayApiEServiceTemplateRiskAnalysis(
-        mockApiEserviceTemplateRiskAnalysis1
-      ),
-      toM2MGatewayApiEServiceTemplateRiskAnalysis(
-        mockApiEserviceTemplateRiskAnalysis2
-      ),
-    ],
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        toM2MGatewayApiEServiceTemplateRiskAnalysis(
+          mockApiEserviceTemplateRiskAnalysis1
+        ),
+        toM2MGatewayApiEServiceTemplateRiskAnalysis(
+          mockApiEserviceTemplateRiskAnalysis2
+        ),
+      ],
+    };
 
   const mockQueryParams: m2mGatewayApiV3.GetEServiceTemplateRiskAnalysesQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,

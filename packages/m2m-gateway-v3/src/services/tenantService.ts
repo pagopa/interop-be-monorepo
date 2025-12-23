@@ -174,9 +174,9 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const filteredDeclaredAttributes = delegationId
         ? declaredAttributes.filter(
-          (declaredAttribute) =>
-            declaredAttribute.delegationId === delegationId
-        )
+            (declaredAttribute) =>
+              declaredAttribute.delegationId === delegationId
+          )
         : declaredAttributes;
 
       const paginatedDeclaredAttributes = filteredDeclaredAttributes.slice(
@@ -268,7 +268,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getTenantCertifiedAttributes(
       tenantId: TenantId,
-      { limit, offset }: m2mGatewayApiV3.GetTenantCertifiedAttributesQueryParams,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApiV3.GetTenantCertifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.TenantCertifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);

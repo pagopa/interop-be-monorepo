@@ -116,14 +116,18 @@ describe("getCertifiedAttributes integration", () => {
     mockInteropBeClients.attributeProcessClient.getAttributes =
       mockGetAttributes.mockResolvedValueOnce(mockPaginatedResponse1);
 
-    const m2mCertifiedAttributesResponse1: m2mGatewayApiV3.CertifiedAttributes = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [m2mCertifiedAttributeResponse1, m2mCertifiedAttributeResponse2],
-    };
+    const m2mCertifiedAttributesResponse1: m2mGatewayApiV3.CertifiedAttributes =
+      {
+        pagination: {
+          offset: 0,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [
+          m2mCertifiedAttributeResponse1,
+          m2mCertifiedAttributeResponse2,
+        ],
+      };
 
     const result1 = await attributeService.getCertifiedAttributes(
       {
@@ -151,14 +155,15 @@ describe("getCertifiedAttributes integration", () => {
     mockInteropBeClients.attributeProcessClient.getAttributes =
       mockGetAttributes.mockResolvedValueOnce(mockPaginatedResponse2);
 
-    const m2mCertifiedAttributesResponse2: m2mGatewayApiV3.CertifiedAttributes = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [m2mCertifiedAttributeResponse3],
-    };
+    const m2mCertifiedAttributesResponse2: m2mGatewayApiV3.CertifiedAttributes =
+      {
+        pagination: {
+          offset: 2,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [m2mCertifiedAttributeResponse3],
+      };
 
     const result2 = await attributeService.getCertifiedAttributes(
       {

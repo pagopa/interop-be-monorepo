@@ -128,7 +128,9 @@ export function purposeServiceBuilder(
   };
 
   const getConsumerIdForPurposeCreation = async (
-    purposeSeed: m2mGatewayApiV3.PurposeSeed | m2mGatewayApiV3.ReversePurposeSeed,
+    purposeSeed:
+      | m2mGatewayApiV3.PurposeSeed
+      | m2mGatewayApiV3.ReversePurposeSeed,
     authData: M2MAdminAuthData,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<TenantId> => {

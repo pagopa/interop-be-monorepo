@@ -104,7 +104,9 @@ const tenantRouter = (
 
         return res
           .status(200)
-          .send(m2mGatewayApiV3.TenantDeclaredAttribute.parse(declaredAttribute));
+          .send(
+            m2mGatewayApiV3.TenantDeclaredAttribute.parse(declaredAttribute)
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -268,7 +270,9 @@ const tenantRouter = (
 
         return res
           .status(200)
-          .send(m2mGatewayApiV3.TenantVerifiedAttribute.parse(verifiedAttribute));
+          .send(
+            m2mGatewayApiV3.TenantVerifiedAttribute.parse(verifiedAttribute)
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

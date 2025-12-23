@@ -21,10 +21,10 @@ describe("GET /tenantEvents router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApiV3.GetEventManagerTenantEventsQueryParams =
-  {
-    lastEventId: generateId(),
-    limit: 10,
-  };
+    {
+      lastEventId: generateId(),
+      limit: 10,
+    };
 
   const makeRequest = async (
     token: string,

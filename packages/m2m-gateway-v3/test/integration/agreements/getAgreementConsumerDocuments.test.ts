@@ -13,10 +13,10 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getAgreementConsumerDocuments", () => {
   const mockQueryParams: m2mGatewayApiV3.GetAgreementConsumerDocumentsQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockApiAgreementDoc1 = getMockedApiAgreementDocument();
   const mockApiAgreementDoc2 = getMockedApiAgreementDocument();
@@ -24,13 +24,13 @@ describe("getAgreementConsumerDocuments", () => {
   const mockApiAgreementDocs = [mockApiAgreementDoc1, mockApiAgreementDoc2];
 
   const mockAgreementProcessResponse: WithMaybeMetadata<agreementApi.Documents> =
-  {
-    data: {
-      results: mockApiAgreementDocs,
-      totalCount: mockApiAgreementDocs.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiAgreementDocs,
+        totalCount: mockApiAgreementDocs.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetAgreementConsumerDocuments = vi
     .fn()

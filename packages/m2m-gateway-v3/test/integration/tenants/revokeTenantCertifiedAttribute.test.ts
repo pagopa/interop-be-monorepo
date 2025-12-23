@@ -74,11 +74,12 @@ describe("revokeTenantCertifiedAttribute", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantCertifiedAttribute = {
-      id: mockCertifiedAttribute1.id,
-      assignedAt: mockCertifiedAttribute1.assignmentTimestamp,
-      revokedAt: mockCertifiedAttribute1.revocationTimestamp,
-    };
+    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantCertifiedAttribute =
+      {
+        id: mockCertifiedAttribute1.id,
+        assignedAt: mockCertifiedAttribute1.assignmentTimestamp,
+        revokedAt: mockCertifiedAttribute1.revocationTimestamp,
+      };
 
     const result = await tenantService.revokeTenantCertifiedAttribute(
       unsafeBrandId(mockTenantProcessResponse.data.id),

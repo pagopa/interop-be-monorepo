@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import {
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -41,11 +44,11 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
     getMockWithMetadata(mockEServiceTemplate);
 
   const mockQuotasSeed: m2mGatewayApiV3.EServiceTemplateVersionQuotasUpdateSeed =
-  {
-    voucherLifespan: 3600,
-    dailyCallsPerConsumer: 1000,
-    dailyCallsTotal: 10000,
-  };
+    {
+      voucherLifespan: 3600,
+      dailyCallsPerConsumer: 1000,
+      dailyCallsTotal: 10000,
+    };
 
   const mockPatchUpdateQuotas = vi
     .fn()

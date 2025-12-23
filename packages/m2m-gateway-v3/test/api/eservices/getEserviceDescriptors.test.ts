@@ -16,13 +16,13 @@ describe("GET /eservices/:eserviceId/descriptors router test", () => {
   const mockApiEserviceDescriptor2 = getMockedApiEserviceDescriptor();
 
   const mockM2MEserviceDescriptorsResponse: m2mGatewayApiV3.EServiceDescriptors =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 2 },
-    results: [
-      toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor1),
-      toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor2),
-    ],
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor1),
+        toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor2),
+      ],
+    };
 
   const mockQueryParams: m2mGatewayApiV3.GetEServiceDescriptorsQueryParams = {
     state: "PUBLISHED",

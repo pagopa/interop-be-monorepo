@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { eserviceTemplateApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import {
   pollingMaxRetriesExceeded,
   tenantKind,
@@ -41,10 +44,10 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     );
 
   const mockCreateResponseData: eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis =
-  {
-    eserviceTemplate: mockEServiceTemplate,
-    createdRiskAnalysisId: mockRiskAnalysis.id,
-  };
+    {
+      eserviceTemplate: mockEServiceTemplate,
+      createdRiskAnalysisId: mockRiskAnalysis.id,
+    };
   const mockCreateRiskAnalysis = vi.fn().mockResolvedValue({
     data: mockCreateResponseData,
     metadata: { version: 0 },

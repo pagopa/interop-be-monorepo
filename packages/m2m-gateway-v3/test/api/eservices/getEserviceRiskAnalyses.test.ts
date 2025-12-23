@@ -17,13 +17,13 @@ describe("GET /eservices/:eserviceId/riskAnalyses router test", () => {
   const mockApiEserviceRiskAnalysis2 = getMockedApiEservice().riskAnalysis[0]!;
 
   const mockM2MEserviceRiskAnalysesResponse: m2mGatewayApiV3.EServiceRiskAnalyses =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 2 },
-    results: [
-      toM2MGatewayApiEServiceRiskAnalysis(mockApiEserviceRiskAnalysis1),
-      toM2MGatewayApiEServiceRiskAnalysis(mockApiEserviceRiskAnalysis2),
-    ],
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        toM2MGatewayApiEServiceRiskAnalysis(mockApiEserviceRiskAnalysis1),
+        toM2MGatewayApiEServiceRiskAnalysis(mockApiEserviceRiskAnalysis2),
+      ],
+    };
 
   const mockQueryParams: m2mGatewayApiV3.GetEServiceRiskAnalysesQueryParams = {
     offset: 0,

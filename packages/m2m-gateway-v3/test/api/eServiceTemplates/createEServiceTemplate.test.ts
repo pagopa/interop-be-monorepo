@@ -17,13 +17,13 @@ describe("POST /eserviceTemplates router test", () => {
   const mockApiEserviceTemplate = getMockedApiEServiceTemplate();
 
   const mockApiEserviceTemplateWithVersion: m2mGatewayApiV3.VersionSeedForEServiceTemplateCreation =
-  {
-    voucherLifespan: 1000,
-    description: "Version description",
-    dailyCallsPerConsumer: 100,
-    dailyCallsTotal: 1000,
-    agreementApprovalPolicy: "AUTOMATIC",
-  };
+    {
+      voucherLifespan: 1000,
+      description: "Version description",
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 1000,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockEserviceTemplateSeed: m2mGatewayApiV3.EServiceTemplateSeed = {
     name: mockApiEserviceTemplate.name,

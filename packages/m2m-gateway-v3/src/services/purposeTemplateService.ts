@@ -1,4 +1,7 @@
-import { m2mGatewayApiV3, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApiV3,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeTemplateId,

@@ -23,9 +23,9 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
   const mockVersion = mockTemplate.versions[0]!;
 
   const mockAttributeSeed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed =
-  {
-    attributeIds: [generateId(), generateId(), generateId()],
-  };
+    {
+      attributeIds: [generateId(), generateId(), generateId()],
+    };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.VERIFIED,
@@ -35,24 +35,24 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
   });
 
   const mockResponse: m2mGatewayApiV3.EServiceTemplateVersionVerifiedAttributesGroup =
-  {
-    attributes: [
-      {
-        groupIndex: 1,
-        attribute: toM2MGatewayApiVerifiedAttribute({
-          attribute: mockAttribute1,
-          logger: genericLogger,
-        }),
-      },
-      {
-        groupIndex: 1,
-        attribute: toM2MGatewayApiVerifiedAttribute({
-          attribute: mockAttribute2,
-          logger: genericLogger,
-        }),
-      },
-    ],
-  };
+    {
+      attributes: [
+        {
+          groupIndex: 1,
+          attribute: toM2MGatewayApiVerifiedAttribute({
+            attribute: mockAttribute1,
+            logger: genericLogger,
+          }),
+        },
+        {
+          groupIndex: 1,
+          attribute: toM2MGatewayApiVerifiedAttribute({
+            attribute: mockAttribute2,
+            logger: genericLogger,
+          }),
+        },
+      ],
+    };
 
   const makeRequest = async (
     token: string,

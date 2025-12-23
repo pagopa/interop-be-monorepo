@@ -75,10 +75,11 @@ describe("revokeTenantVerifiedAttribute", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantVerifiedAttribute = {
-      id: mockVerifiedAttribute1.id,
-      assignedAt: mockVerifiedAttribute1.assignmentTimestamp,
-    };
+    const m2mTenantAttributeResponse: m2mGatewayApiV3.TenantVerifiedAttribute =
+      {
+        id: mockVerifiedAttribute1.id,
+        assignedAt: mockVerifiedAttribute1.assignmentTimestamp,
+      };
 
     const result = await tenantService.revokeTenantVerifiedAttribute(
       unsafeBrandId(mockTenantProcessResponse.data.id),

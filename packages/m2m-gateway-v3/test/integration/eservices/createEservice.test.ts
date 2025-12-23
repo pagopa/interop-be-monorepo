@@ -21,13 +21,13 @@ describe("createEService", () => {
   const mockedApiEservice = getMockedApiEservice();
 
   const mockApiEserviceWithDescriptor: m2mGatewayApiV3.DescriptorSeedForEServiceCreation =
-  {
-    audience: [],
-    voucherLifespan: 1000,
-    dailyCallsPerConsumer: 100,
-    dailyCallsTotal: 100,
-    agreementApprovalPolicy: "AUTOMATIC",
-  };
+    {
+      audience: [],
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 100,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockEserviceSeed: m2mGatewayApiV3.EServiceSeed = {
     name: mockedApiEservice.name,
