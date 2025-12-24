@@ -159,7 +159,7 @@ const clientRouter = (
         const key = await clientService.getClientKeyById(
           unsafeBrandId(req.params.clientId),
           req.params.keyId,
-          req.query
+          ctx
         );
         return res.status(200).send(m2mGatewayApiV3.JWK.parse(key));
       } catch (error) {
