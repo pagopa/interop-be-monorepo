@@ -19,7 +19,9 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   purposeTemplateTables,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
@@ -49,6 +51,7 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
   };
 
   return {
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertPurposeTemplate(
       purposeTemplate: PurposeTemplate,
       metadataVersion: number
@@ -82,6 +85,8 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
           riskAnalysisTemplateAnswersSQL,
           riskAnalysisTemplateAnswersAnnotationsSQL,
           riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+          riskAnalysisTemplateDocumentSQL,
+          riskAnalysisTemplateSignedDocumentSQL,
         } = splitPurposeTemplateIntoObjectsSQL(
           purposeTemplate,
           metadataVersion
@@ -125,6 +130,22 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
               purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
             )
             .values(annotationDocumentSQL);
+        }
+
+        if (riskAnalysisTemplateDocumentSQL) {
+          await tx
+            .insert(
+              purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate
+            )
+            .values(riskAnalysisTemplateDocumentSQL);
+        }
+
+        if (riskAnalysisTemplateSignedDocumentSQL) {
+          await tx
+            .insert(
+              purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate
+            )
+            .values(riskAnalysisTemplateSignedDocumentSQL);
         }
 
         await updateMetadataVersionInPurposeTemplateTables(

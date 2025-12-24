@@ -231,6 +231,14 @@ export type RiskAnalysisFormTemplateId = z.infer<
   typeof RiskAnalysisFormTemplateId
 >;
 
+export const RiskAnalysisTemplateDocumentId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisTemplateDocumentId");
+export type RiskAnalysisTemplateDocumentId = z.infer<
+  typeof RiskAnalysisTemplateDocumentId
+>;
+
 export const RiskAnalysisTemplateAnswerAnnotationId = z
   .string()
   .uuid()
@@ -355,6 +363,7 @@ export const IDS = z.union([
   ProducerKeychainM2MEventId,
   ProducerKeyM2MEventId,
   TenantM2MEventId,
+  RiskAnalysisTemplateDocumentId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

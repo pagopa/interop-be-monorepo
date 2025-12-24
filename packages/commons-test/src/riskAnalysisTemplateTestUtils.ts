@@ -10,7 +10,10 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
   TenantKind,
   tenantKind,
@@ -445,6 +448,8 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
     multiAnswers: addAnnotationToAnswers(
       incompleteRiskAnalysisFormTemplate.multiAnswers
     ),
+    document: getMockRiskAnalysisTemplateDocument(),
+    signedDocument: getMockRiskAnalysisTemplateSignedDocument(),
   };
 };
 
@@ -461,6 +466,30 @@ export const getMockRiskAnalysisTemplateAnswerAnnotationDocument = (
   contentType: "application/pdf",
   createdAt: new Date(),
   checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+});
+
+export const getMockRiskAnalysisTemplateDocument = (
+  id: RiskAnalysisTemplateDocumentId = generateId(),
+  purposeTemplateId: PurposeTemplateId = generateId(),
+  basePath: string = "purposeTemplatePath",
+  name: string = `Document-${id}`
+): RiskAnalysisTemplateDocument => ({
+  id,
+  name,
+  path: `${basePath}/${purposeTemplateId}/${name}`,
+  prettyName: "prettyName",
+  contentType: "application/pdf",
+  createdAt: new Date(),
+});
+
+export const getMockRiskAnalysisTemplateSignedDocument = (
+  id: RiskAnalysisTemplateDocumentId = generateId(),
+  purposeTemplateId: PurposeTemplateId = generateId(),
+  basePath: string = "purposeTemplatePath",
+  name: string = `Document-${id}-signed`
+): RiskAnalysisTemplateSignedDocument => ({
+  ...getMockRiskAnalysisTemplateDocument(id, purposeTemplateId, basePath, name),
+  signedAt: new Date(),
 });
 
 export const getMockRiskAnalysisTemplateAnswerAnnotation = (

@@ -15,6 +15,8 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -42,7 +44,7 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       /*
-        purpose template -> 1 purpose_risk_analysis_form_template -> 2 purpose_risk_analysis_template_answer -> 3 purpose_risk_analysis_template_answer_annotation -> 4 purpose_risk_analysis_template_answer_annotation_document
+        purpose template -> 1 purpose_risk_analysis_form_template -> 2 purpose_risk_analysis_template_answer -> 3 purpose_risk_analysis_template_answer_annotation -> 4 purpose_risk_analysis_template_answer_annotation_document -> 5 purpose_risk_analysis_template_document -> 6 purpose_risk_analysis_template_signed_document
       */
       const queryResult = await db
         .select({
@@ -55,6 +57,10 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
           purposeRiskAnalysisTemplateAnswerAnnotationDocument:
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateDocument:
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateSignedDocument:
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
         .where(filter)
@@ -89,6 +95,22 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
+        )
+        .leftJoin(
+          // 5
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          // 6
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
         );
 
       if (queryResult.length === 0) {
@@ -115,6 +137,10 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
           purposeRiskAnalysisTemplateAnswerAnnotationDocument:
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateDocument:
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateSignedDocument:
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
         .where(filter)
@@ -144,6 +170,20 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         );
 

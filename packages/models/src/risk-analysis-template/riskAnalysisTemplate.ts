@@ -3,6 +3,7 @@ import {
   RiskAnalysisFormTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateDocumentId,
 } from "../brandedIds.js";
 import {
   RiskAnalysisMultiAnswer,
@@ -71,10 +72,37 @@ export type RiskAnalysisTemplateAnswer = z.infer<
   typeof RiskAnalysisTemplateAnswer
 >;
 
+export const RiskAnalysisTemplateDocument = z.object({
+  id: RiskAnalysisTemplateDocumentId,
+  name: z.string(),
+  prettyName: z.string(),
+  contentType: z.string(),
+  path: z.string(),
+  createdAt: z.coerce.date(),
+});
+export type RiskAnalysisTemplateDocument = z.infer<
+  typeof RiskAnalysisTemplateDocument
+>;
+
+export const RiskAnalysisTemplateSignedDocument = z.object({
+  id: RiskAnalysisTemplateDocumentId,
+  name: z.string(),
+  prettyName: z.string(),
+  contentType: z.string(),
+  path: z.string(),
+  createdAt: z.coerce.date(),
+  signedAt: z.coerce.date(),
+});
+export type RiskAnalysisTemplateSignedDocument = z.infer<
+  typeof RiskAnalysisTemplateSignedDocument
+>;
+
 export const RiskAnalysisFormTemplate = z.object({
   id: RiskAnalysisFormTemplateId,
   version: z.string(),
   singleAnswers: z.array(RiskAnalysisTemplateSingleAnswer),
   multiAnswers: z.array(RiskAnalysisTemplateMultiAnswer),
+  document: RiskAnalysisTemplateDocument.optional(),
+  signedDocument: RiskAnalysisTemplateSignedDocument.optional(),
 });
 export type RiskAnalysisFormTemplate = z.infer<typeof RiskAnalysisFormTemplate>;
