@@ -1,0 +1,25 @@
+meta {
+  name: List Tenant Verified Attribute Revokers
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/tenants/:tenantId/verifiedAttributes/:attributeId/revokers?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  tenantId: {{tenantId2}}
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

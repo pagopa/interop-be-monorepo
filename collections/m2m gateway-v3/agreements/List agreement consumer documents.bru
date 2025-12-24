@@ -1,0 +1,24 @@
+meta {
+  name: List agreement consumer documents
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/agreements/:agreementId/consumerDocuments?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

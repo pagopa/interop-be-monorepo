@@ -1,0 +1,20 @@
+meta {
+  name: Delete eservice descriptor interface
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/descriptors/:descriptorId/interface
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

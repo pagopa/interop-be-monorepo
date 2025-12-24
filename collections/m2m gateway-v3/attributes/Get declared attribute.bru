@@ -1,0 +1,23 @@
+meta {
+  name: Get declared attribute
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/declaredAttributes/:attributeId
+  body: none
+  auth: none
+}
+
+params:path {
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+docs {
+  Retrieves a declared attribute by its ID.
+}

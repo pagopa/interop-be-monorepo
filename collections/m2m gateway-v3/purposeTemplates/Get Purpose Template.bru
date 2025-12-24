@@ -1,0 +1,19 @@
+meta {
+  name: Get Purpose Template
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/purposeTemplates/:purposeTemplateId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

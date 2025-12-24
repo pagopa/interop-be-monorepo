@@ -1,0 +1,20 @@
+meta {
+  name: Delete agreement consumer document
+  type: http
+  seq: 14
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/agreements/:agreementId/consumerDocuments/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+  documentId: {{agreementDocumentId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

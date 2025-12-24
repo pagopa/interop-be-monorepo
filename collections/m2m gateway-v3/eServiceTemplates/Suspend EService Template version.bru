@@ -1,0 +1,20 @@
+meta {
+  name: Suspend EService Template version
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/:templateId/versions/:versionId/suspend
+  body: json
+  auth: none
+}
+
+params:path {
+  versionId: {{eserviceTemplateVersionId}}
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

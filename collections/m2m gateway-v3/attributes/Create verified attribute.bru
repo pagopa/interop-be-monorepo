@@ -1,0 +1,29 @@
+meta {
+  name: Create verified attribute
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/verifiedAttributes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "name": "{{randomName}}",
+    "description": "{{randomDescription}}"
+  }
+}
+
+script:pre-request {
+  const randomCode = Math.round(Math.random() * 10000)
+  
+  bru.setVar("randomName", `test name ${randomCode}`)
+  bru.setVar("randomDescription", `test description ${randomCode}`)
+}

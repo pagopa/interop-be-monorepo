@@ -1,0 +1,25 @@
+meta {
+  name: Activate purpose
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/purposes/:purposeId/activate
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "delegationId": "{{delegationId}}"
+  }
+}

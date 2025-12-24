@@ -1,0 +1,26 @@
+meta {
+  name: List Producer Keychains
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/producerKeychains?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~name: test
+  ~producerId: {{tenantId2}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+vars:post-response {
+  producerKeychainId: res.body.results.at(-1).id
+}

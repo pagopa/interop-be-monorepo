@@ -1,0 +1,25 @@
+meta {
+  name: Suspend agreement
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/agreements/:agreementId/suspend
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "delegationId": "{{delegationId}}"
+  }
+}

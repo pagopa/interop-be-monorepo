@@ -1,0 +1,26 @@
+meta {
+  name: Add client purpose
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/clients/:clientId/purposes
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "purposeId": "{{purposeId}}"
+  }
+}
+

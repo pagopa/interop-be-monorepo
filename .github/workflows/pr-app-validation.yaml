@@ -69,7 +69,7 @@ jobs:
         id: get_dedicated_packages
         run: |
           # Manually define packages that require dedicated test shards here and use the name from package.json
-          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='["pagopa-interop-backend-for-frontend", "pagopa-interop-m2m-gateway"]'
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='["pagopa-interop-backend-for-frontend", "pagopa-interop-m2m-gateway", "pagopa-interop-m2m-gateway-v3"]'
           echo "dedicated_packages=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
 
       - name: Find packages with test directories

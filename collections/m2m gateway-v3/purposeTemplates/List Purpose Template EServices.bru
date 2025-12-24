@@ -1,0 +1,26 @@
+meta {
+  name: List Purpose Template EServices
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/purposeTemplates/:purposeTemplateId/eservices
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~eserviceName: test
+  ~producerIds: ["{{tenantId}}"]
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

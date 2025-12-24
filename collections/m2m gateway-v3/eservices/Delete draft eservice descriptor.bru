@@ -1,0 +1,20 @@
+meta {
+  name: Delete draft eservice descriptor
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/descriptors/:descriptorId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

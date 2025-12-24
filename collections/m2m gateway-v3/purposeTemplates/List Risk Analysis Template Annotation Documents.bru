@@ -1,0 +1,25 @@
+meta {
+  name: List Risk Analysis Template Annotation Documents
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

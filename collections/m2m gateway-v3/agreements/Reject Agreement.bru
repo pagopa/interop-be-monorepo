@@ -1,0 +1,25 @@
+meta {
+  name: Reject agreement
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/agreements/:agreementId/reject
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "reason": "Testing rejection reason because yes"
+  }
+}

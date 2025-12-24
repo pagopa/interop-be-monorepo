@@ -51,6 +51,7 @@
     "start:email-notification-dispatcher": "turbo start --filter pagopa-interop-email-notification-dispatcher",
     "start:email-sender": "turbo start --filter pagopa-interop-email-sender",
     "start:m2m-gateway": "turbo start --filter pagopa-interop-m2m-gateway",
+    "start:m2m-gateway-v3": "turbo start --filter pagopa-interop-m2m-gateway-v3",
     "start:in-app-notification": "turbo start --filter pagopa-interop-in-app-notification-manager",
     "start:notification-config": "turbo start --filter pagopa-interop-notification-config-process",
     "start:notification-config-readmodel-writer-sql": "turbo start --filter pagopa-interop-notification-config-readmodel-writer-sql",

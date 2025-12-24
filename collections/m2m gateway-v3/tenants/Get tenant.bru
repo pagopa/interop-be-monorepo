@@ -1,0 +1,19 @@
+meta {
+  name: Get tenant
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/tenants/:tenantId
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

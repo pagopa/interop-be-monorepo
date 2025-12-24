@@ -4047,6 +4047,91 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
+  packages/m2m-gateway-v3:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.12.0)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.12.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      axios:
+        specifier: 1.12.0
+        version: 1.12.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      form-data-encoder:
+        specifier: 4.1.0
+        version: 4.1.0
+      formdata-node:
+        specifier: 6.0.3
+        version: 6.0.3
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      qs:
+        specifier: 6.12.3
+        version: 6.12.3
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.14.0
+        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/adm-zip':
+        specifier: 0.5.7
+        version: 0.5.7
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.19.9
+        version: 20.19.9
+      '@types/qs':
+        specifier: 6.9.15
+        version: 6.9.15
+      '@types/supertest':
+        specifier: 6.0.3
+        version: 6.0.3
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.19.9)
+
   packages/models:
     dependencies:
       '@protobuf-ts/plugin':

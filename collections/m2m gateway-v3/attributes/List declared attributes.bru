@@ -1,0 +1,20 @@
+meta {
+  name: List declared attributes
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/declaredAttributes?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

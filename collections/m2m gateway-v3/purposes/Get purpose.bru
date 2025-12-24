@@ -1,0 +1,19 @@
+meta {
+  name: Get purpose
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/purposes/:purposeId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
