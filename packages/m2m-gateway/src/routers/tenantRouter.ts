@@ -15,6 +15,7 @@ import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getTenantsErrorMapper,
   assignTenantDeclaredAttributeErrorMapper,
+  getTenantVerifiedAttributeRevokersErrorMapper,
 } from "../utils/errorMappers.js";
 
 const tenantRouter = (
@@ -362,7 +363,7 @@ const tenantRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getTenantVerifiedAttributeRevokersErrorMapper,
             ctx,
             `Error retrieving revokers for verified attribute ${req.params.attributeId} of tenant ${req.params.tenantId}`
           );

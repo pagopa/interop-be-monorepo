@@ -32,7 +32,10 @@ import {
   tenantDeclaredAttributeNotFound,
   tenantVerifiedAttributeNotFound,
 } from "../model/errors.js";
-import { assertTenantCanEditDeclaredAttributes } from "../utils/validators/tenantValidators.js";
+import {
+  assertTenantCanEditDeclaredAttributes,
+  assertTenantIsSelf,
+} from "../utils/validators/tenantValidators.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
@@ -412,11 +415,13 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         limit,
         offset,
       }: m2mGatewayApi.GetTenantVerifiedAttributeRevokersQueryParams,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantVerifiedAttributeRevokers> {
       logger.info(
         `Retrieving revokers for verified attribute ${attributeId} of tenant ${tenantId}`
       );
+
+      assertTenantIsSelf(authData, tenantId);
 
       const {
         data: { results, totalCount },

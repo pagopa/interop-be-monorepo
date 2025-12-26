@@ -3,10 +3,11 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { generateId, TenantId } from "pagopa-interop-models";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiTenantRevoker } from "../../../src/api/tenantApiConverter.js";
+import { forbiddenOperationOnTenant } from "../../../src/model/errors.js";
 
 describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/revokers route test", () => {
   const tenantId = generateId();
@@ -84,6 +85,25 @@ describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/revokers route 
     const token = generateToken(role);
     const res = await makeRequest(token, mockQueryParams);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 when tenant is different from token organizationId", async () => {
+    const differentTenantId = generateId<TenantId>();
+    mockTenantService.getTenantVerifiedAttributeRevokers = vi
+      .fn()
+      .mockRejectedValue(forbiddenOperationOnTenant(differentTenantId));
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await request(api)
+      .get(
+        `${appBasePath}/tenants/${differentTenantId}/verifiedAttributes/${attributeId}/revokers`
+      )
+      .query(mockQueryParams)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(403);
+    expect(
+      mockTenantService.getTenantVerifiedAttributeRevokers
+    ).toHaveBeenCalled();
   });
 
   it.each([
