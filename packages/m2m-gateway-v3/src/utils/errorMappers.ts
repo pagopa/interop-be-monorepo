@@ -293,3 +293,11 @@ export const getPurposeTemplateRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export function getClientKeyByIdErrorMapper(
+  error: ApiError<ErrorCodes>
+): number {
+  return match(error.code)
+    .with("jwkNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+}

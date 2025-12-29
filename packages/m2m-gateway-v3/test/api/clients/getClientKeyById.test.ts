@@ -10,6 +10,7 @@ import { generateId } from "pagopa-interop-models";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MJWK } from "../../../src/api/keysApiConverter.js";
+import { jwkNotFound } from "../../../src/model/errors.js";
 
 describe("GET /clients/:clientId/keys/:keyId router test", () => {
   const makeRequest = async (token: string, clientId: string, keyId: string) =>
@@ -19,9 +20,9 @@ describe("GET /clients/:clientId/keys/:keyId router test", () => {
       .send();
 
   const kid = generateId();
-  const mockApiKey1 = { ...getMockClientJWKKey(), kid };
+  const mockApiKey = { ...getMockClientJWKKey(), kid };
 
-  const mockM2MJWKResponse: m2mGatewayApiV3.JWK = toM2MJWK(mockApiKey1);
+  const mockM2MJWKResponse: m2mGatewayApiV3.JWK = toM2MJWK(mockApiKey);
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,
@@ -42,6 +43,37 @@ describe("GET /clients/:clientId/keys/:keyId router test", () => {
       expect(mockClientService.getClientKeyById).toHaveBeenCalledWith(
         clientId,
         kid,
+        expect.any(Object) // context
+      );
+    }
+  );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const clientId = generateId();
+    const token = generateToken(role);
+    const res = await makeRequest(token, clientId, kid);
+    expect(res.status).toBe(403);
+  });
+
+  it.each(authorizedRoles)(
+    "Should return 404 with a non-existant kid regardless of correct role %s",
+    async (role) => {
+      const clientId = generateId();
+      const nonExistantKid = generateId();
+      const error = jwkNotFound(nonExistantKid, clientId);
+      mockClientService.getClientKeyById = vi.fn((_clientId, _keyId) =>
+        Promise.reject(error)
+      );
+      const token = generateToken(role);
+
+      const res = await makeRequest(token, clientId, nonExistantKid);
+      expect(res.status).toBe(404);
+      expect(res.body.detail).toEqual(error.detail);
+      expect(mockClientService.getClientKeyById).toHaveBeenCalledWith(
+        clientId,
+        nonExistantKid,
         expect.any(Object) // context
       );
     }
