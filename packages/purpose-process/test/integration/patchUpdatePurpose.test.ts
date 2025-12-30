@@ -398,7 +398,7 @@ describe("patchUpdatePurpose", () => {
     );
   });
 
-  it("Should throw purposeFromTemplateCannotBeModified if the purpose title already exists", async () => {
+  it("Should throw purposeFromTemplateCannotBeModified if the purpose was created from a purpose template", async () => {
     const purposeTemplateId = generateId<PurposeTemplateId>();
     const purposeFromTemplate: Purpose = {
       ...draftPurpose,

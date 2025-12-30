@@ -196,7 +196,7 @@ describe("updateDraftPurpose", () => {
     ).toHaveBeenCalledTimes(3);
   });
 
-  it("Should throw invalidSeedForPurposeFromTemplate in case the purpose user is trying to update does not exist", async () => {
+  it("Should throw invalidSeedForPurposeFromTemplate when the update seed is not for a purpose created from a purpose template", async () => {
     mockGetPurpose.mockResolvedValueOnce(
       mockPurposeProcessGetResponseWithTemplate
     );
