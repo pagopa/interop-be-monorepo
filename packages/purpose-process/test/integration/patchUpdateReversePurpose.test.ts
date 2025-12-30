@@ -29,6 +29,7 @@ import {
   DelegationId,
   PurposeVersionId,
   EServiceId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
@@ -47,6 +48,7 @@ import {
   eserviceNotFound,
   missingFreeOfChargeReason,
   purposeDelegationNotFound,
+  purposeFromTemplateCannotBeModified,
   purposeNotFound,
   purposeNotInDraftState,
   tenantIsNotTheConsumer,
@@ -378,6 +380,32 @@ describe("patchUpdateReversePurpose", () => {
       )
     ).rejects.toThrowError(
       duplicatedPurposeTitle(purposeWithDuplicatedTitle.title)
+    );
+  });
+
+  it("Should throw purposeFromTemplateCannotBeModified if the purpose was created from a purpose template", async () => {
+    const purposeTemplateId = generateId<PurposeTemplateId>();
+    const purposeFromTemplate: Purpose = {
+      ...draftPurpose,
+      purposeTemplateId,
+    };
+    await addOnePurpose(purposeFromTemplate);
+
+    expect(
+      purposeService.patchUpdatePurpose(
+        purposeFromTemplate.id,
+        {
+          title: "updated title",
+        },
+        getMockContextM2MAdmin({
+          organizationId: consumer.id,
+        })
+      )
+    ).rejects.toThrowError(
+      purposeFromTemplateCannotBeModified(
+        purposeFromTemplate.id,
+        purposeTemplateId
+      )
     );
   });
 

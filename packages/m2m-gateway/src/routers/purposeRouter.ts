@@ -22,6 +22,7 @@ import {
   downloadPurposeVersionRiskAnalysisDocumentErrorMapper,
   getPurposeAgreementErrorMapper,
   createPurposeErrorMapper,
+  updateDraftPurposeErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -400,7 +401,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateDraftPurposeErrorMapper,
           ctx,
           `Error updating purpose with id ${req.params.purposeId}`
         );

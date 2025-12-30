@@ -29,6 +29,7 @@ import {
   eserviceNotFound,
   tenantKindNotFound,
   tenantNotFound,
+  purposeFromTemplateCannotBeModified,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /reverse/purposes/{purposeId} test", () => {
@@ -107,6 +108,10 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     {
       error: duplicatedPurposeTitle(mockReversePurposeUpdateContent.title),
+      expectedStatus: 409,
+    },
+    {
+      error: purposeFromTemplateCannotBeModified(generateId(), generateId()),
       expectedStatus: 409,
     },
     { error: eserviceNotFound(generateId()), expectedStatus: 500 },

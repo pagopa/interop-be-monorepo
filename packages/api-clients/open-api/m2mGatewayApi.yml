@@ -13358,7 +13358,9 @@ paths:
         content:
           application/merge-patch+json:
             schema:
-              $ref: "#/components/schemas/PurposeDraftUpdateSeed"
+              oneOf:
+                - $ref: "#/components/schemas/PurposeDraftUpdateSeed"
+                - $ref: "#/components/schemas/PurposeDraftFromTemplateUpdateSeed"
         required: true
       responses:
         "200":
@@ -21400,7 +21402,7 @@ components:
     PurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
-      description: Contains the expected payload for purpose update
+      description: Contains the expected payload for purpose update of a purpose not created from a purpose template
       properties:
         title:
           type: string
@@ -21415,6 +21417,23 @@ components:
         freeOfChargeReason:
           type: string
           nullable: true
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform.
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+    PurposeDraftFromTemplateUpdateSeed:
+      type: object
+      additionalProperties: false
+      description: Contains the expected payload for purpose update of a purpose created from a purpose template
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
         dailyCalls:
