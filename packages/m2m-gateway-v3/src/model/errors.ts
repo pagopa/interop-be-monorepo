@@ -56,6 +56,7 @@ export const errorCodes = {
   eserviceDescriptorAttributeGroupNotFound: "0036",
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
+  jwkNotFound: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -422,5 +423,16 @@ export function purposeTemplateRiskAnalysisFormNotFound(
     detail: `No Risk Analysis Template Form found for Purpose Template ${purposeTemplateId}`,
     code: "purposeTemplateRiskAnalysisFormNotFound",
     title: "Purpose Template Risk Analysis Form Not Found",
+  });
+}
+
+export function jwkNotFound(
+  keyId: string,
+  clientId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Key ${keyId} not found in client ${clientId}`,
+    code: "jwkNotFound",
+    title: "Key not found",
   });
 }

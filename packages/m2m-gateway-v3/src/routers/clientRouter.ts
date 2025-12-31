@@ -12,6 +12,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { ClientService } from "../services/clientService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { getClientKeyByIdErrorMapper } from "../utils/errorMappers.js";
 
 const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
@@ -146,6 +147,28 @@ const clientRouter = (
           emptyErrorMapper,
           ctx,
           `Error retrieving keys for client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/clients/:clientId/keys/:keyId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const key = await clientService.getClientKeyById(
+          unsafeBrandId(req.params.clientId),
+          req.params.keyId,
+          ctx
+        );
+        return res.status(200).send(m2mGatewayApiV3.JWK.parse(key));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getClientKeyByIdErrorMapper,
+          ctx,
+          `Error retrieving key with id ${req.params.keyId} for client with id ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
