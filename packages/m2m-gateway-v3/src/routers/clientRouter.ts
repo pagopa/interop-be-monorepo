@@ -149,6 +149,28 @@ const clientRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .post("/clients/:clientId/keys", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        console.log("req.body", req.body);
+        const key = await clientService.createClientKey(
+          unsafeBrandId(req.params.clientId),
+          req.body,
+          ctx
+        );
+        return res.status(201).send(key);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating key for client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return clientRouter;

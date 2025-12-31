@@ -210,5 +210,28 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         results: jwks.map(toM2MJWK),
       };
     },
+    async createClientKey(
+      clientId: ClientId,
+      seed: m2mGatewayApiV3.JWKSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.JWK> {
+      logger.info(`Create a new key for client with id ${clientId}`);
+
+      const { data: key } = await clients.authorizationClient.client.createKey(
+        seed,
+        {
+          params: { clientId },
+          headers,
+        }
+      );
+
+      const { data: jwkData } =
+        await clients.authorizationClient.key.getJWKByKid({
+          params: { kid: key.kid },
+          headers,
+        });
+
+      return toM2MJWK(jwkData.jwk);
+    },
   };
 }
