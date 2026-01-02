@@ -155,7 +155,6 @@ const clientRouter = (
 
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        console.log("req.body", req.body);
         const key = await clientService.createClientKey(
           unsafeBrandId(req.params.clientId),
           req.body,
