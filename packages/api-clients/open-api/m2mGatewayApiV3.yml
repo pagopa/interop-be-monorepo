@@ -2049,33 +2049,32 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}/keys/{keyId}:
+    parameters:
+      - name: clientId
+        in: path
+        description: ID of the client to look up
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: keyId
+        in: path
+        description: the unique identifier of the key (kid) to lookup
+        required: true
+        schema:
+          type: string
     get:
       tags:
         - clients
       summary: Returns a key by client and key identifier (kid).
       description: "Given a client and key identifiers it returns the corresponding key, if any"
       operationId: getClientKeyById
-      parameters:
-        - name: clientId
-          in: path
-          description: ID of the client to look up
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: keyId
-          in: path
-          description: the unique identifier of the key (kid) to lookup
-          required: true
-          schema:
-            type: string
       responses:
         "200":
           description: returns the corresponding key
           content:
             application/json:
               schema:
-                # $ref: "#/components/schemas/PublicKey"
                 $ref: "#/components/schemas/JWK"
           headers:
             X-Rate-Limit-Limit:
