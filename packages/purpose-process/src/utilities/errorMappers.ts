@@ -88,6 +88,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;
 
 export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>

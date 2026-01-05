@@ -4939,9 +4939,6 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
-      pg-promise:
-        specifier: 11.8.0
-        version: 11.8.0
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -4964,6 +4961,9 @@ importers:
       cpx2:
         specifier: 7.0.2
         version: 7.0.2
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
