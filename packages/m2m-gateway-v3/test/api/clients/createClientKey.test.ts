@@ -68,17 +68,20 @@ describe("POST /clients/:clientId/keys router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([{ ...keySeed, use: "invalidUse" }, {}])(
-    "Should return 400 if passed invalid body",
-    async (seed) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        generateId(),
-        seed as m2mGatewayApiV3.JWKSeed
-      );
+  it.each([
+    { ...keySeed, use: "invalidUse" },
+    { ...keySeed, name: 1 },
+    { ...keySeed, key: 7 },
+    { ...keySeed, alg: 9 },
+    {},
+  ])("Should return 400 if passed invalid body", async (seed) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId(),
+      seed as m2mGatewayApiV3.JWKSeed
+    );
 
-      expect(res.status).toBe(400);
-    }
-  );
+    expect(res.status).toBe(400);
+  });
 });
