@@ -44,6 +44,7 @@ describe("POST /clients/:clientId/keys router test", () => {
         .mockImplementation(() => toM2MKey({ clientId, jwk: mockJwk }));
       const token = generateToken(role);
       const res = await makeRequest(token, clientId, keySeed);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { clientId: _, ...jwkWithoutClientId } = mockJwk;
       expect(res.status).toBe(201);
       expect(res.body).toEqual({ clientId, jwk: jwkWithoutClientId });
