@@ -10,7 +10,6 @@ import { generateId } from "pagopa-interop-models";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MJWK } from "../../../src/api/keysApiConverter.js";
-import { jwkNotFound } from "../../../src/model/errors.js";
 
 describe("GET /clients/:clientId/keys/:keyId router test", () => {
   const makeRequest = async (token: string, clientId: string, keyId: string) =>
@@ -57,25 +56,31 @@ describe("GET /clients/:clientId/keys/:keyId router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each(authorizedRoles)(
-    "Should return 404 with a non-existant kid regardless of correct role %s",
-    async (role) => {
-      const clientId = generateId();
-      const nonExistantKid = generateId();
-      const error = jwkNotFound(nonExistantKid, clientId);
-      mockClientService.getClientKeyById = vi.fn((_clientId, _keyId) =>
-        Promise.reject(error)
-      );
-      const token = generateToken(role);
+  it.each([
+    // { clientId: generateId(), keyId: undefined },
+    { clientId: "invalidClientId", keyId: kid },
+  ])(
+    "Should return 400 if passed an invalid path parameter %s",
+    async ({ clientId, keyId }) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, clientId, keyId as string);
+      expect(res.status).toBe(400);
+    }
+  );
 
-      const res = await makeRequest(token, clientId, nonExistantKid);
-      expect(res.status).toBe(404);
-      expect(res.body.detail).toEqual(error.detail);
-      expect(mockClientService.getClientKeyById).toHaveBeenCalledWith(
-        clientId,
-        nonExistantKid,
-        expect.any(Object) // context
-      );
+  it.each([
+    { ...mockM2MJWKResponse, kid: undefined },
+    { ...mockM2MJWKResponse, invalidParam: "invalidValue" },
+    { ...mockM2MJWKResponse, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockClientService.getClientKeyById = vi.fn().mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const clientId = generateId();
+      const res = await makeRequest(token, clientId, kid);
+
+      expect(res.status).toBe(500);
     }
   );
 });

@@ -4,7 +4,7 @@ import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { clientAdminIdNotFound, jwkNotFound } from "../model/errors.js";
+import { clientAdminIdNotFound } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastResponseVersion,
@@ -224,18 +224,10 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      if (!key) {
-        throw jwkNotFound(keyId, clientId);
-      }
-
       const { data: jwk } = await clients.authorizationClient.key.getJWKByKid({
         params: { kid: key.kid },
         headers,
       });
-
-      if (!jwk) {
-        throw jwkNotFound(key.kid, clientId);
-      }
 
       return toM2MJWK(jwk.jwk);
     },
