@@ -120,7 +120,7 @@ import {
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
-export const retrieveEServiceTemplate = async (
+const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<EServiceTemplate>> => {
@@ -133,7 +133,7 @@ export const retrieveEServiceTemplate = async (
   return eserviceTemplate;
 };
 
-export const retrieveEServiceTemplateRiskAnalysis = (
+const retrieveEServiceTemplateRiskAnalysis = (
   eserviceTemplate: EServiceTemplate,
   riskAnalysisId: RiskAnalysisId
 ): EServiceTemplateRiskAnalysis => {
@@ -250,7 +250,7 @@ const replaceEServiceTemplateVersion = (
   };
 };
 
-export function validateRiskAnalysisSchemaOrThrow(
+function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind,
   dateForExpirationValidation: Date,

@@ -32,7 +32,7 @@ export function apiTechnologyToTechnology(
     .exhaustive();
 }
 
-export function eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
+function eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
   input: EServiceTemplateVersionState
 ): eserviceTemplateApi.EServiceTemplateVersionState {
   return match<
@@ -60,7 +60,7 @@ export function apiEServiceTemplateVersionStateToEServiceTemplateVersionState(
     .exhaustive();
 }
 
-export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
+function agreementApprovalPolicyToApiAgreementApprovalPolicy(
   input: AgreementApprovalPolicy
 ): eserviceTemplateApi.AgreementApprovalPolicy {
   return match<
@@ -114,7 +114,7 @@ export const documentToApiDocument = (
   uploadDate: document.uploadDate.toJSON(),
 });
 
-export const eserviceTemplateVersionToApiEServiceTemplateVersion = (
+const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   eserviceTemplateVersion: EServiceTemplateVersion
 ): eserviceTemplateApi.EServiceTemplateVersion => ({
   id: eserviceTemplateVersion.id,
