@@ -29,29 +29,24 @@ describe("POST /clients/:clientId/keys router test", () => {
     alg: "",
   };
 
-  // const mockM2MJWKsResponse: m2mGatewayApiV3.JWK = {
-  //   pagination: { offset: 0, limit: 10, totalCount: 2 },
-  //   results: [toM2MJWK(mockApiKey1), toM2MJWK(mockApiKey2)],
-  // };
+  const mockJwk = getMockClientJWKKey();
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,
     authRole.M2M_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       const clientId = generateId();
       mockClientService.createClientKey = vi
         .fn()
-        .mockImplementation(() =>
-          toM2MKey({ clientId, jwk: getMockClientJWKKey() })
-        );
+        .mockImplementation(() => toM2MKey({ clientId, jwk: mockJwk }));
       const token = generateToken(role);
       const res = await makeRequest(token, clientId, keySeed);
-
+      const { clientId: _, ...jwkWithoutClientId } = mockJwk;
       expect(res.status).toBe(201);
-      // expect(res.body).toEqual(mockM2MJWKsResponse);
+      expect(res.body).toEqual({ clientId, jwk: jwkWithoutClientId });
       expect(mockClientService.createClientKey).toHaveBeenCalledWith(
         clientId,
         keySeed,

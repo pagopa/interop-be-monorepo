@@ -28,9 +28,9 @@ describe("createClientKey", () => {
     metadata: undefined,
   });
 
-  const mockGetJWKByKid = vi.fn(({}) => {
-    return Promise.resolve(getMockWithMetadata({ jwk: mockApiClientJWK }));
-  });
+  const mockGetJWKByKid = vi.fn(() =>
+    Promise.resolve(getMockWithMetadata({ jwk: mockApiClientJWK }))
+  );
 
   mockInteropBeClients.authorizationClient = {
     client: {
