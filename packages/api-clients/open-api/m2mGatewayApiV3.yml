@@ -2054,14 +2054,6 @@ paths:
       summary: Create a new Client Key
       description: Create a new client key associated with a Client
       operationId: createClientKey
-      parameters:
-        - name: clientId
-          in: path
-          description: The ID of the Client
-          required: true
-          schema:
-            type: string
-            format: uuid
       requestBody:
         description: Client Key to create
         required: true
