@@ -16,7 +16,7 @@ import {
 } from "pagopa-interop-models";
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
-export const errorCodes = {
+const errorCodes = {
   purposeNotFound: "0001",
   eserviceNotFound: "0002",
   tenantNotFound: "0003",

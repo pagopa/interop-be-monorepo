@@ -21,9 +21,7 @@ const CatalogProcessServerConfig = z
     eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 
-type CatalogProcessServerConfig = z.infer<
-  typeof CatalogProcessServerConfig
->;
+type CatalogProcessServerConfig = z.infer<typeof CatalogProcessServerConfig>;
 
 const EServiceTemplateUpdaterConfig = CatalogProcessServerConfig.and(
   EServiceTemplateTopicConfig
