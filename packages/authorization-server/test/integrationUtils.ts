@@ -12,7 +12,7 @@ export const configTokenGenerationStates = inject(
   "tokenGenerationReadModelConfig"
 );
 
-export const { cleanup, fileManager, redisRateLimiter } =
+const { cleanup, fileManager, redisRateLimiter } =
   await setupTestContainersVitest(
     undefined,
     inject("fileManagerConfig"),

@@ -45,7 +45,7 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
   .and(DPoPConfig);
 
-export type AuthorizationServerConfig = z.infer<
+type AuthorizationServerConfig = z.infer<
   typeof AuthorizationServerConfig
 >;
 
