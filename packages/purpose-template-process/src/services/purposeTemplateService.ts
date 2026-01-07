@@ -612,7 +612,7 @@ export function purposeTemplateServiceBuilder(
           createdAt: creationTimestamp,
         },
         metadata: {
-          version: createdEvents[createdEvents.length - 1].newVersion,
+          version: createdEvents.latestNewVersions.get(purposeTemplateId) ?? 0,
         },
       })
     );
