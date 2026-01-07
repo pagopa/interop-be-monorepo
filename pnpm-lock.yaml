@@ -368,6 +368,9 @@ importers:
       '@types/ssh2-sftp-client':
         specifier: 9.0.5
         version: 9.0.5
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
