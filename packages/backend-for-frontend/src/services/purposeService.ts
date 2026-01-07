@@ -245,7 +245,6 @@ export function purposeServiceBuilder(
           isReversePurpose ? producer.kind : delegation.delegator.kind,
           purpose.riskAnalysisForm.version
         );
-        rulesetExpiration = undefined;
       }
     }
 
