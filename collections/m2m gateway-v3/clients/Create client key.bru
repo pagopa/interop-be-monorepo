@@ -1,0 +1,38 @@
+meta {
+  name: Create client key
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/clients/{{clientId}}/keys
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+      "key": "{{keyEncodedPem}}",
+      "use": "ENC",
+      "alg": "RS256",
+      "name": "{{randomName}}"
+  }
+}
+
+vars:post-response {
+  clientKeyKid: res.body.kid
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test client key name ${random}`)
+}
+
+docs {
+  Creates a new key for a specific client.
+}
