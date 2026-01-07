@@ -16,7 +16,7 @@ import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateVali
 
 export const errorCodes = {
   missingFreeOfChargeReason: "0001",
-  purposeTemplateNameConflict: "0002",
+  purposeTemplateTitleConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
   ruleSetNotFoundError: "0005",
@@ -54,14 +54,16 @@ export function missingFreeOfChargeReason(): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeTemplateNameConflict(
-  purposeTemplateId: PurposeTemplateId,
-  name: string
+export function purposeTemplateTitleConflict(
+  purposeTemplateIds: PurposeTemplateId[],
+  title: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose Template name conflict for ID ${purposeTemplateId} and name ${name}`,
-    code: "purposeTemplateNameConflict",
-    title: "Purpose Template name conflict",
+    detail: `Purpose Template title conflict for title ${title} and IDs ${purposeTemplateIds.join(
+      ", "
+    )}`,
+    code: "purposeTemplateTitleConflict",
+    title: "Purpose Template title conflict",
   });
 }
 

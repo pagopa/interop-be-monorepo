@@ -572,15 +572,23 @@ function applyVisibilityToPurposeTemplate(
   purposeTemplate: WithMetadata<PurposeTemplate>,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): WithMetadata<PurposeTemplate> {
-  if (
-    (hasRoleToAccessDraftPurposeTemplates(authData) &&
-      isRequesterCreator(purposeTemplate.data.creatorId, authData)) ||
-    !isPurposeTemplateDraft(purposeTemplate.data.state)
-  ) {
+  const isDraft = isPurposeTemplateDraft(purposeTemplate.data.state);
+
+  if (!isDraft) {
     return purposeTemplate;
   }
 
-  throw tenantNotAllowed(authData.organizationId);
+  const hasRole = hasRoleToAccessDraftPurposeTemplates(authData);
+  const isCreator = isRequesterCreator(
+    purposeTemplate.data.creatorId,
+    authData
+  );
+
+  if (hasRole && isCreator) {
+    return purposeTemplate;
+  }
+
+  throw purposeTemplateNotFound(purposeTemplate.data.id);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
