@@ -7,9 +7,9 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { clientAdminIdNotFound } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
-  isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 import {
@@ -42,14 +42,11 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
-  const pollClientById = (
+  const pollClientUntilDeletion = (
     clientId: ClientId,
-    metadata: { version: number } | undefined,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<authorizationApi.Client>> =>
-    pollResourceWithMetadata(() => retrieveClientById(clientId, headers))({
-      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
-    });
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() => retrieveClientById(clientId, headers))({});
 
   return {
     async getClientAdminId(
@@ -229,16 +226,12 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         `Deleting key for client with id ${clientId} and its keyId ${keyId}`
       );
 
-      const { metadata } =
-        await clients.authorizationClient.client.deleteClientKeyById(
-          undefined,
-          {
-            params: { clientId, keyId },
-            headers,
-          }
-        );
+      await clients.authorizationClient.client.deleteClientKeyById(undefined, {
+        params: { clientId, keyId },
+        headers,
+      });
 
-      await pollClientById(clientId, metadata, headers);
+      await pollClientUntilDeletion(clientId, headers);
     },
   };
 }

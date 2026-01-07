@@ -13,11 +13,10 @@ import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
-  mockPollingResponse,
+  mockDeletionPollingResponse,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deleteClientKey", () => {
@@ -25,12 +24,10 @@ describe("deleteClientKey", () => {
     getMockedApiConsumerFullClient()
   );
 
-  const mockDeleteClientKeyById = vi
-    .fn()
-    .mockResolvedValue(mockAuthorizationProcessResponse);
+  const mockDeleteClientKeyById = vi.fn();
 
   const mockGetClient = vi.fn(
-    mockPollingResponse(mockAuthorizationProcessResponse, 2)
+    mockDeletionPollingResponse(mockAuthorizationProcessResponse, 2)
   );
 
   mockInteropBeClients.authorizationClient = {
@@ -72,39 +69,9 @@ describe("deleteClientKey", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("Should throw missingMetadata in case the client returned by the deleteClientKeyById DELETE call has no metadata", async () => {
-    mockDeleteClientKeyById.mockResolvedValueOnce({
-      ...mockAuthorizationProcessResponse,
-      metadata: undefined,
-    });
-
-    await expect(
-      clientService.deleteClientKey(
-        unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        generateId(),
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(missingMetadata());
-  });
-
-  it("Should throw missingMetadata in case the client returned by the polling GET call has no metadata", async () => {
-    mockGetClient.mockResolvedValueOnce({
-      ...mockAuthorizationProcessResponse,
-      metadata: undefined,
-    });
-
-    await expect(
-      clientService.deleteClientKey(
-        unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        generateId(),
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(missingMetadata());
-  });
-
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetClient.mockImplementation(
-      mockPollingResponse(
+      mockDeletionPollingResponse(
         mockAuthorizationProcessResponse,
         config.defaultPollingMaxRetries + 1
       )

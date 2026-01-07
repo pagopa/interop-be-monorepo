@@ -9,11 +9,7 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
 describe("DELETE /clients/:clientId/keys/:keyId router test", () => {
-  const makeRequest = async (
-    token: string,
-    clientId: string,
-    keyId: string
-  ) =>
+  const makeRequest = async (token: string, clientId: string, keyId: string) =>
     request(api)
       .delete(`${appBasePath}/clients/${clientId}/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
