@@ -24,26 +24,14 @@ export const TenantNotificationConfig = z.object({
 });
 export type TenantNotificationConfig = z.infer<typeof TenantNotificationConfig>;
 
-export const emailNotificationPreference = {
-  disabled: "Disabled",
-  enabled: "Enabled",
-  digest: "Digest",
-} as const;
-export const EmailNotificationPreference = z.enum([
-  Object.values(emailNotificationPreference)[0],
-  ...Object.values(emailNotificationPreference).slice(1),
-]);
-export type EmailNotificationPreference = z.infer<
-  typeof EmailNotificationPreference
->;
-
 export const UserNotificationConfig = z.object({
   id: UserNotificationConfigId,
   userId: UserId,
   tenantId: TenantId,
   userRoles: z.array(UserRole).nonempty(),
   inAppNotificationPreference: z.boolean(),
-  emailNotificationPreference: EmailNotificationPreference,
+  emailNotificationPreference: z.boolean(),
+  emailDigestPreference: z.boolean(),
   inAppConfig: NotificationConfig,
   emailConfig: NotificationConfig,
   createdAt: z.coerce.date(),

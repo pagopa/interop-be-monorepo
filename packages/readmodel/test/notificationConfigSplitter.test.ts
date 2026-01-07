@@ -80,6 +80,7 @@ describe("Notification config splitters", () => {
           userNotificationConfig.inAppNotificationPreference,
         emailNotificationPreference:
           userNotificationConfig.emailNotificationPreference,
+        emailDigestPreference: userNotificationConfig.emailDigestPreference,
       };
 
       const expectedEnabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] =

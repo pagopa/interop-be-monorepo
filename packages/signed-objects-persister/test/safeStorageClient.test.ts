@@ -72,6 +72,7 @@ describe("SafeStorageApiClient - Unit Tests", () => {
     const client = createSafeStorageApiClient(config);
     const result = await client.downloadFileContent(
       "https://download.example.com/file",
+      "s3key",
       genericLogger
     );
 
