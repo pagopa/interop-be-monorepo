@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import { SQSConsumerConfig } from "./sqsConfig.js";
 
-export const AuditSignerConfig = SQSConsumerConfig.and(FileManagerConfig)
+const AuditSignerConfig = SQSConsumerConfig.and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)
   .and(DynamoDBClientConfig)
@@ -23,6 +23,6 @@ export const AuditSignerConfig = SQSConsumerConfig.and(FileManagerConfig)
       }))
   );
 
-export type AuditSignerConfig = z.infer<typeof AuditSignerConfig>;
+type AuditSignerConfig = z.infer<typeof AuditSignerConfig>;
 
 export const config: AuditSignerConfig = AuditSignerConfig.parse(process.env);
