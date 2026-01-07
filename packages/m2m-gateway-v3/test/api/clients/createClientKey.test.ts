@@ -15,14 +15,14 @@ describe("POST /clients/:clientId/keys router test", () => {
   const makeRequest = async (
     token: string,
     clientId: string,
-    seed: m2mGatewayApiV3.JWKSeed
+    seed: m2mGatewayApiV3.KeySeed
   ) =>
     request(api)
       .post(`${appBasePath}/clients/${clientId}/keys`)
       .set("Authorization", `Bearer ${token}`)
       .send(seed);
 
-  const keySeed: m2mGatewayApiV3.JWKSeed = {
+  const keySeed: m2mGatewayApiV3.KeySeed = {
     name: "key seed",
     use: "ENC",
     key: `MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsFakePem`,
@@ -75,7 +75,7 @@ describe("POST /clients/:clientId/keys router test", () => {
     const res = await makeRequest(
       token,
       generateId(),
-      seed as m2mGatewayApiV3.JWKSeed
+      seed as m2mGatewayApiV3.KeySeed
     );
 
     expect(res.status).toBe(400);

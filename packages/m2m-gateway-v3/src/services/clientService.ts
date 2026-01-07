@@ -212,7 +212,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async createClientKey(
       clientId: ClientId,
-      seed: m2mGatewayApiV3.JWKSeed,
+      seed: m2mGatewayApiV3.KeySeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.JWK> {
       logger.info(`Create a new key for client with id ${clientId}`);

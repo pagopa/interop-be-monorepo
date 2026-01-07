@@ -41,7 +41,7 @@ describe("createClientKey", () => {
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
-  const keySeed: m2mGatewayApiV3.JWKSeed = {
+  const keySeed: m2mGatewayApiV3.KeySeed = {
     name: "key seed",
     use: "ENC",
     key: `MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsFakePem`,
