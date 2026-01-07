@@ -31,6 +31,7 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
         DELEGATION_DOCUMENTS_PATH: z.string(),
         AGREEMENT_DOCUMENTS_PATH: z.string(),
         RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+        RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH: z.string(),
         DELEGATION_PROCESS_URL: APIEndpoint,
         PURPOSE_PROCESS_URL: APIEndpoint,
         AGREEMENT_PROCESS_URL: APIEndpoint,
@@ -39,6 +40,8 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
         delegationDocumentsPath: c.DELEGATION_DOCUMENTS_PATH,
         agreementContractsPath: c.AGREEMENT_DOCUMENTS_PATH,
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+        riskAnalysisTemplateDocumentsPath:
+          c.RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH,
         delegationProcessUrl: c.DELEGATION_PROCESS_URL,
         purposeProcessUrl: c.PURPOSE_PROCESS_URL,
         agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
