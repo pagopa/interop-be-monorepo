@@ -56,10 +56,7 @@ describe("GET /clients/:clientId/keys/:keyId router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([
-    // { clientId: generateId(), keyId: undefined },
-    { clientId: "invalidClientId", keyId: kid },
-  ])(
+  it.each([{ clientId: "invalidClientId", keyId: kid }])(
     "Should return 400 if passed an invalid path parameter %s",
     async ({ clientId, keyId }) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
