@@ -137,6 +137,13 @@ export type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
 >;
 
+export const Config = z.object({
+  // ... altre config esistenti
+  DPOP_PRIVATE_KEY_JWK: z.string(), // Chiave privata del Gateway (JWK)
+  DPOP_PUBLIC_KEY_JWK: z.string(), // Chiave pubblica del Gateway (JWK)
+  GATEWAY_PUBLIC_URL: z.string(), // URL pubblico del gateway (es. https://m2m.interop.pagopa.it)
+});
+
 const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig) // M2MGatewayConfigV3??
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -161,6 +168,27 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig) 
         m2mGatewayInterfaceVersion: c.M2M_GATEWAY_INTERFACE_VERSION,
         defaultPollingRetryDelay: c.DEFAULT_POLLING_RETRY_DELAY,
         defaultPollingMaxRetries: c.DEFAULT_POLLING_MAX_RETRIES,
+      }))
+  )
+  .and(
+    z
+      .object({
+        DPOP_PRIVATE_KEY_JWK: z.string(),
+        DPOP_PUBLIC_KEY_JWK: z.string(),
+        GATEWAY_PUBLIC_URL: z.string(),
+        DPOP_IAT_TOLERANCE_SECONDS: z.coerce.number(),
+        DPOP_DURATION_SECONDS: z.coerce.number(),
+        DPOP_HTU: z.string(),
+        DPOP_CACHE_TABLE: z.string(),
+      })
+      .transform((c) => ({
+        dpopPrivateKeyJwk: c.DPOP_PRIVATE_KEY_JWK,
+        dpopPublicKeyJwk: c.DPOP_PUBLIC_KEY_JWK,
+        gatewayPublicUrl: c.GATEWAY_PUBLIC_URL,
+        dpopIatToleranceSeconds: c.DPOP_IAT_TOLERANCE_SECONDS,
+        dpopDurationSeconds: c.DPOP_DURATION_SECONDS,
+        dpopHtu: c.DPOP_HTU,
+        dpopCacheTable: c.DPOP_CACHE_TABLE,
       }))
   );
 

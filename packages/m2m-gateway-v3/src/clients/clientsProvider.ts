@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   tenantApi,
   attributeRegistryApi,
@@ -10,9 +11,16 @@ import {
   m2mEventApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
+import * as jose from "jose";
+import {
+  ZodiosEndpointDefinitions,
+  ZodiosInstance,
+  ZodiosOptions,
+} from "@zodios/core";
 import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
 import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
+import { zodiosDPoPPlugin } from "./dpopPlugin.js";
 
 export type TenantProcessClient = {
   tenant: ZodiosClientWithMetadata<
@@ -96,82 +104,102 @@ export type PagoPAInteropBeClients = {
   purposeTemplateProcessClient: PurposeTemplateProcessClient;
 };
 
-export function getInteropBeClients(): PagoPAInteropBeClients {
+export async function getInteropBeClients(): Promise<PagoPAInteropBeClients> {
+  const privateKey = await jose.importJWK(
+    JSON.parse(config.dpopPrivateKeyJwk),
+    "ES256"
+  );
+  const publicJwk = JSON.parse(config.dpopPublicKeyJwk);
+
+  const createDPoPClient = <Api extends ZodiosEndpointDefinitions>(
+    createClientFn: (
+      baseUrl: string,
+      options?: ZodiosOptions
+    ) => ZodiosInstance<Api>,
+    url: string
+  ): ZodiosClientWithMetadata<ZodiosInstance<Api>> => {
+    const client = createZodiosClientEnhancedWithMetadata(createClientFn, url);
+
+    (client as any).use(zodiosDPoPPlugin(privateKey, publicJwk));
+
+    return client;
+  };
+
   return {
     tenantProcessClient: {
-      tenant: createZodiosClientEnhancedWithMetadata(
+      tenant: createDPoPClient(
         tenantApi.createTenantApiClient,
         config.tenantProcessUrl
       ),
-      tenantAttribute: createZodiosClientEnhancedWithMetadata(
+      tenantAttribute: createDPoPClient(
         tenantApi.createTenantAttributeApiClient,
         config.tenantProcessUrl
       ),
-      selfcare: createZodiosClientEnhancedWithMetadata(
+      selfcare: createDPoPClient(
         tenantApi.createSelfcareApiClient,
         config.tenantProcessUrl
       ),
     },
-    agreementProcessClient: createZodiosClientEnhancedWithMetadata(
+    agreementProcessClient: createDPoPClient(
       agreementApi.createAgreementApiClient,
       config.agreementProcessUrl
     ),
-    catalogProcessClient: createZodiosClientEnhancedWithMetadata(
+    catalogProcessClient: createDPoPClient(
       catalogApi.createProcessApiClient,
       config.catalogProcessUrl
     ),
-    attributeProcessClient: createZodiosClientEnhancedWithMetadata(
+    attributeProcessClient: createDPoPClient(
       attributeRegistryApi.createAttributeApiClient,
       config.attributeRegistryUrl
     ),
-    purposeProcessClient: createZodiosClientEnhancedWithMetadata(
+    purposeProcessClient: createDPoPClient(
       purposeApi.createPurposeApiClient,
       config.purposeUrl
     ),
     authorizationClient: {
-      client: createZodiosClientEnhancedWithMetadata(
+      client: createDPoPClient(
         authorizationApi.createClientApiClient,
         config.authorizationUrl
       ),
-      producerKeychain: createZodiosClientEnhancedWithMetadata(
+      producerKeychain: createDPoPClient(
         authorizationApi.createProducerKeychainApiClient,
         config.authorizationUrl
       ),
-      user: createZodiosClientEnhancedWithMetadata(
+      user: createDPoPClient(
         authorizationApi.createUserApiClient,
         config.authorizationUrl
       ),
-      token: createZodiosClientEnhancedWithMetadata(
+      token: createDPoPClient(
         authorizationApi.createTokenGenerationApiClient,
         config.authorizationUrl
       ),
-      key: createZodiosClientEnhancedWithMetadata(
+      key: createDPoPClient(
         authorizationApi.createKeyApiClient,
         config.authorizationUrl
       ),
     },
     delegationProcessClient: {
-      producer: createZodiosClientEnhancedWithMetadata(
+      producer: createDPoPClient(
         delegationApi.createProducerApiClient,
         config.delegationProcessUrl
       ),
-      consumer: createZodiosClientEnhancedWithMetadata(
+      consumer: createDPoPClient(
         delegationApi.createConsumerApiClient,
         config.delegationProcessUrl
       ),
-      delegation: createZodiosClientEnhancedWithMetadata(
+      delegation: createDPoPClient(
         delegationApi.createDelegationApiClient,
         config.delegationProcessUrl
       ),
     },
-    eserviceTemplateProcessClient: createZodiosClientEnhancedWithMetadata(
+    eserviceTemplateProcessClient: createDPoPClient(
       eserviceTemplateApi.createProcessApiClient,
       config.eserviceTemplateProcessUrl
     ),
     eventManagerClient: m2mEventApi.createM2mEventsApiClient(
       config.eventManagerUrl
     ),
-    purposeTemplateProcessClient: createZodiosClientEnhancedWithMetadata(
+    purposeTemplateProcessClient: createDPoPClient(
       purposeTemplateApi.createPurposeTemplateApiClient,
       config.purposeTemplateProcessUrl
     ),

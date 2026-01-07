@@ -20,7 +20,7 @@ import { keyServiceBuilder } from "./services/keyService.js";
 import { producerKeychainServiceBuilder } from "./services/producerKeychainService.js";
 import { eventServiceBuilder } from "./services/eventService.js";
 
-const clients = getInteropBeClients();
+const clients = await getInteropBeClients();
 const fileManager = initFileManager(config);
 
 const services: M2MGatewayServices = {

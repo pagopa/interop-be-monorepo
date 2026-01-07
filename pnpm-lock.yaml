@@ -4049,6 +4049,9 @@ importers:
 
   packages/m2m-gateway-v3:
     dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.840.0
+        version: 3.840.0
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.12.0)(zod@3.23.8)
@@ -4070,6 +4073,9 @@ importers:
       formdata-node:
         specifier: 6.0.3
         version: 6.0.3
+      jose:
+        specifier: 5.9.4
+        version: 5.9.4
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients

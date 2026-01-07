@@ -47,6 +47,8 @@
     "pagopa-interop-models": "workspace:*",
     "qs": "6.12.3",
     "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "zod": "3.23.8",
+    "jose": "5.9.4",
+    "@aws-sdk/client-dynamodb": "3.840.0"
   }
 }

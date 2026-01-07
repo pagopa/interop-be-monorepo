@@ -14,6 +14,7 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { config } from "./config/config.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
@@ -108,7 +109,11 @@ export async function createApp(
     await applicationAuditEndMiddleware(serviceName, config),
     authenticationMiddleware(config),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
-    m2mAuthDataValidationMiddleware(clientService),
+    m2mAuthDataValidationMiddleware(
+      clientService,
+      config,
+      new DynamoDBClient()
+    ),
     rateLimiterMiddleware,
     eserviceRouter(zodiosCtx, eserviceService),
     attributeRouter(zodiosCtx, attributeService),

@@ -11,8 +11,14 @@ import { unauthorizedError } from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { P, match } from "ts-pattern";
 import { Request } from "express";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { makeApiProblem } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
+import {
+  checkDPoPCache,
+  verifyDPoPProof,
+} from "../../../dpop-validation/src/validation.js";
+import { M2MGatewayConfig } from "../config/config.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 
 export async function validateM2MAdminUserId(
@@ -34,15 +40,50 @@ export async function validateM2MAdminUserId(
 }
 
 export function m2mAuthDataValidationMiddleware(
-  clientService: M2MGatewayServices["clientService"]
+  clientService: M2MGatewayServices["clientService"],
+  config: M2MGatewayConfig,
+  dynamoDBClient: DynamoDBClient
 ): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
-    // We assume that:
-    // - contextMiddleware already set basic ctx info such as correlationId
-    // - authenticationMiddleware already set authData in ctx
-
     const ctx = fromAppContext((req as Request & { ctx: AppContext }).ctx);
+
     try {
+      const dpopHeader = req.headers.dpop;
+
+      if (dpopHeader) {
+        const validation = verifyDPoPProof({
+          dpopProofJWS: dpopHeader as string,
+          expectedDPoPProofHtu: `${config.dpopHtu}${req.originalUrl}`,
+          dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
+          dpopProofDurationSeconds: config.dpopDurationSeconds,
+        });
+
+        if (!("data" in validation) || !validation.data) {
+          throw unauthorizedError("DPoP validation failed");
+        }
+        // maybe no need to check "data" again
+        if ("data" in validation && validation.data) {
+          const { dpopProofJWT } = validation.data;
+
+          const cacheValidation = await checkDPoPCache({
+            dynamoDBClient,
+            dpopProofJti: dpopProofJWT.payload.jti,
+            dpopProofIat: dpopProofJWT.payload.iat,
+            dpopCacheTable: config.dpopCacheTable,
+            dpopProofDurationSeconds: config.dpopDurationSeconds,
+          });
+
+          if ("errors" in cacheValidation) {
+            throw unauthorizedError(
+              "DPoP JTI already used (replay attack detected)"
+            );
+          }
+        } else {
+          throw unauthorizedError("Invalid DPoP validation state");
+        }
+      }
+
+      // Prosegue con la validazione dei ruoli esistente
       await match(ctx.authData)
         .with({ systemRole: systemRole.M2M_ADMIN_ROLE }, (authData) =>
           validateM2MAdminUserId(
@@ -72,6 +113,8 @@ export function m2mAuthDataValidationMiddleware(
           }
         )
         .exhaustive();
+
+      return next();
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
@@ -80,7 +123,5 @@ export function m2mAuthDataValidationMiddleware(
       );
       return res.status(errorRes.status).send(errorRes);
     }
-
-    return next();
   };
 }
