@@ -42,6 +42,11 @@ export async function handleDelegationDocument(
 
         if (targetContract?.path) {
           const s3Key = targetContract.path;
+
+          logger.info(
+            `Processing and signing delegation file with key: ${s3Key}`
+          );
+
           const file: Uint8Array = await fileManager.get(
             config.s3Bucket,
             s3Key,
@@ -61,6 +66,8 @@ export async function handleDelegationDocument(
 
           const { uploadUrl, secret, key } =
             await safeStorageService.createFile(safeStorageRequest, logger);
+
+          logger.info(`Created file on safe storage with key: ${key}`);
 
           await safeStorageService.uploadFileContent(
             uploadUrl,
