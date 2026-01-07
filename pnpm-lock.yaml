@@ -401,18 +401,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
-      qs:
-        specifier: 6.12.3
-        version: 6.12.3
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
-      zod-validation-error:
-        specifier: 3.3.0
-        version: 3.3.0(zod@3.23.8)
     devDependencies:
       '@apidevtools/swagger-parser':
         specifier: 10.1.1
@@ -429,6 +420,12 @@ importers:
       '@types/qs':
         specifier: 6.9.15
         version: 6.9.15
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       handlebars:
         specifier: 4.7.8
         version: 4.7.8
