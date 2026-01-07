@@ -5041,6 +5041,67 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
+  packages/purpose-template-outbound-writer:
+    dependencies:
+      '@pagopa/interop-outbound-models':
+        specifier: 1.8.1
+        version: 1.8.1
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.14.0
+        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+      '@faker-js/faker':
+        specifier: 8.4.1
+        version: 8.4.1
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.19.9
+        version: 20.19.9
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.19.9)
+
   packages/purpose-template-process:
     dependencies:
       '@zodios/core':
