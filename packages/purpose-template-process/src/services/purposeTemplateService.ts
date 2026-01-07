@@ -52,7 +52,6 @@ import {
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   ruleSetNotFoundError,
-  tenantNotAllowed,
   purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound,
   purposeTemplateRiskAnalysisTemplateDocumentNotFound,
 } from "../model/domain/errors.js";
