@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "delegationSubmittedRevokedToDelegate";
@@ -75,6 +76,7 @@ export async function handleConsumerDelegationRevoked(
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

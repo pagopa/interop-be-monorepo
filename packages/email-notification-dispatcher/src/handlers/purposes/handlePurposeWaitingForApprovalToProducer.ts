@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "purposeQuotaAdjustmentRequestToProducer";
@@ -74,6 +75,7 @@ export async function handlePurposeWaitingForApprovalToProducer(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: producer.id,
