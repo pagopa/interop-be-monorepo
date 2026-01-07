@@ -24,7 +24,7 @@ export const createPurposeTemplateErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
+    .with("purposeTemplateTitleConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeTemplatesErrorMapper = (): number =>
@@ -97,7 +97,7 @@ export const updatePurposeTemplateErrorMapper = (
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "purposeTemplateNameConflict",
+      "purposeTemplateTitleConflict",
       "purposeTemplateNotInExpectedStates",
       () => HTTP_STATUS_CONFLICT
     )
