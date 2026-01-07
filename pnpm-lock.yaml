@@ -5044,8 +5044,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.1
-        version: 1.8.1
+        specifier: 1.8.3
+        version: 1.8.3
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -7220,6 +7220,9 @@ packages:
 
   '@pagopa/interop-outbound-models@1.8.1':
     resolution: {integrity: sha512-WOxbvxvc03fKYn/I1cxucbhvak+h5NFGFAu3ESV/3Y15mDWDEO4ZZz+Ybm+v4dxb54OuOQME8JSVot9tExr+pQ==}
+
+  '@pagopa/interop-outbound-models@1.8.3':
+    resolution: {integrity: sha512-BD7nT9LM8fvnxLItZY82LzxUhVDjwaW4pOULWvjYjfO6IQutmCg62tnvHqLYtc8fKFnNEVRYLVH9sm+F6h2p+A==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14270,6 +14273,12 @@ snapshots:
       zod: 3.23.8
 
   '@pagopa/interop-outbound-models@1.8.1':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
+
+  '@pagopa/interop-outbound-models@1.8.3':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
