@@ -429,6 +429,28 @@ const purposeRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .post("/purposeTemplates/:purposeTemplateId/purposes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.createPurposeFromTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+
+        return res.status(201).send(m2mGatewayApi.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createPurposeErrorMapper,
+          ctx,
+          `Error creating purpose from purpose template with id ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return purposeRouter;

@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionId,
   TenantId,
   unsafeBrandId,
@@ -129,7 +130,10 @@ export function purposeServiceBuilder(
   };
 
   const getConsumerIdForPurposeCreation = async (
-    purposeSeed: m2mGatewayApi.PurposeSeed | m2mGatewayApi.ReversePurposeSeed,
+    purposeSeed:
+      | m2mGatewayApi.PurposeSeed
+      | m2mGatewayApi.ReversePurposeSeed
+      | m2mGatewayApi.PurposeFromTemplateSeed,
     authData: M2MAdminAuthData,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<TenantId> => {
@@ -625,6 +629,35 @@ export function purposeServiceBuilder(
         );
 
       const polledResource = await pollPurpose(updatedPurpose, headers);
+
+      return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    async createPurposeFromTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      purposeFromTemplateSeed: m2mGatewayApi.PurposeFromTemplateSeed,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(
+        `Creating purpose from template ${purposeTemplateId} and consumer ${authData.organizationId}`
+      );
+
+      const purposeResponse =
+        await clients.purposeProcessClient.createPurposeFromTemplate(
+          {
+            consumerId: await getConsumerIdForPurposeCreation(
+              purposeFromTemplateSeed,
+              authData,
+              headers
+            ),
+            eserviceId: purposeFromTemplateSeed.eserviceId,
+            dailyCalls: purposeFromTemplateSeed.dailyCalls,
+            riskAnalysisForm: purposeFromTemplateSeed.riskAnalysisForm,
+            title: purposeFromTemplateSeed.title,
+          },
+          { params: { purposeTemplateId }, headers }
+        );
+
+      const polledResource = await pollPurpose(purposeResponse, headers);
 
       return toM2MGatewayApiPurpose(polledResource.data);
     },
