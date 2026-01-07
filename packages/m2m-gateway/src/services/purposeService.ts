@@ -34,6 +34,7 @@ import {
 import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
+  assertSeedPatchPurposeUpdateFromTemplateContent,
 } from "../utils/validators/purposeValidator.js";
 import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
@@ -151,6 +152,34 @@ export function purposeServiceBuilder(
       );
       return unsafeBrandId<TenantId>(delegation.delegatorId);
     }
+  };
+
+  const innerUpdateDraftPurpose = async (
+    updateSeed:
+      | m2mGatewayApi.PurposeDraftUpdateSeed
+      | m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed,
+    purpose: purposeApi.Purpose,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<purposeApi.Purpose>> => {
+    if (purpose.purposeTemplateId) {
+      assertSeedPatchPurposeUpdateFromTemplateContent(updateSeed);
+
+      return clients.purposeProcessClient.patchUpdatePurposeFromTemplate(
+        updateSeed,
+        {
+          params: {
+            purposeId: purpose.id,
+            purposeTemplateId: purpose.purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    }
+
+    return await clients.purposeProcessClient.patchUpdatePurpose(updateSeed, {
+      params: { id: purpose.id },
+      headers,
+    });
   };
 
   return {
@@ -560,16 +589,20 @@ export function purposeServiceBuilder(
     },
     async updateDraftPurpose(
       purposeId: PurposeId,
-      updateSeed: m2mGatewayApi.PurposeDraftUpdateSeed,
+      updateSeed:
+        | m2mGatewayApi.PurposeDraftUpdateSeed
+        | m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Updating draft purpose with id ${purposeId}`);
 
-      const updatedPurpose =
-        await clients.purposeProcessClient.patchUpdatePurpose(updateSeed, {
-          params: { id: purposeId },
-          headers,
-        });
+      const purpose = await retrievePurposeById(purposeId, headers);
+
+      const updatedPurpose = await innerUpdateDraftPurpose(
+        updateSeed,
+        purpose.data,
+        headers
+      );
 
       const polledResource = await pollPurpose(updatedPurpose, headers);
 
