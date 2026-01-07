@@ -1537,19 +1537,6 @@ components:
         - eserviceId
         - descriptorId
         - createdAt
-    UpdateEServiceDescriptorPurposeTemplateSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        eserviceId:
-          type: string
-          format: uuid
-        descriptorId:
-          type: string
-          format: uuid
-      required:
-        - eserviceId
-        - descriptorId
     RiskAnalysisFormTemplate:
       type: object
       additionalProperties: false

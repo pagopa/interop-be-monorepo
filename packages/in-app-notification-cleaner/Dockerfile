@@ -16,6 +16,7 @@ COPY ./packages/in-app-notification-cleaner/package.json /app/packages/in-app-no
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/in-app-notification-db-models/package.json /app/packages/in-app-notification-db-models/package.json
+COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -25,6 +26,7 @@ COPY ./packages/in-app-notification-cleaner /app/packages/in-app-notification-cl
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/in-app-notification-db-models /app/packages/in-app-notification-db-models
+COPY ./packages/readmodel-models /app/packages/readmodel-models
 
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
@@ -36,6 +38,7 @@ RUN pnpm build && \
   packages/commons \
   packages/models \
   packages/in-app-notification-db-models \
+  packages/readmodel-models \
   packages/in-app-notification-cleaner/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
