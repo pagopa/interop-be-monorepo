@@ -43,10 +43,9 @@ export const retrievePurposeDelegation = async (
   if (!purpose.delegationId) {
     return undefined;
   }
-  const delegation =
-    await readModelService.getActiveConsumerDelegationByDelegationId(
-      purpose.delegationId
-    );
+  const delegation = await readModelService.getConsumerDelegationByDelegationId(
+    purpose.delegationId
+  );
   if (!delegation) {
     throw purposeDelegationNotFound(purpose.id, purpose.delegationId);
   }

@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
@@ -84,6 +85,7 @@ export async function handlePurposeVersionRejectedOtherVersion(
         eserviceName: eservice.name,
         isAccepted: false,
         ctaLabel: `Visualizza finalità`,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: consumer.id,
