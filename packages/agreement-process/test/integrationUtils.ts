@@ -49,7 +49,6 @@ import {
 } from "pagopa-interop-readmodel/testUtils";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { config } from "../src/config/config.js";
-import { contractBuilder } from "../src/services/agreementContractBuilder.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, postgresDB, fileManager, readModelDB } =
@@ -95,21 +94,13 @@ const readModelService = readModelServiceBuilderSQL(
 
 export const pdfGenerator = await initPDFGenerator();
 
-export const agreementContractBuilder = contractBuilder(
-  readModelService,
-  pdfGenerator,
-  fileManager,
-  config,
-  genericLogger
-);
-
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,
   fileManager,
   pdfGenerator
 );
-export const writeAgreementInEventstore = async (
+const writeAgreementInEventstore = async (
   agreement: Agreement
 ): Promise<void> => {
   const agreementEvent: AgreementEvent = {
