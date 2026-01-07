@@ -52,7 +52,8 @@ import {
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   ruleSetNotFoundError,
-  tenantNotAllowed,
+  purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound,
+  purposeTemplateRiskAnalysisTemplateDocumentNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -125,6 +126,28 @@ function retrieveRiskAnalysisFormTemplate(
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
   return purposeTemplate.purposeRiskAnalysisForm;
+}
+
+function retrieveRiskAnalysisTemplateDocument(
+  formTemplate: RiskAnalysisFormTemplate
+): RiskAnalysisTemplateDocument {
+  const templateDocument = formTemplate.document;
+  if (!templateDocument) {
+    throw purposeTemplateRiskAnalysisTemplateDocumentNotFound(formTemplate.id);
+  }
+  return templateDocument;
+}
+
+function retrieveRiskAnalysisTemplateSignedDocument(
+  formTemplate: RiskAnalysisFormTemplate
+): RiskAnalysisTemplateSignedDocument {
+  const templateSignedDocument = formTemplate.signedDocument;
+  if (!templateSignedDocument) {
+    throw purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
+      formTemplate.id
+    );
+  }
+  return templateSignedDocument;
 }
 
 function retrieveRiskAnalysisTemplateAnswer(
@@ -548,15 +571,23 @@ function applyVisibilityToPurposeTemplate(
   purposeTemplate: WithMetadata<PurposeTemplate>,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): WithMetadata<PurposeTemplate> {
-  if (
-    (hasRoleToAccessDraftPurposeTemplates(authData) &&
-      isRequesterCreator(purposeTemplate.data.creatorId, authData)) ||
-    !isPurposeTemplateDraft(purposeTemplate.data.state)
-  ) {
+  const isDraft = isPurposeTemplateDraft(purposeTemplate.data.state);
+
+  if (!isDraft) {
     return purposeTemplate;
   }
 
-  throw tenantNotAllowed(authData.organizationId);
+  const hasRole = hasRoleToAccessDraftPurposeTemplates(authData);
+  const isCreator = isRequesterCreator(
+    purposeTemplate.data.creatorId,
+    authData
+  );
+
+  if (hasRole && isCreator) {
+    return purposeTemplate;
+  }
+
+  throw purposeTemplateNotFound(purposeTemplate.data.id);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1020,6 +1051,50 @@ export function purposeTemplateServiceBuilder(
           version: event.newVersion,
         },
       };
+    },
+    async getRiskAnalysisTemplateDocument(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<RiskAnalysisTemplateDocument> {
+      logger.info(
+        `Retrieving risk analysis template document from purpose template ${purposeTemplateId}`
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      applyVisibilityToPurposeTemplate(purposeTemplate, authData);
+
+      const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
+        purposeTemplate.data
+      );
+
+      return retrieveRiskAnalysisTemplateDocument(riskAnalysisFormTemplate);
+    },
+    async getRiskAnalysisTemplateSignedDocument(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<RiskAnalysisTemplateSignedDocument> {
+      logger.info(
+        `Retrieving risk analysis template signed document from purpose template ${purposeTemplateId}`
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      applyVisibilityToPurposeTemplate(purposeTemplate, authData);
+
+      const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
+        purposeTemplate.data
+      );
+
+      return retrieveRiskAnalysisTemplateSignedDocument(
+        riskAnalysisFormTemplate
+      );
     },
     async createRiskAnalysisAnswer(
       purposeTemplateId: PurposeTemplateId,
