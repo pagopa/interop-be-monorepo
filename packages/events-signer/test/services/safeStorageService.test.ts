@@ -1,10 +1,7 @@
 /* eslint-disable functional/no-let */
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import axios from "axios";
-import {
-  // mockLogger,
-  createSafeStorageApiClient,
-} from "pagopa-interop-commons";
+import { createSafeStorageApiClient } from "pagopa-interop-commons";
 import { config } from "../../src/config/config.js";
 
 const mockLogger = {
