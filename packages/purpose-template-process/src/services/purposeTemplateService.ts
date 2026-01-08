@@ -1,6 +1,7 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
+  AuthData,
   DB,
   eventRepository,
   FileManager,
@@ -32,7 +33,9 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
   TenantKind,
   unsafeBrandId,
@@ -49,7 +52,8 @@ import {
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   ruleSetNotFoundError,
-  tenantNotAllowed,
+  purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound,
+  purposeTemplateRiskAnalysisTemplateDocumentNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -64,6 +68,8 @@ import {
   toCreateEventPurposeTemplatePublished,
   toCreateEventPurposeTemplateSuspended,
   toCreateEventPurposeTemplateUnsuspended,
+  toCreateEventRiskAnalysisTemplateDocumentGenerated,
+  toCreateEventRiskAnalysisTemplateSignedDocumentGenerated,
 } from "../model/domain/toEvent.js";
 import {
   addAnnotationDocumentToUpdatedAnswerIfNeeded,
@@ -120,6 +126,28 @@ function retrieveRiskAnalysisFormTemplate(
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
   return purposeTemplate.purposeRiskAnalysisForm;
+}
+
+function retrieveRiskAnalysisTemplateDocument(
+  formTemplate: RiskAnalysisFormTemplate
+): RiskAnalysisTemplateDocument {
+  const templateDocument = formTemplate.document;
+  if (!templateDocument) {
+    throw purposeTemplateRiskAnalysisTemplateDocumentNotFound(formTemplate.id);
+  }
+  return templateDocument;
+}
+
+function retrieveRiskAnalysisTemplateSignedDocument(
+  formTemplate: RiskAnalysisFormTemplate
+): RiskAnalysisTemplateSignedDocument {
+  const templateSignedDocument = formTemplate.signedDocument;
+  if (!templateSignedDocument) {
+    throw purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
+      formTemplate.id
+    );
+  }
+  return templateSignedDocument;
 }
 
 function retrieveRiskAnalysisTemplateAnswer(
@@ -543,15 +571,23 @@ function applyVisibilityToPurposeTemplate(
   purposeTemplate: WithMetadata<PurposeTemplate>,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): WithMetadata<PurposeTemplate> {
-  if (
-    (hasRoleToAccessDraftPurposeTemplates(authData) &&
-      isRequesterCreator(purposeTemplate.data.creatorId, authData)) ||
-    !isPurposeTemplateDraft(purposeTemplate.data.state)
-  ) {
+  const isDraft = isPurposeTemplateDraft(purposeTemplate.data.state);
+
+  if (!isDraft) {
     return purposeTemplate;
   }
 
-  throw tenantNotAllowed(authData.organizationId);
+  const hasRole = hasRoleToAccessDraftPurposeTemplates(authData);
+  const isCreator = isRequesterCreator(
+    purposeTemplate.data.creatorId,
+    authData
+  );
+
+  if (hasRole && isCreator) {
+    return purposeTemplate;
+  }
+
+  throw purposeTemplateNotFound(purposeTemplate.data.id);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1015,6 +1051,50 @@ export function purposeTemplateServiceBuilder(
           version: event.newVersion,
         },
       };
+    },
+    async getRiskAnalysisTemplateDocument(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<RiskAnalysisTemplateDocument> {
+      logger.info(
+        `Retrieving risk analysis template document from purpose template ${purposeTemplateId}`
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      applyVisibilityToPurposeTemplate(purposeTemplate, authData);
+
+      const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
+        purposeTemplate.data
+      );
+
+      return retrieveRiskAnalysisTemplateDocument(riskAnalysisFormTemplate);
+    },
+    async getRiskAnalysisTemplateSignedDocument(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<RiskAnalysisTemplateSignedDocument> {
+      logger.info(
+        `Retrieving risk analysis template signed document from purpose template ${purposeTemplateId}`
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      applyVisibilityToPurposeTemplate(purposeTemplate, authData);
+
+      const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
+        purposeTemplate.data
+      );
+
+      return retrieveRiskAnalysisTemplateSignedDocument(
+        riskAnalysisFormTemplate
+      );
     },
     async createRiskAnalysisAnswer(
       purposeTemplateId: PurposeTemplateId,
@@ -1690,6 +1770,74 @@ export function purposeTemplateServiceBuilder(
         limit,
         offset,
       });
+    },
+    async internalAddRiskAnalysisTemplateDocumentMetadata(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisTemplateDocument: RiskAnalysisTemplateDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Adding risk analysis document to purpose template ${purposeTemplateId}, document id ${riskAnalysisTemplateDocument.id}`
+      );
+      const { data: purposeTemplate, metadata } = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      const riskAnalysisFormTemplate =
+        retrieveRiskAnalysisFormTemplate(purposeTemplate);
+
+      const updatedFormTemplate: RiskAnalysisFormTemplate = {
+        ...riskAnalysisFormTemplate,
+        document: riskAnalysisTemplateDocument,
+      };
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate,
+        purposeRiskAnalysisForm: updatedFormTemplate,
+      };
+
+      await repository.createEvent(
+        toCreateEventRiskAnalysisTemplateDocumentGenerated(
+          updatedPurposeTemplate,
+          correlationId,
+          metadata.version
+        )
+      );
+    },
+    async internalAddRiskAnalysisTemplateSignedDocumentMetadata(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisTemplateSignedDocument: RiskAnalysisTemplateSignedDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Adding signed risk analysis document to purpose template ${purposeTemplateId}, document id ${riskAnalysisTemplateSignedDocument.id}`
+      );
+      const { data: purposeTemplate, metadata } = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      const riskAnalysisFormTemplate =
+        retrieveRiskAnalysisFormTemplate(purposeTemplate);
+
+      const updatedFormTemplate: RiskAnalysisFormTemplate = {
+        ...riskAnalysisFormTemplate,
+        signedDocument: riskAnalysisTemplateSignedDocument,
+      };
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate,
+        purposeRiskAnalysisForm: updatedFormTemplate,
+      };
+
+      await repository.createEvent(
+        toCreateEventRiskAnalysisTemplateSignedDocumentGenerated(
+          updatedPurposeTemplate,
+          correlationId,
+          metadata.version
+        )
+      );
     },
   };
 }
