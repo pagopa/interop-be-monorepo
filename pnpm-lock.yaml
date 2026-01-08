@@ -1397,9 +1397,6 @@ importers:
 
   packages/certified-email-sender:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -1437,12 +1434,12 @@ importers:
       '@types/nodemailer':
         specifier: 6.4.17
         version: 6.4.17
-      axios:
-        specifier: 1.12.0
-        version: 1.12.0
       cpx2:
         specifier: 7.0.2
         version: 7.0.2
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
