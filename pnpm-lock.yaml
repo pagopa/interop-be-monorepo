@@ -1041,9 +1041,6 @@ importers:
 
   packages/backend-for-frontend:
     dependencies:
-      '@apidevtools/swagger-parser':
-        specifier: 10.1.1
-        version: 10.1.1(openapi-types@12.1.3)
       '@aws-sdk/client-dynamodb':
         specifier: 3.840.0
         version: 3.840.0
@@ -1074,9 +1071,6 @@ importers:
       fast-xml-parser:
         specifier: 4.4.1
         version: 4.4.1
-      mime:
-        specifier: 4.0.7
-        version: 4.0.7
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
         version: link:../agreement-lifecycle
@@ -1095,9 +1089,6 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      qs:
-        specifier: 6.12.3
-        version: 6.12.3
       swagger-ui-express:
         specifier: 5.0.1
         version: 5.0.1(express@4.20.0)
