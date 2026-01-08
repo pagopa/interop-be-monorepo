@@ -32,6 +32,16 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       headers,
     });
 
+  const retrieveClientKeyById = (
+    clientId: ClientId,
+    keyId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
+    clients.authorizationClient.client.getClientKeyById({
+      params: { clientId, keyId },
+      headers,
+    });
+
   const pollClient = (
     response: WithMaybeMetadata<authorizationApi.Client>,
     headers: M2MGatewayAppContext["headers"]
@@ -42,11 +52,12 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
-  const pollClientUntilDeletion = (
+  const pollClientKeyUntilDeletion = (
     clientId: ClientId,
+    keyId: string,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> =>
-    pollResourceUntilDeletion(() => retrieveClientById(clientId, headers))({});
+    pollResourceUntilDeletion(() => retrieveClientKeyById(clientId, keyId, headers))({});
 
   return {
     async getClientAdminId(
@@ -231,7 +242,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      await pollClientUntilDeletion(clientId, headers);
+      await pollClientKeyUntilDeletion(clientId, keyId, headers);
     },
   };
 }

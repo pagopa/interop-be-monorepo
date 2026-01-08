@@ -7,6 +7,7 @@ import {
 import {
   getMockedApiConsumerFullClient,
   getMockWithMetadata,
+  getMockedApiKey,
 } from "pagopa-interop-commons-test";
 import {
   clientService,
@@ -20,8 +21,15 @@ import { config } from "../../../src/config/config.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deleteClientKey", () => {
+  const keyId = generateId();
   const mockAuthorizationProcessResponse = getMockWithMetadata(
     getMockedApiConsumerFullClient()
+  );
+
+  const mockApiClientKey = getMockWithMetadata(
+    getMockedApiKey({
+      kid: keyId,
+    })
   );
 
   const mockDeleteClientKeyById = vi.fn();
@@ -30,10 +38,15 @@ describe("deleteClientKey", () => {
     mockDeletionPollingResponse(mockAuthorizationProcessResponse, 2)
   );
 
+  const mockGetClientKeyById = vi.fn(
+    mockDeletionPollingResponse(mockApiClientKey, 2)
+  );
+
   mockInteropBeClients.authorizationClient = {
     client: {
       getClient: mockGetClient,
       deleteClientKeyById: mockDeleteClientKeyById,
+      getClientKeyById: mockGetClientKeyById,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
@@ -41,10 +54,10 @@ describe("deleteClientKey", () => {
     // Clear mock counters and call information before each test
     mockDeleteClientKeyById.mockClear();
     mockGetClient.mockClear();
+    mockGetClientKeyById.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const keyId = generateId();
     const result = await clientService.deleteClientKey(
       unsafeBrandId(mockAuthorizationProcessResponse.data.id),
       keyId,
@@ -61,18 +74,18 @@ describe("deleteClientKey", () => {
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.authorizationClient.client.getClient,
-      params: { clientId: mockAuthorizationProcessResponse.data.id },
+      mockGet: mockInteropBeClients.authorizationClient.client.getClientKeyById,
+      params: { clientId: mockAuthorizationProcessResponse.data.id, keyId },
     });
     expect(
-      mockInteropBeClients.authorizationClient.client.getClient
+      mockInteropBeClients.authorizationClient.client.getClientKeyById
     ).toHaveBeenCalledTimes(2);
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetClient.mockImplementation(
+    mockGetClientKeyById.mockImplementation(
       mockDeletionPollingResponse(
-        mockAuthorizationProcessResponse,
+        mockApiClientKey,
         config.defaultPollingMaxRetries + 1
       )
     );
@@ -80,7 +93,7 @@ describe("deleteClientKey", () => {
     await expect(
       clientService.deleteClientKey(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        generateId(),
+        keyId,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -89,7 +102,7 @@ describe("deleteClientKey", () => {
         config.defaultPollingRetryDelay
       )
     );
-    expect(mockGetClient).toHaveBeenCalledTimes(
+    expect(mockGetClientKeyById).toHaveBeenCalledTimes(
       config.defaultPollingMaxRetries
     );
   });
