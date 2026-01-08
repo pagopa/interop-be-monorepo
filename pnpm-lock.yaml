@@ -347,6 +347,9 @@ importers:
       '@types/ssh2-sftp-client':
         specifier: 9.0.5
         version: 9.0.5
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -377,18 +380,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
-      qs:
-        specifier: 6.12.3
-        version: 6.12.3
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
-      zod-validation-error:
-        specifier: 3.3.0
-        version: 3.3.0(zod@3.23.8)
     devDependencies:
       '@apidevtools/swagger-parser':
         specifier: 10.1.1
@@ -405,6 +399,12 @@ importers:
       '@types/qs':
         specifier: 6.9.15
         version: 6.9.15
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       handlebars:
         specifier: 4.7.8
         version: 4.7.8
@@ -545,18 +545,12 @@ importers:
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -567,6 +561,9 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -749,9 +746,6 @@ importers:
       '@aws-sdk/client-dynamodb':
         specifier: 3.840.0
         version: 3.840.0
-      '@aws-sdk/client-s3':
-        specifier: 3.842.0
-        version: 3.842.0
       '@aws-sdk/client-sqs':
         specifier: 3.840.0
         version: 3.840.0
@@ -764,9 +758,6 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -777,12 +768,15 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.19.4)(typescript@5.4.5)
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
       tsx:
         specifier: 4.19.1
         version: 4.19.1

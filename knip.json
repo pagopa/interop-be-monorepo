@@ -7,6 +7,11 @@
     ".": {}
   },
   "ignoreDependencies": [
-    "@pagopa/eslint-config"
-  ]
+    "@pagopa/eslint-config",
+    "@types/qs"
+  ],
+  "ignoreBinaries": ["tsx"],
+  "ignoreIssues": {
+    "packages/api-clients/src/axiosLogInterceptors.ts": ["exports"]
+  }
 }
