@@ -45,12 +45,6 @@ importers:
       '@pagopa/interop-outbound-models':
         specifier: 1.7.0
         version: 1.7.0
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -73,21 +67,15 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@anatine/zod-mock':
-        specifier: 3.14.0
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
-      '@faker-js/faker':
-        specifier: 8.4.1
-        version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -97,9 +85,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
 
   packages/agreement-platformstate-writer:
     dependencies:
@@ -109,12 +94,6 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: 3.840.0
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -143,9 +122,9 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
-      date-fns:
-        specifier: 3.6.0
-        version: 3.6.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -234,12 +213,12 @@ importers:
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      pg-promise:
-        specifier: 11.8.0
-        version: 11.8.0
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -502,6 +481,9 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2857,9 +2839,6 @@ importers:
 
   packages/eservice-template-instances-updater:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2900,6 +2879,9 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2921,12 +2903,6 @@ importers:
       '@pagopa/interop-outbound-models':
         specifier: 1.7.0
         version: 1.7.0
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2949,18 +2925,15 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@anatine/zod-mock':
-        specifier: 3.14.0
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
-      '@faker-js/faker':
-        specifier: 8.4.1
-        version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2970,9 +2943,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
 
   packages/eservice-template-process:
     dependencies:
@@ -3019,15 +2989,9 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@faker-js/faker':
-        specifier: 8.4.1
-        version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -3037,15 +3001,12 @@ importers:
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
-      date-fns:
-        specifier: 3.6.0
-        version: 3.6.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      pg-promise:
-        specifier: 11.8.0
-        version: 11.8.0
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -4933,9 +4894,6 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
-      pg-promise:
-        specifier: 11.8.0
-        version: 11.8.0
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -4958,6 +4916,9 @@ importers:
       cpx2:
         specifier: 7.0.2
         version: 7.0.2
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5016,6 +4977,67 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.19.9
+        version: 20.19.9
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.19.9)
+
+  packages/purpose-template-outbound-writer:
+    dependencies:
+      '@pagopa/interop-outbound-models':
+        specifier: 1.8.3
+        version: 1.8.3
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.14.0
+        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+      '@faker-js/faker':
+        specifier: 8.4.1
+        version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
@@ -7271,6 +7293,9 @@ packages:
 
   '@pagopa/interop-outbound-models@1.8.1':
     resolution: {integrity: sha512-WOxbvxvc03fKYn/I1cxucbhvak+h5NFGFAu3ESV/3Y15mDWDEO4ZZz+Ybm+v4dxb54OuOQME8JSVot9tExr+pQ==}
+
+  '@pagopa/interop-outbound-models@1.8.3':
+    resolution: {integrity: sha512-BD7nT9LM8fvnxLItZY82LzxUhVDjwaW4pOULWvjYjfO6IQutmCg62tnvHqLYtc8fKFnNEVRYLVH9sm+F6h2p+A==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14466,6 +14491,12 @@ snapshots:
       zod: 3.23.8
 
   '@pagopa/interop-outbound-models@1.8.1':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
+
+  '@pagopa/interop-outbound-models@1.8.3':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0

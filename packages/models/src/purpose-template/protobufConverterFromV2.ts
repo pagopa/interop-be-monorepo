@@ -5,11 +5,15 @@ import {
   RiskAnalysisFormTemplateV2,
   RiskAnalysisTemplateAnswerAnnotationDocumentV2,
   RiskAnalysisTemplateAnswerAnnotationV2,
+  RiskAnalysisTemplateDocumentV2,
+  RiskAnalysisTemplateSignedDocumentV2,
 } from "../gen/v2/purpose-template/purpose-template.js";
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateSignedDocument,
 } from "../risk-analysis-template/riskAnalysisTemplate.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import { bigIntToDate } from "../utils.js";
@@ -50,6 +54,24 @@ export const fromRiskAnalysisTemplateAnswerAnnotationV2 = (
   docs: input.docs.map(fromRiskAnalysisTemplateAnswerAnnotationDocumentV2),
 });
 
+export const fromRiskAnalysisTemplateDocumentV2 = (
+  input: RiskAnalysisTemplateDocumentV2
+  // eslint-disable-next-line sonarjs/no-identical-functions
+): RiskAnalysisTemplateDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: bigIntToDate(input.createdAt),
+});
+
+export const fromRiskAnalysisTemplateSignedDocumentV2 = (
+  input: RiskAnalysisTemplateSignedDocumentV2
+): RiskAnalysisTemplateSignedDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: bigIntToDate(input.createdAt),
+  signedAt: bigIntToDate(input.signedAt),
+});
+
 export const fromPurposeRiskAnalysisFormTemplateV2 = (
   input: RiskAnalysisFormTemplateV2
 ): RiskAnalysisFormTemplate => ({
@@ -70,6 +92,12 @@ export const fromPurposeRiskAnalysisFormTemplateV2 = (
       ? fromRiskAnalysisTemplateAnswerAnnotationV2(a.annotation)
       : undefined,
   })),
+  document: input.document
+    ? fromRiskAnalysisTemplateDocumentV2(input.document)
+    : undefined,
+  signedDocument: input.signedDocument
+    ? fromRiskAnalysisTemplateSignedDocumentV2(input.signedDocument)
+    : undefined,
 });
 
 export const fromPurposeTemplateV2 = (
