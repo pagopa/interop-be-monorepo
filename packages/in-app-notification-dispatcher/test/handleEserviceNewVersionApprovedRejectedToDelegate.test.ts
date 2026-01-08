@@ -203,11 +203,11 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   }>([
     {
       eventType: "EServiceDescriptorApprovedByDelegator",
-      expectedBody: `L'ente delegante ${delegator.name} ha approvato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.`,
+      expectedBody: `L'ente delegante ${delegator.name} ha approvato la pubblicazione della nuova versione dell'e-service ${eservice.name} che gestisci tramite delega.`,
     },
     {
       eventType: "EServiceDescriptorRejectedByDelegator",
-      expectedBody: `L'ente delegante ${delegator.name} ha rifiutato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.`,
+      expectedBody: `L'ente delegante ${delegator.name} ha rifiutato la pubblicazione della nuova versione dell'e-service ${eservice.name} che gestisci tramite delega.`,
     },
   ])(
     "should handle $eventType event correctly",
