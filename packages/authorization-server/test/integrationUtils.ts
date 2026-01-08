@@ -20,6 +20,8 @@ const { cleanup, fileManager, redisRateLimiter } =
     inject("redisRateLimiterConfig")
   );
 
+export { fileManager };
+
 afterEach(cleanup);
 
 if (configTokenGenerationStates === undefined) {
