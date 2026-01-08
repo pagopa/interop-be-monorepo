@@ -19,7 +19,7 @@ import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiC
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
+  purposeTemplateTitleConflict,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
@@ -187,8 +187,8 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
     purposeTemplateService.updatePurposeTemplate = vi
       .fn()
       .mockRejectedValue(
-        purposeTemplateNameConflict(
-          mockPurposeTemplate.id,
+        purposeTemplateTitleConflict(
+          [mockPurposeTemplate.id],
           validPurposeTemplateSeed.purposeTitle
         )
       );
