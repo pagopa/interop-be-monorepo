@@ -5713,6 +5713,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/quotas:
     parameters:
       - name: templateId
@@ -8553,6 +8555,8 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceEvents:
     get:
       tags:
