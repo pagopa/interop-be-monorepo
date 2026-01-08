@@ -10,7 +10,7 @@
     "@pagopa/eslint-config",
     "@types/qs"
   ],
-  "ignoreBinaries": ["tsx"],
+  "ignoreBinaries": ["tsx", "eslint", "prettier"],
   "ignore": [
     "packages/commons/src/pdf-generator/paged.polyfill.js"
   ],
