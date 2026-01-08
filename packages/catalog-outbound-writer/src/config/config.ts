@@ -17,7 +17,7 @@ const CatalogOutboundWriterConfig = KafkaConsumerConfig.and(KafkaProducerConfig)
     catalogOutboundTopic: c.CATALOG_OUTBOUND_TOPIC,
   }));
 
-export type CatalogOutboundWriterConfig = z.infer<
+type CatalogOutboundWriterConfig = z.infer<
   typeof CatalogOutboundWriterConfig
 >;
 
