@@ -11,6 +11,9 @@
     "@types/qs"
   ],
   "ignoreBinaries": ["tsx"],
+  "ignore": [
+    "packages/commons/src/pdf-generator/paged.polyfill.js"
+  ],
   "ignoreIssues": {
     "packages/api-clients/src/axiosLogInterceptors.ts": ["exports"]
   }
