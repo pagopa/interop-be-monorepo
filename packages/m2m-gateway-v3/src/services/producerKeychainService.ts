@@ -163,6 +163,32 @@ export function producerKeychainServiceBuilder(
         results: jwks.map(toM2MJWK),
       };
     },
+    async createProducerKeychainKey(
+      keychainId: ProducerKeychainId,
+      seed: m2mGatewayApiV3.KeySeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.JWK> {
+      logger.info(
+        `Create a new key for producer keychain with id ${keychainId}`
+      );
+
+      const { data: key } =
+        await clients.authorizationClient.producerKeychain.createProducerKey(
+          seed,
+          {
+            params: { producerKeychainId: keychainId },
+            headers,
+          }
+        );
+
+      const { data: jwkData } =
+        await clients.authorizationClient.key.getJWKByKid({
+          params: { kid: key.kid },
+          headers,
+        });
+
+      return toM2MJWK(jwkData.jwk);
+    },
     async addProducerKeychainEService(
       producerKeychainId: ProducerKeychainId,
       seed: m2mGatewayApiV3.ProducerKeychainAddEService,

@@ -116,6 +116,28 @@ const producerKeychainRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/producerKeychains/:keychainId/keys", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const key = await producerKeychainService.createProducerKeychainKey(
+          unsafeBrandId(req.params.keychainId),
+          req.body,
+          ctx
+        );
+        return res.status(201).send(key);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating key for producer keychain with id ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/producerKeychains/:keychainId/eservices", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
