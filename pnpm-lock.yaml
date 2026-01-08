@@ -1205,12 +1205,6 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: 3.840.0
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -1239,9 +1233,9 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
-      date-fns:
-        specifier: 3.6.0
-        version: 3.6.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
