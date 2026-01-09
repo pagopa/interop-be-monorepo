@@ -130,8 +130,8 @@ export const notificationAdmittedRoles = {
   },
   purposeQuotaAdjustmentRequestToProducer: {
     [ADMIN_ROLE]: true,
-    [API_ROLE]: true,
-    [SECURITY_ROLE]: false,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
     [SUPPORT_ROLE]: false,
   },
   purposeOverQuotaStateToConsumer: {
