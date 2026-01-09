@@ -24,7 +24,7 @@ body:json {
 }
 
 vars:post-response {
-  clientKeyKid: res.body.kid
+  clientKeyKid: res.body.jwk.kid
 }
 
 script:pre-request {
