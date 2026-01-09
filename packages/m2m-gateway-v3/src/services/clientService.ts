@@ -57,7 +57,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     keyId: string,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> =>
-    pollResourceUntilDeletion(() => retrieveClientKeyById(clientId, keyId, headers))({});
+    pollResourceUntilDeletion(() =>
+      retrieveClientKeyById(clientId, keyId, headers)
+    )({});
 
   return {
     async getClientAdminId(
