@@ -16,7 +16,7 @@ import {
   toM2MGatewayApiConsumerClient,
 } from "../api/clientApiConverter.js";
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
-import { toM2MJWK } from "../api/keysApiConverter.js";
+import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -31,12 +31,33 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       headers,
     });
 
+  const retrieveClientKeyById = (
+    clientId: ClientId,
+    keyId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
+    clients.authorizationClient.client.getClientKeyById({
+      params: { clientId: unsafeBrandId(clientId), keyId },
+      headers,
+    });
+
   const pollClient = (
     response: WithMaybeMetadata<authorizationApi.Client>,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<WithMaybeMetadata<authorizationApi.Client>> =>
     pollResourceWithMetadata(() =>
       retrieveClientById(unsafeBrandId(response.data.id), headers)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
+  const pollClientKey = (
+    clientId: ClientId,
+    response: WithMaybeMetadata<authorizationApi.Key>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
+    pollResourceWithMetadata(() =>
+      retrieveClientKeyById(unsafeBrandId(clientId), response.data.kid, headers)
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
@@ -214,10 +235,10 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       clientId: ClientId,
       seed: m2mGatewayApiV3.KeySeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApiV3.JWK> {
+    ): Promise<m2mGatewayApiV3.Key> {
       logger.info(`Create a new key for client with id ${clientId}`);
 
-      const { data: key } = await clients.authorizationClient.client.createKey(
+      const response = await clients.authorizationClient.client.createKey(
         seed,
         {
           params: { clientId },
@@ -225,13 +246,15 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         }
       );
 
+      const { data: key } = await pollClientKey(clientId, response, headers);
+
       const { data: jwkData } =
         await clients.authorizationClient.key.getJWKByKid({
           params: { kid: key.kid },
           headers,
         });
 
-      return toM2MJWK(jwkData.jwk);
+      return toM2MKey({ jwk: jwkData.jwk, clientId });
     },
   };
 }

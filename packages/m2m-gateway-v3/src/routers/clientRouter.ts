@@ -160,7 +160,7 @@ const clientRouter = (
           req.body,
           ctx
         );
-        return res.status(201).send(key);
+        return res.status(200).send(key);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
