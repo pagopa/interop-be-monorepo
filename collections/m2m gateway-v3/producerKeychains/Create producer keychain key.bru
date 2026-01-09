@@ -24,7 +24,7 @@ body:json {
 }
 
 vars:post-response {
-  producerKeychainsKeyKid: res.body.kid
+  producerKeychainsKeyKid: res.body.jwk.kid
 }
 
 script:pre-request {
