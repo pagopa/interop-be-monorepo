@@ -23218,7 +23218,8 @@ paths:
                 $ref: "#/components/schemas/Problem"
   "/inAppNotifications":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - inAppNotifications
       summary: Retrieves a list of notifications
@@ -24394,7 +24395,8 @@ paths:
 
   "/tenantNotificationConfigs":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Retrieve the tenant's notification configuration
@@ -24512,7 +24514,8 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Update the tenant's notification configuration
@@ -24635,7 +24638,8 @@ paths:
 
   "/userNotificationConfigs":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Retrieve the user's notification configuration
@@ -24753,7 +24757,8 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Update the user's notification configuration
@@ -24853,7 +24858,8 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/emailDeepLink/{notificationType}/{entityId}":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - emailDeepLink
       summary: Redirect the user to the correct deepLink based on notification type and entity id
