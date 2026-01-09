@@ -2062,12 +2062,12 @@ paths:
             schema:
               $ref: "#/components/schemas/KeySeed"
       responses:
-        "201":
+        "200":
           description: Client Key created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/JWK"
+                $ref: "#/components/schemas/Key"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
