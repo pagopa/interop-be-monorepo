@@ -9,7 +9,7 @@ import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MJWK } from "../../../src/api/keysApiConverter.js";
+import { toM2MProducerKey } from "../../../src/api/keysApiConverter.js";
 
 describe("POST /producerKeychains/:keychainId/keys router test", () => {
   const makeRequest = async (
@@ -31,6 +31,9 @@ describe("POST /producerKeychains/:keychainId/keys router test", () => {
 
   const mockJwk = getMockProducerJWKKey();
 
+  const getMockedProducerKey = (producerKeychainId: string) =>
+    toM2MProducerKey({ jwk: mockJwk, producerKeychainId });
+
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,
     authRole.M2M_ROLE,
@@ -40,16 +43,15 @@ describe("POST /producerKeychains/:keychainId/keys router test", () => {
     "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       const producerKeychainId = generateId();
+      const mockedResponse = getMockedProducerKey(producerKeychainId);
       mockProducerKeychainService.createProducerKeychainKey = vi
         .fn()
-        .mockImplementation(() => toM2MJWK(mockJwk));
+        .mockImplementation(() => Promise.resolve(mockedResponse));
       const token = generateToken(role);
       const res = await makeRequest(token, producerKeychainId, keySeed);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { producerKeychainId: _, ...jwkWithoutProducerKeychainId } =
-        mockJwk;
-      expect(res.status).toBe(201);
-      expect(res.body).toEqual(jwkWithoutProducerKeychainId);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockedResponse);
       expect(
         mockProducerKeychainService.createProducerKeychainKey
       ).toHaveBeenCalledWith(
