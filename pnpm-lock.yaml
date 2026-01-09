@@ -2395,12 +2395,6 @@ importers:
 
   packages/domains-analytics-writer:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
