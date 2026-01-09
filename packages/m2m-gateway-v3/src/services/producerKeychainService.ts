@@ -14,7 +14,7 @@ import {
 } from "../api/producerKeychainApiConverter.js";
 import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
-import { toM2MJWK } from "../api/keysApiConverter.js";
+import { toM2MJWK, toM2MProducerKey } from "../api/keysApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
@@ -37,12 +37,37 @@ export function producerKeychainServiceBuilder(
       headers,
     });
 
+  const retrieveProducerKeychainKeyById = (
+    keychainId: ProducerKeychainId,
+    keyId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
+    clients.authorizationClient.producerKeychain.getProducerKeyById({
+      params: { producerKeychainId: unsafeBrandId(keychainId), keyId },
+      headers,
+    });
+
   const pollProducerKeychain = (
     response: WithMaybeMetadata<authorizationApi.ProducerKeychain>,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<WithMaybeMetadata<authorizationApi.ProducerKeychain>> =>
     pollResourceWithMetadata(() =>
       retrieveProducerKeychainById(unsafeBrandId(response.data.id), headers)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
+  const pollProducerKeychainKey = (
+    keychainId: ProducerKeychainId,
+    response: WithMaybeMetadata<authorizationApi.Key>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
+    pollResourceWithMetadata(() =>
+      retrieveProducerKeychainKeyById(
+        unsafeBrandId(keychainId),
+        response.data.kid,
+        headers
+      )
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
@@ -167,12 +192,12 @@ export function producerKeychainServiceBuilder(
       keychainId: ProducerKeychainId,
       seed: m2mGatewayApiV3.KeySeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApiV3.JWK> {
+    ): Promise<m2mGatewayApiV3.ProducerKey> {
       logger.info(
         `Create a new key for producer keychain with id ${keychainId}`
       );
 
-      const { data: key } =
+      const response =
         await clients.authorizationClient.producerKeychain.createProducerKey(
           seed,
           {
@@ -181,13 +206,22 @@ export function producerKeychainServiceBuilder(
           }
         );
 
+      const { data: key } = await pollProducerKeychainKey(
+        keychainId,
+        response,
+        headers
+      );
+
       const { data: jwkData } =
         await clients.authorizationClient.key.getJWKByKid({
           params: { kid: key.kid },
           headers,
         });
 
-      return toM2MJWK(jwkData.jwk);
+      return toM2MProducerKey({
+        jwk: jwkData.jwk,
+        producerKeychainId: unsafeBrandId(keychainId),
+      });
     },
     async addProducerKeychainEService(
       producerKeychainId: ProducerKeychainId,
