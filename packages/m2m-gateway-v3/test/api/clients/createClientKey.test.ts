@@ -6,7 +6,7 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { generateId, ClientId } from "pagopa-interop-models";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MKey } from "../../../src/api/keysApiConverter.js";
@@ -31,23 +31,26 @@ describe("POST /clients/:clientId/keys router test", () => {
 
   const mockJwk = getMockClientJWKKey();
 
+  const getMockedClientKeyResponse = (clientId: ClientId) =>
+    toM2MKey({ jwk: mockJwk, clientId });
+
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,
     authRole.M2M_ROLE,
   ];
+
   it.each(authorizedRoles)(
-    "Should return 201 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      const clientId = generateId();
+      const clientId = generateId<ClientId>();
+      const mockedResponse = getMockedClientKeyResponse(clientId);
       mockClientService.createClientKey = vi
         .fn()
-        .mockImplementation(() => toM2MKey({ clientId, jwk: mockJwk }));
+        .mockImplementation(() => Promise.resolve(mockedResponse));
       const token = generateToken(role);
       const res = await makeRequest(token, clientId, keySeed);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { clientId: _, ...jwkWithoutClientId } = mockJwk;
-      expect(res.status).toBe(201);
-      expect(res.body).toEqual({ clientId, jwk: jwkWithoutClientId });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockedResponse);
       expect(mockClientService.createClientKey).toHaveBeenCalledWith(
         clientId,
         keySeed,

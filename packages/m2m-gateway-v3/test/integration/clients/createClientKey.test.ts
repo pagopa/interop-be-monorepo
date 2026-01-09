@@ -23,18 +23,24 @@ describe("createClientKey", () => {
     kid: mockApiClientJWK.kid,
   });
 
-  const mockCreateClientKey = vi.fn().mockResolvedValue({
-    data: mockApiClientKey,
-    metadata: undefined,
-  });
-
   const mockGetJWKByKid = vi.fn(() =>
     Promise.resolve(getMockWithMetadata({ jwk: mockApiClientJWK }))
   );
 
+  const mockApiClientKeyWithMetadata = getMockWithMetadata(mockApiClientKey);
+
+  const mockCreateClientKey = vi
+    .fn()
+    .mockResolvedValue(mockApiClientKeyWithMetadata);
+
+  const mockGetClientKeyById = vi
+    .fn()
+    .mockResolvedValue(mockApiClientKeyWithMetadata);
+
   mockInteropBeClients.authorizationClient = {
     client: {
       createKey: mockCreateClientKey,
+      getClientKeyById: mockGetClientKeyById,
     },
     key: {
       getJWKByKid: mockGetJWKByKid,
@@ -86,8 +92,9 @@ describe("createClientKey", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientJWKsResponse);
+    expect(result).toEqual({ jwk: m2mClientJWKsResponse, clientId });
 
+    // Create
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockCreateClientKey,
       params: {
@@ -95,6 +102,17 @@ describe("createClientKey", () => {
       },
       body: keySeed,
     });
+
+    // Polling
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockGetClientKeyById,
+      params: {
+        keyId: mockApiClientKey.kid,
+        clientId,
+      },
+    });
+
+    // JWK
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetJWKByKid,
       params: {
