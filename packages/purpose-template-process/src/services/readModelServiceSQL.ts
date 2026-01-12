@@ -37,7 +37,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
-  TenantKind,
+  TargetTenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -70,7 +70,7 @@ import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
-  targetTenantKind?: TenantKind;
+  targetTenantKind?: TargetTenantKind;
   creatorIds: TenantId[];
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
@@ -134,11 +134,11 @@ const getPurposeTemplatesFilters = (
   const excludeExpiredRiskAnalysisFilters = excludeExpiredRiskAnalysis
     ? or(
         ...Array.from(validFormRulesByTenantKind.entries()).map(
-          ([tenantKind, versions]) =>
+          ([targetTenantKind, versions]) =>
             and(
               eq(
                 purposeTemplateInReadmodelPurposeTemplate.targetTenantKind,
-                tenantKind
+                targetTenantKind
               ),
               inArray(
                 purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.version,

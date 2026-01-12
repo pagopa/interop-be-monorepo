@@ -30,7 +30,7 @@ import {
   RiskAnalysisTemplateAnswer,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
-  TenantKind,
+  TargetTenantKind,
   userRole,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -187,7 +187,7 @@ export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed
     | undefined,
-  tenantKind: TenantKind,
+  targetTenantKind: TargetTenantKind,
   personalDataInPurposeTemplate: boolean
 ): RiskAnalysisFormTemplate | undefined {
   if (!riskAnalysisFormTemplate) {
@@ -196,7 +196,7 @@ export function validateAndTransformRiskAnalysisTemplate(
 
   const validatedForm = validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate,
-    tenantKind,
+    targetTenantKind,
     personalDataInPurposeTemplate,
   });
 
@@ -213,16 +213,16 @@ export function validateRiskAnalysisAnswerAnnotationOrThrow(
 
 export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisFormTemplate,
-  tenantKind,
+  targetTenantKind,
   personalDataInPurposeTemplate,
 }: {
   riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed;
-  tenantKind: TenantKind;
+  targetTenantKind: TargetTenantKind;
   personalDataInPurposeTemplate: boolean;
 }): RiskAnalysisTemplateValidatedForm {
   const result = validatePurposeTemplateRiskAnalysis(
     toRiskAnalysisFormTemplateToValidate(riskAnalysisFormTemplate),
-    tenantKind,
+    targetTenantKind,
     personalDataInPurposeTemplate
   );
 
@@ -236,10 +236,10 @@ export function validateRiskAnalysisTemplateOrThrow({
 
 export function validateRiskAnalysisAnswerOrThrow({
   riskAnalysisAnswer,
-  tenantKind,
+  targetTenantKind,
 }: {
   riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest;
-  tenantKind: TenantKind;
+  targetTenantKind: TargetTenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
   if (riskAnalysisAnswer.answerData.annotation) {
     validateRiskAnalysisAnswerAnnotationOrThrow(
@@ -250,7 +250,7 @@ export function validateRiskAnalysisAnswerOrThrow({
   const result = validateRiskAnalysisAnswer(
     riskAnalysisAnswer.answerKey,
     toRiskAnalysisTemplateAnswerToValidate(riskAnalysisAnswer.answerData),
-    tenantKind
+    targetTenantKind
   );
 
   if (result.type === "invalid") {
