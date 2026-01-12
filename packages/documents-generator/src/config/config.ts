@@ -11,6 +11,7 @@ import {
   ReadModelSQLDbConfig,
   TokenGenerationConfig,
   APIEndpoint,
+  PurposeTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -20,6 +21,7 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
   .and(DelegationTopicConfig)
+  .and(PurposeTemplateTopicConfig)
   .and(ReadModelSQLDbConfig.optional())
   .and(FileManagerConfig)
   .and(S3Config)
