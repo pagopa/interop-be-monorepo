@@ -115,5 +115,3 @@ export function purposeRepo(conn: DBConnection) {
     },
   };
 }
-
-export type PurposeRepo = ReturnType<typeof purposeRepo>;
