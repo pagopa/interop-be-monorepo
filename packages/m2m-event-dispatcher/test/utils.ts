@@ -103,10 +103,6 @@ export async function retrieveAllAttributeM2MEvents({
   return sqlEvents.map((e) => AttributeM2MEvent.parse(e));
 }
 
-export async function retrieveLastEServiceM2MEvent(): Promise<EServiceM2MEvent> {
-  return (await retrieveAllEServiceM2MEvents({ limit: 1 }))[0];
-}
-
 export async function retrieveEServiceM2MEventByEServiceIdAndDescriptorId(
   eserviceId: string,
   descriptorId: string | undefined
