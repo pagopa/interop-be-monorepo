@@ -19,7 +19,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
   clientAdminIdNotFound: "0004",
