@@ -2618,9 +2618,6 @@ importers:
       '@aws-sdk/client-sesv2':
         specifier: 3.693.0
         version: 3.693.0
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2630,9 +2627,6 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -2658,12 +2652,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/nodemailer':
-        specifier: 6.4.17
-        version: 6.4.17
-      axios:
-        specifier: 1.12.0
-        version: 1.12.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
