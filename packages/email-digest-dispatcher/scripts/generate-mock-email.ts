@@ -23,6 +23,8 @@ const compiledHtml = digestTemplateService.compileDigestEmail(mockData);
 const outputPath = path.join(outputDir, "mock-digest-email.html");
 fs.writeFileSync(outputPath, compiledHtml);
 
+/* eslint-disable no-console */
 console.log(`✅ Mock digest email generated successfully!`);
 console.log(`📧 Output file: ${outputPath}`);
 console.log(`\nYou can open it in your browser to preview the email.`);
+/* eslint-enable no-console */
