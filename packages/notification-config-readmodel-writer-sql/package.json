@@ -20,7 +20,7 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "eslint": "8.51.1",
+    "eslint": "8.57.1",
     "@types/node": "20.19.9",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
