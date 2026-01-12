@@ -2473,9 +2473,6 @@ importers:
 
   packages/email-notification-dispatcher:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2488,9 +2485,6 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2513,27 +2507,21 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@anatine/zod-mock':
-        specifier: 3.14.0
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
-      '@types/nodemailer':
-        specifier: 6.4.17
-        version: 6.4.17
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
-      axios:
-        specifier: 1.12.0
-        version: 1.12.0
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2555,9 +2543,6 @@ importers:
       '@aws-sdk/client-sesv2':
         specifier: 3.693.0
         version: 3.693.0
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2567,9 +2552,6 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -2595,12 +2577,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/nodemailer':
-        specifier: 6.4.17
-        version: 6.4.17
-      axios:
-        specifier: 1.12.0
-        version: 1.12.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2668,6 +2647,9 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -13771,7 +13753,7 @@ snapshots:
       globals: 13.24.0
       ignore: 5.3.1
       import-fresh: 3.3.0
-      js-yaml: 4.1.0
+      js-yaml: 4.1.1
       minimatch: 3.1.2
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
