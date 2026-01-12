@@ -2,6 +2,7 @@ import {
   agreementApi,
   delegationApi,
   purposeApi,
+  purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -13,6 +14,10 @@ export type PurposeProcessClient = ReturnType<
   typeof purposeApi.createPurposeApiClient
 >;
 
+export type PurposeTemplateProcessClient = ReturnType<
+  typeof purposeTemplateApi.createPurposeTemplateApiClient
+>;
+
 export type DelegationProcessClient = {
   delegation: ReturnType<typeof delegationApi.createDelegationApiClient>;
 };
@@ -20,6 +25,7 @@ export type DelegationProcessClient = {
 export type PagoPAInteropBeClients = {
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
+  purposeTemplateProcessClient: PurposeTemplateProcessClient;
   delegationProcessClient: DelegationProcessClient;
 };
 
@@ -33,6 +39,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     purposeProcessClient: purposeApi.createPurposeApiClient(
       config.purposeProcessUrl
     ),
+    purposeTemplateProcessClient:
+      purposeTemplateApi.createPurposeTemplateApiClient(
+        config.purposeTemplateProcessUrl
+      ),
     agreementProcessClient: agreementApi.createAgreementApiClient(
       config.agreementProcessUrl
     ),
