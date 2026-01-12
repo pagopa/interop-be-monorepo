@@ -12,6 +12,7 @@
   ],
   "ignoreBinaries": ["tsx"],
   "ignoreIssues": {
-    "packages/api-clients/src/axiosLogInterceptors.ts": ["exports"]
+    "packages/api-clients/src/axiosLogInterceptors.ts": ["exports"],
+    "packages/m2m-event-db-models/src/config/config.ts": ["exports"]
   }
 }
