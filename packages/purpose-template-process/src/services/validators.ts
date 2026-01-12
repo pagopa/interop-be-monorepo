@@ -66,7 +66,7 @@ import {
   hyperlinkDetectionError,
   invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
+  purposeTemplateTitleConflict,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
@@ -126,13 +126,12 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   readModelService: ReadModelServiceSQL;
   title: string;
 }): Promise<void> => {
-  const purposeTemplateWithSameName = await readModelService.getPurposeTemplate(
-    title
-  );
-  if (purposeTemplateWithSameName) {
-    throw purposeTemplateNameConflict(
-      purposeTemplateWithSameName.data.id,
-      purposeTemplateWithSameName.data.purposeTitle
+  const purposeTemplatesWithSameTitle =
+    await readModelService.getPurposeTemplatesByTitle(title);
+  if (purposeTemplatesWithSameTitle.length > 0) {
+    throw purposeTemplateTitleConflict(
+      purposeTemplatesWithSameTitle.map((pt) => pt.data.id),
+      title
     );
   }
 };
