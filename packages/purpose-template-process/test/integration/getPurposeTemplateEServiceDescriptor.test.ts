@@ -25,10 +25,9 @@ import {
 import {
   eServiceDescriptorPurposeTemplateNotFound,
   purposeTemplateNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("getPurposeTemplateEServiceDescriptors", async () => {
+describe("getPurposeTemplateEServiceDescriptor", async () => {
   const creatorId = generateId<TenantId>();
 
   const eservice1: EService = {
@@ -94,6 +93,24 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
   });
 
+  it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template is in draft state", async () => {
+    const requesterId = generateId<TenantId>();
+    const creatorId = generateId<TenantId>();
+    const purposeTemplateDraft = getMockPurposeTemplate(
+      creatorId,
+      purposeTemplateState.draft
+    );
+    await addOnePurposeTemplate(purposeTemplateDraft);
+
+    await expect(
+      purposeTemplateService.getPurposeTemplateEServiceDescriptor(
+        purposeTemplateDraft.id,
+        eservice1.id,
+        getMockContext({ authData: getMockAuthData(requesterId) })
+      )
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplateDraft.id));
+  });
+
   it("should throw eServiceDescriptorPurposeTemplateNotFound if the purpose template doesn't exist", async () => {
     await expect(
       purposeTemplateService.getPurposeTemplateEServiceDescriptor(
@@ -107,19 +124,5 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
         eservice1.id
       )
     );
-  });
-
-  it("should throw tenantNotAllowed if the requester is not the creator and the purpose template is in draft state", async () => {
-    const purposeTemplateDraft = getMockPurposeTemplate();
-    await addOnePurposeTemplate(purposeTemplateDraft);
-
-    const requesterId = generateId<TenantId>();
-    await expect(
-      purposeTemplateService.getPurposeTemplateEServiceDescriptor(
-        purposeTemplateDraft.id,
-        eservice1.id,
-        getMockContext({ authData: getMockAuthData(requesterId) })
-      )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 });
