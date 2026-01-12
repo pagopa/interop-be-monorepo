@@ -3258,9 +3258,6 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      pagopa-interop-readmodel:
-        specifier: workspace:*
-        version: link:../readmodel
       pg:
         specifier: 8.13.1
         version: 8.13.1
@@ -3289,6 +3286,9 @@ importers:
       drizzle-orm:
         specifier: 0.39.3
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
