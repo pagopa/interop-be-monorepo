@@ -4301,12 +4301,6 @@ importers:
       '@protobuf-ts/plugin':
         specifier: 2.9.4
         version: 2.9.4
-      '@protobuf-ts/protoc':
-        specifier: 2.9.4
-        version: 2.9.4
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -4332,12 +4326,12 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      mkdirp:
-        specifier: 3.0.1
-        version: 3.0.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
