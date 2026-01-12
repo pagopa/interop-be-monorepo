@@ -74,7 +74,7 @@ export function getMockedApiPurposeTemplate(
   return {
     id: generateId(),
     targetDescription: generateMock(z.string().min(10).max(250)),
-    targetTenantKind: generateMock(purposeTemplateApi.TenantKind),
+    targetTenantKind: generateMock(purposeTemplateApi.TargetTenantKind),
     creatorId: generateId(),
     state,
     createdAt: new Date().toISOString(),
