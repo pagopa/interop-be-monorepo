@@ -151,10 +151,12 @@ export class InteropTokenGenerator {
     sub,
     consumerId,
     clientAdminId,
+    dpopJWK,
   }: {
     sub: ClientId;
     consumerId: TenantId;
     clientAdminId: UserId | undefined;
+    dpopJWK?: JWKKeyRS256 | JWKKeyES256;
   }): Promise<InteropApiToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -187,16 +189,23 @@ export class InteropTokenGenerator {
       exp:
         currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
       organizationId: consumerId,
+      ...(dpopJWK
+        ? {
+          cnf: {
+            jkt: calculateKid(dpopJWK),
+          },
+        }
+        : {}),
     };
 
     const systemRolePayload = clientAdminId
       ? {
-          role: systemRole.M2M_ADMIN_ROLE,
-          adminId: clientAdminId,
-        }
+        role: systemRole.M2M_ADMIN_ROLE,
+        adminId: clientAdminId,
+      }
       : {
-          role: systemRole.M2M_ROLE,
-        };
+        role: systemRole.M2M_ROLE,
+      };
 
     const payload: InteropJwtApiPayload = {
       ...userDataPayload,
@@ -274,18 +283,18 @@ export class InteropTokenGenerator {
       // TODO: remove featureFlagImprovedProducerVerificationClaims after the feature flag disappears
       ...(featureFlagImprovedProducerVerificationClaims
         ? {
-            producerId,
-            consumerId,
-            eserviceId,
-            descriptorId,
-          }
+          producerId,
+          consumerId,
+          eserviceId,
+          descriptorId,
+        }
         : {}),
       ...(dpopJWK
         ? {
-            cnf: {
-              jkt: calculateKid(dpopJWK),
-            },
-          }
+          cnf: {
+            jkt: calculateKid(dpopJWK),
+          },
+        }
         : {}),
     };
 
