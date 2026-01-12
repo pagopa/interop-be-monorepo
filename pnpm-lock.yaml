@@ -3368,9 +3368,6 @@ importers:
 
   packages/ivass-certified-attributes-importer:
     dependencies:
-      '@aws-sdk/client-s3':
-        specifier: 3.842.0
-        version: 3.842.0
       adm-zip:
         specifier: 0.5.16
         version: 0.5.16
@@ -3417,9 +3414,9 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
-      '@types/ssh2-sftp-client':
-        specifier: 9.0.5
-        version: 9.0.5
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
