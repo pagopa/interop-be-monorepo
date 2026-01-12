@@ -4170,15 +4170,9 @@ importers:
 
   packages/notification-tenant-lifecycle-consumer:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       axios:
         specifier: 1.12.0
         version: 1.12.0
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -4210,6 +4204,9 @@ importers:
       '@types/node':
         specifier: 20.19.4
         version: 20.19.4
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
