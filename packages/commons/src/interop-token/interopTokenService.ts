@@ -191,21 +191,21 @@ export class InteropTokenGenerator {
       organizationId: consumerId,
       ...(dpopJWK
         ? {
-            cnf: {
-              jkt: calculateKid(dpopJWK),
-            },
-          }
+          cnf: {
+            jkt: calculateKid(dpopJWK),
+          },
+        }
         : {}),
     };
 
     const systemRolePayload = clientAdminId
       ? {
-          role: systemRole.M2M_ADMIN_ROLE,
-          adminId: clientAdminId,
-        }
+        role: systemRole.M2M_ADMIN_ROLE,
+        adminId: clientAdminId,
+      }
       : {
-          role: systemRole.M2M_ROLE,
-        };
+        role: systemRole.M2M_ROLE,
+      };
 
     const payload: InteropJwtApiPayload = {
       ...userDataPayload,
@@ -283,18 +283,18 @@ export class InteropTokenGenerator {
       // TODO: remove featureFlagImprovedProducerVerificationClaims after the feature flag disappears
       ...(featureFlagImprovedProducerVerificationClaims
         ? {
-            producerId,
-            consumerId,
-            eserviceId,
-            descriptorId,
-          }
+          producerId,
+          consumerId,
+          eserviceId,
+          descriptorId,
+        }
         : {}),
       ...(dpopJWK
         ? {
-            cnf: {
-              jkt: calculateKid(dpopJWK),
-            },
-          }
+          cnf: {
+            jkt: calculateKid(dpopJWK),
+          },
+        }
         : {}),
     };
 
