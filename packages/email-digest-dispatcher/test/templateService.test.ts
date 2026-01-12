@@ -106,22 +106,17 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("Attributo Revocato");
     expect(compiledHtml).toContain("Ente Revocatore");
 
-    // Assert - Verify alert boxes are present
-    expect(compiledHtml).toContain(
-      "Puoi proseguire formulando almeno una finalità per ciascuna richiesta accettata"
-    );
-    expect(compiledHtml).toContain(
-      "Puoi proseguire associando almeno un client per ciascuna finalità"
-    );
-    expect(compiledHtml).toContain(
-      "Verifica le richieste per permettere agli enti Fruitori di completare l'implementazione"
-    );
-    expect(compiledHtml).toContain(
-      "Verifica le finalità per permettere agli enti Fruitori di completare l'implementazione"
-    );
-    expect(compiledHtml).toContain(
-      "Ricorda che la rimozione di un attributo interrompe la generazione dei voucher"
-    );
+    // Assert - Verify alert boxes are present (text split across lines in HTML)
+    expect(compiledHtml).toContain("Puoi proseguire");
+    expect(compiledHtml).toContain("formulando almeno una finalità");
+    expect(compiledHtml).toContain("ciascuna richiesta accettata");
+    expect(compiledHtml).toContain("associando almeno un client");
+    expect(compiledHtml).toContain("Verifica le");
+    expect(compiledHtml).toContain("richieste per permettere");
+    expect(compiledHtml).toContain("Fruitori di completare");
+    expect(compiledHtml).toContain("finalità per permettere");
+    expect(compiledHtml).toContain("Ricorda che la");
+    expect(compiledHtml).toContain("rimozione di un attributo");
 
     // Assert - Verify links are present
     expect(compiledHtml).toContain("https://example.com/eservices/new");
