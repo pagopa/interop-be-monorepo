@@ -3923,6 +3923,9 @@ importers:
 
   packages/models:
     dependencies:
+      '@protobuf-ts/plugin':
+        specifier: 2.9.4
+        version: 2.9.4
       '@protobuf-ts/protoc':
         specifier: 2.9.4
         version: 2.9.4
