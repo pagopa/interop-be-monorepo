@@ -70,7 +70,7 @@ import {
   platformStateValidationFailed,
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
-  unexpectedDPoPProofForAPIToken,
+  // unexpectedDPoPProofForAPIToken,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
@@ -116,8 +116,8 @@ export function tokenServiceBuilder({
     ): Promise<GeneratedTokenData> {
       logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
-      // DPoP proof validation
-      const { dpopProofJWS, dpopProofJWT } = await validateDPoPProof(
+      // DPoP proof validation { dpopProofJWS, dpopProofJWT }
+      const { dpopProofJWT } = await validateDPoPProof(
         headers.DPoP,
         body.client_id,
         logger
@@ -193,9 +193,10 @@ export function tokenServiceBuilder({
         logger,
       });
 
-      if (key.clientKind === clientKindTokenGenStates.api && dpopProofJWS) {
-        throw unexpectedDPoPProofForAPIToken(key.GSIPK_clientId);
-      }
+      // this prevents dpop for m2m tokens, maybe we should remove it
+      // if (key.clientKind === clientKindTokenGenStates.api && dpopProofJWS) {
+      //   throw unexpectedDPoPProofForAPIToken(key.GSIPK_clientId);
+      // }
 
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
@@ -306,6 +307,7 @@ export function tokenServiceBuilder({
             sub: clientAssertionJWT.payload.sub,
             consumerId: key.consumerId,
             clientAdminId: key.adminId,
+            dpopJWK: dpopProofJWT?.header.jwk,
           });
 
           logTokenGenerationInfo({
@@ -320,6 +322,7 @@ export function tokenServiceBuilder({
             limitReached: false as const,
             token,
             rateLimiterStatus,
+            isDPoP: dpopProofJWT !== undefined,
           };
         })
         .exhaustive();

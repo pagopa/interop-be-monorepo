@@ -264,6 +264,50 @@ describe("Token Generator", () => {
         role: systemRole.M2M_ADMIN_ROLE,
       });
     });
+
+    it("should have Interop Api standard token claims and the DPoP thumbprint", async () => {
+      const subClientId: ClientId = generateId();
+      const consumerId: TenantId = generateId();
+      const { dpopProofJWT } = await getMockDPoPProof();
+
+      const interopTokenGenerator = new InteropTokenGenerator(
+        authServerConfig,
+        kmsClient
+      );
+
+      const actualToken = await interopTokenGenerator.generateInteropApiToken({
+        sub: subClientId,
+        consumerId,
+        clientAdminId: undefined,
+        dpopJWK: dpopProofJWT?.header.jwk,
+      });
+
+      expect(actualToken.header).toEqual({
+        alg: algorithm.RS256,
+        use: "sig",
+        typ: "at+jwt",
+        kid: authServerConfig.generatedInteropTokenKid,
+      });
+
+      const decodedActualToken = deserializeJWT(actualToken.serialized);
+
+      expect(decodedActualToken).toMatchObject({
+        jti: expect.any(String),
+        iss: authServerConfig.generatedInteropTokenIssuer,
+        aud: authServerConfig.generatedInteropTokenM2MAudience.join(","),
+        client_id: subClientId,
+        sub: subClientId,
+        iat: mockTimeStamp,
+        nbf: mockTimeStamp,
+        exp:
+          mockTimeStamp +
+          authServerConfig.generatedInteropTokenM2MDurationSeconds,
+        organizationId: consumerId,
+        cnf: {
+          jkt: calculateKid(dpopProofJWT?.header.jwk),
+        },
+      });
+    });
   });
 
   describe("Consumer JWT Token", () => {
