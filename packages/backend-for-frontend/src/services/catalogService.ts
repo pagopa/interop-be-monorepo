@@ -87,7 +87,7 @@ import {
 } from "./validators.js";
 import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
-export const enhanceCatalogEservices = async (
+const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
@@ -304,7 +304,7 @@ const getAttributeIds = (
   ),
 ];
 
-export const getAllEserviceConsumers = async (
+const getAllEserviceConsumers = async (
   catalogProcessClient: CatalogProcessClient,
   headers: Headers,
   eServiceId: EServiceId

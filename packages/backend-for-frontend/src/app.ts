@@ -109,7 +109,7 @@ import {
 } from "./services/inAppNotificationService.js";
 import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 
-export type BFFServices = {
+type BFFServices = {
   agreementService: AgreementService;
   attributeService: AttributeService;
   authorizationService: AuthorizationService;
@@ -129,9 +129,7 @@ export type BFFServices = {
   toolsService: ToolsService;
 };
 
-export type RateLimiterMiddleware = ReturnType<
-  typeof rateLimiterMiddlewareBuilder
->;
+type RateLimiterMiddleware = ReturnType<typeof rateLimiterMiddlewareBuilder>;
 
 export const serviceName = modelsServiceName.BACKEND_FOR_FRONTEND;
 
