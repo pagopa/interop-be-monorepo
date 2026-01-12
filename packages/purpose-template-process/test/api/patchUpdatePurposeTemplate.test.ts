@@ -20,7 +20,7 @@ import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiC
 import {
   invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
+  purposeTemplateTitleConflict,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   riskAnalysisTemplateValidationFailed,
@@ -189,7 +189,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
-      error: purposeTemplateNameConflict(generateId(), "Duplicate Name"),
+      error: purposeTemplateTitleConflict([generateId()], "Duplicate Name"),
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {

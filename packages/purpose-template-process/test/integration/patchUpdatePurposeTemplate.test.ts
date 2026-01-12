@@ -25,7 +25,7 @@ import {
 import {
   invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
+  purposeTemplateTitleConflict,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   tenantNotAllowed,
@@ -193,7 +193,7 @@ describe("patch update purpose template", () => {
     ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 
-  it("should throw purposeTemplateNameConflict if the updated title is already in use", async () => {
+  it("should throw purposeTemplateTitleConflict if the updated title is already in use", async () => {
     const title = "title already in use";
 
     const purposeTemplate1: PurposeTemplate = {
@@ -221,7 +221,7 @@ describe("patch update purpose template", () => {
         getMockContextM2MAdmin({ organizationId: purposeTemplate1.creatorId })
       )
     ).rejects.toThrowError(
-      purposeTemplateNameConflict(purposeTemplate2.id, title)
+      purposeTemplateTitleConflict([purposeTemplate2.id], title)
     );
   });
 
