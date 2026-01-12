@@ -37,7 +37,7 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
-  TenantKind,
+  TargetTenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -218,11 +218,11 @@ async function retrieveAnswerAnnotationDocument({
 }
 
 function getDefaultRiskAnalysisFormTemplate(
-  tenantKind: TenantKind
+  targetTenantKind: TargetTenantKind
 ): RiskAnalysisFormTemplate | undefined {
-  const versionedRules = getLatestVersionFormRules(tenantKind);
+  const versionedRules = getLatestVersionFormRules(targetTenantKind);
   if (!versionedRules) {
-    throw ruleSetNotFoundError(tenantKind);
+    throw ruleSetNotFoundError(targetTenantKind);
   }
 
   return {
@@ -553,7 +553,7 @@ async function activatePurposeTemplate({
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
         purposeRiskAnalysisForm
       ),
-    tenantKind: purposeTemplate.data.targetTenantKind,
+    targetTenantKind: purposeTemplate.data.targetTenantKind,
     personalDataInPurposeTemplate: purposeTemplate.data.handlesPersonalData,
   });
 
@@ -1126,7 +1126,7 @@ export function purposeTemplateServiceBuilder(
 
       const validatedAnswer = validateRiskAnalysisAnswerOrThrow({
         riskAnalysisAnswer: riskAnalysisTemplateAnswerRequest,
-        tenantKind: purposeTemplate.data.targetTenantKind,
+        targetTenantKind: purposeTemplate.data.targetTenantKind,
       });
 
       const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
