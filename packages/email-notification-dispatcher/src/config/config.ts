@@ -26,7 +26,16 @@ export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(ReadModelSQLDbConfig)
   .and(EmailDispatchTopicConfig)
   .and(NotificationTypeBlocklistConfig)
-  .and(EServiceTemplateTopicConfig);
+  .and(EServiceTemplateTopicConfig)
+  .and(
+    z
+      .object({
+        BFF_URL: z.string().url(),
+      })
+      .transform((c) => ({
+        bffUrl: c.BFF_URL,
+      }))
+  );
 
 export type EmailNotificationDispatcherConfig = z.infer<
   typeof EmailNotificationDispatcherConfig

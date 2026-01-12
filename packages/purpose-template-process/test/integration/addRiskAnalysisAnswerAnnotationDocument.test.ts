@@ -21,7 +21,7 @@ import {
   fromPurposeTemplateV2,
   generateId,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -44,7 +44,7 @@ import { ANNOTATION_DOCUMENTS_LIMIT } from "../../src/services/validators.js";
 
 describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockValidRiskAnalysisTemplateForm =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
 
   const subjectSingleAnswer =
     mockValidRiskAnalysisTemplateForm.singleAnswers.find(

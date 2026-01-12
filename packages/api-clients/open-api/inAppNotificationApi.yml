@@ -469,7 +469,6 @@ components:
           description: Content of the notification
         notificationType:
           $ref: "#/components/schemas/NotificationType"
-          description: Type of the notification
         entityId:
           type: string
           description: ID of the related entity

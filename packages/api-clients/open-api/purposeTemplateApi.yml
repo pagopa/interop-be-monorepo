@@ -90,7 +90,7 @@ paths:
           name: targetTenantKind
           description: filter by target tenant kind
           schema:
-            $ref: "#/components/schemas/TenantKind"
+            $ref: "#/components/schemas/TargetTenantKind"
         - in: query
           name: excludeExpiredRiskAnalysis
           description: exclude purpose templates with expired risk analysis
@@ -217,7 +217,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: id
         in: path
-        description: the purpose template id
+        description: the Purpose Template Id
         required: true
         schema:
           type: string
@@ -1160,6 +1160,168 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - purposeTemplate
+      summary: Get a Risk Analysis Template unsigned document
+      description: Retrieve a risk analysis Template unsigned document
+      operationId: getRiskAnalysisTemplateDocument
+      responses:
+        "200":
+          description: Risk Analysis Template unsigned document retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateDocument"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument/signed:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - purposeTemplate
+      summary: Get a Risk Analysis Template signed document
+      description: Retrieve a Risk Analysis Template signed document
+      operationId: getRiskAnalysisTemplateSignedDocument
+      responses:
+        "200":
+          description: Risk Analysis Template signed document retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateSignedDocument"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an unsigned Risk Analysis Template document to the purpose template Risk Analysis Form
+      summary: Add unsigned Risk Analysis Template document metadata to purpose template
+      tags:
+        - purposeTemplate
+      operationId: internalAddRiskAnalysisTemplateDocumentMetadata
+      requestBody:
+        description: The unsigned Risk Analysis Template document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateDocument"
+      responses:
+        "204":
+          description: Risk Analysis Template metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/purposeTemplates/{purposeTemplateId}/riskAnalysisDocument/signed:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of a signed Risk Analysis Template document to the purpose template Risk Analysis Form
+      summary: Add signed Risk Analysis Template document metadata to purpose template
+      tags:
+        - purposeTemplate
+      operationId: internalAddRiskAnalysisTemplateSignedDocumentMetadata
+      requestBody:
+        description: The signed Risk Analysis Template document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateSignedDocument"
+      responses:
+        "204":
+          description: Signed Risk Analysis Template metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:
@@ -1200,7 +1362,7 @@ components:
         targetDescription:
           type: string
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         creatorId:
           type: string
           format: uuid
@@ -1249,7 +1411,7 @@ components:
           minLength: 10
           maxLength: 250
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         purposeTitle:
           type: string
           minLength: 5
@@ -1286,14 +1448,12 @@ components:
         - DRAFT
         - SUSPENDED
         - ARCHIVED
-    TenantKind:
+    TargetTenantKind:
       type: string
-      description: Tenant Kind
+      description: Target Tenant Kind
       enum:
         - PA
         - PRIVATE
-        - GSP
-        - SCP
     EServiceDescriptorsPurposeTemplate:
       type: object
       additionalProperties: false
@@ -1329,19 +1489,6 @@ components:
         - eserviceId
         - descriptorId
         - createdAt
-    UpdateEServiceDescriptorPurposeTemplateSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        eserviceId:
-          type: string
-          format: uuid
-        descriptorId:
-          type: string
-          format: uuid
-      required:
-        - eserviceId
-        - descriptorId
     RiskAnalysisFormTemplate:
       type: object
       additionalProperties: false
@@ -1537,6 +1684,60 @@ components:
         - path
         - checksum
         - createdAt
+    RiskAnalysisTemplateDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - path
+        - createdAt
+    RiskAnalysisTemplateSignedDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - path
+        - createdAt
+        - signedAt
     RiskAnalysisTemplateAnswerRequest:
       type: object
       properties:

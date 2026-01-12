@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "eserviceNewVersionApprovedRejectedToDelegate";
@@ -78,6 +79,7 @@ export async function handleEserviceDescriptorRejectedByDelegator(
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

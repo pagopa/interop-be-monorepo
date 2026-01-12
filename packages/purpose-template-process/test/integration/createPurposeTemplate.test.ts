@@ -10,12 +10,13 @@ import {
   getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import {
+  generateId,
+  purposeTemplateState,
   PurposeTemplate,
   PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
-  TenantKind,
-  purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
+  TargetTenantKind,
   toPurposeTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -28,7 +29,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
+  purposeTemplateTitleConflict,
   riskAnalysisTemplateValidationFailed,
   ruleSetNotFoundError,
 } from "../../src/model/domain/errors.js";
@@ -51,7 +52,7 @@ describe("createPurposeTemplate", () => {
   };
 
   const mockValidRiskAnalysisTemplateForm =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
 
   const purposeTemplateSeed = getMockPurposeTemplateSeed(
     buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm)
@@ -242,13 +243,19 @@ describe("createPurposeTemplate", () => {
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
 
-  it("should throw purposeTemplateNameConflict if a purpose template with same name already exists", async () => {
-    const existingPurposeTemplate: PurposeTemplate = {
+  it("should throw purposeTemplateTitleConflict if purpose templates with same title already exist", async () => {
+    const existingPurposeTemplate1: PurposeTemplate = {
       ...mockPurposeTemplate,
       purposeTitle: purposeTemplateSeed.purposeTitle,
     };
+    const existingPurposeTemplate2: PurposeTemplate = {
+      ...mockPurposeTemplate,
+      id: generateId(),
+      purposeTitle: purposeTemplateSeed.purposeTitle,
+    };
 
-    await addOnePurposeTemplate(existingPurposeTemplate);
+    await addOnePurposeTemplate(existingPurposeTemplate1);
+    await addOnePurposeTemplate(existingPurposeTemplate2);
 
     expect(
       purposeTemplateService.createPurposeTemplate(
@@ -258,8 +265,8 @@ describe("createPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      purposeTemplateNameConflict(
-        existingPurposeTemplate.id,
+      purposeTemplateTitleConflict(
+        [existingPurposeTemplate1.id, existingPurposeTemplate2.id],
         purposeTemplateSeed.purposeTitle
       )
     );
@@ -295,7 +302,7 @@ describe("createPurposeTemplate", () => {
 
   it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has unexpected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
-      getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+      getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA)
     );
 
     const seedWithUnexpectedField: purposeTemplateApi.PurposeTemplateSeed = {
@@ -331,7 +338,7 @@ describe("createPurposeTemplate", () => {
 
   it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has missing expected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
-      getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+      getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA)
     );
 
     // Remove otherPurpose field which is required when purpose is OTHER
@@ -371,7 +378,7 @@ describe("createPurposeTemplate", () => {
   });
 
   it("should throw ruleSetNotFoundError if not exists rules for provided target tenant kind", async () => {
-    const invalidTenantKind = "INVALID" as TenantKind;
+    const invalidTenantKind = "INVALID" as TargetTenantKind;
     const seedWithInvalidTargetTenantKind: purposeTemplateApi.PurposeTemplateSeed =
       {
         ...purposeTemplateSeed,

@@ -10,13 +10,13 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
-  TenantKind,
+  TargetTenantKind,
 } from "pagopa-interop-models";
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
 export const errorCodes = {
   missingFreeOfChargeReason: "0001",
-  purposeTemplateNameConflict: "0002",
+  purposeTemplateTitleConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
   ruleSetNotFoundError: "0005",
@@ -38,6 +38,8 @@ export const errorCodes = {
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
   invalidAssociatedEServiceForPublicationError: "0023",
+  purposeTemplateRiskAnalysisTemplateDocumentNotFound: "0024",
+  purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -52,14 +54,16 @@ export function missingFreeOfChargeReason(): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeTemplateNameConflict(
-  purposeTemplateId: PurposeTemplateId,
-  name: string
+export function purposeTemplateTitleConflict(
+  purposeTemplateIds: PurposeTemplateId[],
+  title: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose Template name conflict for ID ${purposeTemplateId} and name ${name}`,
-    code: "purposeTemplateNameConflict",
-    title: "Purpose Template name conflict",
+    detail: `Purpose Template title conflict for title ${title} and IDs ${purposeTemplateIds.join(
+      ", "
+    )}`,
+    code: "purposeTemplateTitleConflict",
+    title: "Purpose Template title conflict",
   });
 }
 
@@ -94,10 +98,10 @@ export function riskAnalysisTemplateValidationFailed(
 }
 
 export function ruleSetNotFoundError(
-  tenantKind: TenantKind
+  targetTenantKind: TargetTenantKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
+    detail: `No risk analysis rule set found for target tenant kind ${targetTenantKind}`,
     code: "ruleSetNotFoundError",
     title: "No risk analysis rule set found for target tenant kind",
   });
@@ -296,5 +300,24 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function purposeTemplateRiskAnalysisTemplateDocumentNotFound(
+  purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No document found for Risk Analysis Template Form ${purposeTemplateRiskAnalysisForm}`,
+    code: "purposeTemplateRiskAnalysisTemplateDocumentNotFound",
+    title: "Risk Analysis Template Document Not Found",
+  });
+}
+export function purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
+  purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No signed document found for Risk Analysis Template Form ${purposeTemplateRiskAnalysisForm}`,
+    code: "purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound",
+    title: "Risk Analysis Template Signed Document Not Found",
   });
 }
