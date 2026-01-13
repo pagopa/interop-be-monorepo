@@ -46,6 +46,7 @@ import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
 import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
+import { assertEServiceTemplateVersionIsSuspended } from "../utils/validators/eserviceTemplateValidators.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -950,6 +951,19 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Unsuspending version ${versionId} for eservice template with id ${templateId}`
       );
+
+      const eserviceTemplate = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      const version = retrieveEServiceTemplateVersionById(
+        eserviceTemplate,
+        versionId
+      );
+
+      assertEServiceTemplateVersionIsSuspended(templateId, version);
+
       const response =
         await clients.eserviceTemplateProcessClient.activateTemplateVersion(
           undefined,
@@ -964,11 +978,11 @@ export function eserviceTemplateServiceBuilder(
         response.metadata,
         headers
       );
-      const version = retrieveEServiceTemplateVersionById(
+      const updatedVersion = retrieveEServiceTemplateVersionById(
         polledTemplate,
         versionId
       );
-      return toM2MGatewayEServiceTemplateVersion(version);
+      return toM2MGatewayEServiceTemplateVersion(updatedVersion);
     },
     async publishEServiceTemplateVersion(
       templateId: EServiceTemplateId,

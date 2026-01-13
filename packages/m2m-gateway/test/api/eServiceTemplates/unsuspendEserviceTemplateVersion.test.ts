@@ -6,11 +6,14 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  eserviceTemplateVersionNotInSuspendedState,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 import { config } from "../../../src/config/config.js";
 
@@ -84,6 +87,17 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/unsuspend rout
       mockApiTemplateVersion.id
     );
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 409 in case of eserviceTemplateVersionNotInSuspendedState error", async () => {
+    mockEServiceTemplateService.unsuspendEServiceTemplateVersion = vi
+      .fn()
+      .mockRejectedValue(
+        eserviceTemplateVersionNotInSuspendedState(generateId(), generateId())
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId(), generateId());
+    expect(res.status).toBe(409);
   });
 
   it.each([
