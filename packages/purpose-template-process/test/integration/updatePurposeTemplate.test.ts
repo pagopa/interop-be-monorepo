@@ -35,6 +35,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
@@ -184,7 +185,7 @@ describe("updatePurposeTemplate", () => {
         purposeDailyCalls: validPurposeTemplateSeed.purposeDailyCalls,
         purposeIsFreeOfCharge: validPurposeTemplateSeed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason:
-          validPurposeTemplateSeed.purposeFreeOfChargeReason,
+          validPurposeTemplateSeed.purposeFreeOfChargeReason || undefined,
         purposeRiskAnalysisForm: {
           id: expect.anything(),
           version: riskAnalysisVersion,
@@ -592,4 +593,34 @@ describe("updatePurposeTemplate", () => {
     // Expect that remains only valid annotation documents in S3
     expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
   });
+
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    "should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false",
+    async ({ freeOfChargeReason }) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...existingPurposeTemplate,
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: "Some reason",
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      const isFreeOfCharge = false;
+      expect(
+        purposeTemplateService.updatePurposeTemplate(
+          purposeTemplate.id,
+          {
+            ...purposeTemplateSeed,
+            purposeIsFreeOfCharge: isFreeOfCharge,
+            purposeFreeOfChargeReason: freeOfChargeReason,
+          },
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
+      );
+    }
+  );
 });
