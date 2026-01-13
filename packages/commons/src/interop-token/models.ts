@@ -88,6 +88,8 @@ export const InteropJwtApiCommonPayload = InteropJwtCommonPayload.merge(
     client_id: ClientId,
     sub: ClientId,
     organizationId: TenantId,
+    // Only for DPoP tokens
+    cnf: CNF.optional(),
   })
 );
 export type InteropJwtApiCommonPayload = z.infer<
