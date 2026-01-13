@@ -1,24 +1,29 @@
 import { constants } from "http2";
 import {
   AppContext,
+  AuthTokenPayload,
   ExpressContext,
   JWTConfig,
   Logger,
   M2MAdminAuthData,
   fromAppContext,
-  jwtFromAuthHeader,
   parseAuthHeader,
   readAuthDataFromJwtToken,
   systemRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { badBearerToken, makeApiProblemBuilder, missingHeader, unauthorizedError } from "pagopa-interop-models";
+import {
+  invalidClaim,
+  makeApiProblemBuilder,
+  missingHeader,
+  unauthorizedError,
+} from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { P, match } from "ts-pattern";
 import { Request } from "express";
+import { z } from "zod";
 import { M2MGatewayServices } from "../app.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
-import { z } from "zod";
 
 export async function validateM2MAdminUserId(
   authData: M2MAdminAuthData,
@@ -70,7 +75,8 @@ export function m2mAuthDataValidationMiddleware(
           },
           (authData) => {
             throw unauthorizedError(
-              `Invalid role ${authData.systemRole ?? authData.userRoles
+              `Invalid role ${
+                authData.systemRole ?? authData.userRoles
               } for this operation`
             );
           }
@@ -94,46 +100,50 @@ export const authenticationDPoPMiddleware: (
   config: JWTConfig
 ) => ZodiosRouterContextRequestHandler<ExpressContext> =
   (config: JWTConfig) =>
-    async (req, res, next): Promise<unknown> => {
-      // We assume that:
-      // - contextMiddleware already set ctx.serviceName and ctx.correlationId
-      const ctx = fromAppContext(req.ctx);
+  async (req, res, next): Promise<unknown> => {
+    // We assume that:
+    // - contextMiddleware already set ctx.serviceName and ctx.correlationId
+    const ctx = fromAppContext(req.ctx);
 
-      try {
-        const { accessToken, dpopProof } = credentialsFromHeaders(req, ctx.logger);
-        // request normalization to obtain the HTTP method, htm, hti
-        const { decoded } = await verifyJwtToken(accessToken, config, ctx.logger);
-        // Validazione Token (Mi dice se il token è valido e se il DPoP Proof è valido rispetto al token e alla richiesta)
-        // Verifica cnf (Binding DPoP)
+    try {
+      // 0. request normalization to obtain the HTTP method, htm, hti
 
+      // 1. verify HTTP DPoP Header and Authorization Header
+      const { accessToken } = credentialsFromHeaders(req, ctx.logger);
 
-        // eslint-disable-next-line functional/immutable-data
-        req.ctx.authData = readAuthDataFromJwtToken(decoded);
-        return next();
-      } catch (error) {
-        const problem = makeApiProblem(
-          error,
-          (err) =>
-            match(err.code)
-              .with("tokenVerificationFailed", () => 401)
-              .with("operationForbidden", () => 403)
-              .with("missingHeader", "badBearerToken", "invalidClaim", () => 400)
-              .otherwise(() => 500),
-          ctx
-        );
-        return res.status(problem.status).send(problem);
-      }
-    };
+      // 2. verify JWT Token
+      const { decoded } = await verifyJwtToken(accessToken, config, ctx.logger);
 
-export function credentialsFromHeaders(req: Request, logger: Logger): { accessToken: string; dpopProof: string } {
+      // 3. Verifica cnf (Binding DPoP)
+      // const cnfAccessToken = verifyCnfJwtToken(decoded, ctx.logger);
+
+      // Validazione Token (Mi dice se il token è valido e se il DPoP Proof è valido rispetto al token e alla richiesta)
+
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.authData = readAuthDataFromJwtToken(decoded);
+      return next();
+    } catch (error) {
+      const problem = makeApiProblem(
+        error,
+        (err) =>
+          match(err.code)
+            .with("tokenVerificationFailed", () => 401)
+            .with("operationForbidden", () => 403)
+            .with("missingHeader", "badBearerToken", "invalidClaim", () => 400)
+            .otherwise(() => 500),
+        ctx
+      );
+      return res.status(problem.status).send(problem);
+    }
+  };
+
+export function credentialsFromHeaders(
+  req: Request,
+  logger: Logger
+): { accessToken: string; dpopProof: string } {
   const authHeader = parseAuthHeader(req);
   if (!authHeader) {
     throw missingHeader("Authorization");
-  }
-
-  const dpopHeader = parseDPoPHeader(req);
-  if (!dpopHeader) {
-    throw missingHeader("DPoP");
   }
 
   const authHeaderParts = authHeader.split(" ");
@@ -144,19 +154,17 @@ export function credentialsFromHeaders(req: Request, logger: Logger): { accessTo
     throw unauthorizedError("Invalid DPoP header format");
   }
 
+  const dpopHeader = parseDPoPHeader(req);
   if (!dpopHeader) {
-    logger.warn(
-      `Missing DPoP proof for this call ${req.method} ${req.url}`
-    );
+    logger.warn(`Missing DPoP proof for this call ${req.method} ${req.url}`);
     throw unauthorizedError("Missing DPoP proof");
   }
 
   return {
     accessToken: authHeaderParts[1],
-    dpopProof: dpopHeader
+    dpopProof: dpopHeader,
   };
-};
-
+}
 
 export function parseDPoPHeader(req: Request): string | undefined {
   const parsed = z.object({ dpop: z.string() }).safeParse(req.headers);
@@ -166,3 +174,12 @@ export function parseDPoPHeader(req: Request): string | undefined {
   }
   return undefined;
 }
+
+// export const verifyCnfJwtToken = (payload: JwtPayload | string): string => {
+//   const authTokenPayload = AuthTokenPayload.safeParse(payload);
+//   if (authTokenPayload.success === false) {
+//     throw invalidClaim(authTokenPayload.error);
+//   }
+
+//   return "alfa";
+// };
