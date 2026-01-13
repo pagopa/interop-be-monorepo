@@ -10,7 +10,7 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
-  TenantKind,
+  TargetTenantKind,
 } from "pagopa-interop-models";
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
@@ -98,10 +98,10 @@ export function riskAnalysisTemplateValidationFailed(
 }
 
 export function ruleSetNotFoundError(
-  tenantKind: TenantKind
+  targetTenantKind: TargetTenantKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
+    detail: `No risk analysis rule set found for target tenant kind ${targetTenantKind}`,
     code: "ruleSetNotFoundError",
     title: "No risk analysis rule set found for target tenant kind",
   });
