@@ -208,6 +208,7 @@ export class InteropTokenGenerator {
         }
       : {};
 
+    // CHECK: token_type
     const payload: InteropJwtApiPayload = {
       ...userDataPayload,
       ...systemRolePayload,

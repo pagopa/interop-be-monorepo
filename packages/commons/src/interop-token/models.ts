@@ -236,10 +236,8 @@ export type InteropUIToken = {
 export const AuthTokenPayload = z.discriminatedUnion("role", [
   InteropJwtInternalPayload,
   InteropJwtUIPayload,
-  InteropJwtApiM2MPayload,
-  InteropJwtApiM2MAdminPayload,
-  InteropJwtApiM2MDPoPPayload,
-  InteropJwtApiM2MAdminDPoPPayload,
+  InteropJwtApiM2MPayload.extend({ cnf: CNF.optional() }),
+  InteropJwtApiM2MAdminPayload.extend({ cnf: CNF.optional() }),
   InteropJwtMaintenancePayload,
 ]);
 export type AuthTokenPayload = z.infer<typeof AuthTokenPayload>;
