@@ -1,0 +1,25 @@
+meta {
+  name: Add annotation document to risk analysis answer
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:multipart-form {
+  answerId: {{answerId}}
+  prettyName: purposeTemplate1
+  file: @file()
+}

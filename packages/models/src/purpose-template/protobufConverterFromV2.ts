@@ -7,6 +7,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationV2,
   RiskAnalysisTemplateDocumentV2,
   RiskAnalysisTemplateSignedDocumentV2,
+  TargetTenantKindV2,
 } from "../gen/v2/purpose-template/purpose-template.js";
 import {
   RiskAnalysisFormTemplate,
@@ -15,12 +16,13 @@ import {
   RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateSignedDocument,
 } from "../risk-analysis-template/riskAnalysisTemplate.js";
-import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import { bigIntToDate } from "../utils.js";
 import {
   PurposeTemplate,
   purposeTemplateState,
   PurposeTemplateState,
+  TargetTenantKind,
+  targetTenantKind,
 } from "./purposeTemplate.js";
 
 export const fromPurposeTemplateStateV2 = (
@@ -105,7 +107,7 @@ export const fromPurposeTemplateV2 = (
 ): PurposeTemplate => ({
   ...input,
   id: unsafeBrandId(input.id),
-  targetTenantKind: fromTenantKindV2(input.targetTenantKind),
+  targetTenantKind: fromTargetTenantKindV2(input.targetTenantKind),
   creatorId: unsafeBrandId(input.creatorId),
   state: fromPurposeTemplateStateV2(input.state),
   createdAt: bigIntToDate(input.createdAt),
@@ -114,3 +116,14 @@ export const fromPurposeTemplateV2 = (
     ? fromPurposeRiskAnalysisFormTemplateV2(input.purposeRiskAnalysisForm)
     : undefined,
 });
+
+export const fromTargetTenantKindV2 = (
+  input: TargetTenantKindV2
+): TargetTenantKind => {
+  switch (input) {
+    case TargetTenantKindV2.PA:
+      return targetTenantKind.PA;
+    case TargetTenantKindV2.PRIVATE:
+      return targetTenantKind.PRIVATE;
+  }
+};
