@@ -8,7 +8,8 @@
   },
   "ignoreDependencies": [
     "@pagopa/eslint-config",
-    "@types/qs"
+    "@types/qs",
+    "@protobuf-ts/plugin"
   ],
   "ignoreBinaries": ["tsx", "eslint", "prettier"],
   "ignore": [
@@ -16,6 +17,8 @@
     "packages/documents-generator/src/model/purposeTemplateModels.ts"
   ],
   "ignoreIssues": {
-    "packages/api-clients/src/axiosLogInterceptors.ts": ["exports"]
+    "packages/api-clients/src/axiosLogInterceptors.ts": ["exports"],
+    "packages/m2m-event-db-models/src/config/config.ts": ["exports"],
+    "packages/notifier-seeder/src/protobuf-models/v1/events.ts": ["exports", "types"]
   }
 }
