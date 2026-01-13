@@ -18,6 +18,7 @@ export const createPurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with(
+      "invalidFreeOfChargeReason",
       "missingFreeOfChargeReason",
       "riskAnalysisTemplateValidationFailed",
       "ruleSetNotFoundError",
@@ -44,6 +45,18 @@ export const getPurposeTemplateErrorMapper = (
 export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number => commonPurposeTemplatesErrorMapper(error);
+
+export const getPurposeTemplateEServiceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeTemplateNotFound",
+      "eServiceDescriptorPurposeTemplateNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getRiskAnalysisTemplateAnnotationDocumentsErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -90,6 +103,7 @@ export const updatePurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with(
+      "invalidFreeOfChargeReason",
       "riskAnalysisTemplateValidationFailed",
       "missingFreeOfChargeReason",
       () => HTTP_STATUS_BAD_REQUEST
@@ -274,6 +288,16 @@ export const updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updatePurposeTemplateRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("riskAnalysisTemplateValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
