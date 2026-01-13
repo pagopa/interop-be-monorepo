@@ -307,4 +307,205 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       retrievedDocSigRef?.safeStorageId
     );
   });
+
+  it("should save and retrieve a DocumentSignatureReference for purpose template (RISK_ANALYSIS_TEMPLATE_DOCUMENT)", async () => {
+    const signatureService = signatureServiceBuilder(dynamoDBClient, config);
+
+    const purposeTemplateDocId = generateId();
+    const purposeTemplateDocRef: DocumentSignatureReference = {
+      safeStorageId: purposeTemplateDocId,
+      streamId: generateId(), // purposeTemplateId
+      subObjectId: generateId(), // documentId
+      fileKind: "RISK_ANALYSIS_TEMPLATE_DOCUMENT",
+      fileName: "risk_analysis_template.pdf",
+      prettyname: "Risk Analysis Template Document",
+      contentType: "application/pdf",
+      correlationId: generateId(),
+      version: 1,
+      createdAt: BigInt(Date.now()),
+      creationTimestamp: getUnixTime(new Date()),
+      path: "/purpose-templates/documents/risk_analysis_template.pdf",
+    };
+
+    await signatureService.saveDocumentSignatureReference(
+      purposeTemplateDocRef,
+      genericLogger
+    );
+
+    const retrieved = await signatureService.readDocumentSignatureReference(
+      purposeTemplateDocId,
+      genericLogger
+    );
+
+    expect(retrieved).toBeDefined();
+    expect(retrieved?.safeStorageId).toBe(purposeTemplateDocRef.safeStorageId);
+    expect(retrieved?.fileKind).toBe("RISK_ANALYSIS_TEMPLATE_DOCUMENT");
+    expect(retrieved?.streamId).toBe(purposeTemplateDocRef.streamId);
+    expect(retrieved?.subObjectId).toBe(purposeTemplateDocRef.subObjectId);
+    expect(retrieved?.fileName).toBe(purposeTemplateDocRef.fileName);
+    expect(retrieved?.prettyname).toBe(purposeTemplateDocRef.prettyname);
+    expect(retrieved?.createdAt).toBe(purposeTemplateDocRef.createdAt);
+  });
+
+  it("should correctly identify purpose template documents using readSignatureReferenceById and FILE_KIND_CONFIG", async () => {
+    const signatureService = signatureServiceBuilder(dynamoDBClient, config);
+
+    const purposeTemplateDocId = generateId();
+    const purposeTemplateDocRef: DocumentSignatureReference = {
+      safeStorageId: purposeTemplateDocId,
+      streamId: generateId(),
+      subObjectId: generateId(),
+      fileKind: "RISK_ANALYSIS_TEMPLATE_DOCUMENT",
+      fileName: "template_analysis.pdf",
+      prettyname: "Template Analysis",
+      contentType: "application/pdf",
+      correlationId: generateId(),
+      version: 1,
+      createdAt: BigInt(Date.now()),
+      creationTimestamp: getUnixTime(new Date()),
+      path: "/templates/analysis/template_analysis.pdf",
+    };
+
+    await signatureService.saveDocumentSignatureReference(
+      purposeTemplateDocRef,
+      genericLogger
+    );
+
+    const retrieved = await signatureService.readSignatureReferenceById(
+      purposeTemplateDocId,
+      genericLogger
+    );
+
+    expect(retrieved).toBeDefined();
+    expect(retrieved?.fileKind).toBe("RISK_ANALYSIS_TEMPLATE_DOCUMENT");
+
+    const fileKindConfig =
+      FILE_KIND_CONFIG[retrieved?.fileKind as keyof typeof FILE_KIND_CONFIG];
+    expect(fileKindConfig).toBeDefined();
+    expect(fileKindConfig.process).toBe("purposeTemplate");
+
+    // Verify it parses as DocumentSignatureReference
+    expect(DocumentSignatureReferenceSchema.parse(retrieved)).toBeTruthy();
+    const docSignature = retrieved as DocumentSignatureReference;
+    expect(docSignature.streamId).toBe(purposeTemplateDocRef.streamId);
+    expect(docSignature.subObjectId).toBe(purposeTemplateDocRef.subObjectId);
+  });
+
+  it("should handle logical deletion for purpose template documents", async () => {
+    const signatureService = signatureServiceBuilder(dynamoDBClient, config);
+
+    const purposeTemplateDocId = generateId();
+    const purposeTemplateDocRef: DocumentSignatureReference = {
+      safeStorageId: purposeTemplateDocId,
+      streamId: generateId(),
+      subObjectId: generateId(),
+      fileKind: "RISK_ANALYSIS_TEMPLATE_DOCUMENT",
+      fileName: "deletable_template.pdf",
+      prettyname: "Deletable Template",
+      contentType: "application/pdf",
+      correlationId: generateId(),
+      version: 1,
+      createdAt: BigInt(Date.now()),
+      creationTimestamp: getUnixTime(new Date()),
+      path: "/templates/deletable_template.pdf",
+    };
+
+    await signatureService.saveDocumentSignatureReference(
+      purposeTemplateDocRef,
+      genericLogger
+    );
+
+    await signatureService.deleteSignatureReference(
+      purposeTemplateDocId,
+      genericLogger
+    );
+
+    // Read raw item from DynamoDB to verify TTL and logicallyDeleted fields
+    const result = await dynamoDBClient.send(
+      new GetItemCommand({
+        TableName: config.signatureReferencesTableName,
+        Key: { safeStorageId: { S: purposeTemplateDocId } },
+      })
+    );
+
+    const item = result.Item;
+    expect(item).toBeDefined();
+    expect(item?.ttl?.N).toBeDefined();
+    expect(Number(item?.ttl?.N)).toBeGreaterThan(Math.floor(Date.now() / 1000));
+    expect(item?.logicallyDeleted?.BOOL ?? item?.logicallyDeleted?.N).toBe(
+      true
+    );
+    expect(item?.fileKind?.S).toBe("RISK_ANALYSIS_TEMPLATE_DOCUMENT");
+  });
+
+  it("should distinguish between RISK_ANALYSIS_DOCUMENT and RISK_ANALYSIS_TEMPLATE_DOCUMENT", async () => {
+    const signatureService = signatureServiceBuilder(dynamoDBClient, config);
+
+    const riskAnalysisDocId = generateId();
+    const riskAnalysisDoc: DocumentSignatureReference = {
+      safeStorageId: riskAnalysisDocId,
+      streamId: generateId(),
+      subObjectId: generateId(),
+      fileKind: "RISK_ANALYSIS_DOCUMENT",
+      fileName: "risk_analysis.pdf",
+      prettyname: "Risk Analysis",
+      contentType: "application/pdf",
+      correlationId: generateId(),
+      version: 1,
+      createdAt: BigInt(Date.now()),
+      creationTimestamp: getUnixTime(new Date()),
+      path: "/purposes/risk_analysis.pdf",
+    };
+
+    const templateDocId = generateId();
+    const templateDoc: DocumentSignatureReference = {
+      safeStorageId: templateDocId,
+      streamId: generateId(),
+      subObjectId: generateId(),
+      fileKind: "RISK_ANALYSIS_TEMPLATE_DOCUMENT",
+      fileName: "risk_analysis_template.pdf",
+      prettyname: "Risk Analysis Template",
+      contentType: "application/pdf",
+      correlationId: generateId(),
+      version: 1,
+      createdAt: BigInt(Date.now()),
+      creationTimestamp: getUnixTime(new Date()),
+      path: "/templates/risk_analysis_template.pdf",
+    };
+
+    await signatureService.saveDocumentSignatureReference(
+      riskAnalysisDoc,
+      genericLogger
+    );
+    await signatureService.saveDocumentSignatureReference(
+      templateDoc,
+      genericLogger
+    );
+
+    const retrievedRiskAnalysis =
+      await signatureService.readSignatureReferenceById(
+        riskAnalysisDocId,
+        genericLogger
+      );
+    const retrievedTemplate = await signatureService.readSignatureReferenceById(
+      templateDocId,
+      genericLogger
+    );
+
+    expect(retrievedRiskAnalysis?.fileKind).toBe("RISK_ANALYSIS_DOCUMENT");
+    expect(retrievedTemplate?.fileKind).toBe("RISK_ANALYSIS_TEMPLATE_DOCUMENT");
+
+    // Verify different process types in FILE_KIND_CONFIG
+    const riskAnalysisConfig =
+      FILE_KIND_CONFIG[
+        retrievedRiskAnalysis?.fileKind as keyof typeof FILE_KIND_CONFIG
+      ];
+    const templateConfig =
+      FILE_KIND_CONFIG[
+        retrievedTemplate?.fileKind as keyof typeof FILE_KIND_CONFIG
+      ];
+
+    expect(riskAnalysisConfig.process).toBe("riskAnalysis");
+    expect(templateConfig.process).toBe("purposeTemplate");
+  });
 });
