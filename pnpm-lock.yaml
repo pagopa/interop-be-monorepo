@@ -4877,9 +4877,6 @@ importers:
 
   packages/purpose-template-readmodel-writer-sql:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
