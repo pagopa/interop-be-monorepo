@@ -64,7 +64,3 @@ export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceTemplateVersionDocumentRepository = ReturnType<
-  typeof eserviceTemplateVersionDocumentRepository
->;

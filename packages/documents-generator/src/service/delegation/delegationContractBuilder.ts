@@ -248,7 +248,7 @@ export const contractBuilder = {
   },
 };
 
-export function assertStampExists<S extends keyof Delegation["stamps"]>(
+function assertStampExists<S extends keyof Delegation["stamps"]>(
   stamps: Delegation["stamps"],
   stamp: S
 ): asserts stamps is Delegation["stamps"] & {

@@ -1729,9 +1729,6 @@ importers:
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
-      '@testcontainers/postgresql':
-        specifier: 10.9.0
-        version: 10.9.0
       '@types/adm-zip':
         specifier: 0.5.7
         version: 0.5.7
@@ -1744,9 +1741,6 @@ importers:
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
-      '@zodios/core':
-        specifier: 10.9.6
-        version: 10.9.6(axios@1.12.0)(zod@3.23.8)
       adm-zip:
         specifier: 0.5.16
         version: 0.5.16
@@ -1798,6 +1792,9 @@ importers:
       vitest:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
+      yaml:
+        specifier: 2.4.5
+        version: 2.4.5
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1942,9 +1939,6 @@ importers:
 
   packages/delegation-items-archiver:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2101,18 +2095,9 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@anatine/zod-mock':
-        specifier: 3.14.0
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
-      '@faker-js/faker':
-        specifier: 8.4.1
-        version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -2125,15 +2110,9 @@ importers:
       cpx2:
         specifier: 7.0.2
         version: 7.0.2
-      date-fns:
-        specifier: 3.6.0
-        version: 3.6.0
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      pg-promise:
-        specifier: 11.8.0
-        version: 11.8.0
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2213,15 +2192,6 @@ importers:
 
   packages/documents-generator:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      '@zodios/core':
-        specifier: 10.9.6
-        version: 10.9.6(axios@1.12.0)(zod@3.23.8)
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2295,30 +2265,12 @@ importers:
       vitest:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.3)
-      zlib:
-        specifier: 1.0.5
-        version: 1.0.5
 
   packages/documents-signer:
     dependencies:
       '@aws-sdk/client-dynamodb':
         specifier: 3.840.0
         version: 3.840.0
-      '@aws-sdk/client-sqs':
-        specifier: 3.840.0
-        version: 3.840.0
-      '@aws-sdk/util-dynamodb':
-        specifier: 3.840.0
-        version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      axios:
-        specifier: 1.8.2
-        version: 1.8.2
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2347,12 +2299,6 @@ importers:
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
-      adm-zip:
-        specifier: 0.5.10
-        version: 0.5.10
-      date-fns:
-        specifier: 4.1.0
-        version: 4.1.0
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2368,18 +2314,9 @@ importers:
       vitest:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.3)
-      zlib:
-        specifier: 1.0.5
-        version: 1.0.5
 
   packages/domains-analytics-writer:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2465,22 +2402,13 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
     devDependencies:
-      '@types/jsonwebtoken':
-        specifier: 9.0.10
-        version: 9.0.10
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
       eslint:
         specifier: 8.57.1
         version: 8.57.1
-      jsonwebtoken:
-        specifier: 9.0.2
-        version: 9.0.2
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2548,9 +2476,6 @@ importers:
 
   packages/email-notification-dispatcher:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2563,9 +2488,6 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2588,27 +2510,21 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@anatine/zod-mock':
-        specifier: 3.14.0
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
-      '@types/nodemailer':
-        specifier: 6.4.17
-        version: 6.4.17
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
-      axios:
-        specifier: 1.12.0
-        version: 1.12.0
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2630,9 +2546,6 @@ importers:
       '@aws-sdk/client-sesv2':
         specifier: 3.693.0
         version: 3.693.0
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2642,9 +2555,6 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      nodemailer:
-        specifier: 6.9.14
-        version: 6.9.14
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -2670,12 +2580,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      '@types/nodemailer':
-        specifier: 6.4.17
-        version: 6.4.17
-      axios:
-        specifier: 1.12.0
-        version: 1.12.0
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2743,6 +2650,9 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
+      eslint:
+        specifier: 8.57.1
+        version: 8.57.1
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -6938,9 +6848,6 @@ packages:
   '@liuli-util/fs-extra@0.1.0':
     resolution: {integrity: sha512-eaAyDyMGT23QuRGbITVY3SOJff3G9ekAAyGqB9joAnTBmqvFN+9a1FazOdO70G6IUqgpKV451eBHYSRcOJ/FNQ==}
 
-  '@mongodb-js/saslprep@1.3.1':
-    resolution: {integrity: sha512-6nZrq5kfAz0POWyhljnbWQQJQ5uT8oE2ddX303q1uY0tWsivWKgBDXBBvuFPwOqRRalXJuVO9EjOdVtuhLX0zg==}
-
   '@napi-rs/wasm-runtime@1.1.0':
     resolution: {integrity: sha512-Fq6DJW+Bb5jaWE69/qOE0D1TUN9+6uWhCeZpdnSBk14pjLcCWR7Q8n49PTSPHazM37JqrsdpEthXy2xn6jWWiA==}
 
@@ -7877,9 +7784,6 @@ packages:
     resolution: {integrity: sha512-JZlVFE6/dYpP9tQmV0/ADfn32L9uFarHWxfcRhReKUnljz1ZiUM5zpX+PH8h5CJs6lao3TuFqnPm9IJJCEkE2w==}
     engines: {node: '>=10.8'}
 
-  '@testcontainers/postgresql@10.9.0':
-    resolution: {integrity: sha512-Z3K/TFkl/PVE2v8A6yKqgF4pSFk9ilFG02yeGhPswUjmBlcig/rpVOjBQOkQ/yJCcQ/r2RrX3RR+7vr+UO4QlQ==}
-
   '@tootallnate/quickjs-emscripten@0.23.0':
     resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
 
@@ -8068,12 +7972,6 @@ packages:
 
   '@types/uuid@9.0.8':
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
-
-  '@types/webidl-conversions@7.0.3':
-    resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
-
-  '@types/whatwg-url@11.0.5':
-    resolution: {integrity: sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==}
 
   '@types/yauzl@2.10.3':
     resolution: {integrity: sha512-oJoftv0LSuaDZE3Le4DbKX+KS9G36NzOeSap90UIK0yMA/NhKJhqlSGtNDORNRaIbQfzjXDrQa0ytJ6mNRGz/Q==}
@@ -8392,9 +8290,6 @@ packages:
   axios@1.12.0:
     resolution: {integrity: sha512-oXTDccv8PcfjZmPGlWsPSwtOJCZ/b6W5jAMCNcfwJbCzDckwG0jrYJFaWH1yvivfCXjVzV/SPDEhMB3Q+DSurg==}
 
-  axios@1.8.2:
-    resolution: {integrity: sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==}
-
   b4a@1.6.6:
     resolution: {integrity: sha512-5Tk1HLk6b6ctmjIkAcU/Ujv/1WqiDl0F0JdRCR80VsOcUlHcu7pWeWRlOqQLHfDEsVx9YH/aif5AG4ehoCtTmg==}
 
@@ -8456,10 +8351,6 @@ packages:
     resolution: {integrity: sha512-TUfofFo/KsK/bWZ9TWQ5O26tsWW4Uhmt8IYklbnUa70udB6P2wA7w7o4PY4muaEPBQaAX+CEnmmIA41NVHtPVw==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
-
-  bson@6.10.4:
-    resolution: {integrity: sha512-WIsKqkSC0ABoBJuT1LEX+2HEvNmNKKgnTAyd0fL8qzK4SH2i9NXg+t08YtdZp/V9IZ33cxe3iV4yM0qg8lMQng==}
-    engines: {node: '>=16.20.1'}
 
   buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
@@ -10168,9 +10059,6 @@ packages:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
 
-  memory-pager@1.5.0:
-    resolution: {integrity: sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg==}
-
   meow@12.1.1:
     resolution: {integrity: sha512-BhXM0Au22RwUneMPwSCnyhTOizdWoIEPU9sp0Aqa1PnDMR5Wv2FGXYDjuzJEIX+Eo2Rb8xuYe5jrnm5QowQFkw==}
     engines: {node: '>=16.10'}
@@ -10271,36 +10159,6 @@ packages:
 
   mnemonist@0.38.3:
     resolution: {integrity: sha512-2K9QYubXx/NAjv4VLq1d1Ly8pWNC5L3BrixtdkyTegXWJIqY+zLNDhhX/A+ZwWt70tB1S8H4BE8FLYEFyNoOBw==}
-
-  mongodb-connection-string-url@3.0.2:
-    resolution: {integrity: sha512-rMO7CGo/9BFwyZABcKAWL8UJwH/Kc2x0g72uhDWzG48URRax5TCIcJ7Rc3RZqffZzO/Gwff/jyKwCU9TN8gehA==}
-
-  mongodb@6.7.0:
-    resolution: {integrity: sha512-TMKyHdtMcO0fYBNORiYdmM25ijsHs+Njs963r4Tro4OQZzqYigAzYQouwWRg4OIaiLRUEGUh/1UAcH5lxdSLIA==}
-    engines: {node: '>=16.20.1'}
-    peerDependencies:
-      '@aws-sdk/credential-providers': ^3.188.0
-      '@mongodb-js/zstd': ^1.1.0
-      gcp-metadata: ^5.2.0
-      kerberos: ^2.0.1
-      mongodb-client-encryption: '>=6.0.0 <7'
-      snappy: ^7.2.2
-      socks: ^2.7.1
-    peerDependenciesMeta:
-      '@aws-sdk/credential-providers':
-        optional: true
-      '@mongodb-js/zstd':
-        optional: true
-      gcp-metadata:
-        optional: true
-      kerberos:
-        optional: true
-      mongodb-client-encryption:
-        optional: true
-      snappy:
-        optional: true
-      socks:
-        optional: true
 
   ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
@@ -11077,9 +10935,6 @@ packages:
     resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
     deprecated: Please use @jridgewell/sourcemap-codec instead
 
-  sparse-bitfield@3.0.3:
-    resolution: {integrity: sha512-kvzhi7vqKTfkh0PZU+2D2PIllw2ymqJKujUcyPMd9Y75Nv4nPbGJZXNhxsgdQab2BmlDct1YnfQCguEvHr7VsQ==}
-
   spdx-exceptions@2.5.0:
     resolution: {integrity: sha512-PiU42r+xO4UbUS1buo3LPJkjlO7430Xn5SVAhdpzzsPHsjbYVflnnFdATgabnLude+Cqu25p6N+g2lw/PFsa4w==}
 
@@ -11312,10 +11167,6 @@ packages:
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
-
-  tr46@5.1.1:
-    resolution: {integrity: sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==}
-    engines: {node: '>=18'}
 
   triple-beam@1.4.1:
     resolution: {integrity: sha512-aZbgViZrg1QNcG+LULa7nhZpJTZSLm/mXnHXnbAbjmN5aSa0y7V+wvv6+4WaBtpISJzThKy+PIPxc1Nq1EJ9mg==}
@@ -11630,14 +11481,6 @@ packages:
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
-
-  webidl-conversions@7.0.0:
-    resolution: {integrity: sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==}
-    engines: {node: '>=12'}
-
-  whatwg-url@14.2.0:
-    resolution: {integrity: sha512-De72GdQZzNTUBBChsXueQUnPKDkg/5A5zp7pFDuQAj5UFoENpiACU0wlCvzpAGnTkj++ihpKwKyYewn/XNUbKw==}
-    engines: {node: '>=18'}
 
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
@@ -13977,7 +13820,7 @@ snapshots:
       globals: 13.24.0
       ignore: 5.3.1
       import-fresh: 3.3.0
-      js-yaml: 4.1.0
+      js-yaml: 4.1.1
       minimatch: 3.1.2
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
@@ -14072,10 +13915,6 @@ snapshots:
     dependencies:
       '@types/fs-extra': 9.0.13
       fs-extra: 10.1.0
-
-  '@mongodb-js/saslprep@1.3.1':
-    dependencies:
-      sparse-bitfield: 3.0.3
 
   '@napi-rs/wasm-runtime@1.1.0':
     dependencies:
@@ -15452,13 +15291,6 @@ snapshots:
       '@stoplight/yaml-ast-parser': 0.0.50
       tslib: 2.8.1
 
-  '@testcontainers/postgresql@10.9.0':
-    dependencies:
-      testcontainers: 10.9.0
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-
   '@tootallnate/quickjs-emscripten@0.23.0': {}
 
   '@tsconfig/node-lts@20.1.3': {}
@@ -15673,12 +15505,6 @@ snapshots:
   '@types/urijs@1.19.25': {}
 
   '@types/uuid@9.0.8': {}
-
-  '@types/webidl-conversions@7.0.3': {}
-
-  '@types/whatwg-url@11.0.5':
-    dependencies:
-      '@types/webidl-conversions': 7.0.3
 
   '@types/yauzl@2.10.3':
     dependencies:
@@ -16092,14 +15918,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  axios@1.8.2:
-    dependencies:
-      follow-redirects: 1.15.6
-      form-data: 4.0.4
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
   b4a@1.6.6: {}
 
   balanced-match@1.0.2: {}
@@ -16183,8 +16001,6 @@ snapshots:
       electron-to-chromium: 1.4.818
       node-releases: 2.0.14
       update-browserslist-db: 1.1.0(browserslist@4.23.1)
-
-  bson@6.10.4: {}
 
   buffer-crc32@0.2.13: {}
 
@@ -18184,8 +18000,6 @@ snapshots:
 
   media-typer@0.3.0: {}
 
-  memory-pager@1.5.0: {}
-
   meow@12.1.1: {}
 
   merge-descriptors@1.0.3: {}
@@ -19199,10 +19013,6 @@ snapshots:
 
   sourcemap-codec@1.4.8: {}
 
-  sparse-bitfield@3.0.3:
-    dependencies:
-      memory-pager: 1.5.0
-
   spdx-exceptions@2.5.0: {}
 
   spdx-expression-parse@3.0.1:
@@ -19498,10 +19308,6 @@ snapshots:
   toidentifier@1.0.1: {}
 
   tr46@0.0.3: {}
-
-  tr46@5.1.1:
-    dependencies:
-      punycode: 2.3.1
 
   triple-beam@1.4.1: {}
 
@@ -20066,13 +19872,6 @@ snapshots:
   walk-up-path@4.0.0: {}
 
   webidl-conversions@3.0.1: {}
-
-  webidl-conversions@7.0.0: {}
-
-  whatwg-url@14.2.0:
-    dependencies:
-      tr46: 5.1.1
-      webidl-conversions: 7.0.0
 
   whatwg-url@5.0.0:
     dependencies:

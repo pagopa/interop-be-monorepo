@@ -8,7 +8,7 @@ export type AgreementProcessClient = ReturnType<
 export type PurposeProcessClient = ReturnType<
   typeof purposeApi.createPurposeApiClient
 >;
-export type PagoPAInteropBeClients = {
+type PagoPAInteropBeClients = {
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
 };
