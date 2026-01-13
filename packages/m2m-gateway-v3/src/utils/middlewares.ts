@@ -1,7 +1,7 @@
 import { constants } from "http2";
 import {
   AppContext,
-  AuthTokenPayload,
+  AuthData,
   ExpressContext,
   JWTConfig,
   Logger,
@@ -13,7 +13,6 @@ import {
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import {
-  invalidClaim,
   makeApiProblemBuilder,
   missingHeader,
   unauthorizedError,
@@ -115,9 +114,9 @@ export const authenticationDPoPMiddleware: (
       const { decoded } = await verifyJwtToken(accessToken, config, ctx.logger);
 
       // 3. Verifica cnf (Binding DPoP)
-      // const cnfAccessToken = verifyCnfJwtToken(decoded, ctx.logger);
+      const authData = readAuthDataFromJwtToken(decoded);
 
-      // Validazione Token (Mi dice se il token è valido e se il DPoP Proof è valido rispetto al token e alla richiesta)
+      verifyDPoPCnf(authData);
 
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = readAuthDataFromJwtToken(decoded);
@@ -175,11 +174,8 @@ export function parseDPoPHeader(req: Request): string | undefined {
   return undefined;
 }
 
-// export const verifyCnfJwtToken = (payload: JwtPayload | string): string => {
-//   const authTokenPayload = AuthTokenPayload.safeParse(payload);
-//   if (authTokenPayload.success === false) {
-//     throw invalidClaim(authTokenPayload.error);
-//   }
-
-//   return "alfa";
-// };
+function verifyDPoPCnf(authData: AuthData): void {
+  if (!("cnf" in authData && authData.cnf !== undefined)) {
+    throw unauthorizedError("Invalid DPoP token: missing cnf claim");
+  }
+}
