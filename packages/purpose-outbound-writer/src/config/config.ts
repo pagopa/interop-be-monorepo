@@ -17,7 +17,7 @@ const PurposeOutboundWriterConfig = KafkaConsumerConfig.and(KafkaProducerConfig)
     purposeOutboundTopic: c.PURPOSE_OUTBOUND_TOPIC,
   }));
 
-export type PurposeOutboundWriterConfig = z.infer<
+type PurposeOutboundWriterConfig = z.infer<
   typeof PurposeOutboundWriterConfig
 >;
 
