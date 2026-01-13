@@ -189,11 +189,6 @@ export class InteropTokenGenerator {
       exp:
         currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
       organizationId: consumerId,
-      cnf: dpopJWK
-        ? {
-            jkt: calculateKid(dpopJWK),
-          }
-        : undefined,
     };
 
     const systemRolePayload = clientAdminId
@@ -205,9 +200,18 @@ export class InteropTokenGenerator {
           role: systemRole.M2M_ROLE,
         };
 
+    const dPoPPayload = dpopJWK
+      ? {
+          cnf: {
+            jkt: calculateKid(dpopJWK),
+          },
+        }
+      : {};
+
     const payload: InteropJwtApiPayload = {
       ...userDataPayload,
       ...systemRolePayload,
+      ...dPoPPayload,
     };
 
     const serializedToken = await this.createAndSignToken({
