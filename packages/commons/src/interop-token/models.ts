@@ -88,8 +88,6 @@ export const InteropJwtApiCommonPayload = InteropJwtCommonPayload.merge(
     client_id: ClientId,
     sub: ClientId,
     organizationId: TenantId,
-    // Only for DPoP tokens
-    cnf: CNF.optional(),
   })
 );
 export type InteropJwtApiCommonPayload = z.infer<
@@ -112,9 +110,27 @@ export type InteropJwtApiM2MAdminPayload = z.infer<
   typeof InteropJwtApiM2MAdminPayload
 >;
 
+// Extends M2M base
+export const InteropJwtApiM2MDPoPPayload = InteropJwtApiM2MPayload.merge(
+  z.object({ cnf: CNF })
+);
+export type InteropJwtApiM2MDPoPPayload = z.infer<
+  typeof InteropJwtApiM2MDPoPPayload
+>;
+
+// Extends M2M Admin base
+export const InteropJwtApiM2MAdminDPoPPayload =
+  InteropJwtApiM2MAdminPayload.merge(z.object({ cnf: CNF }));
+export type InteropJwtApiM2MAdminDPoPPayload = z.infer<
+  typeof InteropJwtApiM2MAdminDPoPPayload
+>;
+
+// Adding InteropJwtApiM2MDPoPPayload, InteropJwtApiM2MAdminDPoPPayload
 export type InteropJwtApiPayload =
   | InteropJwtApiM2MAdminPayload
-  | InteropJwtApiM2MPayload;
+  | InteropJwtApiM2MPayload
+  | InteropJwtApiM2MAdminDPoPPayload
+  | InteropJwtApiM2MDPoPPayload;
 
 export type InteropApiToken = {
   header: InteropJwtHeader;
@@ -216,11 +232,14 @@ export type InteropUIToken = {
 // the auth token we receive in API requests. It includes only the payloads
 // that we actually can receive. For example, it does not include the
 // InteropJwtConsumerPayload, because interop generates it but never receives it in API requests.
+// Adding InteropJwtApiM2MDPoPPayload, InteropJwtApiM2MAdminDPoPPayload
 export const AuthTokenPayload = z.discriminatedUnion("role", [
   InteropJwtInternalPayload,
   InteropJwtUIPayload,
   InteropJwtApiM2MPayload,
   InteropJwtApiM2MAdminPayload,
+  InteropJwtApiM2MDPoPPayload,
+  InteropJwtApiM2MAdminDPoPPayload,
   InteropJwtMaintenancePayload,
 ]);
 export type AuthTokenPayload = z.infer<typeof AuthTokenPayload>;

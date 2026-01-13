@@ -35,12 +35,35 @@ export type M2MAuthData = {
   jti: string;
 };
 
+// Adding M2MDPoPAuthData
+export type M2MDPoPAuthData = {
+  systemRole: Extract<SystemRole, "m2m">;
+  organizationId: TenantId;
+  clientId: ClientId;
+  jti: string;
+  cnf: {
+    jkt: string;
+  };
+};
+
+// Adding M2MDPoPAuthData
 export type M2MAdminAuthData = {
   systemRole: Extract<SystemRole, "m2m-admin">;
   organizationId: TenantId;
   userId: UserId;
   clientId: ClientId;
   jti: string;
+};
+
+export type M2MADPoPAdminAuthData = {
+  systemRole: Extract<SystemRole, "m2m-admin">;
+  organizationId: TenantId;
+  userId: UserId;
+  clientId: ClientId;
+  jti: string;
+  cnf: {
+    jkt: string;
+  };
 };
 
 export type InternalAuthData = {
@@ -53,13 +76,17 @@ export type MaintenanceAuthData = {
   jti: string;
 };
 
+// Adding M2MDPoPAuthData, M2MADPoPAdminAuthData
 export type AuthData =
   | UIAuthData
   | M2MAuthData
   | M2MAdminAuthData
+  | M2MDPoPAuthData
+  | M2MADPoPAdminAuthData
   | InternalAuthData
   | MaintenanceAuthData;
 
+// Managing M2MDPoPAuthData, M2MADPoPAdminAuthData
 export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
   match<AuthTokenPayload, AuthData>(token)
     .with(
@@ -70,11 +97,26 @@ export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
         jti: t.jti,
       })
     )
+    .with({ role: systemRole.M2M_ROLE, cnf: P.not(P.nullish) }, (t) => ({
+      systemRole: t.role,
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      jti: t.jti,
+      cnf: t.cnf,
+    }))
     .with({ role: systemRole.M2M_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       clientId: unsafeBrandId<ClientId>(t.client_id),
       jti: t.jti,
+    }))
+    .with({ role: systemRole.M2M_ADMIN_ROLE, cnf: P.not(P.nullish) }, (t) => ({
+      systemRole: t.role,
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      userId: unsafeBrandId<UserId>(t.adminId),
+      jti: t.jti,
+      cnf: t.cnf,
     }))
     .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
       systemRole: t.role,
