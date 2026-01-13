@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  generateId,
+  unsafeBrandId,
+  TenantId,
+  AttributeId,
+} from "pagopa-interop-models";
 import { getMockedApiVerifiedTenantAttributeRevoker } from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
@@ -12,8 +17,8 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getTenantVerifiedAttributeRevokers", () => {
   // Test data setup
-  const tenantId = generateId();
-  const attributeId = generateId();
+  const tenantId = generateId<TenantId>();
+  const attributeId = generateId<AttributeId>();
   const revoker1Id = generateId();
   const revoker2Id = generateId();
 
@@ -71,7 +76,9 @@ describe("getTenantVerifiedAttributeRevokers", () => {
       unsafeBrandId(tenantId),
       unsafeBrandId(attributeId),
       { limit, offset },
-      getMockM2MAdminAppContext()
+      getMockM2MAdminAppContext({
+        organizationId: tenantId,
+      })
     );
 
     expectApiClientGetToHaveBeenCalledWith({
@@ -88,5 +95,28 @@ describe("getTenantVerifiedAttributeRevokers", () => {
         totalCount: 2,
       },
     });
+  });
+
+  it("Should throw error when caller tries to access another tenant's revokers", async () => {
+    const limit = 10;
+    const offset = 0;
+    const differentTenantId = generateId<TenantId>();
+
+    // organizationId differs from the requested tenantId
+    const contextWithDifferentTenant = getMockM2MAdminAppContext({
+      organizationId: differentTenantId,
+    });
+
+    await expect(
+      tenantService.getTenantVerifiedAttributeRevokers(
+        unsafeBrandId(tenantId),
+        unsafeBrandId(attributeId),
+        { limit, offset },
+        contextWithDifferentTenant
+      )
+    ).rejects.toThrow(`Operation not allowed on tenant ${tenantId}`);
+
+    // Verify that the tenant-process API was not called
+    expect(mockGetTenantVerifiedAttributeRevokers).not.toHaveBeenCalled();
   });
 });

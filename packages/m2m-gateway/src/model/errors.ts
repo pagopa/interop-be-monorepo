@@ -56,6 +56,7 @@ export const errorCodes = {
   eserviceDescriptorAttributeGroupNotFound: "0036",
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
+  forbiddenOperationOnTenant: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -322,6 +323,16 @@ export function cannotEditDeclaredAttributesForTenant(
     }`,
     code: "cannotEditDeclaredAttributesForTenant",
     title: "Tenant cannot edit declared attributes",
+  });
+}
+
+export function forbiddenOperationOnTenant(
+  targetTenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Operation not allowed on tenant ${targetTenantId}`,
+    code: "forbiddenOperationOnTenant",
+    title: "Forbidden operation on tenant",
   });
 }
 
