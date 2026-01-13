@@ -1,0 +1,18 @@
+meta {
+  name: Unsuspend Purpose Template
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/unsuspend
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
