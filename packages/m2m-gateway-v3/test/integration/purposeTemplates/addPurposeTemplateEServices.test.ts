@@ -1,152 +1,152 @@
-// import { purposeTemplateApi } from "pagopa-interop-api-clients";
-// import {
-//     getMockedApiEServiceDescriptorPurposeTemplate,
-//     getMockedApiPurposeTemplate,
-//     getMockWithMetadata,
-// } from "pagopa-interop-commons-test";
-// import {
-//     EServiceId,
-//     generateId,
-//     pollingMaxRetriesExceeded,
-//     unsafeBrandId,
-// } from "pagopa-interop-models";
-// import { beforeEach, describe, expect, it, vi } from "vitest";
-// import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-// import { config } from "../../../src/config/config.js";
-// import { missingMetadata } from "../../../src/model/errors.js";
-// import {
-//     expectApiClientGetToHaveBeenCalledWith,
-//     expectApiClientPostToHaveBeenCalledWith,
-//     mockInteropBeClients,
-//     mockPollingResponse,
-//     purposeTemplateService,
-// } from "../../integrationUtils.js";
-// import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+    getMockedApiEServiceDescriptorPurposeTemplate,
+    getMockedApiPurposeTemplate,
+    getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
+    EServiceId,
+    generateId,
+    pollingMaxRetriesExceeded,
+    unsafeBrandId,
+} from "pagopa-interop-models";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import {
+    expectApiClientGetToHaveBeenCalledWith,
+    expectApiClientPostToHaveBeenCalledWith,
+    mockInteropBeClients,
+    mockPollingResponse,
+    purposeTemplateService,
+} from "../../integrationUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-// describe("addPurposeTemplateEService", () => {
-//     const eserviceId1 = generateId<EServiceId>();
-//     const mockPurposeTemplate = getMockedApiPurposeTemplate();
-//     const mockEserviceIdsBody = {
-//         eserviceId: eserviceId1,
-//     };
+describe("addPurposeTemplateEService", () => {
+    const eserviceId1 = generateId<EServiceId>();
+    const mockPurposeTemplate = getMockedApiPurposeTemplate();
+    const mockEserviceIdsBody = {
+        eserviceId: eserviceId1,
+    };
 
-//     const mockApiPurposeTemplateEServiceDescriptor1: purposeTemplateApi.EServiceDescriptorPurposeTemplate =
-//     {
-//         ...getMockedApiEServiceDescriptorPurposeTemplate(),
-//         eserviceId: eserviceId1,
-//         purposeTemplateId: mockPurposeTemplate.id,
-//     };
+    const mockApiPurposeTemplateEServiceDescriptor1: purposeTemplateApi.EServiceDescriptorPurposeTemplate =
+    {
+        ...getMockedApiEServiceDescriptorPurposeTemplate(),
+        eserviceId: eserviceId1,
+        purposeTemplateId: mockPurposeTemplate.id,
+    };
 
-//     const mockVersion = 2;
-//     const mockLinkEServicesToPurposeTemplateResponse = getMockWithMetadata(
-//         [mockApiPurposeTemplateEServiceDescriptor1],
-//         mockVersion
-//     );
+    const mockVersion = 2;
+    const mockLinkEServicesToPurposeTemplateResponse = getMockWithMetadata(
+        [mockApiPurposeTemplateEServiceDescriptor1],
+        mockVersion
+    );
 
-//     const mockLinkEServicesToPurposeTemplate = vi
-//         .fn()
-//         .mockResolvedValue(mockLinkEServicesToPurposeTemplateResponse);
+    const mockLinkEServicesToPurposeTemplate = vi
+        .fn()
+        .mockResolvedValue(mockLinkEServicesToPurposeTemplateResponse);
 
-//     const mockPollRetries = 2;
-//     const mockGetPurposeTemplateResponse = getMockWithMetadata(
-//         mockPurposeTemplate,
-//         mockVersion
-//     );
-//     const mockGetPurposeTemplate = vi.fn(
-//         mockPollingResponse(mockGetPurposeTemplateResponse, mockPollRetries)
-//     );
+    const mockPollRetries = 2;
+    const mockGetPurposeTemplateResponse = getMockWithMetadata(
+        mockPurposeTemplate,
+        mockVersion
+    );
+    const mockGetPurposeTemplate = vi.fn(
+        mockPollingResponse(mockGetPurposeTemplateResponse, mockPollRetries)
+    );
 
-//     mockInteropBeClients.purposeTemplateProcessClient = {
-//         linkEServicesToPurposeTemplate: mockLinkEServicesToPurposeTemplate,
-//         getPurposeTemplate: mockGetPurposeTemplate,
-//     } as unknown as PagoPAInteropBeClients["purposeTemplateProcessClient"];
+    mockInteropBeClients.purposeTemplateProcessClient = {
+        linkEServicesToPurposeTemplate: mockLinkEServicesToPurposeTemplate,
+        getPurposeTemplate: mockGetPurposeTemplate,
+    } as unknown as PagoPAInteropBeClients["purposeTemplateProcessClient"];
 
-//     beforeEach(() => {
-//         // Clear mock counters and call information before each test
-//         mockLinkEServicesToPurposeTemplate.mockClear();
-//         mockGetPurposeTemplate.mockClear();
-//     });
+    beforeEach(() => {
+        // Clear mock counters and call information before each test
+        mockLinkEServicesToPurposeTemplate.mockClear();
+        mockGetPurposeTemplate.mockClear();
+    });
 
-//     it("Should succeed and perform API clients calls", async () => {
-//         await purposeTemplateService.addPurposeTemplateEService(
-//             unsafeBrandId(mockPurposeTemplate.id),
-//             mockEserviceIdsBody,
-//             getMockM2MAdminAppContext()
-//         );
+    it("Should succeed and perform API clients calls", async () => {
+        await purposeTemplateService.addPurposeTemplateEService(
+            unsafeBrandId(mockPurposeTemplate.id),
+            mockEserviceIdsBody,
+            getMockM2MAdminAppContext()
+        );
 
-//         expectApiClientPostToHaveBeenCalledWith({
-//             mockPost:
-//                 mockInteropBeClients.purposeTemplateProcessClient
-//                     .linkEServicesToPurposeTemplate,
-//             params: {
-//                 id: mockPurposeTemplate.id,
-//             },
-//             body: {
-//                 eserviceIds: [eserviceId1],
-//             },
-//         });
-//         expect(mockLinkEServicesToPurposeTemplate).toHaveBeenCalledOnce();
+        expectApiClientPostToHaveBeenCalledWith({
+            mockPost:
+                mockInteropBeClients.purposeTemplateProcessClient
+                    .linkEServicesToPurposeTemplate,
+            params: {
+                id: mockPurposeTemplate.id,
+            },
+            body: {
+                eserviceIds: [eserviceId1],
+            },
+        });
+        expect(mockLinkEServicesToPurposeTemplate).toHaveBeenCalledOnce();
 
-//         expectApiClientGetToHaveBeenCalledWith({
-//             mockGet:
-//                 mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,
-//             params: { id: mockPurposeTemplate.id },
-//         });
-//         expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(mockPollRetries);
-//     });
+        expectApiClientGetToHaveBeenCalledWith({
+            mockGet:
+                mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,
+            params: { id: mockPurposeTemplate.id },
+        });
+        expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(mockPollRetries);
+    });
 
-//     it("Should throw missingMetadata in case the data returned by the POST call has no metadata", async () => {
-//         mockLinkEServicesToPurposeTemplate.mockResolvedValueOnce({
-//             ...mockLinkEServicesToPurposeTemplateResponse,
-//             metadata: undefined,
-//         });
+    it("Should throw missingMetadata in case the data returned by the POST call has no metadata", async () => {
+        mockLinkEServicesToPurposeTemplate.mockResolvedValueOnce({
+            ...mockLinkEServicesToPurposeTemplateResponse,
+            metadata: undefined,
+        });
 
-//         await expect(
-//             purposeTemplateService.addPurposeTemplateEService(
-//                 unsafeBrandId(mockPurposeTemplate.id),
-//                 mockEserviceIdsBody,
-//                 getMockM2MAdminAppContext()
-//             )
-//         ).rejects.toThrowError(missingMetadata());
-//     });
+        await expect(
+            purposeTemplateService.addPurposeTemplateEService(
+                unsafeBrandId(mockPurposeTemplate.id),
+                mockEserviceIdsBody,
+                getMockM2MAdminAppContext()
+            )
+        ).rejects.toThrowError(missingMetadata());
+    });
 
-//     it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
-//         mockGetPurposeTemplate.mockResolvedValueOnce({
-//             ...mockGetPurposeTemplateResponse,
-//             metadata: undefined,
-//         });
+    it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
+        mockGetPurposeTemplate.mockResolvedValueOnce({
+            ...mockGetPurposeTemplateResponse,
+            metadata: undefined,
+        });
 
-//         await expect(
-//             purposeTemplateService.addPurposeTemplateEService(
-//                 unsafeBrandId(mockPurposeTemplate.id),
-//                 mockEserviceIdsBody,
-//                 getMockM2MAdminAppContext()
-//             )
-//         ).rejects.toThrowError(missingMetadata());
-//     });
+        await expect(
+            purposeTemplateService.addPurposeTemplateEService(
+                unsafeBrandId(mockPurposeTemplate.id),
+                mockEserviceIdsBody,
+                getMockM2MAdminAppContext()
+            )
+        ).rejects.toThrowError(missingMetadata());
+    });
 
-//     it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-//         mockGetPurposeTemplate.mockImplementation(
-//             mockPollingResponse(
-//                 mockGetPurposeTemplateResponse,
-//                 config.defaultPollingMaxRetries + 1
-//             )
-//         );
+    it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
+        mockGetPurposeTemplate.mockImplementation(
+            mockPollingResponse(
+                mockGetPurposeTemplateResponse,
+                config.defaultPollingMaxRetries + 1
+            )
+        );
 
-//         await expect(
-//             purposeTemplateService.addPurposeTemplateEService(
-//                 unsafeBrandId(mockPurposeTemplate.id),
-//                 mockEserviceIdsBody,
-//                 getMockM2MAdminAppContext()
-//             )
-//         ).rejects.toThrowError(
-//             pollingMaxRetriesExceeded(
-//                 config.defaultPollingMaxRetries,
-//                 config.defaultPollingRetryDelay
-//             )
-//         );
-//         expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(
-//             config.defaultPollingMaxRetries
-//         );
-//     });
-// });
+        await expect(
+            purposeTemplateService.addPurposeTemplateEService(
+                unsafeBrandId(mockPurposeTemplate.id),
+                mockEserviceIdsBody,
+                getMockM2MAdminAppContext()
+            )
+        ).rejects.toThrowError(
+            pollingMaxRetriesExceeded(
+                config.defaultPollingMaxRetries,
+                config.defaultPollingRetryDelay
+            )
+        );
+        expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(
+            config.defaultPollingMaxRetries
+        );
+    });
+});
