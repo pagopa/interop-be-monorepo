@@ -274,7 +274,7 @@ describe("handleAgreementActivated", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Richiesta di fruizione accettata automaticamente`
+        `Richiesta di fruizione accettata`
       );
       expect(message.email.body).toContain(
         match(message.type)

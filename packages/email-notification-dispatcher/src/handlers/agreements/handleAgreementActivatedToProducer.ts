@@ -64,9 +64,9 @@ export async function handleAgreementActivatedToProducer(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Richiesta di fruizione accettata automaticamente`,
+      subject: `Richiesta di fruizione accettata`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: "Richiesta di fruizione accettata automaticamente",
+        title: "Richiesta di fruizione accettata",
         notificationType,
         entityId: agreement.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
