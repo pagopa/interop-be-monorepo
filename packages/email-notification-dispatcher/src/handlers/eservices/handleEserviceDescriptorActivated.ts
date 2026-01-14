@@ -99,7 +99,7 @@ export async function handleEserviceDescriptorActivated(
             bffUrl: config.bffUrl,
           }),
         },
-        tenantId: producer.id,
+        tenantId: t.tenantId,
         ...mapRecipientToEmailPayload(t),
       },
     ];
