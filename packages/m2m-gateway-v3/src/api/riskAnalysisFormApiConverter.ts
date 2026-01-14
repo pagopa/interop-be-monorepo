@@ -1,12 +1,12 @@
 import {
   catalogApi,
-  m2mGatewayApi,
+  m2mGatewayApiV3,
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 
 export function toM2MGatewayApiRiskAnalysisForm(
   riskAnalysisForm: catalogApi.EServiceRiskAnalysisForm
-): m2mGatewayApi.RiskAnalysisForm {
+): m2mGatewayApiV3.RiskAnalysisForm {
   return {
     id: riskAnalysisForm.id,
     version: riskAnalysisForm.version,

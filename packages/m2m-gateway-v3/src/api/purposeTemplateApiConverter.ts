@@ -1,7 +1,10 @@
-import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApiV3,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 
 export function toGetPurposeTemplatesApiQueryParams(
-  params: m2mGatewayApi.GetPurposeTemplatesQueryParams
+  params: m2mGatewayApiV3.GetPurposeTemplatesQueryParams
 ): purposeTemplateApi.GetPurposeTemplatesQueryParams {
   return {
     purposeTitle: params.purposeTitle,
@@ -18,7 +21,7 @@ export function toGetPurposeTemplatesApiQueryParams(
 
 export function toM2MGatewayApiPurposeTemplate(
   purposeTemplate: purposeTemplateApi.PurposeTemplate
-): m2mGatewayApi.PurposeTemplate {
+): m2mGatewayApiV3.PurposeTemplate {
   return {
     id: purposeTemplate.id,
     createdAt: purposeTemplate.createdAt,
@@ -38,7 +41,7 @@ export function toM2MGatewayApiPurposeTemplate(
 
 export function toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument(
   documentWithAnswerId: purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentWithAnswerId
-): m2mGatewayApi.RiskAnalysisTemplateAnnotationDocument {
+): m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocument {
   return {
     answerId: documentWithAnswerId.answerId,
     document: {

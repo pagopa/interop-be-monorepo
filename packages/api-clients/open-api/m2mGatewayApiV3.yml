@@ -3,7 +3,7 @@ info:
   title: PDND Interoperability API
   description: PDND Interoperability API for machine-to-machine interaction with interoperability features
   x-summary: PDND Interoperability API
-  version: "2.4.0"
+  version: "3.0.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -222,18 +222,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -259,18 +248,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/purposes:
@@ -327,18 +305,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/approve:
@@ -382,18 +349,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -451,18 +407,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/submit:
@@ -508,18 +453,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -578,18 +512,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/unsuspend:
@@ -635,18 +558,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/upgrade:
@@ -687,18 +599,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/clone:
@@ -739,18 +640,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -808,18 +698,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -880,18 +759,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/consumerDocuments/{documentId}:
@@ -937,18 +805,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -974,18 +831,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/contract:
@@ -1024,18 +870,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /consumerDelegations:
@@ -1206,18 +1041,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /consumerDelegations/{delegationId}/accept:
@@ -1256,18 +1080,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -1444,18 +1257,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerDelegations/{delegationId}/accept:
@@ -1494,18 +1296,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -1557,18 +1348,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /certifiedAttributes:
@@ -1701,18 +1481,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /declaredAttributes/{attributeId}:
@@ -1749,18 +1518,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /verifiedAttributes/{attributeId}:
@@ -1797,18 +1555,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /verifiedAttributes:
@@ -2095,18 +1842,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}/purposes:
@@ -2163,18 +1899,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -2208,18 +1933,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -2274,18 +1988,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}/keys:
@@ -2342,18 +2045,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains:
@@ -2452,18 +2144,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}/eservices:
@@ -2520,18 +2201,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -2565,18 +2235,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -2631,18 +2290,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}/keys:
@@ -2699,18 +2347,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /consumerDelegations/{delegationId}/reject:
@@ -2756,18 +2393,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices:
@@ -2947,18 +2573,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -3007,18 +2622,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Name Conflict
           content:
@@ -3057,18 +2661,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/delegation:
@@ -3113,18 +2706,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -3182,18 +2764,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -3251,18 +2822,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -3320,18 +2880,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -3404,18 +2953,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -3453,18 +2991,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}:
@@ -3508,18 +3035,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     patch:
@@ -3555,18 +3071,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -3594,18 +3099,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Cannot delete last E-Service Descriptor
           content:
@@ -3670,18 +3164,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -3756,18 +3239,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -3803,18 +3275,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -3878,18 +3339,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -3915,18 +3365,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/interface:
@@ -3970,18 +3409,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -4020,18 +3448,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -4059,18 +3476,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/suspend:
@@ -4116,18 +3522,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/unsuspend:
@@ -4171,18 +3566,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "403":
           $ref: "#/components/responses/Forbidden"
         "429":
@@ -4230,18 +3614,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/approve:
@@ -4285,18 +3658,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "403":
           $ref: "#/components/responses/Forbidden"
         "429":
@@ -4351,18 +3713,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/riskAnalyses:
@@ -4409,18 +3760,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -4521,18 +3861,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -4560,18 +3889,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes:
@@ -4633,18 +3951,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/declaredAttributes:
@@ -4706,18 +4013,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/verifiedAttributes:
@@ -4779,18 +4075,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/groups/{groupIndex}/attributes:
@@ -4846,18 +4131,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -4926,18 +4200,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -5006,18 +4269,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -5087,18 +4339,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/verifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
@@ -5155,18 +4396,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/declaredAttributes/groups/{groupIndex}/attributes/{attributeId}:
@@ -5223,18 +4453,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/groups:
@@ -5286,18 +4505,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/declaredAttributes/groups:
@@ -5349,18 +4557,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/verifiedAttributes/groups:
@@ -5412,18 +4609,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates:
@@ -5580,18 +4766,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     patch:
@@ -5629,18 +4804,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Name Conflict
           content:
@@ -5679,18 +4843,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/description:
@@ -5735,18 +4888,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/intendedTarget:
@@ -5791,18 +4933,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/name:
@@ -5847,18 +4978,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Name Conflict
           content:
@@ -5931,18 +5051,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -5980,18 +5089,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}:
@@ -6035,18 +5133,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     patch:
@@ -6082,18 +5169,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -6121,18 +5197,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -6191,18 +5256,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/unsuspend:
@@ -6248,18 +5302,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/publish:
@@ -6305,18 +5348,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/documents:
@@ -6378,18 +5410,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -6425,18 +5446,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -6500,18 +5510,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -6537,18 +5536,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/riskAnalyses:
@@ -6595,18 +5583,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -6707,18 +5684,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -6746,18 +5712,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
   /eserviceTemplates/{templateId}/versions/{versionId}/quotas:
     parameters:
       - name: templateId
@@ -6807,18 +5762,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -6893,18 +5837,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttributes:
@@ -6966,18 +5899,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttributes:
@@ -7039,18 +5961,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttributes/groups/{groupIndex}/attributes:
@@ -7106,18 +6017,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -7186,18 +6086,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -7266,18 +6155,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -7347,18 +6225,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
@@ -7415,18 +6282,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttributes/groups/{groupIndex}/attributes/{attributeId}:
@@ -7483,18 +6339,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttributes/groups:
@@ -7546,18 +6391,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttributes/groups:
@@ -7609,18 +6443,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttributes/groups:
@@ -7672,18 +6495,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /keys/{kid}:
@@ -7721,18 +6533,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: Key not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeys/{kid}:
@@ -7770,18 +6571,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: Producer Key not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposes:
@@ -7818,18 +6608,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Name Conflict
           content:
@@ -7963,18 +6742,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -8000,18 +6768,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     patch:
@@ -8026,7 +6783,9 @@ paths:
         content:
           application/merge-patch+json:
             schema:
-              $ref: "#/components/schemas/PurposeDraftUpdateSeed"
+              oneOf:
+                - $ref: "#/components/schemas/PurposeDraftUpdateSeed"
+                - $ref: "#/components/schemas/PurposeDraftFromTemplateUpdateSeed"
         required: true
       responses:
         "200":
@@ -8049,18 +6808,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Name Conflict
           content:
@@ -8134,18 +6882,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -8183,18 +6920,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -8253,18 +6979,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -8290,18 +7005,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -8360,18 +7064,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -8439,18 +7132,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposes/{purposeId}/approve:
@@ -8494,18 +7176,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposes/{purposeId}/suspend:
@@ -8551,18 +7222,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -8621,18 +7281,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -8740,18 +7389,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Name Conflict
           content:
@@ -8810,18 +7448,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposes/{purposeId}/agreement:
@@ -8860,18 +7487,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Name Conflict
           content:
@@ -8984,18 +7600,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /tenants/{tenantId}/declaredAttributes:
@@ -9056,18 +7661,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -9103,18 +7697,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /tenants/{tenantId}/declaredAttributes/{attributeId}:
@@ -9160,18 +7743,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /tenants/{tenantId}/certifiedAttributes:
@@ -9226,18 +7798,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -9273,18 +7834,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -9343,18 +7893,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -9422,18 +7961,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
@@ -9471,18 +7999,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /tenants/{tenantId}/verifiedAttributes/{attributeId}:
@@ -9538,18 +8055,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "409":
           description: Conflict
           content:
@@ -9624,18 +8130,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /tenants/{tenantId}/verifiedAttributes/{attributeId}/revokers:
@@ -9697,18 +8192,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates:
@@ -9759,7 +8243,7 @@ paths:
           name: targetTenantKind
           description: Filter Purpose Templates by target tenant kind. If not specified, return Purpose Templates for any tenant kind.
           schema:
-            $ref: "#/components/schemas/TenantKind"
+            $ref: "#/components/schemas/TargetTenantKind"
         - in: query
           name: handlesPersonalData
           description: Filter Purpose Templates by whether they handle personal data. If not specified, return Purpose Templates that both handle and do not handle personal data.
@@ -9804,6 +8288,75 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - purposeTemplates
+      summary: Create a new Purpose Template
+      description: Create a new Purpose Template in Draft state
+      operationId: createPurposeTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeTemplateSeed"
+        required: true
+      responses:
+        "201":
+          description: Purpose Template created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}:
     parameters:
       - name: purposeTemplateId
@@ -9838,7 +8391,172 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    patch:
+      tags:
+        - purposeTemplates
+      summary: Update a Draft Purpose Template
+      description: Update a Purpose Template in Draft state
+      operationId: updateDraftPurposeTemplate
+      requestBody:
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: "#/components/schemas/PurposeTemplateDraftUpdateSeed"
+        required: true
+      responses:
+        "200":
+          description: Draft Purpose Template updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - purposeTemplates
+      summary: Delete a Purpose Template in Draft state
+      description: Delete a Purpose Template that is in Draft state
+      operationId: deletePurposeTemplate
+      responses:
+        "204":
+          description: Purpose Template deleted
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: The Purpose Template is not in Draft state
           content:
             application/problem+json:
               schema:
@@ -9886,7 +8604,89 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    put:
+      tags:
+        - purposeTemplates
+      summary: Replace the Risk Analysis of a Purpose Template
+      description: Replace the Risk Analysis of a Purpose Template in Draft state
+      operationId: replacePurposeTemplateRiskAnalysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk Analysis Form Template updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
@@ -9954,7 +8754,67 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - purposeTemplates
+      summary: Upload a Risk Analysis Form Template Answer Annotation Document
+      description: Upload a Document for the specified Risk Analysis Form Template Answer Annotation
+      operationId: uploadRiskAnalysisTemplateAnswerAnnotationDocument
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentUploadMultipart"
+        required: true
+      responses:
+        "201":
+          description: Risk Analysis Form Template Answer Annotation Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -10011,7 +8871,159 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - purposeTemplates
+      summary: Delete the Document of a Risk Analysis Form Template Answer Annotation
+      description: Delete the Document of a Risk Analysis Form Template Answer Annotation
+      operationId: deleteRiskAnalysisTemplateAnswerAnnotationDocument
+      responses:
+        "204":
+          description: Risk Analysis Form Template Answer Annotation Document deleted
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/purposes:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposes
+      summary: Create a new Purpose from a Purpose Template
+      description: Create a new Purpose in Draft state from a Purpose Template
+      operationId: createPurposeFromTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeFromTemplateSeed"
+        required: true
+      responses:
+        "201":
+          description: Purpose created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -10026,6 +9038,14 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/eservices:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - purposeTemplates
@@ -10033,13 +9053,6 @@ paths:
       description: Retrieve a list of E-Services linked to a specific Purpose Template
       operationId: getPurposeTemplateEServices
       parameters:
-        - name: purposeTemplateId
-          in: path
-          description: The Purpose Template ID
-          required: true
-          schema:
-            type: string
-            format: uuid
         - in: query
           name: producerIds
           description: Filter Purpose Template linked E-Services by E-Service Producer IDs. If not specified, return linked E-Services for any Producer.
@@ -10091,7 +9104,531 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - purposeTemplates
+      summary: Link an E-Service to a Purpose Template
+      description: Link an E-Service to a Purpose Template that is in Draft or Active state
+      operationId: addPurposeTemplateEService
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeTemplateLinkEService"
+        required: true
+      responses:
+        "204":
+          description: E-Services linked to Purpose Template
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/eservices/{eserviceId}:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: eserviceId
+        in: path
+        description: The Eservice ID to unlink
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - purposeTemplates
+      summary: Unlink an E-Service From Purpose Template
+      description: Unlink an E-Service From a Purpose Template that is in Draft or Active state
+      operationId: removePurposeTemplateEService
+      responses:
+        "204":
+          description: E-Service unlinked from Purpose Template
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/publish:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Publish a Purpose Template in Draft state
+      description: Publish a Purpose Template that is in Draft state, transitioning it to Published state
+      operationId: publishPurposeTemplate
+      tags:
+        - purposeTemplates
+      responses:
+        "200":
+          description: Purpose Template published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/archive:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Archive a Purpose Template in Published or Suspended state
+      description: Archive a Purpose Template that is in Published or Suspended state, transitioning it to Archived state
+      operationId: archivePurposeTemplate
+      tags:
+        - purposeTemplates
+      responses:
+        "200":
+          description: Purpose Template archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/unsuspend:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Unsuspend a Purpose Template in Suspended state
+      description: Unsuspend a Purpose Template that is in Suspended state, transitioning it to Published state
+      operationId: unsuspendPurposeTemplate
+      tags:
+        - purposeTemplates
+      responses:
+        "200":
+          description: Purpose Template unsuspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/suspend:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Suspend a Purpose Template in Published state
+      description: Suspend a Purpose Template that is in Published state, transitioning it to Suspended state
+      operationId: suspendPurposeTemplate
+      tags:
+        - purposeTemplates
+      responses:
+        "200":
+          description: Purpose Template suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -10126,6 +9663,8 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceEvents:
     get:
       tags:
@@ -12868,6 +12407,33 @@ components:
         - description
         - isFreeOfCharge
         - dailyCalls
+    PurposeFromTemplateSeed:
+      type: object
+      additionalProperties: false
+      description: contains the expected payload for purpose creation from a purpose template
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+        delegationId:
+          description: |
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
+          type: string
+          format: uuid
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        title:
+          type: string
+        dailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - eserviceId
+        - title
+        - dailyCalls
     ReversePurposeSeed:
       type: object
       additionalProperties: false
@@ -12995,7 +12561,7 @@ components:
     PurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
-      description: Contains the expected payload for purpose update
+      description: Contains the expected payload for purpose update of a purpose not created from a purpose template
       properties:
         title:
           type: string
@@ -13010,6 +12576,23 @@ components:
         freeOfChargeReason:
           type: string
           nullable: true
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform.
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+    PurposeDraftFromTemplateUpdateSeed:
+      type: object
+      additionalProperties: false
+      description: Contains the expected payload for purpose update of a purpose created from a purpose template
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
         dailyCalls:
@@ -13087,6 +12670,15 @@ components:
       required:
         - version
         - answers
+    PurposeTemplateLinkEService:
+      type: object
+      additionalProperties: false
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+      required:
+        - eserviceId
     EServiceRiskAnalysisSeed:
       type: object
       additionalProperties: false
@@ -13212,6 +12804,12 @@ components:
         - createdAt
         - mails
         - name
+    TargetTenantKind:
+      type: string
+      description: The Target Tenant Kind of a Purpose Template
+      enum:
+        - PA
+        - PRIVATE
     TenantKind:
       type: string
       enum:
@@ -13475,6 +13073,24 @@ components:
         prettyName:
           type: string
           description: A human-readable name for the file
+    RiskAnalysisTemplateAnnotationDocumentUploadMultipart:
+      type: object
+      additionalProperties: false
+      required:
+        - file
+        - prettyName
+        - answerId
+      properties:
+        file:
+          type: string
+          format: binary
+          description: The file to upload
+        prettyName:
+          type: string
+          description: A human-readable name for the file
+        answerId:
+          type: string
+          description: The ID of the answer containing the annotation
     Documents:
       type: object
       additionalProperties: false
@@ -13546,7 +13162,7 @@ components:
         targetDescription:
           type: string
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         creatorId:
           type: string
           format: uuid
@@ -13586,6 +13202,75 @@ components:
         - purposeDescription
         - purposeIsFreeOfCharge
         - handlesPersonalData
+    PurposeTemplateSeed:
+      type: object
+      additionalProperties: false
+      description: contains the expected payload for purpose template creation
+      properties:
+        targetDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        targetTenantKind:
+          $ref: "#/components/schemas/TargetTenantKind"
+        purposeTitle:
+          type: string
+          minLength: 5
+          maxLength: 60
+        purposeDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+        purposeDailyCalls:
+          description: Maximum number of daily calls that the purpose can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
+      required:
+        - targetDescription
+        - targetTenantKind
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
+        - handlesPersonalData
+    PurposeTemplateDraftUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        targetDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        targetTenantKind:
+          $ref: "#/components/schemas/TargetTenantKind"
+        purposeTitle:
+          type: string
+          minLength: 5
+          maxLength: 60
+        purposeDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+          nullable: true
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+          nullable: true
+        handlesPersonalData:
+          type: boolean
     RiskAnalysisFormTemplate:
       type: object
       additionalProperties: false
@@ -13630,6 +13315,49 @@ components:
             maxLength: 250
       required:
         - id
+        - values
+        - editable
+        - suggestedValues
+    RiskAnalysisFormTemplateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        version:
+          type: string
+          minLength: 1
+          maxLength: 250
+        answers:
+          description: |
+            Key-value pairs of risk analysis form template answers.
+            Key: question ID; value: template of the answer
+          additionalProperties:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerSeed"
+      required:
+        - version
+        - answers
+    RiskAnalysisTemplateAnswerSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2000
+        editable:
+          type: boolean
+        annotationText:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        suggestedValues:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+      required:
         - values
         - editable
         - suggestedValues
@@ -13767,6 +13495,19 @@ components:
           $ref: "#/components/headers/RateLimitIntervalHeader"
     Forbidden:
       description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: "#/components/headers/RateLimitLimitHeader"
+        X-Rate-Limit-Remaining:
+          $ref: "#/components/headers/RateLimitRemainingHeader"
+        X-Rate-Limit-Interval:
+          $ref: "#/components/headers/RateLimitIntervalHeader"
+    NotFound:
+      description: Not Found
       content:
         application/problem+json:
           schema:

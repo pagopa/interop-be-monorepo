@@ -1,9 +1,12 @@
-import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toM2MGatewayEServiceTemplate(
   template: eserviceTemplateApi.EServiceTemplate
-): m2mGatewayApi.EServiceTemplate {
+): m2mGatewayApiV3.EServiceTemplate {
   return {
     id: template.id,
     creatorId: template.creatorId,
@@ -19,7 +22,7 @@ export function toM2MGatewayEServiceTemplate(
 
 export function toM2MGatewayEServiceTemplateVersion(
   version: eserviceTemplateApi.EServiceTemplateVersion
-): m2mGatewayApi.EServiceTemplateVersion {
+): m2mGatewayApiV3.EServiceTemplateVersion {
   return {
     id: version.id,
     state: version.state,
@@ -37,7 +40,7 @@ export function toM2MGatewayEServiceTemplateVersion(
 
 export function toM2MGatewayApiEServiceTemplateRiskAnalysis(
   riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
-): m2mGatewayApi.EServiceTemplateRiskAnalysis {
+): m2mGatewayApiV3.EServiceTemplateRiskAnalysis {
   return {
     id: riskAnalysis.id,
     name: riskAnalysis.name,
@@ -50,7 +53,7 @@ export function toM2MGatewayApiEServiceTemplateRiskAnalysis(
 }
 
 export function toGetEServiceTemplatesQueryParams(
-  params: m2mGatewayApi.GetEServiceTemplatesQueryParams
+  params: m2mGatewayApiV3.GetEServiceTemplatesQueryParams
 ): eserviceTemplateApi.GetEServiceTemplatesQueryParams {
   return {
     eserviceTemplatesIds: params.eserviceTemplateIds,
@@ -63,7 +66,7 @@ export function toGetEServiceTemplatesQueryParams(
 
 export function toM2MGatewayApiDocument(
   document: eserviceTemplateApi.EServiceDoc
-): m2mGatewayApi.Document {
+): m2mGatewayApiV3.Document {
   return {
     id: document.id,
     name: document.name,
@@ -74,7 +77,7 @@ export function toM2MGatewayApiDocument(
 }
 
 export function toEServiceTemplateApiEServiceTemplateVersionSeed(
-  version: m2mGatewayApi.EServiceTemplateVersionSeed
+  version: m2mGatewayApiV3.EServiceTemplateVersionSeed
 ): eserviceTemplateApi.EServiceTemplateVersionSeed {
   return {
     description: version.description,

@@ -243,4 +243,4 @@ export type GetEventManagerProducerKeyEventsQueryParams =
 export type GetEventManagerProducerKeychainEventsQueryParams =
   QueryParametersByAlias<EventManagerApi, "getProducerKeychainEvents">;
 
-export * from "./generated/m2mGatewayApi.js";
+export * from "./generated/m2mGatewayApiV3.js";
