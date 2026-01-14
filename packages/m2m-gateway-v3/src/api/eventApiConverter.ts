@@ -1,8 +1,8 @@
-import { m2mEventApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mEventApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 
 export function toM2MGatewayApiAttributeEvent(
   attributeEvent: m2mEventApi.AttributeM2MEvent
-): m2mGatewayApi.AttributeEvent {
+): m2mGatewayApiV3.AttributeEvent {
   return {
     id: attributeEvent.id,
     eventTimestamp: attributeEvent.eventTimestamp,
@@ -13,7 +13,7 @@ export function toM2MGatewayApiAttributeEvent(
 
 export function toM2MGatewayApiProducerDelegationEvent(
   producerDelegationEvent: m2mEventApi.ProducerDelegationM2MEvent
-): m2mGatewayApi.ProducerDelegationEvent {
+): m2mGatewayApiV3.ProducerDelegationEvent {
   return {
     id: producerDelegationEvent.id,
     eventTimestamp: producerDelegationEvent.eventTimestamp,
@@ -24,7 +24,7 @@ export function toM2MGatewayApiProducerDelegationEvent(
 
 export function toM2MGatewayApiConsumerDelegationEvent(
   consumerDelegationEvent: m2mEventApi.ConsumerDelegationM2MEvent
-): m2mGatewayApi.ConsumerDelegationEvent {
+): m2mGatewayApiV3.ConsumerDelegationEvent {
   return {
     id: consumerDelegationEvent.id,
     eventTimestamp: consumerDelegationEvent.eventTimestamp,
@@ -34,7 +34,7 @@ export function toM2MGatewayApiConsumerDelegationEvent(
 }
 export function toM2MGatewayApiEServiceTemplateEvent(
   eserviceTemplateEvent: m2mEventApi.EServiceTemplateM2MEvent
-): m2mGatewayApi.EServiceTemplateEvent {
+): m2mGatewayApiV3.EServiceTemplateEvent {
   return {
     id: eserviceTemplateEvent.id,
     eventTimestamp: eserviceTemplateEvent.eventTimestamp,
@@ -46,7 +46,7 @@ export function toM2MGatewayApiEServiceTemplateEvent(
 
 export function toM2MGatewayApiKeyEvent(
   keyEvent: m2mEventApi.KeyM2MEvent
-): m2mGatewayApi.KeyEvent {
+): m2mGatewayApiV3.KeyEvent {
   return {
     id: keyEvent.id,
     eventTimestamp: keyEvent.eventTimestamp,
@@ -58,7 +58,7 @@ export function toM2MGatewayApiKeyEvent(
 
 export function toM2MGatewayApiClientEvent(
   clientEvent: m2mEventApi.ClientM2MEvent
-): m2mGatewayApi.ClientEvent {
+): m2mGatewayApiV3.ClientEvent {
   return {
     id: clientEvent.id,
     eventTimestamp: clientEvent.eventTimestamp,
@@ -69,7 +69,7 @@ export function toM2MGatewayApiClientEvent(
 
 export function toM2MGatewayApiProducerKeysEvent(
   producerKey: m2mEventApi.ProducerKeyM2MEvent
-): m2mGatewayApi.ProducerKeyEvent {
+): m2mGatewayApiV3.ProducerKeyEvent {
   return {
     id: producerKey.id,
     eventTimestamp: producerKey.eventTimestamp,
@@ -81,7 +81,7 @@ export function toM2MGatewayApiProducerKeysEvent(
 
 export function toM2MGatewayApiProducerKeychainsEvent(
   producerKeychainEvent: m2mEventApi.ProducerKeychainM2MEvent
-): m2mGatewayApi.ProducerKeychainEvent {
+): m2mGatewayApiV3.ProducerKeychainEvent {
   return {
     id: producerKeychainEvent.id,
     eventTimestamp: producerKeychainEvent.eventTimestamp,
@@ -92,7 +92,7 @@ export function toM2MGatewayApiProducerKeychainsEvent(
 
 export function toM2MGatewayApiEServiceEvent(
   eserviceEvent: m2mEventApi.EServiceM2MEvent
-): m2mGatewayApi.EServiceEvent {
+): m2mGatewayApiV3.EServiceEvent {
   return {
     id: eserviceEvent.id,
     eserviceId: eserviceEvent.eserviceId,
@@ -105,7 +105,7 @@ export function toM2MGatewayApiEServiceEvent(
 
 export function toM2MGatewayApiAgreementEvent(
   agreementEvent: m2mEventApi.AgreementM2MEvent
-): m2mGatewayApi.AgreementEvent {
+): m2mGatewayApiV3.AgreementEvent {
   return {
     id: agreementEvent.id,
     agreementId: agreementEvent.agreementId,
@@ -118,7 +118,7 @@ export function toM2MGatewayApiAgreementEvent(
 
 export function toM2MGatewayApiTenantEvent(
   tenantEvent: m2mEventApi.TenantM2MEvent
-): m2mGatewayApi.TenantEvent {
+): m2mGatewayApiV3.TenantEvent {
   return {
     id: tenantEvent.id,
     tenantId: tenantEvent.tenantId,
@@ -129,7 +129,7 @@ export function toM2MGatewayApiTenantEvent(
 
 export function toM2MGatewayApiPurposeEvent(
   purposeEvent: m2mEventApi.PurposeM2MEvent
-): m2mGatewayApi.PurposeEvent {
+): m2mGatewayApiV3.PurposeEvent {
   return {
     id: purposeEvent.id,
     purposeId: purposeEvent.purposeId,

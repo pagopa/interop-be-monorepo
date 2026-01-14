@@ -1,8 +1,8 @@
-import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { delegationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { assertDelegationKindIs } from "../utils/validators/delegationValidators.js";
 
 export function toGetConsumerDelegationsApiQueryParams(
-  params: m2mGatewayApi.GetConsumerDelegationsQueryParams
+  params: m2mGatewayApiV3.GetConsumerDelegationsQueryParams
 ): delegationApi.GetDelegationsQueryParams {
   return {
     kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
@@ -17,7 +17,7 @@ export function toGetConsumerDelegationsApiQueryParams(
 
 export function toM2MGatewayApiConsumerDelegation(
   delegation: delegationApi.Delegation
-): m2mGatewayApi.ConsumerDelegation {
+): m2mGatewayApiV3.ConsumerDelegation {
   assertDelegationKindIs(
     delegation,
     delegationApi.DelegationKind.Values.DELEGATED_CONSUMER
@@ -39,7 +39,7 @@ export function toM2MGatewayApiConsumerDelegation(
 }
 
 export function toGetProducerDelegationsApiQueryParams(
-  params: m2mGatewayApi.GetProducerDelegationsQueryParams
+  params: m2mGatewayApiV3.GetProducerDelegationsQueryParams
 ): delegationApi.GetDelegationsQueryParams {
   return {
     kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
@@ -54,7 +54,7 @@ export function toGetProducerDelegationsApiQueryParams(
 
 export function toM2MGatewayApiProducerDelegation(
   delegation: delegationApi.Delegation
-): m2mGatewayApi.ProducerDelegation {
+): m2mGatewayApiV3.ProducerDelegation {
   assertDelegationKindIs(
     delegation,
     delegationApi.DelegationKind.Values.DELEGATED_PRODUCER

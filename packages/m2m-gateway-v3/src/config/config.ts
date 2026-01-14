@@ -137,7 +137,9 @@ export type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
 >;
 
-const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig) // M2MGatewayConfigV3??
+const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
+  TenantProcessServerConfig
+)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
@@ -164,5 +166,5 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig) 
       }))
   );
 
-export type M2MGatewayConfig = z.infer<typeof M2MGatewayConfig>;
-export const config: M2MGatewayConfig = M2MGatewayConfig.parse(process.env);
+export type M2MGatewayConfigV3 = z.infer<typeof M2MGatewayConfigV3>;
+export const config: M2MGatewayConfigV3 = M2MGatewayConfigV3.parse(process.env);

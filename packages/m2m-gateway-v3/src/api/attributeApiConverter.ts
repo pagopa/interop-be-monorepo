@@ -1,6 +1,6 @@
 import {
   attributeRegistryApi,
-  m2mGatewayApi,
+  m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
 import { ApiError } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
@@ -16,21 +16,21 @@ function convertAttribute(
   attributeKind: typeof attributeRegistryApi.AttributeKind.Values.CERTIFIED,
   logger: Logger,
   mapThrownErrorsToNotFound?: boolean
-): m2mGatewayApi.CertifiedAttribute;
+): m2mGatewayApiV3.CertifiedAttribute;
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
   attributeKind: typeof attributeRegistryApi.AttributeKind.Values.DECLARED,
   logger: Logger,
   mapThrownErrorsToNotFound?: boolean
-): m2mGatewayApi.DeclaredAttribute;
+): m2mGatewayApiV3.DeclaredAttribute;
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
   attributeKind: typeof attributeRegistryApi.AttributeKind.Values.VERIFIED,
   logger: Logger,
   mapThrownErrorsToNotFound?: boolean
-): m2mGatewayApi.VerifiedAttribute;
+): m2mGatewayApiV3.VerifiedAttribute;
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
@@ -38,9 +38,9 @@ function convertAttribute(
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):
-  | m2mGatewayApi.CertifiedAttribute
-  | m2mGatewayApi.DeclaredAttribute
-  | m2mGatewayApi.VerifiedAttribute {
+  | m2mGatewayApiV3.CertifiedAttribute
+  | m2mGatewayApiV3.DeclaredAttribute
+  | m2mGatewayApiV3.VerifiedAttribute {
   try {
     assertAttributeKindIs(attribute, attributeKind);
 
@@ -87,7 +87,7 @@ export function toM2MGatewayApiCertifiedAttribute({
   attribute: attributeRegistryApi.Attribute;
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
-}): m2mGatewayApi.CertifiedAttribute {
+}): m2mGatewayApiV3.CertifiedAttribute {
   return convertAttribute(
     attribute,
     attributeRegistryApi.AttributeKind.Values.CERTIFIED,
@@ -104,7 +104,7 @@ export function toM2MGatewayApiDeclaredAttribute({
   attribute: attributeRegistryApi.Attribute;
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
-}): m2mGatewayApi.DeclaredAttribute {
+}): m2mGatewayApiV3.DeclaredAttribute {
   return convertAttribute(
     attribute,
     attributeRegistryApi.AttributeKind.Values.DECLARED,
@@ -121,7 +121,7 @@ export function toM2MGatewayApiVerifiedAttribute({
   attribute: attributeRegistryApi.Attribute;
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
-}): m2mGatewayApi.VerifiedAttribute {
+}): m2mGatewayApiV3.VerifiedAttribute {
   return convertAttribute(
     attribute,
     attributeRegistryApi.AttributeKind.Values.VERIFIED,
@@ -131,7 +131,7 @@ export function toM2MGatewayApiVerifiedAttribute({
 }
 
 export function toGetCertifiedAttributesApiQueryParams(
-  params: m2mGatewayApi.GetCertifiedAttributesQueryParams
+  params: m2mGatewayApiV3.GetCertifiedAttributesQueryParams
 ): attributeRegistryApi.GetAttributesQueryParams {
   return {
     limit: params.limit,
@@ -141,7 +141,7 @@ export function toGetCertifiedAttributesApiQueryParams(
 }
 
 export function toGetDeclaredAttributesApiQueryParams(
-  params: m2mGatewayApi.GetDeclaredAttributesQueryParams
+  params: m2mGatewayApiV3.GetDeclaredAttributesQueryParams
 ): attributeRegistryApi.GetAttributesQueryParams {
   return {
     limit: params.limit,
@@ -151,7 +151,7 @@ export function toGetDeclaredAttributesApiQueryParams(
 }
 
 export function toGetVerifiedAttributesApiQueryParams(
-  params: m2mGatewayApi.GetVerifiedAttributesQueryParams
+  params: m2mGatewayApiV3.GetVerifiedAttributesQueryParams
 ): attributeRegistryApi.GetAttributesQueryParams {
   return {
     limit: params.limit,

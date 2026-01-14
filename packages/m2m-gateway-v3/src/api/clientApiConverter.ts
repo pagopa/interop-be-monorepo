@@ -1,9 +1,9 @@
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { assertClientKindIs } from "../utils/validators/clientValidators.js";
 
 export function toGetClientsApiQueryParams(
-  params: m2mGatewayApi.GetClientsQueryParams
+  params: m2mGatewayApiV3.GetClientsQueryParams
 ): authorizationApi.GetClientsQueryParams {
   return {
     kind: authorizationApi.ClientKind.Values.CONSUMER,
@@ -18,7 +18,7 @@ export function toGetClientsApiQueryParams(
 
 export function toM2MGatewayApiConsumerFullClient(
   client: authorizationApi.FullClient
-): m2mGatewayApi.FullClient {
+): m2mGatewayApiV3.FullClient {
   assertClientKindIs(client, authorizationApi.ClientKind.Values.CONSUMER);
 
   return {
@@ -32,7 +32,7 @@ export function toM2MGatewayApiConsumerFullClient(
 
 export function toM2MGatewayApiConsumerClient(
   client: authorizationApi.Client
-): m2mGatewayApi.Client {
+): m2mGatewayApiV3.Client {
   assertClientKindIs(client, authorizationApi.ClientKind.Values.CONSUMER);
 
   return match(client)
@@ -44,7 +44,7 @@ export function toM2MGatewayApiConsumerClient(
         ({
           id: client.id,
           consumerId: client.consumerId,
-        } satisfies m2mGatewayApi.PartialClient)
+        } satisfies m2mGatewayApiV3.PartialClient)
     )
     .with(
       {

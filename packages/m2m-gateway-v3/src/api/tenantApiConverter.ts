@@ -1,10 +1,10 @@
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 import { taxCodeAndIPACodeConflict } from "../model/errors.js";
 
 export function toM2MGatewayApiTenant(
   tenant: tenantApi.Tenant
-): m2mGatewayApi.Tenant {
+): m2mGatewayApiV3.Tenant {
   return {
     id: tenant.id,
     externalId: tenant.externalId,
@@ -18,7 +18,7 @@ export function toM2MGatewayApiTenant(
 }
 
 export function toGetTenantsApiQueryParams(
-  params: m2mGatewayApi.GetTenantsQueryParams
+  params: m2mGatewayApiV3.GetTenantsQueryParams
 ): tenantApi.GetTenantsQueryParams {
   const { IPACode, taxCode } = params;
 
@@ -38,7 +38,7 @@ export function toGetTenantsApiQueryParams(
 
 export function toM2MGatewayApiTenantDeclaredAttribute(
   tenantDeclaredAttribute: tenantApi.DeclaredTenantAttribute
-): m2mGatewayApi.TenantDeclaredAttribute {
+): m2mGatewayApiV3.TenantDeclaredAttribute {
   return {
     id: tenantDeclaredAttribute.id,
     delegationId: tenantDeclaredAttribute.delegationId,
@@ -49,7 +49,7 @@ export function toM2MGatewayApiTenantDeclaredAttribute(
 
 export function toM2MGatewayApiTenantCertifiedAttribute(
   tenantCertifiedAttribute: tenantApi.CertifiedTenantAttribute
-): m2mGatewayApi.TenantCertifiedAttribute {
+): m2mGatewayApiV3.TenantCertifiedAttribute {
   return {
     id: tenantCertifiedAttribute.id,
     assignedAt: tenantCertifiedAttribute.assignmentTimestamp,
@@ -59,7 +59,7 @@ export function toM2MGatewayApiTenantCertifiedAttribute(
 
 export function toM2MGatewayApiTenantVerifiedAttribute(
   tenantVerifiedAttribute: tenantApi.VerifiedTenantAttribute
-): m2mGatewayApi.TenantVerifiedAttribute {
+): m2mGatewayApiV3.TenantVerifiedAttribute {
   return {
     id: tenantVerifiedAttribute.id,
     assignedAt: tenantVerifiedAttribute.assignmentTimestamp,
@@ -68,7 +68,7 @@ export function toM2MGatewayApiTenantVerifiedAttribute(
 
 export function toM2MGatewayApiTenantVerifier(
   tenantVerifier: tenantApi.TenantVerifier
-): m2mGatewayApi.TenantVerifiedAttributeVerifier {
+): m2mGatewayApiV3.TenantVerifiedAttributeVerifier {
   return {
     id: tenantVerifier.id,
     verifiedAt: tenantVerifier.verificationDate,
@@ -80,7 +80,7 @@ export function toM2MGatewayApiTenantVerifier(
 
 export function toM2MGatewayApiTenantRevoker(
   tenantRevoker: tenantApi.TenantRevoker
-): m2mGatewayApi.TenantVerifiedAttributeRevoker {
+): m2mGatewayApiV3.TenantVerifiedAttributeRevoker {
   return {
     id: tenantRevoker.id,
     verifiedAt: tenantRevoker.verificationDate,
