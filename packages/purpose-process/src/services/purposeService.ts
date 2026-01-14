@@ -855,21 +855,18 @@ export function purposeServiceBuilder(
         )}, limit = ${limit}, offset = ${offset}`
       );
 
-      const { clientId, purposesIds, ...otherFilters } = filters;
+      const { clientId, ...otherFilters } = filters;
 
       const effectivePurposesIds = await (async (): Promise<PurposeId[]> => {
         if (!clientId) {
-          return purposesIds;
+          return [];
         }
         const client = await clientReadModelService.getClientById(clientId);
-        // TODO: do we need to assert the client visibility to be FULL?
-        const clientPurposes = client?.data.purposes ?? [];
 
-        return purposesIds.length > 0
-          ? purposesIds
-              .concat(clientPurposes)
-              .filter((id, index, arr) => arr.indexOf(id) === index)
-          : clientPurposes;
+        if (authData.organizationId !== client?.data.consumerId) {
+          return [];
+        }
+        return client?.data.purposes ?? [];
       })();
 
       // Permissions are checked in the readModelService
