@@ -11,7 +11,9 @@ import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -80,6 +82,22 @@ export const purposeTemplateToApiPurposeTemplate = (
     : undefined,
 });
 
+export const riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument = (
+  document: RiskAnalysisTemplateDocument
+): purposeTemplateApi.RiskAnalysisTemplateDocument => ({
+  ...document,
+  createdAt: document.createdAt.toJSON(),
+});
+
+export const riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument =
+  (
+    signedDocument: RiskAnalysisTemplateSignedDocument
+  ): purposeTemplateApi.RiskAnalysisTemplateSignedDocument => ({
+    ...signedDocument,
+    createdAt: signedDocument.createdAt.toJSON(),
+    signedAt: signedDocument.signedAt.toJSON(),
+  });
+
 export const riskAnalysisAnswerToApiRiskAnalysisAnswer = (
   riskAnalysisAnswer:
     | RiskAnalysisTemplateSingleAnswer
@@ -104,7 +122,7 @@ export const riskAnalysisAnswerToApiRiskAnalysisAnswer = (
     : undefined,
 });
 
-function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
+export function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
   riskAnalysisForm: RiskAnalysisFormTemplate
 ): purposeTemplateApi.RiskAnalysisFormTemplate {
   const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
@@ -237,3 +255,38 @@ export const toRiskAnalysisFormTemplateToValidate = (
       {}
     ),
 });
+
+export function purposeTemplateToApiPurposeTemplateSeed(
+  purposeTemplate: PurposeTemplate
+): purposeTemplateApi.PurposeTemplateSeed {
+  const form = purposeTemplate.purposeRiskAnalysisForm;
+
+  if (!form) {
+    return { ...purposeTemplate, purposeRiskAnalysisForm: undefined };
+  }
+
+  const updatedForm = {
+    version: form.version,
+    answers: {
+      ...form.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
+        }),
+        {}
+      ),
+      ...form.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: multiAnswer.values,
+        }),
+        {}
+      ),
+    },
+  };
+
+  return {
+    ...purposeTemplate,
+    purposeRiskAnalysisForm: updatedForm,
+  };
+}
