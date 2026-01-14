@@ -244,10 +244,8 @@ export const inAppTemplates = {
       eserviceTemplate.name
     } in quanto è stato modificato il template e-service da cui lo hai generato.`,
   eserviceTemplateStatusChangedToInstantiator: (
-    creatorName: string,
     eserviceTemplateName: string
-  ): string =>
-    `L'ente ${creatorName} ha sospeso il template "${eserviceTemplateName}", da cui il tuo ente ha generato l'e-service.`,
+  ): string => `È stato sospeso il tuo template "${eserviceTemplateName}".`,
   purposeStatusChangedToConsumer: (
     purposeName: string,
     consumerName: string,
