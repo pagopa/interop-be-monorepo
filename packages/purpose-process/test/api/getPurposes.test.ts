@@ -29,7 +29,7 @@ describe("API GET /purposes test", () => {
     eservicesIds: generateId(),
     consumersIds: `${generateId()},${generateId()}`,
     producersIds: `${generateId()},${generateId()}`,
-    clientId: "",
+    clientId: undefined,
     states: "ACTIVE,DRAFT",
     excludeDraft: false,
   };

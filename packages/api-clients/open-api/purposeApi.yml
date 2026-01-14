@@ -278,6 +278,8 @@ paths:
         - in: query
           name: clientId
           description: client ID
+          allowEmptyValue: true
+          required: false
           schema:
             type: string      
             format: uuid
