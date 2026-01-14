@@ -240,12 +240,6 @@ importers:
 
   packages/agreement-readmodel-writer-sql:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -664,12 +658,6 @@ importers:
 
   packages/attribute-registry-readmodel-writer-sql:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -777,12 +765,6 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: 3.840.0
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -811,9 +793,6 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
-      date-fns:
-        specifier: 3.6.0
-        version: 3.6.0
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1288,12 +1267,6 @@ importers:
 
   packages/catalog-readmodel-writer-sql:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -1508,9 +1481,6 @@ importers:
 
   packages/client-readmodel-writer-sql:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2000,12 +1970,6 @@ importers:
       '@pagopa/interop-outbound-models':
         specifier: 1.7.0
         version: 1.7.0
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2028,12 +1992,6 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@anatine/zod-mock':
-        specifier: 3.14.0
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
-      '@faker-js/faker':
-        specifier: 8.4.1
-        version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
@@ -2049,9 +2007,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
 
   packages/delegation-process:
     dependencies:
@@ -2134,9 +2089,6 @@ importers:
 
   packages/delegation-readmodel-writer-sql:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2851,12 +2803,6 @@ importers:
 
   packages/eservice-template-readmodel-writer-sql:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2894,9 +2840,6 @@ importers:
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
-      date-fns:
-        specifier: 3.6.0
-        version: 3.6.0
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2918,18 +2861,9 @@ importers:
       '@aws-sdk/client-dynamodb':
         specifier: 3.840.0
         version: 3.840.0
-      '@aws-sdk/util-dynamodb':
-        specifier: 3.840.0
-        version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       axios:
         specifier: 1.12.0
         version: 1.12.0
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -2958,9 +2892,6 @@ importers:
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
-      adm-zip:
-        specifier: 0.5.10
-        version: 0.5.10
       date-fns:
         specifier: 4.1.0
         version: 4.1.0
@@ -2979,9 +2910,6 @@ importers:
       vitest:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.3)
-      zlib:
-        specifier: 1.0.5
-        version: 1.0.5
 
   packages/in-app-notification-cleaner:
     dependencies:
@@ -3370,9 +3298,6 @@ importers:
 
   packages/key-readmodel-writer-sql:
     dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -4753,8 +4678,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.1
-        version: 1.8.1
+        specifier: 1.8.5
+        version: 1.8.5
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
@@ -5131,9 +5056,6 @@ importers:
       '@aws-sdk/client-sqs':
         specifier: 3.840.0
         version: 3.840.0
-      axios:
-        specifier: 1.12.0
-        version: 1.12.0
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -7919,10 +7841,6 @@ packages:
     resolution: {integrity: sha512-tcpGyI9zbizT9JbV6oYE477V6mTlXvvi0T0G3SNIYE2apm/G5huBa1+K89VGeovbg+jycCrfhl3ADxErOuO6Jg==}
     engines: {node: '>=0.4.0'}
     hasBin: true
-
-  adm-zip@0.5.10:
-    resolution: {integrity: sha512-x0HvcHqVJNTPk/Bw8JbLWlWoo6Wwnsug0fnYYro1HBrjxZ3G7/AZk7Ahv8JwDe1uIcz8eBqvu86FuF1POiG7vQ==}
-    engines: {node: '>=6.0'}
 
   adm-zip@0.5.16:
     resolution: {integrity: sha512-TGw5yVi4saajsSEgz25grObGHEUaDrniwvA2qwSC060KfqGPdglhvPMA2lPIoxs3PQIItj2iag35fONcQqgUaQ==}
@@ -11375,10 +11293,6 @@ packages:
   zip-stream@4.1.1:
     resolution: {integrity: sha512-9qv4rlDiopXg4E69k+vMHjNN63YFMe9sZMrdlvKnCjlCRWeCBswPPMPUfx+ipsAWq1LXHe70RcbaHdJJpS6hyQ==}
     engines: {node: '>= 10'}
-
-  zlib@1.0.5:
-    resolution: {integrity: sha512-40fpE2II+Cd3k8HWTWONfeKE2jL+P42iWJ1zzps5W51qcTsOUKM5Q5m2PFb0CLxlmFAaUuUdJGc3OfZy947v0w==}
-    engines: {node: '>=0.2.0'}
 
   zod-validation-error@3.3.0:
     resolution: {integrity: sha512-Syib9oumw1NTqEv4LT0e6U83Td9aVRk9iTXPUQr1otyV1PuXQKOvOwhMNqZIq5hluzHP2pMgnOmHEo7kPdI2mw==}
@@ -15387,8 +15301,6 @@ snapshots:
   acorn@2.7.0: {}
 
   acorn@8.12.1: {}
-
-  adm-zip@0.5.10: {}
 
   adm-zip@0.5.16: {}
 
@@ -19652,8 +19564,6 @@ snapshots:
       archiver-utils: 3.0.4
       compress-commons: 4.1.2
       readable-stream: 3.6.2
-
-  zlib@1.0.5: {}
 
   zod-validation-error@3.3.0(zod@3.23.8):
     dependencies:

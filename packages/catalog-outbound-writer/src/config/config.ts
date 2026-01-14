@@ -17,9 +17,7 @@ const CatalogOutboundWriterConfig = KafkaConsumerConfig.and(KafkaProducerConfig)
     catalogOutboundTopic: c.CATALOG_OUTBOUND_TOPIC,
   }));
 
-type CatalogOutboundWriterConfig = z.infer<
-  typeof CatalogOutboundWriterConfig
->;
+type CatalogOutboundWriterConfig = z.infer<typeof CatalogOutboundWriterConfig>;
 
 export const config: CatalogOutboundWriterConfig =
   CatalogOutboundWriterConfig.parse(process.env);
