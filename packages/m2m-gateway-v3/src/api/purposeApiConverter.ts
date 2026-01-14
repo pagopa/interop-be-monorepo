@@ -1,6 +1,6 @@
 import {
   agreementApi,
-  m2mGatewayApi,
+  m2mGatewayApiV3,
   purposeApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -9,7 +9,7 @@ import {
 } from "../services/purposeService.js";
 
 export function toGetPurposesApiQueryParams(
-  params: m2mGatewayApi.GetPurposesQueryParams
+  params: m2mGatewayApiV3.GetPurposesQueryParams
 ): purposeApi.GetPurposesQueryParams {
   return {
     eservicesIds: params.eserviceIds,
@@ -25,14 +25,15 @@ export function toGetPurposesApiQueryParams(
 
 export function toM2MGatewayApiPurpose(
   purpose: purposeApi.Purpose
-): m2mGatewayApi.Purpose {
+): m2mGatewayApiV3.Purpose {
   const currentVersion = getPurposeCurrentVersion(purpose);
 
   const sortedVersions = sortPurposeVersionsByDate(purpose.versions);
 
   const waitingForApprovalVersion = sortedVersions.findLast(
     (v) =>
-      v.state === m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
+      v.state ===
+      m2mGatewayApiV3.PurposeVersionState.Values.WAITING_FOR_APPROVAL
   );
 
   const latestVersion = sortedVersions.at(-1);
@@ -70,7 +71,7 @@ export function toM2MGatewayApiPurpose(
 
 export function toM2mGatewayApiPurposeVersion(
   version: purposeApi.PurposeVersion
-): m2mGatewayApi.PurposeVersion {
+): m2mGatewayApiV3.PurposeVersion {
   return {
     id: version.id,
     createdAt: version.createdAt,
@@ -90,8 +91,8 @@ export function toGetAgreementsApiQueryParamsForPurpose(
     consumersIds: [purpose.consumerId],
     eservicesIds: [purpose.eserviceId],
     states: [
-      m2mGatewayApi.AgreementState.Values.ACTIVE,
-      m2mGatewayApi.AgreementState.Values.SUSPENDED,
+      m2mGatewayApiV3.AgreementState.Values.ACTIVE,
+      m2mGatewayApiV3.AgreementState.Values.SUSPENDED,
     ],
     descriptorsIds: [],
     producersIds: [],

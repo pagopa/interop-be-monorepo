@@ -1,8 +1,8 @@
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
 export function toGetProducerKeychainsApiQueryParams(
-  params: m2mGatewayApi.GetProducerKeychainsQueryParams
+  params: m2mGatewayApiV3.GetProducerKeychainsQueryParams
 ): authorizationApi.GetProducerKeychainsQueryParams {
   return {
     name: params.name,
@@ -16,7 +16,7 @@ export function toGetProducerKeychainsApiQueryParams(
 
 export function toM2MGatewayApiFullProducerKeychain(
   producerKeychain: authorizationApi.FullProducerKeychain
-): m2mGatewayApi.FullProducerKeychain {
+): m2mGatewayApiV3.FullProducerKeychain {
   return {
     id: producerKeychain.id,
     name: producerKeychain.name,
@@ -28,7 +28,7 @@ export function toM2MGatewayApiFullProducerKeychain(
 
 export function toM2MGatewayApiProducerKeychain(
   producerKeychain: authorizationApi.ProducerKeychain
-): m2mGatewayApi.ProducerKeychain {
+): m2mGatewayApiV3.ProducerKeychain {
   return match(producerKeychain)
     .with(
       {
@@ -38,7 +38,7 @@ export function toM2MGatewayApiProducerKeychain(
         ({
           id: producerKeychain.id,
           producerId: producerKeychain.producerId,
-        } satisfies m2mGatewayApi.PartialProducerKeychain)
+        } satisfies m2mGatewayApiV3.PartialProducerKeychain)
     )
     .with(
       {
