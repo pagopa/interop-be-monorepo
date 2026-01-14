@@ -302,7 +302,9 @@ export const inAppTemplates = {
     consumerName: string,
     action: "associato" | "disassociato"
   ): string =>
-    `L'ente ${consumerName} ha ${action} un proprio client alla finalità "${purposeName}" per il tuo e-service ${eserviceName}`,
+    `L'ente ${consumerName} ha ${action} un proprio client ${
+      action === "associato" ? "alla" : "dalla"
+    } finalità "${purposeName}" per il tuo e-service ${eserviceName}.`,
   certifiedVerifiedAttributeAssignedToAssignee: (
     attributeName: string,
     attributeKind: "certificato" | "verificato",
