@@ -13,6 +13,7 @@
   ],
   "ignoreBinaries": ["tsx", "eslint", "prettier"],
   "ignore": [
+    ".eslintrc.cjs",
     "packages/commons/src/pdf-generator/paged.polyfill.js",
     "packages/documents-generator/src/model/purposeTemplateModels.ts"
   ],
