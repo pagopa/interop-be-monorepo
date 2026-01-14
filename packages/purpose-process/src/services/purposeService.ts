@@ -113,7 +113,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
   toCreateEventRiskAnalysisSignedDocumentGenerated,
 } from "../model/domain/toEvent.js";
-import { GetPurposesInputFilters } from "./readModelService.js";
+import { GetPurposesFilters } from "./readModelService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 import {
@@ -842,7 +842,7 @@ export function purposeServiceBuilder(
       };
     },
     async getPurposes(
-      filters: GetPurposesInputFilters,
+      filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number },
       {
         authData,

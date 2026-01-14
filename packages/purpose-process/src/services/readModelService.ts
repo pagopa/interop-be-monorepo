@@ -9,11 +9,8 @@ export type GetPurposesFilters = {
   title?: string;
   eservicesIds: EServiceId[];
   consumersIds: TenantId[];
+  clientId?: ClientId;
   producersIds: TenantId[];
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
-};
-
-export type GetPurposesInputFilters = GetPurposesFilters & {
-  clientId?: ClientId;
 };
