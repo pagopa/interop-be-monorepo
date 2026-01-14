@@ -1,8 +1,8 @@
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toGetEServicesQueryParams(
-  params: m2mGatewayApi.GetEServicesQueryParams
+  params: m2mGatewayApiV3.GetEServicesQueryParams
 ): catalogApi.GetEServicesQueryParams {
   return {
     producersIds: params.producerIds,
@@ -25,7 +25,7 @@ export function toGetEServicesQueryParams(
 
 export function toM2MGatewayApiEService(
   eservice: catalogApi.EService
-): m2mGatewayApi.EService {
+): m2mGatewayApiV3.EService {
   return {
     id: eservice.id,
     producerId: eservice.producerId,
@@ -43,7 +43,7 @@ export function toM2MGatewayApiEService(
 
 export function toM2MGatewayApiEServiceDescriptor(
   descriptor: catalogApi.EServiceDescriptor
-): m2mGatewayApi.EServiceDescriptor {
+): m2mGatewayApiV3.EServiceDescriptor {
   return {
     id: descriptor.id,
     version: descriptor.version,
@@ -64,7 +64,7 @@ export function toM2MGatewayApiEServiceDescriptor(
 }
 
 export function toCatalogApiEServiceDescriptorSeed(
-  descriptor: m2mGatewayApi.EServiceDescriptorSeed
+  descriptor: m2mGatewayApiV3.EServiceDescriptorSeed
 ): catalogApi.EServiceDescriptorSeed {
   return {
     description: descriptor.description,
@@ -83,7 +83,7 @@ export function toCatalogApiEServiceDescriptorSeed(
 }
 
 export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
-  descriptor: m2mGatewayApi.EServiceDescriptorDraftUpdateSeed
+  descriptor: m2mGatewayApiV3.EServiceDescriptorDraftUpdateSeed
 ): catalogApi.PatchUpdateEServiceDescriptorSeed {
   return {
     description: descriptor.description,
@@ -98,7 +98,7 @@ export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
 
 export function toM2MGatewayApiEServiceRiskAnalysis(
   riskAnalysis: catalogApi.EServiceRiskAnalysis
-): m2mGatewayApi.EServiceRiskAnalysis {
+): m2mGatewayApiV3.EServiceRiskAnalysis {
   return {
     id: riskAnalysis.id,
     name: riskAnalysis.name,
@@ -111,7 +111,7 @@ export function toM2MGatewayApiEServiceRiskAnalysis(
 
 export function toM2MGatewayApiDocument(
   document: catalogApi.EServiceDoc
-): m2mGatewayApi.Document {
+): m2mGatewayApiV3.Document {
   return {
     id: document.id,
     name: document.name,

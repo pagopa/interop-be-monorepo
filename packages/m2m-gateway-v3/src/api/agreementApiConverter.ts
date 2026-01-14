@@ -1,14 +1,14 @@
 import {
   agreementApi,
   delegationApi,
-  m2mGatewayApi,
+  m2mGatewayApiV3,
   purposeApi,
 } from "pagopa-interop-api-clients";
 
 export function toM2MGatewayApiAgreement(
   agreement: agreementApi.Agreement,
   delegationId: delegationApi.Delegation["id"] | undefined
-): m2mGatewayApi.Agreement {
+): m2mGatewayApiV3.Agreement {
   return {
     id: agreement.id,
     eserviceId: agreement.eserviceId,
@@ -29,7 +29,7 @@ export function toM2MGatewayApiAgreement(
 }
 
 export function toGetAgreementsApiQueryParams(
-  params: m2mGatewayApi.GetAgreementsQueryParams
+  params: m2mGatewayApiV3.GetAgreementsQueryParams
 ): agreementApi.GetAgreementsQueryParams {
   return {
     consumersIds: params.consumerIds,
@@ -45,7 +45,7 @@ export function toGetAgreementsApiQueryParams(
 
 export function toGetPurposesApiQueryParamsForAgreement(
   agreement: agreementApi.Agreement,
-  params: m2mGatewayApi.GetAgreementPurposesQueryParams
+  params: m2mGatewayApiV3.GetAgreementPurposesQueryParams
 ): purposeApi.GetPurposesQueryParams {
   return {
     limit: params.limit,
@@ -61,7 +61,7 @@ export function toGetPurposesApiQueryParamsForAgreement(
 
 export function toM2MGatewayApiDocument(
   document: agreementApi.Document
-): m2mGatewayApi.Document {
+): m2mGatewayApiV3.Document {
   return {
     id: document.id,
     name: document.name,

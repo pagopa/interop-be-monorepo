@@ -1,6 +1,6 @@
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 
-export function toM2MJWK(key: authorizationApi.JWKKey): m2mGatewayApi.JWK {
+export function toM2MJWK(key: authorizationApi.JWKKey): m2mGatewayApiV3.JWK {
   return {
     kid: key.kid,
     kty: key.kty,
@@ -30,7 +30,7 @@ export function toM2MJWK(key: authorizationApi.JWKKey): m2mGatewayApi.JWK {
 export function toM2MKey({
   clientId,
   jwk,
-}: authorizationApi.ClientJWK): m2mGatewayApi.Key {
+}: authorizationApi.ClientJWK): m2mGatewayApiV3.Key {
   return {
     clientId,
     jwk: toM2MJWK(jwk),
@@ -40,7 +40,7 @@ export function toM2MKey({
 export function toM2MProducerKey({
   jwk,
   producerKeychainId,
-}: authorizationApi.ProducerJWK): m2mGatewayApi.ProducerKey {
+}: authorizationApi.ProducerJWK): m2mGatewayApiV3.ProducerKey {
   return {
     producerKeychainId,
     jwk: toM2MJWK(jwk),
