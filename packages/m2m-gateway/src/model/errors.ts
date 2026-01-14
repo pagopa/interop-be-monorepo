@@ -56,6 +56,7 @@ export const errorCodes = {
   eserviceDescriptorAttributeGroupNotFound: "0036",
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
+  invalidSeedForPurposeFromTemplate: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -422,5 +423,17 @@ export function purposeTemplateRiskAnalysisFormNotFound(
     detail: `No Risk Analysis Template Form found for Purpose Template ${purposeTemplateId}`,
     code: "purposeTemplateRiskAnalysisFormNotFound",
     title: "Purpose Template Risk Analysis Form Not Found",
+  });
+}
+
+export function invalidSeedForPurposeFromTemplate(
+  parsingErrors: string[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid seed to update Purpose created from Purpose Template: ${parsingErrors.join(
+      ", "
+    )}`,
+    code: "invalidSeedForPurposeFromTemplate",
+    title: "Invalid seed for purpose from template",
   });
 }

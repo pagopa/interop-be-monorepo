@@ -7,6 +7,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationV2,
   RiskAnalysisTemplateDocumentV2,
   RiskAnalysisTemplateSignedDocumentV2,
+  TargetTenantKindV2,
 } from "../gen/v2/purpose-template/purpose-template.js";
 import {
   RiskAnalysisFormTemplate,
@@ -16,11 +17,12 @@ import {
   RiskAnalysisTemplateSignedDocument,
 } from "../risk-analysis-template/riskAnalysisTemplate.js";
 import { dateToBigInt } from "../utils.js";
-import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import {
   PurposeTemplate,
   purposeTemplateState,
   PurposeTemplateState,
+  TargetTenantKind,
+  targetTenantKind,
 } from "./purposeTemplate.js";
 
 export const toPurposeTemplateStateV2 = (
@@ -96,7 +98,7 @@ export const toPurposeTemplateV2 = (
   input: PurposeTemplate
 ): PurposeTemplateV2 => ({
   ...input,
-  targetTenantKind: toTenantKindV2(input.targetTenantKind),
+  targetTenantKind: toTargetTenantKindV2(input.targetTenantKind),
   state: toPurposeTemplateStateV2(input.state),
   createdAt: dateToBigInt(input.createdAt),
   updatedAt: dateToBigInt(input.updatedAt),
@@ -104,3 +106,12 @@ export const toPurposeTemplateV2 = (
     ? toRiskAnalysisFormTemplateV2(input.purposeRiskAnalysisForm)
     : undefined,
 });
+
+export function toTargetTenantKindV2(
+  input: TargetTenantKind
+): TargetTenantKindV2 {
+  return match<TargetTenantKind, TargetTenantKindV2>(input)
+    .with(targetTenantKind.PA, () => TargetTenantKindV2.PA)
+    .with(targetTenantKind.PRIVATE, () => TargetTenantKindV2.PRIVATE)
+    .exhaustive();
+}
