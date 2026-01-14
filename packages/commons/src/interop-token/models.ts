@@ -88,6 +88,7 @@ export const InteropJwtApiCommonPayload = InteropJwtCommonPayload.merge(
     client_id: ClientId,
     sub: ClientId,
     organizationId: TenantId,
+    cnf: CNF.optional(),
   })
 );
 export type InteropJwtApiCommonPayload = z.infer<
@@ -125,12 +126,12 @@ export type InteropApiToken = {
 //     Interop API DPoP Tokens
 // ==========================================
 // Extends M2M base
-export const InteropJwtApiM2MDPoPPayload = InteropJwtApiM2MPayload.merge(
-  z.object({ cnf: CNF })
-);
-export type InteropJwtApiM2MDPoPPayload = z.infer<
-  typeof InteropJwtApiM2MDPoPPayload
->;
+// export const InteropJwtApiM2MDPoPPayload = InteropJwtApiM2MPayload.merge(
+//   z.object({ cnf: CNF })
+// );
+// export type InteropJwtApiM2MDPoPPayload = z.infer<
+//   typeof InteropJwtApiM2MDPoPPayload
+// >;
 
 // Extends M2M Admin base
 export const InteropJwtApiM2MAdminDPoPPayload =
@@ -143,7 +144,19 @@ export type InteropJwtApiM2MAdminDPoPPayload = z.infer<
 // Adding InteropJwtApiM2MDPoPPayload, InteropJwtApiM2MAdminDPoPPayload
 export type InteropJwtDPoPApiPayload =
   | InteropJwtApiM2MAdminDPoPPayload
-  | InteropJwtApiM2MDPoPPayload;
+// | InteropJwtApiM2MDPoPPayload;
+// export const InteropJwtApiM2MAdminDPoPPayload =
+//   InteropJwtApiM2MAdminPayload.merge(z.object({ cnf: CNF }));
+// export type InteropJwtApiM2MAdminDPoPPayload = z.infer<
+//   typeof InteropJwtApiM2MAdminDPoPPayload
+// >;
+
+// Adding InteropJwtApiM2MDPoPPayload, InteropJwtApiM2MAdminDPoPPayload
+// export type InteropJwtApiPayload =
+//   | InteropJwtApiM2MAdminPayload
+//   | InteropJwtApiM2MPayload
+// | InteropJwtApiM2MAdminDPoPPayload
+// | InteropJwtApiM2MDPoPPayload;
 
 export type InteropApiDPoPToken = {
   header: InteropJwtHeader;
@@ -256,7 +269,7 @@ export const AuthTokenPayload = z.discriminatedUnion("role", [
 export type AuthTokenPayload = z.infer<typeof AuthTokenPayload>;
 
 export const AuthTokenDPoPPayload = z.discriminatedUnion("role", [
-  InteropJwtApiM2MDPoPPayload,
+  // InteropJwtApiM2MDPoPPayload,
   InteropJwtApiM2MAdminDPoPPayload,
 ]);
 export type AuthTokenDPoPPayload = z.infer<typeof AuthTokenDPoPPayload>;
