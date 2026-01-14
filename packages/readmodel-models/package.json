@@ -21,7 +21,6 @@
     "dotenv": "16.4.7",
     "drizzle-orm": "0.39.3",
     "pagopa-interop-commons": "workspace:*",
-    "pagopa-interop-models": "workspace:*",
     "pg": "8.13.1"
   },
   "devDependencies": {
@@ -30,7 +29,6 @@
     "drizzle-kit": "0.30.4",
     "eslint": "8.57.1",
     "prettier": "2.8.8",
-    "ts-node": "10.9.2",
     "typescript": "5.4.5"
   }
 }
