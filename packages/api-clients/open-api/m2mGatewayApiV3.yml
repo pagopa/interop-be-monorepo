@@ -11153,21 +11153,21 @@ components:
         - kty
         - kid
     KeySeed:
-      description: "Models the seed for a public key to be persisted"
+      description: Models the seed for a public key to be persisted
       type: object
       additionalProperties: false
       properties:
         key:
           type: string
-          description: "Base64 UTF-8 encoding of a public key in PEM format"
+          description: Base64 UTF-8 encoding of a public key in PEM format
         use:
           $ref: "#/components/schemas/KeyUse"
         alg:
           type: string
-          description: "The algorithm type of the key."
+          description: The algorithm type of the key.
         name:
           type: string
-          description: "Name given to the current key."
+          description: Name given to the current key.
           minLength: 5
           maxLength: 60
       required:
