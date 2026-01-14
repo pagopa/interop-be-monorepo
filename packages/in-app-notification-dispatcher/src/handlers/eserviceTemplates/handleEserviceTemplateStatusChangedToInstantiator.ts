@@ -14,7 +14,6 @@ import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   retrieveLatestDescriptor,
   getNotificationRecipients,
-  retrieveTenant,
 } from "../handlerCommons.js";
 
 export async function handleEserviceTemplateStatusChangedToInstantiator(
@@ -63,11 +62,6 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     return [];
   }
 
-  const creator = await retrieveTenant(
-    eserviceTemplate.creatorId,
-    readModelService
-  );
-
   return usersWithNotifications.flatMap(({ userId, tenantId }) => {
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
@@ -83,7 +77,6 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
         userId,
         tenantId,
         body: inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
-          creator.name,
           eserviceTemplate.name
         ),
         notificationType: "eserviceTemplateStatusChangedToInstantiator",
