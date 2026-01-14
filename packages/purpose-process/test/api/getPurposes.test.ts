@@ -29,7 +29,7 @@ describe("API GET /purposes test", () => {
     eservicesIds: generateId(),
     consumersIds: `${generateId()},${generateId()}`,
     producersIds: `${generateId()},${generateId()}`,
-    purposesIds: "",
+    clientId: "",
     states: "ACTIVE,DRAFT",
     excludeDraft: false,
   };
@@ -99,7 +99,7 @@ describe("API GET /purposes test", () => {
     { query: { ...defaultQuery, eservicesIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, consumersIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, producersIds: `invalid,${generateId()}` } },
-    { query: { ...defaultQuery, purposesIds: `invalid,${generateId()}` } },
+    { query: { ...defaultQuery, clientId: `invalid,${generateId()}` } },
     { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
     { query: { ...defaultQuery, excludeDraft: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {

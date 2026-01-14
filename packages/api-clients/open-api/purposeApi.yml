@@ -276,15 +276,11 @@ paths:
             default: []
           explode: false
         - in: query
-          name: purposesIds
-          description: comma separated sequence of purposes IDs
+          name: clientId
+          description: client ID
           schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+            type: string      
+            format: uuid
         - in: query
           name: states
           description: comma separated sequence of states

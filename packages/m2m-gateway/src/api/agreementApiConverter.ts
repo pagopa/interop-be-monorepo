@@ -53,7 +53,7 @@ export function toGetPurposesApiQueryParamsForAgreement(
     eservicesIds: [agreement.eserviceId],
     consumersIds: [agreement.consumerId],
     producersIds: [],
-    purposesIds: [],
+    clientId: undefined,
     states: [],
     excludeDraft: false,
     name: undefined,

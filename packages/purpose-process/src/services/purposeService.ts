@@ -26,6 +26,7 @@ import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
+import { ClientReadModelService } from "pagopa-interop-readmodel";
 import {
   Agreement,
   CorrelationId,
@@ -310,6 +311,7 @@ async function retrievePublishedPurposeTemplate(
 export function purposeServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelServiceSQL,
+  clientReadModelService: ClientReadModelService,
   fileManager: FileManager,
   pdfGenerator: PDFGenerator
 ) {
@@ -853,10 +855,27 @@ export function purposeServiceBuilder(
         )}, limit = ${limit}, offset = ${offset}`
       );
 
+      const { clientId, ...otherFilters } = filters;
+
+      const effectivePurposesIds = await (async (): Promise<PurposeId[]> => {
+        if (!clientId) {
+          return [];
+        }
+        const client = await clientReadModelService.getClientById(clientId);
+
+        if (authData.organizationId !== client?.data.consumerId) {
+          return [];
+        }
+        return client?.data.purposes ?? [];
+      })();
+
       // Permissions are checked in the readModelService
       return await readModelService.getPurposes(
         authData.organizationId,
-        filters,
+        {
+          ...otherFilters,
+          purposesIds: effectivePurposesIds,
+        },
         {
           offset,
           limit,
