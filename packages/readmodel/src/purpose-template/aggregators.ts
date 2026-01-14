@@ -11,10 +11,13 @@ import {
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSignedDocument,
   RiskAnalysisTemplateSingleAnswer,
   stringToDate,
-  TenantKind,
+  TargetTenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -26,6 +29,8 @@ import {
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateItemsSQL,
   PurposeTemplateSQL,
+  PurposeTemplateRiskAnalysisFormDocumentSQL,
+  PurposeTemplateRiskAnalysisFormSignedDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import { throwIfMultiple } from "../utils.js";
@@ -36,12 +41,16 @@ export const aggregatePurposeTemplateArray = ({
   riskAnalysisTemplateAnswersSQL,
   riskAnalysisTemplateAnswersAnnotationsSQL,
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+  riskAnalysisTemplateDocumentSQL,
+  riskAnalysisTemplateSignedDocumentSQL,
 }: {
   purposeTemplatesSQL: PurposeTemplateSQL[];
   riskAnalysisFormTemplatesSQL: PurposeTemplateRiskAnalysisFormSQL[];
   riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+  riskAnalysisTemplateDocumentSQL?: PurposeTemplateRiskAnalysisFormDocumentSQL;
+  riskAnalysisTemplateSignedDocumentSQL?: PurposeTemplateRiskAnalysisFormSignedDocumentSQL;
 }): Array<WithMetadata<PurposeTemplate>> => {
   const riskAnalysisFormTemplateByPurposeTemplateId =
     createPurposeTemplateSQLPropertyMap(riskAnalysisFormTemplatesSQL);
@@ -75,6 +84,8 @@ export const aggregatePurposeTemplateArray = ({
         riskAnalysisTemplateAnswerAnnotationDocumentsByPurposeTemplateId.get(
           purposeTemplateId
         ) || [],
+      riskAnalysisTemplateDocumentSQL,
+      riskAnalysisTemplateSignedDocumentSQL,
     });
   });
 };
@@ -106,18 +117,24 @@ export const aggregatePurposeTemplate = ({
   riskAnalysisTemplateAnswersSQL,
   riskAnalysisTemplateAnswersAnnotationsSQL,
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+  riskAnalysisTemplateDocumentSQL,
+  riskAnalysisTemplateSignedDocumentSQL,
 }: PurposeTemplateItemsSQL): WithMetadata<PurposeTemplate> => {
   const purposeRiskAnalysisForm = aggregatePurposeTemplateRiskAnalysisForm({
     riskAnalysisFormTemplateSQL,
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+    riskAnalysisTemplateDocumentSQL,
+    riskAnalysisTemplateSignedDocumentSQL,
   });
 
   const purposeTemplate: PurposeTemplate = {
     id: unsafeBrandId(purposeTemplateSQL.id),
     targetDescription: purposeTemplateSQL.targetDescription,
-    targetTenantKind: TenantKind.parse(purposeTemplateSQL.targetTenantKind),
+    targetTenantKind: TargetTenantKind.parse(
+      purposeTemplateSQL.targetTenantKind
+    ),
     creatorId: unsafeBrandId(purposeTemplateSQL.creatorId),
     state: PurposeTemplateState.parse(purposeTemplateSQL.state),
     createdAt: stringToDate(purposeTemplateSQL.createdAt),
@@ -157,11 +174,19 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
   riskAnalysisTemplateAnswersSQL,
   riskAnalysisTemplateAnswersAnnotationsSQL,
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+  riskAnalysisTemplateDocumentSQL,
+  riskAnalysisTemplateSignedDocumentSQL,
 }: {
   riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
   riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+  riskAnalysisTemplateDocumentSQL:
+    | PurposeTemplateRiskAnalysisFormDocumentSQL
+    | undefined;
+  riskAnalysisTemplateSignedDocumentSQL:
+    | PurposeTemplateRiskAnalysisFormSignedDocumentSQL
+    | undefined;
 }): RiskAnalysisFormTemplate | undefined => {
   if (!riskAnalysisFormTemplateSQL) {
     return undefined;
@@ -251,11 +276,28 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
     }
   );
 
+  const riskAnalysisTemplateDocument = riskAnalysisTemplateDocumentSQL
+    ? aggregateRiskAnalysisFormDocument(riskAnalysisTemplateDocumentSQL)
+    : undefined;
+
+  const riskAnalysisTemplateSignedDocument =
+    riskAnalysisTemplateSignedDocumentSQL
+      ? aggregateRiskAnalysisFormSignedDocument(
+          riskAnalysisTemplateSignedDocumentSQL
+        )
+      : undefined;
+
   return {
     id: unsafeBrandId(riskAnalysisFormTemplateSQL.id),
     version: riskAnalysisFormTemplateSQL.version,
     singleAnswers: riskAnalysisTemplateSingleAnswers,
     multiAnswers: riskAnalysisTemplateMultiAnswers,
+    ...(riskAnalysisTemplateDocument
+      ? { document: riskAnalysisTemplateDocument }
+      : {}),
+    ...(riskAnalysisTemplateSignedDocument
+      ? { signedDocument: riskAnalysisTemplateSignedDocument }
+      : {}),
   };
 };
 
@@ -266,6 +308,8 @@ export const toPurposeTemplateAggregator = (
     purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
     purposeRiskAnalysisTemplateAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
     purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
+    purposeRiskAnalysisTemplateDocument: PurposeTemplateRiskAnalysisFormDocumentSQL | null;
+    purposeRiskAnalysisTemplateSignedDocument: PurposeTemplateRiskAnalysisFormSignedDocumentSQL | null;
   }>
 ): PurposeTemplateItemsSQL => {
   const {
@@ -274,6 +318,8 @@ export const toPurposeTemplateAggregator = (
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+    riskAnalysisFormDocumentsSQL,
+    riskAnalysisFormSignedDocumentsSQL,
   } = toPurposeTemplateAggregatorArray(queryRes);
 
   throwIfMultiple(purposeTemplatesSQL, "purpose template");
@@ -284,6 +330,9 @@ export const toPurposeTemplateAggregator = (
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+    riskAnalysisTemplateDocumentSQL: riskAnalysisFormDocumentsSQL[0],
+    riskAnalysisTemplateSignedDocumentSQL:
+      riskAnalysisFormSignedDocumentsSQL[0],
   };
 };
 
@@ -294,6 +343,8 @@ export const toPurposeTemplateAggregatorArray = (
     purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
     purposeRiskAnalysisTemplateAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
     purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
+    purposeRiskAnalysisTemplateDocument: PurposeTemplateRiskAnalysisFormDocumentSQL | null;
+    purposeRiskAnalysisTemplateSignedDocument: PurposeTemplateRiskAnalysisFormSignedDocumentSQL | null;
   }>
 ): {
   purposeTemplatesSQL: PurposeTemplateSQL[];
@@ -301,6 +352,8 @@ export const toPurposeTemplateAggregatorArray = (
   riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+  riskAnalysisFormDocumentsSQL: PurposeTemplateRiskAnalysisFormDocumentSQL[];
+  riskAnalysisFormSignedDocumentsSQL: PurposeTemplateRiskAnalysisFormSignedDocumentSQL[];
 } => {
   const purposeTemplateIdsSet = new Set<string>();
   const purposeTemplatesSQL: PurposeTemplateSQL[] = [];
@@ -319,6 +372,14 @@ export const toPurposeTemplateAggregatorArray = (
   const riskAnalysisTemplateAnswerAnnotationsDocumentsIdsSet =
     new Set<string>();
   const riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[] =
+    [];
+
+  const riskAnalysisFormDocumentIdsSet = new Set<string>();
+  const riskAnalysisFormDocumentsSQL: PurposeTemplateRiskAnalysisFormDocumentSQL[] =
+    [];
+
+  const riskAnalysisFormSignedDocumentIdsSet = new Set<string>();
+  const riskAnalysisFormSignedDocumentsSQL: PurposeTemplateRiskAnalysisFormSignedDocumentSQL[] =
     [];
 
   queryRes.forEach((row) => {
@@ -382,6 +443,33 @@ export const toPurposeTemplateAggregatorArray = (
         riskAnalysisTemplateAnswerAnnotationDocumentSQL
       );
     }
+
+    const riskAnalysisFormDocumentSQL = row.purposeRiskAnalysisTemplateDocument;
+    if (
+      riskAnalysisFormDocumentSQL &&
+      !riskAnalysisFormDocumentIdsSet.has(riskAnalysisFormDocumentSQL.id)
+    ) {
+      riskAnalysisFormDocumentIdsSet.add(riskAnalysisFormDocumentSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      riskAnalysisFormDocumentsSQL.push(riskAnalysisFormDocumentSQL);
+    }
+
+    const riskAnalysisFormSignedDocumentSQL =
+      row.purposeRiskAnalysisTemplateSignedDocument;
+    if (
+      riskAnalysisFormSignedDocumentSQL &&
+      !riskAnalysisFormSignedDocumentIdsSet.has(
+        riskAnalysisFormSignedDocumentSQL.id
+      )
+    ) {
+      riskAnalysisFormSignedDocumentIdsSet.add(
+        riskAnalysisFormSignedDocumentSQL.id
+      );
+      // eslint-disable-next-line functional/immutable-data
+      riskAnalysisFormSignedDocumentsSQL.push(
+        riskAnalysisFormSignedDocumentSQL
+      );
+    }
   });
 
   return {
@@ -390,6 +478,8 @@ export const toPurposeTemplateAggregatorArray = (
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+    riskAnalysisFormDocumentsSQL,
+    riskAnalysisFormSignedDocumentsSQL,
   };
 };
 
@@ -503,3 +593,36 @@ export const aggregatePurposeTemplateEServiceDescriptor = ({
     },
   };
 };
+export const aggregateRiskAnalysisFormDocument = ({
+  id,
+  name,
+  prettyName,
+  contentType,
+  path,
+  createdAt,
+}: PurposeTemplateRiskAnalysisFormDocumentSQL): RiskAnalysisTemplateDocument => ({
+  id: unsafeBrandId<RiskAnalysisTemplateDocumentId>(id),
+  name,
+  prettyName,
+  contentType,
+  path,
+  createdAt: new Date(createdAt),
+});
+
+export const aggregateRiskAnalysisFormSignedDocument = ({
+  id,
+  name,
+  prettyName,
+  contentType,
+  path,
+  createdAt,
+  signedAt,
+}: PurposeTemplateRiskAnalysisFormSignedDocumentSQL): RiskAnalysisTemplateSignedDocument => ({
+  id: unsafeBrandId<RiskAnalysisTemplateDocumentId>(id),
+  name,
+  prettyName,
+  contentType,
+  path,
+  createdAt: new Date(createdAt),
+  signedAt: new Date(signedAt),
+});

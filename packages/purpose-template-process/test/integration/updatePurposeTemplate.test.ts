@@ -28,13 +28,14 @@ import {
   RiskAnalysisTemplateSingleAnswer,
   Tenant,
   TenantId,
-  tenantKind,
+  targetTenantKind,
   toPurposeTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
@@ -67,16 +68,16 @@ describe("updatePurposeTemplate", () => {
   });
 
   const riskAnalysisPAVersion = getLatestVersionFormRules(
-    tenantKind.PA
+    targetTenantKind.PA
   )!.version;
   const riskAnalysisPrivateVersion = getLatestVersionFormRules(
-    tenantKind.PRIVATE
+    targetTenantKind.PRIVATE
   )!.version;
   const creatorId = generateId<TenantId>();
   const creator: Tenant = getMockTenant(creatorId);
 
   const mockValidRiskAnalysisTemplateForm =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
 
   const purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed =
     getMockPurposeTemplateSeed(
@@ -89,21 +90,21 @@ describe("updatePurposeTemplate", () => {
   };
 
   it.each([
-    { kind: tenantKind.PA, riskAnalysisVersion: riskAnalysisPAVersion },
+    { kind: targetTenantKind.PA, riskAnalysisVersion: riskAnalysisPAVersion },
     {
-      kind: tenantKind.PRIVATE,
+      kind: targetTenantKind.PRIVATE,
       riskAnalysisVersion: riskAnalysisPrivateVersion,
     },
   ])(
     "should successfully update a purpose template in draft state with valid data and targetTenantKind %s",
-    async ({ kind: tenantKind, riskAnalysisVersion }) => {
+    async ({ kind: targetTenantKind, riskAnalysisVersion }) => {
       const spy = vi.spyOn(
         validators,
         "validateAndTransformRiskAnalysisTemplate"
       );
 
       const mockValidRiskAnalysisTemplateForm =
-        getMockValidRiskAnalysisFormTemplate(tenantKind);
+        getMockValidRiskAnalysisFormTemplate(targetTenantKind);
 
       const riskAnalysisFormTemplateSeed = {
         ...buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm),
@@ -142,7 +143,7 @@ describe("updatePurposeTemplate", () => {
 
       const validPurposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed = {
         ...getMockPurposeTemplateSeed(),
-        targetTenantKind: tenantKind,
+        targetTenantKind,
         purposeTitle: "Updated Purpose Template title", // updated field
         purposeRiskAnalysisForm: {
           ...riskAnalysisFormTemplateSeed,
@@ -152,7 +153,7 @@ describe("updatePurposeTemplate", () => {
 
       const existingPurposeTemplate: PurposeTemplate = {
         ...getMockPurposeTemplate(creatorId),
-        targetTenantKind: tenantKind,
+        targetTenantKind,
         purposeRiskAnalysisForm: {
           ...mockValidRiskAnalysisTemplateForm,
           version: riskAnalysisVersion,
@@ -184,7 +185,7 @@ describe("updatePurposeTemplate", () => {
         purposeDailyCalls: validPurposeTemplateSeed.purposeDailyCalls,
         purposeIsFreeOfCharge: validPurposeTemplateSeed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason:
-          validPurposeTemplateSeed.purposeFreeOfChargeReason,
+          validPurposeTemplateSeed.purposeFreeOfChargeReason || undefined,
         purposeRiskAnalysisForm: {
           id: expect.anything(),
           version: riskAnalysisVersion,
@@ -260,7 +261,7 @@ describe("updatePurposeTemplate", () => {
           ...riskAnalysisFormTemplateSeed,
           answers: updatedAnswers,
         },
-        tenantKind,
+        targetTenantKind,
         existingPurposeTemplate.handlesPersonalData
       );
     }
@@ -592,4 +593,34 @@ describe("updatePurposeTemplate", () => {
     // Expect that remains only valid annotation documents in S3
     expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
   });
+
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    "should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false",
+    async ({ freeOfChargeReason }) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...existingPurposeTemplate,
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: "Some reason",
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      const isFreeOfCharge = false;
+      expect(
+        purposeTemplateService.updatePurposeTemplate(
+          purposeTemplate.id,
+          {
+            ...purposeTemplateSeed,
+            purposeIsFreeOfCharge: isFreeOfCharge,
+            purposeFreeOfChargeReason: freeOfChargeReason,
+          },
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
+      );
+    }
+  );
 });

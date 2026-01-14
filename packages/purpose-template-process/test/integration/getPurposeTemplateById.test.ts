@@ -11,17 +11,14 @@ import {
   PurposeTemplateId,
   purposeTemplateState,
   TenantId,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
   addOnePurposeTemplate,
   purposeTemplateService,
 } from "../integrationUtils.js";
-import {
-  purposeTemplateNotFound,
-  tenantNotAllowed,
-} from "../../src/model/domain/errors.js";
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("getPurposeTemplateById", () => {
   it.each(Object.values(purposeTemplateState))(
@@ -31,7 +28,7 @@ describe("getPurposeTemplateById", () => {
         ...getMockPurposeTemplate(),
         state: purposeTemplateState,
         purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-          tenantKind.PA
+          targetTenantKind.PA
         ),
       };
       await addOnePurposeTemplate(purposeTemplate);
@@ -66,7 +63,7 @@ describe("getPurposeTemplateById", () => {
         ...getMockPurposeTemplate(),
         state: purposeTemplateState,
         purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-          tenantKind.PA
+          targetTenantKind.PA
         ),
       };
       await addOnePurposeTemplate(purposeTemplate);
@@ -88,14 +85,14 @@ describe("getPurposeTemplateById", () => {
     }
   );
 
-  it("should throw tenantNotAllowed if the requester is not the creator and the purpose template is in Draft state", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template is in Draft state", async () => {
     const requesterId = generateId<TenantId>();
 
     const purposeTemplate: PurposeTemplate = {
       ...getMockPurposeTemplate(),
       state: purposeTemplateState.draft,
       purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-        tenantKind.PA
+        targetTenantKind.PA
       ),
     };
     await addOnePurposeTemplate(purposeTemplate);
@@ -105,7 +102,7 @@ describe("getPurposeTemplateById", () => {
         purposeTemplate.id,
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw purposeTemplateNotFound if the purpose template doesn't exist", async () => {
