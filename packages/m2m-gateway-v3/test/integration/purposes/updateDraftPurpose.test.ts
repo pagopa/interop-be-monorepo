@@ -45,11 +45,11 @@ describe("updateDraftPurpose", () => {
     riskAnalysisForm: generateMock(m2mGatewayApiV3.RiskAnalysisFormSeed),
   };
   const mockPurposeSeedFromTemplate: m2mGatewayApiV3.PurposeDraftFromTemplateUpdateSeed =
-  {
-    title: mockPurposeSeed.title,
-    riskAnalysisForm: mockPurposeSeed.riskAnalysisForm,
-    dailyCalls: mockPurposeSeed.dailyCalls,
-  };
+    {
+      title: mockPurposeSeed.title,
+      riskAnalysisForm: mockPurposeSeed.riskAnalysisForm,
+      dailyCalls: mockPurposeSeed.dailyCalls,
+    };
 
   const mockPatchUpdatePurposeFromTemplate = vi
     .fn()

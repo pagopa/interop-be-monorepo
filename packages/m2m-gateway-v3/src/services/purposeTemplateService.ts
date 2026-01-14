@@ -5,7 +5,7 @@ import {
 import {
   FileManager,
   WithLogger,
-  validateAndStorePDFDocument
+  validateAndStorePDFDocument,
 } from "pagopa-interop-commons";
 import {
   EServiceId,
@@ -253,7 +253,7 @@ export function purposeTemplateServiceBuilder(
           checksum: string
         ): Promise<
           WithMaybeMetadata<purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument>
-        // eslint-disable-next-line max-params
+          // eslint-disable-next-line max-params
         > =>
           await clients.purposeTemplateProcessClient.addRiskAnalysisTemplateAnswerAnnotationDocument(
             {
