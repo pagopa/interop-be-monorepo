@@ -59,6 +59,7 @@ describe("sqsMessageHandler", () => {
         fileKind: "VOUCHER_AUDIT",
         fileName: "my-audit-file.json",
         correlationId: mockCorrelationId,
+        path: "path/to",
       },
       expect.any(Object)
     );

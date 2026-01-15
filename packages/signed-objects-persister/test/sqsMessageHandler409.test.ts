@@ -98,6 +98,7 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       streamId: "stream-id",
       correlationId: "corr-id",
       fileName: "conflict-file.pdf",
+      path: "path/to",
     });
 
     (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(

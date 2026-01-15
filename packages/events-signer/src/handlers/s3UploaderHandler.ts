@@ -18,6 +18,7 @@ export const uploadPreparedFileToS3 = async (
 ): Promise<{
   fileContentBuffer: Buffer;
   fileName: string;
+  path: string;
 }> => {
   try {
     const s3Key = await fileManager.storeBytes(
@@ -42,6 +43,7 @@ export const uploadPreparedFileToS3 = async (
     return {
       fileContentBuffer: preparedFile.fileContentBuffer,
       fileName: extractedFileName,
+      path: path.dirname(s3Key),
     };
   } catch (error) {
     throw genericInternalError(
