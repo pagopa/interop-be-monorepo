@@ -145,6 +145,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
       );
 
     const body = inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
+      creatorTenant.name,
       updatedEServiceTemplate.name
     );
 

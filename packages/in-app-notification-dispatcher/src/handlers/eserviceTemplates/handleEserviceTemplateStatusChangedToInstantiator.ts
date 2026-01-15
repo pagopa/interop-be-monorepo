@@ -14,6 +14,7 @@ import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   retrieveLatestDescriptor,
   getNotificationRecipients,
+  retrieveTenant,
 } from "../handlerCommons.js";
 
 export async function handleEserviceTemplateStatusChangedToInstantiator(
@@ -35,9 +36,10 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
 
-  const eservices = await readModelService.getEServicesByTemplateId(
-    eserviceTemplate.id
-  );
+  const [eservices, creator] = await Promise.all([
+    readModelService.getEServicesByTemplateId(eserviceTemplate.id),
+    retrieveTenant(eserviceTemplate.creatorId, readModelService),
+  ]);
 
   const instantiatorEserviceMap = eservices.reduce<
     Record<TenantId, EService[]>
@@ -77,6 +79,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
         userId,
         tenantId,
         body: inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
+          creator.name,
           eserviceTemplate.name
         ),
         notificationType: "eserviceTemplateStatusChangedToInstantiator",
