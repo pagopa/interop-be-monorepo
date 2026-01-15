@@ -153,9 +153,9 @@ const getPdfPayload = async (
   producer: Tenant,
   producerDelegationData: DelegationData | undefined,
   consumerDelegationData: DelegationData | undefined,
+  documentCreatedAt: Date,
   readModelService: ReadModelServiceSQL
 ): Promise<AgreementContractPDFPayload> => {
-  const today = new Date();
   const { certified, declared, verified } = await getAttributesData(
     consumer,
     agreement,
@@ -168,8 +168,8 @@ const getPdfPayload = async (
   assertStampExists(agreement.stamps, "activation");
 
   return {
-    todayDate: dateAtRomeZone(today),
-    todayTime: timeAtRomeZone(today),
+    todayDate: dateAtRomeZone(documentCreatedAt),
+    todayTime: timeAtRomeZone(documentCreatedAt),
     agreementId: agreement.id,
     submitterId: agreement.stamps.submission.who,
     submissionDate: dateAtRomeZone(agreement.stamps.submission.when),
@@ -267,7 +267,8 @@ export const agreementContractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      { producerDelegation, consumerDelegation }: ActiveDelegations
+      { producerDelegation, consumerDelegation }: ActiveDelegations,
+      messageTimestamp: Date
     ): Promise<AgreementDocument> => {
       const producerDelegationData =
         producerDelegation &&
@@ -277,6 +278,8 @@ export const agreementContractBuilder = (
         consumerDelegation &&
         (await buildDelegationData(consumerDelegation, readModelService));
 
+      const documentCreatedAt = messageTimestamp;
+
       const pdfPayload = await getPdfPayload(
         agreement,
         eservice,
@@ -284,6 +287,7 @@ export const agreementContractBuilder = (
         producer,
         producerDelegationData,
         consumerDelegationData,
+        documentCreatedAt,
         readModelService
       );
 
@@ -293,7 +297,6 @@ export const agreementContractBuilder = (
       );
 
       const documentId = generateId<AgreementDocumentId>();
-      const documentCreatedAt = new Date();
       const documentName = createAgreementDocumentName(
         agreement.consumerId,
         agreement.producerId,
@@ -317,7 +320,7 @@ export const agreementContractBuilder = (
         contentType: CONTENT_TYPE_PDF,
         prettyName: AGREEMENT_CONTRACT_PRETTY_NAME,
         path: documentPath,
-        createdAt: documentCreatedAt,
+        createdAt: new Date(),
       };
     },
   };

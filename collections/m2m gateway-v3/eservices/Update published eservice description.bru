@@ -1,0 +1,25 @@
+meta {
+  name: Update published eservice description
+  type: http
+}
+
+patch {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/description
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: application/merge-patch+json
+}
+
+body:json {
+  {
+    "description": "updated description"
+  }
+}
