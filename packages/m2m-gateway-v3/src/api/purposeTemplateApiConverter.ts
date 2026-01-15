@@ -19,6 +19,37 @@ export function toGetPurposeTemplatesApiQueryParams(
   };
 }
 
+export function toPurposeTemplateApiRiskAnalysisTemplateAnswersSeed(
+  answers: Record<string, m2mGatewayApiV3.RiskAnalysisTemplateAnswerSeed>
+): Record<string, purposeTemplateApi.RiskAnalysisTemplateAnswerSeed> {
+  return Object.entries(answers).reduce<
+    Record<string, purposeTemplateApi.RiskAnalysisTemplateAnswerSeed>
+  >((map, [key, answer]) => {
+    if (!answer) {
+      return map;
+    }
+    return {
+      ...map,
+      [key]: {
+        values: answer.values,
+        editable: answer.editable,
+        suggestedValues: answer.suggestedValues,
+        annotation: answer.annotationText
+          ? { text: answer.annotationText }
+          : undefined,
+      } satisfies purposeTemplateApi.RiskAnalysisTemplateAnswerSeed,
+    };
+  }, {});
+}
+export function toPurposeTemplateApiRiskAnalysisFormTemplateSeed(
+  seed: m2mGatewayApiV3.RiskAnalysisFormTemplateSeed
+): purposeTemplateApi.RiskAnalysisFormTemplateSeed {
+  return {
+    version: seed.version,
+    answers: toPurposeTemplateApiRiskAnalysisTemplateAnswersSeed(seed.answers),
+  };
+}
+
 export function toM2MGatewayApiPurposeTemplate(
   purposeTemplate: purposeTemplateApi.PurposeTemplate
 ): m2mGatewayApiV3.PurposeTemplate {
@@ -51,5 +82,17 @@ export function toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument(
       createdAt: documentWithAnswerId.document.createdAt,
       contentType: documentWithAnswerId.document.contentType,
     },
+  };
+}
+
+export function toM2MGatewayApiDocument(
+  document: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument
+): m2mGatewayApiV3.Document {
+  return {
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    createdAt: document.createdAt,
+    contentType: document.contentType,
   };
 }
