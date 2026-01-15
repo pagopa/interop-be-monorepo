@@ -10,13 +10,13 @@ import {
   getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import {
+  generateId,
+  purposeTemplateState,
   PurposeTemplate,
   PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
-  TenantKind,
-  generateId,
-  purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
+  TargetTenantKind,
   toPurposeTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -28,6 +28,7 @@ import {
   missingExpectedRiskAnalysisTemplateFieldError,
 } from "pagopa-interop-commons";
 import {
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateTitleConflict,
   riskAnalysisTemplateValidationFailed,
@@ -52,7 +53,7 @@ describe("createPurposeTemplate", () => {
   };
 
   const mockValidRiskAnalysisTemplateForm =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
 
   const purposeTemplateSeed = getMockPurposeTemplateSeed(
     buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm)
@@ -302,7 +303,7 @@ describe("createPurposeTemplate", () => {
 
   it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has unexpected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
-      getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+      getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA)
     );
 
     const seedWithUnexpectedField: purposeTemplateApi.PurposeTemplateSeed = {
@@ -338,7 +339,7 @@ describe("createPurposeTemplate", () => {
 
   it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has missing expected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
-      getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+      getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA)
     );
 
     // Remove otherPurpose field which is required when purpose is OTHER
@@ -378,7 +379,7 @@ describe("createPurposeTemplate", () => {
   });
 
   it("should throw ruleSetNotFoundError if not exists rules for provided target tenant kind", async () => {
-    const invalidTenantKind = "INVALID" as TenantKind;
+    const invalidTenantKind = "INVALID" as TargetTenantKind;
     const seedWithInvalidTargetTenantKind: purposeTemplateApi.PurposeTemplateSeed =
       {
         ...purposeTemplateSeed,
@@ -395,4 +396,32 @@ describe("createPurposeTemplate", () => {
       )
     ).rejects.toThrowError(ruleSetNotFoundError(invalidTenantKind));
   });
+
+  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
+    `should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false (seed #%#)`,
+    async ({ freeOfChargeReason }) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: "Some reason",
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      expect(
+        purposeTemplateService.createPurposeTemplate(
+          {
+            ...purposeTemplateSeed,
+            purposeIsFreeOfCharge: false,
+            purposeFreeOfChargeReason: freeOfChargeReason,
+          },
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(false, freeOfChargeReason)
+      );
+    }
+  );
 });
