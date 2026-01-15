@@ -22,6 +22,7 @@ import {
   downloadPurposeVersionRiskAnalysisDocumentErrorMapper,
   getPurposeAgreementErrorMapper,
   createPurposeErrorMapper,
+  updateDraftPurposeErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -400,7 +401,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateDraftPurposeErrorMapper,
           ctx,
           `Error updating purpose with id ${req.params.purposeId}`
         );
@@ -425,6 +426,28 @@ const purposeRouter = (
           emptyErrorMapper,
           ctx,
           `Error updating reverse purpose with id ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposeTemplates/:purposeTemplateId/purposes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.createPurposeFromTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+
+        return res.status(201).send(m2mGatewayApiV3.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createPurposeErrorMapper,
+          ctx,
+          `Error creating purpose from purpose template with id ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

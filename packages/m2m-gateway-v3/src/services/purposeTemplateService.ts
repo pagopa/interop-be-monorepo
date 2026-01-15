@@ -2,10 +2,17 @@ import {
   m2mGatewayApiV3,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
+  FileManager,
+  WithLogger,
+  validateAndStorePDFDocument,
+} from "pagopa-interop-commons";
+import {
+  EServiceId,
+  generateId,
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -14,12 +21,20 @@ import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
+  toM2MGatewayApiDocument,
   toM2MGatewayApiPurposeTemplate,
   toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
+  toPurposeTemplateApiRiskAnalysisFormTemplateSeed,
 } from "../api/purposeTemplateApiConverter.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
+import {
+  isPolledVersionAtLeastMetadataTargetVersion,
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
@@ -39,6 +54,65 @@ export function purposeTemplateServiceBuilder(
         id: purposeTemplateId,
       },
       headers,
+    });
+
+  const retrieveEServiceDescriptorPurposeTemplate = async (
+    purposeTemplateId: PurposeTemplateId,
+    eserviceId: EServiceId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<
+    WithMaybeMetadata<purposeTemplateApi.EServiceDescriptorPurposeTemplate>
+  > =>
+    await clients.purposeTemplateProcessClient.getPurposeTemplateEServiceDescriptor(
+      {
+        params: {
+          id: purposeTemplateId,
+          eserviceId,
+        },
+        headers,
+      }
+    );
+
+  const pollPurposeTemplateUntilDeletion = (
+    purposeTemplateId: PurposeTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrievePurposeTemplateById(unsafeBrandId(purposeTemplateId), headers)
+    )({});
+
+  const pollServiceDescriptorPurposeTemplateUntilDeletion = (
+    purposeTemplateId: PurposeTemplateId,
+    eserviceId: EServiceId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveEServiceDescriptorPurposeTemplate(
+        purposeTemplateId,
+        eserviceId,
+        headers
+      )
+    )({});
+
+  const pollPurposeTemplate = (
+    response: WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<purposeTemplateApi.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(unsafeBrandId(response.data.id), headers)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
+  const pollPurposeTemplateById = (
+    purposeTemplateId: PurposeTemplateId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<m2mGatewayApiV3.PurposeTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrievePurposeTemplateById(purposeTemplateId, headers)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
   return {
@@ -150,6 +224,62 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
+
+    async uploadRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      fileUpload: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocumentUploadMultipart,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Document> {
+      logger.info(
+        `Adding document ${fileUpload.file.name} to annotation documents for purpose template ${purposeTemplateId} for answer ${fileUpload.answerId}`
+      );
+
+      const documentId = generateId();
+
+      const { data: document, metadata } = await validateAndStorePDFDocument(
+        fileManager,
+        purposeTemplateId,
+        fileUpload.file,
+        documentId,
+        config.purposeTemplateDocumentsContainer,
+        config.purposeTemplateDocumentsPath,
+        fileUpload.prettyName,
+        async (
+          documentId: string,
+          fileName: string,
+          filePath: string,
+          prettyName: string,
+          contentType: string,
+          checksum: string
+        ): Promise<
+          WithMaybeMetadata<purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument>
+          // eslint-disable-next-line max-params
+        > =>
+          await clients.purposeTemplateProcessClient.addRiskAnalysisTemplateAnswerAnnotationDocument(
+            {
+              documentId,
+              prettyName,
+              name: fileName,
+              path: filePath,
+              contentType,
+              checksum,
+            },
+            {
+              headers,
+              params: {
+                id: purposeTemplateId,
+                answerId: fileUpload.answerId,
+              },
+            }
+          ),
+        logger
+      );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+
+      return toM2MGatewayApiDocument(document);
+    },
+
     async getPurposeTemplateEServices(
       purposeTemplateId: PurposeTemplateId,
       queryParams: m2mGatewayApiV3.GetPurposeTemplateEServicesQueryParams,
@@ -217,6 +347,261 @@ export function purposeTemplateServiceBuilder(
         fileManager,
         config.purposeTemplateDocumentsContainer,
         logger
+      );
+    },
+
+    async publishPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.PurposeTemplate> {
+      logger.info(`Publishing purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.publishPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async archivePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.PurposeTemplate> {
+      logger.info(`Archiving purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.archivePurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async unsuspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.PurposeTemplate> {
+      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.unsuspendPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async suspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.PurposeTemplate> {
+      logger.info(`Suspending purpose template ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.suspendPurposeTemplate(
+          undefined,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+
+      const { data } = await pollPurposeTemplateById(
+        purposeTemplateId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(data);
+    },
+    async createPurposeTemplate(
+      purposeTemplateSeed: m2mGatewayApiV3.PurposeTemplateSeed,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.PurposeTemplate> {
+      logger.info(
+        `Creating purpose template for creator ${authData.organizationId}`
+      );
+
+      const purposeResponse =
+        await clients.purposeTemplateProcessClient.createPurposeTemplate(
+          {
+            targetDescription: purposeTemplateSeed.targetDescription,
+            targetTenantKind: purposeTemplateSeed.targetTenantKind,
+            purposeTitle: purposeTemplateSeed.purposeTitle,
+            purposeDescription: purposeTemplateSeed.purposeDescription,
+            purposeIsFreeOfCharge: purposeTemplateSeed.purposeIsFreeOfCharge,
+            purposeFreeOfChargeReason:
+              purposeTemplateSeed.purposeFreeOfChargeReason,
+            purposeDailyCalls: purposeTemplateSeed.purposeDailyCalls,
+            handlesPersonalData: purposeTemplateSeed.handlesPersonalData,
+          },
+          { headers }
+        );
+
+      const polledResource = await pollPurposeTemplate(
+        purposeResponse,
+        headers
+      );
+
+      return toM2MGatewayApiPurposeTemplate(polledResource.data);
+    },
+    async updateDraftPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      seed: m2mGatewayApiV3.PurposeTemplateDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.PurposeTemplate> {
+      logger.info(
+        `Updating draft Purpose Template with id ${purposeTemplateId}`
+      );
+
+      const response =
+        await clients.purposeTemplateProcessClient.patchUpdateDraftPurposeTemplateById(
+          seed,
+          {
+            params: { id: purposeTemplateId },
+            headers,
+          }
+        );
+      const polledResource = await pollPurposeTemplate(response, headers);
+      return toM2MGatewayApiPurposeTemplate(polledResource.data);
+    },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      await clients.purposeTemplateProcessClient.deletePurposeTemplate(
+        undefined,
+        {
+          params: { id: purposeTemplateId },
+          headers,
+        }
+      );
+
+      await pollPurposeTemplateUntilDeletion(purposeTemplateId, headers);
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template with id ${purposeTemplateId}`);
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.deleteRiskAnalysisTemplateAnnotationDocument(
+          undefined,
+          {
+            params: { purposeTemplateId, documentId },
+            headers,
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+    },
+    async replacePurposeTemplateRiskAnalysis(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisFormSeed: m2mGatewayApiV3.RiskAnalysisFormTemplateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.RiskAnalysisFormTemplate> {
+      logger.info(
+        `Replacing risk analysis form template for purpose template ${purposeTemplateId}`
+      );
+
+      const { data: riskAnalysisForm, metadata } =
+        await clients.purposeTemplateProcessClient.updatePurposeTemplateRiskAnalysis(
+          toPurposeTemplateApiRiskAnalysisFormTemplateSeed(
+            riskAnalysisFormSeed
+          ),
+          {
+            params: {
+              purposeTemplateId,
+            },
+            headers,
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+
+      return toM2MGatewayApiRiskAnalysisFormTemplate(riskAnalysisForm);
+    },
+    async addPurposeTemplateEService(
+      purposeTemplateId: PurposeTemplateId,
+      { eserviceId }: m2mGatewayApiV3.PurposeTemplateLinkEService,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
+      );
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.linkEServicesToPurposeTemplate(
+          {
+            eserviceIds: [eserviceId],
+          },
+          {
+            headers,
+            params: {
+              id: purposeTemplateId,
+            },
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+    },
+    async removePurposeTemplateEService(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: EServiceId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
+      );
+
+      await clients.purposeTemplateProcessClient.unlinkEServicesFromPurposeTemplate(
+        {
+          eserviceIds: [eserviceId],
+        },
+        {
+          headers,
+          params: {
+            id: purposeTemplateId,
+          },
+        }
+      );
+
+      await pollServiceDescriptorPurposeTemplateUntilDeletion(
+        purposeTemplateId,
+        eserviceId,
+        headers
       );
     },
   };
