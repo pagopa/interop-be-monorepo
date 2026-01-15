@@ -122,7 +122,6 @@ describe("handleAgreementMessageV2", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-  const currentExecutionTime = new Date();
 
   const testToken = "mockToken";
 
@@ -383,8 +382,8 @@ describe("handleAgreementMessageV2", () => {
       genericLogger
     );
     const expectedPayload = {
-      todayDate: dateAtRomeZone(currentExecutionTime),
-      todayTime: timeAtRomeZone(currentExecutionTime),
+      todayDate: dateAtRomeZone(mockEvent.log_date),
+      todayTime: timeAtRomeZone(mockEvent.log_date),
       agreementId: mockAgreement.id,
       submitterId: mockAgreement.stamps.submission!.who,
       submissionDate: dateAtRomeZone(mockAgreement.stamps.submission!.when),
