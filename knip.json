@@ -21,6 +21,7 @@
   "ignoreIssues": {
     "packages/api-clients/src/axiosLogInterceptors.ts": ["exports"],
     "packages/m2m-event-db-models/src/config/config.ts": ["exports"],
-    "packages/notifier-seeder/src/protobuf-models/v1/events.ts": ["exports", "types"]
+    "packages/notifier-seeder/src/protobuf-models/v1/events.ts": ["exports", "types"],
+    "packages/m2m-gateway/test/multipartTestUtils.ts": ["exports", "types"]
   }
 }

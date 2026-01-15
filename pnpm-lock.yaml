@@ -3773,9 +3773,6 @@ importers:
       form-data-encoder:
         specifier: 4.1.0
         version: 4.1.0
-      formdata-node:
-        specifier: 6.0.3
-        version: 6.0.3
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -3800,13 +3797,10 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.14.0
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+        version: 3.14.0(zod@3.23.8)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/adm-zip':
-        specifier: 0.5.7
-        version: 0.5.7
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -11417,6 +11411,11 @@ snapshots:
   '@anatine/zod-mock@3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)':
     dependencies:
       '@faker-js/faker': 8.4.1
+      randexp: 0.5.3
+      zod: 3.23.8
+
+  '@anatine/zod-mock@3.14.0(zod@3.23.8)':
+    dependencies:
       randexp: 0.5.3
       zod: 3.23.8
 
