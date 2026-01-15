@@ -22,15 +22,20 @@ import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.
 const emailManagerConfig = inject("emailManagerConfig");
 export const sesEmailManagerConfig = inject("sesEmailManagerConfig");
 
-const { cleanup, sesEmailManager, readModelDB } =
-  await setupTestContainersVitest(
-    undefined,
-    undefined,
-    emailManagerConfig,
-    undefined,
-    sesEmailManagerConfig,
-    inject("readModelSQLConfig")
-  );
+const {
+  cleanup,
+  sesEmailManager: _sesEmailManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  emailManagerConfig,
+  undefined,
+  sesEmailManagerConfig,
+  inject("readModelSQLConfig")
+);
+
+export const sesEmailManager = _sesEmailManager;
 
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
