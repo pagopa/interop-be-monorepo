@@ -1,0 +1,26 @@
+meta {
+  name: Create producer delegation
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/producerDelegations
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "eserviceId": "{{eserviceId}}",
+    "delegateId": "{{tenantId2}}"
+  }
+}
+
+vars:post-response {
+  delegationId: res.body.id
+}
