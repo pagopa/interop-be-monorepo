@@ -69,7 +69,7 @@ export async function handleClientPurposeRemoved(
         ...(t.type === "Tenant" ? { producerName: producer.name } : {}),
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
-        tenantId: producer.id,
+        selfcareId: producer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

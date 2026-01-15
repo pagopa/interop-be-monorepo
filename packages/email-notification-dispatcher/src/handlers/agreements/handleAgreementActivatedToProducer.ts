@@ -73,7 +73,7 @@ export async function handleAgreementActivatedToProducer(
         consumerName: consumer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
-        tenantId: t.tenantId,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

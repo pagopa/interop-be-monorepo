@@ -79,7 +79,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
         dailyCalls: dailyCallsPerConsumer,
         isNewVersion: true,
         ctaLabel: `Gestisci finalità`,
-        tenantId: consumer.id,
+        selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

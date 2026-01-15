@@ -103,7 +103,7 @@ export async function handleTenantVerifiedAttributeAssigned(
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
         attributeName: attribute.name,
-        tenantId: t.tenantId,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

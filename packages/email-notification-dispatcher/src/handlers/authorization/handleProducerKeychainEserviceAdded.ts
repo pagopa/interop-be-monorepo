@@ -85,7 +85,7 @@ export async function handleProducerKeychainEserviceAdded(
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza chiavi`,
-        tenantId: t.tenantId,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

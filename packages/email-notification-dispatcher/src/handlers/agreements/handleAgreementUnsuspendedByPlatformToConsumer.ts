@@ -75,7 +75,7 @@ export async function handleAgreementUnsuspendedByPlatformToConsumer(
         entityId: agreement.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         eserviceName: eservice.name,
-        tenantId: t.tenantId,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

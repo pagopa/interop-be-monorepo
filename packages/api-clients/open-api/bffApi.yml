@@ -24878,10 +24878,10 @@ paths:
           description: The id of the entity
           schema:
             type: string
-        - name: tenantId
+        - name: selfcareId
           in: query
-          required: true
-          description: The tenant ID for selfcare ID resolution
+          required: false
+          description: The selfcare ID for the institution (optional, falls back to generic URL if not provided)
           schema:
             type: string
       responses:

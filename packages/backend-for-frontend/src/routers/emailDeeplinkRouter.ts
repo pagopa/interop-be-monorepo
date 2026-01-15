@@ -2,22 +2,16 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  InteropTokenGenerator,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { emptyErrorMapper, NotificationType } from "pagopa-interop-models";
-import { fromBffAppContext } from "../utilities/context.js";
-import { makeApiProblem, missingSelfcareId } from "../model/errors.js";
+import { NotificationType } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { notificationTypeToUiSection } from "../model/modelMappingUtils.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
 
 const emailDeeplinkRouter = (
-  ctx: ZodiosContext,
-  tenantProcessClient: TenantProcessClient,
-  interopTokenGenerator: InteropTokenGenerator
+  ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const emailDeeplinkRouter = ctx.router(bffApi.emailDeepLinkApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -25,46 +19,24 @@ const emailDeeplinkRouter = (
   emailDeeplinkRouter.get(
     "/emailDeepLink/:notificationType/:entityId",
     async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
       const notificationType = NotificationType.parse(
         req.params.notificationType
       );
-      const tenantId = req.query.tenantId;
+      const selfcareId = req.query.selfcareId;
 
-      try {
-        const { serialized } =
-          await interopTokenGenerator.generateInternalToken();
+      const redirectPath = `${notificationTypeToUiSection[notificationType]}/${req.params.entityId}`;
 
-        const tenant = await tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
-          headers: {
-            ...ctx.headers,
-            Authorization: `Bearer ${serialized}`,
-          },
-        });
-
-        if (!tenant.selfcareId) {
-          throw missingSelfcareId(tenantId);
-        }
-
-        const redirectPath = `${notificationTypeToUiSection[notificationType]}/${req.params.entityId}`;
-
-        const selfcareUrl = new URL("/token-exchange", config.frontendBaseUrl);
-        selfcareUrl.searchParams.set("institutionId", tenant.selfcareId);
-        selfcareUrl.searchParams.set("productId", config.selfcareProductId);
-        selfcareUrl.searchParams.set("redirectUrl", redirectPath);
-
-        return res.redirect(selfcareUrl.href);
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          "Error generating email deepLink"
-        );
-        return res.status(errorRes.status).send(errorRes);
+      // Fallback: if no selfcareId, redirect to generic frontend URL
+      if (!selfcareId) {
+        return res.redirect(config.frontendBaseUrl);
       }
+
+      const selfcareUrl = new URL("/token-exchange", config.frontendBaseUrl);
+      selfcareUrl.searchParams.set("institutionId", selfcareId);
+      selfcareUrl.searchParams.set("productId", config.selfcareProductId);
+      selfcareUrl.searchParams.set("redirectUrl", redirectPath);
+
+      return res.redirect(selfcareUrl.href);
     }
   );
 

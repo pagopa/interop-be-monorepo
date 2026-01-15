@@ -70,7 +70,7 @@ export async function handleAgreementRejected(
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
-        tenantId: t.tenantId,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

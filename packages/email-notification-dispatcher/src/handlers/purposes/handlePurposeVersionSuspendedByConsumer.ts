@@ -77,7 +77,7 @@ export async function handlePurposeVersionSuspendedByConsumer(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
-        tenantId: producer.id,
+        selfcareId: producer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

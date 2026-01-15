@@ -98,7 +98,7 @@ export async function handleEServiceTemplateNameUpdated(
           ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
           oldName: oldName ?? eserviceTemplate.id,
           newName: eserviceTemplate.name,
-          tenantId: t.tenantId,
+          selfcareId: t.selfcareId,
           bffUrl: config.bffUrl,
         }),
       },

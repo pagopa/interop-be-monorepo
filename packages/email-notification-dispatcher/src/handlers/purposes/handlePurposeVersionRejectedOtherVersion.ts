@@ -85,7 +85,7 @@ export async function handlePurposeVersionRejectedOtherVersion(
         eserviceName: eservice.name,
         isAccepted: false,
         ctaLabel: `Visualizza finalità`,
-        tenantId: consumer.id,
+        selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

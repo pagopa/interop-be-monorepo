@@ -1,7 +1,6 @@
 import {
   initFileManager,
   initRedisRateLimiter,
-  InteropTokenGenerator,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   startServer,
 } from "pagopa-interop-commons";
@@ -32,17 +31,11 @@ const authorizationServiceAllowList = await getAllowList(
   config
 );
 
-const interopTokenGenerator = new InteropTokenGenerator(config);
-
 const services = await createServices(
   clients,
   fileManager,
   redisRateLimiter,
-  authorizationServiceAllowList,
-  interopTokenGenerator
+  authorizationServiceAllowList
 );
 
-startServer(
-  await createApp(services, rateLimiterMiddleware, clients, interopTokenGenerator),
-  config
-);
+startServer(await createApp(services, rateLimiterMiddleware), config);

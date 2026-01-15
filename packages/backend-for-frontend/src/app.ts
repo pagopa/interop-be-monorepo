@@ -139,9 +139,9 @@ export async function createServices(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager,
   redisRateLimiter: RateLimiter,
-  authorizationServiceAllowList: string[],
-  interopTokenGenerator: InteropTokenGenerator
+  authorizationServiceAllowList: string[]
 ): Promise<BFFServices> {
+  const interopTokenGenerator = new InteropTokenGenerator(config);
 
   const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
     [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
@@ -227,9 +227,7 @@ export async function createServices(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(
   services: BFFServices,
-  rateLimiterMiddleware: RateLimiterMiddleware,
-  clients: PagoPAInteropBeClients,
-  interopTokenGenerator: InteropTokenGenerator
+  rateLimiterMiddleware: RateLimiterMiddleware
 ) {
   const app = zodiosCtx.app();
 
@@ -260,11 +258,7 @@ export async function createApp(
       config
     ),
     authorizationRouter(zodiosCtx, services.authorizationService),
-    emailDeeplinkRouter(
-      zodiosCtx,
-      clients.tenantProcessClient,
-      interopTokenGenerator
-    ),
+    emailDeeplinkRouter(zodiosCtx),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
