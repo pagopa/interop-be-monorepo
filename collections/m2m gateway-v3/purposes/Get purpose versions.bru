@@ -1,0 +1,24 @@
+meta {
+  name: Get purpose versions
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/purposes/:purposeId/versions?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

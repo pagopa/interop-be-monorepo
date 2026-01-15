@@ -1,0 +1,36 @@
+meta {
+  name: Create eservice descriptor
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/descriptors
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+      "description": "testone testone",
+      "audience": [
+          "string"
+      ],
+      "voucherLifespan": 86400,
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 100,
+      "agreementApprovalPolicy": "AUTOMATIC"
+  }
+}
+
+vars:post-response {
+  descriptorId: res.body.id
+}
