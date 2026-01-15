@@ -39,6 +39,7 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
+  clientReadModelServiceSQL,
 });
 
 const fileManager = initFileManager(config);
@@ -55,7 +56,6 @@ const service = purposeServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelServiceSQL,
-  clientReadModelServiceSQL,
   fileManager,
   pdfGenerator
 );

@@ -24,6 +24,8 @@ import {
   PurposeTemplateId,
   PurposeTemplate,
   purposeTemplateState,
+  ClientId,
+  Client,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -43,6 +45,7 @@ import {
   aggregatePurposeArray,
   AgreementReadModelService,
   CatalogReadModelService,
+  ClientReadModelService,
   DelegationReadModelService,
   PurposeReadModelService,
   PurposeTemplateReadModelService,
@@ -211,6 +214,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
+  clientReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   purposeReadModelServiceSQL: PurposeReadModelService;
@@ -219,6 +223,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL: AgreementReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
+  clientReadModelServiceSQL: ClientReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -474,6 +479,11 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
+    },
+    async getClientById(
+      id: ClientId
+    ): Promise<WithMetadata<Client> | undefined> {
+      return clientReadModelServiceSQL.getClientById(id);
     },
   };
 }

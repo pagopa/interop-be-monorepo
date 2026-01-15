@@ -26,7 +26,6 @@ import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
-import { ClientReadModelService } from "pagopa-interop-readmodel";
 import {
   Agreement,
   CorrelationId,
@@ -311,7 +310,6 @@ async function retrievePublishedPurposeTemplate(
 export function purposeServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelServiceSQL,
-  clientReadModelService: ClientReadModelService,
   fileManager: FileManager,
   pdfGenerator: PDFGenerator
 ) {
@@ -861,7 +859,7 @@ export function purposeServiceBuilder(
         if (!clientId) {
           return [];
         }
-        const client = await clientReadModelService.getClientById(clientId);
+        const client = await readModelService.getClientById(clientId);
 
         if (authData.organizationId !== client?.data.consumerId) {
           return [];

@@ -1,4 +1,5 @@
 import {
+  Client,
   EService,
   Purpose,
   PurposeTemplateId,
@@ -17,8 +18,10 @@ import {
   getMockContext,
   getMockEService,
   sortPurpose,
+  getMockClient,
 } from "pagopa-interop-commons-test";
 import {
+  addOneClient,
   addOneDelegation,
   addOneEService,
   addOnePurpose,
@@ -169,6 +172,11 @@ describe("getPurposes", async () => {
     state: delegationState.revoked,
   });
 
+  const client1: Client = getMockClient({
+    consumerId: consumerId1,
+    purposes: [mockPurpose1.id],
+  });
+
   beforeEach(async () => {
     await addOnePurpose(mockPurpose1);
     await addOnePurpose(mockPurpose2);
@@ -190,6 +198,8 @@ describe("getPurposes", async () => {
     await addOneDelegation(consumerDelegation2);
     await addOneDelegation(revokedProducerDelegation);
     await addOneDelegation(revokedConsumerDelegation);
+
+    await addOneClient(client1);
   });
 
   it("should get all purposes visible to consumer/producer requester if no filters are provided", async () => {
@@ -406,16 +416,16 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
-        clientId: mockPurpose2.consumerId,
+        clientId: client1.id,
         states: [],
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData(consumerId1) })
     );
     expect(result.totalCount).toBe(1);
 
-    expectSinglePageListResult(result, [mockPurpose2]);
+    expectSinglePageListResult(result, [mockPurpose1]);
   });
 
   it("should get purposes with filters: eservicesIds, consumerIds", async () => {
@@ -679,12 +689,12 @@ describe("getPurposes", async () => {
         eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
         consumersIds: [consumerId1],
         producersIds: [producerId1],
-        clientId: mockPurpose1.consumerId,
+        clientId: client1.id,
         states: [purposeVersionState.draft, purposeVersionState.suspended],
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData(consumerId1) })
     );
 
     expectSinglePageListResult(result, [mockPurpose1]);
@@ -697,12 +707,12 @@ describe("getPurposes", async () => {
         eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
         consumersIds: [consumerId1],
         producersIds: [producerId1],
-        clientId: mockPurpose2.consumerId,
+        clientId: client1.id,
         states: [purposeVersionState.draft, purposeVersionState.suspended],
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData(consumerId1) })
     );
 
     expectSinglePageListResult(result, []);
