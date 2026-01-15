@@ -246,7 +246,9 @@ export type InteropUIToken = {
 // that we actually can receive. For example, it does not include the
 // InteropJwtConsumerPayload, because interop generates it but never receives it in API requests.
 // Adding InteropJwtApiM2MDPoPPayload, InteropJwtApiM2MAdminDPoPPayload
-export const AuthTokenPayload = z.discriminatedUnion("role", [
+export const AuthTokenPayload = z.union([
+  InteropJwtApiM2MDPoPPayload,
+  InteropJwtApiM2MAdminDPoPPayload,
   InteropJwtInternalPayload,
   InteropJwtUIPayload,
   InteropJwtApiM2MPayload,

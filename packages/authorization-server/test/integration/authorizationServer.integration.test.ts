@@ -69,7 +69,6 @@ import {
   incompleteTokenGenerationStatesConsumerClient,
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
-  unexpectedDPoPProofForAPIToken,
 } from "../../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
@@ -1480,48 +1479,5 @@ describe("authorization server tests", () => {
       rateInterval: config.rateLimiterRateInterval,
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
-  });
-
-  it("should throw unexpectedDPoPProofForAPIToken when requesting an API token with a DPoP proof", async () => {
-    const clientId = generateId<ClientId>();
-
-    const { jws, clientAssertion, publicKeyEncodedPem } =
-      await getMockClientAssertion({
-        standardClaimsOverride: { sub: clientId },
-      });
-
-    const mockRequestWithDPoP = await getMockTokenRequest(true);
-    const request: typeof mockRequestWithDPoP = {
-      headers: mockRequestWithDPoP.headers,
-      body: {
-        ...mockRequestWithDPoP.body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
-    };
-
-    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
-      clientId,
-      kid: clientAssertion.header.kid!,
-    });
-
-    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenGenStatesApiClient(tokenClientKidK),
-      clientKind: clientKindTokenGenStates.api,
-      publicKey: publicKeyEncodedPem,
-    };
-
-    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
-
-    expect(
-      tokenService.generateToken(
-        request.headers,
-        request.body,
-        getMockContext({}),
-        () => {},
-        () => {},
-        () => {}
-      )
-    ).rejects.toThrowError(unexpectedDPoPProofForAPIToken(clientId));
   });
 });

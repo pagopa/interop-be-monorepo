@@ -5,6 +5,8 @@ import {
   InteropJwtConsumerPayload,
   InteropJwtInternalPayload,
   InteropJwtUIPayload,
+  InteropJwtApiM2MDPoPPayload,
+  InteropJwtApiM2MAdminDPoPPayload,
 } from "./models.js";
 
 // ===========================================
@@ -88,7 +90,9 @@ export type SerializedInteropJwtInternalPayload = Omit<
 
 export type SerializedInteropJwtApiPayload =
   | (Omit<InteropJwtApiM2MAdminPayload, "aud"> & SerializedAudience)
-  | (Omit<InteropJwtApiM2MPayload, "aud"> & SerializedAudience);
+  | (Omit<InteropJwtApiM2MPayload, "aud"> & SerializedAudience)
+  | (Omit<InteropJwtApiM2MDPoPPayload, "aud"> & SerializedAudience)
+  | (Omit<InteropJwtApiM2MAdminDPoPPayload, "aud"> & SerializedAudience);
 
 export type SerializedInteropJwtConsumerPayload = Omit<
   InteropJwtConsumerPayload,
