@@ -38,11 +38,10 @@ export const prepareNdjsonEventData = async <
           return JSON.stringify({ ...rest, timestamp: eventTimestamp });
         })
         .join("\n") + "\n";
-    const fileContentBuffer = await compressJson(ndjsonString);
-
     const time = format(new Date(), "hhmmss");
-    const fileName = `events_${year}${month}${day}_${time}_${generateId()}.ndjson.gz`;
+    const fileName = `events_${year}${month}${day}_${time}_${generateId()}.ndjson.zip`;
     const filePath = `year=${year}/month=${month}/day=${day}`;
+    const fileContentBuffer = await compressJson(ndjsonString, fileName);
 
     results.push({
       fileContentBuffer,

@@ -15,10 +15,13 @@ export const appendSignedSuffixToFileName = (
   const ext = fileKey.slice(dotIndex);
 
   return match(fileKind)
-    .with(FileKindSchema.Enum.EVENT_JOURNAL, () => `${name}-signed.json.gz.p7m`)
+    .with(
+      FileKindSchema.Enum.EVENT_JOURNAL,
+      () => `${name}-signed.json.zip.p7m`
+    )
     .with(
       FileKindSchema.Enum.VOUCHER_AUDIT,
-      () => `${name}-signed.ndjson.gz.p7m`
+      () => `${name}-signed.ndjson.zip.p7m`
     )
     .otherwise(() => `${name}-signed${ext}`);
 };
