@@ -9,6 +9,7 @@
   "ignoreDependencies": [
     "@pagopa/eslint-config",
     "@types/qs",
+    "qs",
     "@protobuf-ts/plugin"
   ],
   "ignoreBinaries": ["tsx", "eslint", "prettier"],
