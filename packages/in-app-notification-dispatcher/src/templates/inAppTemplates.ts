@@ -246,7 +246,7 @@ export const inAppTemplates = {
   eserviceTemplateStatusChangedToInstantiator: (
     eserviceTemplateName: string
   ): string => `È stato sospeso il tuo template "${eserviceTemplateName}".`,
-  purposeStatusChangedToConsumer: (
+  purposeStatusChangedToProducer: (
     purposeName: string,
     consumerName: string,
     eserviceName: string,
