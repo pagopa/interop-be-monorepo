@@ -29,6 +29,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       fileName: "multa.pdf",
       correlationId: generateId(),
       creationTimestamp: expect.any(Number),
+      path: "path/to",
     };
 
     await signatureService.saveSignatureReference(mockReference, genericLogger);

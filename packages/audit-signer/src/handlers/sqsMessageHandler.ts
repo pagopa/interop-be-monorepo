@@ -68,6 +68,7 @@ async function processMessage(
         fileKind: "VOUCHER_AUDIT",
         fileName,
         correlationId,
+        path: path.dirname(s3Key),
       },
       logger
     );

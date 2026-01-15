@@ -16,6 +16,7 @@ export const archiveFileToSafeStorage = async (
   storedFile: {
     fileContentBuffer: Buffer;
     fileName: string;
+    path: string;
   },
   logger: Logger,
   signatureService: SignatureServiceBuilder,
@@ -58,6 +59,7 @@ export const archiveFileToSafeStorage = async (
       fileKind: "EVENT_JOURNAL",
       fileName,
       correlationId,
+      path: storedFile.path,
     } as SignatureReference;
 
     await signatureService.saveSignatureReference(signatureReference, logger);
