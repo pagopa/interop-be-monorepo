@@ -1,0 +1,28 @@
+meta {
+  name: List eservice descriptors
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/descriptors?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+vars:post-response {
+  descriptorId: res.body.results.at(-1).id
+}

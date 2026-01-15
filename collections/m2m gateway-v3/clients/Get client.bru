@@ -1,0 +1,19 @@
+meta {
+  name: Get client
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/clients/:clientId
+  body: none
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
