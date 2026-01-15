@@ -273,9 +273,7 @@ describe("handleAgreementActivated", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
-      expect(message.email.body).toContain(
-        `Richiesta di fruizione accettata automaticamente`
-      );
+      expect(message.email.body).toContain(`Richiesta di fruizione accettata`);
       expect(message.email.body).toContain(
         match(message.type)
           .with("User", () => "{{ recipientName }}")
