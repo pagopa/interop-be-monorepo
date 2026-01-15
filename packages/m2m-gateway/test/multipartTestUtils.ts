@@ -88,6 +88,35 @@ export function addMultipartFileToSupertestRequest(
   return req;
 }
 
+export type TestMultipartFileAnnotationDocumentUpload = {
+  fileContent: Buffer;
+  filename: string;
+  contentType?: string;
+  prettyName?: string;
+  answerId?: string;
+};
+export function addTestMultipartFileAnnotationDocumentToSupertestRequest(
+  req: supertest.Request,
+  file: TestMultipartFileAnnotationDocumentUpload
+): supertest.Request {
+  if (file.fileContent) {
+    void req.attach("file", file.fileContent, {
+      filename: file.filename,
+      contentType: file.contentType,
+    });
+  }
+
+  if (file.prettyName) {
+    void req.field("prettyName", file.prettyName);
+  }
+
+  if (file.answerId) {
+    void req.field("answerId", file.answerId);
+  }
+
+  return req;
+}
+
 async function expectFilesToBeEqual(file1: File, file2: File): Promise<void> {
   expect(file1.name).toEqual(file2.name);
   expect(file1.type).toEqual(file2.type);
