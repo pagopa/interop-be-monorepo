@@ -6,7 +6,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { AuthTokenPayload } from "../interop-token/models.js";
+import {
+  ApiAuthTokenDPoPPayload,
+  AuthTokenPayload,
+} from "../interop-token/models.js";
 import { SystemRole, UserRole, systemRole } from "./roles.js";
 
 /* NOTE:
@@ -86,9 +89,10 @@ export type AuthData =
   | InternalAuthData
   | MaintenanceAuthData;
 
-// Managing M2MDPoPAuthData, M2MADPoPAdminAuthData
-export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
-  match<AuthTokenPayload, AuthData>(token)
+export const getAuthDataFromToken = (
+  token: AuthTokenPayload | ApiAuthTokenDPoPPayload
+): AuthData =>
+  match<AuthTokenPayload | ApiAuthTokenDPoPPayload, AuthData>(token)
     .with(
       { role: systemRole.INTERNAL_ROLE },
       { role: systemRole.MAINTENANCE_ROLE },

@@ -31,6 +31,7 @@ import {
   InteropUIToken,
   UIClaims,
   InteropJwtInternalPayload,
+  InteropApiDPoPToken,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
@@ -157,7 +158,7 @@ export class InteropTokenGenerator {
     consumerId: TenantId;
     clientAdminId: UserId | undefined;
     dpopJWK?: JWKKeyRS256 | JWKKeyES256;
-  }): Promise<InteropApiToken> {
+  }): Promise<InteropApiToken | InteropApiDPoPToken> {
     if (
       !this.config.generatedInteropTokenKid ||
       !this.config.generatedInteropTokenIssuer ||
