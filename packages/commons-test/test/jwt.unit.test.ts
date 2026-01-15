@@ -8,6 +8,7 @@ import {
   InteropJwtMaintenancePayload,
   M2MAdminAuthData,
   M2MAuthData,
+  M2MDPoPAuthData,
   MaintenanceAuthData,
   readAuthDataFromJwtToken,
   SerializedInteropJwtApiPayload,
@@ -21,6 +22,7 @@ import {
 import { invalidClaim } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
+  createDPoPPayload,
   createPayload,
   createUserPayload,
   mockM2MAdminUserId,
@@ -48,11 +50,22 @@ const mockM2MTokenPayload: SerializedInteropJwtApiPayload = createPayload(
   systemRole.M2M_ROLE
 );
 
+const mockM2MDPoPTokenPayload: SerializedInteropJwtApiPayload =
+  createDPoPPayload(systemRole.M2M_ROLE);
+
 const expectedM2MAuthData: M2MAuthData = {
   clientId: mockM2MTokenPayload.client_id,
   systemRole: systemRole.M2M_ROLE,
   jti: mockM2MTokenPayload.jti,
   organizationId: mockM2MTokenPayload.organizationId,
+};
+
+const expectedM2MDPoPAuthData: M2MDPoPAuthData = {
+  clientId: mockM2MDPoPTokenPayload.client_id,
+  systemRole: systemRole.M2M_ROLE,
+  jti: mockM2MDPoPTokenPayload.jti,
+  organizationId: mockM2MDPoPTokenPayload.organizationId,
+  cnf: { jkt: "dummy-jkt-value" },
 };
 
 const mockInternalTokenPayload: SerializedInteropJwtInternalPayload =
@@ -186,7 +199,7 @@ describe("JWT tests", () => {
 
       expect(() => {
         readAuthDataFromJwtToken(tokenPayload!);
-      }).toThrowError(/.*Validation error: Invalid enum value.*/);
+      }).toThrowError(/.*Validation error: .*Invalid enum value.*/);
     });
 
     it("should fail reading auth data from a UI token with empty user roles", async () => {
@@ -215,6 +228,17 @@ describe("JWT tests", () => {
 
       expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
         expectedM2MAuthData
+      );
+    });
+
+    it.only("should successfully read auth data from a M2M token DPoP bound", async () => {
+      const tokenPayload = decodeJwtToken(
+        signPayload(mockM2MDPoPTokenPayload),
+        genericLogger
+      );
+
+      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+        expectedM2MDPoPAuthData
       );
     });
 
@@ -309,7 +333,7 @@ describe("JWT tests", () => {
       );
 
       expect(() => readAuthDataFromJwtToken(tokenPayload!)).toThrowError(
-        /Validation error: Invalid discriminator value.*/
+        /Validation error: .*Invalid literal value.*/
       );
     });
 
@@ -335,7 +359,7 @@ describe("JWT tests", () => {
 
       expect(() => {
         readAuthDataFromJwtToken(tokenPayload!);
-      }).toThrowError(/.*Validation error: Invalid enum value.*/);
+      }).toThrowError(/.*Validation error: .*Invalid enum value.*/);
     });
 
     it("should also accept audience as a JSON array", async () => {

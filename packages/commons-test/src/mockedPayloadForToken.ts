@@ -41,6 +41,17 @@ const rolePayloadMap = {
 
 type RolePayloadsMap = typeof rolePayloadMap;
 
+type AuthRoleDPoP = "m2m" | "m2m-admin";
+
+const rolePayloadDPoPMap = {
+  [systemRole.M2M_ROLE]: createM2MDPoPPayload,
+  [systemRole.M2M_ADMIN_ROLE]: createM2MAdminDPoPPayload,
+  // the `satisfies` ensures that all roles will have a corresponding creator function
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} satisfies Record<AuthRoleDPoP, (...args: any) => any>;
+
+type RolePayloadDPoPMap = typeof rolePayloadDPoPMap;
+
 /**
  * Creates and returns a properly typed JWT payload based on the provided authorization role {@link AuthRole}
  *
@@ -59,6 +70,11 @@ export function createPayload<T extends keyof RolePayloadsMap>(
   return rolePayloadMap[role](role) as ReturnType<RolePayloadsMap[T]>;
 }
 
+export function createDPoPPayload<T extends keyof RolePayloadDPoPMap>(
+  role: T
+): ReturnType<RolePayloadDPoPMap[T]> {
+  return rolePayloadDPoPMap[role]() as ReturnType<RolePayloadDPoPMap[T]>;
+}
 export const generateToken = (role: AuthRole): string =>
   signPayload(createPayload(role));
 
@@ -136,6 +152,22 @@ function createM2MPayload(): SerializedInteropJwtApiPayload {
   };
 }
 
+function createM2MDPoPPayload(): SerializedInteropJwtApiPayload {
+  return {
+    iss: "dev.interop.pagopa.it",
+    aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    nbf: Math.floor(Date.now() / 1000),
+    iat: Math.floor(Date.now() / 1000),
+    jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
+    role: systemRole.M2M_ROLE,
+    organizationId: mockTokenOrganizationId,
+    client_id: generateId(),
+    sub: generateId(),
+    cnf: { jkt: "dummy-jkt-value" },
+  };
+}
+
 function createInternalPayload(): SerializedInteropJwtInternalPayload {
   return {
     iss: "dev.interop.pagopa.it",
@@ -162,5 +194,22 @@ function createM2MAdminPayload(): SerializedInteropJwtApiPayload {
     client_id: mockM2MAdminClientId,
     sub: mockM2MAdminClientId,
     adminId: mockM2MAdminUserId,
+  };
+}
+
+function createM2MAdminDPoPPayload(): SerializedInteropJwtApiPayload {
+  return {
+    iss: "dev.interop.pagopa.it",
+    aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    nbf: Math.floor(Date.now() / 1000),
+    iat: Math.floor(Date.now() / 1000),
+    jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
+    role: systemRole.M2M_ADMIN_ROLE,
+    organizationId: mockTokenOrganizationId,
+    client_id: mockM2MAdminClientId,
+    sub: mockM2MAdminClientId,
+    adminId: mockM2MAdminUserId,
+    cnf: { jkt: "dummy-jkt-value" },
   };
 }
