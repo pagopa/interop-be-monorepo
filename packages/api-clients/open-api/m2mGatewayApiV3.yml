@@ -2051,7 +2051,7 @@ paths:
     post:
       tags:
         - clients
-      summary: Create a new Client Key
+      summary: Create a new Client Key for a specific Client
       description: Create a new client key associated with a Client
       operationId: createClientKey
       requestBody:
