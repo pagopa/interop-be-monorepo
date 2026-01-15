@@ -10,7 +10,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateSingleAnswer,
-  tenantKind,
+  targetTenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -33,7 +33,7 @@ import {
 describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
   const riskAnalysisTemplate = getMockValidRiskAnalysisFormTemplate(
-    tenantKind.PA
+    targetTenantKind.PA
   );
   const annotationDocument =
     getMockRiskAnalysisTemplateAnswerAnnotationDocument();
