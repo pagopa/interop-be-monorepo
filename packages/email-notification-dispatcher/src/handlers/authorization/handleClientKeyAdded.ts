@@ -75,6 +75,7 @@ export async function handleClientKeyAdded(
         entityId: client.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         clientName: client.name,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

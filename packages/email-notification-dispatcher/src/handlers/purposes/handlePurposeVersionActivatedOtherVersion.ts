@@ -89,6 +89,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
         dailyCalls: dailyCallsPerConsumer,
         isAccepted: true,
         ctaLabel: `Visualizza finalità`,
+        tenantId: consumer.id,
         bffUrl: config.bffUrl,
       }),
     },

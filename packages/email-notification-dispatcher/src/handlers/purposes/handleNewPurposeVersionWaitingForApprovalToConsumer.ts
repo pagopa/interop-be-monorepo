@@ -79,6 +79,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
         dailyCalls: dailyCallsPerConsumer,
         isNewVersion: true,
         ctaLabel: `Gestisci finalità`,
+        tenantId: consumer.id,
         bffUrl: config.bffUrl,
       }),
     },

@@ -77,6 +77,7 @@ export async function handleProducerDelegationSubmitted(
         delegatorName: delegator.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta di delega`,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

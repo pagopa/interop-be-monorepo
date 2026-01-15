@@ -81,6 +81,7 @@ export async function handleProducerKeychainKeyAdded(
         entityId: producerKeychain.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         producerKeychainName: producerKeychain.name,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

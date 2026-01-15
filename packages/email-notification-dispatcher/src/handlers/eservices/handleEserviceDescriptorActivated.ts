@@ -96,6 +96,7 @@ export async function handleEserviceDescriptorActivated(
             eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             ctaLabel: `Visualizza e-service`,
+            tenantId: t.tenantId,
             bffUrl: config.bffUrl,
           }),
         },

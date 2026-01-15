@@ -77,6 +77,7 @@ export async function handleAgreementUnsuspendedByConsumer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

@@ -76,6 +76,7 @@ export async function handleProducerKeychainUserDeleted(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         producerKeychainName: producerKeychain.name,
         ctaLabel: `Gestisci chiavi`,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

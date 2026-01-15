@@ -24878,6 +24878,12 @@ paths:
           description: The id of the entity
           schema:
             type: string
+        - name: tenantId
+          in: query
+          required: true
+          description: The tenant ID for selfcare ID resolution
+          schema:
+            type: string
       responses:
         "302":
           description: Redirect to the correct deepLink based on notification type and entity id

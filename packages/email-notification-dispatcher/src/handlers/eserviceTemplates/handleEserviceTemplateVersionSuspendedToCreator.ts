@@ -76,6 +76,7 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
         ...(t.type === "Tenant" ? { recipientName: creator.name } : {}),
         templateName: eserviceTemplate.name,
         ctaLabel: `Visualizza template`,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

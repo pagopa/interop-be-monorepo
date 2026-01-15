@@ -80,6 +80,7 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
         delegateName: delegate.name,
         eserviceName: eservice.name,
         ctaLabel: "Valuta la richiesta",
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

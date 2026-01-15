@@ -78,6 +78,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToProducer(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
+        tenantId: producer.id,
         bffUrl: config.bffUrl,
       }),
     },

@@ -105,6 +105,7 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             creatorName: creator.name,
             templateName: eserviceTemplate.name,
+            tenantId: t.tenantId,
             bffUrl: config.bffUrl,
           }),
         },

@@ -72,6 +72,7 @@ export async function handlePurposeArchived(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
+        tenantId: producer.id,
         bffUrl: config.bffUrl,
       }),
     },

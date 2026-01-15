@@ -82,6 +82,7 @@ export async function handlePurposeVersionActivatedFirstVersion(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
+        tenantId: consumer.id,
         bffUrl: config.bffUrl,
       }),
     },

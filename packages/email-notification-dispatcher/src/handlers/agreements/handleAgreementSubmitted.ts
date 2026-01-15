@@ -71,6 +71,7 @@ export async function handleAgreementSubmitted(
         consumerName: consumer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

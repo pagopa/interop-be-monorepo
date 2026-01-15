@@ -76,6 +76,7 @@ export async function handleConsumerDelegationRevoked(
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

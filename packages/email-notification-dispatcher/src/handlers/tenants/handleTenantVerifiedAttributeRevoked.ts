@@ -101,6 +101,7 @@ export async function handleTenantVerifiedAttributeRevoked(
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
         attributeName: attribute.name,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

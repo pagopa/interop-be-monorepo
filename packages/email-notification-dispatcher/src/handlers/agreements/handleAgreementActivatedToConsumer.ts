@@ -74,6 +74,7 @@ export async function handleAgreementActivatedToConsumer(
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },

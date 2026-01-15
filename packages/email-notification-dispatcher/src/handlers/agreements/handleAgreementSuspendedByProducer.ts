@@ -69,6 +69,7 @@ export async function handleAgreementSuspendedByProducer(
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         producerName: producer.name,
         eserviceName: eservice.name,
+        tenantId: t.tenantId,
         bffUrl: config.bffUrl,
       }),
     },
