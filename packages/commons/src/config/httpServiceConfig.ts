@@ -15,11 +15,14 @@ export const JWTConfig = z
       .pipe(z.array(z.string()).nonempty()),
 
     JWKS_CACHE_MAX_AGE_MILLIS: z.coerce.number().optional(),
+
+    DPOP_ENABLED: z.coerce.boolean().optional().default(false),
   })
   .transform((c) => ({
     wellKnownUrls: c.WELL_KNOWN_URLS,
     acceptedAudiences: c.ACCEPTED_AUDIENCES,
     jwksCacheMaxAge: c.JWKS_CACHE_MAX_AGE_MILLIS, // milliseconds
+    dpopEnabled: c.DPOP_ENABLED,
   }));
 export type JWTConfig = z.infer<typeof JWTConfig>;
 

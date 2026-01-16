@@ -11,6 +11,7 @@ import {
   M2MDPoPAdminAuthData,
   M2MDPoPAuthData,
   MaintenanceAuthData,
+  readAuthDataFromJwtDPoPToken,
   readAuthDataFromJwtToken,
   SerializedInteropJwtApiPayload,
   SerializedInteropJwtInternalPayload,
@@ -252,7 +253,7 @@ describe("JWT tests", () => {
         genericLogger
       );
 
-      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+      expect(readAuthDataFromJwtDPoPToken(tokenPayload!)).toEqual(
         expectedM2MDPoPAuthData
       );
     });
@@ -263,7 +264,7 @@ describe("JWT tests", () => {
         genericLogger
       );
 
-      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+      expect(readAuthDataFromJwtDPoPToken(tokenPayload!)).toEqual(
         expectedM2MAdminDPoPAuthData
       );
     });
@@ -359,7 +360,20 @@ describe("JWT tests", () => {
       );
 
       expect(() => readAuthDataFromJwtToken(tokenPayload!)).toThrowError(
-        /Validation error: .*Invalid literal value.*/
+        /Validation error: .*Invalid discriminator value.*/
+      );
+    });
+
+    it("should fail when the DPoP token is invalid", async () => {
+      const tokenPayload = decodeJwtToken(
+        signPayload({
+          role: "invalid-role",
+        }),
+        genericLogger
+      );
+
+      expect(() => readAuthDataFromJwtDPoPToken(tokenPayload!)).toThrowError(
+        /Validation error: .*Invalid discriminator value.*/
       );
     });
 

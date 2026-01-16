@@ -4,8 +4,12 @@ import { makeApiProblemBuilder } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ExpressContext, fromAppContext } from "../context/context.js";
 import { JWTConfig } from "../config/httpServiceConfig.js";
-import { jwtFromAuthHeader } from "./headers.js";
-import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
+import { credentialsFromDPoPHeader, jwtFromAuthHeader } from "./headers.js";
+import {
+  readAuthDataFromJwtDPoPToken,
+  readAuthDataFromJwtToken,
+  verifyJwtToken,
+} from "./jwt.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
 
@@ -19,11 +23,25 @@ export const authenticationMiddleware: (
     const ctx = fromAppContext(req.ctx);
 
     try {
-      const jwtToken = jwtFromAuthHeader(req, ctx.logger);
-      const { decoded } = await verifyJwtToken(jwtToken, config, ctx.logger);
+      if (config.dpopEnabled) {
+        const { accessToken } = credentialsFromDPoPHeader(req, ctx.logger);
+        const { decoded } = await verifyJwtToken(
+          accessToken,
+          config,
+          ctx.logger
+        );
+        // Verify DPoP proof
+        // controllo del cnf del token di accesso e del dpop proof
+        // oppure verifichiamo il cnf in gatewayV3??
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx.authData = readAuthDataFromJwtDPoPToken(decoded);
+      } else {
+        const jwtToken = jwtFromAuthHeader(req, ctx.logger);
+        const { decoded } = await verifyJwtToken(jwtToken, config, ctx.logger);
 
-      // eslint-disable-next-line functional/immutable-data
-      req.ctx.authData = readAuthDataFromJwtToken(decoded);
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx.authData = readAuthDataFromJwtToken(decoded);
+      }
       return next();
     } catch (error) {
       const problem = makeApiProblem(

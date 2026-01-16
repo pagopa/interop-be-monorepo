@@ -28,7 +28,7 @@ vi.mock("pagopa-interop-commons", async () => {
             const jwtToken = jwtFromAuthHeader(req, genericLogger);
             const decoded = decodeJwtToken(jwtToken, genericLogger);
             const ctx = req.ctx || {};
-            ctx.authData = readAuthDataFromJwtToken(
+            ctx.authData = readAuthDataFromJwtDPoPToken(
               decoded ??
                 (() => {
                   throw new Error(
@@ -49,11 +49,11 @@ vi.mock("pagopa-interop-commons", async () => {
 import {
   jwtFromAuthHeader,
   genericLogger,
-  readAuthDataFromJwtToken,
   decodeJwtToken,
   AppContext,
   rateLimiterMiddleware,
   RateLimiter,
+  readAuthDataFromJwtDPoPToken,
 } from "pagopa-interop-commons";
 import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
 import { createApp } from "../src/app.js";

@@ -6,7 +6,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { AuthTokenPayload } from "../interop-token/models.js";
+import {
+  AuthTokenDPoPPayload,
+  AuthTokenPayload,
+} from "../interop-token/models.js";
 import { SystemRole, UserRole, systemRole } from "./roles.js";
 
 /* NOTE:
@@ -86,6 +89,8 @@ export type AuthData =
   | InternalAuthData
   | MaintenanceAuthData;
 
+export type DPoPAuthData = M2MDPoPAuthData | M2MDPoPAdminAuthData;
+
 export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
   match<AuthTokenPayload, AuthData>(token)
     .with(
@@ -96,26 +101,11 @@ export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
         jti: t.jti,
       })
     )
-    .with({ role: systemRole.M2M_ROLE, cnf: P.not(P.nullish) }, (t) => ({
-      systemRole: t.role,
-      organizationId: unsafeBrandId<TenantId>(t.organizationId),
-      clientId: unsafeBrandId<ClientId>(t.client_id),
-      jti: t.jti,
-      cnf: t.cnf,
-    }))
     .with({ role: systemRole.M2M_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       clientId: unsafeBrandId<ClientId>(t.client_id),
       jti: t.jti,
-    }))
-    .with({ role: systemRole.M2M_ADMIN_ROLE, cnf: P.not(P.nullish) }, (t) => ({
-      systemRole: t.role,
-      organizationId: unsafeBrandId<TenantId>(t.organizationId),
-      clientId: unsafeBrandId<ClientId>(t.client_id),
-      userId: unsafeBrandId<UserId>(t.adminId),
-      jti: t.jti,
-      cnf: t.cnf,
     }))
     .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
       systemRole: t.role,
@@ -135,13 +125,34 @@ export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
     }))
     .exhaustive();
 
+export const getAuthDataFromDPoPToken = (
+  token: AuthTokenDPoPPayload
+): DPoPAuthData =>
+  match<AuthTokenDPoPPayload, DPoPAuthData>(token)
+    .with({ role: systemRole.M2M_ROLE, cnf: P.not(P.nullish) }, (t) => ({
+      systemRole: t.role,
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      jti: t.jti,
+      cnf: t.cnf,
+    }))
+    .with({ role: systemRole.M2M_ADMIN_ROLE, cnf: P.not(P.nullish) }, (t) => ({
+      systemRole: t.role,
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      userId: unsafeBrandId<UserId>(t.adminId),
+      jti: t.jti,
+      cnf: t.cnf,
+    }))
+    .exhaustive();
+
 export type AuthDataUserInfo = {
   userId: UserId | undefined;
   organizationId: TenantId | undefined;
   selfcareId: SelfcareId | undefined;
 };
 export function getUserInfoFromAuthData(
-  authData: AuthData | undefined | null
+  authData: AuthData | DPoPAuthData | undefined | null
 ): AuthDataUserInfo {
   if (!authData) {
     return {
@@ -151,7 +162,7 @@ export function getUserInfoFromAuthData(
     };
   }
 
-  return match<AuthData, AuthDataUserInfo>(authData)
+  return match<AuthData | DPoPAuthData, AuthDataUserInfo>(authData)
     .with(
       {
         systemRole: P.union(

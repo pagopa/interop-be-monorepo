@@ -7,11 +7,16 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "../logging/index.js";
 import { JWTConfig } from "../config/httpServiceConfig.js";
-import { AuthTokenPayload } from "../interop-token/models.js";
+import {
+  AuthTokenDPoPPayload,
+  AuthTokenPayload,
+} from "../interop-token/models.js";
 import { buildJwksClients } from "./jwk.js";
 import {
   AuthData,
   AuthDataUserInfo,
+  DPoPAuthData,
+  getAuthDataFromDPoPToken,
   getAuthDataFromToken,
   getUserInfoFromAuthData,
 } from "./authData.js";
@@ -39,6 +44,17 @@ export const readAuthDataFromJwtToken = (
   }
 };
 
+export const readAuthDataFromJwtDPoPToken = (
+  payload: JwtPayload | string
+): DPoPAuthData => {
+  const dpopTokenPayload = AuthTokenDPoPPayload.safeParse(payload);
+  if (dpopTokenPayload.success === false) {
+    throw invalidClaim(dpopTokenPayload.error);
+  } else {
+    return getAuthDataFromDPoPToken(dpopTokenPayload.data);
+  }
+};
+
 export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
@@ -54,7 +70,9 @@ export const verifyJwtToken = async (
       }
 
       try {
-        const authData = readAuthDataFromJwtToken(decoded);
+        const authData: AuthData | DPoPAuthData = config.dpopEnabled
+          ? readAuthDataFromJwtDPoPToken(decoded)
+          : readAuthDataFromJwtToken(decoded);
         return getUserInfoFromAuthData(authData);
       } catch (authDataError) {
         logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
