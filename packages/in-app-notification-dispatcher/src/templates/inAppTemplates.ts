@@ -223,11 +223,8 @@ export const inAppTemplates = {
       .exhaustive();
     return `Ti informiamo che l'ente ${delegatorName} ha revocato la delega ${delegationKind} per l'e-service ${eserviceName} che ti aveva conferito.`;
   },
-  templateStatusChangedToProducer: (
-    templateName: string,
-    producerName: string
-  ): string =>
-    `L'ente ${producerName} ha sospeso il template "${templateName}", da cui il tuo ente ha generato l'e-service.`,
+  templateStatusChangedToProducer: (templateName: string): string =>
+    `È stato sospeso il tuo template "${templateName}".`,
   newEserviceTemplateVersionToInstantiator: (
     creatorName: string,
     eserviceTemplateVersion: string,
@@ -244,8 +241,10 @@ export const inAppTemplates = {
       eserviceTemplate.name
     } in quanto è stato modificato il template e-service da cui lo hai generato.`,
   eserviceTemplateStatusChangedToInstantiator: (
-    eserviceTemplateName: string
-  ): string => `È stato sospeso il tuo template "${eserviceTemplateName}".`,
+    eserviceTemplateName: string,
+    creatorName: string
+  ): string =>
+    `L'ente ${creatorName} ha sospeso il template "${eserviceTemplateName}", da cui il tuo ente ha generato l'e-service.`,
   purposeStatusChangedToConsumer: (
     purposeName: string,
     consumerName: string,
