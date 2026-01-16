@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { match, P } from "ts-pattern";
 import { Message } from "@aws-sdk/client-sqs";
 
@@ -50,7 +49,7 @@ async function processMessage(
 ): Promise<void> {
   try {
     const { id, detail } = message;
-    const { key: fileKey, client_short_code: clientCode } = detail;
+    const { key: fileKey } = detail;
 
     const signature = await signatureService.readSignatureReferenceById(
       fileKey,
@@ -78,8 +77,7 @@ async function processMessage(
     );
 
     const { bucket, process } = FILE_KIND_CONFIG[signatureFileKind];
-    const datePath = format(new Date(message.time), "yyyy/MM/dd");
-    const path = `${clientCode}/${datePath}`;
+    const path = signature.path;
     const fileName = appendSignedSuffixToFileName(fileKey, signatureFileKind);
 
     // immutable s3Key with 409 handling for specific documentTypes
@@ -129,7 +127,7 @@ async function processMessage(
         riskAnalysis: (): PurposeVersionDocument => ({
           id: unsafeBrandId<PurposeVersionDocumentId>(docSignature.subObjectId),
           contentType: docSignature.contentType,
-          path: s3Key,
+          path,
           createdAt: bigIntToDate(docSignature.createdAt),
         }),
         agreement: (): AgreementDocument => ({
