@@ -149,12 +149,12 @@ export const inAppTemplates = {
   ): string => {
     const { action, delegationKind, additional } = match(eventType)
       .with("ProducerDelegationApproved", () => ({
-        action: "approvato",
+        action: "accettato",
         delegationKind: "all'erogazione",
         additional: " La delega è ora attiva.",
       }))
       .with("ConsumerDelegationApproved", () => ({
-        action: "approvato",
+        action: "accettato",
         delegationKind: "alla fruizione",
         additional: " La delega è ora attiva.",
       }))
@@ -169,7 +169,7 @@ export const inAppTemplates = {
         additional: undefined,
       }))
       .exhaustive();
-    return `Ti informiamo che l'ente ${delegateName} ha ${action} la delega ${delegationKind} che il tuo ente gli ha conferito per l'e-service ${eserviceName}.${
+    return `Ti informiamo che l'ente ${delegateName} ha ${action} la delega ${delegationKind} che il tuo ente gli ha conferito per l'e-service "${eserviceName}".${
       additional ? additional : ``
     }`;
   },
