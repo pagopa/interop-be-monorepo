@@ -96,6 +96,7 @@ export async function handleEserviceDescriptorSuspended(
             producerName: producer.name,
             eserviceVersion: descriptor.version,
             ctaLabel: `Visualizza e-service`,
+            selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),
         },
