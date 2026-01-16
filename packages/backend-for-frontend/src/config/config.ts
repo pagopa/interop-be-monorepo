@@ -286,15 +286,6 @@ export const FrontendBaseURLConfig = z
   }));
 export type FrontendBaseURLConfig = z.infer<typeof FrontendBaseURLConfig>;
 
-export const SelfcareDeeplinkConfig = z
-  .object({
-    SELFCARE_PRODUCT_ID: z.string(),
-  })
-  .transform((c) => ({
-    selfcareProductId: c.SELFCARE_PRODUCT_ID,
-  }));
-export type SelfcareDeeplinkConfig = z.infer<typeof SelfcareDeeplinkConfig>;
-
 export const SwaggerConfig = z
   .object({
     BFF_SWAGGER_UI_ENABLED: z.coerce.boolean().default(false),
@@ -335,7 +326,6 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
   .and(FeatureFlagNotificationConfig)
   .and(FrontendBaseURLConfig)
-  .and(SelfcareDeeplinkConfig)
   .and(FeatureFlagPurposeTemplateConfig)
   .and(FeatureFlagUseSignedDocumentConfig);
 

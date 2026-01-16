@@ -33,7 +33,7 @@ const emailDeeplinkRouter = (
 
       const selfcareUrl = new URL("/token-exchange", config.frontendBaseUrl);
       selfcareUrl.searchParams.set("institutionId", selfcareId);
-      selfcareUrl.searchParams.set("productId", config.selfcareProductId);
+      selfcareUrl.searchParams.set("productId", config.selfcareProductName);
       selfcareUrl.searchParams.set("redirectUrl", redirectPath);
 
       return res.redirect(selfcareUrl.href);
