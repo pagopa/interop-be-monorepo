@@ -46,7 +46,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
 
   const [htmlTemplate, eservice, consumer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.purposeVersionActivatedMailTemplate
+      eventMailTemplateType.purposeVersionRejectedMailTemplate
     ),
     retrieveEService(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
