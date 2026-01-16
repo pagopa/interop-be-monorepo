@@ -8,6 +8,7 @@ import {
   InteropJwtMaintenancePayload,
   M2MAdminAuthData,
   M2MAuthData,
+  M2MDPoPAdminAuthData,
   M2MDPoPAuthData,
   MaintenanceAuthData,
   readAuthDataFromJwtToken,
@@ -50,15 +51,15 @@ const mockM2MTokenPayload: SerializedInteropJwtApiPayload = createPayload(
   systemRole.M2M_ROLE
 );
 
-const mockM2MDPoPTokenPayload: SerializedInteropJwtApiPayload =
-  createDPoPPayload(systemRole.M2M_ROLE);
-
 const expectedM2MAuthData: M2MAuthData = {
   clientId: mockM2MTokenPayload.client_id,
   systemRole: systemRole.M2M_ROLE,
   jti: mockM2MTokenPayload.jti,
   organizationId: mockM2MTokenPayload.organizationId,
 };
+
+const mockM2MDPoPTokenPayload: SerializedInteropJwtApiPayload =
+  createDPoPPayload(systemRole.M2M_ROLE);
 
 const expectedM2MDPoPAuthData: M2MDPoPAuthData = {
   clientId: mockM2MDPoPTokenPayload.client_id,
@@ -112,6 +113,18 @@ const expectedM2MAdminAuthData: M2MAdminAuthData = {
   organizationId: mockM2MAdminTokenPayload.organizationId,
   userId: mockM2MAdminUserId,
   clientId: mockM2MAdminTokenPayload.client_id,
+};
+
+const mockM2MAdminDPoPTokenPayload: SerializedInteropJwtApiPayload =
+  createDPoPPayload(systemRole.M2M_ADMIN_ROLE);
+
+const expectedM2MAdminDPoPAuthData: M2MDPoPAdminAuthData = {
+  systemRole: systemRole.M2M_ADMIN_ROLE,
+  jti: mockM2MAdminDPoPTokenPayload.jti,
+  organizationId: mockM2MAdminDPoPTokenPayload.organizationId,
+  userId: mockM2MAdminUserId,
+  clientId: mockM2MAdminDPoPTokenPayload.client_id,
+  cnf: { jkt: "dummy-jkt-value" },
 };
 
 const getClaimsName = (token: object): string[] => {
@@ -199,7 +212,9 @@ describe("JWT tests", () => {
 
       expect(() => {
         readAuthDataFromJwtToken(tokenPayload!);
-      }).toThrowError(/.*Validation error: .*Invalid enum value.*/);
+      }).toThrowError(
+        /.*Validation error: .*Invalid enum value. Expected (?:'[^']+'(?:\s\|\s)?)+, received 'invalid-role' at.*/
+      );
     });
 
     it("should fail reading auth data from a UI token with empty user roles", async () => {
@@ -231,7 +246,7 @@ describe("JWT tests", () => {
       );
     });
 
-    it.only("should successfully read auth data from a M2M token DPoP bound", async () => {
+    it("should successfully read auth data from a M2M token DPoP bound", async () => {
       const tokenPayload = decodeJwtToken(
         signPayload(mockM2MDPoPTokenPayload),
         genericLogger
@@ -239,6 +254,17 @@ describe("JWT tests", () => {
 
       expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
         expectedM2MDPoPAuthData
+      );
+    });
+
+    it("should successfully read auth data from a M2M_ADMIN token DPoP bound", async () => {
+      const tokenPayload = decodeJwtToken(
+        signPayload(mockM2MAdminDPoPTokenPayload),
+        genericLogger
+      );
+
+      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+        expectedM2MAdminDPoPAuthData
       );
     });
 
@@ -359,7 +385,9 @@ describe("JWT tests", () => {
 
       expect(() => {
         readAuthDataFromJwtToken(tokenPayload!);
-      }).toThrowError(/.*Validation error: .*Invalid enum value.*/);
+      }).toThrowError(
+        /.*Validation error: .*Invalid enum value. Expected (?:'[^']+'(?:\s\|\s)?)+, received 'invalid-role' at.*/
+      );
     });
 
     it("should also accept audience as a JSON array", async () => {

@@ -55,7 +55,7 @@ export type M2MAdminAuthData = {
   jti: string;
 };
 
-export type M2MADPoPAdminAuthData = {
+export type M2MDPoPAdminAuthData = {
   systemRole: Extract<SystemRole, "m2m-admin">;
   organizationId: TenantId;
   userId: UserId;
@@ -82,7 +82,7 @@ export type AuthData =
   | M2MAuthData
   | M2MAdminAuthData
   | M2MDPoPAuthData
-  | M2MADPoPAdminAuthData
+  | M2MDPoPAdminAuthData
   | InternalAuthData
   | MaintenanceAuthData;
 

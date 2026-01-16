@@ -42,7 +42,6 @@ import {
   FileManager,
   formatDateyyyyMMdd,
   formatTimeHHmmss,
-  InteropApiDPoPToken,
   InteropApiToken,
   InteropConsumerToken,
   InteropTokenGenerator,
@@ -86,7 +85,7 @@ export type GeneratedTokenData =
     }
   | {
       limitReached: false;
-      token: InteropConsumerToken | InteropApiToken | InteropApiDPoPToken;
+      token: InteropConsumerToken | InteropApiToken;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
       isDPoP?: boolean;
     };
