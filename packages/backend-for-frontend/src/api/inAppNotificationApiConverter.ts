@@ -76,7 +76,9 @@ export function toBffApiNotification(
       notification.notificationType
     )
       ? notificationTypeToUiSection[notification.notificationType]
-      : `${notificationTypeToUiSection[notification.notificationType]}/${notification.entityId}`,
+      : `${notificationTypeToUiSection[notification.notificationType]}/${
+          notification.entityId
+        }`,
     category: notificationTypeToCategory[notification.notificationType],
     createdAt: notification.createdAt,
     readAt: notification.readAt,
