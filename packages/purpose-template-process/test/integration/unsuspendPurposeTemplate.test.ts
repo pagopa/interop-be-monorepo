@@ -14,7 +14,7 @@ import {
   purposeTemplateState,
   PurposeTemplateUnsuspendedV2,
   toPurposeTemplateV2,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -139,7 +139,7 @@ describe("unsuspendPurposeTemplate", () => {
       ...purposeTemplate,
       purposeRiskAnalysisForm: {
         id: generateId(),
-        version: getLatestVersionFormRules(tenantKind.PA)!.version,
+        version: getLatestVersionFormRules(targetTenantKind.PA)!.version,
         singleAnswers: [
           {
             id: generateId(),

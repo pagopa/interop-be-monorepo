@@ -120,6 +120,7 @@ import {
   assertEserviceMode,
   assertPersonalDataCompliant,
   assertPurposeIsDraft,
+  assertPurposeIsNotFromTemplate,
   assertPurposeTitleIsNotDuplicated,
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
@@ -2080,6 +2081,7 @@ const performUpdatePurpose = async (
   );
 
   assertPurposeIsDraft(purpose.data);
+  assertPurposeIsNotFromTemplate(purpose.data);
 
   const {
     title,

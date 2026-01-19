@@ -102,10 +102,13 @@ export function createSafeStorageApiClient(config: SafeStorageApiConfig) {
 
     async downloadFileContent(
       downloadUrl: string,
+      fileKey: string,
       logger: Logger
     ): Promise<Buffer> {
       try {
-        logger.info(`Downloading file on safe storage with url ${downloadUrl}`);
+        logger.info(
+          `Downloading file with file key ${fileKey} on safe storage`
+        );
         const response = await axios.get(downloadUrl, {
           responseType: "arraybuffer",
           timeout: 60000,

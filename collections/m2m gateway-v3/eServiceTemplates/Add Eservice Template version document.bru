@@ -1,0 +1,29 @@
+meta {
+  name: Add eservice template version document
+  type: http
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/:templateId/versions/:versionId/documents
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  templateId: {{templateId}}
+  versionId: {{versionId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  file: @file()
+  prettyName: Test File
+}
+
+vars:post-response {
+  documentId: res.body.id
+}

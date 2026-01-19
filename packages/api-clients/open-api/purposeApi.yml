@@ -478,10 +478,10 @@ paths:
       responses:
         "200":
           description: Purpose updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
             application/json:
               schema:
                 $ref: "#/components/schemas/Purpose"
@@ -1595,9 +1595,6 @@ components:
           nullable: true
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
-          description: |
-            Optional in the purpose model, but a purpose cannot exist without a risk analysis.
-            There is no practical use in letting the user remove it, we don't make it nullable.
         dailyCalls:
           description: Maximum number of daily calls that this version can perform
           type: integer
@@ -1615,9 +1612,6 @@ components:
           maxLength: 60
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
-          description: |
-            Optional in the purpose model, but a purpose cannot exist without a risk analysis.
-            There is no practical use in letting the user remove it, we don't make it nullable.
         dailyCalls:
           description: Maximum number of daily calls that this version can perform
           type: integer
