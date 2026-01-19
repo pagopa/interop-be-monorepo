@@ -302,7 +302,9 @@ describe("handleEserviceDescriptorSuspended", async () => {
     expect(messages.length).toBeGreaterThan(0);
     // Verify that the email body contains the correctly formatted deeplink with eserviceId/descriptorId
     // The entityId is URL-encoded in the template, so we need to check for the encoded version
-    const expectedEntityId = encodeURIComponent(`${eservice.id}/${descriptor.id}`);
+    const expectedEntityId = encodeURIComponent(
+      `${eservice.id}/${descriptor.id}`
+    );
     messages.forEach((message) => {
       expect(message.email.body).toContain(expectedEntityId);
     });
