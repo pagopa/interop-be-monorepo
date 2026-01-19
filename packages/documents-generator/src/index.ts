@@ -5,6 +5,7 @@ import {
   AgreementTopicConfig,
   DelegationTopicConfig,
   InteropTokenGenerator,
+  PurposeTemplateTopicConfig,
   PurposeTopicConfig,
   RefreshableInteropToken,
   decodeKafkaMessage,
@@ -22,6 +23,7 @@ import {
   DelegationEventV2,
   PurposeEvent,
   AgreementEvent,
+  PurposeTemplateEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -48,6 +50,7 @@ import {
   RiskAnalysisDocumentBuilder,
   riskAnalysisDocumentBuilder,
 } from "./service/purpose/purposeContractBuilder.js";
+import { handlePurposeTemplateMessageV2 } from "./handler/handlePurposeTemplateMessageV2.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
@@ -91,7 +94,8 @@ const riskAnalysisContractInstance: RiskAnalysisDocumentBuilder =
 function processMessage(
   agreementTopicConfig: AgreementTopicConfig,
   purposeTopicConfig: PurposeTopicConfig,
-  delegationTopicConfig: DelegationTopicConfig
+  delegationTopicConfig: DelegationTopicConfig,
+  purposeTemplateTopicConfig: PurposeTemplateTopicConfig
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     const { decodedMessage, documentGenerator } = match(messagePayload.topic)
@@ -170,6 +174,23 @@ function processMessage(
 
         return { decodedMessage, documentGenerator };
       })
+      .with(purposeTemplateTopicConfig.purposeTemplateTopic, () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          PurposeTemplateEventV2
+        );
+
+        const documentGenerator = handlePurposeTemplateMessageV2.bind(
+          null,
+          decodedMessage,
+          pdfGenerator,
+          fileManager,
+          readModelServiceSQL,
+          refreshableToken
+        );
+
+        return { decodedMessage, documentGenerator };
+      })
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -197,7 +218,12 @@ function processMessage(
 
 await runConsumer(
   baseConsumerConfig,
-  [config.agreementTopic, config.purposeTopic, config.delegationTopic],
+  [
+    config.agreementTopic,
+    config.purposeTopic,
+    config.delegationTopic,
+    config.purposeTemplateTopic,
+  ],
   processMessage(
     {
       agreementTopic: config.agreementTopic,
@@ -207,6 +233,9 @@ await runConsumer(
     },
     {
       delegationTopic: config.delegationTopic,
+    },
+    {
+      purposeTemplateTopic: config.purposeTemplateTopic,
     }
   )
 );
