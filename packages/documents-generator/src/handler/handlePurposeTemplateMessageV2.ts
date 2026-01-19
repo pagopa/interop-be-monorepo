@@ -1,9 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import {
   CorrelationId,
-  Delegation,
-  DelegationContractDocument,
+  PurposeTemplate,
   PurposeTemplateEventEnvelopeV2,
+  RiskAnalysisTemplateDocument,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
@@ -13,7 +13,7 @@ import {
   RefreshableInteropToken,
   getInteropHeaders,
 } from "pagopa-interop-commons";
-import { delegationApi } from "pagopa-interop-api-clients";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
 import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
@@ -49,7 +49,9 @@ export async function handlePurposeTemplateMessageV2(
           "PurposeTemplateEServiceLinked",
           "PurposeTemplateEServiceUnlinked",
           "PurposeTemplateSuspended",
-          "PurposeTemplateUnsuspended"
+          "PurposeTemplateUnsuspended",
+          "RiskAnalysisTemplateDocumentGenerated",
+          "RiskAnalysisTemplateSignedDocumentGenerated"
         ),
       },
       () => Promise.resolve()
@@ -59,25 +61,26 @@ export async function handlePurposeTemplateMessageV2(
 
 // eslint-disable-next-line max-params
 async function sendContractMetadataToProcess(
-  contract: DelegationContractDocument,
+  contract: RiskAnalysisTemplateDocument,
   refreshableToken: RefreshableInteropToken,
-  delegation: Delegation,
+  purposeTemplate: PurposeTemplate,
   correlationId: CorrelationId,
   clients: PagoPAInteropBeClients,
   logger: Logger
 ): Promise<void> {
-  const contractWithIsoString: delegationApi.DelegationContractDocument = {
-    ...contract,
-    createdAt: contract.createdAt.toISOString(),
-  };
+  const contractWithIsoString: purposeTemplateApi.RiskAnalysisTemplateDocument =
+    {
+      ...contract,
+      createdAt: contract.createdAt.toISOString(),
+    };
   const token = (await refreshableToken.get()).serialized;
   logger.info(
-    `delegation document generated with id ${contractWithIsoString.id}`
+    `purpose template document generated with id ${contractWithIsoString.id}`
   );
-  await clients.delegationProcessClient.delegation.addUnsignedDelegationContractMetadata(
+  await clients.purposeTemplateProcessClient.internalAddRiskAnalysisTemplateDocumentMetadata(
     contractWithIsoString,
     {
-      params: { delegationId: delegation.id },
+      params: { purposeTemplateId: purposeTemplate.id },
       headers: getInteropHeaders({
         token,
         correlationId,
