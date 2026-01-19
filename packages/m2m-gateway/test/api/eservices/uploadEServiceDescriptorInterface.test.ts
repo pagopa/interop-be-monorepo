@@ -5,7 +5,7 @@ import { generateToken } from "pagopa-interop-commons-test";
 import {
   generateId,
   interfaceExtractingInfoError,
-  interfaceExtractingSoapFiledError,
+  interfaceExtractingSoapFieldError,
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
   invalidServerUrl,
@@ -201,7 +201,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       expectedStatus: 400,
     },
     {
-      error: interfaceExtractingSoapFiledError("invalid-field"),
+      error: interfaceExtractingSoapFieldError("invalid-field"),
       expectedStatus: 400,
     },
     {

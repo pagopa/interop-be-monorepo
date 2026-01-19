@@ -7,7 +7,7 @@ import {
   EServiceId,
   generateId,
   interfaceExtractingInfoError,
-  interfaceExtractingSoapFiledError,
+  interfaceExtractingSoapFieldError,
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
@@ -94,7 +94,7 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", 
       expectedStatus: 400,
     },
     {
-      error: interfaceExtractingSoapFiledError("field-name"),
+      error: interfaceExtractingSoapFieldError("field-name"),
       expectedStatus: 400,
     },
     {
