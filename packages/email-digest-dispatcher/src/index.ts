@@ -24,8 +24,8 @@ const log = logger({
 log.info("Email Notification Digest job started");
 
 const readModelDB = makeDrizzleConnection(config);
-const readModelService = readModelServiceBuilder(readModelDB);
-const digestDataService = digestDataServiceBuilder(log);
+const readModelService = readModelServiceBuilder(readModelDB, log);
+const digestDataService = digestDataServiceBuilder(readModelService, log);
 const htmlTemplateService = buildHTMLTemplateService();
 const templateService = digestTemplateServiceBuilder(htmlTemplateService);
 const producer = await initProducer(config, config.emailDispatchTopic);

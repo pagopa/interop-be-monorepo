@@ -1,5 +1,11 @@
 import { Logger } from "pagopa-interop-commons";
 import { TenantId } from "pagopa-interop-models";
+import {
+  eserviceTemplateToBaseDigest,
+  eserviceToBaseDigest,
+} from "../model/digestDataConverter.js";
+import { NewEservice, ReadModelService } from "./readModelService.js";
+import { SimpleCache } from "./simpleCache.js";
 
 export type BaseDigest = {
   items: Array<{
@@ -9,6 +15,7 @@ export type BaseDigest = {
   }>;
   totalCount: number;
 };
+
 export type DelegationDigest = BaseDigest & {
   items: Array<{
     delegationKind: "producer" | "consumer";
@@ -36,6 +43,7 @@ export type TenantDigestData = {
   viewAllAttributesLink: string;
   newEservices?: BaseDigest;
   updatedEservices?: BaseDigest;
+  updatedEserviceTemplates?: BaseDigest;
   acceptedSentAgreements?: BaseDigest;
   rejectedSentAgreements?: BaseDigest;
   suspendedSentAgreements?: BaseDigest;
@@ -55,27 +63,65 @@ export type TenantDigestData = {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function digestDataServiceBuilder(
-  // Future dependencies will be added here
-  // e.g., agreementReadModelService, catalogReadModelService, etc.
+  readModelService: ReadModelService,
   logger: Logger
 ) {
+  const newEservicesCache = new SimpleCache<NewEservice>(
+    logger,
+    "New e-services"
+  );
+
+  /**
+   * Constructs a digest for new e-services (same for all users)
+   * Uses in-memory cache with 3-hour TTL to avoid repeated database queries.
+   */
+  async function getNewEservicesDigest(
+    priorityProducerIds: TenantId[]
+  ): Promise<BaseDigest> {
+    logger.info("Building new e-services digest");
+
+    const cachedData = newEservicesCache.get();
+    if (cachedData !== null) {
+      logger.info("Cache hit - using cached new e-services data");
+      return eserviceToBaseDigest(cachedData, readModelService);
+    }
+
+    // Cache miss - fetch from database
+    logger.info("Cache miss - fetching new e-services from database");
+    const fetchedData = await readModelService.getNewEservices(
+      priorityProducerIds
+    );
+
+    // Store in cache
+    newEservicesCache.set(fetchedData);
+    return eserviceToBaseDigest(fetchedData, readModelService);
+  }
+
   return {
-    /**
-     * Retrieves digest data for a tenant.
-     * This is a MOCKUP implementation - will be replaced with actual readmodel queries.
-     * Called once per tenant, result is shared across all users of that tenant.
-     */
     async getDigestDataForTenant(
       tenantId: TenantId
     ): Promise<TenantDigestData> {
       logger.info(`Retrieving digest data for tenant ${tenantId}`);
 
-      // TODO: Implement actual data retrieval from readmodel
+      // Fetch all data in parallel for performance
+      const [
+        updatedEservices,
+        updatedEserviceTemplates,
+        tenantMap,
+        newEservices,
+      ] = await Promise.all([
+        readModelService.getNewVersionEservices(tenantId),
+        readModelService.getNewEserviceTemplates(tenantId),
+        readModelService.getTenantsByIds([tenantId]),
+        // TODO: ask for priority list of tenants
+        getNewEservicesDigest([]),
+      ]);
 
-      // MOCKUP: Return placeholder data
+      const tenantName = tenantMap.get(tenantId);
+
       return {
         tenantId,
-        tenantName: "Tenant Name Placeholder",
+        tenantName: tenantName ?? "Tenant Name Placeholder",
         timePeriod: "Time Period Placeholder",
         viewAllNewEservicesLink: "#",
         viewAllUpdatedEservicesLink: "#",
@@ -86,14 +132,15 @@ export function digestDataServiceBuilder(
         viewAllSentDelegationsLink: "#",
         viewAllReceivedDelegationsLink: "#",
         viewAllAttributesLink: "#",
-        newEservices: {
-          items: [],
-          totalCount: 0,
-        },
-        updatedEservices: {
-          items: [],
-          totalCount: 0,
-        },
+        newEservices,
+        updatedEservices: await eserviceToBaseDigest(
+          updatedEservices,
+          readModelService
+        ),
+        updatedEserviceTemplates: await eserviceTemplateToBaseDigest(
+          updatedEserviceTemplates,
+          readModelService
+        ),
         acceptedSentAgreements: {
           items: [],
           totalCount: 0,
