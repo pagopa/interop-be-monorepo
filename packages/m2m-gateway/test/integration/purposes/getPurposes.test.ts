@@ -94,7 +94,7 @@ describe("getPurposes", () => {
 
     const result = await purposeService.getPurposes(
       mockParams,
-      getMockM2MAdminAppContext()
+      getMockM2MAdminAppContext(),
     );
 
     expect(result).toEqual(m2mPurposeResponse);
@@ -106,7 +106,7 @@ describe("getPurposes", () => {
         limit: mockParams.limit,
         consumersIds: [],
         producersIds: [],
-        purposesIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
         name: undefined,

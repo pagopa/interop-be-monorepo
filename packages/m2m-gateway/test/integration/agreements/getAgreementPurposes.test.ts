@@ -105,7 +105,7 @@ describe("getAgreementPurposes", () => {
     const result = await agreementService.getAgreementPurposes(
       unsafeBrandId(mockApiAgreement.data.id),
       mockParams,
-      getMockM2MAdminAppContext()
+      getMockM2MAdminAppContext(),
     );
 
     expect(result).toEqual(m2mPurposesResponse);
@@ -123,7 +123,7 @@ describe("getAgreementPurposes", () => {
         consumersIds: [mockApiAgreement.data.consumerId],
         eservicesIds: [mockApiAgreement.data.eserviceId],
         producersIds: [],
-        purposesIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
         name: undefined,
