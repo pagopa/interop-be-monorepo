@@ -34,10 +34,7 @@ describe("POST /producerKeychains/:keychainId/keys router test", () => {
   const getMockedProducerKey = (producerKeychainId: string) =>
     toM2MProducerKey({ jwk: mockJwk, producerKeychainId });
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.M2M_ADMIN_ROLE,
-    authRole.M2M_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   it.each(authorizedRoles)(
     "Should return 201 and perform service calls for user with role %s",
