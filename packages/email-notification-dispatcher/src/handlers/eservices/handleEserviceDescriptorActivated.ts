@@ -1,30 +1,33 @@
 import {
+  DescriptorId,
   fromEServiceV2,
   EmailNotificationMessagePayload,
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
-  EServiceHandlerParams,
+  EServiceDescriptorHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { config } from "../../config/config.js";
+import { descriptorNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
 export async function handleEserviceDescriptorActivated(
-  data: EServiceHandlerParams
+  data: EServiceDescriptorHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
+    descriptorId: descriptorIdFromEvent,
     readModelService,
     logger,
     templateService,
@@ -39,13 +42,18 @@ export async function handleEserviceDescriptorActivated(
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
+  const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
 
-  const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
+  if (!descriptor) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+
+  const [htmlTemplate, agreements, producer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.eserviceDescriptorActivatedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
-    retrieveLatestDescriptor(eservice),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
 
@@ -90,7 +98,7 @@ export async function handleEserviceDescriptorActivated(
           body: templateService.compileHtml(htmlTemplate, {
             title: `Una versione di "${eservice.name}" è stata riattivata`,
             notificationType,
-            entityId: descriptor.id,
+            entityId: `${eservice.id}/${descriptor.id}`,
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             producerName: producer.name,
             eserviceName: eservice.name,
