@@ -47,9 +47,11 @@ const RISK_ANALYSIS_TEMPLATE_DOCUMENT_PRETTY_NAME =
 
 type Language = keyof LocalizedText;
 
-const createRiskAnalysisTemplateDocumentName = (): string =>
+const createRiskAnalysisTemplateDocumentName = (
+  messageTimestamp: Date
+): string =>
   `${formatDateyyyyMMddHHmmss(
-    new Date()
+    messageTimestamp
   )}_${generateId()}_risk_analysis_template.pdf`;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -68,7 +70,8 @@ export const riskAnalysisTemplateDocumentBuilder = (
       creatorName: string,
       creatorIPACode: string | undefined,
       tenantKind: TenantKind,
-      language: Language
+      language: Language,
+      messageTimestamp: Date
     ): Promise<RiskAnalysisTemplateDocument> => {
       const templateFilePath = path.resolve(
         dirname,
@@ -113,7 +116,8 @@ export const riskAnalysisTemplateDocumentBuilder = (
       );
 
       const documentId = generateId<RiskAnalysisTemplateDocumentId>();
-      const documentName = createRiskAnalysisTemplateDocumentName();
+      const documentName =
+        createRiskAnalysisTemplateDocumentName(messageTimestamp);
 
       const documentPath = await fileManager.resumeOrStoreBytes(
         {
