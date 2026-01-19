@@ -218,7 +218,12 @@ function processMessage(
 
 await runConsumer(
   baseConsumerConfig,
-  [config.agreementTopic, config.purposeTopic, config.delegationTopic],
+  [
+    config.agreementTopic,
+    config.purposeTopic,
+    config.delegationTopic,
+    config.purposeTemplateTopic,
+  ],
   processMessage(
     {
       agreementTopic: config.agreementTopic,
