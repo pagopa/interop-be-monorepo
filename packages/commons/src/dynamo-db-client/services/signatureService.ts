@@ -38,6 +38,7 @@ export function signatureServiceBuilder(
           correlationId: { S: reference.correlationId },
           fileKind: { S: reference.fileKind },
           fileName: { S: reference.fileName },
+          path: { S: reference.path },
           creationTimestamp: { N: getUnixTime(new Date()).toString() },
         },
       };

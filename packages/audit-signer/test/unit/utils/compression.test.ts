@@ -1,40 +1,29 @@
-import { gzip } from "zlib";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
+import AdmZip from "adm-zip";
+import { zipBuffer } from "../../../src/utils/compression.js";
 
-vi.mock("zlib", () => ({
-  gzip: vi.fn(),
-}));
+describe("compressJson", () => {
+  it("should compress a Uint8Array into a valid zip buffer", async () => {
+    const rawData = new TextEncoder().encode("binary data content");
+    const fileName = "binary.bin";
 
-import { gzipBuffer } from "../../../src/utils/compression.js";
+    const result = await zipBuffer(rawData, fileName);
 
-describe("gzipBuffer", () => {
-  afterEach(() => {
-    vi.resetAllMocks();
+    const zip = new AdmZip(result);
+    const entries = zip.getEntries();
+
+    expect(entries[0].entryName).toBe(fileName);
+    expect(zip.readFile(entries[0]).toString()).toBe("binary data content");
   });
 
-  it("should gzip a buffer and return a Buffer", async () => {
-    const input = Buffer.from("hello world");
-    const expectedCompressed = Buffer.from([0x1f, 0x8b, 0x08]);
+  it("should handle large datasets", async () => {
+    const content = "A".repeat(1024 * 1024);
+    const largeData = new TextEncoder().encode(content);
+    const fileName = "large.txt";
 
-    (gzip as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      (_data, cb) => cb(null, expectedCompressed)
-    );
+    const result = await zipBuffer(largeData, fileName);
+    const zip = new AdmZip(result);
 
-    const result = await gzipBuffer(input);
-
-    expect(gzip).toHaveBeenCalledOnce();
-    expect(result).toBeInstanceOf(Buffer);
-    expect(result).toEqual(expectedCompressed);
-  });
-
-  it("should throw if gzip encounters an error", async () => {
-    const input = Buffer.from("test");
-    const fakeError = new Error("gzip failed");
-
-    (gzip as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      (_data, cb) => cb(fakeError)
-    );
-
-    await expect(gzipBuffer(input)).rejects.toThrow("gzip failed");
+    expect(zip.readAsText(zip.getEntries()[0])).toBe(content);
   });
 });
