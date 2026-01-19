@@ -152,81 +152,12 @@ export class InteropTokenGenerator {
     sub,
     consumerId,
     clientAdminId,
-  }: {
-    sub: ClientId;
-    consumerId: TenantId;
-    clientAdminId: UserId | undefined;
-  }): Promise<InteropApiToken> {
-    if (
-      !this.config.generatedInteropTokenKid ||
-      !this.config.generatedInteropTokenIssuer ||
-      !this.config.generatedInteropTokenM2MAudience ||
-      !this.config.generatedInteropTokenM2MDurationSeconds
-    ) {
-      throw Error(
-        "AuthorizationServerTokenGenerationConfig not provided or incomplete"
-      );
-    }
-
-    const currentTimestamp = dateToSeconds(new Date());
-
-    const header: InteropJwtHeader = {
-      alg: JWT_HEADER_ALG,
-      use: JWT_HEADER_USE,
-      typ: JWT_HEADER_TYP,
-      kid: this.config.generatedInteropTokenKid,
-    };
-
-    const userDataPayload: InteropJwtApiCommonPayload = {
-      jti: generateId(),
-      iss: this.config.generatedInteropTokenIssuer,
-      aud: this.config.generatedInteropTokenM2MAudience,
-      client_id: sub,
-      sub,
-      iat: currentTimestamp,
-      nbf: currentTimestamp,
-      exp:
-        currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
-      organizationId: consumerId,
-    };
-
-    const systemRolePayload = clientAdminId
-      ? {
-          role: systemRole.M2M_ADMIN_ROLE,
-          adminId: clientAdminId,
-        }
-      : {
-          role: systemRole.M2M_ROLE,
-        };
-
-    const payload: InteropJwtApiPayload = {
-      ...userDataPayload,
-      ...systemRolePayload,
-    };
-
-    const serializedToken = await this.createAndSignToken({
-      header,
-      payload: toSerializedInteropJwtPayload(payload),
-      keyId: this.config.generatedInteropTokenKid,
-    });
-
-    return {
-      header,
-      payload,
-      serialized: serializedToken,
-    };
-  }
-
-  public async generateInteropApiDPoPToken({
-    sub,
-    consumerId,
     dpopJWK,
-    clientAdminId,
   }: {
     sub: ClientId;
     consumerId: TenantId;
-    dpopJWK: JWKKeyRS256 | JWKKeyES256;
     clientAdminId: UserId | undefined;
+    dpopJWK?: JWKKeyRS256 | JWKKeyES256;
   }): Promise<InteropApiToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -270,13 +201,21 @@ export class InteropTokenGenerator {
           role: systemRole.M2M_ROLE,
         };
 
-    const payload: InteropJwtApiDPoPPayload = {
-      ...userDataPayload,
-      ...systemRolePayload,
-      cnf: {
-        jkt: calculateKid(dpopJWK),
-      },
-    };
+    // CORE LOGIC: Strongly-typed payload construction.
+    // Uses InteropJwtApiDPoPPayload (req. cnf) if dpopJWK exists, otherwise standard InteropJwtApiPayload.
+    // The serializer handles the resulting Union type.
+    const payload: InteropJwtApiPayload | InteropJwtApiDPoPPayload = dpopJWK
+      ? {
+          ...userDataPayload,
+          ...systemRolePayload,
+          cnf: {
+            jkt: calculateKid(dpopJWK),
+          },
+        }
+      : {
+          ...userDataPayload,
+          ...systemRolePayload,
+        };
 
     const serializedToken = await this.createAndSignToken({
       header,

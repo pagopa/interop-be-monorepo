@@ -302,19 +302,14 @@ export function tokenServiceBuilder({
           }
         )
         .with({ clientKind: clientKindTokenGenStates.api }, async (key) => {
-          const token: InteropApiToken = dpopProofJWT
-            ? // Generate DPoP API token
-              await tokenGenerator.generateInteropApiDPoPToken({
-                sub: clientAssertionJWT.payload.sub,
-                consumerId: key.consumerId,
-                clientAdminId: key.adminId,
-                dpopJWK: dpopProofJWT.header.jwk,
-              })
-            : await tokenGenerator.generateInteropApiToken({
-                sub: clientAssertionJWT.payload.sub,
-                consumerId: key.consumerId,
-                clientAdminId: key.adminId,
-              });
+          const token = await tokenGenerator.generateInteropApiToken({
+            sub: clientAssertionJWT.payload.sub,
+            consumerId: key.consumerId,
+            clientAdminId: key.adminId,
+            // Pass JWK directly (can be undefined).
+            // generateInteropApiToken handles conditional 'cnf' inclusion.
+            dpopJWK: dpopProofJWT?.header.jwk,
+          });
 
           logTokenGenerationInfo({
             validatedJwt: clientAssertionJWT,
