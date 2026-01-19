@@ -10,7 +10,7 @@ import {
 } from "../setup.js";
 import * as decodeModule from "../../../src/utils/decodeSQSEventMessage.js";
 
-import { gzipBuffer } from "../../../src/utils/compression.js";
+import { zipBuffer } from "../../../src/utils/compression.js";
 
 describe("sqsMessageHandler", () => {
   const mockCorrelationId = "mock-correlation-id" as CorrelationId;
@@ -33,9 +33,9 @@ describe("sqsMessageHandler", () => {
       Buffer.from("file content")
     );
     vi.mock("../../../src/utils/compression.js", () => ({
-      gzipBuffer: vi.fn(),
+      zipBuffer: vi.fn(),
     }));
-    vi.mocked(gzipBuffer).mockResolvedValue(Buffer.from("gzipped content"));
+    vi.mocked(zipBuffer).mockResolvedValue(Buffer.from("zipped content"));
     vi.mock("../../../src/utils/checksum.js", () => ({
       calculateSha256Base64: vi.fn(),
     }));
@@ -59,6 +59,7 @@ describe("sqsMessageHandler", () => {
         fileKind: "VOUCHER_AUDIT",
         fileName: "my-audit-file.json",
         correlationId: mockCorrelationId,
+        path: "path/to",
       },
       expect.any(Object)
     );

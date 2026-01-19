@@ -1,27 +1,32 @@
 /* eslint-disable functional/immutable-data */
+import { Writable } from "stream";
+import archiver from "archiver";
 
-import { createGzip } from "zlib";
-import { pipeline } from "stream";
-import { Readable } from "stream";
-import { promisify } from "util";
+export async function compressJson(
+  jsonString: string,
+  fileName: string
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const archive = archiver("zip", { zlib: { level: 9 } });
 
-const pipelineAsync = promisify(pipeline);
-/**
- * Compresses a JSON string using gzip.
- *
- * @param jsonString - The JSON string to be compressed.
- * @returns A promise that resolves with a Buffer containing the gzipped data.
- */
-export async function compressJson(jsonString: string): Promise<Buffer> {
-  const gzipStream = createGzip();
-  const readStream = Readable.from(jsonString);
-  const chunks: Buffer[] = [];
+    const stream = new Writable({
+      write(
+        chunk: Buffer,
+        _encoding: string,
+        next: (error?: Error | null) => void
+      ): void {
+        chunks.push(chunk);
+        next();
+      },
+    });
 
-  return new Promise<Buffer>((resolve, reject) => {
-    gzipStream.on("data", (chunk) => chunks.push(chunk));
-    gzipStream.on("end", () => resolve(Buffer.concat(chunks)));
-    gzipStream.on("error", reject);
+    archive.on("error", reject);
+    stream.on("finish", () => resolve(Buffer.concat(chunks)));
 
-    pipelineAsync(readStream, gzipStream).catch(reject);
+    archive.pipe(stream);
+    archive.append(jsonString, { name: fileName });
+
+    void archive.finalize();
   });
 }
