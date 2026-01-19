@@ -94,7 +94,7 @@ describe("getPurposes", () => {
 
     const result = await purposeService.getPurposes(
       mockParams,
-      getMockM2MAdminAppContext(),
+      getMockM2MAdminAppContext()
     );
 
     expect(result).toEqual(m2mPurposeResponse);
