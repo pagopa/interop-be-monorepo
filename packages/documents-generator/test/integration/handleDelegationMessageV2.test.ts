@@ -91,7 +91,6 @@ describe("handleDelegationMessageV2", () => {
     vi.useRealTimers();
   });
 
-  const currentExecutionTime = new Date();
   const testToken = "mockToken";
 
   const testHeaders = {
@@ -461,8 +460,8 @@ describe("handleDelegationMessageV2", () => {
     const expectedPayload = {
       delegationKindText: "all’erogazione",
       delegationActionText: "ad erogare l’",
-      todayDate: dateAtRomeZone(currentExecutionTime),
-      todayTime: timeAtRomeZone(currentExecutionTime),
+      todayDate: dateAtRomeZone(mockEvent.log_date),
+      todayTime: timeAtRomeZone(mockEvent.log_date),
       delegationId: mockDelegation.id,
       delegatorName: mockDelegator.name,
       delegatorIpaCode: getIpaCode(mockDelegator),

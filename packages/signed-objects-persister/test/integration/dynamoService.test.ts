@@ -42,6 +42,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       fileName: "multa.pdf",
       correlationId: generateId(),
       creationTimestamp: getUnixTime(new Date()),
+      path: "path/to",
     };
 
     await signatureService.saveSignatureReference(mockReference, genericLogger);
@@ -100,6 +101,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       fileName: "contratto.pdf",
       correlationId: generateId(),
       creationTimestamp: getUnixTime(new Date()),
+      path: "path/to",
     };
 
     await signatureService.saveSignatureReference(mockReference, genericLogger);
@@ -147,6 +149,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       fileKind: "INTEROP_LEGAL_FACTS",
       fileName: "atto.pdf",
       correlationId: generateId(),
+      path: "path/to",
     };
 
     await signatureService.saveSignatureReference(mockReference, genericLogger);
@@ -184,6 +187,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       fileName: "signature.pdf",
       correlationId: generateId(),
       creationTimestamp: getUnixTime(new Date()),
+      path: "path/to",
     };
 
     const docSigRefId = generateId();
@@ -199,7 +203,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       version: 2,
       createdAt: BigInt(12345),
       creationTimestamp: getUnixTime(new Date()),
-      path: "/some/path/document.pdf",
+      path: "/some/path",
     };
 
     await signatureService.saveSignatureReference(sigRef, genericLogger);
@@ -242,6 +246,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       fileName: "signature.pdf",
       correlationId: generateId(),
       creationTimestamp: getUnixTime(new Date()),
+      path: "path/to",
     };
 
     const docSigRefId = generateId();
@@ -257,7 +262,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       version: 2,
       createdAt: BigInt(12345),
       creationTimestamp: getUnixTime(new Date()),
-      path: "/some/path/document.pdf",
+      path: "/some/path",
     };
 
     await signatureService.saveSignatureReference(sigRef, genericLogger);

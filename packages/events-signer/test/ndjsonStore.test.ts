@@ -1,5 +1,5 @@
-import { gunzipSync } from "zlib";
 import { describe, it, expect } from "vitest";
+import AdmZip from "adm-zip";
 import { genericLogger } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { prepareNdjsonEventData } from "../src/utils/ndjsonStore.js";
@@ -7,6 +7,12 @@ import {
   AuthorizationEventData,
   DelegationEventData,
 } from "../src/models/eventTypes.js";
+
+const getFirstFileContent = (buffer: Buffer): string => {
+  const zip = new AdmZip(buffer);
+  const zipEntries = zip.getEntries();
+  return zipEntries[0].getData().toString("utf8");
+};
 
 describe("prepareNdjsonEventData", () => {
   it("should prepare NDJSON data and return file details", async () => {
@@ -58,6 +64,7 @@ describe("prepareNdjsonEventData", () => {
       expect(file).toHaveProperty("filePath");
     }
   });
+
   it("should verify correct JSON content for 'ClientDeleted' event", async () => {
     const timestamp = new Date("2024-08-01T10:00:00Z");
     const clientId = generateId();
@@ -77,10 +84,9 @@ describe("prepareNdjsonEventData", () => {
 
     expect(preparedFiles).toHaveLength(1);
 
-    const decompressedBuffer = gunzipSync(preparedFiles[0].fileContentBuffer);
-
-    const ndjsonContent = decompressedBuffer.toString("utf-8");
-
+    const ndjsonContent = getFirstFileContent(
+      preparedFiles[0].fileContentBuffer
+    );
     const eventJsonString = ndjsonContent.trim().split("\n")[0];
     const eventJson = JSON.parse(eventJsonString);
 
@@ -90,6 +96,7 @@ describe("prepareNdjsonEventData", () => {
       timestamp: timestamp.toISOString(),
     });
   });
+
   it("should verify correct JSON content for 'ClientKeyDeleted' event", async () => {
     const timestamp = new Date("2024-08-01T10:00:00Z");
     const clientId = generateId();
@@ -111,8 +118,9 @@ describe("prepareNdjsonEventData", () => {
 
     expect(preparedFiles).toHaveLength(1);
 
-    const decompressedBuffer = gunzipSync(preparedFiles[0].fileContentBuffer);
-    const ndjsonContent = decompressedBuffer.toString("utf-8");
+    const ndjsonContent = getFirstFileContent(
+      preparedFiles[0].fileContentBuffer
+    );
     const eventJsonString = ndjsonContent.trim().split("\n")[0];
     const eventJson = JSON.parse(eventJsonString);
 
@@ -123,6 +131,7 @@ describe("prepareNdjsonEventData", () => {
       timestamp: timestamp.toISOString(),
     });
   });
+
   it("should return an empty array if no events are provided", async () => {
     const mockEvents: DelegationEventData[] = [];
 
