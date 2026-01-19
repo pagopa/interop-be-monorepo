@@ -277,13 +277,12 @@ describe("Token Generator", () => {
         kmsClient
       );
 
-      const actualToken =
-        await interopTokenGenerator.generateInteropApiDPoPToken({
-          sub: subClientId,
-          consumerId,
-          clientAdminId: undefined,
-          dpopJWK: dpopProofJWT.header.jwk,
-        });
+      const actualToken = await interopTokenGenerator.generateInteropApiToken({
+        sub: subClientId,
+        consumerId,
+        clientAdminId: undefined,
+        dpopJWK: dpopProofJWT.header.jwk,
+      });
 
       expect(actualToken.header).toEqual({
         alg: algorithm.RS256,
@@ -323,13 +322,12 @@ describe("Token Generator", () => {
         kmsClient
       );
 
-      const actualToken =
-        await interopTokenGenerator.generateInteropApiDPoPToken({
-          sub: subClientId,
-          consumerId,
-          clientAdminId: adminClientId,
-          dpopJWK: dpopProofJWT.header.jwk,
-        });
+      const actualToken = await interopTokenGenerator.generateInteropApiToken({
+        sub: subClientId,
+        consumerId,
+        clientAdminId: adminClientId,
+        dpopJWK: dpopProofJWT.header.jwk,
+      });
 
       expect(actualToken.header).toEqual({
         alg: algorithm.RS256,
