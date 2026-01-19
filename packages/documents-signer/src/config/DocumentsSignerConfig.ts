@@ -30,12 +30,3 @@ export const DocumentsSignerConfig = S3Config.and(LoggerConfig)
         serviceName: c.SERVICE_NAME,
       }))
   );
-
-export type DocumentsSignerConfig = z.infer<typeof DocumentsSignerConfig>;
-
-export const config: DocumentsSignerConfig = DocumentsSignerConfig.parse(
-  process.env
-);
-
-export const baseConsumerConfig: KafkaConsumerConfig =
-  KafkaConsumerConfig.parse(process.env);
