@@ -3,6 +3,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { NotificationType } from "pagopa-interop-models";
 import {
   notificationTypeToCategory,
+  notificationTypesWithoutEntityIdInDeepLink,
   notificationTypeToUiSection,
   UiSection,
 } from "../model/modelMappingUtils.js";
@@ -71,9 +72,11 @@ export function toBffApiNotification(
     tenantId: notification.tenantId,
     userId: notification.userId,
     body: notification.body,
-    deepLink: `${notificationTypeToUiSection[notification.notificationType]}/${
-      notification.entityId
-    }`,
+    deepLink: notificationTypesWithoutEntityIdInDeepLink.has(
+      notification.notificationType
+    )
+      ? notificationTypeToUiSection[notification.notificationType]
+      : `${notificationTypeToUiSection[notification.notificationType]}/${notification.entityId}`,
     category: notificationTypeToCategory[notification.notificationType],
     createdAt: notification.createdAt,
     readAt: notification.readAt,
