@@ -122,7 +122,7 @@ export const riskAnalysisAnswerToApiRiskAnalysisAnswer = (
     : undefined,
 });
 
-function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
+export function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
   riskAnalysisForm: RiskAnalysisFormTemplate
 ): purposeTemplateApi.RiskAnalysisFormTemplate {
   const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
@@ -255,3 +255,38 @@ export const toRiskAnalysisFormTemplateToValidate = (
       {}
     ),
 });
+
+export function purposeTemplateToApiPurposeTemplateSeed(
+  purposeTemplate: PurposeTemplate
+): purposeTemplateApi.PurposeTemplateSeed {
+  const form = purposeTemplate.purposeRiskAnalysisForm;
+
+  if (!form) {
+    return { ...purposeTemplate, purposeRiskAnalysisForm: undefined };
+  }
+
+  const updatedForm = {
+    version: form.version,
+    answers: {
+      ...form.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
+        }),
+        {}
+      ),
+      ...form.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: multiAnswer.values,
+        }),
+        {}
+      ),
+    },
+  };
+
+  return {
+    ...purposeTemplate,
+    purposeRiskAnalysisForm: updatedForm,
+  };
+}

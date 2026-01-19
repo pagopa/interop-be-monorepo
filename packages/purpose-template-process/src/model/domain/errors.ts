@@ -40,6 +40,9 @@ export const errorCodes = {
   invalidAssociatedEServiceForPublicationError: "0023",
   purposeTemplateRiskAnalysisTemplateDocumentNotFound: "0024",
   purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound: "0025",
+  missingRiskAnalysisFormTemplate: "0026",
+  eServiceDescriptorPurposeTemplateNotFound: "0027",
+  invalidFreeOfChargeReason: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -300,6 +303,38 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function missingRiskAnalysisFormTemplate(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Form Template provided for purpose template ${purposeTemplateId}`,
+    code: "missingRiskAnalysisFormTemplate",
+    title: "Missing Risk Analysis Form Template",
+  });
+}
+
+export function eServiceDescriptorPurposeTemplateNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  eServiceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No e-service descriptor found for purpose template ${purposeTemplateId} and e-service id ${eServiceId}`,
+    code: "eServiceDescriptorPurposeTemplateNotFound",
+    title: "E-Service Descriptor Purpose Template not found",
+  });
+}
+
+export function invalidFreeOfChargeReason(
+  purposeIsFreeOfCharge: boolean,
+  purposeFreeOfChargeReason: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid purposeFreeOfChargeReason: "${purposeFreeOfChargeReason}" for purposeIsFreeOfCharge: "${purposeIsFreeOfCharge}"`,
+    code: "invalidFreeOfChargeReason",
+    title: "Invalid free of charge reason",
   });
 }
 
