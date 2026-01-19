@@ -7,7 +7,7 @@ import {
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
   interfaceExtractingInfoError,
-  interfaceExtractingSoapFiledError,
+  interfaceExtractingSoapFieldError,
   openapiVersionNotRecognized,
   parsingSoapFileError,
 } from "pagopa-interop-models";
@@ -93,7 +93,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
       expectedStatus: 400,
     },
     {
-      error: interfaceExtractingSoapFiledError("field-name"),
+      error: interfaceExtractingSoapFieldError("field-name"),
       expectedStatus: 400,
     },
     {

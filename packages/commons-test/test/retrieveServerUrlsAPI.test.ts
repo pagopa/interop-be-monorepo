@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { retrieveServerUrlsAPI } from "pagopa-interop-commons";
 import {
   generateId,
-  interfaceExtractingSoapFiledError,
+  interfaceExtractingSoapFieldError,
   invalidInterfaceFileDetected,
   invalidServerUrl,
   openapiVersionNotRecognized,
@@ -189,7 +189,7 @@ describe("retrieveServerUrlsAPI", () => {
         id: generateId(),
         isEserviceTemplate: false,
       })
-    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:address"));
+    ).rejects.toThrow(interfaceExtractingSoapFieldError("soap:address"));
   });
   it("should throw an error if there are no operations in WSDL", async () => {
     const soapDoc = {
@@ -211,7 +211,7 @@ describe("retrieveServerUrlsAPI", () => {
         id: generateId(),
         isEserviceTemplate: false,
       })
-    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:operation"));
+    ).rejects.toThrow(interfaceExtractingSoapFieldError("soap:operation"));
   });
   it("should throw error for unsupported OpenAPI version", async () => {
     const invalidDoc = {
