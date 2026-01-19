@@ -15,6 +15,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("getClientPurposes", () => {
   const mockParams: m2mGatewayApi.GetClientPurposesQueryParams = {
@@ -38,40 +39,6 @@ describe("getClientPurposes", () => {
   };
   const mockApiPurposes = [mockApiPurpose1, mockApiPurpose2, mockApiPurpose3];
 
-  const mockGetPurposes = vi.fn(
-    ({
-      queries: { offset, limit, purposesIds, eservicesIds, states },
-    }: {
-      queries: purposeApi.GetPurposesQueryParams;
-    }) => {
-      const purposes = mockApiPurposes.filter((p) => {
-        if (eservicesIds.length > 0 && !eservicesIds.includes(p.eserviceId)) {
-          return false;
-        }
-        const state = p.versions[0].state;
-        return states.length === 0 || states.includes(state);
-      });
-
-      const filteredPurposes =
-        purposesIds.length > 0
-          ? purposes.filter((p) => purposesIds.includes(p.id))
-          : purposes;
-
-      const results = filteredPurposes.slice(offset, offset + limit);
-
-      return Promise.resolve(
-        getMockWithMetadata({
-          results,
-          totalCount: filteredPurposes.length,
-        })
-      );
-    }
-  );
-
-  mockInteropBeClients.purposeProcessClient = {
-    getPurposes: mockGetPurposes,
-  } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
-
   const mockApiConsumerClient = getMockedApiConsumerFullClient({
     purposes: [mockApiPurpose1.id, mockApiPurpose2.id, mockApiPurpose3.id],
   });
@@ -82,6 +49,43 @@ describe("getClientPurposes", () => {
     mockApiConsumerClient,
     mockApiConsumerClient2,
   ];
+
+  const mockGetPurposes = vi.fn(
+    ({
+      queries: { offset, limit, clientId, eservicesIds, states },
+    }: {
+      queries: purposeApi.GetPurposesQueryParams;
+    }) => {
+      // Find the client by clientId and get its purposes
+      const client = mockApiConsumerClients.find((c) => c.id === clientId);
+      const clientPurposeIds = client?.purposes ?? [];
+
+      const purposes = mockApiPurposes.filter((p) => {
+        // Filter by client's purposes
+        if (!clientPurposeIds.includes(p.id)) {
+          return false;
+        }
+        if (eservicesIds.length > 0 && !eservicesIds.includes(p.eserviceId)) {
+          return false;
+        }
+        const state = p.versions[0].state;
+        return states.length === 0 || states.includes(state);
+      });
+
+      const results = purposes.slice(offset, offset + limit);
+
+      return Promise.resolve(
+        getMockWithMetadata({
+          results,
+          totalCount: purposes.length,
+        })
+      );
+    }
+  );
+
+  mockInteropBeClients.purposeProcessClient = {
+    getPurposes: mockGetPurposes,
+  } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   const mockGetClient = vi.fn(({ params: { clientId } }) =>
     getMockWithMetadata(
@@ -95,64 +99,14 @@ describe("getClientPurposes", () => {
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
-  const expectedM2MPurpose1: m2mGatewayApi.Purpose = {
-    consumerId: mockApiPurpose1.consumerId,
-    createdAt: mockApiPurpose1.createdAt,
-    description: mockApiPurpose1.description,
-    eserviceId: mockApiPurpose1.eserviceId,
-    id: mockApiPurpose1.id,
-    isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
-    isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
-    title: mockApiPurpose1.title,
-    currentVersion: mockApiPurpose1.versions.at(0),
-    delegationId: mockApiPurpose1.delegationId,
-    freeOfChargeReason: mockApiPurpose1.freeOfChargeReason,
-    rejectedVersion: undefined,
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    updatedAt: mockApiPurpose1.updatedAt,
-    waitingForApprovalVersion: undefined,
-    purposeTemplateId: mockApiPurpose1.purposeTemplateId,
-  };
+  const expectedM2MPurpose1: m2mGatewayApi.Purpose =
+    toM2MGatewayApiPurpose(mockApiPurpose1);
 
-  const expectedM2MPurpose2: m2mGatewayApi.Purpose = {
-    consumerId: mockApiPurpose2.consumerId,
-    createdAt: mockApiPurpose2.createdAt,
-    description: mockApiPurpose2.description,
-    eserviceId: mockApiPurpose2.eserviceId,
-    id: mockApiPurpose2.id,
-    isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
-    isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
-    title: mockApiPurpose2.title,
-    currentVersion: mockApiPurpose2.versions.at(0),
-    delegationId: mockApiPurpose2.delegationId,
-    freeOfChargeReason: mockApiPurpose2.freeOfChargeReason,
-    rejectedVersion: undefined,
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    updatedAt: mockApiPurpose2.updatedAt,
-    waitingForApprovalVersion: undefined,
-    purposeTemplateId: mockApiPurpose2.purposeTemplateId,
-  };
+  const expectedM2MPurpose2: m2mGatewayApi.Purpose =
+    toM2MGatewayApiPurpose(mockApiPurpose2);
 
-  const expectedM2MPurpose3: m2mGatewayApi.Purpose = {
-    consumerId: mockApiPurpose3.consumerId,
-    createdAt: mockApiPurpose3.createdAt,
-    description: mockApiPurpose3.description,
-    eserviceId: mockApiPurpose3.eserviceId,
-    id: mockApiPurpose3.id,
-    isFreeOfCharge: mockApiPurpose3.isFreeOfCharge,
-    isRiskAnalysisValid: mockApiPurpose3.isRiskAnalysisValid,
-    title: mockApiPurpose3.title,
-    currentVersion: mockApiPurpose3.versions.at(0),
-    delegationId: mockApiPurpose3.delegationId,
-    freeOfChargeReason: mockApiPurpose3.freeOfChargeReason,
-    rejectedVersion: undefined,
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    updatedAt: mockApiPurpose3.updatedAt,
-    waitingForApprovalVersion: undefined,
-  };
+  const expectedM2MPurpose3: m2mGatewayApi.Purpose =
+    toM2MGatewayApiPurpose(mockApiPurpose3);
 
   beforeEach(() => {
     mockGetClient.mockClear();
@@ -192,7 +146,7 @@ describe("getClientPurposes", () => {
         offset: mockParams.offset,
         consumersIds: [],
         producersIds: [],
-        purposesIds: mockApiConsumerClient.purposes,
+        clientId: mockApiConsumerClient.id,
         states: [],
         excludeDraft: false,
         name: "",

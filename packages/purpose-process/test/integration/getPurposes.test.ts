@@ -177,6 +177,10 @@ describe("getPurposes", async () => {
     purposes: [mockPurpose1.id],
   });
 
+  const client2: Client = getMockClient({
+    consumerId: consumerId2,
+    purposes: [],
+  });
   beforeEach(async () => {
     await addOnePurpose(mockPurpose1);
     await addOnePurpose(mockPurpose2);
@@ -200,6 +204,7 @@ describe("getPurposes", async () => {
     await addOneDelegation(revokedConsumerDelegation);
 
     await addOneClient(client1);
+    await addOneClient(client2);
   });
 
   it("should get all purposes visible to consumer/producer requester if no filters are provided", async () => {
@@ -707,7 +712,7 @@ describe("getPurposes", async () => {
         eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
         consumersIds: [consumerId1],
         producersIds: [producerId1],
-        clientId: client1.id,
+        clientId: client2.id,
         states: [purposeVersionState.draft, purposeVersionState.suspended],
         excludeDraft: undefined,
       },
