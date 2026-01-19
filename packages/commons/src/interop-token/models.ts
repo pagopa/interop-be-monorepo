@@ -103,7 +103,9 @@ export type InteropJwtApiM2MPayload = z.infer<typeof InteropJwtApiM2MPayload>;
 export const InteropJwtApiM2MDPoPPayload = InteropJwtApiCommonPayload.merge(
   z.object({ role: z.literal(systemRole.M2M_ROLE), cnf: CNF })
 );
-export type InteropJwtApiM2MDPoPPayload = z.infer<typeof InteropJwtApiM2MDPoPPayload>;
+export type InteropJwtApiM2MDPoPPayload = z.infer<
+  typeof InteropJwtApiM2MDPoPPayload
+>;
 
 export const InteropJwtApiM2MAdminPayload = InteropJwtApiCommonPayload.merge(
   z.object({
@@ -116,14 +118,15 @@ export type InteropJwtApiM2MAdminPayload = z.infer<
   typeof InteropJwtApiM2MAdminPayload
 >;
 
-export const InteropJwtApiM2MAdminDPoPPayload = InteropJwtApiCommonPayload.merge(
-  z.object({
-    role: z.literal(systemRole.M2M_ADMIN_ROLE),
-    adminId: UserId,
-    // ^ ID of the admin user associated with the client
-    cnf: CNF,
-  })
-);
+export const InteropJwtApiM2MAdminDPoPPayload =
+  InteropJwtApiCommonPayload.merge(
+    z.object({
+      role: z.literal(systemRole.M2M_ADMIN_ROLE),
+      adminId: UserId,
+      // ^ ID of the admin user associated with the client
+      cnf: CNF,
+    })
+  );
 export type InteropJwtApiM2MAdminDPoPPayload = z.infer<
   typeof InteropJwtApiM2MAdminDPoPPayload
 >;

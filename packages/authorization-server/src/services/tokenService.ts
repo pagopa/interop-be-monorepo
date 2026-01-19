@@ -77,18 +77,18 @@ import { HttpDPoPHeader } from "../model/domain/models.js";
 
 export type GeneratedTokenData =
   | {
-    limitReached: true;
-    token: undefined;
-    rateLimitedTenantId: TenantId;
-    rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
-    isDPoP: boolean;
-  }
+      limitReached: true;
+      token: undefined;
+      rateLimitedTenantId: TenantId;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+      isDPoP: boolean;
+    }
   | {
-    limitReached: false;
-    token: InteropConsumerToken | InteropApiToken;
-    rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
-    isDPoP?: boolean;
-  };
+      limitReached: false;
+      token: InteropConsumerToken | InteropApiToken;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+      isDPoP?: boolean;
+    };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tokenServiceBuilder({
@@ -174,10 +174,10 @@ export function tokenServiceBuilder({
 
       const pk = purposeId
         ? makeTokenGenerationStatesClientKidPurposePK({
-          clientId,
-          kid,
-          purposeId,
-        })
+            clientId,
+            kid,
+            purposeId,
+          })
         : makeTokenGenerationStatesClientKidPK({ clientId, kid });
 
       const key = await retrieveKey(dynamoDBClient, pk);
@@ -302,22 +302,19 @@ export function tokenServiceBuilder({
           }
         )
         .with({ clientKind: clientKindTokenGenStates.api }, async (key) => {
-          const token: InteropApiToken =
-            dpopProofJWT ?
-              // Generate DPoP API token
+          const token: InteropApiToken = dpopProofJWT
+            ? // Generate DPoP API token
               await tokenGenerator.generateInteropApiDPoPToken({
                 sub: clientAssertionJWT.payload.sub,
                 consumerId: key.consumerId,
                 clientAdminId: key.adminId,
                 dpopJWK: dpopProofJWT.header.jwk,
               })
-              :
-              await tokenGenerator.generateInteropApiToken({
+            : await tokenGenerator.generateInteropApiToken({
                 sub: clientAssertionJWT.payload.sub,
                 consumerId: key.consumerId,
                 clientAdminId: key.adminId,
-              })
-
+              });
 
           logTokenGenerationInfo({
             validatedJwt: clientAssertionJWT,
@@ -438,16 +435,16 @@ export const publishAudit = async ({
     },
     ...(dpop
       ? {
-        dpop: {
-          typ: dpop.header.typ,
-          alg: dpop.header.alg,
-          jwk: dpop.header.jwk,
-          htm: dpop.payload.htm,
-          htu: dpop.payload.htu,
-          iat: secondsToMilliseconds(dpop.payload.iat),
-          jti: dpop.payload.jti,
-        },
-      }
+          dpop: {
+            typ: dpop.header.typ,
+            alg: dpop.header.alg,
+            jwk: dpop.header.jwk,
+            htm: dpop.payload.htm,
+            htu: dpop.payload.htu,
+            iat: secondsToMilliseconds(dpop.payload.iat),
+            jti: dpop.payload.jti,
+          },
+        }
       : {}),
   };
 
@@ -557,11 +554,11 @@ const validateDPoPProof = async (
 }> => {
   const { data, errors: dpopProofErrors } = dpopProofHeader
     ? verifyDPoPProof({
-      dpopProofJWS: dpopProofHeader,
-      expectedDPoPProofHtu: config.dpopHtu,
-      dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
-      dpopProofDurationSeconds: config.dpopDurationSeconds,
-    })
+        dpopProofJWS: dpopProofHeader,
+        expectedDPoPProofHtu: config.dpopHtu,
+        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: config.dpopDurationSeconds,
+      })
     : { data: undefined, errors: undefined };
 
   if (dpopProofErrors) {

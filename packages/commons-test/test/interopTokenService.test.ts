@@ -272,18 +272,18 @@ describe("Token Generator", () => {
       const consumerId: TenantId = generateId();
       const { dpopProofJWT } = await getMockDPoPProof();
 
-
       const interopTokenGenerator = new InteropTokenGenerator(
         authServerConfig,
         kmsClient
       );
 
-      const actualToken = await interopTokenGenerator.generateInteropApiDPoPToken({
-        sub: subClientId,
-        consumerId,
-        clientAdminId: undefined,
-        dpopJWK: dpopProofJWT.header.jwk,
-      });
+      const actualToken =
+        await interopTokenGenerator.generateInteropApiDPoPToken({
+          sub: subClientId,
+          consumerId,
+          clientAdminId: undefined,
+          dpopJWK: dpopProofJWT.header.jwk,
+        });
 
       expect(actualToken.header).toEqual({
         alg: algorithm.RS256,
@@ -318,18 +318,18 @@ describe("Token Generator", () => {
       const adminClientId: UserId = generateId();
       const { dpopProofJWT } = await getMockDPoPProof();
 
-
       const interopTokenGenerator = new InteropTokenGenerator(
         authServerConfig,
         kmsClient
       );
 
-      const actualToken = await interopTokenGenerator.generateInteropApiDPoPToken({
-        sub: subClientId,
-        consumerId,
-        clientAdminId: adminClientId,
-        dpopJWK: dpopProofJWT.header.jwk,
-      });
+      const actualToken =
+        await interopTokenGenerator.generateInteropApiDPoPToken({
+          sub: subClientId,
+          consumerId,
+          clientAdminId: adminClientId,
+          dpopJWK: dpopProofJWT.header.jwk,
+        });
 
       expect(actualToken.header).toEqual({
         alg: algorithm.RS256,
