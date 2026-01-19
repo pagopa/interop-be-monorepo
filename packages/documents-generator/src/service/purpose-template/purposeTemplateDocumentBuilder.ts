@@ -65,6 +65,7 @@ export const riskAnalysisTemplateDocumentBuilder = (
   const dirname = path.dirname(filename);
 
   return {
+    // eslint-disable-next-line max-params
     createRiskAnalysisTemplateDocument: async (
       purposeTemplate: PurposeTemplate,
       creatorName: string,
