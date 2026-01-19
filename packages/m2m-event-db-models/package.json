@@ -28,7 +28,7 @@
     "@types/node": "20.19.9",
     "@types/pg": "8.11.11",
     "drizzle-kit": "0.30.4",
-    "eslint": "8.57.0",
+    "eslint": "8.57.1",
     "prettier": "2.8.8",
     "prettier-plugin-organize-imports": "4.2.0",
     "ts-node": "10.9.2",

@@ -54,7 +54,7 @@ export async function handleDelegationMessageV2(
           : generateId<CorrelationId>();
 
         const delegation = fromDelegationV2(msg.data.delegation);
-
+        const messageTimestamp = msg.log_date;
         const [delegator, delegate, eservice] = await Promise.all([
           retrieveTenantById(readModelService, delegation.delegatorId),
           retrieveTenantById(readModelService, delegation.delegateId),
@@ -70,6 +70,7 @@ export async function handleDelegationMessageV2(
           delegator,
           delegate,
           eservice,
+          messageTimestamp,
           pdfGenerator,
           fileManager,
           config,
@@ -101,6 +102,8 @@ export async function handleDelegationMessageV2(
           : generateId<CorrelationId>();
 
         const delegation = fromDelegationV2(msg.data.delegation);
+        const messageTimestamp = msg.log_date;
+
         const [delegator, delegate, eservice] = await Promise.all([
           retrieveTenantById(readModelService, delegation.delegatorId),
           retrieveTenantById(readModelService, delegation.delegateId),
@@ -115,6 +118,7 @@ export async function handleDelegationMessageV2(
           delegator,
           delegate,
           eservice,
+          messageTimestamp,
           pdfGenerator,
           fileManager,
           config,

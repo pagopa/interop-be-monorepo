@@ -31,6 +31,7 @@ import {
   eserviceNotFound,
   tenantKindNotFound,
   tenantNotFound,
+  purposeFromTemplateCannotBeModified,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
@@ -109,6 +110,10 @@ describe("API POST /purposes/{purposeId} test", () => {
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     {
       error: duplicatedPurposeTitle(mockPurposeUpdateContent.title),
+      expectedStatus: 409,
+    },
+    {
+      error: purposeFromTemplateCannotBeModified(generateId(), generateId()),
       expectedStatus: 409,
     },
     { error: eserviceNotFound(generateId()), expectedStatus: 500 },

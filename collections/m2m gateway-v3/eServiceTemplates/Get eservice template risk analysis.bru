@@ -1,0 +1,20 @@
+meta {
+  name: Get E-Service Template risk analysis
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/:templateId/riskAnalyses/:riskAnalysisId
+  body: none
+  auth: none
+}
+
+params:path {
+  templateId: {{templateId}}
+  riskAnalysisId: {{riskAnalysisId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
