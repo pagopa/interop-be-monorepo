@@ -281,7 +281,7 @@ paths:
           allowEmptyValue: true
           required: false
           schema:
-            type: string      
+            type: string
             format: uuid
         - in: query
           name: states
