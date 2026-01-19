@@ -81,13 +81,24 @@ export const riskAnalysisDocumentBuilder = (
       if (!purpose.riskAnalysisForm) {
         throw missingRiskAnalysis(purpose.id);
       }
+      // Fixing legacy data: an event from event store was incorrectly stored with version '0.1'
+      if (purpose.riskAnalysisForm.version === "0.1") {
+        // eslint-disable-next-line functional/immutable-data
+        purpose.riskAnalysisForm.version = "1.0";
+      }
 
       const riskAnalysisVersion = purpose.riskAnalysisForm.version;
 
-      const riskAnalysisFormConfig = getFormRulesByVersion(
-        tenantKind,
-        riskAnalysisVersion
-      );
+      // Handle GSP that were previously PA and have access to PA risk analysis versions (3.0, 3.1)
+      const usePAFallback =
+        tenantKind === TenantKind.Enum.GSP &&
+        ["3.0", "3.1"].includes(riskAnalysisVersion);
+
+      const riskAnalysisFormConfig =
+        getFormRulesByVersion(tenantKind, riskAnalysisVersion) ??
+        (usePAFallback
+          ? getFormRulesByVersion(TenantKind.Enum.PA, riskAnalysisVersion)
+          : undefined);
 
       if (!riskAnalysisFormConfig) {
         throw riskAnalysisConfigVersionNotFound(
@@ -354,3 +365,7 @@ function formatFreeOfCharge(
     freeOfChargeReasonHtml,
   };
 }
+
+export type RiskAnalysisDocumentBuilder = ReturnType<
+  typeof riskAnalysisDocumentBuilder
+>;

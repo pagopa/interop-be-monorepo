@@ -1,10 +1,18 @@
+/* eslint-disable functional/no-let */
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import axios from "axios";
 import { createSafeStorageApiClient } from "pagopa-interop-commons";
 import { config } from "../../src/config/config.js";
 
-vi.mock("axios");
+const mockLogger = {
+  info: vi.fn(),
+  debug: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  isDebugEnabled: vi.fn(),
+};
 
+vi.mock("axios");
 const mockedAxios = axios as unknown as {
   create: Mock;
   put: Mock;
@@ -37,12 +45,15 @@ describe("SafeStorageApiClient", () => {
     mockAxiosInstance.post.mockResolvedValue({ data: mockResponseData });
 
     const client = createSafeStorageApiClient(config);
-    const result = await client.createFile({
-      contentType: "application/pdf",
-      documentType: "PN_NOTIFICATION_ATTACHMENTS",
-      status: "PRELOADED",
-      checksumValue: "mock-checksum",
-    });
+    const result = await client.createFile(
+      {
+        contentType: "application/pdf",
+        documentType: "PN_NOTIFICATION_ATTACHMENTS",
+        status: "PRELOADED",
+        checksumValue: "mock-checksum",
+      },
+      mockLogger
+    );
 
     expect(mockAxiosInstance.post).toHaveBeenCalledWith(
       "/safe-storage/v1/files",
@@ -74,7 +85,8 @@ describe("SafeStorageApiClient", () => {
       buffer,
       "application/pdf",
       "mock-secret",
-      "mock-checksum"
+      "mock-checksum",
+      mockLogger
     );
 
     expect(putSpy).toHaveBeenCalledWith(
@@ -108,7 +120,7 @@ describe("SafeStorageApiClient", () => {
     mockAxiosInstance.get.mockResolvedValue({ data: mockResponse });
 
     const client = createSafeStorageApiClient(config);
-    const result = await client.getFile("mock/key.pdf");
+    const result = await client.getFile("mock/key.pdf", false, mockLogger);
 
     expect(mockAxiosInstance.get).toHaveBeenCalledWith(
       "/safe-storage/v1/files/mock/key.pdf",
@@ -132,10 +144,12 @@ describe("SafeStorageApiClient", () => {
 
     const client = createSafeStorageApiClient(config);
     const result = await client.downloadFileContent(
-      "https://download.example.com/file"
+      "https://download.mock/file",
+      "s3key",
+      mockLogger
     );
 
-    expect(getSpy).toHaveBeenCalledWith("https://download.example.com/file", {
+    expect(getSpy).toHaveBeenCalledWith("https://download.mock/file", {
       responseType: "arraybuffer",
       timeout: 60000,
     });

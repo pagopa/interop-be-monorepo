@@ -36,7 +36,6 @@ import {
   EServiceDocumentId,
   EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
-  badRequestError,
   AttributeKind,
   attributeKind,
   TenantId,
@@ -1161,9 +1160,7 @@ export function eserviceTemplateServiceBuilder(
       );
 
       if (
-        eserviceTemplateVersion.state !==
-          eserviceTemplateVersionState.published &&
-        eserviceTemplateVersion.state !== eserviceTemplateVersionState.suspended
+        eserviceTemplateVersion.state === eserviceTemplateVersionState.draft
       ) {
         throw notValidEServiceTemplateVersionState(
           eserviceTemplateVersionId,
@@ -1280,12 +1277,6 @@ export function eserviceTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Creating EService template with name ${seed.name}`);
-
-      if (seed.mode === eserviceTemplateApi.EServiceMode.Values.RECEIVE) {
-        throw badRequestError(
-          "EService template in RECEIVE mode is not supported"
-        );
-      }
 
       const origin = await retrieveOriginFromAuthData(
         authData,
