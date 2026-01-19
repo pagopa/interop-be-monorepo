@@ -45,6 +45,11 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
+export type EServiceDescriptorHandlerParams = HandlerCommonParams & {
+  eserviceV2Msg?: EServiceV2;
+  descriptorId: string;
+};
+
 export type EServiceNameUpdatedHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
   oldName?: string;
