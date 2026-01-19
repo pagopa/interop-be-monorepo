@@ -179,7 +179,7 @@ describe("getPurposes", async () => {
 
   const client2: Client = getMockClient({
     consumerId: consumerId2,
-    purposes: [],
+    purposes: [mockPurpose2.id],
   });
   beforeEach(async () => {
     await addOnePurpose(mockPurpose1);
@@ -717,7 +717,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(consumerId1) })
+      getMockContext({ authData: getMockAuthData(consumerId2) })
     );
 
     expectSinglePageListResult(result, []);
