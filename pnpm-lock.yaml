@@ -2919,6 +2919,9 @@ importers:
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
+      adm-zip:
+        specifier: 0.5.16
+        version: 0.5.16
       date-fns:
         specifier: 4.1.0
         version: 4.1.0

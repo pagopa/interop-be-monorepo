@@ -23,6 +23,7 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
+    "adm-zip": "0.5.16",
     "@types/adm-zip": "0.5.7",
     "@types/archiver": "6.0.2",
     "@types/node": "20.19.3",
