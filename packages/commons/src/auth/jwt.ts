@@ -7,7 +7,10 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "../logging/index.js";
 import { JWTConfig } from "../config/httpServiceConfig.js";
-import { AuthTokenPayload } from "../interop-token/models.js";
+import {
+  AuthTokenDPoPPayload,
+  AuthTokenPayload,
+} from "../interop-token/models.js";
 import { buildJwksClients } from "./jwk.js";
 import {
   AuthData,
@@ -39,12 +42,26 @@ export const readAuthDataFromJwtToken = (
   }
 };
 
+export const readAuthDataFromDPoPJwtToken = (
+  payload: JwtPayload | string
+): AuthData => {
+  // Here we use ONLY the DPoP validator. If 'cnf' is missing, the parse fails.
+  const result = AuthTokenDPoPPayload.safeParse(payload);
+
+  if (!result.success) {
+    throw invalidClaim(result.error); // Or a specific error "Invalid DPoP Token"
+  }
+  return getAuthDataFromToken(result.data);
+};
+
 export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
   logger: Logger
   // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Promise<{ decoded: JwtPayload | string }> => {
+  // ONLY for error handling: try to extract user info from token
+  // not really need to strict check here, just extract what is possible
   const extractUserInfoForFailedToken = (): AuthDataUserInfo => {
     try {
       const decoded = decodeJwtToken(jwtToken, logger);
@@ -53,13 +70,28 @@ export const verifyJwtToken = async (
         return getUserInfoFromAuthData(undefined);
       }
 
+      // eslint-disable-next-line functional/no-let
+      let authDataError;
+
+      // 1. Parsing DPoP
+      try {
+        const authData = readAuthDataFromDPoPJwtToken(decoded);
+        return getUserInfoFromAuthData(authData);
+      } catch (authDataError) {
+        // parsing DPoP failed, ignore and continue
+      }
+
+      // 2. Try Standard parsing
       try {
         const authData = readAuthDataFromJwtToken(decoded);
         return getUserInfoFromAuthData(authData);
       } catch (authDataError) {
-        logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
-        return getUserInfoFromAuthData(undefined);
+        // Standard parsing failed too, ignore
       }
+
+      // If we are here, none of the two formats is valid
+      logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
+      return getUserInfoFromAuthData(undefined);
     } catch (decodeError) {
       logger.warn(`Error decoding JWT token: ${decodeError}`);
       return getUserInfoFromAuthData(undefined);

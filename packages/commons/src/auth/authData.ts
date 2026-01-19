@@ -6,7 +6,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { AuthTokenPayload } from "../interop-token/models.js";
+import {
+  AuthTokenDPoPPayload,
+  AuthTokenPayload,
+} from "../interop-token/models.js";
 import { SystemRole, UserRole, systemRole } from "./roles.js";
 
 /* NOTE:
@@ -35,12 +38,20 @@ export type M2MAuthData = {
   jti: string;
 };
 
+export type M2MDPoPAuthData = M2MAuthData & {
+  cnf: { jkt: string };
+};
+
 export type M2MAdminAuthData = {
   systemRole: Extract<SystemRole, "m2m-admin">;
   organizationId: TenantId;
   userId: UserId;
   clientId: ClientId;
   jti: string;
+};
+
+export type M2MAdminDPoPAuthData = M2MAdminAuthData & {
+  cnf: { jkt: string };
 };
 
 export type InternalAuthData = {
@@ -56,12 +67,17 @@ export type MaintenanceAuthData = {
 export type AuthData =
   | UIAuthData
   | M2MAuthData
+  | M2MDPoPAuthData
   | M2MAdminAuthData
+  | M2MAdminDPoPAuthData
   | InternalAuthData
   | MaintenanceAuthData;
 
-export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
-  match<AuthTokenPayload, AuthData>(token)
+export const getAuthDataFromToken = (
+  token: AuthTokenPayload | AuthTokenDPoPPayload
+): AuthData =>
+  match<AuthTokenPayload | AuthTokenDPoPPayload, AuthData>(token)
+    // --- Other roles (Internal, UI, Maintenance) do not have DPoP variants --
     .with(
       { role: systemRole.INTERNAL_ROLE },
       { role: systemRole.MAINTENANCE_ROLE },
@@ -70,12 +86,33 @@ export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
         jti: t.jti,
       })
     )
+    // --- M2M DPoP Case (cnf present) ---
+    // will narrow the type to AuthTokenDPoPPayload in this branch
+    .with({ role: systemRole.M2M_ROLE, cnf: P.not(P.nullish) }, (t) => ({
+      systemRole: t.role,
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      jti: t.jti,
+      cnf: t.cnf,
+    }))
+    // --- M2M Standard Case ---
     .with({ role: systemRole.M2M_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       clientId: unsafeBrandId<ClientId>(t.client_id),
       jti: t.jti,
     }))
+    // --- M2M Admin DPoP Case (cnf presente) ---
+    // will narrow the type to InteropJwtApiM2MAdminDPoPPayload in this branch
+    .with({ role: systemRole.M2M_ADMIN_ROLE, cnf: P.not(P.nullish) }, (t) => ({
+      systemRole: t.role,
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      userId: unsafeBrandId<UserId>(t.adminId),
+      jti: t.jti,
+      cnf: t.cnf,
+    }))
+    // --- M2M Admin Standard Case ---
     .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
@@ -110,34 +147,38 @@ export function getUserInfoFromAuthData(
     };
   }
 
-  return match<AuthData, AuthDataUserInfo>(authData)
-    .with(
-      {
-        systemRole: P.union(
-          systemRole.INTERNAL_ROLE,
-          systemRole.MAINTENANCE_ROLE
-        ),
-      },
-      () => ({
+  return (
+    match<AuthData, AuthDataUserInfo>(authData)
+      .with(
+        {
+          systemRole: P.union(
+            systemRole.INTERNAL_ROLE,
+            systemRole.MAINTENANCE_ROLE
+          ),
+        },
+        () => ({
+          userId: undefined,
+          organizationId: undefined,
+          selfcareId: undefined,
+        })
+      )
+      // Here systemRole.M2M_ROLE captures both M2MAuthData and M2MDPoPAuthData
+      .with({ systemRole: systemRole.M2M_ROLE }, (t) => ({
         userId: undefined,
-        organizationId: undefined,
+        organizationId: t.organizationId,
         selfcareId: undefined,
-      })
-    )
-    .with({ systemRole: systemRole.M2M_ROLE }, (t) => ({
-      userId: undefined,
-      organizationId: t.organizationId,
-      selfcareId: undefined,
-    }))
-    .with({ systemRole: systemRole.M2M_ADMIN_ROLE }, (t) => ({
-      userId: t.userId,
-      organizationId: t.organizationId,
-      selfcareId: undefined,
-    }))
-    .with({ systemRole: undefined }, (t) => ({
-      userId: t.userId,
-      organizationId: t.organizationId,
-      selfcareId: t.selfcareId,
-    }))
-    .exhaustive();
+      }))
+      // Here systemRole.M2M_ADMIN_ROLE captures both M2MAdminAuthData and M2MAdminDPoPAuthData
+      .with({ systemRole: systemRole.M2M_ADMIN_ROLE }, (t) => ({
+        userId: t.userId,
+        organizationId: t.organizationId,
+        selfcareId: undefined,
+      }))
+      .with({ systemRole: undefined }, (t) => ({
+        userId: t.userId,
+        organizationId: t.organizationId,
+        selfcareId: t.selfcareId,
+      }))
+      .exhaustive()
+  );
 }

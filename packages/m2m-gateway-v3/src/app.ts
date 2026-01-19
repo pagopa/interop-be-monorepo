@@ -1,5 +1,4 @@
 import {
-  authenticationMiddleware,
   contextMiddleware,
   errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
@@ -36,7 +35,10 @@ import { EserviceTemplateService } from "./services/eserviceTemplateService.js";
 import { PurposeService } from "./services/purposeService.js";
 import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 import { TenantService } from "./services/tenantService.js";
-import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
+import {
+  authenticationDPoPMiddleware,
+  m2mAuthDataValidationMiddleware,
+} from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
 import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
@@ -106,7 +108,7 @@ export async function createApp(
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
-    authenticationMiddleware(config),
+    authenticationDPoPMiddleware(config),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
     m2mAuthDataValidationMiddleware(clientService),
     rateLimiterMiddleware,
