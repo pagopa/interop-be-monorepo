@@ -31,6 +31,7 @@ import {
   InteropUIToken,
   UIClaims,
   InteropJwtInternalPayload,
+  InteropJwtApiDPoPPayload,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
@@ -191,16 +192,90 @@ export class InteropTokenGenerator {
 
     const systemRolePayload = clientAdminId
       ? {
-          role: systemRole.M2M_ADMIN_ROLE,
-          adminId: clientAdminId,
-        }
+        role: systemRole.M2M_ADMIN_ROLE,
+        adminId: clientAdminId,
+      }
       : {
-          role: systemRole.M2M_ROLE,
-        };
+        role: systemRole.M2M_ROLE,
+      };
 
     const payload: InteropJwtApiPayload = {
       ...userDataPayload,
       ...systemRolePayload,
+    };
+
+    const serializedToken = await this.createAndSignToken({
+      header,
+      payload: toSerializedInteropJwtPayload(payload),
+      keyId: this.config.generatedInteropTokenKid,
+    });
+
+    return {
+      header,
+      payload,
+      serialized: serializedToken,
+    };
+  }
+
+  public async generateInteropApiDPoPToken({
+    sub,
+    consumerId,
+    dpopJWK,
+    clientAdminId,
+  }: {
+    sub: ClientId;
+    consumerId: TenantId;
+    dpopJWK: JWKKeyRS256 | JWKKeyES256;
+    clientAdminId: UserId | undefined;
+  }): Promise<InteropApiToken> {
+    if (
+      !this.config.generatedInteropTokenKid ||
+      !this.config.generatedInteropTokenIssuer ||
+      !this.config.generatedInteropTokenM2MAudience ||
+      !this.config.generatedInteropTokenM2MDurationSeconds
+    ) {
+      throw Error(
+        "AuthorizationServerTokenGenerationConfig not provided or incomplete"
+      );
+    }
+
+    const currentTimestamp = dateToSeconds(new Date());
+
+    const header: InteropJwtHeader = {
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
+      kid: this.config.generatedInteropTokenKid,
+    };
+
+    const userDataPayload: InteropJwtApiCommonPayload = {
+      jti: generateId(),
+      iss: this.config.generatedInteropTokenIssuer,
+      aud: this.config.generatedInteropTokenM2MAudience,
+      client_id: sub,
+      sub,
+      iat: currentTimestamp,
+      nbf: currentTimestamp,
+      exp:
+        currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
+      organizationId: consumerId,
+    };
+
+    const systemRolePayload = clientAdminId
+      ? {
+        role: systemRole.M2M_ADMIN_ROLE,
+        adminId: clientAdminId,
+      }
+      : {
+        role: systemRole.M2M_ROLE,
+      };
+
+    const payload: InteropJwtApiDPoPPayload = {
+      ...userDataPayload,
+      ...systemRolePayload,
+      cnf: {
+        jkt: calculateKid(dpopJWK),
+      },
     };
 
     const serializedToken = await this.createAndSignToken({
@@ -274,18 +349,18 @@ export class InteropTokenGenerator {
       // TODO: remove featureFlagImprovedProducerVerificationClaims after the feature flag disappears
       ...(featureFlagImprovedProducerVerificationClaims
         ? {
-            producerId,
-            consumerId,
-            eserviceId,
-            descriptorId,
-          }
+          producerId,
+          consumerId,
+          eserviceId,
+          descriptorId,
+        }
         : {}),
       ...(dpopJWK
         ? {
-            cnf: {
-              jkt: calculateKid(dpopJWK),
-            },
-          }
+          cnf: {
+            jkt: calculateKid(dpopJWK),
+          },
+        }
         : {}),
     };
 
