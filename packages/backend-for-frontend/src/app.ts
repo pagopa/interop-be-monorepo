@@ -176,7 +176,6 @@ export async function createServices(
       clients.delegationProcessClient,
       clients.eserviceTemplateProcessClient,
       clients.inAppNotificationManagerClient,
-      clients.purposeProcessClient,
       fileManager,
       config
     ),
@@ -277,7 +276,6 @@ export async function createApp(
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),
-    purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     selfcareRouter(zodiosCtx, services.selfcareService),
     supportRouter(zodiosCtx, services.authorizationServiceForSupport),

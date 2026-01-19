@@ -120,6 +120,7 @@ import {
   assertEserviceMode,
   assertPersonalDataCompliant,
   assertPurposeIsDraft,
+  assertPurposeIsNotFromTemplate,
   assertPurposeTitleIsNotDuplicated,
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
@@ -1784,7 +1785,7 @@ export function purposeServiceBuilder(
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(
-        `Adding risk analysis document for purpose ${purposeId}, version ${versionId}`
+        `Adding risk analysis document for purpose ${purposeId}, version ${versionId}, document id ${riskAnalysisDocument.id}`
       );
       const purposeRetrieved = await retrievePurpose(
         purposeId,
@@ -2063,6 +2064,7 @@ const performUpdatePurpose = async (
   );
 
   assertPurposeIsDraft(purpose.data);
+  assertPurposeIsNotFromTemplate(purpose.data);
 
   const {
     title,

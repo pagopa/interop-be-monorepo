@@ -87,3 +87,24 @@ export function toBffPurposeTemplateWithCompactCreator(
     annotationDocuments,
   };
 }
+
+export function toBffPurposeTemplate(
+  purposeTemplate: purposeTemplateApi.PurposeTemplate
+): bffApi.PurposeTemplate {
+  return {
+    id: purposeTemplate.id,
+    targetDescription: purposeTemplate.targetDescription,
+    targetTenantKind: purposeTemplate.targetTenantKind,
+    state: purposeTemplate.state,
+    createdAt: purposeTemplate.createdAt,
+    updatedAt: purposeTemplate.updatedAt,
+    purposeTitle: purposeTemplate.purposeTitle,
+    purposeDescription: purposeTemplate.purposeDescription,
+    purposeRiskAnalysisForm: purposeTemplate.purposeRiskAnalysisForm,
+    purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
+    purposeFreeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason,
+    purposeDailyCalls: purposeTemplate.purposeDailyCalls,
+    creatorId: purposeTemplate.creatorId,
+    handlesPersonalData: purposeTemplate.handlesPersonalData,
+  };
+}

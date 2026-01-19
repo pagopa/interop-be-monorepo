@@ -11,7 +11,6 @@ import {
   toUserNotificationConfigV2,
   TenantId,
   NotificationConfig,
-  emailNotificationPreference,
   userRole,
   UserNotificationConfigRoleAddedV2,
 } from "pagopa-interop-models";
@@ -47,6 +46,8 @@ describe("createUserNotificationConfig", () => {
     certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
     clientKeyAddedDeletedToClientUsers: false,
     producerKeychainKeyAddedDeletedToClientUsers: false,
+    purposeQuotaAdjustmentRequestToProducer: false,
+    purposeOverQuotaStateToConsumer: false,
   };
   const defaultEmailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: false,
@@ -69,6 +70,8 @@ describe("createUserNotificationConfig", () => {
     certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
     clientKeyAddedDeletedToClientUsers: false,
     producerKeychainKeyAddedDeletedToClientUsers: false,
+    purposeQuotaAdjustmentRequestToProducer: false,
+    purposeOverQuotaStateToConsumer: false,
   };
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -100,7 +103,8 @@ describe("createUserNotificationConfig", () => {
       tenantId,
       userRoles: [userRole.ADMIN_ROLE],
       inAppNotificationPreference: false,
-      emailNotificationPreference: emailNotificationPreference.disabled,
+      emailNotificationPreference: false,
+      emailDigestPreference: false,
       inAppConfig: defaultInAppConfig,
       emailConfig: defaultEmailConfig,
       createdAt: new Date(),

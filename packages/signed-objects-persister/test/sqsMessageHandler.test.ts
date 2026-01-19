@@ -107,6 +107,7 @@ describe("sqsMessageHandler", () => {
       contentType: "application/pdf",
       subObjectId: "6e902b1c-7f55-4074-a036-749e75551f33",
       streamId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      path: "path/to",
     });
     (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(
       void 0
@@ -127,13 +128,14 @@ describe("sqsMessageHandler", () => {
     );
 
     expect(mockSafeStorageService.getFile).toHaveBeenCalledWith(
-      sqsMessageBody.detail.key
+      sqsMessageBody.detail.key,
+      false,
+      expect.any(Object)
     );
-
     expect(mockFileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       {
         bucket: config.signedDocumentsBucket,
-        path: "12345/2025/01/01",
+        path: "path/to",
         name: "test-file-key-signed.pdf",
         content: mockFileContent,
       },
@@ -141,7 +143,8 @@ describe("sqsMessageHandler", () => {
     );
 
     expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
-      sqsMessageBody.detail.key
+      sqsMessageBody.detail.key,
+      expect.any(Object)
     );
   });
 

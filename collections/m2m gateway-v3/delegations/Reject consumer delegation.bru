@@ -1,0 +1,25 @@
+meta {
+  name: Reject consumer delegation
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/consumerDelegations/:delegationId/reject
+  body: json
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "rejectionReason": "Test reason"
+  }
+}

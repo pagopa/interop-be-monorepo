@@ -7,7 +7,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -16,6 +16,7 @@ import {
   ProducerKeychainEServiceHandlerParams,
 } from "../handlerCommons.js";
 import { eServiceNotFound } from "../../models/errors.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -41,7 +42,7 @@ export async function handleProducerKeychainEserviceAdded(
       eventMailTemplateType.producerKeychainEserviceAddedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
-    retrieveLatestPublishedDescriptor(eservice),
+    retrieveLatestDescriptor(eservice),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
 
@@ -84,6 +85,7 @@ export async function handleProducerKeychainEserviceAdded(
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza chiavi`,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: producer.id,

@@ -8,7 +8,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -44,7 +45,7 @@ export async function handleEserviceDescriptorPublished(
       eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
-    retrieveLatestPublishedDescriptor(eservice),
+    retrieveLatestDescriptor(eservice),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
 
@@ -95,6 +96,7 @@ export async function handleEserviceDescriptorPublished(
             eserviceVersion: descriptor.version,
             producerName: producer.name,
             ctaLabel: `Visualizza e-service`,
+            bffUrl: config.bffUrl,
           }),
         },
         tenantId: producer.id,

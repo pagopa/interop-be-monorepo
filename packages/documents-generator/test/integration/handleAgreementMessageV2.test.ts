@@ -11,6 +11,7 @@ import {
   vi,
   afterEach,
   beforeAll,
+  afterAll,
 } from "vitest";
 import {
   AgreementEventEnvelopeV2,
@@ -70,11 +71,24 @@ import {
 import { handleAgreementMessageV2 } from "../../src/handler/handleAgreementMessageV2.js";
 import { config } from "../../src/config/config.js";
 import { eServiceNotFound, tenantNotFound } from "../../src/model/errors.js";
+import { getInteropBeClients } from "../../src/clients/clientProvider.js";
+import {
+  ContractBuilder,
+  agreementContractBuilder,
+} from "../../src/service/agreement/agreementContractBuilder.js";
 
 const mockAgreementId = generateId<AgreementId>();
 const mockEServiceId = generateId<EServiceId>();
 const mockProducerId = generateId<TenantId>();
 const mockConsumerId = generateId<TenantId>();
+const clients = getInteropBeClients();
+const agreementContractInstance: ContractBuilder = agreementContractBuilder(
+  readModelService,
+  pdfGenerator,
+  fileManager,
+  config,
+  genericLogger
+);
 
 export const mockAddUnsignedAgreementContractMetadataFn = vi.fn();
 vi.mock("pagopa-interop-api-clients", () => ({
@@ -98,6 +112,15 @@ vi.mock("pagopa-interop-api-clients", () => ({
 describe("handleAgreementMessageV2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
   });
 
   const testToken = "mockToken";
@@ -174,10 +197,10 @@ describe("handleAgreementMessageV2", () => {
 
     await handleAgreementMessageV2(
       mockEvent,
-      pdfGenerator,
-      fileManager,
       readModelService,
       mockRefreshableToken,
+      agreementContractInstance,
+      clients,
       genericLogger
     );
 
@@ -352,15 +375,15 @@ describe("handleAgreementMessageV2", () => {
 
     await handleAgreementMessageV2(
       mockEvent,
-      pdfGenerator,
-      fileManager,
       readModelService,
       mockRefreshableToken,
+      agreementContractInstance,
+      clients,
       genericLogger
     );
     const expectedPayload = {
-      todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+      todayDate: dateAtRomeZone(mockEvent.log_date),
+      todayTime: timeAtRomeZone(mockEvent.log_date),
       agreementId: mockAgreement.id,
       submitterId: mockAgreement.stamps.submission!.who,
       submissionDate: dateAtRomeZone(mockAgreement.stamps.submission!.when),
@@ -379,16 +402,24 @@ describe("handleAgreementMessageV2", () => {
 
       certifiedAttributes: [
         {
-          assignmentDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-          assignmentTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+          assignmentDate: dateAtRomeZone(
+            validTenantCertifiedAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validTenantCertifiedAttribute.assignmentTimestamp
+          ),
           attributeName: certifiedAttribute.name,
           attributeId: mockCertifiedAttribute.id,
         },
       ],
       declaredAttributes: [
         {
-          assignmentDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-          assignmentTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+          assignmentDate: dateAtRomeZone(
+            validTenantDeclaredAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validTenantDeclaredAttribute.assignmentTimestamp
+          ),
           attributeName: declaredAttribute.name,
           attributeId: mockTenantDeclaredAttribute.id,
           delegationId: validTenantDeclaredAttribute.delegationId,
@@ -396,15 +427,20 @@ describe("handleAgreementMessageV2", () => {
       ],
       verifiedAttributes: [
         {
-          assignmentDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-          assignmentTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+          assignmentDate: dateAtRomeZone(
+            validTenantVerifiedAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validTenantVerifiedAttribute.assignmentTimestamp
+          ),
           attributeName: verifiedAttribute.name,
           attributeId: verifiedAttribute.id,
-          expirationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+          expirationDate: dateAtRomeZone(
+            validTenantVerifiedAttribute.verifiedBy[0].expirationDate!
+          ),
           delegationId: undefined,
         },
       ],
-
       producerDelegationId: undefined,
       producerDelegateName: undefined,
       producerDelegateIpaCode: undefined,
@@ -460,10 +496,10 @@ describe("handleAgreementMessageV2", () => {
     await expect(
       handleAgreementMessageV2(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        agreementContractInstance,
+        clients,
         genericLogger
       )
     ).resolves.toBeUndefined();
@@ -494,10 +530,10 @@ describe("handleAgreementMessageV2", () => {
     await expect(
       handleAgreementMessageV2(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        agreementContractInstance,
+        clients,
         genericLogger
       )
     ).rejects.toThrow(eServiceNotFound(mockEServiceId).message);
@@ -542,10 +578,10 @@ describe("handleAgreementMessageV2", () => {
     await expect(
       handleAgreementMessageV2(
         mockEvent,
-        pdfGenerator,
-        fileManager,
         readModelService,
         mockRefreshableToken,
+        agreementContractInstance,
+        clients,
         genericLogger
       )
     ).rejects.toThrow(tenantNotFound(mockConsumerId).message);

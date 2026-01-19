@@ -11,13 +11,14 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
 } from "../../services/utils.js";
 import {
   EserviceTemplateNameUpdatedHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "eserviceTemplateNameChangedToInstantiator";
@@ -92,11 +93,12 @@ export async function handleEServiceTemplateNameUpdated(
           title: `Aggiornamento nome del template "${oldName}"`,
           notificationType,
           entityId: EServiceIdDescriptorId.parse(
-            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+            `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
           ),
           ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
           oldName: oldName ?? eserviceTemplate.id,
           newName: eserviceTemplate.name,
+          bffUrl: config.bffUrl,
         }),
       },
       tenantId: t.tenantId,

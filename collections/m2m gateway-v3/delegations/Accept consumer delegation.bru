@@ -1,0 +1,19 @@
+meta {
+  name: Accept consumer delegation
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/consumerDelegations/:delegationId/accept
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

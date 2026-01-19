@@ -18,10 +18,11 @@ import {
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { HandlerCommonParams } from "../../models/handlerParams.js";
+import { config } from "../../config/config.js";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import { descriptorNotFound } from "../../models/errors.js";
@@ -104,7 +105,7 @@ export async function handleEserviceStateChanged(
 
   const descriptorId = descriptorIdFromEvent
     ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
-    : retrieveLatestPublishedDescriptor(eservice).id;
+    : retrieveLatestDescriptor(eservice).id;
 
   const title = defaultTitle ?? `Modifiche alla versione di "${eservice.name}"`;
 
@@ -131,6 +132,7 @@ export async function handleEserviceStateChanged(
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             copy,
             ctaLabel: `Visualizza e-service`,
+            bffUrl: config.bffUrl,
           }),
         },
         tenantId: producer.id,
@@ -163,7 +165,7 @@ function getCopyAndDescriptorId(
         type: "EServiceDescriptionUpdated",
       },
       () => {
-        const descriptor = retrieveLatestPublishedDescriptor(eservice);
+        const descriptor = retrieveLatestDescriptor(eservice);
         return {
           copy: `L'ente erogatore ${producer.name} ha modificato la descrizione nella versione ${descriptor.version} dell'e-service "${eservice.name}" a cui sei iscritto. Ti invitiamo a prendere visione della documentazione integrativa.`,
         };

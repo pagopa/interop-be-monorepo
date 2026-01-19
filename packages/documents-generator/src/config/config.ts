@@ -28,17 +28,20 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
   .and(
     z
       .object({
-        DELEGATION_DOCUMENT_PATH: z.string(),
-        AGREEMENT_DOCUMENT_PATH: z.string(),
-        RISK_ANALYSIS_DOCUMENT_PATH: z.string(),
+        DELEGATION_DOCUMENTS_PATH: z.string(),
+        AGREEMENT_DOCUMENTS_PATH: z.string(),
+        RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+        RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH: z.string(),
         DELEGATION_PROCESS_URL: APIEndpoint,
         PURPOSE_PROCESS_URL: APIEndpoint,
         AGREEMENT_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
-        delegationDocumentPath: c.DELEGATION_DOCUMENT_PATH,
-        agreementContractsPath: c.AGREEMENT_DOCUMENT_PATH,
-        riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENT_PATH,
+        delegationDocumentsPath: c.DELEGATION_DOCUMENTS_PATH,
+        agreementContractsPath: c.AGREEMENT_DOCUMENTS_PATH,
+        riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+        riskAnalysisTemplateDocumentsPath:
+          c.RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH,
         delegationProcessUrl: c.DELEGATION_PROCESS_URL,
         purposeProcessUrl: c.PURPOSE_PROCESS_URL,
         agreementProcessUrl: c.AGREEMENT_PROCESS_URL,

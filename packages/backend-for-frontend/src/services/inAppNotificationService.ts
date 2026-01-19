@@ -13,8 +13,10 @@ export function inAppNotificationServiceBuilder(
   inAppNotificationManagerClient: InAppNotificationManagerClient
 ) {
   return {
+    // eslint-disable-next-line max-params
     getNotifications: (
       q: string | undefined,
+      unread: boolean | undefined,
       category: Category | undefined,
       offset: number,
       limit: number,
@@ -30,6 +32,7 @@ export function inAppNotificationServiceBuilder(
         headers,
         queries: {
           q,
+          unread,
           notificationTypes,
           offset,
           limit,
@@ -98,13 +101,16 @@ export function inAppNotificationServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
-      logger.info("Marking in-app notifications as read by entity id");
+      logger.info(
+        `Marking in-app notifications as read by entity id ${entityId}`
+      );
+
       return inAppNotificationManagerClient.markNotificationsAsReadByEntityId(
         undefined,
         {
           headers,
           params: {
-            entityId,
+            entityId: encodeURIComponent(entityId),
           },
         }
       );

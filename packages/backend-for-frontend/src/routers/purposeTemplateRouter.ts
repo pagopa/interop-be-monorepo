@@ -15,6 +15,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
+  addPurposeTemplateAnnotationDocumentErrorMapper,
   getPurposeTemplateErrorMapper,
   getPurposeTemplateEServiceDescriptorsErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -328,7 +329,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            addPurposeTemplateAnnotationDocumentErrorMapper,
             ctx,
             "Error adding annotation document"
           );
@@ -380,6 +381,54 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysisDocument",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result =
+            await purposeTemplateService.getRiskAnalysisTemplateDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+
+          return res.status(200).send(Buffer.from(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error downloading unsigned risk analysis template document for purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result =
+            await purposeTemplateService.getRiskAnalysisTemplateSignedDocument(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+
+          return res.status(200).send(Buffer.from(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error downloading signed risk analysis template document for purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers",
       async (req, res) => {

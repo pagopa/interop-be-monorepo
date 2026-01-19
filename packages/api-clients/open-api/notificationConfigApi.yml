@@ -36,6 +36,7 @@ paths:
       tags:
         - process
       summary: Retrieve a tenant's notification configuration
+      description: Retrieve a tenant's notification configuration
       operationId: getTenantNotificationConfig
       responses:
         "200":
@@ -68,6 +69,7 @@ paths:
       tags:
         - process
       summary: Update a tenant's notification configuration
+      description: Update a tenant's notification configuration
       operationId: updateTenantNotificationConfig
       requestBody:
         description: A notification config seed
@@ -116,6 +118,7 @@ paths:
       tags:
         - process
       summary: Create a tenant's default notification configuration
+      description: Create a tenant's default notification configuration
       operationId: createTenantDefaultNotificationConfig
       requestBody:
         description: A tenant notification config seed
@@ -170,6 +173,7 @@ paths:
       tags:
         - process
       summary: Delete a tenant's notification configuration
+      description: Delete a tenant's notification configuration
       operationId: deleteTenantNotificationConfig
       responses:
         "204":
@@ -207,6 +211,7 @@ paths:
       tags:
         - process
       summary: Retrieve a user's notification configuration
+      description: Retrieve a user's notification configuration
       operationId: getUserNotificationConfig
       responses:
         "200":
@@ -239,6 +244,7 @@ paths:
       tags:
         - process
       summary: Update a user's notification configuration
+      description: Update a user's notification configuration
       operationId: updateUserNotificationConfig
       requestBody:
         description: A user notification config seed
@@ -287,6 +293,7 @@ paths:
       tags:
         - process
       summary: Create a user's default notification configuration if missing or add role to it
+      description: Create a user's default notification configuration if missing or add role to it
       operationId: ensureUserNotificationConfigExistsWithRole
       requestBody:
         description: A user notification config seed
@@ -342,6 +349,7 @@ paths:
       tags:
         - process
       summary: Remove a role from the user's notification configuration (or delete it if it's the only role)
+      description: Remove a role from the user's notification configuration or delete it if it's the only role
       operationId: removeUserNotificationConfigRole
       responses:
         "204":
@@ -427,6 +435,7 @@ components:
         - userRoles
         - inAppNotificationPreference
         - emailNotificationPreference
+        - emailDigestPreference
         - inAppConfig
         - emailConfig
         - createdAt
@@ -448,11 +457,9 @@ components:
         inAppNotificationPreference:
           type: boolean
         emailNotificationPreference:
-          type: string
-          enum:
-            - ENABLED
-            - DISABLED
-            - DIGEST
+          type: boolean
+        emailDigestPreference:
+          type: boolean
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
@@ -487,6 +494,8 @@ components:
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
         - producerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
+        - purposeOverQuotaStateToConsumer
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -528,6 +537,10 @@ components:
           type: boolean
         producerKeychainKeyAddedDeletedToClientUsers:
           type: boolean
+        purposeQuotaAdjustmentRequestToProducer:
+          type: boolean
+        purposeOverQuotaStateToConsumer:
+          type: boolean
     TenantNotificationConfigSeed:
       type: object
       additionalProperties: false
@@ -567,17 +580,16 @@ components:
       required:
         - inAppNotificationPreference
         - emailNotificationPreference
+        - emailDigestPreference
         - inAppConfig
         - emailConfig
       properties:
         inAppNotificationPreference:
           type: boolean
         emailNotificationPreference:
-          type: string
-          enum:
-            - ENABLED
-            - DISABLED
-            - DIGEST
+          type: boolean
+        emailDigestPreference:
+          type: boolean
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
