@@ -107,6 +107,9 @@ vi.mock("pagopa-interop-api-clients", () => ({
   purposeApi: {
     createPurposeApiClient: vi.fn(),
   },
+  purposeTemplateApi: {
+    createPurposeTemplateApiClient: vi.fn(),
+  },
 }));
 
 describe("handleAgreementMessageV2", () => {
