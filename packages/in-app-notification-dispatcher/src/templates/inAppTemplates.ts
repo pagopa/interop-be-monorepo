@@ -245,7 +245,7 @@ export const inAppTemplates = {
     creatorName: string
   ): string =>
     `L'ente ${creatorName} ha sospeso il template "${eserviceTemplateName}", da cui il tuo ente ha generato l'e-service.`,
-  purposeStatusChangedToConsumer: (
+  purposeStatusChangedToProducer: (
     purposeName: string,
     consumerName: string,
     eserviceName: string,
