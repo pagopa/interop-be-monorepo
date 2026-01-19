@@ -34,10 +34,7 @@ describe("POST /clients/:clientId/keys router test", () => {
   const getMockedClientKeyResponse = (clientId: ClientId) =>
     toM2MKey({ jwk: mockJwk, clientId });
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.M2M_ADMIN_ROLE,
-    authRole.M2M_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
