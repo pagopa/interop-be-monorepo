@@ -9,6 +9,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 import {
@@ -61,6 +62,15 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollClientKeyUntilDeletion = (
+    clientId: ClientId,
+    keyId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveClientKeyById(clientId, keyId, headers)
+    )({});
 
   return {
     async getClientAdminId(
@@ -255,6 +265,22 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       return toM2MKey({ jwk: jwkData.jwk, clientId });
+    },
+    async deleteClientKey(
+      clientId: ClientId,
+      keyId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting key for client with id ${clientId} and its keyId ${keyId}`
+      );
+
+      await clients.authorizationClient.client.deleteClientKeyById(undefined, {
+        params: { clientId, keyId },
+        headers,
+      });
+
+      await pollClientKeyUntilDeletion(clientId, keyId, headers);
     },
   };
 }
