@@ -83,5 +83,3 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     ),
   };
 }
-
-export type PagoPAInteropBeClients1 = ReturnType<typeof getInteropBeClients>;
