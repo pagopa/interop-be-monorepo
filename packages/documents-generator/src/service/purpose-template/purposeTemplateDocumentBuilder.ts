@@ -25,7 +25,7 @@ import {
   RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
-  TenantKind,
+  TargetTenantKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTemplateModels.js";
@@ -48,10 +48,10 @@ const RISK_ANALYSIS_TEMPLATE_DOCUMENT_PRETTY_NAME =
 type Language = keyof LocalizedText;
 
 const createRiskAnalysisTemplateDocumentName = (
-  messageTimestamp: Date
+  messageTimestamp: Date,
 ): string =>
   `${formatDateyyyyMMddHHmmss(
-    messageTimestamp
+    messageTimestamp,
   )}_${generateId()}_risk_analysis_template.pdf`;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -59,7 +59,7 @@ export const riskAnalysisTemplateDocumentBuilder = (
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   config: DocumentsGeneratorConfig,
-  logger: Logger
+  logger: Logger,
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
@@ -70,15 +70,15 @@ export const riskAnalysisTemplateDocumentBuilder = (
       purposeTemplate: PurposeTemplate,
       creatorName: string,
       creatorIPACode: string | undefined,
-      tenantKind: TenantKind,
+      tenantKind: TargetTenantKind,
       language: Language,
-      messageTimestamp: Date
+      messageTimestamp: Date,
     ): Promise<RiskAnalysisTemplateDocument> => {
       const templateFilePath = path.resolve(
         dirname,
         "../..",
         "resources/purpose-template",
-        "purposeTemplateRiskAnalysisTemplate.html"
+        "purposeTemplateRiskAnalysisTemplate.html",
       );
 
       if (!purposeTemplate.purposeRiskAnalysisForm) {
@@ -90,13 +90,13 @@ export const riskAnalysisTemplateDocumentBuilder = (
 
       const riskAnalysisFormConfig = getFormRulesByVersion(
         tenantKind,
-        riskAnalysisVersion
+        riskAnalysisVersion,
       );
 
       if (!riskAnalysisFormConfig) {
         throw riskAnalysisConfigVersionNotFound(
           riskAnalysisVersion,
-          tenantKind
+          tenantKind,
         );
       }
 
@@ -113,7 +113,7 @@ export const riskAnalysisTemplateDocumentBuilder = (
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
         templateFilePath,
-        pdfPayload
+        pdfPayload,
       );
 
       const documentId = generateId<RiskAnalysisTemplateDocumentId>();
@@ -128,7 +128,7 @@ export const riskAnalysisTemplateDocumentBuilder = (
           name: documentName,
           content: pdfBuffer,
         },
-        logger
+        logger,
       );
 
       return {
@@ -165,7 +165,7 @@ const getPdfPayload = ({
   const answers = formatAnswers(
     riskAnalysisFormConfig,
     riskAnalysisFormTemplate,
-    language
+    language,
   );
   const { purposeFreeOfChargeHtml, purposeFreeOfChargeReasonHtml } =
     formatFreeOfCharge(purposeIsFreeOfCharge, purposeFreeOfChargeReason);
@@ -188,7 +188,7 @@ const getPdfPayload = ({
 function formatAnswers(
   formConfig: RiskAnalysisFormRules,
   riskAnalysisForm: RiskAnalysisFormTemplate,
-  language: Language
+  language: Language,
 ): string {
   return formConfig.questions
     .flatMap((questionRules) => {
@@ -213,13 +213,13 @@ function getLocalizedLabel(text: LocalizedText, language: Language): string {
 function getSingleAnswerText(
   language: Language,
   questionRules: FormQuestionRules,
-  answer: RiskAnalysisTemplateSingleAnswer
+  answer: RiskAnalysisTemplateSingleAnswer,
 ): string {
   return match(questionRules)
     .with({ dataType: dataType.freeText }, () => {
       if (answer.value) {
         throw unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
-          questionRules.id
+          questionRules.id,
         );
       }
       return NO_ANSWER;
@@ -229,7 +229,7 @@ function getSingleAnswerText(
         return NO_ANSWER;
       }
       const labeledValue = questionConfig.options.find(
-        (q) => q.value === answer.value
+        (q) => q.value === answer.value,
       );
       if (!labeledValue) {
         throw answerNotFoundInConfigError(questionConfig.id, questionRules.id);
@@ -245,7 +245,7 @@ function getSingleAnswerText(
 function getMultiAnswerText(
   language: Language,
   questionRules: FormQuestionRules,
-  answer: RiskAnalysisTemplateMultiAnswer
+  answer: RiskAnalysisTemplateMultiAnswer,
 ): string {
   return match(questionRules)
     .returnType<string>()
@@ -253,18 +253,18 @@ function getMultiAnswerText(
       { dataType: P.union(dataType.freeText, dataType.single) },
       (questionConfig) => {
         throw incompatibleConfigError(questionConfig.id, questionRules.id);
-      }
+      },
     )
     .with({ dataType: dataType.multi }, (questionConfig) => {
       const value = answer.values
         .map((value) => {
           const labeledValue = questionConfig.options.find(
-            (q) => q.value === value
+            (q) => q.value === value,
           );
           if (!labeledValue) {
             throw answerNotFoundInConfigError(
               questionConfig.id,
-              questionRules.id
+              questionRules.id,
             );
           }
           return getLocalizedLabel(labeledValue.label, language);
@@ -277,7 +277,7 @@ function getMultiAnswerText(
 }
 
 function getAnswerAnnotation(
-  annotation: RiskAnalysisTemplateAnswerAnnotation | undefined
+  annotation: RiskAnalysisTemplateAnswerAnnotation | undefined,
 ): string {
   if (!annotation) {
     return "";
@@ -288,7 +288,7 @@ function getAnswerAnnotation(
     .join("");
 
   return `<div class="info-label">Annotazione: ${Handlebars.escapeExpression(
-    annotation.text
+    annotation.text,
   )}</div>
         ${docs}`;
 }
@@ -296,7 +296,7 @@ function getAnswerAnnotation(
 function formatSingleAnswer(
   questionRules: FormQuestionRules,
   singleAnswer: RiskAnalysisTemplateSingleAnswer,
-  language: Language
+  language: Language,
 ): string {
   return formatAnswer(
     questionRules,
@@ -304,14 +304,14 @@ function formatSingleAnswer(
     language,
     getSingleAnswerText.bind(null, language),
     getSingleAnswerSuggestedValues,
-    getSingleAnswerIsEditable
+    getSingleAnswerIsEditable,
   );
 }
 
 function formatMultiAnswer(
   questionRules: FormQuestionRules,
   multiAnswer: RiskAnalysisTemplateMultiAnswer,
-  language: Language
+  language: Language,
 ): string {
   return formatAnswer(
     questionRules,
@@ -319,12 +319,12 @@ function formatMultiAnswer(
     language,
     getMultiAnswerText.bind(null, language),
     () => "",
-    () => multiAnswer.editable
+    () => multiAnswer.editable,
   );
 }
 
 function getSingleAnswerSuggestedValues(
-  answer: RiskAnalysisTemplateSingleAnswer
+  answer: RiskAnalysisTemplateSingleAnswer,
 ): string {
   if (!answer.suggestedValues || answer.suggestedValues.length === 0) {
     return "";
@@ -335,7 +335,7 @@ function getSingleAnswerSuggestedValues(
       (value, idx) =>
         `<li><span class="option-label">Opzione ${
           idx + 1
-        }:</span> ${value}</li>`
+        }:</span> ${value}</li>`,
     )
     .join("");
 
@@ -346,7 +346,7 @@ function getSingleAnswerSuggestedValues(
 }
 
 function getSingleAnswerIsEditable(
-  answer: RiskAnalysisTemplateSingleAnswer
+  answer: RiskAnalysisTemplateSingleAnswer,
 ): boolean {
   if (answer.editable) {
     return true;
@@ -357,14 +357,14 @@ function getSingleAnswerIsEditable(
 
 // eslint-disable-next-line max-params
 function formatAnswer<
-  T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer,
 >(
   questionRules: FormQuestionRules,
   answer: T,
   language: Language,
   getAnswerText: (questionRules: FormQuestionRules, answer: T) => string,
   getAnswerSuggestedValues: (answer: T) => string,
-  getAnswerIsEditable: (answer: T) => boolean
+  getAnswerIsEditable: (answer: T) => boolean,
 ): string {
   const questionLabel = getLocalizedLabel(questionRules.label, language);
   const infoLabel =
@@ -396,7 +396,7 @@ function formatAnswer<
 
 function formatFreeOfCharge(
   purposeIsFreeOfCharge: boolean,
-  purposeFreeOfChargeReason?: string
+  purposeFreeOfChargeReason?: string,
 ): { purposeFreeOfChargeHtml: string; purposeFreeOfChargeReasonHtml: string } {
   const purposeFreeOfChargeHtml = `<div class="item">
   <div class="label">Indicare se l'accesso ai dati messi a disposizione con la fruizione del presente e-service è a titolo gratuito</div>
