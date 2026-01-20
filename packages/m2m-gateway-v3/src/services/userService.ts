@@ -1,6 +1,10 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { TenantId, unsafeBrandId, unauthorizedError } from "pagopa-interop-models";
+import {
+  TenantId,
+  unsafeBrandId,
+  unauthorizedError,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 
@@ -26,7 +30,9 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const { roles, limit, offset } = queryParams;
 
       logger.info(
-        `Retrieving users for organization ${authData.organizationId} with roles ${roles.join(",")}, limit ${limit}, offset ${offset}`
+        `Retrieving users for organization ${
+          authData.organizationId
+        } with roles ${roles.join(",")}, limit ${limit}, offset ${offset}`
       );
 
       // Resolve tenantId from organizationId
@@ -40,10 +46,11 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       // Get tenant to resolve institutionId (selfcareId)
-      const { data: tenant } = await clients.tenantProcessClient.tenant.getTenant({
-        params: { id: tenantId },
-        headers,
-      });
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: tenantId },
+          headers,
+        });
 
       if (!tenant.selfcareId) {
         throw unauthorizedError(
