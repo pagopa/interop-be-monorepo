@@ -11,7 +11,7 @@ const M2MEventCleanerConfig = M2MEventSQLDbConfig.and(
     }))
 );
 
-export type M2MEventCleanerConfig = z.infer<typeof M2MEventCleanerConfig>;
+type M2MEventCleanerConfig = z.infer<typeof M2MEventCleanerConfig>;
 
 export const config: M2MEventCleanerConfig = M2MEventCleanerConfig.parse(
   process.env

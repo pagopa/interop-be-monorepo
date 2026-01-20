@@ -15,7 +15,7 @@ export function assertDelegationKindIs<K extends delegationApi.DelegationKind>(
   }
 }
 
-export function assertIsDelegationForEService(
+function assertIsDelegationForEService(
   eserviceId: string,
   delegation: delegationApi.Delegation
 ): void {

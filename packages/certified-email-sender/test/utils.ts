@@ -1,4 +1,3 @@
-import axios, { AxiosResponse } from "axios";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Agreement, EService, Tenant } from "pagopa-interop-models";
@@ -15,7 +14,7 @@ import {
 import { certifiedEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const emailManagerConfig = inject("emailManagerConfig");
+const emailManagerConfig = inject("emailManagerConfig");
 
 export const { cleanup, pecEmailManager, readModelDB } =
   await setupTestContainersVitest(
@@ -61,23 +60,5 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
 };
-
-type Mail = {
-  HTML: string;
-  From: { Address: string };
-  To: Array<{ Address: string }>;
-  Subject: string;
-};
-export async function getLatestMail(): Promise<AxiosResponse<Mail>> {
-  return await axios.get<Mail>(
-    `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/message/latest`
-  );
-}
-
-export async function getMails(): Promise<AxiosResponse<{ messages: Mail[] }>> {
-  return await axios.get<{ messages: Mail[] }>(
-    `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
-  );
-}
 
 afterEach(cleanup);

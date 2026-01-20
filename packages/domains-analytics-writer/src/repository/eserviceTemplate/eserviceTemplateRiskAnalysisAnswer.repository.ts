@@ -68,7 +68,3 @@ export function eserviceTemplateRiskAnalysisAnswerRepository(
     },
   };
 }
-
-export type EserviceTemplateRiskAnalysisAnswerRepository = ReturnType<
-  typeof eserviceTemplateRiskAnalysisAnswerRepository
->;

@@ -6,29 +6,27 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const TenantProcessServerConfig = z
+const TenantProcessServerConfig = z
   .object({
     TENANT_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     tenantProcessUrl: c.TENANT_PROCESS_URL,
   }));
-export type TenantProcessServerConfig = z.infer<
-  typeof TenantProcessServerConfig
->;
+type TenantProcessServerConfig = z.infer<typeof TenantProcessServerConfig>;
 
-export const AttributeRegistryProcessServerConfig = z
+const AttributeRegistryProcessServerConfig = z
   .object({
     ATTRIBUTE_REGISTRY_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     attributeRegistryUrl: c.ATTRIBUTE_REGISTRY_PROCESS_URL,
   }));
-export type AttributeRegistryProcessServerConfig = z.infer<
+type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
-export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
+const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
   ReadModelSQLDbConfig
 )
   .and(TokenGenerationConfig)
@@ -57,7 +55,7 @@ export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
       }))
   );
 
-export type IPACertifiedAttributesImporterConfig = z.infer<
+type IPACertifiedAttributesImporterConfig = z.infer<
   typeof IPACertifiedAttributesImporterConfig
 >;
 
