@@ -46,6 +46,7 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
         );
       }
 
+      // Get tenant to resolve institutionId (selfcareId)
       const { data: tenant } =
         await clients.tenantProcessClient.tenant.getTenant({
           params: { id: tenantId },
