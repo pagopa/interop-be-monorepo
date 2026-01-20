@@ -1,11 +1,11 @@
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
-export type AuthorizationProcessClient = {
+type AuthorizationProcessClient = {
   client: ReturnType<typeof authorizationApi.createClientApiClient>;
 };
 
-export type PagoPAInteropBeClients = {
+type PagoPAInteropBeClients = {
   authorizationClient: AuthorizationProcessClient;
 };
 

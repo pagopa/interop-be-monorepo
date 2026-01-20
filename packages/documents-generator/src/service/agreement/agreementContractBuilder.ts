@@ -49,7 +49,7 @@ import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
-export type DelegationData = {
+type DelegationData = {
   delegation: Delegation;
   delegate: Tenant;
 };
@@ -326,7 +326,7 @@ export const agreementContractBuilder = (
   };
 };
 
-export function assertStampExists<S extends keyof AgreementStamps>(
+function assertStampExists<S extends keyof AgreementStamps>(
   stamps: AgreementStamps,
   stamp: S
 ): asserts stamps is AgreementStamps & {

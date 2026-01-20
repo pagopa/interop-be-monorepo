@@ -478,7 +478,7 @@ export function enhanceTenantAttributes(
   };
 }
 
-export function getDeclaredTenantAttribute(
+function getDeclaredTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.DeclaredTenantAttribute | undefined {
@@ -500,7 +500,7 @@ export function getDeclaredTenantAttribute(
   };
 }
 
-export function getCertifiedTenantAttribute(
+function getCertifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.CertifiedTenantAttribute | undefined {
@@ -521,7 +521,7 @@ export function getCertifiedTenantAttribute(
   };
 }
 
-export function toApiVerifiedTenantAttribute(
+function toApiVerifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.VerifiedTenantAttribute | undefined {

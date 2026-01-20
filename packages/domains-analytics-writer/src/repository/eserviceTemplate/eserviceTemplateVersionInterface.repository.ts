@@ -65,7 +65,3 @@ export function eserviceTemplateVersionInterfaceRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceTemplateVersionInterfaceRepository = ReturnType<
-  typeof eserviceTemplateVersionInterfaceRepository
->;

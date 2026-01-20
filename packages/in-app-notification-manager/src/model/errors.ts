@@ -1,6 +1,6 @@
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   notificationNotFound: "0001",
 };
 

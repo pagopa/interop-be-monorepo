@@ -64,7 +64,3 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceDescriptorRejectionRepository = ReturnType<
-  typeof eserviceDescriptorRejectionRepository
->;
