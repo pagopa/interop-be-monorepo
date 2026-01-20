@@ -80,9 +80,6 @@ export const agreementArchivableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
 ];
-export const agreementSubmittableStates: AgreementState[] = [
-  agreementState.draft,
-];
 
 export const agreementUpdatableStates: AgreementState[] = [
   agreementState.draft,
@@ -106,7 +103,7 @@ export const agreementClonableStates: AgreementState[] = [
   agreementState.rejected,
 ];
 
-export const agreementActivationFailureStates: AgreementState[] = [
+const agreementActivationFailureStates: AgreementState[] = [
   agreementState.draft,
   agreementState.pending,
   agreementState.missingCertifiedAttributes,

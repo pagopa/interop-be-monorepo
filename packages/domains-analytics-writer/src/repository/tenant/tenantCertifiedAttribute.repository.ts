@@ -66,7 +66,3 @@ export function tenantCertifiedAttributeRepository(conn: DBConnection) {
     },
   };
 }
-
-export type TenantCertifiedAttributeRepository = ReturnType<
-  typeof tenantCertifiedAttributeRepository
->;

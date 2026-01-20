@@ -20,7 +20,6 @@ import {
   UserId,
   delegationKind,
   delegationState,
-  AgreementSignedContract,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { UIAuthData, formatDateyyyyMMddHHmmss } from "pagopa-interop-commons";
@@ -73,27 +72,6 @@ export function getMockContract(
     path: `${config.agreementContractsPath}/${agreementId}/${id}/${contractDocumentName}`,
     prettyName: "Richiesta di fruizione",
     name: contractDocumentName,
-  };
-}
-export function getMockSignedContract(
-  agreementId: AgreementId,
-  consumerId: TenantId,
-  producerId: TenantId
-): AgreementSignedContract {
-  const id = generateId<AgreementDocumentId>();
-  const createdAt = new Date();
-  const signedAt = new Date();
-  const contractDocumentName = `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
-    createdAt
-  )}_agreement_signed_contract.pdf`;
-  return {
-    id,
-    contentType: "application/pdf",
-    createdAt,
-    path: `${config.agreementContractsPath}/${agreementId}/${id}/${contractDocumentName}`,
-    prettyName: "Richiesta di fruizione",
-    name: contractDocumentName,
-    signedAt,
   };
 }
 

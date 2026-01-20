@@ -65,7 +65,7 @@ import {
 } from "drizzle-orm";
 import { alias, PgSelect } from "drizzle-orm/pg-core";
 
-export type GetPurposesFilters = {
+type GetPurposesFilters = {
   title?: string;
   eservicesIds: EServiceId[];
   consumersIds: TenantId[];
