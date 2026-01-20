@@ -1921,6 +1921,41 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - clients
+      summary: Create a new Client Key for a specific Client
+      description: Create a new client key associated with a Client
+      operationId: createClientKey
+      requestBody:
+        description: Client Key to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeySeed"
+      responses:
+        "200":
+          description: Client Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Key"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}/keys/{keyId}:
     parameters:
       - name: clientId
@@ -2236,6 +2271,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JWKs"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producerKeychains/{keychainId}/keys/{keyId}:
+    parameters:
+      - name: keychainId
+        in: path
+        description: The ID of the Producer Keychain
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: keyId
+        in: path
+        description: the unique identifier of the key (kid) to delete
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - producerKeychains
+      summary: Deletes a key by producer keychain and key identifier (kid).
+      description: "Given a producer keychain and key identifiers it deletes the corresponding key, if any"
+      operationId: deleteProducerKeychainKeyById
+      responses:
+        "204":
+          description: the corresponding key has been deleted.
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11298,6 +11374,35 @@ components:
       required:
         - kty
         - kid
+    KeySeed:
+      description: Models the seed for a public key to be persisted
+      type: object
+      additionalProperties: false
+      properties:
+        key:
+          type: string
+          description: Base64 UTF-8 encoding of a public key in PEM format
+        use:
+          $ref: "#/components/schemas/KeyUse"
+        alg:
+          type: string
+          description: The algorithm type of the key.
+        name:
+          type: string
+          description: Name given to the current key.
+          minLength: 5
+          maxLength: 60
+      required:
+        - key
+        - use
+        - alg
+        - name
+    KeyUse:
+      type: string
+      description: Represents the Use field of key
+      enum:
+        - SIG
+        - ENC
     OtherPrimeInfo:
       type: object
       additionalProperties: false
