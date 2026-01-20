@@ -94,7 +94,7 @@ const enrichPurposeDelegation = async (
   };
 };
 
-export const getCurrentVersion = (
+const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
 ): purposeApi.PurposeVersion | undefined => {
   const statesToExclude: purposeApi.PurposeVersionState[] = [

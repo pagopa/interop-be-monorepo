@@ -114,7 +114,3 @@ export function clientPurposeRepository(conn: DBConnection) {
     },
   };
 }
-
-export type ClientPurposeRepository = ReturnType<
-  typeof clientPurposeRepository
->;

@@ -45,11 +45,6 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
-export type EServiceNameUpdatedHandlerParams = HandlerCommonParams & {
-  eserviceV2Msg?: EServiceV2;
-  oldName?: string;
-};
-
 export type ClientPurposeHandlerParams = HandlerCommonParams & {
   purposeId: PurposeId;
 };
@@ -102,13 +97,13 @@ export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
   eserviceId: EServiceId;
 };
 
-export type TenantEmailNotificationRecipient = {
+type TenantEmailNotificationRecipient = {
   type: "Tenant";
   tenantId: TenantId;
   address: string;
 };
 
-export type UserEmailNotificationRecipient = {
+type UserEmailNotificationRecipient = {
   type: "User";
   userId: UserId;
   tenantId: TenantId;

@@ -12,7 +12,7 @@ import {
   PurposeVersionV1Notification,
 } from "./purposeEventNotification.js";
 
-export const toPurposeVersionStateV1Notification = (
+const toPurposeVersionStateV1Notification = (
   input: PurposeVersionState
 ): string =>
   match(input)
@@ -24,14 +24,14 @@ export const toPurposeVersionStateV1Notification = (
     .with(purposeVersionState.rejected, () => "Rejected")
     .exhaustive();
 
-export const toPurposeVersionDocumentV1Notification = (
+const toPurposeVersionDocumentV1Notification = (
   input: PurposeVersionDocument
 ): PurposeVersionDocumentV1Notification => ({
   ...input,
   createdAt: input.createdAt.toISOString(),
 });
 
-export const toPurposeVersionV1Notification = (
+const toPurposeVersionV1Notification = (
   input: PurposeVersion
 ): PurposeVersionV1Notification => ({
   ...input,

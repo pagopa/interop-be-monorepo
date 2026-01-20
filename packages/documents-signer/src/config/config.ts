@@ -12,7 +12,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const DocumentsSignerConfig = S3Config.and(LoggerConfig)
+const DocumentsSignerConfig = S3Config.and(LoggerConfig)
   .and(AgreementTopicConfig)
   .and(DelegationTopicConfig)
   .and(KafkaConsumerConfig)
@@ -31,11 +31,8 @@ export const DocumentsSignerConfig = S3Config.and(LoggerConfig)
       }))
   );
 
-export type DocumentsSignerConfig = z.infer<typeof DocumentsSignerConfig>;
+type DocumentsSignerConfig = z.infer<typeof DocumentsSignerConfig>;
 
 export const config: DocumentsSignerConfig = DocumentsSignerConfig.parse(
   process.env
 );
-
-export const baseConsumerConfig: KafkaConsumerConfig =
-  KafkaConsumerConfig.parse(process.env);

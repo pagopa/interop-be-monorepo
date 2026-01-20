@@ -30,7 +30,7 @@ const IvassCertifiedAttributesImporterConfig = LoggerConfig.and(
       }))
   );
 
-export type IvassCertifiedAttributesImporterConfig = z.infer<
+type IvassCertifiedAttributesImporterConfig = z.infer<
   typeof IvassCertifiedAttributesImporterConfig
 >;
 

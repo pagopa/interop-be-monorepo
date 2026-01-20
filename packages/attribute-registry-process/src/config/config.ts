@@ -18,7 +18,7 @@ const AttributeRegistryConfig = CommonHTTPServiceConfig.and(
     }))
   )
   .and(ApplicationAuditProducerConfig);
-export type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;
+type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;
 
 export const config: AttributeRegistryConfig = AttributeRegistryConfig.parse(
   process.env

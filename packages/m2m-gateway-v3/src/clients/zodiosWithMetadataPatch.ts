@@ -9,7 +9,7 @@ import { ReadonlyDeep } from "@zodios/core/lib/utils.types";
 import { AxiosResponse } from "axios";
 import { METADATA_VERSION_HEADER } from "pagopa-interop-commons";
 
-export function zodiosMetadataPlugin(): ZodiosPlugin {
+function zodiosMetadataPlugin(): ZodiosPlugin {
   return {
     name: "metadataHeaderPlugin",
     response: ((

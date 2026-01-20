@@ -1,4 +1,3 @@
-import axios, { AxiosResponse } from "axios";
 import {
   buildHTMLTemplateService,
   EmailManagerSES,
@@ -20,25 +19,30 @@ import {
 import { notificationEmailSenderServiceBuilder } from "../src/services/notificationEmailSenderService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const emailManagerConfig = inject("emailManagerConfig");
+const emailManagerConfig = inject("emailManagerConfig");
 export const sesEmailManagerConfig = inject("sesEmailManagerConfig");
 
-export const { cleanup, pecEmailManager, sesEmailManager, readModelDB } =
-  await setupTestContainersVitest(
-    undefined,
-    undefined,
-    emailManagerConfig,
-    undefined,
-    sesEmailManagerConfig,
-    inject("readModelSQLConfig")
-  );
+const {
+  cleanup,
+  sesEmailManager: _sesEmailManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  emailManagerConfig,
+  undefined,
+  sesEmailManagerConfig,
+  inject("readModelSQLConfig")
+);
+
+export const sesEmailManager = _sesEmailManager;
 
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-export const readModelService = readModelServiceBuilderSQL({
+const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
@@ -46,7 +50,7 @@ export const readModelService = readModelServiceBuilderSQL({
 
 export const templateService = buildHTMLTemplateService();
 
-export const sesEmailManagerFailure: EmailManagerSES = {
+const sesEmailManagerFailure: EmailManagerSES = {
   kind: "SES",
   send: vi.fn().mockRejectedValue(new Error("Generic error during send email")),
 };
@@ -91,23 +95,5 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await upsertPurpose(readModelDB, purpose, 0);
 };
-
-type Mail = {
-  HTML: string;
-  From: { Address: string };
-  To: Array<{ Address: string }>;
-  Subject: string;
-};
-export async function getLatestMail(): Promise<AxiosResponse<Mail>> {
-  return await axios.get<Mail>(
-    `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/message/latest`
-  );
-}
-
-export async function getMails(): Promise<AxiosResponse<{ messages: Mail[] }>> {
-  return await axios.get<{ messages: Mail[] }>(
-    `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
-  );
-}
 
 afterEach(cleanup);
