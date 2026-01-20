@@ -484,7 +484,3 @@ export function authorizationServiceBuilder(db: DBContext) {
     },
   };
 }
-
-export type AuthorizationService = ReturnType<
-  typeof authorizationServiceBuilder
->;

@@ -23,7 +23,7 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   )
   .and(ApplicationAuditProducerConfig);
 
-export type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;
+type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;
 
 export const config: AuthorizationConfig = AuthorizationConfig.parse(
   process.env

@@ -30,8 +30,6 @@
     "@anatine/zod-mock": "3.14.0"
   },
   "dependencies": {
-    "@protobuf-ts/runtime": "2.9.4",
-    "connection-string": "4.4.0",
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "kafkajs": "2.2.4",

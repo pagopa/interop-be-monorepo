@@ -66,16 +66,6 @@ export const getSelfcareUserErrorMapper = (
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with(
-      "tenantBySelfcareIdNotFound",
-      "tenantLoginNotAllowed",
-      () => HTTP_STATUS_FORBIDDEN
-    )
-    .with("missingUserRolesInIdentityToken", () => HTTP_STATUS_BAD_REQUEST)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
@@ -130,19 +120,6 @@ export const getPrivacyNoticeErrorMapper = (
   match(error.code)
     .with("privacyNoticeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("privacyNoticeNotFoundInConfiguration", () => HTTP_STATUS_NOT_FOUND)
-    .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const acceptPrivacyNoticeErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("privacyNoticeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("privacyNoticeNotFoundInConfiguration", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "privacyNoticeVersionIsNotTheLatest",
-      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
-    )
     .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

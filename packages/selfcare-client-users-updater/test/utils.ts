@@ -46,7 +46,7 @@ export const kafkaMessagePayload: EachMessagePayload = {
 export const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
   Promise.resolve(interopToken);
 
-export const interopToken: InteropInternalToken = {
+const interopToken: InteropInternalToken = {
   header: {
     alg: "algorithm",
     use: "use",

@@ -31,7 +31,7 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagEServicePersonalDataConfig);
 
-export type EServiceTemplateProcessConfig = z.infer<
+type EServiceTemplateProcessConfig = z.infer<
   typeof EServiceTemplateProcessConfig
 >;
 

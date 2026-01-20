@@ -19,7 +19,7 @@ export function toGetPurposeTemplatesApiQueryParams(
   };
 }
 
-export function toPurposeTemplateApiRiskAnalysisTemplateAnswersSeed(
+function toPurposeTemplateApiRiskAnalysisTemplateAnswersSeed(
   answers: Record<string, m2mGatewayApiV3.RiskAnalysisTemplateAnswerSeed>
 ): Record<string, purposeTemplateApi.RiskAnalysisTemplateAnswerSeed> {
   return Object.entries(answers).reduce<

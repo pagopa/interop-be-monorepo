@@ -6,7 +6,7 @@ import {
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   clientAssertionRequestValidationFailed: "0001",
   clientAssertionValidationFailed: "0002",
   clientAssertionSignatureValidationFailed: "0003",

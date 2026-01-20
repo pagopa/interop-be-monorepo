@@ -47,7 +47,7 @@ type EServiceStateChangedEvent = Extract<
   { type: EServiceStateChangedEventType }
 >;
 
-export type EServiceUpdatedHandlerParams = HandlerCommonParams & {
+type EServiceUpdatedHandlerParams = HandlerCommonParams & {
   payload: EServiceStateChangedEvent;
 };
 
