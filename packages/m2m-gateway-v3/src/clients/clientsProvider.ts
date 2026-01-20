@@ -34,13 +34,11 @@ export type CatalogProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof catalogApi.createProcessApiClient>
 >;
 
-type AgreementProcessClient = ZodiosClientWithMetadata<
-  agreementApi.AgreementProcessClient
->;
+type AgreementProcessClient =
+  ZodiosClientWithMetadata<agreementApi.AgreementProcessClient>;
 
-type PurposeProcessClient = ZodiosClientWithMetadata<
-  purposeApi.PurposeProcessClient
->;
+type PurposeProcessClient =
+  ZodiosClientWithMetadata<purposeApi.PurposeProcessClient>;
 
 export type DelegationProcessClient = {
   producer: ZodiosClientWithMetadata<
