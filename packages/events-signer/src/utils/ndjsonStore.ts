@@ -7,7 +7,7 @@ import { BaseEventData } from "../models/eventTypes.js";
 import { compressJson } from "./compression.js";
 import { groupEventsByDate } from "./groupEventsByDate.js";
 
-export type PreparedNdjsonFile = {
+type PreparedNdjsonFile = {
   fileContentBuffer: Buffer;
   fileName: string;
   filePath: string;

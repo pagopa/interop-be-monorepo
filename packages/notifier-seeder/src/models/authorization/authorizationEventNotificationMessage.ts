@@ -3,7 +3,7 @@ import { match } from "ts-pattern";
 import { AuthorizationEventEnvelopeV2 } from "pagopa-interop-models";
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { AuthorizationEventNotification } from "./authorizationEventNotification.js";
-export const eventV2TypeMapper = (
+const eventV2TypeMapper = (
   eventType: AuthorizationEventEnvelopeV2["type"]
 ): string =>
   match(eventType)

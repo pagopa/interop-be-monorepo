@@ -13,7 +13,7 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   missingCertifiedAttributesError: "0001",
   agreementSubmissionFailed: "0002",
   agreementNotInExpectedState: "0003",

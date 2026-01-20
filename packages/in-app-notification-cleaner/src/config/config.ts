@@ -7,7 +7,7 @@ const InAppNotificationCleanerConfig = InAppNotificationDBConfig.and(
   })
 );
 
-export type InAppNotificationCleanerConfig = z.infer<
+type InAppNotificationCleanerConfig = z.infer<
   typeof InAppNotificationCleanerConfig
 >;
 

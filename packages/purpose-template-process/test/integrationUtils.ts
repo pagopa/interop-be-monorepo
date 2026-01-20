@@ -46,10 +46,9 @@ export const { cleanup, postgresDB, fileManager, readModelDB } =
 
 afterEach(cleanup);
 
-export const catalogReadModelServiceSQL =
-  catalogReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 
-export const purposeTemplateReadModelServiceSQL =
+const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
@@ -64,7 +63,7 @@ export const purposeTemplateService = purposeTemplateServiceBuilder(
   fileManager
 );
 
-export const writePurposeTemplateInEventstore = async (
+const writePurposeTemplateInEventstore = async (
   purposeTemplate: PurposeTemplate,
   metadataVersion: number = 0
 ): Promise<void> => {

@@ -64,9 +64,7 @@ export const catalogService = catalogServiceBuilder(
   readModelService,
   fileManager
 );
-export const writeEServiceInEventstore = async (
-  eservice: EService
-): Promise<void> => {
+const writeEServiceInEventstore = async (eservice: EService): Promise<void> => {
   const eserviceEvent: EServiceEvent = {
     type: "EServiceAdded",
     event_version: 2,
@@ -82,7 +80,7 @@ export const writeEServiceInEventstore = async (
   await writeInEventstore(eventToWrite, "catalog", postgresDB);
 };
 
-export const writeEServiceTemplateInEventstore = async (
+const writeEServiceTemplateInEventstore = async (
   eserviceTemplate: EServiceTemplate
 ): Promise<void> => {
   const eserviceTemplateEvent: EServiceTemplateEvent = {
