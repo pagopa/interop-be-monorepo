@@ -4,17 +4,16 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  agreementApi,
   apiGatewayApi,
-  purposeApi,
   catalogApi,
   delegationApi,
+  purposeApi,
 } from "pagopa-interop-api-clients";
 import { operationForbidden } from "pagopa-interop-models";
 import {
-  AgreementProcessClient,
   CatalogProcessClient,
   DelegationProcessClient,
-  PurposeProcessClient,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import {
@@ -32,7 +31,7 @@ import {
 import { getAllAgreements } from "./agreementService.js";
 
 export async function getAllPurposes(
-  purposeProcessClient: PurposeProcessClient,
+  purposeProcessClient: purposeApi.PurposeProcessClient,
   ctx: WithLogger<ApiGatewayAppContext>,
   { eserviceId, consumerId }: apiGatewayApi.GetPurposesQueryParams
 ): Promise<apiGatewayApi.Purposes> {
@@ -57,7 +56,7 @@ export async function getAllPurposes(
 }
 
 const retrievePurpose = async (
-  purposeProcessClient: PurposeProcessClient,
+  purposeProcessClient: purposeApi.PurposeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   purposeId: purposeApi.Purpose["id"]
 ): Promise<purposeApi.Purpose> =>
@@ -98,9 +97,9 @@ const retrieveActiveProducerDelegationByEServiceId = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
-  purposeProcessClient: PurposeProcessClient,
+  purposeProcessClient: purposeApi.PurposeProcessClient,
   catalogProcessClient: CatalogProcessClient,
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   delegationProcessClient: DelegationProcessClient
 ) {
   return {

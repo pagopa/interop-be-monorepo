@@ -14,13 +14,12 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
+import { agreementApi, bffApi } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import AdmZip from "adm-zip";
 import { catalogApi } from "pagopa-interop-api-clients";
 import * as apiUtils from "pagopa-interop-commons";
 import {
-  AgreementProcessClient,
   AttributeProcessClient,
   CatalogProcessClient,
   DelegationProcessClient,
@@ -79,7 +78,8 @@ describe("importEService", () => {
     createEServiceDocument: vi.fn().mockResolvedValue(getMockDocument()),
   } as unknown as CatalogProcessClient;
   const mockTenantProcessClient = createDummyStub<TenantProcessClient>();
-  const mockAgreementProcessClient = createDummyStub<AgreementProcessClient>();
+  const mockAgreementProcessClient =
+    createDummyStub<agreementApi.AgreementProcessClient>();
   const mockAttributeProcessClient = createDummyStub<AttributeProcessClient>();
   const mockDelegationProcessClient =
     createDummyStub<DelegationProcessClient>();

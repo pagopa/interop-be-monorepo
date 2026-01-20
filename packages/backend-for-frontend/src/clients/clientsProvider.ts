@@ -30,14 +30,6 @@ export type CatalogProcessClient = ReturnType<
   typeof catalogApi.createProcessApiClient
 >;
 
-export type AgreementProcessClient = ReturnType<
-  typeof agreementApi.createAgreementApiClient
->;
-
-export type PurposeProcessClient = ReturnType<
-  typeof purposeApi.createPurposeApiClient
->;
-
 export type PurposeTemplateProcessClient = ReturnType<
   typeof purposeTemplateApi.createPurposeTemplateApiClient
 >;
@@ -83,8 +75,8 @@ export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;
   catalogProcessClient: CatalogProcessClient;
-  agreementProcessClient: AgreementProcessClient;
-  purposeProcessClient: PurposeProcessClient;
+  agreementProcessClient: agreementApi.AgreementProcessClient;
+  purposeProcessClient: purposeApi.PurposeProcessClient;
   purposeTemplateProcessClient: PurposeTemplateProcessClient;
   authorizationClient: AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;

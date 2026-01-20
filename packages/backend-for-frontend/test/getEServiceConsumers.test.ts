@@ -1,11 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { agreementApi, catalogApi } from "pagopa-interop-api-clients";
 import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
 import { AuthData, formatDateyyyyMMddTHHmmss } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
 import {
-  AgreementProcessClient,
   AttributeProcessClient,
   CatalogProcessClient,
   DelegationProcessClient,
@@ -43,7 +42,8 @@ describe("getEServiceConsumers", () => {
     getEServiceById: vi.fn().mockResolvedValue(eService),
   } as unknown as CatalogProcessClient;
   const mockTenantProcessClient = {} as unknown as TenantProcessClient;
-  const mockAgreementProcessClient = {} as unknown as AgreementProcessClient;
+  const mockAgreementProcessClient =
+    {} as unknown as agreementApi.AgreementProcessClient;
   const mockAttributeProcessClient = {} as unknown as AttributeProcessClient;
   const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
   const mockEServiceTemplateProcessClient =

@@ -4,6 +4,7 @@
 import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
 import {
+  agreementApi,
   bffApi,
   catalogApi,
   delegationApi,
@@ -44,7 +45,6 @@ import {
   enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
 import {
-  AgreementProcessClient,
   AttributeProcessClient,
   CatalogProcessClient,
   DelegationProcessClient,
@@ -90,7 +90,7 @@ import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
   ctx: WithLogger<BffAppContext>,
   requesterId: TenantId
@@ -129,7 +129,7 @@ const enhanceCatalogEservices = async (
   };
   const enhanceEService =
     (
-      agreementProcessClient: AgreementProcessClient,
+      agreementProcessClient: agreementApi.AgreementProcessClient,
       headers: Headers,
       requesterId: TenantId,
       notifications: string[]
@@ -322,7 +322,7 @@ const getAllEserviceConsumers = async (
 export function catalogServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   attributeProcessClient: AttributeProcessClient,
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: EServiceTemplateProcessClient,

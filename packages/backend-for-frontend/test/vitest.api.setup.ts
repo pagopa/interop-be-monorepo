@@ -59,9 +59,9 @@ import {
   initFileManager,
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
 import { createApp, createServices } from "../src/app.js";
 import {
-  AgreementProcessClient,
   AttributeProcessClient,
   AuthorizationProcessClient,
   CatalogProcessClient,
@@ -69,7 +69,6 @@ import {
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
   NotificationConfigProcessClient,
-  PurposeProcessClient,
   PurposeTemplateProcessClient,
   SelfcareV2InstitutionClient,
   SelfcareV2UserClient,
@@ -96,8 +95,8 @@ export const clients = {
   } as TenantProcessClient,
   attributeProcessClient: {} as AttributeProcessClient,
   catalogProcessClient: {} as CatalogProcessClient,
-  agreementProcessClient: {} as AgreementProcessClient,
-  purposeProcessClient: {} as PurposeProcessClient,
+  agreementProcessClient: {} as agreementApi.AgreementProcessClient,
+  purposeProcessClient: {} as purposeApi.PurposeProcessClient,
   purposeTemplateProcessClient: {} as PurposeTemplateProcessClient,
   authorizationClient: {
     client: {},

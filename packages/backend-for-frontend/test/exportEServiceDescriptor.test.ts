@@ -6,11 +6,14 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { catalogApi, delegationApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  catalogApi,
+  delegationApi,
+} from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { AuthData } from "pagopa-interop-commons";
 import {
-  AgreementProcessClient,
   AttributeProcessClient,
   CatalogProcessClient,
   DelegationProcessClient,
@@ -37,7 +40,8 @@ describe("exportEServiceDescriptor", () => {
   const mockDate = "2023-01-01T12:00:00Z";
 
   const mockTenantProcessClient = {} as unknown as TenantProcessClient;
-  const mockAgreementProcessClient = {} as unknown as AgreementProcessClient;
+  const mockAgreementProcessClient =
+    {} as unknown as agreementApi.AgreementProcessClient;
   const mockAttributeProcessClient = {} as unknown as AttributeProcessClient;
   const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
   const mockInAppNotificationManagerClient =
