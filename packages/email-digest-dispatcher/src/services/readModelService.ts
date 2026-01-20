@@ -61,6 +61,8 @@ export type NewEserviceTemplate = {
 export type PopularEserviceTemplate = {
   eserviceTemplateId: string;
   eserviceTemplateVersionId: string;
+  eserviceTemplateName: string;
+  eserviceTemplateCreatorId: TenantId;
   instances: number;
   totalCount: number;
 };
@@ -396,6 +398,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
             eserviceTemplateVersionId:
               eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateName:
+              eserviceTemplateInReadmodelEserviceTemplate.name,
+            eserviceTemplateCreatorId:
+              eserviceTemplateInReadmodelEserviceTemplate.creatorId,
             instances: countDistinct(eserviceInReadmodelCatalog.id).as(
               "instances"
             ),
@@ -460,7 +466,9 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .groupBy(
           eserviceTemplateInReadmodelEserviceTemplate.id,
-          eserviceTemplateVersionInReadmodelEserviceTemplate.id
+          eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+          eserviceTemplateInReadmodelEserviceTemplate.name,
+          eserviceTemplateInReadmodelEserviceTemplate.creatorId
         )
         .orderBy(desc(countDistinct(eserviceInReadmodelCatalog.id)))
         .limit(5);
@@ -472,6 +480,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       return results.map((row) => ({
         eserviceTemplateId: row.eserviceTemplateId,
         eserviceTemplateVersionId: row.eserviceTemplateVersionId,
+        eserviceTemplateName: row.eserviceTemplateName,
+        eserviceTemplateCreatorId: unsafeBrandId<TenantId>(
+          row.eserviceTemplateCreatorId
+        ),
         instances: row.instances,
         totalCount: row.totalCount,
       }));

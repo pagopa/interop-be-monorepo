@@ -1410,6 +1410,8 @@ describe("ReadModelService - getPopularEserviceTemplates", () => {
       expect(result[0]).toMatchObject({
         eserviceTemplateId: template.id,
         eserviceTemplateVersionId: publishedVersion.id,
+        eserviceTemplateName: template.name,
+        eserviceTemplateCreatorId: creator.id,
         instances: 1,
       });
     });
@@ -1713,14 +1715,21 @@ describe("ReadModelService - getPopularEserviceTemplates", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty("eserviceTemplateId");
       expect(result[0]).toHaveProperty("eserviceTemplateVersionId");
+      expect(result[0]).toHaveProperty("eserviceTemplateName");
+      expect(result[0]).toHaveProperty("eserviceTemplateCreatorId");
       expect(result[0]).toHaveProperty("instances");
       expect(result[0]).toHaveProperty("totalCount");
 
       expect(typeof result[0].eserviceTemplateId).toBe("string");
       expect(typeof result[0].eserviceTemplateVersionId).toBe("string");
+      expect(typeof result[0].eserviceTemplateName).toBe("string");
+      expect(typeof result[0].eserviceTemplateCreatorId).toBe("string");
       expect(typeof result[0].instances).toBe("number");
       expect(typeof result[0].totalCount).toBe("number");
 
+      expect(result[0].eserviceTemplateId).toBe(template.id);
+      expect(result[0].eserviceTemplateName).toBe(template.name);
+      expect(result[0].eserviceTemplateCreatorId).toBe(creator.id);
       expect(result[0].instances).toBeGreaterThan(0);
       expect(result[0].totalCount).toBeGreaterThan(0);
     });

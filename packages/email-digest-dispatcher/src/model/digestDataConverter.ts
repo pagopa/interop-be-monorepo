@@ -3,6 +3,7 @@ import { BaseDigest } from "../services/digestDataService.js";
 import {
   NewEservice,
   NewEserviceTemplate,
+  PopularEserviceTemplate,
   ReadModelService,
 } from "../services/readModelService.js";
 
@@ -51,22 +52,30 @@ function buildEserviceTemplateLink(): string {
 }
 
 /**
- * Transforms readmodel e-service template data into a digest object.
+ * Common type for template data that can be converted to a digest.
  */
-export async function eserviceTemplateToBaseDigest(
-  data: NewEserviceTemplate[],
-  readModelService: ReadModelService
+type TemplateDigestData = {
+  eserviceTemplateName: string;
+  totalCount: number;
+};
+
+/**
+ * Generic converter for template data into a digest object.
+ * Used by both eserviceTemplateToBaseDigest and popularEserviceTemplateToBaseDigest.
+ */
+async function templateDataToBaseDigest<T extends TemplateDigestData>(
+  data: T[],
+  readModelService: ReadModelService,
+  getProducerId: (item: T) => TenantId
 ): Promise<BaseDigest> {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
   }
 
-  const enrichedItems: Array<
-    NewEserviceTemplate & { entityProducerName: string }
-  > = await enrichWithProducerNames(
+  const enrichedItems = await enrichWithProducerNames(
     data.map((item) => ({
       ...item,
-      entityProducerId: item.eserviceTemplateProducerId,
+      entityProducerId: getProducerId(item),
     })),
     readModelService
   );
@@ -79,6 +88,20 @@ export async function eserviceTemplateToBaseDigest(
     })),
     totalCount: data[0].totalCount,
   };
+}
+
+/**
+ * Transforms readmodel e-service template data into a digest object.
+ */
+export async function eserviceTemplateToBaseDigest(
+  data: NewEserviceTemplate[],
+  readModelService: ReadModelService
+): Promise<BaseDigest> {
+  return templateDataToBaseDigest(
+    data,
+    readModelService,
+    (item) => item.eserviceTemplateProducerId
+  );
 }
 
 /**
@@ -108,4 +131,18 @@ export async function eserviceToBaseDigest(
     })),
     totalCount: data[0].totalCount,
   };
+}
+
+/**
+ * Transforms popular e-service template data into a digest object.
+ */
+export async function popularEserviceTemplateToBaseDigest(
+  data: PopularEserviceTemplate[],
+  readModelService: ReadModelService
+): Promise<BaseDigest> {
+  return templateDataToBaseDigest(
+    data,
+    readModelService,
+    (item) => item.eserviceTemplateCreatorId
+  );
 }
