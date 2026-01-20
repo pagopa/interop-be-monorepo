@@ -174,7 +174,7 @@ describe("getPurposes", async () => {
 
   const client1: Client = getMockClient({
     consumerId: consumerId1,
-    purposes: [mockPurpose1.id],
+    purposes: [mockPurpose1.id, mockPurpose3.id],
   });
 
   const client2: Client = getMockClient({
@@ -702,7 +702,25 @@ describe("getPurposes", async () => {
       getMockContext({ authData: getMockAuthData(consumerId1) })
     );
 
-    expectSinglePageListResult(result, [mockPurpose1]);
+    expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
+  });
+
+  it("should get multiple purposes when clientId filter matches more than one purpose", async () => {
+    const result = await purposeService.getPurposes(
+      {
+        title: undefined,
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        clientId: client1.id,
+        states: [],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(consumerId1) })
+    );
+
+    expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
   });
 
   it("should not get purposes with filters: name, eservicesIds, consumersIds, producersIds, states, clientId", async () => {
