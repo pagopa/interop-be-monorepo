@@ -3,8 +3,8 @@ import { TenantId } from "pagopa-interop-models";
 import {
   eserviceTemplateToBaseDigest,
   eserviceToBaseDigest,
-  verifiedAttributeToDigest,
-  revokedAttributeToDigest,
+  verifiedAttributeToBaseDigest,
+  revokedAttributeToBaseDigest,
 } from "../model/digestDataConverter.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
@@ -199,11 +199,11 @@ export function digestDataServiceBuilder(
           items: [],
           totalCount: 0,
         },
-        receivedAttributes: await verifiedAttributeToDigest(
+        receivedAttributes: await verifiedAttributeToBaseDigest(
           verifiedAttributes,
           readModelService
         ),
-        revokedAttributes: await revokedAttributeToDigest(
+        revokedAttributes: await revokedAttributeToBaseDigest(
           revokedAttributes,
           readModelService
         ),

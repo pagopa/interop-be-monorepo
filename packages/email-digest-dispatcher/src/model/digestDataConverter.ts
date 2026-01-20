@@ -127,9 +127,9 @@ export async function eserviceToBaseDigest(
 }
 
 /**
- * Shared helper to transform attribute data into an AttributeDigest object.
+ * Shared helper to transform attribute data into a BaseDigest object.
  */
-async function attributeToDigest(
+async function attributeToBaseDigest(
   data: AttributeWithTenantId[],
   readModelService: ReadModelService,
   attributeKind: "verified" | "certified"
@@ -158,13 +158,13 @@ async function attributeToDigest(
 }
 
 /**
- * Transforms readmodel verified attribute data into an AttributeDigest object.
+ * Transforms readmodel verified attribute data into a BaseDigest object.
  */
-export async function verifiedAttributeToDigest(
+export async function verifiedAttributeToBaseDigest(
   data: VerifiedAttribute[],
   readModelService: ReadModelService
 ): Promise<AttributeDigest> {
-  return attributeToDigest(
+  return attributeToBaseDigest(
     data.map((item) => ({
       attributeName: item.attributeName,
       tenantId: item.verifierId,
@@ -176,13 +176,13 @@ export async function verifiedAttributeToDigest(
 }
 
 /**
- * Transforms readmodel revoked attribute data into an AttributeDigest object.
+ * Transforms readmodel revoked attribute data into a BaseDigest object.
  */
-export async function revokedAttributeToDigest(
+export async function revokedAttributeToBaseDigest(
   data: RevokedAttribute[],
   readModelService: ReadModelService
 ): Promise<AttributeDigest> {
-  return attributeToDigest(
+  return attributeToBaseDigest(
     data.map((item) => ({
       attributeName: item.attributeName,
       tenantId: item.revokerId,
