@@ -1919,6 +1919,41 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - clients
+      summary: Create a new Client Key for a specific Client
+      description: Create a new client key associated with a Client
+      operationId: createClientKey
+      requestBody:
+        description: Client Key to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeySeed"
+      responses:
+        "200":
+          description: Client Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Key"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}/keys/{keyId}:
     parameters:
       - name: clientId
@@ -11264,6 +11299,35 @@ components:
       required:
         - kty
         - kid
+    KeySeed:
+      description: Models the seed for a public key to be persisted
+      type: object
+      additionalProperties: false
+      properties:
+        key:
+          type: string
+          description: Base64 UTF-8 encoding of a public key in PEM format
+        use:
+          $ref: "#/components/schemas/KeyUse"
+        alg:
+          type: string
+          description: The algorithm type of the key.
+        name:
+          type: string
+          description: Name given to the current key.
+          minLength: 5
+          maxLength: 60
+      required:
+        - key
+        - use
+        - alg
+        - name
+    KeyUse:
+      type: string
+      description: Represents the Use field of key
+      enum:
+        - SIG
+        - ENC
     OtherPrimeInfo:
       type: object
       additionalProperties: false
