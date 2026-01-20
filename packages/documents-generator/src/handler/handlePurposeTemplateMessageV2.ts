@@ -36,7 +36,7 @@ export async function handlePurposeTemplateMessageV2(
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
   clients: PagoPAInteropBeClients,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
     .with(
@@ -55,7 +55,7 @@ export async function handlePurposeTemplateMessageV2(
 
         const tenant = await retrieveTenant(
           purposeTemplate.creatorId,
-          readModelService,
+          readModelService
         );
 
         function getTenantKind(tenant: Tenant): TenantKind {
@@ -69,14 +69,14 @@ export async function handlePurposeTemplateMessageV2(
           pdfGenerator,
           fileManager,
           config,
-          logger,
+          logger
         ).createRiskAnalysisTemplateDocument(
           purposeTemplate,
           tenant.name,
           getIpaCode(tenant),
           purposeTemplate.targetTenantKind,
           "it",
-          msg.log_date,
+          msg.log_date
         );
 
         await sendContractMetadataToProcess(
@@ -85,10 +85,10 @@ export async function handlePurposeTemplateMessageV2(
           purposeTemplate,
           correlationId,
           clients,
-          logger,
+          logger
         );
         logger.info(`Purpose template event ${msg.type} handled successfully`);
-      },
+      }
     )
     .with(
       {
@@ -105,10 +105,10 @@ export async function handlePurposeTemplateMessageV2(
           "PurposeTemplateSuspended",
           "PurposeTemplateUnsuspended",
           "RiskAnalysisTemplateDocumentGenerated",
-          "RiskAnalysisTemplateSignedDocumentGenerated",
+          "RiskAnalysisTemplateSignedDocumentGenerated"
         ),
       },
-      () => Promise.resolve(),
+      () => Promise.resolve()
     )
     .exhaustive();
 }
@@ -120,7 +120,7 @@ async function sendContractMetadataToProcess(
   purposeTemplate: PurposeTemplate,
   correlationId: CorrelationId,
   clients: PagoPAInteropBeClients,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   const contractWithIsoString: purposeTemplateApi.RiskAnalysisTemplateDocument =
     {
@@ -130,7 +130,7 @@ async function sendContractMetadataToProcess(
   const token = (await refreshableToken.get()).serialized;
 
   logger.info(
-    `purpose template document generated with id ${contractWithIsoString.id}`,
+    `purpose template document generated with id ${contractWithIsoString.id}`
   );
 
   await clients.purposeTemplateProcessClient.internalAddRiskAnalysisTemplateDocumentMetadata(
@@ -141,6 +141,6 @@ async function sendContractMetadataToProcess(
         token,
         correlationId,
       }),
-    },
+    }
   );
 }
