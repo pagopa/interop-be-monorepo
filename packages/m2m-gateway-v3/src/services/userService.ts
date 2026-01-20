@@ -1,6 +1,11 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { TenantId, unsafeBrandId, unauthorizedError } from "pagopa-interop-models";
+import {
+  TenantId,
+  unsafeBrandId,
+  unauthorizedError,
+  UserId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 
@@ -26,7 +31,9 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const { roles, limit, offset } = queryParams;
 
       logger.info(
-        `Retrieving users for organization ${authData.organizationId} with roles ${roles.join(",")}, limit ${limit}, offset ${offset}`
+        `Retrieving users for organization ${
+          authData.organizationId
+        } with roles ${roles.join(",")}, limit ${limit}, offset ${offset}`
       );
 
       // Resolve tenantId from organizationId
@@ -39,11 +46,11 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
         );
       }
 
-      // Get tenant to resolve institutionId (selfcareId)
-      const { data: tenant } = await clients.tenantProcessClient.tenant.getTenant({
-        params: { id: tenantId },
-        headers,
-      });
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: tenantId },
+          headers,
+        });
 
       if (!tenant.selfcareId) {
         throw unauthorizedError(
@@ -81,6 +88,70 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount: users.length,
         },
       };
+    },
+    async getUser(
+      userId: UserId,
+      {
+        logger,
+        headers,
+        authData,
+      }: WithLogger<M2MGatewayAppContext<M2MAdminAuthData>>
+    ): Promise<m2mGatewayApiV3.User> {
+      logger.info(
+        `Retrieving users for organization ${authData.organizationId} with roles`
+      );
+
+      // Resolve tenantId from organizationId
+      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+
+      // Validate requester can only access their own organization's users
+      if (authData.organizationId !== tenantId) {
+        throw unauthorizedError(
+          `Requester ${authData.organizationId} cannot retrieve users for a different organization`
+        );
+      }
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: tenantId },
+          headers,
+        });
+
+      if (!tenant.selfcareId) {
+        throw unauthorizedError(
+          `Tenant ${tenantId} does not have a SelfCare ID`
+        );
+      }
+
+      const selfcareId = tenant.selfcareId;
+
+      // Fetch users from SelfCare (API already returns only active users)
+      const { data: users } =
+        await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
+          params: { institutionId: selfcareId },
+          queries: {
+            userId,
+          },
+          headers,
+        });
+
+      if (users.length === 0) {
+        throw Error(`User ${userId} not found`);
+      }
+
+      if (users.length > 1) {
+        throw Error(`Multiple users found for userId ${userId}`);
+      }
+
+      const user = users[0];
+
+      const results: m2mGatewayApiV3.User = {
+        id: user.id,
+        firstName: user.name,
+        lastName: user.surname,
+      };
+
+      return results;
     },
   };
 }
