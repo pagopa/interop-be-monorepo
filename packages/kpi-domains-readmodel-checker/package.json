@@ -20,6 +20,7 @@
   "devDependencies": {
     "@types/json-diff": "1.0.3",
     "@pagopa/eslint-config": "3.0.0",
+    "eslint": "8.57.1",
     "@types/node": "20.19.9",
     "@types/pg": "8.11.11",
     "lodash.isequal": "4.5.0",
@@ -42,7 +43,6 @@
     "pagopa-interop-readmodel-models": "workspace:*",
     "pg": "8.13.1",
     "pg-promise": "11.8.0",
-    "zod": "3.23.8",
-    "ts-pattern": "5.2.0"
+    "zod": "3.23.8"
   }
 }

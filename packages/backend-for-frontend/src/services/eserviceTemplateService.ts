@@ -750,7 +750,7 @@ export function eserviceTemplateServiceBuilder(
   };
 }
 
-export const retrieveEServiceTemplateVersion = (
+const retrieveEServiceTemplateVersion = (
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): eserviceTemplateApi.EServiceTemplateVersion => {

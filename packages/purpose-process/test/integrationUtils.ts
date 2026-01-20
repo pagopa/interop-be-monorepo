@@ -65,20 +65,17 @@ export const { cleanup, postgresDB, fileManager, readModelDB } =
 
 afterEach(cleanup);
 
-export const purposeReadModelServiceSQL =
-  purposeReadModelServiceBuilder(readModelDB);
-export const catalogReadModelServiceSQL =
-  catalogReadModelServiceBuilder(readModelDB);
-export const tenantReadModelServiceSQL =
-  tenantReadModelServiceBuilder(readModelDB);
-export const agreementReadModelServiceSQL =
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
-export const delegationReadModelServiceSQL =
+const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
-export const purposeTemplateReadModelServiceSQL =
+const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
 
-export const readModelService = readModelServiceBuilderSQL({
+const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   purposeReadModelServiceSQL,
   catalogReadModelServiceSQL,
@@ -148,9 +145,7 @@ export const addOnePurposeTemplateEServiceDescriptor = async (
   );
 };
 
-export const writePurposeInEventstore = async (
-  purpose: Purpose
-): Promise<void> => {
+const writePurposeInEventstore = async (purpose: Purpose): Promise<void> => {
   const purposeEvent: PurposeEvent = {
     type: "PurposeAdded",
     event_version: 2,
@@ -166,7 +161,7 @@ export const writePurposeInEventstore = async (
   await writeInEventstore(eventToWrite, "purpose", postgresDB);
 };
 
-export const writePurposeTemplateInEventstore = async (
+const writePurposeTemplateInEventstore = async (
   purposeTemplate: PurposeTemplate
 ): Promise<void> => {
   const purposeTemplateEvent: PurposeTemplateEvent = {

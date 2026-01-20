@@ -14,7 +14,7 @@ import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
 import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
 
-export type TenantProcessClient = {
+type TenantProcessClient = {
   tenant: ZodiosClientWithMetadata<
     ReturnType<typeof tenantApi.createTenantApiClient>
   >;
@@ -26,7 +26,7 @@ export type TenantProcessClient = {
   >;
 };
 
-export type AttributeProcessClient = ZodiosClientWithMetadata<
+type AttributeProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof attributeRegistryApi.createAttributeApiClient>
 >;
 
@@ -34,11 +34,11 @@ export type CatalogProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof catalogApi.createProcessApiClient>
 >;
 
-export type AgreementProcessClient = ZodiosClientWithMetadata<
+type AgreementProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof agreementApi.createAgreementApiClient>
 >;
 
-export type PurposeProcessClient = ZodiosClientWithMetadata<
+type PurposeProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof purposeApi.createPurposeApiClient>
 >;
 
@@ -54,7 +54,7 @@ export type DelegationProcessClient = {
   >;
 };
 
-export type AuthorizationProcessClient = {
+type AuthorizationProcessClient = {
   client: ZodiosClientWithMetadata<
     ReturnType<typeof authorizationApi.createClientApiClient>
   >;
@@ -75,11 +75,11 @@ export type AuthorizationProcessClient = {
 export type EServiceTemplateProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof eserviceTemplateApi.createProcessApiClient>
 >;
-export type EventManagerClient = ReturnType<
+type EventManagerClient = ReturnType<
   typeof m2mEventApi.createM2mEventsApiClient
 >;
 
-export type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
+type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof purposeTemplateApi.createPurposeTemplateApiClient>
 >;
 
