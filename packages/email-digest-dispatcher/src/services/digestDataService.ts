@@ -42,6 +42,7 @@ export type TenantDigestData = {
   viewAllSentDelegationsLink: string;
   viewAllReceivedDelegationsLink: string;
   viewAllAttributesLink: string;
+  viewAllUpdatedEserviceTemplatesLink: string;
   viewAllPopularEserviceTemplatesLink: string;
   newEservices?: BaseDigest;
   updatedEservices?: BaseDigest;
@@ -137,6 +138,7 @@ export function digestDataServiceBuilder(
         viewAllSentDelegationsLink: "#",
         viewAllReceivedDelegationsLink: "#",
         viewAllAttributesLink: "#",
+        viewAllUpdatedEserviceTemplatesLink: "#",
         viewAllPopularEserviceTemplatesLink: "#",
         newEservices,
         updatedEservices: await eserviceToBaseDigest(

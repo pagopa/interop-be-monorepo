@@ -624,6 +624,128 @@
                                       </div>
                                     </div>
                                     {{/if}}
+
+                                    <!-- Template E-services Aggiornati -->
+                                    {{#if updatedEserviceTemplates.totalCount}}
+                                    <div class="section-divider">
+                                      <table
+                                        class="section-header-table"
+                                        width="100%"
+                                        cellpadding="0"
+                                        cellspacing="0"
+                                        border="0"
+                                      >
+                                        <tr>
+                                          <td valign="middle">
+                                            <h2 class="h2-title">
+                                              {{> icon-grid }} Template e-service
+                                              aggiornati
+                                            </h2>
+                                          </td>
+                                          {{#if viewAllUpdatedEserviceTemplatesLink}}
+                                          <td valign="middle" align="right">
+                                            <a
+                                              href="{{viewAllUpdatedEserviceTemplatesLink}}"
+                                              class="link-primary"
+                                              >Visualizza tutti {{>
+                                              icon-external-link }}</a
+                                            >
+                                          </td>
+                                          {{/if}}
+                                        </tr>
+                                      </table>
+                                      <p class="body-text">
+                                        Sono stati aggiornati
+                                        <strong
+                                          >{{ updatedEserviceTemplates.totalCount }}
+                                          template e-service da cui hai generato
+                                          una istanza</strong
+                                        >, tra cui:
+                                      </p>
+
+                                      <!-- Grid Wrapper -->
+                                      <div class="card-grid-wrapper">
+                                        {{#each updatedEserviceTemplates.items}}
+                                        <div class="card-grid-item">
+                                          <div class="card">
+                                            <p class="card-producer">
+                                              {{ producerName }}
+                                            </p>
+                                            <p class="card-title">{{ name }}</p>
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary"
+                                            >
+                                              Visualizza {{> icon-external-link
+                                              }}
+                                            </a>
+                                          </div>
+                                        </div>
+                                        {{/each}}
+                                      </div>
+                                    </div>
+                                    {{/if}}
+
+                                    <!-- I tuoi template più utilizzati -->
+                                    {{#if popularEserviceTemplates.totalCount}}
+                                    <div class="section-divider">
+                                      <table
+                                        class="section-header-table"
+                                        width="100%"
+                                        cellpadding="0"
+                                        cellspacing="0"
+                                        border="0"
+                                      >
+                                        <tr>
+                                          <td valign="middle">
+                                            <h2 class="h2-title">
+                                              {{> icon-grid }} I tuoi template
+                                              più utilizzati
+                                            </h2>
+                                          </td>
+                                          {{#if viewAllPopularEserviceTemplatesLink}}
+                                          <td valign="middle" align="right">
+                                            <a
+                                              href="{{viewAllPopularEserviceTemplatesLink}}"
+                                              class="link-primary"
+                                              >Visualizza tutti {{>
+                                              icon-external-link }}</a
+                                            >
+                                          </td>
+                                          {{/if}}
+                                        </tr>
+                                      </table>
+                                      <p class="body-text">
+                                        <strong
+                                          >{{ popularEserviceTemplates.totalCount }}
+                                          dei tuoi template</strong
+                                        >
+                                        sono stati utilizzati per creare nuovi
+                                        e-service, tra cui:
+                                      </p>
+
+                                      <!-- Grid Wrapper -->
+                                      <div class="card-grid-wrapper">
+                                        {{#each popularEserviceTemplates.items}}
+                                        <div class="card-grid-item">
+                                          <div class="card">
+                                            <p class="card-producer">
+                                              {{ producerName }}
+                                            </p>
+                                            <p class="card-title">{{ name }}</p>
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary"
+                                            >
+                                              Visualizza {{> icon-external-link
+                                              }}
+                                            </a>
+                                          </div>
+                                        </div>
+                                        {{/each}}
+                                      </div>
+                                    </div>
+                                    {{/if}}
                                   </td>
                                 </tr>
                                 <tr>
