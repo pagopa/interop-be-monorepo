@@ -1,4 +1,4 @@
-import { TenantId } from "pagopa-interop-models";
+import { AgreementState, EServiceId, TenantId } from "pagopa-interop-models";
 import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
 import {
   NewEservice,
@@ -8,6 +8,8 @@ import {
   CertifiedAssignedAttribute,
   CertifiedRevokedAttribute,
   ReadModelService,
+  ReceivedAgreement,
+  SentAgreement,
 } from "../services/readModelService.js";
 
 export type VerifiedAttribute =
@@ -18,10 +20,14 @@ export type CertifiedAttribute =
   | CertifiedAssignedAttribute
   | CertifiedRevokedAttribute;
 
-const UNKNOWN_PRODUCER_NAME = "Unknown";
+const UNKNOWN_NAME = "Unknown";
 
 type EntityWithProducer = {
   entityProducerId: TenantId;
+};
+
+type EntityWithEService = {
+  eserviceId: EServiceId;
 };
 
 /**
@@ -42,7 +48,28 @@ async function enrichWithProducerNames<T extends EntityWithProducer>(
   return items.map((item) => ({
     ...item,
     entityProducerName:
-      tenantNamesMap.get(item.entityProducerId) ?? UNKNOWN_PRODUCER_NAME,
+      tenantNamesMap.get(item.entityProducerId) ?? UNKNOWN_NAME,
+  }));
+}
+
+/**
+ * Enriches items with e-service names by batching lookups.
+ */
+async function enrichWithEServiceNames<T extends EntityWithEService>(
+  items: T[],
+  readModelService: ReadModelService
+): Promise<Array<T & { eserviceName: string }>> {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const uniqueEServiceIds = [...new Set(items.map((i) => i.eserviceId))];
+  const eserviceNamesMap = await readModelService.getEServicesByIds(
+    uniqueEServiceIds
+  );
+  return items.map((item) => ({
+    ...item,
+    eserviceName: eserviceNamesMap.get(item.eserviceId) ?? UNKNOWN_NAME,
   }));
 }
 
@@ -67,6 +94,14 @@ function buildEserviceTemplateLink(): string {
  * TODO: Replace with actual link composition logic
  */
 function buildAttributeLink(): string {
+  return "#";
+}
+
+/**
+ * Builds a link for an agreement item.
+ * TODO: Replace with actual link composition logic
+ */
+function buildAgreementLink(): string {
   return "#";
 }
 
@@ -128,6 +163,94 @@ export async function eserviceToBaseDigest(
     })),
     totalCount: data[0].totalCount,
   };
+}
+
+/**
+ * Common type for agreements that can be converted to digest
+ */
+type AgreementWithIds = EntityWithEService & {
+  consumerId: TenantId;
+  producerId: TenantId;
+  totalCount: number;
+};
+
+/**
+ * Transforms agreements to BaseDigest with e-service names and tenant names.
+ *
+ * @param data - Agreement data to transform
+ * @param getTenantId - Function to extract the relevant tenant ID (producer or consumer)
+ * @param readModelService - Service for fetching names
+ */
+async function agreementsToBaseDigest<T extends AgreementWithIds>(
+  data: T[],
+  getTenantId: (agreement: T) => TenantId,
+  readModelService: ReadModelService
+): Promise<BaseDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  // Enrich with e-service names
+  const withEServiceNames = await enrichWithEServiceNames(
+    data,
+    readModelService
+  );
+
+  // Get tenant names (the entity that performed the action or created the request)
+  const uniqueTenantIds = [...new Set(data.map(getTenantId))];
+  const tenantNamesMap = await readModelService.getTenantsByIds(
+    uniqueTenantIds
+  );
+
+  return {
+    items: withEServiceNames.map((agreement) => ({
+      name: agreement.eserviceName,
+      producerName: tenantNamesMap.get(getTenantId(agreement)) ?? UNKNOWN_NAME,
+      link: buildAgreementLink(),
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Filters sent agreements by state and transforms to BaseDigest.
+ * Sent agreements are in accepted/rejected/suspended states.
+ * Shows e-service name and producer name (who performed the action: accepted/rejected/suspended).
+ *
+ * @param data - Sent agreement data to filter and transform
+ * @param state - The agreement state to filter by
+ * @param readModelService - Service for fetching tenant and e-service names
+ */
+export async function sentAgreementsToBaseDigest(
+  data: SentAgreement[],
+  state: AgreementState,
+  readModelService: ReadModelService
+): Promise<BaseDigest> {
+  const filteredData = data.filter((a) => a.state === state);
+  return agreementsToBaseDigest(
+    filteredData,
+    (agreement) => agreement.producerId,
+    readModelService
+  );
+}
+
+/**
+ * Transforms received agreements to BaseDigest.
+ * Received agreements are in waiting for approval state.
+ * Shows e-service name and consumer name (who created the request).
+ *
+ * @param data - Received agreement data to transform
+ * @param readModelService - Service for fetching tenant and e-service names
+ */
+export async function receivedAgreementsToBaseDigest(
+  data: ReceivedAgreement[],
+  readModelService: ReadModelService
+): Promise<BaseDigest> {
+  return agreementsToBaseDigest(
+    data,
+    (agreement) => agreement.consumerId,
+    readModelService
+  );
 }
 
 /**
