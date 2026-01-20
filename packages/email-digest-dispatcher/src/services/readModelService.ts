@@ -29,6 +29,9 @@ import {
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   tenantInReadmodelTenant,
+  tenantVerifiedAttributeVerifierInReadmodelTenant,
+  tenantVerifiedAttributeRevokerInReadmodelTenant,
+  attributeInReadmodelAttribute,
 } from "pagopa-interop-readmodel-models";
 import { config } from "../config/config.js";
 
@@ -54,6 +57,18 @@ export type NewEserviceTemplate = {
   eserviceTemplateVersionId: string;
   eserviceTemplateName: string;
   eserviceTemplateProducerId: TenantId;
+  totalCount: number;
+};
+
+export type VerifiedAttribute = {
+  attributeName: string;
+  verifierId: TenantId;
+  totalCount: number;
+};
+
+export type RevokedAttribute = {
+  attributeName: string;
+  revokerId: TenantId;
   totalCount: number;
 };
 
@@ -390,6 +405,114 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           tenant.name,
         ])
       );
+    },
+
+    /**
+     * Returns verified attributes for a tenant in the last DIGEST_FREQUENCY_DAYS days
+     */
+    async getVerifiedAttributes(
+      tenantId: TenantId
+    ): Promise<VerifiedAttribute[]> {
+      logger.info(
+        `Retrieving verified attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            attributeName: attributeInReadmodelAttribute.name,
+            verifierId:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
+          })
+        )
+        .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
+        .innerJoin(
+          attributeInReadmodelAttribute,
+          eq(
+            tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId,
+            attributeInReadmodelAttribute.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+              tenantId
+            ),
+            gte(
+              tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(
+          asc(tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate)
+        )
+        .limit(5);
+
+      logger.info(
+        `Retrieved ${results.length} verified attributes for tenant ${tenantId}`
+      );
+
+      return results.map((row) => ({
+        attributeName: row.attributeName,
+        verifierId: unsafeBrandId<TenantId>(row.verifierId),
+        totalCount: row.totalCount,
+      }));
+    },
+
+    /**
+     * Returns revoked attributes for a tenant in the last DIGEST_FREQUENCY_DAYS days
+     */
+    async getRevokedAttributes(
+      tenantId: TenantId
+    ): Promise<RevokedAttribute[]> {
+      logger.info(
+        `Retrieving revoked attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            attributeName: attributeInReadmodelAttribute.name,
+            revokerId:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
+          })
+        )
+        .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
+        .innerJoin(
+          attributeInReadmodelAttribute,
+          eq(
+            tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId,
+            attributeInReadmodelAttribute.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+              tenantId
+            ),
+            gte(
+              tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(
+          asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
+        )
+        .limit(5);
+
+      logger.info(
+        `Retrieved ${results.length} revoked attributes for tenant ${tenantId}`
+      );
+
+      return results.map((row) => ({
+        attributeName: row.attributeName,
+        revokerId: unsafeBrandId<TenantId>(row.revokerId),
+        totalCount: row.totalCount,
+      }));
     },
 
     /**

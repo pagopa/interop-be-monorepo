@@ -7,6 +7,7 @@ import {
   getMockAgreement,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -25,6 +26,13 @@ import {
   generateId,
   CorrelationId,
   EServiceTemplateVersionState,
+  Attribute,
+  AttributeId,
+  attributeKind,
+  VerifiedTenantAttribute,
+  tenantAttributeType,
+  TenantVerifier,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
@@ -32,6 +40,7 @@ import {
   upsertEService,
   upsertTenant,
   upsertEServiceTemplate,
+  upsertAttribute,
 } from "pagopa-interop-readmodel/testUtils";
 import { logger } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -511,4 +520,183 @@ export const createTemplateScenario = async (
   }
 
   return { template, versionIds, eservices };
+};
+
+/**
+ * Creates a mock attribute for testing purposes
+ */
+export const createMockAttribute = (
+  overrides?: Partial<Attribute>
+): Attribute => ({
+  ...getMockAttribute(attributeKind.verified),
+  name: `Test Attribute ${Math.random().toString(36).substring(7)}`,
+  ...overrides,
+});
+
+/**
+ * Adds an attribute to the database
+ */
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await upsertAttribute(readModelDB, attribute, 0);
+};
+
+/**
+ * Creates a TenantVerifier for verified attributes
+ */
+export const createMockTenantVerifier = (
+  verifierId: TenantId,
+  verificationDate: Date,
+  overrides?: Partial<TenantVerifier>
+): TenantVerifier => ({
+  id: verifierId,
+  verificationDate,
+  ...overrides,
+});
+
+/**
+ * Creates a TenantRevoker for revoked attributes
+ */
+export const createMockTenantRevoker = (
+  revokerId: TenantId,
+  verificationDate: Date,
+  revocationDate: Date,
+  overrides?: Partial<TenantRevoker>
+): TenantRevoker => ({
+  id: revokerId,
+  verificationDate,
+  revocationDate,
+  ...overrides,
+});
+
+/**
+ * Creates a VerifiedTenantAttribute
+ */
+export const createMockVerifiedTenantAttribute = (
+  attributeId: AttributeId,
+  verifiedBy: TenantVerifier[] = [],
+  revokedBy: TenantRevoker[] = []
+): VerifiedTenantAttribute => ({
+  id: attributeId,
+  type: tenantAttributeType.VERIFIED,
+  assignmentTimestamp: new Date(),
+  verifiedBy,
+  revokedBy,
+});
+
+/**
+ * Creates a tenant with a verified attribute
+ */
+export const createTenantWithVerifiedAttribute = (
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  verifierId: TenantId,
+  verificationDate: Date
+): Tenant => {
+  const verifier = createMockTenantVerifier(verifierId, verificationDate);
+  const verifiedAttribute = createMockVerifiedTenantAttribute(attributeId, [
+    verifier,
+  ]);
+
+  return createMockTenant({
+    id: tenantId,
+    attributes: [verifiedAttribute],
+  });
+};
+
+/**
+ * Creates a tenant with a revoked attribute
+ */
+export const createTenantWithRevokedAttribute = (
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  revokerId: TenantId,
+  verificationDate: Date,
+  revocationDate: Date
+): Tenant => {
+  const revoker = createMockTenantRevoker(
+    revokerId,
+    verificationDate,
+    revocationDate
+  );
+  const verifiedAttribute = createMockVerifiedTenantAttribute(
+    attributeId,
+    [],
+    [revoker]
+  );
+
+  return createMockTenant({
+    id: tenantId,
+    attributes: [verifiedAttribute],
+  });
+};
+
+/**
+ * Creates a complete scenario for verified attribute testing
+ */
+export const createVerifiedAttributeScenario = async (config: {
+  tenantId: TenantId;
+  verifierId: TenantId;
+  attributeName?: string;
+  verificationDaysAgo: number;
+}): Promise<{
+  tenant: Tenant;
+  verifier: Tenant;
+  attribute: Attribute;
+}> => {
+  const verificationDate = daysAgo(config.verificationDaysAgo);
+  const attribute = createMockAttribute(
+    config.attributeName ? { name: config.attributeName } : undefined
+  );
+
+  await addOneAttribute(attribute);
+
+  const verifier = createMockTenant({ id: config.verifierId });
+  await addOneTenant(verifier);
+
+  const tenant = createTenantWithVerifiedAttribute(
+    config.tenantId,
+    attribute.id,
+    config.verifierId,
+    verificationDate
+  );
+  await addOneTenant(tenant);
+
+  return { tenant, verifier, attribute };
+};
+
+/**
+ * Creates a complete scenario for revoked attribute testing
+ */
+export const createRevokedAttributeScenario = async (config: {
+  tenantId: TenantId;
+  revokerId: TenantId;
+  attributeName?: string;
+  verificationDaysAgo: number;
+  revocationDaysAgo: number;
+}): Promise<{
+  tenant: Tenant;
+  revoker: Tenant;
+  attribute: Attribute;
+}> => {
+  const verificationDate = daysAgo(config.verificationDaysAgo);
+  const revocationDate = daysAgo(config.revocationDaysAgo);
+  const attribute = createMockAttribute(
+    config.attributeName ? { name: config.attributeName } : undefined
+  );
+
+  await addOneAttribute(attribute);
+
+  const revoker = createMockTenant({ id: config.revokerId });
+  await addOneTenant(revoker);
+
+  const tenant = createTenantWithRevokedAttribute(
+    config.tenantId,
+    attribute.id,
+    config.revokerId,
+    verificationDate,
+    revocationDate
+  );
+  await addOneTenant(tenant);
+
+  return { tenant, revoker, attribute };
 };

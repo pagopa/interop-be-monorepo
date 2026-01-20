@@ -3,6 +3,8 @@ import { TenantId } from "pagopa-interop-models";
 import {
   eserviceTemplateToBaseDigest,
   eserviceToBaseDigest,
+  verifiedAttributeToDigest,
+  revokedAttributeToDigest,
 } from "../model/digestDataConverter.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
@@ -109,12 +111,16 @@ export function digestDataServiceBuilder(
         updatedEserviceTemplates,
         tenantMap,
         newEservices,
+        verifiedAttributes,
+        revokedAttributes,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
         readModelService.getTenantsByIds([tenantId]),
         // TODO: ask for priority list of tenants
         getNewEservicesDigest([]),
+        readModelService.getVerifiedAttributes(tenantId),
+        readModelService.getRevokedAttributes(tenantId),
       ]);
 
       const tenantName = tenantMap.get(tenantId);
@@ -193,14 +199,14 @@ export function digestDataServiceBuilder(
           items: [],
           totalCount: 0,
         },
-        receivedAttributes: {
-          items: [],
-          totalCount: 0,
-        },
-        revokedAttributes: {
-          items: [],
-          totalCount: 0,
-        },
+        receivedAttributes: await verifiedAttributeToDigest(
+          verifiedAttributes,
+          readModelService
+        ),
+        revokedAttributes: await revokedAttributeToDigest(
+          revokedAttributes,
+          readModelService
+        ),
       };
     },
 

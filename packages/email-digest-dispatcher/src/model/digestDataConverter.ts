@@ -1,8 +1,10 @@
 import { TenantId } from "pagopa-interop-models";
-import { BaseDigest } from "../services/digestDataService.js";
+import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
 import {
   NewEservice,
   NewEserviceTemplate,
+  VerifiedAttribute,
+  RevokedAttribute,
   ReadModelService,
 } from "../services/readModelService.js";
 
@@ -10,6 +12,12 @@ const UNKNOWN_PRODUCER_NAME = "Unknown";
 
 type EntityWithProducer = {
   entityProducerId: TenantId;
+};
+
+type AttributeWithTenantId = {
+  attributeName: string;
+  tenantId: TenantId;
+  totalCount: number;
 };
 
 /**
@@ -47,6 +55,14 @@ function buildEserviceLink(): string {
  * TODO: Replace with actual link composition logic
  */
 function buildEserviceTemplateLink(): string {
+  return "#";
+}
+
+/**
+ * Builds a link for an attribute item.
+ * TODO: Replace with actual link composition logic
+ */
+function buildAttributeLink(): string {
   return "#";
 }
 
@@ -108,4 +124,71 @@ export async function eserviceToBaseDigest(
     })),
     totalCount: data[0].totalCount,
   };
+}
+
+/**
+ * Shared helper to transform attribute data into an AttributeDigest object.
+ */
+async function attributeToDigest(
+  data: AttributeWithTenantId[],
+  readModelService: ReadModelService,
+  attributeKind: "verified" | "certified"
+): Promise<AttributeDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  const enrichedItems = await enrichWithProducerNames(
+    data.map((item) => ({
+      ...item,
+      entityProducerId: item.tenantId,
+    })),
+    readModelService
+  );
+
+  return {
+    items: enrichedItems.map((attr) => ({
+      name: attr.attributeName,
+      producerName: attr.entityProducerName,
+      link: buildAttributeLink(),
+      attributeKind,
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Transforms readmodel verified attribute data into an AttributeDigest object.
+ */
+export async function verifiedAttributeToDigest(
+  data: VerifiedAttribute[],
+  readModelService: ReadModelService
+): Promise<AttributeDigest> {
+  return attributeToDigest(
+    data.map((item) => ({
+      attributeName: item.attributeName,
+      tenantId: item.verifierId,
+      totalCount: item.totalCount,
+    })),
+    readModelService,
+    "verified"
+  );
+}
+
+/**
+ * Transforms readmodel revoked attribute data into an AttributeDigest object.
+ */
+export async function revokedAttributeToDigest(
+  data: RevokedAttribute[],
+  readModelService: ReadModelService
+): Promise<AttributeDigest> {
+  return attributeToDigest(
+    data.map((item) => ({
+      attributeName: item.attributeName,
+      tenantId: item.revokerId,
+      totalCount: item.totalCount,
+    })),
+    readModelService,
+    "verified"
+  );
 }
