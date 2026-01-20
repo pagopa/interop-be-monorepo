@@ -4,8 +4,6 @@ import {
   PurposeTemplate,
   PurposeTemplateEventEnvelopeV2,
   RiskAnalysisTemplateDocument,
-  Tenant,
-  TenantKind,
   fromPurposeTemplateV2,
   generateId,
   missingKafkaMessageDataError,
@@ -26,7 +24,6 @@ import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 import { riskAnalysisTemplateDocumentBuilder } from "../service/purpose-template/purposeTemplateDocumentBuilder.js";
 import { config } from "../config/config.js";
 import { retrieveTenant } from "../service/purpose/purposeService.js";
-import { tenantKindNotFound } from "../model/errors.js";
 
 // eslint-disable-next-line max-params
 export async function handlePurposeTemplateMessageV2(
@@ -57,13 +54,6 @@ export async function handlePurposeTemplateMessageV2(
           purposeTemplate.creatorId,
           readModelService
         );
-
-        function getTenantKind(tenant: Tenant): TenantKind {
-          if (!tenant.kind) {
-            throw tenantKindNotFound(tenant.id);
-          }
-          return tenant.kind;
-        }
 
         const contract = await riskAnalysisTemplateDocumentBuilder(
           pdfGenerator,

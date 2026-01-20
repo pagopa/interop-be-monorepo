@@ -25,7 +25,7 @@ import {
   RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
-  TargetTenantKind
+  TargetTenantKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTemplateModels.js";
