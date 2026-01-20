@@ -1,0 +1,23 @@
+meta {
+  name: Delete client key
+  type: http
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/clients/:clientId/keys/:keyId
+  body: none
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+  keyId: {{keyId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+docs {
+  Deletes a specific key from a client by its key ID.
+}
