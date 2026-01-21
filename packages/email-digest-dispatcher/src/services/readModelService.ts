@@ -63,22 +63,23 @@ export type NewEserviceTemplate = {
   totalCount: number;
 };
 
-export type VerifiedAssignedAttribute = {
+type AttributeBase = {
   attributeName: string;
-  verifierId: TenantId;
   totalCount: number;
 };
 
-export type VerifiedRevokedAttribute = {
-  attributeName: string;
-  revokerId: TenantId;
-  totalCount: number;
+export type VerifiedAssignedAttribute = AttributeBase & {
+  state: "assigned";
+  actionPerformer: TenantId;
 };
 
-export type CertifiedAttribute = {
-  attributeName: string;
+export type VerifiedRevokedAttribute = AttributeBase & {
+  state: "revoked";
+  actionPerformer: TenantId;
+};
+
+export type CertifiedAttribute = AttributeBase & {
   state: "assigned" | "revoked";
-  totalCount: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -465,7 +466,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
       return results.map((row) => ({
         attributeName: row.attributeName,
-        verifierId: unsafeBrandId<TenantId>(row.verifierId),
+        state: "assigned" as const,
+        actionPerformer: unsafeBrandId<TenantId>(row.verifierId),
         totalCount: row.totalCount,
       }));
     },
@@ -519,7 +521,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
       return results.map((row) => ({
         attributeName: row.attributeName,
-        revokerId: unsafeBrandId<TenantId>(row.revokerId),
+        state: "revoked" as const,
+        actionPerformer: unsafeBrandId<TenantId>(row.revokerId),
         totalCount: row.totalCount,
       }));
     },

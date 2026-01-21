@@ -68,7 +68,8 @@ describe("ReadModelService - getVerifiedAssignedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         attributeName: attribute.name,
-        verifierId: verifier.id,
+        state: "assigned",
+        actionPerformer: verifier.id,
         totalCount: 1,
       });
     });
@@ -136,7 +137,8 @@ describe("ReadModelService - getVerifiedAssignedAttributes", () => {
 
       expect(result.length).toBeGreaterThanOrEqual(1);
       expect(result[0]).toHaveProperty("attributeName");
-      expect(result[0]).toHaveProperty("verifierId");
+      expect(result[0]).toHaveProperty("state");
+      expect(result[0]).toHaveProperty("actionPerformer");
       expect(result[0]).toHaveProperty("totalCount");
     });
   });
@@ -204,7 +206,8 @@ describe("ReadModelService - getVerifiedAssignedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         attributeName: expect.any(String),
-        verifierId: expect.any(String),
+        state: "assigned",
+        actionPerformer: expect.any(String),
         totalCount: expect.any(Number),
       });
 
@@ -266,7 +269,8 @@ describe("ReadModelService - getVerifiedRevokedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         attributeName: attribute.name,
-        revokerId: revoker.id,
+        state: "revoked",
+        actionPerformer: revoker.id,
         totalCount: 1,
       });
     });
@@ -375,7 +379,8 @@ describe("ReadModelService - getVerifiedRevokedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         attributeName: expect.any(String),
-        revokerId: expect.any(String),
+        state: "revoked",
+        actionPerformer: expect.any(String),
         totalCount: expect.any(Number),
       });
 

@@ -9,6 +9,10 @@ import {
   ReadModelService,
 } from "../services/readModelService.js";
 
+export type VerifiedAttribute =
+  | VerifiedAssignedAttribute
+  | VerifiedRevokedAttribute;
+
 const UNKNOWN_PRODUCER_NAME = "Unknown";
 
 type EntityWithProducer = {
@@ -121,17 +125,13 @@ export async function eserviceToBaseDigest(
   };
 }
 
-type VerifiedAttributeWithTenantId = {
-  attributeName: string;
-  tenantId: TenantId;
-  totalCount: number;
-};
-
 /**
- * Shared helper to transform verified attribute data into an AttributeDigest object.
+ * Transforms verified attribute data (assigned or revoked) into an AttributeDigest object.
+ * Works with both VerifiedAssignedAttribute and VerifiedRevokedAttribute since they share
+ * the same structure with actionPerformer field.
  */
-async function verifiedAttributeToDigest(
-  data: VerifiedAttributeWithTenantId[],
+export async function verifiedAttributeToDigest(
+  data: VerifiedAttribute[],
   readModelService: ReadModelService
 ): Promise<AttributeDigest> {
   if (data.length === 0) {
@@ -141,7 +141,7 @@ async function verifiedAttributeToDigest(
   const enrichedItems = await enrichWithProducerNames(
     data.map((item) => ({
       ...item,
-      entityProducerId: item.tenantId,
+      entityProducerId: item.actionPerformer,
     })),
     readModelService
   );
@@ -155,40 +155,6 @@ async function verifiedAttributeToDigest(
     })),
     totalCount: data[0].totalCount,
   };
-}
-
-/**
- * Transforms verified assigned attribute data into an AttributeDigest object.
- */
-export async function verifiedAssignedAttributeToDigest(
-  data: VerifiedAssignedAttribute[],
-  readModelService: ReadModelService
-): Promise<AttributeDigest> {
-  return verifiedAttributeToDigest(
-    data.map((item) => ({
-      attributeName: item.attributeName,
-      tenantId: item.verifierId,
-      totalCount: item.totalCount,
-    })),
-    readModelService
-  );
-}
-
-/**
- * Transforms verified revoked attribute data into an AttributeDigest object.
- */
-export async function verifiedRevokedAttributeToDigest(
-  data: VerifiedRevokedAttribute[],
-  readModelService: ReadModelService
-): Promise<AttributeDigest> {
-  return verifiedAttributeToDigest(
-    data.map((item) => ({
-      attributeName: item.attributeName,
-      tenantId: item.revokerId,
-      totalCount: item.totalCount,
-    })),
-    readModelService
-  );
 }
 
 /**
