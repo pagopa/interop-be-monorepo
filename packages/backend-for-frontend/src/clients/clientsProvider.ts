@@ -47,10 +47,6 @@ export type SelfcareV2UserClient = {
   user: ReturnType<typeof selfcareV2ClientApi.createUserApiClient>;
 };
 
-export type InAppNotificationManagerClient = ReturnType<
-  typeof inAppNotificationApi.createNotificationApiClient
->;
-
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
@@ -64,7 +60,7 @@ export type PagoPAInteropBeClients = {
   delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient;
   notificationConfigProcessClient: notificationConfigApi.NotificationConfigProcessClient;
-  inAppNotificationManagerClient: InAppNotificationManagerClient;
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {

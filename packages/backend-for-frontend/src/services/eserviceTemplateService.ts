@@ -6,6 +6,7 @@ import {
   attributeRegistryApi,
   catalogApi,
   eserviceTemplateApi,
+  inAppNotificationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -32,10 +33,7 @@ import {
   toBffEServiceTemplateDetails,
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
-import {
-  InAppNotificationManagerClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   eserviceTemplateNotFound,
@@ -53,7 +51,7 @@ export function eserviceTemplateServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {

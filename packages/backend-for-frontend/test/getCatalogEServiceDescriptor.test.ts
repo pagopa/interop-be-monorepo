@@ -12,13 +12,13 @@ import {
   bffApi,
   catalogApi,
   eserviceTemplateApi,
+  inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import {
   DelegationProcessClient,
-  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
@@ -211,7 +211,7 @@ describe("getCatalogEServiceDescriptor", () => {
     {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient;
 
   const mockInAppNotificationManagerClient =
-    {} as unknown as InAppNotificationManagerClient;
+    {} as unknown as inAppNotificationApi.InAppNotificationManagerClient;
   vi.spyOn(attributeService, "getAllBulkAttributes").mockResolvedValue([
     {
       id: certifiedAttributeId,

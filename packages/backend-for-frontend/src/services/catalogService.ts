@@ -10,6 +10,7 @@ import {
   catalogApi,
   delegationApi,
   eserviceTemplateApi,
+  inAppNotificationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -47,7 +48,6 @@ import {
 } from "../api/catalogApiConverter.js";
 import {
   DelegationProcessClient,
-  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
@@ -89,7 +89,7 @@ const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   ctx: WithLogger<BffAppContext>,
   requesterId: TenantId
 ): Promise<bffApi.CatalogEService[]> => {
@@ -324,7 +324,7 @@ export function catalogServiceBuilder(
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {

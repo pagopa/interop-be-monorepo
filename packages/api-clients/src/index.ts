@@ -15,7 +15,7 @@ export * from "./selfcareClients.js";
 export * as authorizationServerApi from "./generated/authorizationServerApi.js";
 export * as eserviceTemplateApi from "./eserviceTemplateApi.js";
 export * as m2mGatewayApi from "./m2mGatewayApi.js";
-export * as inAppNotificationApi from "./generated/inAppNotificationApi.js";
+export * as inAppNotificationApi from "./inAppNotificationApi.js";
 export * as notificationConfigApi from "./notificationConfigApi.js";
 export * as m2mEventApi from "./m2mEventApi.js";
 export * as m2mGatewayApiV3 from "./m2mGatewayApiV3.js";

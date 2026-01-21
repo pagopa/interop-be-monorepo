@@ -64,6 +64,7 @@ import {
   attributeRegistryApi,
   catalogApi,
   eserviceTemplateApi,
+  inAppNotificationApi,
   notificationConfigApi,
   purposeApi,
   purposeTemplateApi,
@@ -72,7 +73,6 @@ import { createApp, createServices } from "../src/app.js";
 import {
   AuthorizationProcessClient,
   DelegationProcessClient,
-  InAppNotificationManagerClient,
   SelfcareV2InstitutionClient,
   SelfcareV2UserClient,
   TenantProcessClient,
@@ -119,7 +119,8 @@ export const clients = {
     {} as eserviceTemplateApi.EServiceTemplateProcessClient,
   notificationConfigProcessClient:
     {} as notificationConfigApi.NotificationConfigProcessClient,
-  inAppNotificationManagerClient: {} as InAppNotificationManagerClient,
+  inAppNotificationManagerClient:
+    {} as inAppNotificationApi.InAppNotificationManagerClient,
 };
 
 const fileManager = initFileManager(config);

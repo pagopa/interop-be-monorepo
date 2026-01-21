@@ -3,6 +3,7 @@ import {
   bffApi,
   catalogApi,
   delegationApi,
+  inAppNotificationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -20,7 +21,6 @@ import {
 } from "../api/delegationApiConverter.js";
 import {
   DelegationProcessClient,
-  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import {
@@ -204,7 +204,7 @@ export function delegationServiceBuilder(
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
