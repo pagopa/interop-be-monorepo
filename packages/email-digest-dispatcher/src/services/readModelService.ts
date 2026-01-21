@@ -3,6 +3,7 @@ import {
   desc,
   asc,
   and,
+  or,
   gte,
   isNotNull,
   isNull,
@@ -19,6 +20,9 @@ import {
   unsafeBrandId,
   EServiceId,
   DescriptorId,
+  AgreementId,
+  AgreementState,
+  agreementState,
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
@@ -26,6 +30,7 @@ import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -38,6 +43,7 @@ import {
 import { config } from "../config/config.js";
 
 const DIGEST_FREQUENCY_DAYS = config.digestFrequencyDays;
+const SECTION_LIST_LIMIT = 5;
 
 export type DigestUser = {
   userId: UserId;
@@ -85,10 +91,75 @@ export type CertifiedRevokedAttribute = AttributeBase & {
   state: "revoked";
 };
 
+// Base type for agreement data shared between sent and received agreements
+type BaseAgreement = {
+  agreementId: AgreementId;
+  eserviceId: EServiceId;
+  consumerId: TenantId;
+  producerId: TenantId;
+  actionDate: string;
+  totalCount: number;
+};
+
+export type SentAgreement = BaseAgreement & {
+  state: AgreementState;
+};
+
+export type ReceivedAgreement = BaseAgreement;
+
+/**
+ * Generic helper to retrieve entities with request-scoped caching.
+ * Avoids duplicate DB lookups by checking the cache first.
+ */
+async function getCachedEntities<K, V>(
+  ids: K[],
+  cache: Map<K, V>,
+  fetchFn: (uncachedIds: K[]) => Promise<Map<K, V>>,
+  logger: Logger,
+  entityName: string
+): Promise<Map<K, V>> {
+  if (ids.length === 0) {
+    return new Map();
+  }
+
+  const uncachedIds = ids.filter((id) => !cache.has(id));
+
+  const cachedEntries: Array<[K, V]> = ids
+    .filter((id) => cache.has(id))
+    .map((id) => [id, cache.get(id) as V]);
+
+  if (uncachedIds.length > 0) {
+    logger.info(
+      `Retrieving ${uncachedIds.length} ${entityName} by IDs (${
+        ids.length - uncachedIds.length
+      } from cache)`
+    );
+    const fetched = await fetchFn(uncachedIds);
+
+    fetched.forEach((value, key) => {
+      cache.set(key, value);
+    });
+
+    return new Map([...cachedEntries, ...fetched.entries()]);
+  } else {
+    logger.info(
+      `Retrieved ${ids.length} ${entityName} from cache (no DB query needed)`
+    );
+  }
+
+  return new Map(cachedEntries);
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
   const dateThreshold = new Date();
   dateThreshold.setDate(dateThreshold.getDate() - DIGEST_FREQUENCY_DAYS);
+
+  // Request-scoped caches to avoid duplicate DB lookups for the same IDs
+  // These caches live for the lifetime of the service instance (job duration)
+  const tenantNameCache = new Map<TenantId, string>();
+  const eserviceNameCache = new Map<EServiceId, string>();
+
   return {
     /**
      * Returns the list of new e-services published in the last TIME_INTERVAL_IN_DAYS days
@@ -153,7 +224,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           desc(count(agreementInReadmodelAgreement.id)),
           asc(eserviceDescriptorInReadmodelCatalog.publishedAt)
         )
-        .limit(5);
+        .limit(SECTION_LIST_LIMIT);
 
       logger.info(`Retrieved ${results.length} new e-services`);
 
@@ -240,7 +311,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             newVersionInt > agreementVersionInt
           );
         })
-        .slice(0, 5);
+        .slice(0, SECTION_LIST_LIMIT);
 
       logger.info(
         `Retrieved ${filteredResults.length} new e-service versions for consumer ${consumerId}`
@@ -375,7 +446,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           templateMap.set(row.eserviceTemplateId, row);
         }
       }
-      const filteredResults = Array.from(templateMap.values()).slice(0, 5);
+      const filteredResults = Array.from(templateMap.values()).slice(
+        0,
+        SECTION_LIST_LIMIT
+      );
 
       logger.info(
         `Retrieved ${filteredResults.length} new e-service templates for consumer ${consumerId}`
@@ -393,30 +467,184 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Retrieves tenant names by their IDs in batch
-     * can this be saved in our local DB for performance?
+     * Returns agreements sent by the consumer tenant that changed to Active, Rejected, or Suspended.
+     * Uses the appropriate stamp for each state's action date:
+     * - Active → activation stamp
+     * - Rejected → rejection stamp
+     * - Suspended → suspensionByProducer stamp
+     * Limited to 5 per state.
+     */
+    async getSentAgreements(consumerId: TenantId): Promise<SentAgreement[]> {
+      logger.info(
+        `Retrieving sent agreements for consumer ${consumerId} since ${dateThreshold.toISOString()}`
+      );
+
+      // Single query fetching all three states with their corresponding stamp kinds
+      const results = await db
+        .select({
+          agreementId: agreementInReadmodelAgreement.id,
+          eserviceId: agreementInReadmodelAgreement.eserviceId,
+          consumerId: agreementInReadmodelAgreement.consumerId,
+          producerId: agreementInReadmodelAgreement.producerId,
+          state: agreementInReadmodelAgreement.state,
+          actionDate: agreementStampInReadmodelAgreement.when,
+        })
+        .from(agreementInReadmodelAgreement)
+        .innerJoin(
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .where(
+          and(
+            eq(agreementInReadmodelAgreement.consumerId, consumerId),
+            gte(
+              agreementStampInReadmodelAgreement.when,
+              dateThreshold.toISOString()
+            ),
+            or(
+              and(
+                eq(agreementInReadmodelAgreement.state, agreementState.active),
+                eq(agreementStampInReadmodelAgreement.kind, "activation")
+              ),
+              and(
+                eq(
+                  agreementInReadmodelAgreement.state,
+                  agreementState.rejected
+                ),
+                eq(agreementStampInReadmodelAgreement.kind, "rejection")
+              ),
+              and(
+                eq(
+                  agreementInReadmodelAgreement.state,
+                  agreementState.suspended
+                ),
+                eq(
+                  agreementStampInReadmodelAgreement.kind,
+                  "suspensionByProducer"
+                )
+              )
+            )
+          )
+        )
+        .orderBy(asc(agreementStampInReadmodelAgreement.when));
+
+      // Group by state using reduce (functional approach)
+      const groupedByState = results.reduce((acc, row) => {
+        const stateResults = acc.get(row.state) ?? [];
+        return new Map(acc).set(row.state, [...stateResults, row]);
+      }, new Map<string, typeof results>());
+
+      // Build final results with totalCount per state and limit to 5 per state
+      const allResults = Array.from(groupedByState.entries()).flatMap(
+        ([state, stateResults]) => {
+          const totalCount = stateResults.length;
+          return stateResults.slice(0, SECTION_LIST_LIMIT).map((row) => ({
+            agreementId: unsafeBrandId<AgreementId>(row.agreementId),
+            eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+            consumerId: unsafeBrandId<TenantId>(row.consumerId),
+            producerId: unsafeBrandId<TenantId>(row.producerId),
+            state: AgreementState.parse(state),
+            actionDate: row.actionDate,
+            totalCount,
+          }));
+        }
+      );
+
+      logger.info(
+        `Retrieved ${allResults.length} sent agreements for consumer ${consumerId} (up to ${SECTION_LIST_LIMIT} per state)`
+      );
+
+      return allResults;
+    },
+
+    /**
+     * Returns agreements received by the producer tenant that are waiting for approval (Pending state).
+     * Uses the submission stamp for the action date.
+     * Limited to 5 results.
+     */
+    async getReceivedAgreements(
+      producerId: TenantId
+    ): Promise<ReceivedAgreement[]> {
+      logger.info(
+        `Retrieving received agreements for producer ${producerId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select({
+          agreementId: agreementInReadmodelAgreement.id,
+          eserviceId: agreementInReadmodelAgreement.eserviceId,
+          consumerId: agreementInReadmodelAgreement.consumerId,
+          producerId: agreementInReadmodelAgreement.producerId,
+          actionDate: agreementStampInReadmodelAgreement.when,
+        })
+        .from(agreementInReadmodelAgreement)
+        .innerJoin(
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .where(
+          and(
+            eq(agreementInReadmodelAgreement.producerId, producerId),
+            eq(agreementStampInReadmodelAgreement.kind, "submission"),
+            eq(agreementInReadmodelAgreement.state, agreementState.pending),
+            gte(
+              agreementStampInReadmodelAgreement.when,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(asc(agreementStampInReadmodelAgreement.when));
+
+      const totalCount = results.length;
+
+      logger.info(
+        `Retrieved ${results.length} received agreements for tenant ${producerId}`
+      );
+
+      return results.slice(0, SECTION_LIST_LIMIT).map((row) => ({
+        agreementId: unsafeBrandId<AgreementId>(row.agreementId),
+        eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+        consumerId: unsafeBrandId<TenantId>(row.consumerId),
+        producerId: unsafeBrandId<TenantId>(row.producerId),
+        actionDate: row.actionDate,
+        totalCount,
+      }));
+    },
+
+    /**
+     * Retrieves tenant names by their IDs in batch.
+     * Uses request-scoped caching to avoid duplicate lookups.
      */
     async getTenantsByIds(
       tenantIds: TenantId[]
     ): Promise<Map<TenantId, string>> {
-      if (tenantIds.length === 0) {
-        return new Map();
-      }
+      return getCachedEntities(
+        tenantIds,
+        tenantNameCache,
+        async (uncachedIds) => {
+          const tenants = await db
+            .select({
+              id: tenantInReadmodelTenant.id,
+              name: tenantInReadmodelTenant.name,
+            })
+            .from(tenantInReadmodelTenant)
+            .where(inArray(tenantInReadmodelTenant.id, uncachedIds));
 
-      logger.info(`Retrieving ${tenantIds.length} tenants by IDs`);
-      const tenants = await db
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-        })
-        .from(tenantInReadmodelTenant)
-        .where(inArray(tenantInReadmodelTenant.id, tenantIds));
-
-      return new Map(
-        tenants.map((tenant) => [
-          unsafeBrandId<TenantId>(tenant.id),
-          tenant.name,
-        ])
+          return new Map(
+            tenants.map((tenant) => [
+              unsafeBrandId<TenantId>(tenant.id),
+              tenant.name,
+            ])
+          );
+        },
+        logger,
+        "tenants"
       );
     },
 
@@ -625,6 +853,37 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         state: "revoked" as const,
         totalCount: row.totalCount,
       }));
+    },
+
+    /**
+     * Retrieves e-service names by their IDs in batch.
+     * Uses request-scoped caching to avoid duplicate lookups.
+     */
+    async getEServicesByIds(
+      eserviceIds: EServiceId[]
+    ): Promise<Map<EServiceId, string>> {
+      return getCachedEntities(
+        eserviceIds,
+        eserviceNameCache,
+        async (uncachedIds) => {
+          const eservices = await db
+            .select({
+              id: eserviceInReadmodelCatalog.id,
+              name: eserviceInReadmodelCatalog.name,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(inArray(eserviceInReadmodelCatalog.id, uncachedIds));
+
+          return new Map(
+            eservices.map((eservice) => [
+              unsafeBrandId<EServiceId>(eservice.id),
+              eservice.name,
+            ])
+          );
+        },
+        logger,
+        "e-services"
+      );
     },
 
     /**
