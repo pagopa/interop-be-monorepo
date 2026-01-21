@@ -18,6 +18,7 @@ import { toM2MJWK } from "../api/keysApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 
 export type ProducerKeychainService = ReturnType<
@@ -37,6 +38,16 @@ export function producerKeychainServiceBuilder(
       headers,
     });
 
+  const retrieveProducerKeychainKeyById = (
+    keychainId: ProducerKeychainId,
+    keyId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
+    clients.authorizationClient.producerKeychain.getProducerKeyById({
+      params: { producerKeychainId: keychainId, keyId },
+      headers,
+    });
+
   const pollProducerKeychain = (
     response: WithMaybeMetadata<authorizationApi.ProducerKeychain>,
     headers: M2MGatewayAppContext["headers"]
@@ -46,6 +57,15 @@ export function producerKeychainServiceBuilder(
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollProducerKeychainKeyUntilDeletion = (
+    keychainId: ProducerKeychainId,
+    keyId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveProducerKeychainKeyById(keychainId, keyId, headers)
+    )({});
 
   return {
     async getProducerKeychain(
@@ -204,6 +224,25 @@ export function producerKeychainServiceBuilder(
         );
 
       await pollProducerKeychain(response, headers);
+    },
+    async deleteProducerKeychainKey(
+      keychainId: ProducerKeychainId,
+      keyId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting key for producer keychain with id ${keychainId} and its keyId ${keyId}`
+      );
+
+      await clients.authorizationClient.producerKeychain.deleteProducerKeyById(
+        undefined,
+        {
+          params: { producerKeychainId: keychainId, keyId },
+          headers,
+        }
+      );
+
+      await pollProducerKeychainKeyUntilDeletion(keychainId, keyId, headers);
     },
   };
 }
