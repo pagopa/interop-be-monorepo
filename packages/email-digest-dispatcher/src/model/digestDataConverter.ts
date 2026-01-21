@@ -16,6 +16,7 @@ type EntityWithProducer = {
 
 type AttributeWithTenantId = {
   attributeName: string;
+  attributeKind: "certified" | "verified";
   tenantId: TenantId;
   totalCount: number;
 };
@@ -127,12 +128,11 @@ export async function eserviceToBaseDigest(
 }
 
 /**
- * Shared helper to transform attribute data into a BaseDigest object.
+ * Shared helper to transform attribute data into an AttributeDigest object.
  */
 async function attributeToBaseDigest(
   data: AttributeWithTenantId[],
-  readModelService: ReadModelService,
-  attributeKind: "verified" | "certified"
+  readModelService: ReadModelService
 ): Promise<AttributeDigest> {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
@@ -151,14 +151,14 @@ async function attributeToBaseDigest(
       name: attr.attributeName,
       producerName: attr.entityProducerName,
       link: buildAttributeLink(),
-      attributeKind,
+      attributeKind: attr.attributeKind,
     })),
     totalCount: data[0].totalCount,
   };
 }
 
 /**
- * Transforms readmodel verified attribute data into a BaseDigest object.
+ * Transforms readmodel verified attribute data into an AttributeDigest object.
  */
 export async function verifiedAttributeToBaseDigest(
   data: VerifiedAttribute[],
@@ -167,16 +167,16 @@ export async function verifiedAttributeToBaseDigest(
   return attributeToBaseDigest(
     data.map((item) => ({
       attributeName: item.attributeName,
+      attributeKind: item.attributeKind,
       tenantId: item.verifierId,
       totalCount: item.totalCount,
     })),
-    readModelService,
-    "verified"
+    readModelService
   );
 }
 
 /**
- * Transforms readmodel revoked attribute data into a BaseDigest object.
+ * Transforms readmodel revoked attribute data into an AttributeDigest object.
  */
 export async function revokedAttributeToBaseDigest(
   data: RevokedAttribute[],
@@ -185,10 +185,10 @@ export async function revokedAttributeToBaseDigest(
   return attributeToBaseDigest(
     data.map((item) => ({
       attributeName: item.attributeName,
+      attributeKind: item.attributeKind,
       tenantId: item.revokerId,
       totalCount: item.totalCount,
     })),
-    readModelService,
-    "verified"
+    readModelService
   );
 }

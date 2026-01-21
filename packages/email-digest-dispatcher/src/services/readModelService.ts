@@ -62,12 +62,14 @@ export type NewEserviceTemplate = {
 
 export type VerifiedAttribute = {
   attributeName: string;
+  attributeKind: "certified" | "verified";
   verifierId: TenantId;
   totalCount: number;
 };
 
 export type RevokedAttribute = {
   attributeName: string;
+  attributeKind: "certified" | "verified";
   revokerId: TenantId;
   totalCount: number;
 };
@@ -421,6 +423,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
+            attributeKind: attributeInReadmodelAttribute.kind,
             verifierId:
               tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
           })
@@ -456,6 +459,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
       return results.map((row) => ({
         attributeName: row.attributeName,
+        attributeKind: row.attributeKind as "certified" | "verified",
         verifierId: unsafeBrandId<TenantId>(row.verifierId),
         totalCount: row.totalCount,
       }));
@@ -475,6 +479,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
+            attributeKind: attributeInReadmodelAttribute.kind,
             revokerId:
               tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
           })
@@ -510,6 +515,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
       return results.map((row) => ({
         attributeName: row.attributeName,
+        attributeKind: row.attributeKind as "certified" | "verified",
         revokerId: unsafeBrandId<TenantId>(row.revokerId),
         totalCount: row.totalCount,
       }));

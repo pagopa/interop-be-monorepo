@@ -62,6 +62,7 @@ describe("ReadModelService - getVerifiedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         attributeName: attribute.name,
+        attributeKind: attribute.kind,
         verifierId: verifier.id,
         totalCount: 1,
       });
@@ -186,6 +187,7 @@ describe("ReadModelService - getVerifiedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         attributeName: expect.any(String),
+        attributeKind: expect.any(String),
         verifierId: expect.any(String),
         totalCount: expect.any(Number),
       });
@@ -242,6 +244,7 @@ describe("ReadModelService - getRevokedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         attributeName: attribute.name,
+        attributeKind: attribute.kind,
         revokerId: revoker.id,
         totalCount: 1,
       });
@@ -341,6 +344,7 @@ describe("ReadModelService - getRevokedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         attributeName: expect.any(String),
+        attributeKind: expect.any(String),
         revokerId: expect.any(String),
         totalCount: expect.any(Number),
       });
