@@ -1,3 +1,4 @@
+import path from "path";
 import { match, P } from "ts-pattern";
 import { Message } from "@aws-sdk/client-sqs";
 
@@ -81,14 +82,22 @@ async function processMessage(
     );
 
     const { bucket, process } = FILE_KIND_CONFIG[signatureFileKind];
-    const path = signature.path;
-    const fileName = appendSignedSuffixToFileName(fileKey, signatureFileKind);
+
+    const filePath = match(fileKind)
+      .with(FileKindSchema.Enum.EVENT_JOURNAL, () => signature.path)
+      .otherwise(() => path.dirname(signature.path));
+
+    const fileName = appendSignedSuffixToFileName(
+      fileKey,
+      signatureFileKind,
+      signature.fileName
+    );
 
     // immutable s3Key with 409 handling for specific documentTypes
     const s3Key: string = await (async (): Promise<string> => {
       try {
         return await fileManager.resumeOrStoreBytes(
-          { bucket, path, name: fileName, content: fileContent },
+          { bucket, path: filePath, name: fileName, content: fileContent },
           logger
         );
       } catch (error) {
@@ -133,7 +142,7 @@ async function processMessage(
         riskAnalysis: (): PurposeVersionDocument => ({
           id: unsafeBrandId<PurposeVersionDocumentId>(docSignature.subObjectId),
           contentType: docSignature.contentType,
-          path,
+          path: s3Key,
           createdAt: bigIntToDate(docSignature.createdAt),
         }),
         agreement: (): AgreementDocument => ({
