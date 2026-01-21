@@ -91,7 +91,7 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async getUser(
+    async getUserById(
       userId: string,
       {
         logger,

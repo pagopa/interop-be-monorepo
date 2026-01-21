@@ -49,7 +49,7 @@ const userRouter = (
         // Enforce m2m-admin role only
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        const user = await userService.getUser(req.params.userId, ctx);
+        const user = await userService.getUserById(req.params.userId, ctx);
 
         return res.status(200).send(m2mGatewayApiV3.User.parse(user));
       } catch (error) {

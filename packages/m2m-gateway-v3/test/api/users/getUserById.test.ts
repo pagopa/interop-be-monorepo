@@ -28,7 +28,7 @@ describe("API GET /users/:userId", () => {
   };
 
   beforeEach(() => {
-    mockUserService.getUser = vi.fn().mockResolvedValue(mockResponse);
+    mockUserService.getUserById = vi.fn().mockResolvedValue(mockResponse);
   });
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -63,7 +63,7 @@ describe("API GET /users/:userId", () => {
   it("Should return 404 if user is not found", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
 
-    mockUserService.getUser = vi
+    mockUserService.getUserById = vi
       .fn()
       .mockRejectedValue(userNotFound(mockUserResource.id, generateId()));
 
@@ -87,7 +87,9 @@ describe("API GET /users/:userId", () => {
     "should return 500 if an error occurs in the service with payload %s",
     async (mockedWrongResponse) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      mockUserService.getUser = vi.fn().mockResolvedValue(mockedWrongResponse);
+      mockUserService.getUserById = vi
+        .fn()
+        .mockResolvedValue(mockedWrongResponse);
       const res = await makeRequest(mockUserResource.id, token);
       expect(res.status).toBe(500);
     }
