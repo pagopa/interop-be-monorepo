@@ -6,14 +6,14 @@ import {
   generateToken,
   getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
-import { generateId, tenantKind } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { vi, beforeEach, describe, it, expect } from "vitest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
   const purposeTemplateId = generateId();
   const mockPurposeTemplate200Response: purposeTemplateApi.PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -26,7 +26,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
 
   const validPurposeTemplateSeed: bffApi.PurposeTemplateSeed = {
     targetDescription: "Target description",
-    targetTenantKind: tenantKind.PA,
+    targetTenantKind: bffApi.TargetTenantKind.Enum.PA,
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,

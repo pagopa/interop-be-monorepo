@@ -12,10 +12,10 @@ import { z } from "zod";
 
 const DelegationDocumentConfig = z
   .object({
-    DELEGATION_DOCUMENT_PATH: z.string(),
+    DELEGATION_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
-    delegationDocumentPath: c.DELEGATION_DOCUMENT_PATH,
+    delegationDocumentsPath: c.DELEGATION_DOCUMENTS_PATH,
   }));
 
 const DelegationProcessConfig = CommonHTTPServiceConfig.and(

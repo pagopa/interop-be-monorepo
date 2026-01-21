@@ -28,7 +28,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  descriptorPublishedNotFound,
+  eserviceWithoutDescriptors,
   tenantNotFound,
 } from "../src/models/errors.js";
 import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
@@ -155,7 +155,7 @@ describe("handleEserviceDescriptorPublished", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(descriptorPublishedNotFound(agreement.eserviceId));
+    ).rejects.toThrow(eserviceWithoutDescriptors(agreement.eserviceId));
   });
 
   it("should return empty array if no consumer is present for the eservice", async () => {

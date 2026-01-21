@@ -41,6 +41,8 @@ export const getMockBffApiDelegation = (): bffApi.Delegation & {
   kind: generateMock(bffApi.DelegationKind),
   rejectionReason: generateMock(z.string().optional()),
   isDocumentReady: generateMock(z.boolean()),
+  activationSignedContract: generateMock(bffApi.SignedDocument.optional()),
+  revocationSignedContract: generateMock(bffApi.SignedDocument.optional()),
 });
 
 export const getMockBffApiAttributeSeed = (): bffApi.AttributeSeed => ({
@@ -555,7 +557,7 @@ export const getMockPurposeFromTemplateSeed =
 export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   targetDescription:
     "This is a valid target description that meets the minimum length requirement",
-  targetTenantKind: "PA" as bffApi.TenantKind,
+  targetTenantKind: "PA" as bffApi.TargetTenantKind,
   purposeTitle: "Valid Purpose Title",
   purposeDescription:
     "This is a valid purpose description that meets the minimum length requirement",
@@ -1172,7 +1174,7 @@ export const getMockBffApiNotificationsCountBySection =
 export const getMockBffApiCreatorPurposeTemplate =
   (): bffApi.CreatorPurposeTemplate => ({
     id: generateId(),
-    targetTenantKind: generateMock(bffApi.TenantKind),
+    targetTenantKind: generateMock(bffApi.TargetTenantKind),
     purposeTitle: generateMock(z.string()),
     state: generateMock(bffApi.PurposeTemplateState),
   });
@@ -1180,7 +1182,7 @@ export const getMockBffApiCreatorPurposeTemplate =
 export const getMockBffApiCatalogPurposeTemplate =
   (): bffApi.CatalogPurposeTemplate => ({
     id: generateId(),
-    targetTenantKind: generateMock(bffApi.TenantKind),
+    targetTenantKind: generateMock(bffApi.TargetTenantKind),
     purposeTitle: generateMock(z.string()),
     purposeDescription: generateMock(z.string()),
     creator: generateMock(bffApi.CompactOrganization),
@@ -1203,7 +1205,7 @@ export const getMockBffApiPurposeTemplateWithCompactCreator =
     id: generateId(),
     targetDescription:
       "This is a valid target description that meets the minimum length requirement",
-    targetTenantKind: "PA" as bffApi.TenantKind,
+    targetTenantKind: "PA" as bffApi.TargetTenantKind,
     creator: generateMock(bffApi.CompactOrganization),
     state: generateMock(bffApi.PurposeTemplateState),
     createdAt: new Date().toISOString(),
@@ -1226,7 +1228,7 @@ export const getMockBffApiPurposeTemplate = (
   id: generateId(),
   targetDescription:
     "This is a valid target description that meets the minimum length requirement",
-  targetTenantKind: "PA" as bffApi.TenantKind,
+  targetTenantKind: "PA" as bffApi.TargetTenantKind,
   creatorId: generateId(),
   state: state || generateMock(bffApi.PurposeTemplateState),
   createdAt: new Date().toISOString(),

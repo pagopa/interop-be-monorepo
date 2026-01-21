@@ -1,7 +1,6 @@
 import {
   EService,
   Descriptor,
-  descriptorState,
   Attribute,
   AttributeId,
   Tenant,
@@ -9,18 +8,17 @@ import {
   EServiceId,
   PurposeId,
   Purpose,
-  EServiceTemplate,
-  EServiceTemplateVersion,
   NotificationType,
   UserId,
+  descriptorState,
 } from "pagopa-interop-models";
 import { Logger, notificationAdmittedRoles } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
   attributeNotFound,
   certifierTenantNotFound,
-  descriptorPublishedNotFound,
   eserviceNotFound,
+  eserviceWithoutDescriptors,
   purposeNotFound,
   tenantNotFound,
 } from "../models/errors.js";
@@ -71,30 +69,28 @@ export async function retrieveTenant(
   return tenant;
 }
 
-export function retrieveLatestPublishedDescriptor(
-  eservice: EService
-): Descriptor {
-  const latestDescriptor = eservice.descriptors
-    .filter((d) => d.state === descriptorState.published)
-    .sort((a, b) => Number(a.version) - Number(b.version))
-    .at(-1);
-  if (!latestDescriptor) {
-    throw descriptorPublishedNotFound(eservice.id);
+export function retrieveLatestDescriptor(eservice: EService): Descriptor {
+  if (eservice.descriptors.length === 0) {
+    throw eserviceWithoutDescriptors(eservice.id);
   }
-  return latestDescriptor;
-}
 
-export function retrieveLatestPublishedEServiceTemplateVersion(
-  eserviceTemplate: EServiceTemplate
-): EServiceTemplateVersion {
-  const latestVersion = eserviceTemplate.versions
-    .filter((d) => d.state === descriptorState.published)
+  const publishedDescriptor = eservice.descriptors.find(
+    (d) => d.state === descriptorState.published
+  );
+
+  if (publishedDescriptor) {
+    return publishedDescriptor;
+  }
+
+  const latestNotDraftDescriptor = eservice.descriptors
+    .filter((d) => d.state !== descriptorState.draft)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
-  if (!latestVersion) {
-    throw descriptorPublishedNotFound(eserviceTemplate.id);
+  if (latestNotDraftDescriptor) {
+    return latestNotDraftDescriptor;
   }
-  return latestVersion;
+
+  return eservice.descriptors[0];
 }
 
 export async function retrieveEservice(

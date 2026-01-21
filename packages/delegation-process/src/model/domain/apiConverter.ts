@@ -32,12 +32,12 @@ export const delegationToApiDelegation = (
     ? delegationContractToApiDelegationContract(delegation.revocationContract)
     : undefined,
   stamps: delegationStampsToApiDelegationStamps(delegation.stamps),
-  signedActivationContract: delegation.activationSignedContract
+  activationSignedContract: delegation.activationSignedContract
     ? delegationSignedContractToApiDelegationSignedContract(
         delegation.activationSignedContract
       )
     : undefined,
-  signedRevocationContract: delegation.revocationSignedContract
+  revocationSignedContract: delegation.revocationSignedContract
     ? delegationSignedContractToApiDelegationSignedContract(
         delegation.revocationSignedContract
       )

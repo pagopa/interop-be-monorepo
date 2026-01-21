@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, tenantKind } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -15,7 +15,7 @@ describe("API GET /catalog/purposeTemplates", () => {
     q: "title",
     eserviceIds: `${generateId()},${generateId()}`,
     creatorIds: `${generateId()},${generateId()}`,
-    targetTenantKind: tenantKind.PA,
+    targetTenantKind: bffApi.TargetTenantKind.Enum.PA,
     excludeExpiredRiskAnalysis: true,
     handlesPersonalData: true,
     offset: 0,

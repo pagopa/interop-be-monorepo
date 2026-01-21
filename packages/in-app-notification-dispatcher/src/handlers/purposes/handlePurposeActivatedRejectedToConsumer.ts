@@ -28,6 +28,14 @@ export async function handlePurposeActivatedRejectedToConsumer(
   );
   const purpose = fromPurposeV2(purposeV2Msg);
 
+  // Only send notification if there is only one version (version count = 1)
+  if (purpose.versions.length !== 1) {
+    logger.info(
+      `Purpose ${purpose.id} has more than one version, skipping purposeActivatedRejectedToConsumer notification`
+    );
+    return [];
+  }
+
   const usersWithNotifications = await getNotificationRecipients(
     [purpose.consumerId],
     "purposeActivatedRejectedToConsumer",

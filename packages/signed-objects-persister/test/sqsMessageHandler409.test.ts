@@ -124,7 +124,8 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
 
     // Verify that the signature was deleted despite the 409
     expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
-      sqsMessageBody.detail.key
+      sqsMessageBody.detail.key,
+      expect.any(Object)
     );
   });
 });

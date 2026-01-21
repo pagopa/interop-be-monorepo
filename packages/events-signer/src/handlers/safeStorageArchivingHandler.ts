@@ -38,7 +38,8 @@ export const archiveFileToSafeStorage = async (
 
   try {
     const { uploadUrl, secret, key } = await safeStorage.createFile(
-      safeStorageRequest
+      safeStorageRequest,
+      logger
     );
 
     await safeStorage.uploadFileContent(
@@ -46,7 +47,8 @@ export const archiveFileToSafeStorage = async (
       fileContentBuffer,
       "application/json",
       secret,
-      checksum
+      checksum,
+      logger
     );
 
     logger.info(`File ${fileName} uploaded to Safe Storage successfully.`);
@@ -58,7 +60,7 @@ export const archiveFileToSafeStorage = async (
       correlationId,
     } as SignatureReference;
 
-    await signatureService.saveSignatureReference(signatureReference);
+    await signatureService.saveSignatureReference(signatureReference, logger);
     logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
   } catch (error) {
     throw genericInternalError(

@@ -9,6 +9,16 @@ function toBffApiPurposeVersionDocument(
     createdAt: riskAnalysis.createdAt,
   };
 }
+function toBffApiPurposeVersionSignedDocument(
+  signedContract: purposeApi.PurposeVersionSignedDocument
+): bffApi.PurposeVersionSignedDocument {
+  return {
+    id: signedContract.id,
+    contentType: signedContract.contentType,
+    createdAt: signedContract.createdAt,
+    signedAt: signedContract.signedAt,
+  };
+}
 
 export function toBffApiPurposeVersion(
   purposeVersion: purposeApi.PurposeVersion
@@ -25,5 +35,8 @@ export function toBffApiPurposeVersion(
       purposeVersion.riskAnalysis &&
       toBffApiPurposeVersionDocument(purposeVersion.riskAnalysis),
     rejectionReason: purposeVersion.rejectionReason,
+    signedContract:
+      purposeVersion.signedContract &&
+      toBffApiPurposeVersionSignedDocument(purposeVersion.signedContract),
   };
 }

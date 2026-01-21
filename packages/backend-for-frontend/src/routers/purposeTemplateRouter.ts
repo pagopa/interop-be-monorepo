@@ -15,6 +15,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
+  addPurposeTemplateAnnotationDocumentErrorMapper,
   getPurposeTemplateErrorMapper,
   getPurposeTemplateEServiceDescriptorsErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -328,7 +329,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            addPurposeTemplateAnnotationDocumentErrorMapper,
             ctx,
             "Error adding annotation document"
           );

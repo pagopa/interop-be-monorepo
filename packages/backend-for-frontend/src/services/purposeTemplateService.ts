@@ -17,7 +17,6 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  TenantKind,
 } from "pagopa-interop-models";
 import {
   CatalogProcessClient,
@@ -30,6 +29,7 @@ import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
   toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
+  toBffPurposeTemplate,
   toBffPurposeTemplateWithCompactCreator,
   toCompactPurposeTemplateEService,
 } from "../api/purposeTemplateApiConverter.js";
@@ -180,7 +180,7 @@ export function purposeTemplateServiceBuilder(
       ctx,
     }: {
       purposeTitle: string | undefined;
-      targetTenantKind: TenantKind | undefined;
+      targetTenantKind: bffApi.TargetTenantKind | undefined;
       creatorIds: string[];
       eserviceIds: string[];
       excludeExpiredRiskAnalysis: boolean;
@@ -457,10 +457,13 @@ export function purposeTemplateServiceBuilder(
     ): Promise<bffApi.PurposeTemplate> {
       logger.info(`Updating purpose template ${id}`);
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-      return await purposeTemplateClient.updatePurposeTemplate(seed, {
-        headers,
-        params: { id },
-      });
+      const updatedPurposeTemplate =
+        await purposeTemplateClient.updatePurposeTemplate(seed, {
+          headers,
+          params: { id },
+        });
+
+      return toBffPurposeTemplate(updatedPurposeTemplate);
     },
     async addRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,

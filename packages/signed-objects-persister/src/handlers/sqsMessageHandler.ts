@@ -28,7 +28,7 @@ import {
 
 import { S3ServiceException } from "@aws-sdk/client-s3";
 import { config } from "../config/config.js";
-import { FILE_KIND_CONFIG } from "../utils/fileKind.config.js";
+import { FILE_KIND_CONFIG, FileKindSchema } from "../utils/fileKind.config.js";
 import { appendSignedSuffixToFileName } from "../utils/appendSignedSuffixToFileName.js";
 import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnalysis.js";
 import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
@@ -53,7 +53,8 @@ async function processMessage(
     const { key: fileKey, client_short_code: clientCode } = detail;
 
     const signature = await signatureService.readSignatureReferenceById(
-      fileKey
+      fileKey,
+      logger
     );
 
     if (!signature) {
@@ -65,20 +66,21 @@ async function processMessage(
     if (!(fileKind in FILE_KIND_CONFIG)) {
       throw new Error(`Unknown fileKind: ${fileKind}`);
     }
-
-    const fileRef = await safeStorageService.getFile(fileKey);
+    const signatureFileKind = FileKindSchema.parse(fileKind);
+    const fileRef = await safeStorageService.getFile(fileKey, false, logger);
     if (!fileRef.download?.url) {
       throw new Error(`Missing download URL for fileKey: ${fileKey}`);
     }
     const fileContent = await safeStorageService.downloadFileContent(
-      fileRef.download.url
+      fileRef.download.url,
+      fileKey,
+      logger
     );
 
-    const { bucket, process } =
-      FILE_KIND_CONFIG[fileKind as keyof typeof FILE_KIND_CONFIG];
+    const { bucket, process } = FILE_KIND_CONFIG[signatureFileKind];
     const datePath = format(new Date(message.time), "yyyy/MM/dd");
     const path = `${clientCode}/${datePath}`;
-    const fileName = appendSignedSuffixToFileName(fileKey);
+    const fileName = appendSignedSuffixToFileName(fileKey, signatureFileKind);
 
     // immutable s3Key with 409 handling for specific documentTypes
     const s3Key: string = await (async (): Promise<string> => {
@@ -94,8 +96,8 @@ async function processMessage(
             error.name === "Conflict");
 
         const allowConflictWarning =
-          fileKind === "RISK_ANALYSIS_DOCUMENT" ||
-          fileKind === "AGREEMENT_CONTRACT";
+          signatureFileKind === "RISK_ANALYSIS_DOCUMENT" ||
+          signatureFileKind === "AGREEMENT_CONTRACT";
 
         if (isConflict && allowConflictWarning) {
           logger.warn(
@@ -190,7 +192,7 @@ async function processMessage(
         .exhaustive();
     }
 
-    await signatureService.deleteSignatureReference(fileKey);
+    await signatureService.deleteSignatureReference(fileKey, logger);
     logger.info(
       `Record ${id} deleted from DynamoDB table ${config.signatureReferencesTableName}`
     );

@@ -11,7 +11,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
 } from "../../services/utils.js";
 import {
   EserviceTemplateNameUpdatedHandlerParams,
@@ -92,7 +92,7 @@ export async function handleEServiceTemplateNameUpdated(
           title: `Aggiornamento nome del template "${oldName}"`,
           notificationType,
           entityId: EServiceIdDescriptorId.parse(
-            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+            `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
           ),
           ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
           oldName: oldName ?? eserviceTemplate.id,

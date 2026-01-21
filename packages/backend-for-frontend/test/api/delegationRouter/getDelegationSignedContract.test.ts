@@ -1,13 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DelegationId, generateId } from "pagopa-interop-models";
+import {
+  DelegationContractId,
+  DelegationId,
+  generateId,
+} from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
-describe("API GET /delegations/:delegationId/signedContract", () => {
+describe("API GET /delegations/:delegationId/signedContract/:contractId", () => {
   const mockBuffer = Buffer.from("content");
 
   beforeEach(() => {
@@ -18,10 +22,13 @@ describe("API GET /delegations/:delegationId/signedContract", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: DelegationId = generateId()
+    delegationId: DelegationId = generateId(),
+    contractId: DelegationContractId = generateId()
   ) =>
     request(api)
-      .get(`${appBasePath}/delegations/${delegationId}/signedContract`)
+      .get(
+        `${appBasePath}/delegations/${delegationId}/signedContract/${contractId}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 

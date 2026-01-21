@@ -73,7 +73,7 @@ describe("API POST /purposeTemplates", () => {
     const res = await makeRequest(token, validPurposeTemplateSeed);
     expect(res.status).toBe(403);
   });
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
 
   it.each([
     {},

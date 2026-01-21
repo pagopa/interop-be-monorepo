@@ -35,7 +35,7 @@ export const prepareNdjsonEventData = async <
         .map((item) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { eventTimestamp, correlationId, ...rest } = item;
-          return JSON.stringify(rest);
+          return JSON.stringify({ ...rest, timestamp: eventTimestamp });
         })
         .join("\n") + "\n";
     const fileContentBuffer = await compressJson(ndjsonString);

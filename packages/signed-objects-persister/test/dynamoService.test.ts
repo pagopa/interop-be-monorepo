@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, Mock } from "vitest";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-import { signatureServiceBuilder } from "pagopa-interop-commons";
+import { genericLogger, signatureServiceBuilder } from "pagopa-interop-commons";
 import { config } from "../src/config/config.js";
 
 const mockDynamoDBClient = {
@@ -23,7 +23,10 @@ describe("signatureServiceBuilder - Unit Test for Deletion", () => {
       config
     );
     const safeStorageId = "mocked-id-to-delete";
-    await signatureService.deleteSignatureReference(safeStorageId);
+    await signatureService.deleteSignatureReference(
+      safeStorageId,
+      genericLogger
+    );
 
     const firstCall = (mockDynamoDBClient.send as Mock).mock.calls[0][0];
     expect(firstCall).toBeInstanceOf(UpdateItemCommand);

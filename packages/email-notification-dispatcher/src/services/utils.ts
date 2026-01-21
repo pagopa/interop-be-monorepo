@@ -19,8 +19,8 @@ import {
   activeProducerDelegationNotFound,
   agreementStampDateNotFound,
   descriptorNotFound,
-  descriptorPublishedNotFound,
   eServiceNotFound,
+  eserviceWithoutDescriptors,
   htmlTemplateNotFound,
   tenantNotFound,
 } from "../models/errors.js";
@@ -111,6 +111,13 @@ export const eventMailTemplateType = {
     "producer-keychain-user-deleted-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
+  newPurposeVersionQuotaAdjustmentRequestMailTemplate:
+    "new-purpose-version-quota-adjustment-request-mail",
+  purposeQuotaAdjustmentRequestMailTemplate:
+    "purpose-quota-adjustment-request-mail",
+  purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
+  purposeQuotaAdjustmentResponseMailTemplate:
+    "purpose-quota-adjustment-response-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -199,17 +206,28 @@ export function getFormattedAgreementStampDate(
   return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
-export function retrieveLatestPublishedDescriptor(
-  eservice: EService
-): Descriptor {
-  const latestDescriptor = eservice.descriptors
-    .filter((d) => d.state === descriptorState.published)
+export function retrieveLatestDescriptor(eservice: EService): Descriptor {
+  if (eservice.descriptors.length === 0) {
+    throw eserviceWithoutDescriptors(eservice.id);
+  }
+
+  const publishedDescriptor = eservice.descriptors.find(
+    (d) => d.state === descriptorState.published
+  );
+
+  if (publishedDescriptor) {
+    return publishedDescriptor;
+  }
+
+  const latestNotDraftDescriptor = eservice.descriptors
+    .filter((d) => d.state !== descriptorState.draft)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
-  if (!latestDescriptor) {
-    throw descriptorPublishedNotFound(eservice.id);
+  if (latestNotDraftDescriptor) {
+    return latestNotDraftDescriptor;
   }
-  return latestDescriptor;
+
+  return eservice.descriptors[0];
 }
 
 export function encodeEmailEvent(

@@ -79,7 +79,8 @@ describe("handleAgreementDocument", () => {
         prettyname: undefined,
         subObjectId: "",
         path: "contract.pdf",
-      })
+      }),
+      expect.any(Object)
     );
   });
 

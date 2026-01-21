@@ -9,6 +9,7 @@ import {
   eventMailTemplateType,
   retrieveEService,
   retrieveHTMLTemplate,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -17,9 +18,9 @@ import {
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 
-const notificationType: NotificationType = "purposeActivatedRejectedToConsumer";
+const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
-export async function handlePurposeVersionActivated(
+export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
   data: PurposeHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -31,26 +32,30 @@ export async function handlePurposeVersionActivated(
   } = data;
 
   if (!purposeV2Msg) {
-    throw missingKafkaMessageDataError("purpose", "PurposeVersionActivated");
+    throw missingKafkaMessageDataError(
+      "purpose",
+      "NewPurposeVersionWaitingForApproval"
+    );
   }
   const purpose = fromPurposeV2(purposeV2Msg);
 
-  const [htmlTemplate, eservice, consumer] = await Promise.all([
+  const [htmlTemplate, eservice] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.purposeVersionActivatedMailTemplate
+      eventMailTemplateType.purposeQuotaOverthresholdMailTemplate
     ),
     retrieveEService(purpose.eserviceId, readModelService),
-    retrieveTenant(purpose.consumerId, readModelService),
   ]);
 
-  const producer = await retrieveTenant(eservice.producerId, readModelService);
+  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
+
+  const consumer = await retrieveTenant(purpose.consumerId, readModelService);
 
   const targets = await getRecipientsForTenants({
     tenants: [consumer],
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: true,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {
@@ -63,16 +68,16 @@ export async function handlePurposeVersionActivated(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `La tua finalità "${purpose.title}" è stata approvata`,
+      subject: `Superamento soglia piano di carico per l'e-service "${eservice.name}"`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `La tua finalità "${purpose.title}" è stata approvata`,
+        title: `Superamento soglia piano di carico per l'e-service "${eservice.name}"`,
         notificationType,
         entityId: purpose.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
-        producerName: producer.name,
         eserviceName: eservice.name,
-        purposeTitle: purpose.title,
-        ctaLabel: `Visualizza finalità`,
+        dailyCalls: dailyCallsPerConsumer,
+        isNewVersion: true,
+        ctaLabel: `Gestisci finalità`,
       }),
     },
     tenantId: consumer.id,

@@ -15,13 +15,13 @@ import {
 } from "pagopa-interop-commons";
 
 import {
-  AgreementEventV2,
-  PurposeEventV2,
   genericInternalError,
   CorrelationId,
   unsafeBrandId,
   generateId,
   DelegationEventV2,
+  PurposeEvent,
+  AgreementEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -36,12 +36,24 @@ import { baseConsumerConfig, config } from "./config/config.js";
 import { handlePurposeMessageV2 } from "./handler/handlePurposeMessageV2.js";
 import { handleDelegationMessageV2 } from "./handler/handleDelegationMessageV2.js";
 import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js";
+import { handleAgreementMessageV1 } from "./handler/handleAgreementMessageV1.js";
 import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
+import { handlePurposeMessageV1 } from "./handler/handlePurposeMessageV1.js";
+import { getInteropBeClients } from "./clients/clientProvider.js";
+import {
+  ContractBuilder,
+  agreementContractBuilder,
+} from "./service/agreement/agreementContractBuilder.js";
+import {
+  RiskAnalysisDocumentBuilder,
+  riskAnalysisDocumentBuilder,
+} from "./service/purpose/purposeContractBuilder.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
 );
 await refreshableToken.init();
+const clients = getInteropBeClients();
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
 
@@ -65,6 +77,17 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
 });
 
+const agreementContractInstance: ContractBuilder = agreementContractBuilder(
+  readModelServiceSQL,
+  pdfGenerator,
+  fileManager,
+  config,
+  genericLogger
+);
+
+const riskAnalysisContractInstance: RiskAnalysisDocumentBuilder =
+  riskAnalysisDocumentBuilder(pdfGenerator, fileManager, config, genericLogger);
+
 function processMessage(
   agreementTopicConfig: AgreementTopicConfig,
   purposeTopicConfig: PurposeTopicConfig,
@@ -75,34 +98,58 @@ function processMessage(
       .with(agreementTopicConfig.agreementTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          AgreementEventV2
+          AgreementEvent
         );
 
-        const documentGenerator = handleAgreementMessageV2.bind(
-          null,
-          decodedMessage,
-          pdfGenerator,
-          fileManager,
-          readModelServiceSQL,
-          refreshableToken
-        );
+        const documentGenerator = match(decodedMessage)
+          .with({ event_version: 1 }, (decoded) =>
+            handleAgreementMessageV1.bind(
+              null,
+              decoded,
+              readModelServiceSQL,
+              refreshableToken,
+              agreementContractInstance
+            )
+          )
+          .with({ event_version: 2 }, (decoded) =>
+            handleAgreementMessageV2.bind(
+              null,
+              decoded,
+              readModelServiceSQL,
+              refreshableToken,
+              agreementContractInstance
+            )
+          )
+          .exhaustive();
 
         return { decodedMessage, documentGenerator };
       })
       .with(purposeTopicConfig.purposeTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          PurposeEventV2
+          PurposeEvent
         );
 
-        const documentGenerator = handlePurposeMessageV2.bind(
-          null,
-          decodedMessage,
-          pdfGenerator,
-          fileManager,
-          readModelServiceSQL,
-          refreshableToken
-        );
+        const documentGenerator = match(decodedMessage)
+          .with({ event_version: 1 }, (decoded) =>
+            handlePurposeMessageV1.bind(
+              null,
+              decoded,
+              readModelServiceSQL,
+              refreshableToken,
+              riskAnalysisContractInstance
+            )
+          )
+          .with({ event_version: 2 }, (decoded) =>
+            handlePurposeMessageV2.bind(
+              null,
+              decoded,
+              readModelServiceSQL,
+              refreshableToken,
+              riskAnalysisContractInstance
+            )
+          )
+          .exhaustive();
 
         return { decodedMessage, documentGenerator };
       })
@@ -144,26 +191,22 @@ function processMessage(
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
 
-    await documentGenerator(loggerInstance);
+    await documentGenerator(clients, loggerInstance);
   };
 }
 
-try {
-  await runConsumer(
-    baseConsumerConfig,
-    [config.agreementTopic, config.purposeTopic, config.delegationTopic],
-    processMessage(
-      {
-        agreementTopic: config.agreementTopic,
-      },
-      {
-        purposeTopic: config.purposeTopic,
-      },
-      {
-        delegationTopic: config.delegationTopic,
-      }
-    )
-  );
-} catch (e) {
-  genericLogger.error(`An error occurred during initialization:\n${e}`);
-}
+await runConsumer(
+  baseConsumerConfig,
+  [config.agreementTopic, config.purposeTopic, config.delegationTopic],
+  processMessage(
+    {
+      agreementTopic: config.agreementTopic,
+    },
+    {
+      purposeTopic: config.purposeTopic,
+    },
+    {
+      delegationTopic: config.delegationTopic,
+    }
+  )
+);

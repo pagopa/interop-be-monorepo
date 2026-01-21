@@ -127,9 +127,10 @@ describe("sqsMessageHandler", () => {
     );
 
     expect(mockSafeStorageService.getFile).toHaveBeenCalledWith(
-      sqsMessageBody.detail.key
+      sqsMessageBody.detail.key,
+      false,
+      expect.any(Object)
     );
-
     expect(mockFileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       {
         bucket: config.signedDocumentsBucket,
@@ -141,7 +142,8 @@ describe("sqsMessageHandler", () => {
     );
 
     expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
-      sqsMessageBody.detail.key
+      sqsMessageBody.detail.key,
+      expect.any(Object)
     );
   });
 

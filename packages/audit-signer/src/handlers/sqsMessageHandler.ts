@@ -29,6 +29,7 @@ async function processMessage(
   correlationId: CorrelationId
 ): Promise<void> {
   try {
+    logger.info(`Processing and signing file ${s3Key}`);
     const file: Uint8Array = await fileManager.get(
       config.s3Bucket,
       s3Key,
@@ -47,23 +48,32 @@ async function processMessage(
     };
 
     const { uploadUrl, secret, key } = await safeStorageService.createFile(
-      safeStorageRequest
+      safeStorageRequest,
+      logger
     );
+    logger.info(`Created file on safe storage with key: ${key}`);
 
     await safeStorageService.uploadFileContent(
       uploadUrl,
       zipped,
       "application/gzip",
       secret,
-      checksum
+      checksum,
+      logger
     );
 
-    await signatureService.saveSignatureReference({
-      safeStorageId: key,
-      fileKind: "VOUCHER_AUDIT",
-      fileName,
-      correlationId,
-    });
+    await signatureService.saveSignatureReference(
+      {
+        safeStorageId: key,
+        fileKind: "VOUCHER_AUDIT",
+        fileName,
+        correlationId,
+      },
+      logger
+    );
+    logger.info(
+      `Processed voucher audit with key: ${key} and file: ${fileName}`
+    );
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);
     throw error;
