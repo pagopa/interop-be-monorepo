@@ -3,6 +3,9 @@ import { TenantId } from "pagopa-interop-models";
 import {
   eserviceTemplateToBaseDigest,
   eserviceToBaseDigest,
+  verifiedAttributeToDigest,
+  certifiedAttributeToDigest,
+  combineAttributeDigests,
 } from "../model/digestDataConverter.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
@@ -109,12 +112,20 @@ export function digestDataServiceBuilder(
         updatedEserviceTemplates,
         tenantMap,
         newEservices,
+        verifiedAssignedAttributes,
+        verifiedRevokedAttributes,
+        certifiedAssignedAttributes,
+        certifiedRevokedAttributes,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
         readModelService.getTenantsByIds([tenantId]),
         // TODO: ask for priority list of tenants
         getNewEservicesDigest([]),
+        readModelService.getVerifiedAssignedAttributes(tenantId),
+        readModelService.getVerifiedRevokedAttributes(tenantId),
+        readModelService.getCertifiedAssignedAttributes(tenantId),
+        readModelService.getCertifiedRevokedAttributes(tenantId),
       ]);
 
       const tenantName = tenantMap.get(tenantId);
@@ -193,14 +204,20 @@ export function digestDataServiceBuilder(
           items: [],
           totalCount: 0,
         },
-        receivedAttributes: {
-          items: [],
-          totalCount: 0,
-        },
-        revokedAttributes: {
-          items: [],
-          totalCount: 0,
-        },
+        receivedAttributes: combineAttributeDigests(
+          await verifiedAttributeToDigest(
+            verifiedAssignedAttributes,
+            readModelService
+          ),
+          certifiedAttributeToDigest(certifiedAssignedAttributes)
+        ),
+        revokedAttributes: combineAttributeDigests(
+          await verifiedAttributeToDigest(
+            verifiedRevokedAttributes,
+            readModelService
+          ),
+          certifiedAttributeToDigest(certifiedRevokedAttributes)
+        ),
       };
     },
 
