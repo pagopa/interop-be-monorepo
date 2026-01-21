@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import {
   bffApi,
+  attributeRegistryApi,
   catalogApi,
   eserviceTemplateApi,
   tenantApi,
@@ -32,7 +33,6 @@ import {
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
-  AttributeProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
   TenantProcessClient,
@@ -52,7 +52,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager

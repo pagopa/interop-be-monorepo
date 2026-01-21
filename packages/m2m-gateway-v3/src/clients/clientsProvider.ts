@@ -26,7 +26,7 @@ type TenantProcessClient = {
   >;
 };
 
-type AttributeProcessClient = ZodiosClientWithMetadata<
+type AttributeProcessClientWithMetadata = ZodiosClientWithMetadata<
   ReturnType<typeof attributeRegistryApi.createAttributeApiClient>
 >;
 
@@ -82,7 +82,7 @@ type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
 
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
-  attributeProcessClient: AttributeProcessClient;
+  attributeProcessClient: AttributeProcessClientWithMetadata;
   catalogProcessClient: CatalogProcessClientWithMetadata;
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;

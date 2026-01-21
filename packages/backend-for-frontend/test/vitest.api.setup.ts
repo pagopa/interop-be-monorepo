@@ -61,12 +61,12 @@ import {
 } from "pagopa-interop-commons";
 import {
   agreementApi,
+  attributeRegistryApi,
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
 import { createApp, createServices } from "../src/app.js";
 import {
-  AttributeProcessClient,
   AuthorizationProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
@@ -96,7 +96,7 @@ export const clients = {
     tenantAttribute: {},
     selfcare: {},
   } as TenantProcessClient,
-  attributeProcessClient: {} as AttributeProcessClient,
+  attributeProcessClient: {} as attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: {} as catalogApi.CatalogProcessClient,
   agreementProcessClient: {} as agreementApi.AgreementProcessClient,
   purposeProcessClient: {} as purposeApi.PurposeProcessClient,

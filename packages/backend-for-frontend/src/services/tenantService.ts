@@ -11,7 +11,6 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import {
-  AttributeProcessClient,
   SelfcareV2InstitutionClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -29,7 +28,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(
   tenantAttributesIds: string[],
-  attributeRegistryProcessClient: AttributeProcessClient,
+  attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: WithLogger<BffAppContext>["headers"]
 ): Promise<RegistryAttributesMap> {
   const registryAttributes = await getAllBulkAttributes(
@@ -44,7 +43,7 @@ async function getRegistryAttributesMap(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
-  attributeRegistryProcessClient: AttributeProcessClient,
+  attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   async function getLogoUrl(

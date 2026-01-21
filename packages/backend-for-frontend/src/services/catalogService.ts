@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
 import {
   agreementApi,
+  attributeRegistryApi,
   bffApi,
   catalogApi,
   delegationApi,
@@ -45,7 +46,6 @@ import {
   enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
 import {
-  AttributeProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
@@ -322,7 +322,7 @@ export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: EServiceTemplateProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,

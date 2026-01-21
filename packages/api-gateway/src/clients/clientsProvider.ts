@@ -15,10 +15,6 @@ export type TenantProcessClient = {
   m2m: ReturnType<typeof tenantApi.createM2mApiClient>;
 };
 
-export type AttributeProcessClient = ReturnType<
-  typeof attributeRegistryApi.createAttributeApiClient
->;
-
 export type NotifierEventsClient = ReturnType<
   typeof notifierApi.createEventsApiClient
 >;
@@ -36,7 +32,7 @@ export type PagoPAInteropBeClients = {
   agreementProcessClient: agreementApi.AgreementProcessClient;
   tenantProcessClient: TenantProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
-  attributeProcessClient: AttributeProcessClient;
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   notifierEventsClient: NotifierEventsClient;
   authorizationProcessClient: AuthorizationProcessClient;
   delegationProcessClient: DelegationProcessClient;

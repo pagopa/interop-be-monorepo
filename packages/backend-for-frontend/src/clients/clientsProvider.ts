@@ -22,10 +22,6 @@ export type TenantProcessClient = {
   selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
 };
 
-export type AttributeProcessClient = ReturnType<
-  typeof attributeRegistryApi.createAttributeApiClient
->;
-
 export type PurposeTemplateProcessClient = ReturnType<
   typeof purposeTemplateApi.createPurposeTemplateApiClient
 >;
@@ -69,7 +65,7 @@ export type InAppNotificationManagerClient = ReturnType<
 
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
-  attributeProcessClient: AttributeProcessClient;
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;

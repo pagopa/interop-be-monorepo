@@ -6,12 +6,16 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  attributeRegistryApi,
+  bffApi,
+  catalogApi,
+} from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import {
-  AttributeProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
@@ -188,7 +192,6 @@ describe("getCatalogEServiceDescriptor", () => {
 
   const mockAgreementProcessClient = {
     getAgreement: vi.fn(),
-    getAgreements: vi.fn(),
   } as unknown as agreementApi.AgreementProcessClient;
 
   const mockAttributeProcessClient = {
@@ -196,7 +199,7 @@ describe("getCatalogEServiceDescriptor", () => {
       results: [],
       totalCount: 0,
     }),
-  } as unknown as AttributeProcessClient;
+  } as unknown as attributeRegistryApi.AttributeProcessClient;
 
   const mockDelegationProcessClient = {
     delegation: {

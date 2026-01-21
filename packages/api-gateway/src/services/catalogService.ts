@@ -1,4 +1,8 @@
-import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  apiGatewayApi,
+  attributeRegistryApi,
+  catalogApi,
+} from "pagopa-interop-api-clients";
 import {
   getAllFromPaginated,
   Logger,
@@ -13,10 +17,7 @@ import {
   ValidCatalogApiDescriptor,
 } from "../api/catalogApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
-import {
-  AttributeProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   eserviceDescriptorNotFound,
   eserviceNotFound,
@@ -71,7 +72,7 @@ const retrieveEservice = async (
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient
 ) {
   return {
     getEservices: async (
@@ -200,7 +201,7 @@ function getLatestValidDescriptor(
 }
 
 async function getDescriptorAttributes(
-  attributeProcessClient: AttributeProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   descriptor: ValidCatalogApiDescriptor
 ): Promise<apiGatewayApi.EServiceAttributes> {
@@ -226,7 +227,7 @@ async function getDescriptorAttributes(
 
 export async function enhanceEservice(
   tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   eservice: catalogApi.EService,
   logger: Logger

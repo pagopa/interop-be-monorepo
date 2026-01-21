@@ -1,5 +1,6 @@
 import {
   apiGatewayApi,
+  attributeRegistryApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -9,10 +10,7 @@ import {
   toApiGatewayOrganization,
   toM2MTenantSeed,
 } from "../api/tenantApiConverter.js";
-import {
-  TenantProcessClient,
-  AttributeProcessClient,
-} from "../clients/clientsProvider.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
@@ -27,7 +25,7 @@ import { enhanceEservice, getAllEservices } from "./catalogService.js";
 
 export async function getOrganization(
   tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   tenantId: tenantApi.Tenant["id"]
 ): Promise<apiGatewayApi.Organization> {
@@ -58,7 +56,7 @@ export async function getOrganization(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient
 ) {
   return {
