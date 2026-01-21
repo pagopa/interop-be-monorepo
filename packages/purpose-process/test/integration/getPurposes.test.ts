@@ -428,9 +428,9 @@ describe("getPurposes", async () => {
       { offset: 0, limit: 50 },
       getMockContext({ authData: getMockAuthData(consumerId1) })
     );
-    expect(result.totalCount).toBe(1);
+    expect(result.totalCount).toBe(2);
 
-    expectSinglePageListResult(result, [mockPurpose1]);
+    expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
   });
 
   it("should get purposes with filters: eservicesIds, consumerIds", async () => {
