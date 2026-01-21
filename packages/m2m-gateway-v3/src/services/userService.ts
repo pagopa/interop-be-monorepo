@@ -91,7 +91,7 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       };
     },
     async getUser(
-      userId: UserId,
+      userId: string,
       {
         logger,
         headers,
@@ -99,11 +99,12 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       }: WithLogger<M2MGatewayAppContext<M2MAdminAuthData>>
     ): Promise<m2mGatewayApiV3.User> {
       logger.info(
-        `Retrieving users for organization ${authData.organizationId} with roles`
+        `Retrieving users for organization ${authData.organizationId} with userId ${userId}`
       );
 
       // Resolve tenantId from organizationId
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const userIdBranded = unsafeBrandId<UserId>(userId);
 
       // Validate requester can only access their own organization's users
       if (authData.organizationId !== tenantId) {
@@ -131,17 +132,17 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
         await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
           params: { institutionId: selfcareId },
           queries: {
-            userId,
+            userId: userIdBranded,
           },
           headers,
         });
 
       if (users.length === 0) {
-        throw Error(`User ${userId} not found`);
+        throw Error(`User ${userIdBranded} not found`);
       }
 
       if (users.length > 1) {
-        throw Error(`Multiple users found for userId ${userId}`);
+        throw Error(`Multiple users found for userId ${userIdBranded}`);
       }
 
       const user = users[0];
