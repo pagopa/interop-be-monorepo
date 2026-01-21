@@ -33,18 +33,18 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
     delegationProcessClient: {
       delegation: delegationApi.createDelegationApiClient(
-        config.delegationProcessUrl,
+        config.delegationProcessUrl
       ),
     },
     purposeProcessClient: purposeApi.createPurposeApiClient(
-      config.purposeProcessUrl,
+      config.purposeProcessUrl
     ),
     purposeTemplateProcessClient:
       purposeTemplateApi.createPurposeTemplateApiClient(
-        config.purposeTemplateProcessUrl,
+        config.purposeTemplateProcessUrl
       ),
     agreementProcessClient: agreementApi.createAgreementApiClient(
-      config.agreementProcessUrl,
+      config.agreementProcessUrl
     ),
   };
 }
