@@ -6,7 +6,6 @@ import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
@@ -40,7 +39,7 @@ describe("getEServiceConsumers", () => {
 
   const mockCatalogProcessClient = {
     getEServiceById: vi.fn().mockResolvedValue(eService),
-  } as unknown as CatalogProcessClient;
+  } as unknown as catalogApi.CatalogProcessClient;
   const mockTenantProcessClient = {} as unknown as TenantProcessClient;
   const mockAgreementProcessClient =
     {} as unknown as agreementApi.AgreementProcessClient;

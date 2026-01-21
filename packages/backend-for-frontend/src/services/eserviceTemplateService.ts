@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import {
   bffApi,
+  catalogApi,
   eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -32,7 +33,6 @@ import {
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
   TenantProcessClient,
@@ -53,7 +53,7 @@ export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager
 ) {

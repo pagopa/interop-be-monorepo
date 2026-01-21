@@ -1,4 +1,8 @@
-import { apiGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  apiGatewayApi,
+  catalogApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
 import { operationForbidden } from "pagopa-interop-models";
 import {
@@ -8,7 +12,6 @@ import {
 import {
   TenantProcessClient,
   AttributeProcessClient,
-  CatalogProcessClient,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
@@ -56,7 +59,7 @@ export async function getOrganization(
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
-  catalogProcessClient: CatalogProcessClient
+  catalogProcessClient: catalogApi.CatalogProcessClient
 ) {
   return {
     getOrganization: async (

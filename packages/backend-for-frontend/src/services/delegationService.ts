@@ -19,7 +19,6 @@ import {
   toBffDelegationApiDelegation,
 } from "../api/delegationApiConverter.js";
 import {
-  CatalogProcessClient,
   DelegationProcessClient,
   InAppNotificationManagerClient,
   TenantProcessClient,
@@ -38,7 +37,7 @@ async function enhanceDelegation<
   T extends bffApi.Delegation | bffApi.CompactDelegation
 >(
   tenantClient: TenantProcessClient,
-  catalogClient: CatalogProcessClient,
+  catalogClient: catalogApi.CatalogProcessClient,
   delegation: delegationApi.Delegation,
   headers: Headers,
   toApiConverter: (
@@ -204,7 +203,7 @@ export async function getAllDelegations(
 export function delegationServiceBuilder(
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
-  catalogClient: CatalogProcessClient,
+  catalogClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager
 ) {

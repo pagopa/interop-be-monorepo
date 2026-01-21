@@ -13,7 +13,7 @@ import { generateId, technology } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
-  CatalogProcessClient,
+  CatalogProcessClientWithMetadata,
   EServiceTemplateProcessClient,
 } from "../clients/clientsProvider.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -33,7 +33,7 @@ export async function uploadEServiceDocument({
   descriptorId: string;
   documentKind: catalogApi.EServiceDocumentKind;
   fileUpload: m2mGatewayApiV3.FileUploadMultipart;
-  catalogProcessClient: CatalogProcessClient;
+  catalogProcessClient: CatalogProcessClientWithMetadata;
   fileManager: FileManager;
   logger: Logger;
   headers: Headers;

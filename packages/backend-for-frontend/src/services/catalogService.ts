@@ -46,7 +46,6 @@ import {
 } from "../api/catalogApiConverter.js";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
@@ -305,7 +304,7 @@ const getAttributeIds = (
 ];
 
 const getAllEserviceConsumers = async (
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   headers: Headers,
   eServiceId: EServiceId
 ): Promise<catalogApi.EServiceConsumer[]> =>
@@ -320,7 +319,7 @@ const getAllEserviceConsumers = async (
   );
 
 export function catalogServiceBuilder(
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   attributeProcessClient: AttributeProcessClient,

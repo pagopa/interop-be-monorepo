@@ -12,7 +12,6 @@ import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
@@ -175,7 +174,7 @@ describe("getCatalogEServiceDescriptor", () => {
 
   const mockCatalogProcessClient = {
     getEServiceById: vi.fn().mockResolvedValue(eService),
-  } as unknown as CatalogProcessClient;
+  } as unknown as catalogApi.CatalogProcessClient;
 
   const mockTenantProcessClient = {
     tenant: {

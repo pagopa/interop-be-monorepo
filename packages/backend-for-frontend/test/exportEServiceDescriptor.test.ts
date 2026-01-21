@@ -15,7 +15,6 @@ import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { AuthData } from "pagopa-interop-commons";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
@@ -95,7 +94,7 @@ describe("exportEServiceDescriptor", () => {
 
   interface TestCatalogService {
     service: ReturnType<typeof catalogServiceBuilder>;
-    catalogProcessClient: CatalogProcessClient;
+    catalogProcessClient: catalogApi.CatalogProcessClient;
   }
 
   const createTestCatalogService = (
@@ -104,7 +103,7 @@ describe("exportEServiceDescriptor", () => {
   ): TestCatalogService => {
     const mockCatalogProcessClient = {
       getEServiceById: vi.fn().mockResolvedValue(eService),
-    } as unknown as CatalogProcessClient;
+    } as unknown as catalogApi.CatalogProcessClient;
 
     vi.spyOn(delegationService, "getAllDelegations").mockResolvedValue(
       delegations

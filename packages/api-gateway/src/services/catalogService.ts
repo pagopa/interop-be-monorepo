@@ -15,7 +15,6 @@ import {
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import {
@@ -31,7 +30,7 @@ import {
 } from "./validators.js";
 
 export function getAllEservices(
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   headers: ApiGatewayAppContext["headers"],
   producerId: catalogApi.EService["producerId"],
   attributeId: catalogApi.Attribute["id"]
@@ -51,7 +50,7 @@ export function getAllEservices(
 }
 
 const retrieveEservice = async (
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   headers: ApiGatewayAppContext["headers"],
   eserviceId: catalogApi.EService["id"]
 ): Promise<catalogApi.EService> =>
@@ -70,7 +69,7 @@ const retrieveEservice = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient
 ) {

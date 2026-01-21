@@ -21,7 +21,6 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import * as apiUtils from "pagopa-interop-commons";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
@@ -76,7 +75,7 @@ describe("importEService", () => {
     createEService: vi.fn().mockResolvedValue(baseEService),
     getEServiceById: vi.fn().mockResolvedValue(baseEService),
     createEServiceDocument: vi.fn().mockResolvedValue(getMockDocument()),
-  } as unknown as CatalogProcessClient;
+  } as unknown as catalogApi.CatalogProcessClient;
   const mockTenantProcessClient = createDummyStub<TenantProcessClient>();
   const mockAgreementProcessClient =
     createDummyStub<agreementApi.AgreementProcessClient>();

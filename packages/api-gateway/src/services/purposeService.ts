@@ -11,10 +11,7 @@ import {
   purposeApi,
 } from "pagopa-interop-api-clients";
 import { operationForbidden } from "pagopa-interop-models";
-import {
-  CatalogProcessClient,
-  DelegationProcessClient,
-} from "../clients/clientsProvider.js";
+import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import {
   toApiGatewayPurpose,
@@ -98,7 +95,7 @@ const retrieveActiveProducerDelegationByEServiceId = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   purposeProcessClient: purposeApi.PurposeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   delegationProcessClient: DelegationProcessClient
 ) {
