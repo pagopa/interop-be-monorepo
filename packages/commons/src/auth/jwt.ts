@@ -10,6 +10,7 @@ import { JWTConfig } from "../config/httpServiceConfig.js";
 import {
   AuthTokenDPoPPayload,
   AuthTokenPayload,
+  CNF,
 } from "../interop-token/models.js";
 import { buildJwksClients } from "./jwk.js";
 import {
@@ -54,6 +55,11 @@ export const readAuthDataFromDPoPJwtToken = (
   return getAuthDataFromToken(result.data);
 };
 
+export const isDPoPToken = (
+  input: JwtPayload | string
+): input is JwtPayload & typeof CNF =>
+  typeof input !== "string" && input.cnf !== undefined && input.cnf !== null;
+
 export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
@@ -69,29 +75,15 @@ export const verifyJwtToken = async (
         logger.warn("Failed to decode JWT token");
         return getUserInfoFromAuthData(undefined);
       }
-
-      // eslint-disable-next-line functional/no-let
-      let authDataError;
-
-      // 1. Parsing DPoP
       try {
-        const authData = readAuthDataFromDPoPJwtToken(decoded);
+        const authData = isDPoPToken(decoded)
+          ? readAuthDataFromDPoPJwtToken(decoded)
+          : readAuthDataFromJwtToken(decoded);
         return getUserInfoFromAuthData(authData);
       } catch (authDataError) {
-        // parsing DPoP failed, ignore and continue
+        logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
+        return getUserInfoFromAuthData(undefined);
       }
-
-      // 2. Try Standard parsing
-      try {
-        const authData = readAuthDataFromJwtToken(decoded);
-        return getUserInfoFromAuthData(authData);
-      } catch (authDataError) {
-        // Standard parsing failed too, ignore
-      }
-
-      // If we are here, none of the two formats is valid
-      logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
-      return getUserInfoFromAuthData(undefined);
     } catch (decodeError) {
       logger.warn(`Error decoding JWT token: ${decodeError}`);
       return getUserInfoFromAuthData(undefined);

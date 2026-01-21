@@ -132,6 +132,7 @@ export const authenticationDPoPMiddleware: (
       // Step 4a & 4b – DPoP Proof Validation (Static & Crypto)
       // verify DPoP Proof (Claims, HTTP method and HTI, check signature, JTI uniqueness)
       // ----------------------------------------------------------------------
+      // validateDPoPProof() in packages/authorization-server/src/services/tokenService.ts
 
       // ----------------------------------------------------------------------
       // Step 5 – Key Binding Verification (Thumbprint Match)
