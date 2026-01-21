@@ -152,6 +152,10 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
         throw userNotFound(userIdBranded, tenantId);
       }
 
+      if (user.id !== userIdBranded) {
+        throw userNotFound(userIdBranded, tenantId);
+      }
+
       const results: m2mGatewayApiV3.User = {
         id: user.id,
         firstName: user.name,
