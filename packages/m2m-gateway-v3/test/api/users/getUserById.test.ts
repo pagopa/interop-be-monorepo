@@ -35,8 +35,7 @@ describe("API GET /users/:userId", () => {
   const makeRequest = async (userId: string, token: string) =>
     request(api)
       .get(`${appBasePath}/users/${userId}`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("Authorization", `Bearer ${token}`);
 
   it("Should return 200 with user data for M2M_ADMIN_ROLE", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -45,6 +44,12 @@ describe("API GET /users/:userId", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockResponse);
+  });
+
+  it("Should return 400 if passed an invalid userId", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest("invalid", token);
+    expect(res.status).toBe(400);
   });
 
   it.each(
@@ -64,12 +69,6 @@ describe("API GET /users/:userId", () => {
 
     const res = await makeRequest(mockUserResource.id, token);
     expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 if passed an invalid userId", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest("invalid", token);
-    expect(res.status).toBe(400);
   });
 
   it.each([
