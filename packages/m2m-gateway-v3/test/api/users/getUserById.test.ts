@@ -46,6 +46,14 @@ describe("API GET /users/:userId", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
+  it.each(
+    Object.values(authRole).filter((role) => role !== authRole.M2M_ADMIN_ROLE)
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(generateId(), token);
+    expect(res.status).toBe(403);
+  });
+
   // it("Should return 404 if user is not found", async () => {
   //   const token = generateToken(authRole.ADMIN_ROLE);
 
@@ -57,20 +65,31 @@ describe("API GET /users/:userId", () => {
   //   expect(res.status).toBe(404);
   // });
 
-  // it("Should return 400 if passed an invalid userId", async () => {
-  //   const token = generateToken(authRole.ADMIN_ROLE);
-  //   const res = await makeRequest("invalid" as UserId, token);
-  //   expect(res.status).toBe(400);
-  // });
+  it("Should return 400 if passed an invalid userId", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest("invalid", token);
+    expect(res.status).toBe(400);
+  });
 
-  // it("should return 500 if an error occurs in the service", async () => {
-  //   const token = generateToken(authRole.ADMIN_ROLE);
-  //   services.selfcareService.getSelfcareUser = vi
-  //     .fn()
-  //     .mockRejectedValue(
-  //       selfcareEntityNotFilled("UserInstitutionResource", "unknown"),
-  //     );
-  //   const res = await makeRequest(mockUserResource.id, token);
-  //   expect(res.status).toBe(500);
-  // });
+  it.each([
+    { ...mockResponse, id: "I am a teapot" },
+    {},
+    { ...mockResponse, firstName: 7 },
+    { ...mockResponse, lastName: 9 },
+    { ...mockResponse, firstName: null },
+    { ...mockResponse, lastName: null },
+    // { ...mockResponse, firstName: "" }, // Should we validate against empty strings?
+    // { ...mockResponse, lastName: "" },
+    { ...mockResponse, firstName: undefined },
+    { ...mockResponse, lastName: undefined },
+    { ...mockResponse, additionalProp: "invalid" },
+  ])(
+    "should return 500 if an error occurs in the service with payload %s",
+    async (mockedWrongResponse) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      mockUserService.getUser = vi.fn().mockResolvedValue(mockedWrongResponse);
+      const res = await makeRequest(mockUserResource.id, token);
+      expect(res.status).toBe(500);
+    }
+  );
 });
