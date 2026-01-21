@@ -49,12 +49,12 @@ describe("getClientPurposes", () => {
     mockApiConsumerClient2,
   ];
 
-  const mockGetPurposes = vi.fn().mockResolvedValue(
-    getMockWithMetadata({
-      results: mockApiPurposes,
-      totalCount: mockApiPurposes.length,
-    })
-  );
+  const mockResponse = getMockWithMetadata({
+    results: mockApiPurposes,
+    totalCount: mockApiPurposes.length,
+  });
+
+  const mockGetPurposes = vi.fn();
 
   mockInteropBeClients.purposeProcessClient = {
     getPurposes: mockGetPurposes,
@@ -147,6 +147,8 @@ describe("getClientPurposes", () => {
       results: [expectedM2MPurpose1, expectedM2MPurpose2, expectedM2MPurpose3],
     };
 
+    mockGetPurposes.mockResolvedValue(mockResponse);
+
     const result = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
       mockParams,
@@ -179,6 +181,12 @@ describe("getClientPurposes", () => {
   });
 
   it("Should apply filters (offset, limit)", async () => {
+    const getMockApiPurpose1 = getMockWithMetadata({
+      ...mockResponse.data,
+      results: [mockApiPurpose1],
+    });
+    mockGetPurposes.mockResolvedValueOnce(getMockApiPurpose1);
+
     const result1 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
       { ...mockParams, offset: 0, limit: 1 },
@@ -197,6 +205,11 @@ describe("getClientPurposes", () => {
     expect(mockGetClient).toHaveBeenCalledTimes(1);
     expect(mockGetPurposes).toHaveBeenCalledTimes(1);
 
+    const getMockApiPurpose2 = getMockWithMetadata({
+      ...mockResponse.data,
+      results: [mockApiPurpose2],
+    });
+    mockGetPurposes.mockResolvedValue(getMockApiPurpose2);
     const result2 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
       { ...mockParams, offset: 1, limit: 1 },
@@ -217,6 +230,11 @@ describe("getClientPurposes", () => {
   });
 
   it("Should apply filters (eserviceId, state)", async () => {
+    const getPartialMockResponse = getMockWithMetadata({
+      results: [mockApiPurpose2, mockApiPurpose3],
+      totalCount: 2,
+    });
+    mockGetPurposes.mockResolvedValueOnce(getPartialMockResponse);
     const result1 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
       {
@@ -238,6 +256,11 @@ describe("getClientPurposes", () => {
     expect(mockGetClient).toHaveBeenCalledTimes(1);
     expect(mockGetPurposes).toHaveBeenCalledTimes(1);
 
+    const getPartialMockResponse3 = getMockWithMetadata({
+      results: [mockApiPurpose3],
+      totalCount: 1,
+    });
+    mockGetPurposes.mockResolvedValueOnce(getPartialMockResponse3);
     const result2 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
       {
