@@ -25,7 +25,7 @@ import {
   RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
-  TenantKind,
+  TargetTenantKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTemplateModels.js";
@@ -70,7 +70,7 @@ export const riskAnalysisTemplateDocumentBuilder = (
       purposeTemplate: PurposeTemplate,
       creatorName: string,
       creatorIPACode: string | undefined,
-      tenantKind: TenantKind,
+      tenantKind: TargetTenantKind,
       language: Language,
       messageTimestamp: Date
     ): Promise<RiskAnalysisTemplateDocument> => {
