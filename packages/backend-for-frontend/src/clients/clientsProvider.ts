@@ -22,10 +22,6 @@ export type TenantProcessClient = {
   selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
 };
 
-export type PurposeTemplateProcessClient = ReturnType<
-  typeof purposeTemplateApi.createPurposeTemplateApiClient
->;
-
 export type DelegationProcessClient = {
   producer: ReturnType<typeof delegationApi.createProducerApiClient>;
   consumer: ReturnType<typeof delegationApi.createConsumerApiClient>;
@@ -69,7 +65,7 @@ export type PagoPAInteropBeClients = {
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
-  purposeTemplateProcessClient: PurposeTemplateProcessClient;
+  purposeTemplateProcessClient: purposeTemplateApi.PurposeTemplateProcessClient;
   authorizationClient: AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UserClient;

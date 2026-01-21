@@ -9,15 +9,12 @@ import { config } from "../config/config.js";
 type DelegationProcessClient = {
   delegation: ReturnType<typeof delegationApi.createDelegationApiClient>;
 };
-export type PurposeTemplateProcessClient = ReturnType<
-  typeof purposeTemplateApi.createPurposeTemplateApiClient
->;
 
 export type PagoPAInteropBeClients = {
   agreementProcessClient: agreementApi.AgreementProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
   delegationProcessClient: DelegationProcessClient;
-  purposeTemplateProcessClient: PurposeTemplateProcessClient;
+  purposeTemplateProcessClient: purposeTemplateApi.PurposeTemplateProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {

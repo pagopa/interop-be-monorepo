@@ -19,10 +19,7 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
-import {
-  PurposeTemplateProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import {
@@ -37,7 +34,7 @@ import { eserviceDescriptorNotFound, tenantNotFound } from "../model/errors.js";
 import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 
 export function purposeTemplateServiceBuilder(
-  purposeTemplateClient: PurposeTemplateProcessClient,
+  purposeTemplateClient: purposeTemplateApi.PurposeTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   fileManager: FileManager

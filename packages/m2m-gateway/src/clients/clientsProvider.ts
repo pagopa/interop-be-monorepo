@@ -76,9 +76,8 @@ type EventManagerClient = ReturnType<
   typeof m2mEventApi.createM2mEventsApiClient
 >;
 
-type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
-  ReturnType<typeof purposeTemplateApi.createPurposeTemplateApiClient>
->;
+type PurposeTemplateProcessClientWithMetadata =
+  ZodiosClientWithMetadata<purposeTemplateApi.PurposeTemplateProcessClient>;
 
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
@@ -90,7 +89,7 @@ export type PagoPAInteropBeClients = {
   delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: EServiceTemplateProcessClient;
   eventManagerClient: EventManagerClient;
-  purposeTemplateProcessClient: PurposeTemplateProcessClient;
+  purposeTemplateProcessClient: PurposeTemplateProcessClientWithMetadata;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
