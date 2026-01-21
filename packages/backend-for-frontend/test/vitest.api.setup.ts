@@ -64,6 +64,7 @@ import {
   attributeRegistryApi,
   catalogApi,
   eserviceTemplateApi,
+  notificationConfigApi,
   purposeApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
@@ -72,7 +73,6 @@ import {
   AuthorizationProcessClient,
   DelegationProcessClient,
   InAppNotificationManagerClient,
-  NotificationConfigProcessClient,
   SelfcareV2InstitutionClient,
   SelfcareV2UserClient,
   TenantProcessClient,
@@ -117,7 +117,8 @@ export const clients = {
   } as DelegationProcessClient,
   eserviceTemplateProcessClient:
     {} as eserviceTemplateApi.EServiceTemplateProcessClient,
-  notificationConfigProcessClient: {} as NotificationConfigProcessClient,
+  notificationConfigProcessClient:
+    {} as notificationConfigApi.NotificationConfigProcessClient,
   inAppNotificationManagerClient: {} as InAppNotificationManagerClient,
 };
 
