@@ -3,6 +3,7 @@ import {
   agreementApi,
   attributeRegistryApi,
   catalogApi,
+  eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
 import { AuthData, formatDateyyyyMMddTHHmmss } from "pagopa-interop-commons";
@@ -10,7 +11,6 @@ import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
 import {
   DelegationProcessClient,
-  EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -50,7 +50,7 @@ describe("getEServiceConsumers", () => {
     {} as unknown as attributeRegistryApi.AttributeProcessClient;
   const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
   const mockEServiceTemplateProcessClient =
-    {} as unknown as EServiceTemplateProcessClient;
+    {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient;
   const mockIInAppNotificationManagerClient =
     {} as unknown as InAppNotificationManagerClient;
 

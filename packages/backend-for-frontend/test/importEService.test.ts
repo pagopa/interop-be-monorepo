@@ -18,14 +18,14 @@ import {
   agreementApi,
   attributeRegistryApi,
   bffApi,
+  catalogApi,
+  eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import AdmZip from "adm-zip";
-import { catalogApi } from "pagopa-interop-api-clients";
 import * as apiUtils from "pagopa-interop-commons";
 import {
   DelegationProcessClient,
-  EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -87,7 +87,7 @@ describe("importEService", () => {
   const mockDelegationProcessClient =
     createDummyStub<DelegationProcessClient>();
   const mockEServiceTemplateProcessClient =
-    createDummyStub<EServiceTemplateProcessClient>();
+    createDummyStub<eserviceTemplateApi.EServiceTemplateProcessClient>();
 
   const mockInAppNotificationManagerClient =
     createDummyStub<InAppNotificationManagerClient>();

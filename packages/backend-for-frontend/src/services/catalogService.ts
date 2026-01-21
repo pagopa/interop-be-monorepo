@@ -47,7 +47,6 @@ import {
 } from "../api/catalogApiConverter.js";
 import {
   DelegationProcessClient,
-  EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -324,7 +323,7 @@ export function catalogServiceBuilder(
   agreementProcessClient: agreementApi.AgreementProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   delegationProcessClient: DelegationProcessClient,
-  eserviceTemplateProcessClient: EServiceTemplateProcessClient,
+  eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig

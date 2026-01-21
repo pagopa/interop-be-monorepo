@@ -37,10 +37,6 @@ export type AuthorizationProcessClient = {
   token: ReturnType<typeof authorizationApi.createTokenGenerationApiClient>;
 };
 
-export type EServiceTemplateProcessClient = ReturnType<
-  typeof eserviceTemplateApi.createProcessApiClient
->;
-
 export type SelfcareV2InstitutionClient = {
   institution: ReturnType<
     typeof selfcareV2ClientApi.createInstitutionApiClient
@@ -70,7 +66,7 @@ export type PagoPAInteropBeClients = {
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UserClient;
   delegationProcessClient: DelegationProcessClient;
-  eserviceTemplateProcessClient: EServiceTemplateProcessClient;
+  eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient;
   notificationConfigProcessClient: NotificationConfigProcessClient;
   inAppNotificationManagerClient: InAppNotificationManagerClient;
 };

@@ -14,7 +14,7 @@ import { match } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   CatalogProcessClientWithMetadata,
-  EServiceTemplateProcessClient,
+  EServiceTemplateProcessClientWithMetadata,
 } from "../clients/clientsProvider.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { Headers } from "./context.js";
@@ -99,7 +99,7 @@ export async function uploadEServiceTemplateDocument({
   versionId: string;
   documentKind: eserviceTemplateApi.EServiceDocumentKind;
   fileUpload: m2mGatewayApiV3.FileUploadMultipart;
-  eserviceTemplateProcessClient: EServiceTemplateProcessClient;
+  eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
   fileManager: FileManager;
   logger: Logger;
   headers: Headers;

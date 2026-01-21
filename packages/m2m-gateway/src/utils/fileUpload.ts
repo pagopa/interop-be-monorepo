@@ -13,7 +13,7 @@ import { generateId, technology } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   CatalogProcessClientWithMetadata,
-  EServiceTemplateProcessClient,
+  EServiceTemplateProcessClientWithMetadata,
 } from "../clients/clientsProvider.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
@@ -99,7 +99,7 @@ export async function uploadEServiceTemplateDocument({
   versionId: string;
   documentKind: eserviceTemplateApi.EServiceDocumentKind;
   fileUpload: m2mGatewayApi.FileUploadMultipart;
-  eserviceTemplateProcessClient: EServiceTemplateProcessClient;
+  eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
   fileManager: FileManager;
   logger: Logger;
   headers: Headers;

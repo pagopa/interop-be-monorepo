@@ -33,7 +33,6 @@ import {
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
-  EServiceTemplateProcessClient,
   InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -50,7 +49,7 @@ import { filterUnreadNotifications } from "../utilities/filterUnreadNotification
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
-  eserviceTemplateClient: EServiceTemplateProcessClient,
+  eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
@@ -787,7 +786,7 @@ async function getTenantsFromEServiceTemplates(
 }
 export const retrieveEServiceTemplate = async (
   templateId: string,
-  eserviceTemplateClient: EServiceTemplateProcessClient,
+  eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   headers: BffAppContext["headers"]
 ): Promise<eserviceTemplateApi.EServiceTemplate> => {
   const eserviceTemplate = await eserviceTemplateClient.getEServiceTemplateById(
