@@ -14,7 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
-export const errorCodes = {
+const errorCodes = {
   missingFreeOfChargeReason: "0001",
   purposeTemplateTitleConflict: "0002",
   purposeTemplateNotFound: "0003",
@@ -285,16 +285,6 @@ export function conflictDuplicatedDocument(
     detail: `Conflict: annotation document with checksum '${checksum}' is duplicated for answer with id '${answerId}'`,
     code: "conflictDuplicatedDocument",
     title: "Conflict: annotation document with checksum already exists",
-  });
-}
-export function purposeTemplateNotInValidState(
-  state: PurposeTemplateState,
-  validStates: PurposeTemplateState[]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
-    code: "purposeTemplateNotInValidState",
-    title: "Purpose template not in valid state",
   });
 }
 

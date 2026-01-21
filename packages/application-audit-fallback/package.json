@@ -23,6 +23,7 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
+    "eslint": "8.57.1",
     "@types/node": "20.19.9",
     "prettier": "2.8.8",
     "pagopa-interop-commons-test": "workspace:*",
@@ -35,10 +36,8 @@
     "@aws-sdk/client-sqs": "3.840.0",
     "dotenv-flow": "4.1.0",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }
 }

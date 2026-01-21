@@ -486,7 +486,7 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
   } while (exclusiveStartKey);
 };
 
-export const readAgreementEntry = async (
+const readAgreementEntry = async (
   primaryKey: PlatformStatesAgreementPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesAgreementEntry | undefined> => {
@@ -517,7 +517,7 @@ export const readAgreementEntry = async (
   }
 };
 
-export const readCatalogEntry = async (
+const readCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   primaryKey: PlatformStatesEServiceDescriptorPK
 ): Promise<PlatformStatesCatalogEntry | undefined> => {

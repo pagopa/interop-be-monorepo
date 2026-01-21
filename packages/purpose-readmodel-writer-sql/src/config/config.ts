@@ -4,10 +4,10 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const PurposeReadModelWriterConfig =
+const PurposeReadModelWriterConfig =
   ReadModelWriterConfigSQL.and(PurposeTopicConfig);
 
-export type PurposeReadModelWriterConfig = z.infer<
+type PurposeReadModelWriterConfig = z.infer<
   typeof PurposeReadModelWriterConfig
 >;
 

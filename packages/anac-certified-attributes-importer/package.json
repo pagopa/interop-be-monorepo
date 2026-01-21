@@ -19,6 +19,7 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
+    "eslint": "8.57.1",
     "@types/node": "20.19.9",
     "@types/ssh2-sftp-client": "9.0.5",
     "pagopa-interop-commons-test": "workspace:*",

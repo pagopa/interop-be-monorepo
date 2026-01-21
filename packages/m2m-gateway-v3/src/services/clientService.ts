@@ -9,6 +9,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 import {
@@ -16,7 +17,7 @@ import {
   toM2MGatewayApiConsumerClient,
 } from "../api/clientApiConverter.js";
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
-import { toM2MJWK } from "../api/keysApiConverter.js";
+import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -31,6 +32,16 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       headers,
     });
 
+  const retrieveClientKeyById = (
+    clientId: ClientId,
+    keyId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
+    clients.authorizationClient.client.getClientKeyById({
+      params: { clientId: unsafeBrandId(clientId), keyId },
+      headers,
+    });
+
   const pollClient = (
     response: WithMaybeMetadata<authorizationApi.Client>,
     headers: M2MGatewayAppContext["headers"]
@@ -40,6 +51,26 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollClientKey = (
+    clientId: ClientId,
+    response: WithMaybeMetadata<authorizationApi.Key>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
+    pollResourceWithMetadata(() =>
+      retrieveClientKeyById(unsafeBrandId(clientId), response.data.kid, headers)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
+  const pollClientKeyUntilDeletion = (
+    clientId: ClientId,
+    keyId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveClientKeyById(clientId, keyId, headers)
+    )({});
 
   return {
     async getClientAdminId(
@@ -209,6 +240,47 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         },
         results: jwks.map(toM2MJWK),
       };
+    },
+    async createClientKey(
+      clientId: ClientId,
+      seed: m2mGatewayApiV3.KeySeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Key> {
+      logger.info(`Create a new key for client with id ${clientId}`);
+
+      const response = await clients.authorizationClient.client.createKey(
+        seed,
+        {
+          params: { clientId },
+          headers,
+        }
+      );
+
+      const { data: key } = await pollClientKey(clientId, response, headers);
+
+      const { data: jwkData } =
+        await clients.authorizationClient.key.getJWKByKid({
+          params: { kid: key.kid },
+          headers,
+        });
+
+      return toM2MKey({ jwk: jwkData.jwk, clientId });
+    },
+    async deleteClientKey(
+      clientId: ClientId,
+      keyId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting key for client with id ${clientId} and its keyId ${keyId}`
+      );
+
+      await clients.authorizationClient.client.deleteClientKeyById(undefined, {
+        params: { clientId, keyId },
+        headers,
+      });
+
+      await pollClientKeyUntilDeletion(clientId, keyId, headers);
     },
   };
 }

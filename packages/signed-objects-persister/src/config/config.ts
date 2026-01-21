@@ -10,7 +10,7 @@ import {
 import { z } from "zod";
 import { SQSConsumerConfig } from "./sqsConfig.js";
 
-export const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
+const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
   .and(FileManagerConfig)
   .and(SafeStorageApiConfig)
   .and(DynamoDBClientConfig)
@@ -40,9 +40,7 @@ export const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
       }))
   );
 
-export type SignedObjectPersisterConfig = z.infer<
-  typeof SignedObjectsPersisterConfig
->;
+type SignedObjectPersisterConfig = z.infer<typeof SignedObjectsPersisterConfig>;
 
 export const config: SignedObjectPersisterConfig =
   SignedObjectsPersisterConfig.parse(process.env);

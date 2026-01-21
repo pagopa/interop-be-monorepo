@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
+    "eslint": "8.57.1",
     "@types/node": "20.19.9",
     "prettier": "2.8.8",
     "typescript": "5.4.5",

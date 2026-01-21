@@ -69,7 +69,7 @@ import {
 import { contractBuilder } from "./delegationContractBuilder.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
-export const retrieveDelegationById = async (
+const retrieveDelegationById = async (
   {
     delegationId,
     kind,
@@ -89,7 +89,7 @@ export const retrieveDelegationById = async (
   return delegation;
 };
 
-export const retrieveTenantById = async (
+const retrieveTenantById = async (
   readModelService: ReadModelServiceSQL,
   tenantId: TenantId
 ): Promise<Tenant> => {
@@ -100,7 +100,7 @@ export const retrieveTenantById = async (
   return tenant;
 };
 
-export const retrieveEserviceById = async (
+const retrieveEserviceById = async (
   readModelService: ReadModelServiceSQL,
   id: EServiceId
 ): Promise<EService> => {

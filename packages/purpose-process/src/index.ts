@@ -7,6 +7,7 @@ import {
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   purposeReadModelServiceBuilder,
@@ -28,6 +29,7 @@ const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
@@ -37,6 +39,7 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
+  clientReadModelServiceSQL,
 });
 
 const fileManager = initFileManager(config);
