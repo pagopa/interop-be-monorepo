@@ -114,7 +114,8 @@ export function digestDataServiceBuilder(
         newEservices,
         verifiedAssignedAttributes,
         verifiedRevokedAttributes,
-        certifiedAttributes,
+        certifiedAssignedAttributes,
+        certifiedRevokedAttributes,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
@@ -123,7 +124,8 @@ export function digestDataServiceBuilder(
         getNewEservicesDigest([]),
         readModelService.getVerifiedAssignedAttributes(tenantId),
         readModelService.getVerifiedRevokedAttributes(tenantId),
-        readModelService.getCertifiedAttributes(tenantId),
+        readModelService.getCertifiedAssignedAttributes(tenantId),
+        readModelService.getCertifiedRevokedAttributes(tenantId),
       ]);
 
       const tenantName = tenantMap.get(tenantId);
@@ -207,18 +209,14 @@ export function digestDataServiceBuilder(
             verifiedAssignedAttributes,
             readModelService
           ),
-          certifiedAttributeToDigest(
-            certifiedAttributes.filter((attr) => attr.state === "assigned")
-          )
+          certifiedAttributeToDigest(certifiedAssignedAttributes)
         ),
         revokedAttributes: combineAttributeDigests(
           await verifiedAttributeToDigest(
             verifiedRevokedAttributes,
             readModelService
           ),
-          certifiedAttributeToDigest(
-            certifiedAttributes.filter((attr) => attr.state === "revoked")
-          )
+          certifiedAttributeToDigest(certifiedRevokedAttributes)
         ),
       };
     },

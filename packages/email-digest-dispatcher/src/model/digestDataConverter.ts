@@ -5,13 +5,18 @@ import {
   NewEserviceTemplate,
   VerifiedAssignedAttribute,
   VerifiedRevokedAttribute,
-  CertifiedAttribute,
+  CertifiedAssignedAttribute,
+  CertifiedRevokedAttribute,
   ReadModelService,
 } from "../services/readModelService.js";
 
 export type VerifiedAttribute =
   | VerifiedAssignedAttribute
   | VerifiedRevokedAttribute;
+
+export type CertifiedAttribute =
+  | CertifiedAssignedAttribute
+  | CertifiedRevokedAttribute;
 
 const UNKNOWN_PRODUCER_NAME = "Unknown";
 

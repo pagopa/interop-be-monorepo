@@ -6,7 +6,6 @@ import {
   gte,
   isNotNull,
   isNull,
-  or,
   count,
   inArray,
   gt,
@@ -78,8 +77,12 @@ export type VerifiedRevokedAttribute = AttributeBase & {
   actionPerformer: TenantId;
 };
 
-export type CertifiedAttribute = AttributeBase & {
-  state: "assigned" | "revoked";
+export type CertifiedAssignedAttribute = AttributeBase & {
+  state: "assigned";
+};
+
+export type CertifiedRevokedAttribute = AttributeBase & {
+  state: "revoked";
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -528,25 +531,20 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns certified attributes (both assigned and revoked) for a tenant in the last DIGEST_FREQUENCY_DAYS days.
+     * Returns certified assigned attributes for a tenant in the last DIGEST_FREQUENCY_DAYS days.
      * Assigned: assignment_timestamp >= threshold AND revocation_timestamp IS NULL
-     * Revoked: revocation_timestamp >= threshold
      */
-    async getCertifiedAttributes(
+    async getCertifiedAssignedAttributes(
       tenantId: TenantId
-    ): Promise<CertifiedAttribute[]> {
+    ): Promise<CertifiedAssignedAttribute[]> {
       logger.info(
-        `Retrieving certified attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
+        `Retrieving certified assigned attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
       );
 
       const results = await db
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
-            assignmentTimestamp:
-              tenantCertifiedAttributeInReadmodelTenant.assignmentTimestamp,
-            revocationTimestamp:
-              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp,
           })
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
@@ -560,34 +558,71 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .where(
           and(
             eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
-            or(
-              // Assigned: recently assigned and not revoked
-              and(
-                gte(
-                  tenantCertifiedAttributeInReadmodelTenant.assignmentTimestamp,
-                  dateThreshold.toISOString()
-                ),
-                isNull(
-                  tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
-                )
-              ),
-              // Revoked: recently revoked
-              gte(
-                tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp,
-                dateThreshold.toISOString()
-              )
+            gte(
+              tenantCertifiedAttributeInReadmodelTenant.assignmentTimestamp,
+              dateThreshold.toISOString()
+            ),
+            isNull(
+              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
             )
           )
         )
         .limit(5);
 
       logger.info(
-        `Retrieved ${results.length} certified attributes for tenant ${tenantId}`
+        `Retrieved ${results.length} certified assigned attributes for tenant ${tenantId}`
       );
 
       return results.map((row) => ({
         attributeName: row.attributeName,
-        state: row.revocationTimestamp === null ? "assigned" : "revoked",
+        state: "assigned" as const,
+        totalCount: row.totalCount,
+      }));
+    },
+
+    /**
+     * Returns certified revoked attributes for a tenant in the last DIGEST_FREQUENCY_DAYS days.
+     * Revoked: revocation_timestamp >= threshold
+     */
+    async getCertifiedRevokedAttributes(
+      tenantId: TenantId
+    ): Promise<CertifiedRevokedAttribute[]> {
+      logger.info(
+        `Retrieving certified revoked attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            attributeName: attributeInReadmodelAttribute.name,
+          })
+        )
+        .from(tenantCertifiedAttributeInReadmodelTenant)
+        .innerJoin(
+          attributeInReadmodelAttribute,
+          eq(
+            tenantCertifiedAttributeInReadmodelTenant.attributeId,
+            attributeInReadmodelAttribute.id
+          )
+        )
+        .where(
+          and(
+            eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
+            gte(
+              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .limit(5);
+
+      logger.info(
+        `Retrieved ${results.length} certified revoked attributes for tenant ${tenantId}`
+      );
+
+      return results.map((row) => ({
+        attributeName: row.attributeName,
+        state: "revoked" as const,
         totalCount: row.totalCount,
       }));
     },
