@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { api, mockUserService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { userNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /users/:userId", () => {
   const mockUserResource: selfcareV2ClientApi.UserResource = {
@@ -54,16 +55,16 @@ describe("API GET /users/:userId", () => {
     expect(res.status).toBe(403);
   });
 
-  // it("Should return 404 if user is not found", async () => {
-  //   const token = generateToken(authRole.ADMIN_ROLE);
+  it("Should return 404 if user is not found", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
 
-  //   mockUserService.getUser = vi
-  //     .fn()
-  //     .mockRejectedValue(userNotFound(mockUserResource.id, generateId()));
+    mockUserService.getUser = vi
+      .fn()
+      .mockRejectedValue(userNotFound(mockUserResource.id, generateId()));
 
-  //   const res = await makeRequest(mockUserResource.id, token);
-  //   expect(res.status).toBe(404);
-  // });
+    const res = await makeRequest(mockUserResource.id, token);
+    expect(res.status).toBe(404);
+  });
 
   it("Should return 400 if passed an invalid userId", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

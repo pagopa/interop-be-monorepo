@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import { userNotFound } from "../model/errors.js";
 
 export type GetUsersQueryParams = {
   roles: string[];
@@ -138,14 +139,18 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       if (users.length === 0) {
-        throw Error(`User ${userIdBranded} not found`);
+        throw userNotFound(userIdBranded, tenantId);
       }
 
       if (users.length > 1) {
-        throw Error(`Multiple users found for userId ${userIdBranded}`);
+        throw userNotFound(userIdBranded, tenantId);
       }
 
-      const user = users[0];
+      const user = users.at(0);
+
+      if (!user) {
+        throw userNotFound(userIdBranded, tenantId);
+      }
 
       const results: m2mGatewayApiV3.User = {
         id: user.id,
