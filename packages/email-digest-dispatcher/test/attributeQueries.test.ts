@@ -6,6 +6,9 @@ import {
   createMockTenant,
   createVerifiedAttributeScenario,
   createRevokedAttributeScenario,
+  createCertifiedAssignedAttributeScenario,
+  createCertifiedRevokedAttributeScenario,
+  createTenantWithMultipleAttributes,
   TEST_TIME_WINDOWS,
   TEST_LIMITS,
 } from "./integrationUtils.js";
@@ -440,5 +443,343 @@ describe("ReadModelService - getVerifiedRevokedAttributes", () => {
       expect(revokedResult.length).toBeGreaterThanOrEqual(1);
       expect(revokedResult[0].attributeName).toBe("Revoked Attribute");
     });
+  });
+});
+
+describe("ReadModelService - getCertifiedAssignedAttributes", () => {
+  describe("Basic functionality", () => {
+    test("should return empty array when tenant has no certified assigned attributes", async () => {
+      const tenantId = generateId<TenantId>();
+      const tenant = createMockTenant({ id: tenantId });
+      await addOneTenant(tenant);
+
+      const result = await readModelService.getCertifiedAssignedAttributes(
+        tenantId
+      );
+      expect(result).toEqual([]);
+    });
+
+    test("should return certified assigned attributes within the 7-day window", async () => {
+      const tenantId = generateId<TenantId>();
+
+      const { attribute } = await createCertifiedAssignedAttributeScenario({
+        tenantId,
+        attributeName: "Test Certified Assigned",
+        assignmentDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+      });
+
+      const result = await readModelService.getCertifiedAssignedAttributes(
+        tenantId
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        attributeName: attribute.name,
+        state: "assigned",
+        totalCount: 1,
+      });
+    });
+
+    test("should not return certified attributes assigned more than 7 days ago", async () => {
+      const tenantId = generateId<TenantId>();
+
+      await createCertifiedAssignedAttributeScenario({
+        tenantId,
+        attributeName: "Old Certified Assigned",
+        assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
+      });
+
+      const result = await readModelService.getCertifiedAssignedAttributes(
+        tenantId
+      );
+      expect(result).toEqual([]);
+    });
+
+    test("should not return certified revoked attributes", async () => {
+      const tenantId = generateId<TenantId>();
+
+      await createCertifiedRevokedAttributeScenario({
+        tenantId,
+        attributeName: "Revoked Attribute",
+        assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
+        revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+      });
+
+      const result = await readModelService.getCertifiedAssignedAttributes(
+        tenantId
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("Data integrity", () => {
+    test("should return correctly typed results", async () => {
+      const tenantId = generateId<TenantId>();
+
+      await createCertifiedAssignedAttributeScenario({
+        tenantId,
+        attributeName: "Test Attribute",
+        assignmentDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+      });
+
+      const result = await readModelService.getCertifiedAssignedAttributes(
+        tenantId
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        attributeName: expect.any(String),
+        state: "assigned",
+        totalCount: expect.any(Number),
+      });
+
+      expect(result[0].totalCount).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe("ReadModelService - getCertifiedRevokedAttributes", () => {
+  describe("Basic functionality", () => {
+    test("should return empty array when tenant has no certified revoked attributes", async () => {
+      const tenantId = generateId<TenantId>();
+      const tenant = createMockTenant({ id: tenantId });
+      await addOneTenant(tenant);
+
+      const result = await readModelService.getCertifiedRevokedAttributes(
+        tenantId
+      );
+      expect(result).toEqual([]);
+    });
+
+    test("should return certified revoked attributes within the 7-day window", async () => {
+      const tenantId = generateId<TenantId>();
+
+      const { attribute } = await createCertifiedRevokedAttributeScenario({
+        tenantId,
+        attributeName: "Test Certified Revoked",
+        assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
+        revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+      });
+
+      const result = await readModelService.getCertifiedRevokedAttributes(
+        tenantId
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        attributeName: attribute.name,
+        state: "revoked",
+        totalCount: 1,
+      });
+    });
+
+    test("should not return certified attributes revoked more than 7 days ago", async () => {
+      const tenantId = generateId<TenantId>();
+
+      await createCertifiedRevokedAttributeScenario({
+        tenantId,
+        attributeName: "Old Revoked",
+        assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE + 5,
+        revocationDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
+      });
+
+      const result = await readModelService.getCertifiedRevokedAttributes(
+        tenantId
+      );
+      expect(result).toEqual([]);
+    });
+
+    test("should not return certified assigned attributes (not revoked)", async () => {
+      const tenantId = generateId<TenantId>();
+
+      await createCertifiedAssignedAttributeScenario({
+        tenantId,
+        attributeName: "Assigned Only",
+        assignmentDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+      });
+
+      const result = await readModelService.getCertifiedRevokedAttributes(
+        tenantId
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("Data integrity", () => {
+    test("should return correctly typed results", async () => {
+      const tenantId = generateId<TenantId>();
+
+      await createCertifiedRevokedAttributeScenario({
+        tenantId,
+        attributeName: "Test Attribute",
+        assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
+        revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+      });
+
+      const result = await readModelService.getCertifiedRevokedAttributes(
+        tenantId
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        attributeName: expect.any(String),
+        state: "revoked",
+        totalCount: expect.any(Number),
+      });
+
+      expect(result[0].totalCount).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe("TotalCount accuracy with separate queries", () => {
+  test("certified assigned and revoked should have independent totalCounts", async () => {
+    const tenantId = generateId<TenantId>();
+
+    // Create 2 certified assigned attributes
+    await createCertifiedAssignedAttributeScenario({
+      tenantId,
+      attributeName: "Assigned 1",
+      assignmentDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+    });
+
+    // Create new tenant with same ID but different attribute (simulating multiple attributes)
+    // Note: Due to test isolation, we need to create scenarios that result in multiple records
+
+    const assignedResult =
+      await readModelService.getCertifiedAssignedAttributes(tenantId);
+    const revokedResult = await readModelService.getCertifiedRevokedAttributes(
+      tenantId
+    );
+
+    // Assigned should have its own totalCount
+    expect(assignedResult.length).toBeGreaterThanOrEqual(1);
+    if (assignedResult.length > 0) {
+      expect(assignedResult[0].totalCount).toBe(assignedResult.length);
+    }
+
+    // Revoked should be empty (we only created assigned)
+    expect(revokedResult).toEqual([]);
+  });
+
+  test("totalCounts should be separate for assigned vs revoked", async () => {
+    const assignedTenantId = generateId<TenantId>();
+    const revokedTenantId = generateId<TenantId>();
+
+    // Create assigned attribute for one tenant
+    await createCertifiedAssignedAttributeScenario({
+      tenantId: assignedTenantId,
+      attributeName: "Assigned Attr",
+      assignmentDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+    });
+
+    // Create revoked attribute for another tenant
+    await createCertifiedRevokedAttributeScenario({
+      tenantId: revokedTenantId,
+      attributeName: "Revoked Attr",
+      assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
+      revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+    });
+
+    const assignedResult =
+      await readModelService.getCertifiedAssignedAttributes(assignedTenantId);
+    const revokedResult = await readModelService.getCertifiedRevokedAttributes(
+      revokedTenantId
+    );
+
+    // Each should have totalCount = 1 independently
+    expect(assignedResult).toHaveLength(1);
+    expect(assignedResult[0].totalCount).toBe(1);
+
+    expect(revokedResult).toHaveLength(1);
+    expect(revokedResult[0].totalCount).toBe(1);
+  });
+
+  test("should have totalCount > 5 with mix of verified and certified attributes", async () => {
+    const tenantId = generateId<TenantId>();
+
+    // Create tenant with:
+    // - 4 verified assigned attributes
+    // - 4 certified assigned attributes (total assigned = 8)
+    // - 3 verified revoked attributes
+    // - 3 certified revoked attributes (total revoked = 6)
+    await createTenantWithMultipleAttributes({
+      tenantId,
+      verifiedAssignedCount: 4,
+      verifiedRevokedCount: 3,
+      certifiedAssignedCount: 4,
+      certifiedRevokedCount: 3,
+    });
+
+    // Query all attribute types
+    const verifiedAssigned =
+      await readModelService.getVerifiedAssignedAttributes(tenantId);
+    const verifiedRevoked = await readModelService.getVerifiedRevokedAttributes(
+      tenantId
+    );
+    const certifiedAssigned =
+      await readModelService.getCertifiedAssignedAttributes(tenantId);
+    const certifiedRevoked =
+      await readModelService.getCertifiedRevokedAttributes(tenantId);
+
+    // Verified assigned: 4 created, should return max 5 with totalCount = 4
+    expect(verifiedAssigned.length).toBeLessThanOrEqual(
+      TEST_LIMITS.MAX_RESULTS
+    );
+    expect(verifiedAssigned[0].totalCount).toBe(4);
+
+    // Verified revoked: 3 created, should return 3 with totalCount = 3
+    expect(verifiedRevoked.length).toBeLessThanOrEqual(TEST_LIMITS.MAX_RESULTS);
+    expect(verifiedRevoked[0].totalCount).toBe(3);
+
+    // Certified assigned: 4 created, should return max 5 with totalCount = 4
+    expect(certifiedAssigned.length).toBeLessThanOrEqual(
+      TEST_LIMITS.MAX_RESULTS
+    );
+    expect(certifiedAssigned[0].totalCount).toBe(4);
+
+    // Certified revoked: 3 created, should return 3 with totalCount = 3
+    expect(certifiedRevoked.length).toBeLessThanOrEqual(
+      TEST_LIMITS.MAX_RESULTS
+    );
+    expect(certifiedRevoked[0].totalCount).toBe(3);
+
+    // Combined totals for digest:
+    // receivedAttributes = verified assigned (4) + certified assigned (4) = 8
+    // revokedAttributes = verified revoked (3) + certified revoked (3) = 6
+    const receivedTotalCount =
+      verifiedAssigned[0].totalCount + certifiedAssigned[0].totalCount;
+    const revokedTotalCount =
+      verifiedRevoked[0].totalCount + certifiedRevoked[0].totalCount;
+
+    expect(receivedTotalCount).toBe(8);
+    expect(revokedTotalCount).toBe(6);
+  });
+
+  test("should correctly limit items to 5 while maintaining accurate totalCount > 5", async () => {
+    const tenantId = generateId<TenantId>();
+
+    // Create more than 5 of each type to test LIMIT behavior
+    await createTenantWithMultipleAttributes({
+      tenantId,
+      verifiedAssignedCount: 6,
+      verifiedRevokedCount: 7,
+      certifiedAssignedCount: 0,
+      certifiedRevokedCount: 0,
+    });
+
+    const verifiedAssigned =
+      await readModelService.getVerifiedAssignedAttributes(tenantId);
+    const verifiedRevoked = await readModelService.getVerifiedRevokedAttributes(
+      tenantId
+    );
+
+    // Items should be limited to 5
+    expect(verifiedAssigned.length).toBe(TEST_LIMITS.MAX_RESULTS);
+    expect(verifiedRevoked.length).toBe(TEST_LIMITS.MAX_RESULTS);
+
+    // But totalCount should reflect the actual count in DB
+    expect(verifiedAssigned[0].totalCount).toBe(6);
+    expect(verifiedRevoked[0].totalCount).toBe(7);
   });
 });

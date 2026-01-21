@@ -30,6 +30,7 @@ import {
   AttributeId,
   attributeKind,
   VerifiedTenantAttribute,
+  CertifiedTenantAttribute,
   tenantAttributeType,
   TenantVerifier,
   TenantRevoker,
@@ -699,4 +700,253 @@ export const createRevokedAttributeScenario = async (config: {
   await addOneTenant(tenant);
 
   return { tenant, revoker, attribute };
+};
+
+/**
+ * Creates a CertifiedTenantAttribute
+ */
+export const createMockCertifiedTenantAttribute = (
+  attributeId: AttributeId,
+  assignmentTimestamp: Date,
+  revocationTimestamp?: Date
+): CertifiedTenantAttribute => ({
+  id: attributeId,
+  type: tenantAttributeType.CERTIFIED,
+  assignmentTimestamp,
+  revocationTimestamp,
+});
+
+/**
+ * Creates a tenant with a certified assigned attribute
+ */
+export const createTenantWithCertifiedAssignedAttribute = (
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  assignmentTimestamp: Date
+): Tenant => {
+  const certifiedAttribute = createMockCertifiedTenantAttribute(
+    attributeId,
+    assignmentTimestamp
+  );
+
+  return createMockTenant({
+    id: tenantId,
+    attributes: [certifiedAttribute],
+  });
+};
+
+/**
+ * Creates a tenant with a certified revoked attribute
+ */
+export const createTenantWithCertifiedRevokedAttribute = (
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  assignmentTimestamp: Date,
+  revocationTimestamp: Date
+): Tenant => {
+  const certifiedAttribute = createMockCertifiedTenantAttribute(
+    attributeId,
+    assignmentTimestamp,
+    revocationTimestamp
+  );
+
+  return createMockTenant({
+    id: tenantId,
+    attributes: [certifiedAttribute],
+  });
+};
+
+/**
+ * Creates a complete scenario for certified assigned attribute testing
+ */
+export const createCertifiedAssignedAttributeScenario = async (config: {
+  tenantId: TenantId;
+  attributeName?: string;
+  assignmentDaysAgo: number;
+}): Promise<{
+  tenant: Tenant;
+  attribute: Attribute;
+}> => {
+  const assignmentTimestamp = daysAgo(config.assignmentDaysAgo);
+  const attribute = createMockAttribute(
+    config.attributeName
+      ? { name: config.attributeName, kind: attributeKind.certified }
+      : { kind: attributeKind.certified }
+  );
+
+  await addOneAttribute(attribute);
+
+  const tenant = createTenantWithCertifiedAssignedAttribute(
+    config.tenantId,
+    attribute.id,
+    assignmentTimestamp
+  );
+  await addOneTenant(tenant);
+
+  return { tenant, attribute };
+};
+
+/**
+ * Creates a complete scenario for certified revoked attribute testing
+ */
+export const createCertifiedRevokedAttributeScenario = async (config: {
+  tenantId: TenantId;
+  attributeName?: string;
+  assignmentDaysAgo: number;
+  revocationDaysAgo: number;
+}): Promise<{
+  tenant: Tenant;
+  attribute: Attribute;
+}> => {
+  const assignmentTimestamp = daysAgo(config.assignmentDaysAgo);
+  const revocationTimestamp = daysAgo(config.revocationDaysAgo);
+  const attribute = createMockAttribute(
+    config.attributeName
+      ? { name: config.attributeName, kind: attributeKind.certified }
+      : { kind: attributeKind.certified }
+  );
+
+  await addOneAttribute(attribute);
+
+  const tenant = createTenantWithCertifiedRevokedAttribute(
+    config.tenantId,
+    attribute.id,
+    assignmentTimestamp,
+    revocationTimestamp
+  );
+  await addOneTenant(tenant);
+
+  return { tenant, attribute };
+};
+
+/**
+ * Creates a tenant with multiple attributes (verified and certified, assigned and revoked)
+ * This is useful for testing totalCount accuracy with more than 5 records
+ */
+export const createTenantWithMultipleAttributes = async (config: {
+  tenantId: TenantId;
+  verifiedAssignedCount: number;
+  verifiedRevokedCount: number;
+  certifiedAssignedCount: number;
+  certifiedRevokedCount: number;
+}): Promise<{
+  tenant: Tenant;
+  verifiers: Tenant[];
+  revokers: Tenant[];
+  attributes: Attribute[];
+}> => {
+  const attributes: Attribute[] = [];
+  const verifiedAttributes: VerifiedTenantAttribute[] = [];
+  const certifiedAttributes: CertifiedTenantAttribute[] = [];
+  const verifiers: Tenant[] = [];
+  const revokers: Tenant[] = [];
+
+  // Create verified assigned attributes
+  for (let i = 0; i < config.verifiedAssignedCount; i++) {
+    const attribute = createMockAttribute({
+      name: `Verified Assigned ${i + 1}`,
+      kind: attributeKind.verified,
+    });
+    await addOneAttribute(attribute);
+    // eslint-disable-next-line functional/immutable-data
+    attributes.push(attribute);
+
+    const verifierId = generateId<TenantId>();
+    const verifier = createMockTenant({ id: verifierId });
+    await addOneTenant(verifier);
+    // eslint-disable-next-line functional/immutable-data
+    verifiers.push(verifier);
+
+    const verificationDate = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
+    const tenantVerifier = createMockTenantVerifier(
+      verifierId,
+      verificationDate
+    );
+    const verifiedAttr = createMockVerifiedTenantAttribute(attribute.id, [
+      tenantVerifier,
+    ]);
+    // eslint-disable-next-line functional/immutable-data
+    verifiedAttributes.push(verifiedAttr);
+  }
+
+  // Create verified revoked attributes
+  for (let i = 0; i < config.verifiedRevokedCount; i++) {
+    const attribute = createMockAttribute({
+      name: `Verified Revoked ${i + 1}`,
+      kind: attributeKind.verified,
+    });
+    await addOneAttribute(attribute);
+    // eslint-disable-next-line functional/immutable-data
+    attributes.push(attribute);
+
+    const revokerId = generateId<TenantId>();
+    const revoker = createMockTenant({ id: revokerId });
+    await addOneTenant(revoker);
+    // eslint-disable-next-line functional/immutable-data
+    revokers.push(revoker);
+
+    const verificationDate = daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE);
+    const revocationDate = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
+    const tenantRevoker = createMockTenantRevoker(
+      revokerId,
+      verificationDate,
+      revocationDate
+    );
+    const verifiedAttr = createMockVerifiedTenantAttribute(
+      attribute.id,
+      [],
+      [tenantRevoker]
+    );
+    // eslint-disable-next-line functional/immutable-data
+    verifiedAttributes.push(verifiedAttr);
+  }
+
+  // Create certified assigned attributes
+  for (let i = 0; i < config.certifiedAssignedCount; i++) {
+    const attribute = createMockAttribute({
+      name: `Certified Assigned ${i + 1}`,
+      kind: attributeKind.certified,
+    });
+    await addOneAttribute(attribute);
+    // eslint-disable-next-line functional/immutable-data
+    attributes.push(attribute);
+
+    const assignmentTimestamp = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
+    const certifiedAttr = createMockCertifiedTenantAttribute(
+      attribute.id,
+      assignmentTimestamp
+    );
+    // eslint-disable-next-line functional/immutable-data
+    certifiedAttributes.push(certifiedAttr);
+  }
+
+  // Create certified revoked attributes
+  for (let i = 0; i < config.certifiedRevokedCount; i++) {
+    const attribute = createMockAttribute({
+      name: `Certified Revoked ${i + 1}`,
+      kind: attributeKind.certified,
+    });
+    await addOneAttribute(attribute);
+    // eslint-disable-next-line functional/immutable-data
+    attributes.push(attribute);
+
+    const assignmentTimestamp = daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE);
+    const revocationTimestamp = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
+    const certifiedAttr = createMockCertifiedTenantAttribute(
+      attribute.id,
+      assignmentTimestamp,
+      revocationTimestamp
+    );
+    // eslint-disable-next-line functional/immutable-data
+    certifiedAttributes.push(certifiedAttr);
+  }
+
+  // Create tenant with all attributes
+  const tenant = createMockTenant({
+    id: config.tenantId,
+    attributes: [...verifiedAttributes, ...certifiedAttributes],
+  });
+  await addOneTenant(tenant);
+
+  return { tenant, verifiers, revokers, attributes };
 };
