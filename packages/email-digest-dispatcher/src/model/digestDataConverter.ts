@@ -3,8 +3,9 @@ import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
 import {
   NewEservice,
   NewEserviceTemplate,
-  VerifiedAttribute,
-  RevokedAttribute,
+  VerifiedAssignedAttribute,
+  VerifiedRevokedAttribute,
+  CertifiedAttribute,
   ReadModelService,
 } from "../services/readModelService.js";
 
@@ -12,13 +13,6 @@ const UNKNOWN_PRODUCER_NAME = "Unknown";
 
 type EntityWithProducer = {
   entityProducerId: TenantId;
-};
-
-type AttributeWithTenantId = {
-  attributeName: string;
-  attributeKind: "certified" | "verified";
-  tenantId: TenantId;
-  totalCount: number;
 };
 
 /**
@@ -127,11 +121,17 @@ export async function eserviceToBaseDigest(
   };
 }
 
+type VerifiedAttributeWithTenantId = {
+  attributeName: string;
+  tenantId: TenantId;
+  totalCount: number;
+};
+
 /**
- * Shared helper to transform attribute data into an AttributeDigest object.
+ * Shared helper to transform verified attribute data into an AttributeDigest object.
  */
-async function attributeToBaseDigest(
-  data: AttributeWithTenantId[],
+async function verifiedAttributeToDigest(
+  data: VerifiedAttributeWithTenantId[],
   readModelService: ReadModelService
 ): Promise<AttributeDigest> {
   if (data.length === 0) {
@@ -151,23 +151,22 @@ async function attributeToBaseDigest(
       name: attr.attributeName,
       producerName: attr.entityProducerName,
       link: buildAttributeLink(),
-      attributeKind: attr.attributeKind,
+      attributeKind: "verified" as const,
     })),
     totalCount: data[0].totalCount,
   };
 }
 
 /**
- * Transforms readmodel verified attribute data into an AttributeDigest object.
+ * Transforms verified assigned attribute data into an AttributeDigest object.
  */
-export async function verifiedAttributeToBaseDigest(
-  data: VerifiedAttribute[],
+export async function verifiedAssignedAttributeToDigest(
+  data: VerifiedAssignedAttribute[],
   readModelService: ReadModelService
 ): Promise<AttributeDigest> {
-  return attributeToBaseDigest(
+  return verifiedAttributeToDigest(
     data.map((item) => ({
       attributeName: item.attributeName,
-      attributeKind: item.attributeKind,
       tenantId: item.verifierId,
       totalCount: item.totalCount,
     })),
@@ -176,19 +175,60 @@ export async function verifiedAttributeToBaseDigest(
 }
 
 /**
- * Transforms readmodel revoked attribute data into an AttributeDigest object.
+ * Transforms verified revoked attribute data into an AttributeDigest object.
  */
-export async function revokedAttributeToBaseDigest(
-  data: RevokedAttribute[],
+export async function verifiedRevokedAttributeToDigest(
+  data: VerifiedRevokedAttribute[],
   readModelService: ReadModelService
 ): Promise<AttributeDigest> {
-  return attributeToBaseDigest(
+  return verifiedAttributeToDigest(
     data.map((item) => ({
       attributeName: item.attributeName,
-      attributeKind: item.attributeKind,
       tenantId: item.revokerId,
       totalCount: item.totalCount,
     })),
     readModelService
   );
+}
+
+/**
+ * Transforms certified attribute data into an AttributeDigest object.
+ * Certified attributes don't have a producer/verifier, so producerName is empty.
+ */
+export function certifiedAttributeToDigest(
+  data: CertifiedAttribute[]
+): AttributeDigest {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((attr) => ({
+      name: attr.attributeName,
+      producerName: "", // Certified attributes don't have a verifier/assigner
+      link: buildAttributeLink(),
+      attributeKind: "certified" as const,
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Combines verified and certified attributes into a single AttributeDigest.
+ * Limits the total to 5 items.
+ */
+export function combineAttributeDigests(
+  verifiedDigest: AttributeDigest,
+  certifiedDigest: AttributeDigest
+): AttributeDigest {
+  const combinedItems = [
+    ...verifiedDigest.items,
+    ...certifiedDigest.items,
+  ].slice(0, 5);
+  const totalCount = verifiedDigest.totalCount + certifiedDigest.totalCount;
+
+  return {
+    items: combinedItems,
+    totalCount,
+  };
 }

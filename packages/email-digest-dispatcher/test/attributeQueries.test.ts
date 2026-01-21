@@ -10,7 +10,7 @@ import {
   TEST_LIMITS,
 } from "./integrationUtils.js";
 
-describe("ReadModelService - getVerifiedAttributes", () => {
+describe("ReadModelService - getVerifiedAssignedAttributes", () => {
   // eslint-disable-next-line functional/no-let
   let tenant: Tenant;
 
@@ -21,7 +21,9 @@ describe("ReadModelService - getVerifiedAttributes", () => {
 
   describe("Basic functionality", () => {
     test("should return empty array when tenant has no verified attributes", async () => {
-      const result = await readModelService.getVerifiedAttributes(tenant.id);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        tenant.id
+      );
       expect(result).toEqual([]);
     });
 
@@ -42,7 +44,9 @@ describe("ReadModelService - getVerifiedAttributes", () => {
         verificationDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
       });
 
-      const result = await readModelService.getVerifiedAttributes(newTenantId);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        newTenantId
+      );
       expect(result).toEqual([]);
     });
 
@@ -57,12 +61,13 @@ describe("ReadModelService - getVerifiedAttributes", () => {
         verificationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
       });
 
-      const result = await readModelService.getVerifiedAttributes(newTenantId);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        newTenantId
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         attributeName: attribute.name,
-        attributeKind: attribute.kind,
         verifierId: verifier.id,
         totalCount: 1,
       });
@@ -82,7 +87,9 @@ describe("ReadModelService - getVerifiedAttributes", () => {
         verificationDaysAgo: TEST_TIME_WINDOWS.THREE_DAYS_AGO,
       });
 
-      const result = await readModelService.getVerifiedAttributes(tenantId);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        tenantId
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].attributeName).toBe("Recent Attribute");
@@ -99,7 +106,9 @@ describe("ReadModelService - getVerifiedAttributes", () => {
         verificationDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
       });
 
-      const result = await readModelService.getVerifiedAttributes(tenantId);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        tenantId
+      );
       expect(result).toEqual([]);
     });
   });
@@ -121,7 +130,9 @@ describe("ReadModelService - getVerifiedAttributes", () => {
       // Note: This will create a new tenant, so we need to handle this differently
       // For this test, we'll verify that the query returns results for a single tenant
 
-      const result = await readModelService.getVerifiedAttributes(tenantId);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        tenantId
+      );
 
       expect(result.length).toBeGreaterThanOrEqual(1);
       expect(result[0]).toHaveProperty("attributeName");
@@ -144,7 +155,9 @@ describe("ReadModelService - getVerifiedAttributes", () => {
         verificationDaysAgo: TEST_TIME_WINDOWS.FIVE_DAYS_AGO,
       });
 
-      const result = await readModelService.getVerifiedAttributes(tenantId);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        tenantId
+      );
 
       // Results should be ordered by verification date ascending (oldest first)
       expect(result.length).toBeGreaterThanOrEqual(1);
@@ -164,7 +177,9 @@ describe("ReadModelService - getVerifiedAttributes", () => {
         verificationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
       });
 
-      const result = await readModelService.getVerifiedAttributes(tenantId);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        tenantId
+      );
 
       expect(result.length).toBeLessThanOrEqual(TEST_LIMITS.MAX_RESULTS);
     });
@@ -182,12 +197,13 @@ describe("ReadModelService - getVerifiedAttributes", () => {
         verificationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
       });
 
-      const result = await readModelService.getVerifiedAttributes(tenantId);
+      const result = await readModelService.getVerifiedAssignedAttributes(
+        tenantId
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         attributeName: expect.any(String),
-        attributeKind: expect.any(String),
         verifierId: expect.any(String),
         totalCount: expect.any(Number),
       });
@@ -197,7 +213,7 @@ describe("ReadModelService - getVerifiedAttributes", () => {
   });
 });
 
-describe("ReadModelService - getRevokedAttributes", () => {
+describe("ReadModelService - getVerifiedRevokedAttributes", () => {
   // eslint-disable-next-line functional/no-let
   let tenant: Tenant;
 
@@ -208,7 +224,9 @@ describe("ReadModelService - getRevokedAttributes", () => {
 
   describe("Basic functionality", () => {
     test("should return empty array when tenant has no revoked attributes", async () => {
-      const result = await readModelService.getRevokedAttributes(tenant.id);
+      const result = await readModelService.getVerifiedRevokedAttributes(
+        tenant.id
+      );
       expect(result).toEqual([]);
     });
 
@@ -223,7 +241,9 @@ describe("ReadModelService - getRevokedAttributes", () => {
         revocationDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
       });
 
-      const result = await readModelService.getRevokedAttributes(tenantId);
+      const result = await readModelService.getVerifiedRevokedAttributes(
+        tenantId
+      );
       expect(result).toEqual([]);
     });
 
@@ -239,12 +259,13 @@ describe("ReadModelService - getRevokedAttributes", () => {
         revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
       });
 
-      const result = await readModelService.getRevokedAttributes(tenantId);
+      const result = await readModelService.getVerifiedRevokedAttributes(
+        tenantId
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         attributeName: attribute.name,
-        attributeKind: attribute.kind,
         revokerId: revoker.id,
         totalCount: 1,
       });
@@ -264,7 +285,9 @@ describe("ReadModelService - getRevokedAttributes", () => {
         revocationDaysAgo: TEST_TIME_WINDOWS.THREE_DAYS_AGO,
       });
 
-      const result = await readModelService.getRevokedAttributes(tenantId);
+      const result = await readModelService.getVerifiedRevokedAttributes(
+        tenantId
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].attributeName).toBe("Recent Revocation");
@@ -282,7 +305,9 @@ describe("ReadModelService - getRevokedAttributes", () => {
         revocationDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
       });
 
-      const result = await readModelService.getRevokedAttributes(tenantId);
+      const result = await readModelService.getVerifiedRevokedAttributes(
+        tenantId
+      );
       expect(result).toEqual([]);
     });
   });
@@ -300,7 +325,9 @@ describe("ReadModelService - getRevokedAttributes", () => {
         revocationDaysAgo: TEST_TIME_WINDOWS.FIVE_DAYS_AGO,
       });
 
-      const result = await readModelService.getRevokedAttributes(tenantId);
+      const result = await readModelService.getVerifiedRevokedAttributes(
+        tenantId
+      );
 
       // Results should be ordered by revocation date ascending (oldest first)
       expect(result.length).toBeGreaterThanOrEqual(1);
@@ -320,7 +347,9 @@ describe("ReadModelService - getRevokedAttributes", () => {
         revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
       });
 
-      const result = await readModelService.getRevokedAttributes(tenantId);
+      const result = await readModelService.getVerifiedRevokedAttributes(
+        tenantId
+      );
 
       expect(result.length).toBeLessThanOrEqual(TEST_LIMITS.MAX_RESULTS);
     });
@@ -339,12 +368,13 @@ describe("ReadModelService - getRevokedAttributes", () => {
         revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
       });
 
-      const result = await readModelService.getRevokedAttributes(tenantId);
+      const result = await readModelService.getVerifiedRevokedAttributes(
+        tenantId
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         attributeName: expect.any(String),
-        attributeKind: expect.any(String),
         revokerId: expect.any(String),
         totalCount: expect.any(Number),
       });
@@ -358,10 +388,9 @@ describe("ReadModelService - getRevokedAttributes", () => {
       const emptyTenant = createMockTenant();
       await addOneTenant(emptyTenant);
 
-      const verifiedResult = await readModelService.getVerifiedAttributes(
-        emptyTenant.id
-      );
-      const revokedResult = await readModelService.getRevokedAttributes(
+      const verifiedResult =
+        await readModelService.getVerifiedAssignedAttributes(emptyTenant.id);
+      const revokedResult = await readModelService.getVerifiedRevokedAttributes(
         emptyTenant.id
       );
 
@@ -392,10 +421,9 @@ describe("ReadModelService - getRevokedAttributes", () => {
         revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
       });
 
-      const verifiedResult = await readModelService.getVerifiedAttributes(
-        tenantId
-      );
-      const revokedResult = await readModelService.getRevokedAttributes(
+      const verifiedResult =
+        await readModelService.getVerifiedAssignedAttributes(tenantId);
+      const revokedResult = await readModelService.getVerifiedRevokedAttributes(
         revokedTenantId
       );
 

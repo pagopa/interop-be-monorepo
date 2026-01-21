@@ -3,8 +3,10 @@ import { TenantId } from "pagopa-interop-models";
 import {
   eserviceTemplateToBaseDigest,
   eserviceToBaseDigest,
-  verifiedAttributeToBaseDigest,
-  revokedAttributeToBaseDigest,
+  verifiedAssignedAttributeToDigest,
+  verifiedRevokedAttributeToDigest,
+  certifiedAttributeToDigest,
+  combineAttributeDigests,
 } from "../model/digestDataConverter.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
@@ -111,16 +113,18 @@ export function digestDataServiceBuilder(
         updatedEserviceTemplates,
         tenantMap,
         newEservices,
-        verifiedAttributes,
-        revokedAttributes,
+        verifiedAssignedAttributes,
+        verifiedRevokedAttributes,
+        certifiedAttributes,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
         readModelService.getTenantsByIds([tenantId]),
         // TODO: ask for priority list of tenants
         getNewEservicesDigest([]),
-        readModelService.getVerifiedAttributes(tenantId),
-        readModelService.getRevokedAttributes(tenantId),
+        readModelService.getVerifiedAssignedAttributes(tenantId),
+        readModelService.getVerifiedRevokedAttributes(tenantId),
+        readModelService.getCertifiedAttributes(tenantId),
       ]);
 
       const tenantName = tenantMap.get(tenantId);
@@ -199,13 +203,23 @@ export function digestDataServiceBuilder(
           items: [],
           totalCount: 0,
         },
-        receivedAttributes: await verifiedAttributeToBaseDigest(
-          verifiedAttributes,
-          readModelService
+        receivedAttributes: combineAttributeDigests(
+          await verifiedAssignedAttributeToDigest(
+            verifiedAssignedAttributes,
+            readModelService
+          ),
+          certifiedAttributeToDigest(
+            certifiedAttributes.filter((attr) => attr.state === "assigned")
+          )
         ),
-        revokedAttributes: await revokedAttributeToBaseDigest(
-          revokedAttributes,
-          readModelService
+        revokedAttributes: combineAttributeDigests(
+          await verifiedRevokedAttributeToDigest(
+            verifiedRevokedAttributes,
+            readModelService
+          ),
+          certifiedAttributeToDigest(
+            certifiedAttributes.filter((attr) => attr.state === "revoked")
+          )
         ),
       };
     },
