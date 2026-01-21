@@ -11,13 +11,7 @@ export const appendSignedSuffixToFileName = (
   const { name } = path.parse(fileName);
 
   return match(fileKind)
-    .with(
-      FileKindSchema.Enum.EVENT_JOURNAL,
-      () => `${name}-signed.json.zip.p7m`
-    )
-    .with(
-      FileKindSchema.Enum.VOUCHER_AUDIT,
-      () => `${name}-signed.ndjson.zip.p7m`
-    )
-    .otherwise(() => `${name}-signed${ext}`);
+    .with(FileKindSchema.Enum.EVENT_JOURNAL, () => `${name}.json.zip.p7m`)
+    .with(FileKindSchema.Enum.VOUCHER_AUDIT, () => `${name}.ndjson.zip.p7m`)
+    .otherwise(() => `${name}${ext}`);
 };
