@@ -23,7 +23,6 @@ import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
 import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
-  eserviceIsNotDraft,
   invalidEServiceRequester,
   notValidDescriptor,
   templateInstanceNotAllowed,
@@ -200,16 +199,6 @@ export function verifyExportEligibility(
 ): void {
   if (!isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
-}
-
-export function assertIsDraftEservice(eservice: catalogApi.EService): void {
-  if (
-    eservice.descriptors.some(
-      (d) => d.state !== catalogApi.EServiceDescriptorState.Values.DRAFT
-    )
-  ) {
-    throw eserviceIsNotDraft(eservice.id);
   }
 }
 

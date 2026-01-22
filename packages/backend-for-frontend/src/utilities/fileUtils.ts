@@ -22,12 +22,12 @@ import { ConfigurationEservice } from "../model/types.js";
     (the same document name can be used multiple times in the same descriptor)
   - uniqueNames: a map that contains the unique name for each document id
 */
-export type FileDocumentsRegistry = {
+type FileDocumentsRegistry = {
   occurrences: Map<string, number>;
   uniqueNames: Map<string, string>;
 };
 
-export type FileData = {
+type FileData = {
   id: string;
   file: Uint8Array;
 };
@@ -49,7 +49,7 @@ function getUniqueNameByDocumentId(
     (the same document name can be used multiple times in the same descriptor)
   - uniqueNames: a map that contains the unique name for each document id
 */
-export function buildFileDocumentRegistry(
+function buildFileDocumentRegistry(
   eserviceDocuments: catalogApi.EServiceDoc[]
 ): FileDocumentsRegistry {
   return eserviceDocuments.reduce(
@@ -73,7 +73,7 @@ export function buildFileDocumentRegistry(
   );
 }
 
-export function buildJsonConfig(
+function buildJsonConfig(
   fileDocumentRegistry: FileDocumentsRegistry,
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor

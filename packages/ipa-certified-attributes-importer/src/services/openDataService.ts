@@ -29,7 +29,7 @@ export const shouldKindBeIncluded = (i: {
     )
     .otherwise(() => false);
 
-export type OpenData = {
+type OpenData = {
   institutions: Institution[];
   aoo: Institution[];
   uo: Institution[];

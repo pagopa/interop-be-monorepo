@@ -6,7 +6,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   tenantNotificationConfigNotFound: "0001",
   userNotificationConfigNotFound: "0002",
   tenantNotificationConfigAlreadyExists: "0003",

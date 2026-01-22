@@ -24,13 +24,10 @@
     "jose": "5.9.4",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pagopa-interop-commons": "workspace:*",
-    "zod": "3.23.8"
+    "pagopa-interop-commons": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "20.19.9",
-    "@types/jsonwebtoken": "9.0.10",
-    "jsonwebtoken": "9.0.2",
     "eslint": "8.57.1",
     "prettier": "2.8.8",
     "typescript": "5.4.5",

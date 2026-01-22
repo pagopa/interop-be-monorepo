@@ -92,6 +92,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;
 
 export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
