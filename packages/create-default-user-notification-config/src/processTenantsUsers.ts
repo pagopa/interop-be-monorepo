@@ -7,8 +7,9 @@ import {
   DrizzleReturnType,
   TenantSQL,
   tenantInReadmodelTenant,
+  userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
-import { isNotNull } from "drizzle-orm";
+import { and, isNotNull, notInArray } from "drizzle-orm";
 import { match } from "ts-pattern";
 import { CreateDefaultUserNotificationConfigConfig } from "./config/config.js";
 
@@ -37,12 +38,37 @@ export async function processTenantsUsers(
 ): Promise<void> {
   logger.info("Starting to process tenants and users");
 
-  const tenants = await db
-    .select()
-    .from(tenantInReadmodelTenant)
-    .where(isNotNull(tenantInReadmodelTenant.selfcareId));
+  // Get all tenant IDs that already have user notification configs
+  const existingTenantConfigs = await db
+    .selectDistinct({
+      tenantId: userNotificationConfigInReadmodelNotificationConfig.tenantId,
+    })
+    .from(userNotificationConfigInReadmodelNotificationConfig);
 
-  logger.info(`Found ${tenants.length} tenants with selfcareId`);
+  const existingTenantIds = existingTenantConfigs.map((c) => c.tenantId);
+
+  logger.info(
+    `Found ${existingTenantIds.length} tenants with existing notification configs, excluding them`
+  );
+
+  // Get all tenants with selfcareId, excluding those that already have notification configs
+  const tenants =
+    existingTenantIds.length > 0
+      ? await db
+          .select()
+          .from(tenantInReadmodelTenant)
+          .where(
+            and(
+              isNotNull(tenantInReadmodelTenant.selfcareId),
+              notInArray(tenantInReadmodelTenant.id, existingTenantIds)
+            )
+          )
+      : await db
+          .select()
+          .from(tenantInReadmodelTenant)
+          .where(isNotNull(tenantInReadmodelTenant.selfcareId));
+
+  logger.info(`Found ${tenants.length} tenants with selfcareId to process`);
 
   for (const tenant of tenants) {
     await processTenant(
