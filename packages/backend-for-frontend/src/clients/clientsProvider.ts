@@ -22,12 +22,6 @@ export type TenantProcessClient = {
   selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
 };
 
-export type DelegationProcessClient = {
-  producer: ReturnType<typeof delegationApi.createProducerApiClient>;
-  consumer: ReturnType<typeof delegationApi.createConsumerApiClient>;
-  delegation: ReturnType<typeof delegationApi.createDelegationApiClient>;
-};
-
 export type AuthorizationProcessClient = {
   client: ReturnType<typeof authorizationApi.createClientApiClient>;
   producerKeychain: ReturnType<
@@ -57,7 +51,7 @@ export type PagoPAInteropBeClients = {
   authorizationClient: AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UserClient;
-  delegationProcessClient: DelegationProcessClient;
+  delegationProcessClient: delegationApi.DelegationProcessClient;
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient;
   notificationConfigProcessClient: notificationConfigApi.NotificationConfigProcessClient;
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient;

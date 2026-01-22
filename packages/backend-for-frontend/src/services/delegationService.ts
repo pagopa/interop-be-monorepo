@@ -19,10 +19,7 @@ import {
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
 } from "../api/delegationApiConverter.js";
-import {
-  DelegationProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   delegationContractNotFound,
   delegationNotFound,
@@ -125,7 +122,7 @@ async function enhanceDelegation<
 }
 
 async function getDelegation(
-  delegationClient: DelegationProcessClient,
+  delegationClient: delegationApi.DelegationProcessClient,
   headers: BffAppContext["headers"],
   delegationId: DelegationId
 ): Promise<delegationApi.Delegation> {
@@ -183,7 +180,7 @@ export async function getTenantById(
 }
 
 export async function getAllDelegations(
-  delegationProcessClient: DelegationProcessClient,
+  delegationProcessClient: delegationApi.DelegationProcessClient,
   headers: BffAppContext["headers"],
   queryParams: DelegationsQueryParams
 ): Promise<delegationApi.Delegation[]> {
@@ -201,7 +198,7 @@ export async function getAllDelegations(
 }
 
 export function delegationServiceBuilder(
-  delegationClients: DelegationProcessClient,
+  delegationClients: delegationApi.DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,

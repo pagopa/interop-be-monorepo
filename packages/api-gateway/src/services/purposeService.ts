@@ -11,7 +11,6 @@ import {
   purposeApi,
 } from "pagopa-interop-api-clients";
 import { operationForbidden } from "pagopa-interop-models";
-import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import {
   toApiGatewayPurpose,
@@ -72,11 +71,11 @@ const retrievePurpose = async (
     });
 
 const retrieveActiveProducerDelegationByEServiceId = async (
-  delegationProcessClient: DelegationProcessClient,
+  delegationProcessClient: delegationApi.DelegationProcessClient,
   headers: ApiGatewayAppContext["headers"],
   eserviceId: catalogApi.EService["id"]
 ): Promise<delegationApi.Delegation | undefined> => {
-  const result = await delegationProcessClient.getDelegations({
+  const result = await delegationProcessClient.delegation.getDelegations({
     headers,
     queries: {
       eserviceIds: [eserviceId],
@@ -97,7 +96,7 @@ export function purposeServiceBuilder(
   purposeProcessClient: purposeApi.PurposeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
-  delegationProcessClient: DelegationProcessClient
+  delegationProcessClient: delegationApi.DelegationProcessClient
 ) {
   return {
     getPurpose: async (

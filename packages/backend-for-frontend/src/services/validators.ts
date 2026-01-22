@@ -3,6 +3,7 @@ import {
   agreementApi,
   authorizationApi,
   catalogApi,
+  delegationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -20,7 +21,6 @@ import {
   toDelegationState,
 } from "../api/delegationApiConverter.js";
 import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
-import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
   invalidEServiceRequester,
@@ -89,7 +89,7 @@ export function assertRequesterIsProducer(
 }
 
 export async function assertRequesterCanActAsProducer(
-  delegationProcessClient: DelegationProcessClient,
+  delegationProcessClient: delegationApi.DelegationProcessClient,
   headers: BffAppContext["headers"],
   requesterId: TenantId,
   eservice: catalogApi.EService
@@ -114,7 +114,7 @@ export async function assertRequesterCanActAsProducer(
 }
 
 export async function assertNotDelegatedEservice(
-  delegationProcessClient: DelegationProcessClient,
+  delegationProcessClient: delegationApi.DelegationProcessClient,
   headers: BffAppContext["headers"],
   delegatorId: TenantId,
   eserviceId: EServiceId

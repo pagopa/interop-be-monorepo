@@ -23,10 +23,6 @@ export type AuthorizationProcessClient = {
   client: ReturnType<typeof authorizationApi.createClientApiClient>;
 };
 
-export type DelegationProcessClient = ReturnType<
-  typeof delegationApi.createDelegationApiClient
->;
-
 export type PagoPAInteropBeClients = {
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
@@ -35,7 +31,7 @@ export type PagoPAInteropBeClients = {
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   notifierEventsClient: NotifierEventsClient;
   authorizationProcessClient: AuthorizationProcessClient;
-  delegationProcessClient: DelegationProcessClient;
+  delegationProcessClient: delegationApi.DelegationProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -62,8 +58,16 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         config.authorizationProcessUrl
       ),
     },
-    delegationProcessClient: delegationApi.createDelegationApiClient(
-      config.delegationProcessUrl
-    ),
+    delegationProcessClient: {
+      producer: delegationApi.createProducerApiClient(
+        config.delegationProcessUrl
+      ),
+      consumer: delegationApi.createConsumerApiClient(
+        config.delegationProcessUrl
+      ),
+      delegation: delegationApi.createDelegationApiClient(
+        config.delegationProcessUrl
+      ),
+    },
   };
 }

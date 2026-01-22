@@ -21,12 +21,12 @@ import {
 import {
   bffApi,
   catalogApi,
+  delegationApi,
   purposeApi,
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
-  DelegationProcessClient,
   PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -50,7 +50,7 @@ import { isAgreementUpgradable } from "./validators.js";
 
 const enrichPurposeDelegation = async (
   delegationId: string,
-  delegationProcessClient: DelegationProcessClient,
+  delegationProcessClient: delegationApi.DelegationProcessClient,
   tenantProcessClient: TenantProcessClient,
   headers: Headers
 ): Promise<bffApi.DelegationWithCompactTenants> => {

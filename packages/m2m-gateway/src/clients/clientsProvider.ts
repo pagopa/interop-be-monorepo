@@ -39,15 +39,9 @@ type AgreementProcessClient =
 type PurposeProcessClient =
   ZodiosClientWithMetadata<purposeApi.PurposeProcessClient>;
 
-export type DelegationProcessClient = {
-  producer: ZodiosClientWithMetadata<
-    ReturnType<typeof delegationApi.createProducerApiClient>
-  >;
-  consumer: ZodiosClientWithMetadata<
-    ReturnType<typeof delegationApi.createConsumerApiClient>
-  >;
-  delegation: ZodiosClientWithMetadata<
-    ReturnType<typeof delegationApi.createDelegationApiClient>
+export type DelegationProcessClientWithMetadata = {
+  [K in keyof delegationApi.DelegationProcessClient]: ZodiosClientWithMetadata<
+    delegationApi.DelegationProcessClient[K]
   >;
 };
 
@@ -85,7 +79,7 @@ export type PagoPAInteropBeClients = {
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
   authorizationClient: AuthorizationProcessClient;
-  delegationProcessClient: DelegationProcessClient;
+  delegationProcessClient: DelegationProcessClientWithMetadata;
   eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
   eventManagerClient: EventManagerClient;
   purposeTemplateProcessClient: PurposeTemplateProcessClientWithMetadata;

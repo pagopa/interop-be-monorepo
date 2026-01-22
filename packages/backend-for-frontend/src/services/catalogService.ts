@@ -46,10 +46,7 @@ import {
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
   enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
-import {
-  DelegationProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
@@ -322,7 +319,7 @@ export function catalogServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
-  delegationProcessClient: DelegationProcessClient,
+  delegationProcessClient: delegationApi.DelegationProcessClient,
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager,

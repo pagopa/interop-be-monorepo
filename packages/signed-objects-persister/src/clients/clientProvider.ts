@@ -17,17 +17,15 @@ export type DelegationProcessClient = {
 type PagoPAInteropBeClients = {
   agreementProcessClient: agreementApi.AgreementProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
+  delegationProcessClient: delegationApi.DelegationProcessClient["delegation"];
   purposeTemplateProcessClient: PurposeTemplateProcessClient;
-  delegationProcessClient: DelegationProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
-    delegationProcessClient: {
-      delegation: delegationApi.createDelegationApiClient(
-        config.delegationProcessUrl
-      ),
-    },
+    delegationProcessClient: delegationApi.createDelegationApiClient(
+      config.delegationProcessUrl
+    ),
     purposeProcessClient: purposeApi.createPurposeApiClient(
       config.purposeProcessUrl
     ),

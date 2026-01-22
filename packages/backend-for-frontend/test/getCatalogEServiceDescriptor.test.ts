@@ -11,16 +11,14 @@ import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
+  delegationApi,
   eserviceTemplateApi,
   inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
-import {
-  DelegationProcessClient,
-  TenantProcessClient,
-} from "../src/clients/clientsProvider.js";
+import { TenantProcessClient } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 import { eserviceDescriptorNotFound } from "../src/model/errors.js";
 import * as attributeService from "../src/services/attributeService.js";
@@ -202,10 +200,12 @@ describe("getCatalogEServiceDescriptor", () => {
   } as unknown as attributeRegistryApi.AttributeProcessClient;
 
   const mockDelegationProcessClient = {
+    producer: {},
+    consumer: {},
     delegation: {
       getDelegations: vi.fn().mockResolvedValue([]),
     },
-  } as unknown as DelegationProcessClient;
+  } as unknown as delegationApi.DelegationProcessClient;
 
   const mockEServiceTemplateProcessClient =
     {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient;

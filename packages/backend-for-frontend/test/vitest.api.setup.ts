@@ -63,6 +63,7 @@ import {
   agreementApi,
   attributeRegistryApi,
   catalogApi,
+  delegationApi,
   eserviceTemplateApi,
   inAppNotificationApi,
   notificationConfigApi,
@@ -72,7 +73,6 @@ import {
 import { createApp, createServices } from "../src/app.js";
 import {
   AuthorizationProcessClient,
-  DelegationProcessClient,
   SelfcareV2InstitutionClient,
   SelfcareV2UserClient,
   TenantProcessClient,
@@ -114,7 +114,7 @@ export const clients = {
     producer: {},
     consumer: {},
     delegation: {},
-  } as DelegationProcessClient,
+  } as delegationApi.DelegationProcessClient,
   eserviceTemplateProcessClient:
     {} as eserviceTemplateApi.EServiceTemplateProcessClient,
   notificationConfigProcessClient:
