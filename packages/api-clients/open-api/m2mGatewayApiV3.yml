@@ -2288,6 +2288,41 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - producerKeychains
+      summary: Create a new Producer Keychain Key
+      description: Create a new producer keychain key associated with a Producer Keychain
+      operationId: createProducerKeychainKey
+      requestBody:
+        description: Producer Keychain Key to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeySeed"
+      responses:
+        "200":
+          description: Client Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKey"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}/keys/{keyId}:
     parameters:
       - name: keychainId

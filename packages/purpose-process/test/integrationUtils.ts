@@ -27,12 +27,14 @@ import {
   toPurposeTemplateV2,
   PurposeRiskAnalysisForm,
   PurposeRiskAnalysisFormV2,
+  Client,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   purposeTemplateReadModelServiceBuilder,
@@ -40,6 +42,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertClient,
   upsertDelegation,
   upsertEService,
   upsertPurpose,
@@ -74,6 +77,8 @@ const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
+export const clientReadModelServiceSQL =
+  clientReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -83,6 +88,7 @@ const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
+  clientReadModelServiceSQL,
 });
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
@@ -104,6 +110,14 @@ export const purposeService = purposeServiceBuilder(
   fileManager,
   pdfGenerator
 );
+
+export const addOneClient = async (client: Client): Promise<void> => {
+  await upsertClient(readModelDB, client, 0);
+};
+
+export const addOneConsumer = async (consumer: Tenant): Promise<void> => {
+  await upsertTenant(readModelDB, consumer, 0);
+};
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);

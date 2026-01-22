@@ -5,6 +5,7 @@ import {
   DynamoDBClientConfig,
   KafkaConsumerConfig,
   LoggerConfig,
+  PurposeTemplateTopicConfig,
   PurposeTopicConfig,
   S3Config,
   SafeStorageApiConfig,
@@ -16,6 +17,7 @@ const DocumentsSignerConfig = S3Config.and(LoggerConfig)
   .and(DelegationTopicConfig)
   .and(KafkaConsumerConfig)
   .and(PurposeTopicConfig)
+  .and(PurposeTemplateTopicConfig)
   .and(SafeStorageApiConfig)
   .and(DynamoDBClientConfig)
   .and(AWSConfig)
