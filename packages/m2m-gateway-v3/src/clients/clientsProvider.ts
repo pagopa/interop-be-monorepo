@@ -53,9 +53,6 @@ type AuthorizationProcessClientWithMetadata = {
 
 export type EServiceTemplateProcessClientWithMetadata =
   ZodiosClientWithMetadata<eserviceTemplateApi.EServiceTemplateProcessClient>;
-type EventManagerClient = ReturnType<
-  typeof m2mEventApi.createM2mEventsApiClient
->;
 
 type PurposeTemplateProcessClientWithMetadata =
   ZodiosClientWithMetadata<purposeTemplateApi.PurposeTemplateProcessClient>;
@@ -69,7 +66,7 @@ export type PagoPAInteropBeClients = {
   authorizationClient: AuthorizationProcessClientWithMetadata;
   delegationProcessClient: DelegationProcessClientWithMetadata;
   eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
-  eventManagerClient: EventManagerClient;
+  eventManagerClient: m2mEventApi.EventManagerClient;
   purposeTemplateProcessClient: PurposeTemplateProcessClientWithMetadata;
 };
 
