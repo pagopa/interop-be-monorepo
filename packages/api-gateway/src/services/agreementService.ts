@@ -3,8 +3,8 @@ import {
   agreementApi,
   apiGatewayApi,
   purposeApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
 import {
@@ -63,7 +63,7 @@ const retrieveAgreement = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
   agreementProcessClient: agreementApi.AgreementProcessClient,
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   purposeProcessClient: purposeApi.PurposeProcessClient
 ) {
   return {

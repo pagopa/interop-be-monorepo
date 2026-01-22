@@ -1,11 +1,10 @@
 import { tenantApi } from "pagopa-interop-api-clients";
 
-export type TenantProcessClient = {
-  selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
-};
-
 export const tenantProcessClientBuilder = (
   url: string
-): TenantProcessClient => ({
+): tenantApi.TenantProcessClient => ({
+  tenant: tenantApi.createTenantApiClient(url),
+  tenantAttribute: tenantApi.createTenantAttributeApiClient(url),
   selfcare: tenantApi.createSelfcareApiClient(url),
+  m2m: tenantApi.createM2mApiClient(url),
 });

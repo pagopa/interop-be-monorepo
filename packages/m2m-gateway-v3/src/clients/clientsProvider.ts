@@ -14,15 +14,9 @@ import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
 import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
 
-type TenantProcessClient = {
-  tenant: ZodiosClientWithMetadata<
-    ReturnType<typeof tenantApi.createTenantApiClient>
-  >;
-  tenantAttribute: ZodiosClientWithMetadata<
-    ReturnType<typeof tenantApi.createTenantAttributeApiClient>
-  >;
-  selfcare: ZodiosClientWithMetadata<
-    ReturnType<typeof tenantApi.createSelfcareApiClient>
+type TenantProcessClientWithMetadata = {
+  [K in keyof tenantApi.TenantProcessClient]: ZodiosClientWithMetadata<
+    tenantApi.TenantProcessClient[K]
   >;
 };
 
@@ -58,7 +52,7 @@ type PurposeTemplateProcessClientWithMetadata =
   ZodiosClientWithMetadata<purposeTemplateApi.PurposeTemplateProcessClient>;
 
 export type PagoPAInteropBeClients = {
-  tenantProcessClient: TenantProcessClient;
+  tenantProcessClient: TenantProcessClientWithMetadata;
   attributeProcessClient: AttributeProcessClientWithMetadata;
   catalogProcessClient: CatalogProcessClientWithMetadata;
   agreementProcessClient: AgreementProcessClient;
@@ -83,6 +77,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       ),
       selfcare: createZodiosClientEnhancedWithMetadata(
         tenantApi.createSelfcareApiClient,
+        config.tenantProcessUrl
+      ),
+      m2m: createZodiosClientEnhancedWithMetadata(
+        tenantApi.createM2mApiClient,
         config.tenantProcessUrl
       ),
     },

@@ -2,6 +2,7 @@ import {
   apiGatewayApi,
   attributeRegistryApi,
   catalogApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   getAllFromPaginated,
@@ -17,7 +18,6 @@ import {
   ValidCatalogApiDescriptor,
 } from "../api/catalogApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   eserviceDescriptorNotFound,
   eserviceNotFound,
@@ -71,7 +71,7 @@ const retrieveEservice = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient
 ) {
   return {
@@ -226,7 +226,7 @@ async function getDescriptorAttributes(
 }
 
 export async function enhanceEservice(
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   eservice: catalogApi.EService,

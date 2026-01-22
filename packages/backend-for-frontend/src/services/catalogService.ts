@@ -46,7 +46,6 @@ import {
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
   enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
@@ -84,7 +83,7 @@ import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   ctx: WithLogger<BffAppContext>,
@@ -316,7 +315,7 @@ const getAllEserviceConsumers = async (
 
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   delegationProcessClient: delegationApi.DelegationProcessClient,

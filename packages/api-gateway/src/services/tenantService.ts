@@ -10,7 +10,6 @@ import {
   toApiGatewayOrganization,
   toM2MTenantSeed,
 } from "../api/tenantApiConverter.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
@@ -24,7 +23,7 @@ import {
 import { enhanceEservice, getAllEservices } from "./catalogService.js";
 
 export async function getOrganization(
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   tenantId: tenantApi.Tenant["id"]
@@ -55,7 +54,7 @@ export async function getOrganization(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient
 ) {

@@ -12,13 +12,12 @@ import {
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { TenantProcessClient } from "../clients/tenantProcessClient.js";
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareOnboardingProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   productName: string,
   allowedOrigins: string[]
 ) {

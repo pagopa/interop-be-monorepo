@@ -70,12 +70,12 @@ import {
   notificationConfigApi,
   purposeApi,
   purposeTemplateApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { createApp, createServices } from "../src/app.js";
 import {
   SelfcareV2InstitutionClient,
   SelfcareV2UserClient,
-  TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 
@@ -95,7 +95,8 @@ export const clients = {
     tenant: {},
     tenantAttribute: {},
     selfcare: {},
-  } as TenantProcessClient,
+    m2m: {},
+  } as tenantApi.TenantProcessClient,
   attributeProcessClient: {} as attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: {} as catalogApi.CatalogProcessClient,
   agreementProcessClient: {} as agreementApi.AgreementProcessClient,

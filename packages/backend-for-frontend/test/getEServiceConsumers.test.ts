@@ -6,12 +6,12 @@ import {
   delegationApi,
   eserviceTemplateApi,
   inAppNotificationApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
 import { AuthData, formatDateyyyyMMddTHHmmss } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
-import { TenantProcessClient } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
@@ -41,7 +41,8 @@ describe("getEServiceConsumers", () => {
   const mockCatalogProcessClient = {
     getEServiceById: vi.fn().mockResolvedValue(eService),
   } as unknown as catalogApi.CatalogProcessClient;
-  const mockTenantProcessClient = {} as unknown as TenantProcessClient;
+  const mockTenantProcessClient =
+    {} as unknown as tenantApi.TenantProcessClient;
   const mockAgreementProcessClient =
     {} as unknown as agreementApi.AgreementProcessClient;
   const mockAttributeProcessClient =

@@ -33,7 +33,6 @@ import {
   toBffEServiceTemplateDetails,
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   eserviceTemplateNotFound,
@@ -48,7 +47,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
@@ -766,7 +765,7 @@ const retrieveEServiceTemplateVersion = (
 };
 
 async function getTenantsFromEServiceTemplates(
-  tenantClient: TenantProcessClient,
+  tenantClient: tenantApi.TenantProcessClient,
   eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
   headers: BffAppContext["headers"]
 ): Promise<Map<string, tenantApi.Tenant>> {

@@ -14,11 +14,11 @@ import {
   delegationApi,
   eserviceTemplateApi,
   inAppNotificationApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
-import { TenantProcessClient } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 import { eserviceDescriptorNotFound } from "../src/model/errors.js";
 import * as attributeService from "../src/services/attributeService.js";
@@ -186,7 +186,7 @@ describe("getCatalogEServiceDescriptor", () => {
         attributes: [],
       }),
     },
-  } as unknown as TenantProcessClient;
+  } as unknown as tenantApi.TenantProcessClient;
 
   const mockAgreementProcessClient = {
     getAgreement: vi.fn(),

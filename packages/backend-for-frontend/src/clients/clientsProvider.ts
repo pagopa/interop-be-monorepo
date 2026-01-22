@@ -16,12 +16,6 @@ import {
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
-export type TenantProcessClient = {
-  tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
-  tenantAttribute: ReturnType<typeof tenantApi.createTenantAttributeApiClient>;
-  selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
-};
-
 export type SelfcareV2InstitutionClient = {
   institution: ReturnType<
     typeof selfcareV2ClientApi.createInstitutionApiClient
@@ -33,7 +27,7 @@ export type SelfcareV2UserClient = {
 };
 
 export type PagoPAInteropBeClients = {
-  tenantProcessClient: TenantProcessClient;
+  tenantProcessClient: tenantApi.TenantProcessClient;
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
@@ -56,6 +50,7 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         config.tenantProcessUrl
       ),
       selfcare: tenantApi.createSelfcareApiClient(config.tenantProcessUrl),
+      m2m: tenantApi.createM2mApiClient(config.tenantProcessUrl),
     },
     agreementProcessClient: agreementApi.createAgreementApiClient(
       config.agreementProcessUrl

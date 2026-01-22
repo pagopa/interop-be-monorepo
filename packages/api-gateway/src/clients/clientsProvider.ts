@@ -10,11 +10,6 @@ import {
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
-export type TenantProcessClient = {
-  tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
-  m2m: ReturnType<typeof tenantApi.createM2mApiClient>;
-};
-
 export type NotifierEventsClient = ReturnType<
   typeof notifierApi.createEventsApiClient
 >;
@@ -22,7 +17,7 @@ export type NotifierEventsClient = ReturnType<
 export type PagoPAInteropBeClients = {
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
-  tenantProcessClient: TenantProcessClient;
+  tenantProcessClient: tenantApi.TenantProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   notifierEventsClient: NotifierEventsClient;
@@ -40,6 +35,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     ),
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
+      tenantAttribute: tenantApi.createTenantAttributeApiClient(
+        config.tenantProcessUrl
+      ),
+      selfcare: tenantApi.createSelfcareApiClient(config.tenantProcessUrl),
       m2m: tenantApi.createM2mApiClient(config.tenantProcessUrl),
     },
     purposeProcessClient: purposeApi.createPurposeApiClient(

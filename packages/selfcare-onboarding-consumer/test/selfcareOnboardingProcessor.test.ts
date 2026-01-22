@@ -16,10 +16,8 @@ import {
   MockInstance,
   vi,
 } from "vitest";
-import {
-  TenantProcessClient,
-  tenantProcessClientBuilder,
-} from "../src/clients/tenantProcessClient.js";
+import { tenantApi } from "pagopa-interop-api-clients";
+import { tenantProcessClientBuilder } from "../src/clients/tenantProcessClient.js";
 import { config } from "../src/config/config.js";
 import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";
 import {
@@ -35,9 +33,8 @@ import {
 } from "./utils.js";
 
 describe("Message processor", () => {
-  let tenantProcessClientMock: TenantProcessClient = tenantProcessClientBuilder(
-    config.tenantProcessUrl
-  );
+  let tenantProcessClientMock: tenantApi.TenantProcessClient =
+    tenantProcessClientBuilder(config.tenantProcessUrl);
   let tokenGeneratorMock = new InteropTokenGenerator(config);
   let refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   let selfcareOnboardingProcessor: ReturnType<

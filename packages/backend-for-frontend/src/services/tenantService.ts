@@ -10,10 +10,7 @@ import {
   CorrelationId,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  SelfcareV2InstitutionClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { SelfcareV2InstitutionClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
   RegistryAttributesMap,
@@ -42,7 +39,7 @@ async function getRegistryAttributesMap(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: tenantApi.TenantProcessClient,
   attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {

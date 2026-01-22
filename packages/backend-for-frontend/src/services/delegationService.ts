@@ -19,7 +19,6 @@ import {
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
 } from "../api/delegationApiConverter.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   delegationContractNotFound,
   delegationNotFound,
@@ -33,7 +32,7 @@ import { filterUnreadNotifications } from "../utilities/filterUnreadNotification
 async function enhanceDelegation<
   T extends bffApi.Delegation | bffApi.CompactDelegation
 >(
-  tenantClient: TenantProcessClient,
+  tenantClient: tenantApi.TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
   delegation: delegationApi.Delegation,
   headers: Headers,
@@ -139,7 +138,7 @@ async function getDelegation(
 }
 
 export async function getTenantsFromDelegation(
-  tenantClient: TenantProcessClient,
+  tenantClient: tenantApi.TenantProcessClient,
   delegations: delegationApi.Delegation[],
   headers: BffAppContext["headers"]
 ): Promise<Map<string, tenantApi.Tenant>> {
@@ -165,7 +164,7 @@ export async function getTenantsFromDelegation(
 }
 
 export async function getTenantById(
-  tenantClient: TenantProcessClient,
+  tenantClient: tenantApi.TenantProcessClient,
   headers: BffAppContext["headers"],
   tenantId: string,
   tenantMap: Map<string, tenantApi.Tenant> = new Map()
@@ -199,7 +198,7 @@ export async function getAllDelegations(
 
 export function delegationServiceBuilder(
   delegationClients: delegationApi.DelegationProcessClient,
-  tenantClient: TenantProcessClient,
+  tenantClient: tenantApi.TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
