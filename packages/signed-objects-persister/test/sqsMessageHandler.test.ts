@@ -223,7 +223,7 @@ describe("sqsMessageHandler", () => {
       {
         bucket: config.signedDocumentsBucket,
         path: "path/to",
-        name: "event-journal.json.zip.p7m",
+        name: "event-journal.ndjson.zip.p7m",
         content: mockFileContent,
       },
       expect.any(Object)
