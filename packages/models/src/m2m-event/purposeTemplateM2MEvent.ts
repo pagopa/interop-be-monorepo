@@ -43,6 +43,7 @@ export const PurposeTemplateM2MEvent = z.object({
     visibility: M2MEventVisibility.extract([
         m2mEventVisibility.owner,
         m2mEventVisibility.public,
+        // No Purpose M2M events with Public visibility
     ]),
 });
 

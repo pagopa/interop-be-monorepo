@@ -179,5 +179,7 @@ export const purposeTemplateInM2MEvent = m2mEvent.table("purpose_template", {
   purposeTemplateId: uuid("purpose_template_id").notNull(),
   creatorId: uuid("creator_id").notNull(),
   visibility: varchar().notNull(),
+  eserviceId: uuid("eservice_id"),
+  descriptorId: uuid("descriptor_id"),
 });
 

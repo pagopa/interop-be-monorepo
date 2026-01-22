@@ -84,7 +84,11 @@ async function processMessage(
     const { bucket, process } = FILE_KIND_CONFIG[signatureFileKind];
 
     const filePath = match(fileKind)
-      .with(FileKindSchema.Enum.EVENT_JOURNAL, () => signature.path)
+      .with(
+        FileKindSchema.Enum.EVENT_JOURNAL,
+        FileKindSchema.Enum.VOUCHER_AUDIT,
+        () => signature.path
+      )
       .otherwise(() => path.dirname(signature.path));
 
     const fileName = appendSignedSuffixToFileName(
