@@ -26693,6 +26693,9 @@ components:
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this organization
+        selfcareId:
+          type: string
+          format: uuid
     TenantKind:
       type: string
       enum:

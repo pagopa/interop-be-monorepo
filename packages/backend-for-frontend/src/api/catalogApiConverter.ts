@@ -61,6 +61,7 @@ export function toBffCatalogApiEService(
     producer: {
       id: eservice.producerId,
       name: producerTenant.name,
+      selfcareId: producerTenant.selfcareId,
     },
     isMine: isRequesterEqProducer,
   };
