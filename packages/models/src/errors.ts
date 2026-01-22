@@ -307,6 +307,8 @@ export const commonErrorCodes = {
   pollingMaxRetriesExceeded: "10025",
   invalidServerUrl: "10026",
   hyperlinkDetectionError: "10027",
+  badDPoPToken: "10028",
+  badDPoPProof: "10029",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -584,6 +586,18 @@ export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
   detail: `Bad Bearer Token format in Authorization header`,
   code: "badBearerToken",
   title: "Bad Bearer Token format",
+});
+
+export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
+  detail: `Bad DPoP Token format in Authorization header`,
+  code: "badDPoPToken",
+  title: "Bad DPoP Token format",
+});
+
+export const badDPoPProof: ApiError<CommonErrorCodes> = new ApiError({
+  detail: `Bad DPoP Proof format in DPoP header`,
+  code: "badDPoPProof",
+  title: "Bad DPoP Proof format",
 });
 
 export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({

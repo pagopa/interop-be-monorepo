@@ -1,22 +1,21 @@
 import { constants } from "http2";
 import {
   AppContext,
-  AuthData,
   ExpressContext,
   JWTConfig,
   Logger,
   M2MAdminAuthData,
   fromAppContext,
-  parseAuthHeader,
+  jwtsFromAuthAndDPoPHeaders,
   readAuthDataFromJwtToken,
   systemRole,
   verifyJwtToken,
+  verifyAccessTokenIsDPoP,
 } from "pagopa-interop-commons";
-import { missingHeader, unauthorizedError } from "pagopa-interop-models";
+import { unauthorizedError } from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { P, match } from "ts-pattern";
 import { Request } from "express";
-import { z } from "zod";
 import { makeApiProblem } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
@@ -111,22 +110,23 @@ export const authenticationDPoPMiddleware: (
       // verify HTTP DPoP Header and Authorization Header
       // ----------------------------------------------------------------------
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { accessToken, dpopProof } = credentialsFromHeaders(
-        req,
-        ctx.logger
-      );
+      const { accessToken } = jwtsFromAuthAndDPoPHeaders(req, ctx.logger);
 
       // ----------------------------------------------------------------------
       // Step 2 – Access Token Validation (Gatekeeper)
       // verify JWT Access Token
       // ----------------------------------------------------------------------
-      const { decoded } = await verifyJwtToken(accessToken, config, ctx.logger);
+      const { decoded: accessTokenDecoded } = await verifyJwtToken(
+        accessToken,
+        config,
+        ctx.logger
+      );
 
       // ----------------------------------------------------------------------
       // Step 3 – Access Token Binding Verification (cnf)
       // verify all claims (cnf included) are all present in JWT Token (Binding DPoP)
       // ----------------------------------------------------------------------
-      const authData = readAuthDataFromJwtToken(decoded);
+      verifyAccessTokenIsDPoP(accessTokenDecoded);
 
       // ----------------------------------------------------------------------
       // Step 4a & 4b – DPoP Proof Validation (Static & Crypto)
@@ -139,10 +139,10 @@ export const authenticationDPoPMiddleware: (
       // verify binding key between DPoP Proof and JWT Access Token
       // ----------------------------------------------------------------------
 
-      verifyDPoPCnf(authData);
+      // verifyDPoPCnf(authData);
 
       // eslint-disable-next-line functional/immutable-data
-      req.ctx.authData = readAuthDataFromJwtToken(decoded);
+      req.ctx.authData = readAuthDataFromJwtToken(accessTokenDecoded);
       return next();
     } catch (error) {
       const problem = makeApiProblem(
@@ -159,46 +159,8 @@ export const authenticationDPoPMiddleware: (
     }
   };
 
-export function credentialsFromHeaders(
-  req: Request,
-  logger: Logger
-): { accessToken: string; dpopProof: string } {
-  const authHeader = parseAuthHeader(req);
-  if (!authHeader) {
-    throw missingHeader("Authorization");
-  }
-
-  const authHeaderParts = authHeader.split(" ");
-  if (authHeaderParts.length !== 2 || authHeaderParts[0] !== "DPoP") {
-    logger.warn(
-      `Invalid authentication provided for this call ${req.method} ${req.url}`
-    );
-    throw unauthorizedError("Invalid DPoP header format");
-  }
-
-  const dpopHeader = parseDPoPHeader(req);
-  if (!dpopHeader) {
-    logger.warn(`Missing DPoP proof for this call ${req.method} ${req.url}`);
-    throw unauthorizedError("Missing DPoP proof");
-  }
-
-  return {
-    accessToken: authHeaderParts[1],
-    dpopProof: dpopHeader,
-  };
-}
-
-export function parseDPoPHeader(req: Request): string | undefined {
-  const parsed = z.object({ dpop: z.string() }).safeParse(req.headers);
-
-  if (parsed.success) {
-    return parsed.data.dpop;
-  }
-  return undefined;
-}
-
-function verifyDPoPCnf(authData: AuthData): void {
-  if (!("cnf" in authData && authData.cnf !== undefined)) {
-    throw unauthorizedError("Invalid DPoP token: missing cnf claim");
-  }
-}
+// function verifyDPoPCnf(authData: AuthData): void {
+//   if (!("cnf" in authData && authData.cnf !== undefined)) {
+//     throw unauthorizedError("Invalid DPoP token: missing cnf claim");
+//   }
+// }

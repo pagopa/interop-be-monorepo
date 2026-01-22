@@ -55,6 +55,15 @@ export const readAuthDataFromDPoPJwtToken = (
   return getAuthDataFromToken(result.data);
 };
 
+export const verifyAccessTokenIsDPoP = (payload: JwtPayload | string): void => {
+  const result = AuthTokenDPoPPayload.safeParse(payload);
+
+  if (!result.success) {
+    throw invalidClaim(result.error);
+  }
+};
+
+// can be used verifyAccessTokenIsDPoP
 export const isDPoPToken = (
   input: JwtPayload | string
 ): input is JwtPayload & typeof CNF =>
