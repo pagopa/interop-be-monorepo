@@ -367,6 +367,7 @@ export const IDS = z.union([
   ProducerKeyM2MEventId,
   TenantM2MEventId,
   RiskAnalysisTemplateDocumentId,
+  PurposeTemplateM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

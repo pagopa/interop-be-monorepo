@@ -190,3 +190,20 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_key (
 
   PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS m2m_event.purpose_template (
+  id UUID NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+
+  -- Reference to the resource involved in the event
+  resource_version INT NOT NULL,
+  purpose_template_id UUID NOT NULL,
+
+  -- Columns to filter events based on tenant
+  creator_id UUID NOT NULL,
+
+  visibility VARCHAR NOT NULL,
+
+  PRIMARY KEY (id)
+);

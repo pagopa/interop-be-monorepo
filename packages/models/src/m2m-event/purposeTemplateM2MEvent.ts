@@ -23,7 +23,6 @@ export const PurposeTemplateM2MEventType = z.enum([
     "PurposeTemplateUnsuspended",
     "PurposeTemplateArchived",
     "PurposeTemplateDraftDeleted",
-    "RiskAnalysisTemplateDocumentGenerated",
     "RiskAnalysisTemplateSignedDocumentGenerated",
 ]);
 export type PurposeTemplateM2MEventType = z.infer<typeof PurposeTemplateM2MEventType>;
@@ -43,8 +42,7 @@ export const PurposeTemplateM2MEvent = z.object({
     creatorId: TenantId,
     visibility: M2MEventVisibility.extract([
         m2mEventVisibility.owner,
-        m2mEventVisibility.restricted,
-        // No Purpose M2M events with Public visibility
+        m2mEventVisibility.public,
     ]),
 });
 
