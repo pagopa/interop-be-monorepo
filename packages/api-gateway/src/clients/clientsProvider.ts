@@ -10,17 +10,13 @@ import {
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
-export type NotifierEventsClient = ReturnType<
-  typeof notifierApi.createEventsApiClient
->;
-
 export type PagoPAInteropBeClients = {
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
   tenantProcessClient: tenantApi.TenantProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
-  notifierEventsClient: NotifierEventsClient;
+  notifierEventsClient: notifierApi.NotifierEventsClient;
   authorizationProcessClient: authorizationApi.AuthorizationProcessClient;
   delegationProcessClient: delegationApi.DelegationProcessClient;
 };
