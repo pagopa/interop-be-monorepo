@@ -151,52 +151,63 @@ async function processUser(
     return;
   }
 
-  logger.info(
-    `Processing user ${user.id} for tenant ${
-      tenant.id
-    } with roles: ${roles.join(", ")}`
-  );
-
+  // Collect all valid roles first
+  const validRoles: UserRole[] = [];
   for (const role of roles) {
     const mappedRole = UserRole.safeParse(role);
-
-    if (!mappedRole.success) {
+    if (mappedRole.success) {
+      validRoles.push(mappedRole.data);
+    } else {
       logger.warn(
         `Unknown role ${role} for user ${user.id}, tenant ${tenant.id}, skipping`
       );
-      continue;
     }
-
-    await ensureUserNotificationConfig(
-      user.id,
-      tenant.id,
-      mappedRole.data,
-      internalToken,
-      notificationConfigClient,
-      logger
-    );
-
-    await sleep(config.notificationConfigCallDelayMs);
   }
+
+  if (validRoles.length === 0) {
+    logger.warn(
+      `User ${user.id} has no valid roles for tenant ${tenant.id}, skipping`
+    );
+    return;
+  }
+
+  logger.info(
+    `Processing user ${user.id} for tenant ${
+      tenant.id
+    } with roles: ${validRoles.join(", ")}`
+  );
+
+  // Make a single call with all roles to avoid race conditions
+  await ensureUserNotificationConfig(
+    user.id,
+    tenant.id,
+    validRoles,
+    internalToken,
+    notificationConfigClient,
+    logger
+  );
+
+  await sleep(config.notificationConfigCallDelayMs);
 }
 
 // eslint-disable-next-line max-params
 async function ensureUserNotificationConfig(
   userId: string,
   tenantId: string,
-  userRole: UserRole,
+  userRoles: UserRole[],
   internalToken: string,
   notificationConfigClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
   logger: Logger
 ): Promise<void> {
+  const apiRoles = userRoles.map(userRoleToApiUserRole);
   try {
-    await notificationConfigClient.ensureUserNotificationConfigExistsWithRole(
+    await notificationConfigClient.ensureUserNotificationConfigExistsWithRoles(
       {
         userId,
         tenantId,
-        userRole: userRoleToApiUserRole(userRole),
+        userRoles: apiRoles,
       },
       {
         headers: {
@@ -207,13 +218,11 @@ async function ensureUserNotificationConfig(
     );
 
     logger.info(
-      `Successfully ensured notification config for user ${userId}, tenant ${tenantId}, role ${userRoleToApiUserRole(
-        userRole
-      )}`
+      `Successfully ensured notification config for user ${userId}, tenant ${tenantId}, roles ${apiRoles.join(", ")}`
     );
   } catch (error) {
     logger.error(
-      `Failed to ensure notification config for user ${userId}, tenant ${tenantId}, role ${userRole}: ${
+      `Failed to ensure notification config for user ${userId}, tenant ${tenantId}, roles ${apiRoles.join(", ")}: ${
         error instanceof Error ? error.message : String(error)
       }`
     );

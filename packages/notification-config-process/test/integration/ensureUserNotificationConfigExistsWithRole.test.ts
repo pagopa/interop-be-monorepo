@@ -80,10 +80,10 @@ describe("createUserNotificationConfig", () => {
 
   it("should write on event-store for the creation of a user's notification configuration", async () => {
     const serviceReturnValue =
-      await notificationConfigService.ensureUserNotificationConfigExistsWithRole(
+      await notificationConfigService.ensureUserNotificationConfigExistsWithRoles(
         userId,
         tenantId,
-        userRole.ADMIN_ROLE,
+        [userRole.ADMIN_ROLE],
         getMockContextInternal({})
       );
     const writtenEvent = await readLastNotificationConfigEvent(
@@ -124,10 +124,10 @@ describe("createUserNotificationConfig", () => {
     };
     await addOneUserNotificationConfig(userNotificationConfig);
     const serviceReturnValue =
-      await notificationConfigService.ensureUserNotificationConfigExistsWithRole(
+      await notificationConfigService.ensureUserNotificationConfigExistsWithRoles(
         userId,
         tenantId,
-        userRole.ADMIN_ROLE,
+        [userRole.ADMIN_ROLE],
         getMockContextInternal({})
       );
     expect(serviceReturnValue).toEqual(userNotificationConfig);
@@ -150,10 +150,10 @@ describe("createUserNotificationConfig", () => {
     };
     await addOneUserNotificationConfig(userNotificationConfig);
     const serviceReturnValue =
-      await notificationConfigService.ensureUserNotificationConfigExistsWithRole(
+      await notificationConfigService.ensureUserNotificationConfigExistsWithRoles(
         userId,
         tenantId,
-        userRole.API_ROLE,
+        [userRole.API_ROLE],
         getMockContextInternal({})
       );
     const updatedUserNotificationConfig: UserNotificationConfig = {
@@ -175,6 +175,44 @@ describe("createUserNotificationConfig", () => {
     });
     expect(writtenPayload.userNotificationConfig).toEqual(
       toUserNotificationConfigV2(updatedUserNotificationConfig)
+    );
+  });
+
+  it("should create notification config with multiple roles at once", async () => {
+    const newUserId: UserId = generateId();
+    const newTenantId: TenantId = generateId();
+    const serviceReturnValue =
+      await notificationConfigService.ensureUserNotificationConfigExistsWithRoles(
+        newUserId,
+        newTenantId,
+        [userRole.ADMIN_ROLE, userRole.API_ROLE],
+        getMockContextInternal({})
+      );
+    const writtenEvent = await readLastNotificationConfigEvent(
+      serviceReturnValue.id
+    );
+    expect(writtenEvent.stream_id).toBe(serviceReturnValue.id);
+    expect(writtenEvent.version).toBe("0");
+    expect(writtenEvent.type).toBe("UserNotificationConfigCreated");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: UserNotificationConfigCreatedV2,
+      payload: writtenEvent.data,
+    });
+    const expectedUserNotificationConfig: UserNotificationConfig = {
+      id: serviceReturnValue.id,
+      userId: newUserId,
+      tenantId: newTenantId,
+      userRoles: [userRole.ADMIN_ROLE, userRole.API_ROLE],
+      inAppNotificationPreference: false,
+      emailNotificationPreference: emailNotificationPreference.disabled,
+      inAppConfig: defaultInAppConfig,
+      emailConfig: defaultEmailConfig,
+      createdAt: new Date(),
+    };
+    expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
+    expect(writtenPayload.userNotificationConfig).toEqual(
+      toUserNotificationConfigV2(expectedUserNotificationConfig)
     );
   });
 });
