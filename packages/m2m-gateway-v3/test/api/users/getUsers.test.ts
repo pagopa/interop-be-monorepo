@@ -12,14 +12,16 @@ describe("GET /users router test", () => {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
       {
-        id: generateId(),
-        firstName: "John",
-        lastName: "Doe",
+        userId: generateId(),
+        name: "John",
+        familyName: "Doe",
+        roles: ["admin", "operator"],
       },
       {
-        id: generateId(),
-        firstName: "Jane",
-        lastName: "Smith",
+        userId: generateId(),
+        name: "Jane",
+        familyName: "Smith",
+        roles: ["operator"],
       },
     ],
   };
@@ -96,15 +98,15 @@ describe("GET /users router test", () => {
   it.each([
     {
       ...mockUsersResponse,
-      results: [{ ...mockUsersResponse.results[0], id: "invalid-uuid" }],
+      results: [{ ...mockUsersResponse.results[0], userId: "invalid-uuid" }],
     },
     {
       ...mockUsersResponse,
-      results: [{ ...mockUsersResponse.results[0], firstName: 123 }],
+      results: [{ ...mockUsersResponse.results[0], name: 123 }],
     },
     {
       ...mockUsersResponse,
-      results: [{ id: generateId(), firstName: "John" }], // missing lastName
+      results: [{ userId: generateId(), name: "John" }], // missing familyName and roles
     },
     {
       ...mockUsersResponse,

@@ -12573,20 +12573,26 @@ components:
       additionalProperties: false
       description: User information
       properties:
-        id:
+        userId:
           type: string
           format: uuid
           description: User identifier
-        firstName:
+        name:
           type: string
           description: User first name
-        lastName:
+        familyName:
           type: string
           description: User last name
+        roles:
+          type: array
+          items:
+            type: string
+          description: User roles
       required:
-        - id
-        - firstName
-        - lastName
+        - userId
+        - name
+        - familyName
+        - roles
     Users:
       type: object
       additionalProperties: false
