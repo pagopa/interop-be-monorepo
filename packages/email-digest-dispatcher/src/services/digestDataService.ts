@@ -1,9 +1,14 @@
 import { Logger } from "pagopa-interop-commons";
-import { TenantId } from "pagopa-interop-models";
+import { agreementState, TenantId } from "pagopa-interop-models";
 import {
+  receivedAgreementsToBaseDigest,
+  sentAgreementsToBaseDigest,
   eserviceTemplateToBaseDigest,
   eserviceToBaseDigest,
   popularEserviceTemplateToBaseDigest,
+  verifiedAttributeToDigest,
+  certifiedAttributeToDigest,
+  combineAttributeDigests,
 } from "../model/digestDataConverter.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
@@ -114,6 +119,12 @@ export function digestDataServiceBuilder(
         popularEserviceTemplates,
         tenantMap,
         newEservices,
+        sentAgreements,
+        receivedAgreements,
+        verifiedAssignedAttributes,
+        verifiedRevokedAttributes,
+        certifiedAssignedAttributes,
+        certifiedRevokedAttributes,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
@@ -121,6 +132,12 @@ export function digestDataServiceBuilder(
         readModelService.getTenantsByIds([tenantId]),
         // TODO: ask for priority list of tenants
         getNewEservicesDigest([]),
+        readModelService.getSentAgreements(tenantId), // tenantId as consumerId
+        readModelService.getReceivedAgreements(tenantId), // tenantId as producerId
+        readModelService.getVerifiedAssignedAttributes(tenantId),
+        readModelService.getVerifiedRevokedAttributes(tenantId),
+        readModelService.getCertifiedAssignedAttributes(tenantId),
+        readModelService.getCertifiedRevokedAttributes(tenantId),
       ]);
 
       const tenantName = tenantMap.get(tenantId);
@@ -153,18 +170,21 @@ export function digestDataServiceBuilder(
           popularEserviceTemplates,
           readModelService
         ),
-        acceptedSentAgreements: {
-          items: [],
-          totalCount: 0,
-        },
-        rejectedSentAgreements: {
-          items: [],
-          totalCount: 0,
-        },
-        suspendedSentAgreements: {
-          items: [],
-          totalCount: 0,
-        },
+        acceptedSentAgreements: await sentAgreementsToBaseDigest(
+          sentAgreements,
+          agreementState.active,
+          readModelService
+        ),
+        rejectedSentAgreements: await sentAgreementsToBaseDigest(
+          sentAgreements,
+          agreementState.rejected,
+          readModelService
+        ),
+        suspendedSentAgreements: await sentAgreementsToBaseDigest(
+          sentAgreements,
+          agreementState.suspended,
+          readModelService
+        ),
         publishedSentPurposes: {
           items: [],
           totalCount: 0,
@@ -177,10 +197,11 @@ export function digestDataServiceBuilder(
           items: [],
           totalCount: 0,
         },
-        waitingForApprovalReceivedAgreements: {
-          items: [],
-          totalCount: 0,
-        },
+        waitingForApprovalReceivedAgreements:
+          await receivedAgreementsToBaseDigest(
+            receivedAgreements,
+            readModelService
+          ),
         publishedReceivedPurposes: {
           items: [],
           totalCount: 0,
@@ -205,14 +226,20 @@ export function digestDataServiceBuilder(
           items: [],
           totalCount: 0,
         },
-        receivedAttributes: {
-          items: [],
-          totalCount: 0,
-        },
-        revokedAttributes: {
-          items: [],
-          totalCount: 0,
-        },
+        receivedAttributes: combineAttributeDigests(
+          await verifiedAttributeToDigest(
+            verifiedAssignedAttributes,
+            readModelService
+          ),
+          certifiedAttributeToDigest(certifiedAssignedAttributes)
+        ),
+        revokedAttributes: combineAttributeDigests(
+          await verifiedAttributeToDigest(
+            verifiedRevokedAttributes,
+            readModelService
+          ),
+          certifiedAttributeToDigest(certifiedRevokedAttributes)
+        ),
       };
     },
 
