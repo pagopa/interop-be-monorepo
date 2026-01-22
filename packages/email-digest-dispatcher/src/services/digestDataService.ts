@@ -10,11 +10,24 @@ import {
   certifiedAttributeToDigest,
   combineAttributeDigests,
 } from "../model/digestDataConverter.js";
+import {
+  viewAllNewEservicesLink,
+  viewAllUpdatedEservicesLink,
+  viewAllSentAgreementsLink,
+  viewAllSentPurposesLink,
+  viewAllReceivedAgreementsLink,
+  viewAllReceivedPurposesLink,
+  viewAllDelegationsLink,
+  viewAllAttributesLink,
+  viewAllUpdatedEserviceTemplatesLink,
+  viewAllPopularEserviceTemplatesLink,
+} from "./deeplinkBuilder.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
 
 export type BaseDigest = {
   items: Array<{
+    id?: string;
     name: string;
     producerName: string;
     link: string;
@@ -44,8 +57,7 @@ export type TenantDigestData = {
   viewAllSentPurposesLink: string;
   viewAllReceivedAgreementsLink: string;
   viewAllReceivedPurposesLink: string;
-  viewAllSentDelegationsLink: string;
-  viewAllReceivedDelegationsLink: string;
+  viewAllDelegationsLink: string;
   viewAllAttributesLink: string;
   viewAllUpdatedEserviceTemplatesLink: string;
   viewAllPopularEserviceTemplatesLink: string;
@@ -146,17 +158,16 @@ export function digestDataServiceBuilder(
         tenantId,
         tenantName: tenantName ?? "Tenant Name Placeholder",
         timePeriod: "Time Period Placeholder",
-        viewAllNewEservicesLink: "#",
-        viewAllUpdatedEservicesLink: "#",
-        viewAllSentAgreementsLink: "#",
-        viewAllSentPurposesLink: "#",
-        viewAllReceivedAgreementsLink: "#",
-        viewAllReceivedPurposesLink: "#",
-        viewAllSentDelegationsLink: "#",
-        viewAllReceivedDelegationsLink: "#",
-        viewAllAttributesLink: "#",
-        viewAllUpdatedEserviceTemplatesLink: "#",
-        viewAllPopularEserviceTemplatesLink: "#",
+        viewAllNewEservicesLink,
+        viewAllUpdatedEservicesLink,
+        viewAllSentAgreementsLink,
+        viewAllSentPurposesLink,
+        viewAllReceivedAgreementsLink,
+        viewAllReceivedPurposesLink,
+        viewAllDelegationsLink,
+        viewAllAttributesLink,
+        viewAllUpdatedEserviceTemplatesLink,
+        viewAllPopularEserviceTemplatesLink,
         newEservices,
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,

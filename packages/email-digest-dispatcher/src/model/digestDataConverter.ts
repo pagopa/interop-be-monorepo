@@ -1,6 +1,11 @@
 import { AgreementState, EServiceId, TenantId } from "pagopa-interop-models";
 import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
 import {
+  buildAgreementLink,
+  buildEserviceLink,
+  buildEserviceTemplateLink,
+} from "../services/deeplinkBuilder.js";
+import {
   NewEservice,
   NewEserviceTemplate,
   PopularEserviceTemplate,
@@ -75,38 +80,6 @@ async function enrichWithEServiceNames<T extends EntityWithEService>(
 }
 
 /**
- * Builds a link for an e-service item.
- * TODO: Replace with actual link composition logic
- */
-function buildEserviceLink(): string {
-  return "#";
-}
-
-/**
- * Builds a link for an e-service template item.
- * TODO: Replace with actual link composition logic
- */
-function buildEserviceTemplateLink(): string {
-  return "#";
-}
-
-/**
- * Builds a link for an attribute item.
- * TODO: Replace with actual link composition logic
- */
-function buildAttributeLink(): string {
-  return "#";
-}
-
-/**
- * Builds a link for an agreement item.
- * TODO: Replace with actual link composition logic
- */
-function buildAgreementLink(): string {
-  return "#";
-}
-
-/**
  * Common type for template data that can be converted to a digest.
  */
 type TemplateDigestData = {
@@ -118,7 +91,12 @@ type TemplateDigestData = {
  * Generic converter for template data into a digest object.
  * Used by both eserviceTemplateToBaseDigest and popularEserviceTemplateToBaseDigest.
  */
-async function templateDataToBaseDigest<T extends TemplateDigestData>(
+async function templateDataToBaseDigest<
+  T extends TemplateDigestData & {
+    eserviceTemplateId: string;
+    eserviceTemplateVersionId: string;
+  }
+>(
   data: T[],
   readModelService: ReadModelService,
   getProducerId: (item: T) => TenantId
@@ -137,9 +115,13 @@ async function templateDataToBaseDigest<T extends TemplateDigestData>(
 
   return {
     items: enrichedItems.map((template) => ({
+      id: template.eserviceTemplateId,
       name: template.eserviceTemplateName,
       producerName: template.entityProducerName,
-      link: buildEserviceTemplateLink(),
+      link: buildEserviceTemplateLink(
+        template.eserviceTemplateId,
+        template.eserviceTemplateVersionId
+      ),
     })),
     totalCount: data[0].totalCount,
   };
@@ -180,9 +162,13 @@ export async function eserviceToBaseDigest(
 
   return {
     items: enrichedItems.map((eservice) => ({
+      id: eservice.eserviceId,
       name: eservice.eserviceName,
       producerName: eservice.entityProducerName,
-      link: buildEserviceLink(),
+      link: buildEserviceLink(
+        eservice.eserviceId,
+        eservice.eserviceDescriptorId
+      ),
     })),
     totalCount: data[0].totalCount,
   };
@@ -206,6 +192,7 @@ export async function popularEserviceTemplateToBaseDigest(
  * Common type for agreements that can be converted to digest
  */
 type AgreementWithIds = EntityWithEService & {
+  agreementId: string;
   consumerId: TenantId;
   producerId: TenantId;
   totalCount: number;
@@ -243,7 +230,10 @@ async function agreementsToBaseDigest<T extends AgreementWithIds>(
     items: withEServiceNames.map((agreement) => ({
       name: agreement.eserviceName,
       producerName: tenantNamesMap.get(getTenantId(agreement)) ?? UNKNOWN_NAME,
-      link: buildAgreementLink(),
+      link: buildAgreementLink(
+        agreement.agreementId,
+        getTenantId(agreement) === agreement.producerId
+      ),
     })),
     totalCount: data[0].totalCount,
   };
@@ -315,7 +305,7 @@ export async function verifiedAttributeToDigest(
     items: enrichedItems.map((attr) => ({
       name: attr.attributeName,
       producerName: attr.entityProducerName,
-      link: buildAttributeLink(),
+      link: "",
       attributeKind: "verified" as const,
     })),
     totalCount: data[0].totalCount,
@@ -337,7 +327,7 @@ export function certifiedAttributeToDigest(
     items: data.map((attr) => ({
       name: attr.attributeName,
       producerName: "", // Certified attributes don't have a verifier/assigner
-      link: buildAttributeLink(),
+      link: "#",
       attributeKind: "certified" as const,
     })),
     totalCount: data[0].totalCount,
