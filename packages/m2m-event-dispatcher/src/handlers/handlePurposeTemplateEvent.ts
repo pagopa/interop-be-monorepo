@@ -58,7 +58,7 @@ export async function handlePurposeTemplateEvent(
           purposeTemplate,
           event.version,
           event.type,
-          eventTimestamp,
+          eventTimestamp
         );
         await m2mEventWriterService.insertPurposeTemplateM2MEvent(
           toPurposeTemplateM2MEventSQL(m2mEvent)
@@ -67,7 +67,10 @@ export async function handlePurposeTemplateEvent(
     )
     .with(
       {
-        type: P.union("PurposeTemplateEServiceLinked", "PurposeTemplateEServiceUnlinked"),
+        type: P.union(
+          "PurposeTemplateEServiceLinked",
+          "PurposeTemplateEServiceUnlinked"
+        ),
       },
       async (event) => {
         logger.info(
@@ -78,8 +81,12 @@ export async function handlePurposeTemplateEvent(
           event.version,
           event.type,
           eventTimestamp,
-          event.data.eservice?.id ? unsafeBrandId<EServiceId>(event.data.eservice.id) : undefined,
-          event.data.descriptorId ? unsafeBrandId<DescriptorId>(event.data.descriptorId) : undefined
+          event.data.eservice?.id
+            ? unsafeBrandId<EServiceId>(event.data.eservice.id)
+            : undefined,
+          event.data.descriptorId
+            ? unsafeBrandId<DescriptorId>(event.data.descriptorId)
+            : undefined
         );
         await m2mEventWriterService.insertPurposeTemplateM2MEvent(
           toPurposeTemplateM2MEventSQL(m2mEvent)

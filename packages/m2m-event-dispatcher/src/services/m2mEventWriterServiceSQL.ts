@@ -228,10 +228,7 @@ export function m2mEventWriterServiceSQLBuilder(
       await insertIfResourceVersionNotPresent(
         event,
         purposeTemplateInM2MEvent,
-        eq(
-          purposeTemplateInM2MEvent.purposeTemplateId,
-          event.purposeTemplateId
-        )
+        eq(purposeTemplateInM2MEvent.purposeTemplateId, event.purposeTemplateId)
       );
     },
 

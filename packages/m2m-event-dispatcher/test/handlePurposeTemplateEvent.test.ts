@@ -13,12 +13,12 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { handlePurposeTemplateEvent } from "../src/handlers/handlePurposeTemplateEvent.js";
 import {
   getMockEventEnvelopeCommons,
   retrieveLastPurposeTemplateM2MEvent,
   testM2mEventWriterService,
 } from "./utils.js";
-import { handlePurposeTemplateEvent } from "../src/handlers/handlePurposeTemplateEvent.js";
 
 describe("handlePurposeTemplateEvent test", async () => {
   vi.spyOn(testM2mEventWriterService, "insertPurposeTemplateM2MEvent");
@@ -78,7 +78,7 @@ describe("handlePurposeTemplateEvent test", async () => {
               {
                 state: purposeTemplateState.suspended,
                 expectedVisibility: m2mEventVisibility.owner,
-              }
+              },
             ]
           )
           .with("RiskAnalysisTemplateDocumentGenerated", async () => [])
@@ -93,8 +93,12 @@ describe("handlePurposeTemplateEvent test", async () => {
             type: eventType,
             data: {
               purposeTemplate: toPurposeTemplateV2(purposeTemplate),
-              eserviceId: eventType.includes("Linked") ? generateId() : undefined,
-              descriptorId: eventType.includes("Linked") ? generateId() : undefined,
+              eserviceId: eventType.includes("Linked")
+                ? generateId()
+                : undefined,
+              descriptorId: eventType.includes("Linked")
+                ? generateId()
+                : undefined,
             },
           } as PurposeTemplateEventEnvelopeV2;
 
