@@ -113,19 +113,22 @@ describe("getUsers", () => {
     expect(result).toEqual({
       results: [
         {
-          id: mockUsers[0].id,
-          firstName: "Mario",
-          lastName: "Rossi",
+          userId: mockUsers[0].id,
+          name: "Mario",
+          familyName: "Rossi",
+          roles: ["ADMIN_EA", "MANAGER"],
         },
         {
-          id: mockUsers[1].id,
-          firstName: "Luigi",
-          lastName: "Verdi",
+          userId: mockUsers[1].id,
+          name: "Luigi",
+          familyName: "Verdi",
+          roles: ["OPERATOR"],
         },
         {
-          id: mockUsers[2].id,
-          firstName: "Anna",
-          lastName: "Bianchi",
+          userId: mockUsers[2].id,
+          name: "Anna",
+          familyName: "Bianchi",
+          roles: ["MANAGER"],
         },
       ],
       pagination: {
@@ -176,14 +179,16 @@ describe("getUsers", () => {
     expect(result).toEqual({
       results: [
         {
-          id: mockUsers[1].id,
-          firstName: "Luigi",
-          lastName: "Verdi",
+          userId: mockUsers[1].id,
+          name: "Luigi",
+          familyName: "Verdi",
+          roles: ["OPERATOR"],
         },
         {
-          id: mockUsers[2].id,
-          firstName: "Anna",
-          lastName: "Bianchi",
+          userId: mockUsers[2].id,
+          name: "Anna",
+          familyName: "Bianchi",
+          roles: ["MANAGER"],
         },
       ],
       pagination: {
