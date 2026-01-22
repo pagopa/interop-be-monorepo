@@ -182,4 +182,3 @@ export const purposeTemplateInM2MEvent = m2mEvent.table("purpose_template", {
   eserviceId: uuid("eservice_id"),
   descriptorId: uuid("descriptor_id"),
 });
-
