@@ -413,6 +413,25 @@ export const createEServiceWithTemplate = (
 };
 
 /**
+ * Creates an EService using a template with a specific createdAt date
+ */
+export const createEServiceWithTemplateAndDate = (
+  producerId: TenantId,
+  templateId: EServiceTemplateId,
+  createdAt: Date,
+  descriptorState: Descriptor["state"] = "Published"
+): EService => {
+  const descriptor = createMockDescriptor(descriptorState, createdAt);
+  return {
+    ...createMockEService(producerId, {
+      templateId,
+      descriptors: [descriptor],
+    }),
+    createdAt,
+  };
+};
+
+/**
  * Creates a template with a published version at a specific time
  */
 export const createTemplateWithPublishedVersion = (

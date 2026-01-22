@@ -5,6 +5,7 @@ import {
   sentAgreementsToBaseDigest,
   eserviceTemplateToBaseDigest,
   eserviceToBaseDigest,
+  popularEserviceTemplateToBaseDigest,
   verifiedAttributeToDigest,
   certifiedAttributeToDigest,
   combineAttributeDigests,
@@ -46,9 +47,12 @@ export type TenantDigestData = {
   viewAllSentDelegationsLink: string;
   viewAllReceivedDelegationsLink: string;
   viewAllAttributesLink: string;
+  viewAllUpdatedEserviceTemplatesLink: string;
+  viewAllPopularEserviceTemplatesLink: string;
   newEservices?: BaseDigest;
   updatedEservices?: BaseDigest;
   updatedEserviceTemplates?: BaseDigest;
+  popularEserviceTemplates?: BaseDigest;
   acceptedSentAgreements?: BaseDigest;
   rejectedSentAgreements?: BaseDigest;
   suspendedSentAgreements?: BaseDigest;
@@ -112,6 +116,7 @@ export function digestDataServiceBuilder(
       const [
         updatedEservices,
         updatedEserviceTemplates,
+        popularEserviceTemplates,
         tenantMap,
         newEservices,
         sentAgreements,
@@ -123,6 +128,7 @@ export function digestDataServiceBuilder(
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
+        readModelService.getPopularEserviceTemplates(tenantId),
         readModelService.getTenantsByIds([tenantId]),
         // TODO: ask for priority list of tenants
         getNewEservicesDigest([]),
@@ -149,6 +155,8 @@ export function digestDataServiceBuilder(
         viewAllSentDelegationsLink: "#",
         viewAllReceivedDelegationsLink: "#",
         viewAllAttributesLink: "#",
+        viewAllUpdatedEserviceTemplatesLink: "#",
+        viewAllPopularEserviceTemplatesLink: "#",
         newEservices,
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,
@@ -156,6 +164,10 @@ export function digestDataServiceBuilder(
         ),
         updatedEserviceTemplates: await eserviceTemplateToBaseDigest(
           updatedEserviceTemplates,
+          readModelService
+        ),
+        popularEserviceTemplates: await popularEserviceTemplateToBaseDigest(
+          popularEserviceTemplates,
           readModelService
         ),
         acceptedSentAgreements: await sentAgreementsToBaseDigest(
@@ -235,6 +247,8 @@ export function digestDataServiceBuilder(
       return !!(
         data.newEservices?.totalCount ||
         data.updatedEservices?.totalCount ||
+        data.updatedEserviceTemplates?.totalCount ||
+        data.popularEserviceTemplates?.totalCount ||
         data.acceptedSentAgreements?.totalCount ||
         data.rejectedSentAgreements?.totalCount ||
         data.suspendedSentAgreements?.totalCount ||

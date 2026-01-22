@@ -15,6 +15,10 @@ export function getMockTenantDigestData(): TenantDigestData {
     viewAllSentDelegationsLink: "https://example.com/delegations/sent",
     viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
     viewAllAttributesLink: "https://example.com/attributes",
+    viewAllUpdatedEserviceTemplatesLink:
+      "https://example.com/eservice-templates/updated",
+    viewAllPopularEserviceTemplatesLink:
+      "https://example.com/eservice-templates/popular",
     newEservices: {
       items: [
         {
@@ -39,6 +43,41 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 3,
+    },
+    updatedEserviceTemplates: {
+      items: [
+        {
+          name: "Template Anagrafe Nazionale",
+          producerName: "Ministero dell'Interno",
+          link: "https://example.com/eservice-template/1",
+        },
+        {
+          name: "Template Fatturazione PA",
+          producerName: "Agenzia delle Entrate",
+          link: "https://example.com/eservice-template/2",
+        },
+      ],
+      totalCount: 4,
+    },
+    popularEserviceTemplates: {
+      items: [
+        {
+          name: "Template Gestione Documenti",
+          producerName: "Mock Tenant Organization",
+          link: "https://example.com/eservice-template/3",
+        },
+        {
+          name: "Template Servizi Pagamento",
+          producerName: "Mock Tenant Organization",
+          link: "https://example.com/eservice-template/4",
+        },
+        {
+          name: "Template API Certificati",
+          producerName: "Mock Tenant Organization",
+          link: "https://example.com/eservice-template/5",
+        },
+      ],
+      totalCount: 7,
     },
     acceptedSentAgreements: {
       items: [

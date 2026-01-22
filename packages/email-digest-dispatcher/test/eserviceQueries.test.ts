@@ -28,6 +28,8 @@ import {
   createTemplateWithPublishedVersion,
   createTemplateWithVersions,
   createTemplateScenario,
+  createEServiceWithTemplateAndDate,
+  daysAgo,
   TEST_TIME_WINDOWS,
   TEST_LIMITS,
 } from "./integrationUtils.js";
@@ -1323,6 +1325,467 @@ describe("ReadModelService - getNewEserviceTemplates", () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].totalCount).toBe(1);
+    });
+  });
+});
+
+describe("ReadModelService - getPopularEserviceTemplates", () => {
+  // eslint-disable-next-line functional/no-let
+  let creator: Tenant;
+
+  beforeEach(async () => {
+    creator = createMockTenant();
+    await addOneTenant(creator);
+  });
+
+  describe("Basic functionality", () => {
+    test("should return empty array when creator has no templates", async () => {
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+      expect(result).toEqual([]);
+    });
+
+    test("should return empty array when templates have no recent eservice instances", async () => {
+      // Create a template owned by the creator with a published version
+      const publishedVersion = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+
+      const template = createMockEServiceTemplate(creator.id, {
+        versions: [publishedVersion],
+      });
+      await addOneEServiceTemplate(template);
+
+      // Create an eservice using this template but created more than 7 days ago
+      const producer = createMockTenant();
+      await addOneTenant(producer);
+
+      const eservice = createEServiceWithTemplateAndDate(
+        producer.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE)
+      );
+      await addOneEService(eservice);
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+      expect(result).toEqual([]);
+    });
+
+    test("should return templates with recent eservice instances", async () => {
+      // Create a template owned by the creator with a published version
+      const publishedVersion = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+
+      const template = createMockEServiceTemplate(creator.id, {
+        versions: [publishedVersion],
+      });
+      await addOneEServiceTemplate(template);
+
+      // Create an eservice using this template, created recently
+      const producer = createMockTenant();
+      await addOneTenant(producer);
+
+      const eservice = createEServiceWithTemplateAndDate(
+        producer.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+      );
+      await addOneEService(eservice);
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        eserviceTemplateId: template.id,
+        eserviceTemplateVersionId: publishedVersion.id,
+        eserviceTemplateName: template.name,
+        eserviceTemplateCreatorId: creator.id,
+        instances: 1,
+      });
+    });
+  });
+
+  describe("Descriptor state filtering", () => {
+    test("should only count eservices with published descriptors", async () => {
+      // Create a template owned by the creator with a published version
+      const publishedVersion = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+
+      const template = createMockEServiceTemplate(creator.id, {
+        versions: [publishedVersion],
+      });
+      await addOneEServiceTemplate(template);
+
+      // Create a producer
+      const producer = createMockTenant();
+      await addOneTenant(producer);
+
+      // Create an eservice with a draft descriptor (should not count)
+      const draftEservice = createEServiceWithTemplateAndDate(
+        producer.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+        descriptorState.draft
+      );
+      await addOneEService(draftEservice);
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("Version selection", () => {
+    test("should return the latest published template version", async () => {
+      // Create a template with multiple published versions
+      const oldVersion = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+
+      const newerVersion = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "2",
+        daysAgo(TEST_TIME_WINDOWS.FIVE_DAYS_AGO),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.FIVE_DAYS_AGO) }
+      );
+
+      const template = createMockEServiceTemplate(creator.id, {
+        versions: [oldVersion, newerVersion],
+      });
+      await addOneEServiceTemplate(template);
+
+      // Create an eservice using this template
+      const producer = createMockTenant();
+      await addOneTenant(producer);
+
+      const eservice = createEServiceWithTemplateAndDate(
+        producer.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+      );
+      await addOneEService(eservice);
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].eserviceTemplateVersionId).toBe(newerVersion.id);
+    });
+
+    test("should not return templates with no published versions", async () => {
+      // Create a template with only a draft version
+      const draftVersion = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.draft,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE)
+      );
+
+      const template = createMockEServiceTemplate(creator.id, {
+        versions: [draftVersion],
+      });
+      await addOneEServiceTemplate(template);
+
+      // Create an eservice using this template
+      const producer = createMockTenant();
+      await addOneTenant(producer);
+
+      const eservice = createEServiceWithTemplateAndDate(
+        producer.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+      );
+      await addOneEService(eservice);
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("Instance counting", () => {
+    test("should count distinct eservices correctly", async () => {
+      // Create a template owned by the creator
+      const publishedVersion = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+
+      const template = createMockEServiceTemplate(creator.id, {
+        versions: [publishedVersion],
+      });
+      await addOneEServiceTemplate(template);
+
+      // Create multiple eservices using this template
+      const producer1 = createMockTenant();
+      const producer2 = createMockTenant();
+      const producer3 = createMockTenant();
+      await addOneTenant(producer1);
+      await addOneTenant(producer2);
+      await addOneTenant(producer3);
+
+      const eservice1 = createEServiceWithTemplateAndDate(
+        producer1.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+      );
+      const eservice2 = createEServiceWithTemplateAndDate(
+        producer2.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.THREE_DAYS_AGO)
+      );
+      const eservice3 = createEServiceWithTemplateAndDate(
+        producer3.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.FIVE_DAYS_AGO)
+      );
+
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+      await addOneEService(eservice3);
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].instances).toBe(3);
+    });
+  });
+
+  describe("Ordering and limits", () => {
+    test("should order by instance count descending", async () => {
+      // Create two templates
+      const version1 = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+      const template1 = createMockEServiceTemplate(creator.id, {
+        versions: [version1],
+      });
+
+      const version2 = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+      const template2 = createMockEServiceTemplate(creator.id, {
+        versions: [version2],
+      });
+
+      await addOneEServiceTemplate(template1);
+      await addOneEServiceTemplate(template2);
+
+      // Create 2 eservices for template1
+      const producer1 = createMockTenant();
+      const producer2 = createMockTenant();
+      await addOneTenant(producer1);
+      await addOneTenant(producer2);
+
+      await addOneEService(
+        createEServiceWithTemplateAndDate(
+          producer1.id,
+          template1.id,
+          daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        )
+      );
+      await addOneEService(
+        createEServiceWithTemplateAndDate(
+          producer2.id,
+          template1.id,
+          daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        )
+      );
+
+      // Create 5 eservices for template2
+      // eslint-disable-next-line functional/no-let
+      for (let i = 0; i < 5; i++) {
+        const producer = createMockTenant();
+        await addOneTenant(producer);
+        await addOneEService(
+          createEServiceWithTemplateAndDate(
+            producer.id,
+            template2.id,
+            daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+          )
+        );
+      }
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0].eserviceTemplateId).toBe(template2.id);
+      expect(result[0].instances).toBe(5);
+      expect(result[1].eserviceTemplateId).toBe(template1.id);
+      expect(result[1].instances).toBe(2);
+    });
+
+    test("should respect the 5-item limit", async () => {
+      // Create 7 templates with instances
+      // eslint-disable-next-line functional/no-let
+      for (let i = 0; i < 7; i++) {
+        const version = createMockEServiceTemplateVersion(
+          eserviceTemplateVersionState.published,
+          "1",
+          daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+          { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+        );
+        const template = createMockEServiceTemplate(creator.id, {
+          versions: [version],
+        });
+        await addOneEServiceTemplate(template);
+
+        const producer = createMockTenant();
+        await addOneTenant(producer);
+        await addOneEService(
+          createEServiceWithTemplateAndDate(
+            producer.id,
+            template.id,
+            daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+          )
+        );
+      }
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+
+      expect(result).toHaveLength(TEST_LIMITS.MAX_RESULTS);
+    });
+  });
+
+  describe("Data integrity", () => {
+    test("should return correctly typed results with proper structure", async () => {
+      // Create a template with a published version
+      const publishedVersion = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+
+      const template = createMockEServiceTemplate(creator.id, {
+        versions: [publishedVersion],
+      });
+      await addOneEServiceTemplate(template);
+
+      // Create an eservice using this template
+      const producer = createMockTenant();
+      await addOneTenant(producer);
+
+      const eservice = createEServiceWithTemplateAndDate(
+        producer.id,
+        template.id,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+      );
+      await addOneEService(eservice);
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty("eserviceTemplateId");
+      expect(result[0]).toHaveProperty("eserviceTemplateVersionId");
+      expect(result[0]).toHaveProperty("eserviceTemplateName");
+      expect(result[0]).toHaveProperty("eserviceTemplateCreatorId");
+      expect(result[0]).toHaveProperty("instances");
+      expect(result[0]).toHaveProperty("totalCount");
+
+      expect(typeof result[0].eserviceTemplateId).toBe("string");
+      expect(typeof result[0].eserviceTemplateVersionId).toBe("string");
+      expect(typeof result[0].eserviceTemplateName).toBe("string");
+      expect(typeof result[0].eserviceTemplateCreatorId).toBe("string");
+      expect(typeof result[0].instances).toBe("number");
+      expect(typeof result[0].totalCount).toBe("number");
+
+      expect(result[0].eserviceTemplateId).toBe(template.id);
+      expect(result[0].eserviceTemplateName).toBe(template.name);
+      expect(result[0].eserviceTemplateCreatorId).toBe(creator.id);
+      expect(result[0].instances).toBeGreaterThan(0);
+      expect(result[0].totalCount).toBeGreaterThan(0);
+    });
+
+    test("should include accurate totalCount in results", async () => {
+      // Create two templates with instances
+      const version1 = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+      const template1 = createMockEServiceTemplate(creator.id, {
+        versions: [version1],
+      });
+
+      const version2 = createMockEServiceTemplateVersion(
+        eserviceTemplateVersionState.published,
+        "1",
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+        { publishedAt: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE) }
+      );
+      const template2 = createMockEServiceTemplate(creator.id, {
+        versions: [version2],
+      });
+
+      await addOneEServiceTemplate(template1);
+      await addOneEServiceTemplate(template2);
+
+      const producer1 = createMockTenant();
+      const producer2 = createMockTenant();
+      await addOneTenant(producer1);
+      await addOneTenant(producer2);
+
+      await addOneEService(
+        createEServiceWithTemplateAndDate(
+          producer1.id,
+          template1.id,
+          daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        )
+      );
+      await addOneEService(
+        createEServiceWithTemplateAndDate(
+          producer2.id,
+          template2.id,
+          daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        )
+      );
+
+      const result = await readModelService.getPopularEserviceTemplates(
+        creator.id
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0].totalCount).toBe(2);
+      expect(result[1].totalCount).toBe(2);
     });
   });
 });

@@ -8,6 +8,7 @@ import {
   isNotNull,
   isNull,
   count,
+  countDistinct,
   inArray,
   gt,
 } from "drizzle-orm";
@@ -106,6 +107,15 @@ export type SentAgreement = BaseAgreement & {
 };
 
 export type ReceivedAgreement = BaseAgreement;
+
+export type PopularEserviceTemplate = {
+  eserviceTemplateId: string;
+  eserviceTemplateVersionId: string;
+  eserviceTemplateName: string;
+  eserviceTemplateCreatorId: TenantId;
+  instances: number;
+  totalCount: number;
+};
 
 /**
  * Generic helper to retrieve entities with request-scoped caching.
@@ -462,6 +472,121 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         eserviceTemplateProducerId: unsafeBrandId<TenantId>(
           row.eserviceTemplateProducerId
         ),
+        totalCount: row.totalCount,
+      }));
+    },
+
+    /**
+     * Returns the top eservice templates by the creator that have instances
+     * (eservices) created in the last 7 days with published descriptors.
+     * Returns the latest published template version for each template.
+     */
+    async getPopularEserviceTemplates(
+      creatorId: TenantId
+    ): Promise<PopularEserviceTemplate[]> {
+      logger.info(
+        `Retrieving popular eservice templates for creator ${creatorId} since ${dateThreshold.toISOString()}`
+      );
+
+      // Alias for the subquery to get the latest published template version
+      const latestVersionSubquery = alias(
+        eserviceTemplateVersionInReadmodelEserviceTemplate,
+        "latest_version_subquery"
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionId:
+              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateName:
+              eserviceTemplateInReadmodelEserviceTemplate.name,
+            eserviceTemplateCreatorId:
+              eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+            instances: countDistinct(eserviceInReadmodelCatalog.id).as(
+              "instances"
+            ),
+          })
+        )
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          and(
+            eq(
+              eserviceTemplateInReadmodelEserviceTemplate.id,
+              eserviceInReadmodelCatalog.templateId
+            ),
+            gte(
+              eserviceInReadmodelCatalog.createdAt,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              eserviceInReadmodelCatalog.id,
+              eserviceDescriptorInReadmodelCatalog.eserviceId
+            ),
+            eq(eserviceDescriptorInReadmodelCatalog.state, "Published")
+          )
+        )
+        .innerJoin(
+          eserviceTemplateVersionInReadmodelEserviceTemplate,
+          and(
+            eq(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
+              eserviceTemplateInReadmodelEserviceTemplate.id
+            ),
+            eq(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+              "Published"
+            ),
+            eq(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+              db
+                .select({ id: latestVersionSubquery.id })
+                .from(latestVersionSubquery)
+                .where(
+                  and(
+                    eq(
+                      latestVersionSubquery.eserviceTemplateId,
+                      eserviceTemplateInReadmodelEserviceTemplate.id
+                    ),
+                    eq(latestVersionSubquery.state, "Published")
+                  )
+                )
+                .orderBy(desc(latestVersionSubquery.version))
+                .limit(1)
+            )
+          )
+        )
+        .where(
+          eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId)
+        )
+        .groupBy(
+          eserviceTemplateInReadmodelEserviceTemplate.id,
+          eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+          eserviceTemplateInReadmodelEserviceTemplate.name,
+          eserviceTemplateInReadmodelEserviceTemplate.creatorId
+        )
+        .orderBy(desc(countDistinct(eserviceInReadmodelCatalog.id)))
+        .limit(5);
+
+      logger.info(
+        `Retrieved ${results.length} popular eservice templates for creator ${creatorId}`
+      );
+
+      return results.map((row) => ({
+        eserviceTemplateId: row.eserviceTemplateId,
+        eserviceTemplateVersionId: row.eserviceTemplateVersionId,
+        eserviceTemplateName: row.eserviceTemplateName,
+        eserviceTemplateCreatorId: unsafeBrandId<TenantId>(
+          row.eserviceTemplateCreatorId
+        ),
+        instances: row.instances,
         totalCount: row.totalCount,
       }));
     },
