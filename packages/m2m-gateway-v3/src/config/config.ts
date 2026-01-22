@@ -2,7 +2,9 @@ import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
+  DPoPConfig,
   FileManagerConfig,
+  JWTConfig,
   RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -152,6 +154,8 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(PurposeTemplateProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
+  .and(DPoPConfig)
+  .and(JWTConfig)
   .and(
     z
       .object({

@@ -57,6 +57,11 @@ export const errorCodes = {
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
+  // DPoP related errors (duplicated from authorization-server for isolation)
+  dpopProofValidationFailed: "0040",
+  dpopProofSignatureValidationFailed: "0041",
+  unexpectedDPoPProofForAPIToken: "0042",
+  dpopProofJtiAlreadyUsed: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -435,5 +440,45 @@ export function invalidSeedForPurposeFromTemplate(
     )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",
+  });
+}
+
+export function dpopProofValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof validation failed for clientId: ${clientId} - ${details}`,
+    code: "dpopProofValidationFailed",
+    title: "DPoP proof validation failed",
+  });
+}
+
+export function dpopProofSignatureValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof signature validation failed for client ${clientId} - ${details}`,
+    code: "dpopProofSignatureValidationFailed",
+    title: "DPoP proof signature validation failed",
+  });
+}
+
+export function unexpectedDPoPProofForAPIToken(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected DPoP proof for API token with client ${clientId}`,
+    code: "unexpectedDPoPProofForAPIToken",
+    title: "Unexpected DPoP proof for API token",
+  });
+}
+
+export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof JTI ${jti} already in cache`,
+    code: "dpopProofJtiAlreadyUsed",
+    title: "DPoP proof JTI already in cache",
   });
 }

@@ -55,12 +55,15 @@ export const readAuthDataFromDPoPJwtToken = (
   return getAuthDataFromToken(result.data);
 };
 
-export const verifyAccessTokenIsDPoP = (payload: JwtPayload | string): void => {
+export const verifyAccessTokenIsDPoP = (
+  payload: JwtPayload | string
+): AuthTokenDPoPPayload => {
   const result = AuthTokenDPoPPayload.safeParse(payload);
 
   if (!result.success) {
     throw invalidClaim(result.error);
   }
+  return result.data;
 };
 
 // can be used verifyAccessTokenIsDPoP

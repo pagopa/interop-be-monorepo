@@ -2,8 +2,6 @@ import { constants } from "http2";
 import {
   AppContext,
   ExpressContext,
-  JWTConfig,
-  Logger,
   M2MAdminAuthData,
   fromAppContext,
   jwtsFromAuthAndDPoPHeaders,
@@ -12,12 +10,26 @@ import {
   verifyJwtToken,
   verifyAccessTokenIsDPoP,
 } from "pagopa-interop-commons";
-import { unauthorizedError } from "pagopa-interop-models";
+import {
+  checkDPoPCache,
+  verifyDPoPProof,
+  verifyDPoPProofSignature,
+  verifyDPoPThumbprintMatch,
+} from "pagopa-interop-dpop-validation";
+import { DPoPProof, unauthorizedError } from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { P, match } from "ts-pattern";
 import { Request } from "express";
-import { makeApiProblem } from "../model/errors.js";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
+import { Logger } from "pagopa-interop-commons";
+import {
+  dpopProofJtiAlreadyUsed,
+  dpopProofSignatureValidationFailed,
+  dpopProofValidationFailed,
+  makeApiProblem,
+} from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
+import { M2MGatewayConfigV3 } from "../config/config.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 
 export async function validateM2MAdminUserId(
@@ -91,9 +103,10 @@ export function m2mAuthDataValidationMiddleware(
 }
 
 export const authenticationDPoPMiddleware: (
-  config: JWTConfig
+  config: M2MGatewayConfigV3,
+  dynamoDBClient: DynamoDBClient
 ) => ZodiosRouterContextRequestHandler<ExpressContext> =
-  (config: JWTConfig) =>
+  (config: M2MGatewayConfigV3, dynamoDBClient: DynamoDBClient) =>
   async (req, res, next): Promise<unknown> => {
     // We assume that:
     // - contextMiddleware already set ctx.serviceName and ctx.correlationId
@@ -110,7 +123,10 @@ export const authenticationDPoPMiddleware: (
       // verify HTTP DPoP Header and Authorization Header
       // ----------------------------------------------------------------------
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { accessToken } = jwtsFromAuthAndDPoPHeaders(req, ctx.logger);
+      const { accessToken, dpopProofJWS } = jwtsFromAuthAndDPoPHeaders(
+        req,
+        ctx.logger
+      );
 
       // ----------------------------------------------------------------------
       // Step 2 – Access Token Validation (Gatekeeper)
@@ -132,14 +148,39 @@ export const authenticationDPoPMiddleware: (
       // Step 4a & 4b – DPoP Proof Validation (Static & Crypto)
       // verify DPoP Proof (Claims, HTTP method and HTI, check signature, JTI uniqueness)
       // ----------------------------------------------------------------------
-      // validateDPoPProof() in packages/authorization-server/src/services/tokenService.ts
+      const { dpopProofJWT } = await validateDPoPProof(
+        config,
+        dpopProofJWS,
+        "1",
+        ctx.logger
+      );
+      if (!dpopProofJWT) {
+        // TODO: improve error handling
+        throw unauthorizedError("Invalid DPoP Proof structure");
+      }
+      // Check if the cache contains the DPoP proof
+      if (dpopProofJWT) {
+        const { errors: dpopCacheErrors } = await checkDPoPCache({
+          dynamoDBClient,
+          dpopProofJti: dpopProofJWT.payload.jti,
+          dpopProofIat: dpopProofJWT.payload.iat,
+          dpopCacheTable: config.dpopCacheTable,
+          dpopProofDurationSeconds: config.dpopDurationSeconds,
+        });
+        if (dpopCacheErrors) {
+          throw dpopProofJtiAlreadyUsed(dpopProofJWT.payload.jti);
+        }
+      }
+
+      // eslint-disable-next-line no-console
+      console.log(dpopProofJWT);
 
       // ----------------------------------------------------------------------
       // Step 5 – Key Binding Verification (Thumbprint Match)
       // verify binding key between DPoP Proof and JWT Access Token
       // ----------------------------------------------------------------------
 
-      // verifyDPoPCnf(authData);
+      verifyDPoPThumbprintMatch(dpopProofJWT, accessTokenDecoded, ctx.logger);
 
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = readAuthDataFromJwtToken(accessTokenDecoded);
@@ -159,8 +200,49 @@ export const authenticationDPoPMiddleware: (
     }
   };
 
-// function verifyDPoPCnf(authData: AuthData): void {
-//   if (!("cnf" in authData && authData.cnf !== undefined)) {
-//     throw unauthorizedError("Invalid DPoP token: missing cnf claim");
-//   }
-// }
+const validateDPoPProof = async (
+  config: M2MGatewayConfigV3,
+  dpopProofHeader: string | undefined,
+  clientId: string | undefined,
+  logger: Logger
+): Promise<{
+  dpopProofJWS: string | undefined;
+  dpopProofJWT: DPoPProof | undefined;
+}> => {
+  const { data, errors: dpopProofErrors } = dpopProofHeader
+    ? verifyDPoPProof({
+        dpopProofJWS: dpopProofHeader,
+        expectedDPoPProofHtu: config.dpopHtu,
+        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: config.dpopDurationSeconds,
+      })
+    : { data: undefined, errors: undefined };
+
+  if (dpopProofErrors) {
+    throw dpopProofValidationFailed(
+      clientId,
+      dpopProofErrors.map((error) => error.detail).join(", ")
+    );
+  }
+
+  const dpopProofJWT = data?.dpopProofJWT;
+  const dpopProofJWS = data?.dpopProofJWS;
+
+  if (dpopProofJWT && dpopProofJWS) {
+    const { errors: dpopProofSignatureErrors } = await verifyDPoPProofSignature(
+      dpopProofJWS,
+      dpopProofJWT.header.jwk
+    );
+
+    if (dpopProofSignatureErrors) {
+      throw dpopProofSignatureValidationFailed(
+        clientId,
+        dpopProofSignatureErrors.map((error) => error.detail).join(", ")
+      );
+    }
+
+    logger.info(`[JTI=${dpopProofJWT.payload.jti}] - DPoP proof validated`);
+  }
+
+  return { dpopProofJWS, dpopProofJWT };
+};

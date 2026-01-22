@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { config } from "./config/config.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
@@ -67,7 +68,8 @@ export type RateLimiterMiddleware = ReturnType<
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(
   services: M2MGatewayServices,
-  rateLimiterMiddleware: RateLimiterMiddleware
+  rateLimiterMiddleware: RateLimiterMiddleware,
+  dynamoDBClient: DynamoDBClient
 ) {
   const serviceName = modelsServiceName.M2M_GATEWAY;
   const {
@@ -108,7 +110,7 @@ export async function createApp(
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
-    authenticationDPoPMiddleware(config),
+    authenticationDPoPMiddleware(config, dynamoDBClient),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
     m2mAuthDataValidationMiddleware(clientService),
     rateLimiterMiddleware,
