@@ -45,21 +45,9 @@ export type DelegationProcessClientWithMetadata = {
   >;
 };
 
-type AuthorizationProcessClient = {
-  client: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createClientApiClient>
-  >;
-  producerKeychain: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createProducerKeychainApiClient>
-  >;
-  user: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createUserApiClient>
-  >;
-  token: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createTokenGenerationApiClient>
-  >;
-  key: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createKeyApiClient>
+type AuthorizationProcessClientWithMetadata = {
+  [K in keyof authorizationApi.AuthorizationProcessClient]: ZodiosClientWithMetadata<
+    authorizationApi.AuthorizationProcessClient[K]
   >;
 };
 
@@ -78,7 +66,7 @@ export type PagoPAInteropBeClients = {
   catalogProcessClient: CatalogProcessClientWithMetadata;
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
-  authorizationClient: AuthorizationProcessClient;
+  authorizationClient: AuthorizationProcessClientWithMetadata;
   delegationProcessClient: DelegationProcessClientWithMetadata;
   eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
   eventManagerClient: EventManagerClient;

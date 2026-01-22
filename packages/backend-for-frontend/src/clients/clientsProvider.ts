@@ -22,15 +22,6 @@ export type TenantProcessClient = {
   selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
 };
 
-export type AuthorizationProcessClient = {
-  client: ReturnType<typeof authorizationApi.createClientApiClient>;
-  producerKeychain: ReturnType<
-    typeof authorizationApi.createProducerKeychainApiClient
-  >;
-  user: ReturnType<typeof authorizationApi.createUserApiClient>;
-  token: ReturnType<typeof authorizationApi.createTokenGenerationApiClient>;
-};
-
 export type SelfcareV2InstitutionClient = {
   institution: ReturnType<
     typeof selfcareV2ClientApi.createInstitutionApiClient
@@ -48,7 +39,7 @@ export type PagoPAInteropBeClients = {
   agreementProcessClient: agreementApi.AgreementProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
   purposeTemplateProcessClient: purposeTemplateApi.PurposeTemplateProcessClient;
-  authorizationClient: AuthorizationProcessClient;
+  authorizationClient: authorizationApi.AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UserClient;
   delegationProcessClient: delegationApi.DelegationProcessClient;
@@ -82,6 +73,7 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       ),
     authorizationClient: {
       client: authorizationApi.createClientApiClient(config.authorizationUrl),
+      key: authorizationApi.createKeyApiClient(config.authorizationUrl),
       producerKeychain: authorizationApi.createProducerKeychainApiClient(
         config.authorizationUrl
       ),

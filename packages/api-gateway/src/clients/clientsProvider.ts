@@ -19,10 +19,6 @@ export type NotifierEventsClient = ReturnType<
   typeof notifierApi.createEventsApiClient
 >;
 
-export type AuthorizationProcessClient = {
-  client: ReturnType<typeof authorizationApi.createClientApiClient>;
-};
-
 export type PagoPAInteropBeClients = {
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
@@ -30,7 +26,7 @@ export type PagoPAInteropBeClients = {
   purposeProcessClient: purposeApi.PurposeProcessClient;
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   notifierEventsClient: NotifierEventsClient;
-  authorizationProcessClient: AuthorizationProcessClient;
+  authorizationProcessClient: authorizationApi.AuthorizationProcessClient;
   delegationProcessClient: delegationApi.DelegationProcessClient;
 };
 
@@ -55,6 +51,16 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     notifierEventsClient: notifierApi.createEventsApiClient(config.notifierUrl),
     authorizationProcessClient: {
       client: authorizationApi.createClientApiClient(
+        config.authorizationProcessUrl
+      ),
+      key: authorizationApi.createKeyApiClient(config.authorizationProcessUrl),
+      producerKeychain: authorizationApi.createProducerKeychainApiClient(
+        config.authorizationProcessUrl
+      ),
+      user: authorizationApi.createUserApiClient(
+        config.authorizationProcessUrl
+      ),
+      token: authorizationApi.createTokenGenerationApiClient(
         config.authorizationProcessUrl
       ),
     },

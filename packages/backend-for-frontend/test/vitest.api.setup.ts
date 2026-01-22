@@ -62,6 +62,7 @@ import {
 import {
   agreementApi,
   attributeRegistryApi,
+  authorizationApi,
   catalogApi,
   delegationApi,
   eserviceTemplateApi,
@@ -72,7 +73,6 @@ import {
 } from "pagopa-interop-api-clients";
 import { createApp, createServices } from "../src/app.js";
 import {
-  AuthorizationProcessClient,
   SelfcareV2InstitutionClient,
   SelfcareV2UserClient,
   TenantProcessClient,
@@ -104,10 +104,11 @@ export const clients = {
     {} as purposeTemplateApi.PurposeTemplateProcessClient,
   authorizationClient: {
     client: {},
+    key: {},
     producerKeychain: {},
     user: {},
     token: {},
-  } as AuthorizationProcessClient,
+  } as authorizationApi.AuthorizationProcessClient,
   selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
   selfcareV2UserClient: {} as SelfcareV2UserClient,
   delegationProcessClient: {

@@ -1,7 +1,6 @@
 import { authorizationApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { M2MAuthData, WithLogger } from "pagopa-interop-commons";
 import { ClientJWKKey } from "pagopa-interop-models";
-import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayClient } from "../api/authorizationApiConverter.js";
 import { clientNotFound, keyNotFound } from "../models/errors.js";
@@ -10,7 +9,7 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
-  authorizationProcessClient: AuthorizationProcessClient,
+  authorizationProcessClient: authorizationApi.AuthorizationProcessClient,
   readModelService: ReadModelServiceSQL
 ) {
   return {

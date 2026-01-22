@@ -17,9 +17,9 @@ import {
 import { EachMessagePayload } from "kafkajs";
 import { getMockClient, getMockTenant } from "pagopa-interop-commons-test";
 import { clientKind, relationshipStatus, Tenant } from "pagopa-interop-models";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import { config } from "../src/config/config.js";
-import { AuthorizationProcessClient } from "../src/clients/authorizationProcessClient.js";
 import {
   addOneClient,
   addOneTenant,
@@ -34,7 +34,10 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     client: {
       internalRemoveClientAdmin: vi.fn().mockResolvedValue(undefined),
     },
-  } as unknown as AuthorizationProcessClient;
+    producerKeychain: {},
+    user: {},
+    token: {},
+  } as unknown as authorizationApi.AuthorizationProcessClient;
   const tokenGeneratorMock = new InteropTokenGenerator(config);
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   let selfcareClientUsersUpdaterProcessor: ReturnType<
