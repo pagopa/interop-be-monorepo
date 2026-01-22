@@ -200,7 +200,7 @@ describe("sqsMessageHandler", () => {
       subObjectId: "6e902b1c-7f55-4074-a036-749e75551f33",
       streamId: "6e902b1c-7f55-4074-a036-749e75551f33",
       path: "path/to",
-      fileName: "event-journal.ndjson",
+      fileName: "event-journal.ndjson.zip",
     });
     (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(
       void 0
@@ -223,7 +223,92 @@ describe("sqsMessageHandler", () => {
       {
         bucket: config.signedDocumentsBucket,
         path: "path/to",
-        name: "event-journal.json.zip.p7m",
+        name: "event-journal.ndjson.zip.p7m",
+        content: mockFileContent,
+      },
+      expect.any(Object)
+    );
+
+    expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
+      sqsMessageBody.detail.key,
+      expect.any(Object)
+    );
+  });
+  it("should process the message successfully and delete the record on voucher audit", async () => {
+    const sqsMessageBody = {
+      version: "0",
+      id: "6e902b1c-7f55-4074-a036-749e75551f33",
+      "detail-type": "Object Created",
+      source: "aws.s3",
+      account: "123456789012",
+      time: "2025-01-01T10:00:00Z",
+      region: "eu-central-1",
+      resources: ["arn:aws:s3:::some-bucket"],
+      detail: {
+        key: "test-file-key.pdf",
+        versionId: "12345",
+        documentType: "INTEROP_LEGAL_FACTS",
+        documentStatus: "SAVED",
+        contentType: "application/pdf",
+        checksum: "mock-checksum",
+        retentionUntil: "2026-01-01T10:00:00Z",
+        tags: null,
+        client_short_code: "12345",
+      },
+    };
+
+    const sqsMessagePayload: Message = {
+      Body: JSON.stringify(sqsMessageBody),
+    };
+
+    const mockFileReference = {
+      download: { url: "http://mock-download-url.com/file" },
+    };
+    const mockFileContent = Buffer.from("test content");
+    const mockS3Key = "12345/2025/01/01/test-file-key.pdf";
+
+    (mockSafeStorageService.getFile as Mock).mockResolvedValueOnce(
+      mockFileReference
+    );
+    (mockSafeStorageService.downloadFileContent as Mock).mockResolvedValueOnce(
+      mockFileContent
+    );
+    (mockFileManager.resumeOrStoreBytes as Mock).mockResolvedValueOnce(
+      mockS3Key
+    );
+    (mockDbService.readSignatureReferenceById as Mock).mockResolvedValueOnce({
+      id: sqsMessageBody.id,
+      key: sqsMessageBody.detail.key,
+      fileKind: "VOUCHER_AUDIT",
+      createdAt: BigInt(123456),
+      contentType: "application/pdf",
+      subObjectId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      streamId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      path: "token-details/20260122",
+      fileName: "20260122_105251_be59570c-fe5f-432b-a01c-cccc55b31ca7.ndjson",
+    });
+    (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(
+      void 0
+    );
+
+    await sqsMessageHandler(
+      sqsMessagePayload,
+      mockFileManager as FileManager,
+      mockDbService,
+      mockSafeStorageService,
+      mockRefreshableToken
+    );
+
+    expect(mockSafeStorageService.getFile).toHaveBeenCalledWith(
+      sqsMessageBody.detail.key,
+      false,
+      expect.any(Object)
+    );
+    expect(mockFileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
+      {
+        bucket: config.signedDocumentsBucket,
+        path: "token-details/20260122",
+        name: "20260122_105251_be59570c-fe5f-432b-a01c-cccc55b31ca7.ndjson.zip.p7m",
         content: mockFileContent,
       },
       expect.any(Object)
