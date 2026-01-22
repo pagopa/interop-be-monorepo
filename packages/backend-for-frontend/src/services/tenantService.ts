@@ -2,6 +2,7 @@ import {
   attributeRegistryApi,
   bffApi,
   tenantApi,
+  SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import { isDefined, Logger, WithLogger } from "pagopa-interop-commons";
 import {
@@ -10,7 +11,6 @@ import {
   CorrelationId,
   TenantId,
 } from "pagopa-interop-models";
-import { SelfcareV2InstitutionClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
   RegistryAttributesMap,
@@ -54,16 +54,14 @@ export function tenantServiceBuilder(
 
     try {
       const institution =
-        await selfcareV2InstitutionClient.institution.retrieveInstitutionByIdUsingGET(
-          {
-            params: {
-              id: selfcareId,
-            },
-            headers: {
-              "X-Correlation-Id": correlationId,
-            },
-          }
-        );
+        await selfcareV2InstitutionClient.retrieveInstitutionByIdUsingGET({
+          params: {
+            id: selfcareId,
+          },
+          headers: {
+            "X-Correlation-Id": correlationId,
+          },
+        });
 
       return institution.logo;
     } catch (error) {

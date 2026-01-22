@@ -71,12 +71,10 @@ import {
   purposeApi,
   purposeTemplateApi,
   tenantApi,
+  SelfcareV2UsersClient,
+  SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import { createApp, createServices } from "../src/app.js";
-import {
-  SelfcareV2InstitutionClient,
-  SelfcareV2UserClient,
-} from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 
 export const mockRateLimiter: RateLimiter = {
@@ -111,7 +109,7 @@ export const clients = {
     token: {},
   } as authorizationApi.AuthorizationProcessClient,
   selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
-  selfcareV2UserClient: {} as SelfcareV2UserClient,
+  selfcareV2UserClient: {} as SelfcareV2UsersClient,
   delegationProcessClient: {
     producer: {},
     consumer: {},

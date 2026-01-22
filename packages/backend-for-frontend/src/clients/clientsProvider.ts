@@ -5,9 +5,10 @@ import {
   agreementApi,
   purposeApi,
   authorizationApi,
-  selfcareV2ClientApi,
   selfcareV2InstitutionClientBuilder,
   selfcareV2UsersClientBuilder,
+  SelfcareV2InstitutionClient,
+  SelfcareV2UsersClient,
   delegationApi,
   eserviceTemplateApi,
   notificationConfigApi,
@@ -15,16 +16,6 @@ import {
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
-
-export type SelfcareV2InstitutionClient = {
-  institution: ReturnType<
-    typeof selfcareV2ClientApi.createInstitutionApiClient
-  >;
-};
-
-export type SelfcareV2UserClient = {
-  user: ReturnType<typeof selfcareV2ClientApi.createUserApiClient>;
-};
 
 export type PagoPAInteropBeClients = {
   tenantProcessClient: tenantApi.TenantProcessClient;
@@ -35,7 +26,7 @@ export type PagoPAInteropBeClients = {
   purposeTemplateProcessClient: purposeTemplateApi.PurposeTemplateProcessClient;
   authorizationClient: authorizationApi.AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
-  selfcareV2UserClient: SelfcareV2UserClient;
+  selfcareV2UserClient: SelfcareV2UsersClient;
   delegationProcessClient: delegationApi.DelegationProcessClient;
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient;
   notificationConfigProcessClient: notificationConfigApi.NotificationConfigProcessClient;
@@ -77,12 +68,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         config.authorizationUrl
       ),
     },
-    selfcareV2InstitutionClient: {
-      institution: selfcareV2InstitutionClientBuilder(config),
-    },
-    selfcareV2UserClient: {
-      user: selfcareV2UsersClientBuilder(config),
-    },
+    selfcareV2InstitutionClient: selfcareV2InstitutionClientBuilder(config),
+    selfcareV2UserClient: selfcareV2UsersClientBuilder(config),
     delegationProcessClient: {
       producer: delegationApi.createProducerApiClient(
         config.delegationProcessUrl
