@@ -1,4 +1,9 @@
-import { AgreementState, EServiceId, TenantId } from "pagopa-interop-models";
+import {
+  AgreementState,
+  EServiceId,
+  TenantId,
+  PurposeVersionState,
+} from "pagopa-interop-models";
 import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
 import {
   NewEservice,
@@ -11,6 +16,7 @@ import {
   ReadModelService,
   ReceivedAgreement,
   SentAgreement,
+  BasePurpose,
 } from "../services/readModelService.js";
 
 export type VerifiedAttribute =
@@ -288,6 +294,71 @@ export async function receivedAgreementsToBaseDigest(
     (agreement) => agreement.consumerId,
     readModelService
   );
+}
+
+/**
+ * Builds a link for a purpose item.
+ * TODO: Replace with actual link composition logic
+ */
+function buildPurposeLink(): string {
+  return "#";
+}
+
+/**
+ * Filters sent purposes by state and transforms to BaseDigest.
+ * Sent purposes are in Active/Rejected/WaitingForApproval states.
+ * Shows only purpose title (no tenant name needed per Figma design).
+ *
+ * @param data - Sent purpose data to filter and transform
+ * @param state - The purpose version state to filter by
+ */
+export function sentPurposesToBaseDigest(
+  data: BasePurpose[],
+  state: PurposeVersionState
+): BaseDigest {
+  const filteredData = data.filter((p) => p.state === state);
+
+  if (filteredData.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: filteredData.map((purpose) => ({
+      name: purpose.purposeTitle,
+      producerName: "",
+      link: buildPurposeLink(),
+    })),
+    totalCount: filteredData[0].totalCount,
+  };
+}
+
+/**
+ * Filters received purposes by state and transforms to BaseDigest.
+ * Received purposes are in Active/WaitingForApproval states.
+ * Shows purpose title and consumer name (who created the purpose).
+ * Consumer name is already included from the SQL join - no additional DB query needed.
+ *
+ * @param data - Received purpose data to filter and transform
+ * @param state - The purpose version state to filter by
+ */
+export function receivedPurposesToBaseDigest(
+  data: BasePurpose[],
+  state: PurposeVersionState
+): BaseDigest {
+  const filteredData = data.filter((p) => p.state === state);
+
+  if (filteredData.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: filteredData.map((purpose) => ({
+      name: purpose.purposeTitle,
+      producerName: purpose.consumerName,
+      link: buildPurposeLink(),
+    })),
+    totalCount: filteredData[0].totalCount,
+  };
 }
 
 /**
