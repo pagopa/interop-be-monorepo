@@ -1,6 +1,9 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
-import { NotificationType } from "pagopa-interop-models";
+import {
+  DigestNotificationType,
+  NotificationType,
+} from "pagopa-interop-models";
 import { z } from "zod";
 import {
   fromApiTenantMail,
@@ -57,6 +60,7 @@ export type UiSection =
   | "/erogazione/richieste"
   | "/erogazione/finalita"
   | "/erogazione/template-eservice"
+  | "/erogazione/catalogo-template"
   | "/erogazione/e-service"
   | "/erogazione/portachiavi"
   | "/fruizione"
@@ -139,3 +143,18 @@ export const categoryToNotificationTypes: Record<Category, NotificationType[]> =
     }),
     {} as Record<Category, NotificationType[]>
   );
+
+export const digestNotificationTypeToUiSection: Record<
+  DigestNotificationType,
+  UiSection
+> = {
+  eserviceCatalog: "/catalogo-e-service",
+  eserviceTemplateToCreator: "/erogazione/template-eservice",
+  eserviceTemplateToInstantiator: "/erogazione/catalogo-template",
+  agreementToProducer: "/erogazione/richieste",
+  agreementToConsumer: "/fruizione/richieste",
+  purposeToProducer: "/erogazione/finalita",
+  purposeToConsumer: "/fruizione/finalita",
+  delegation: "/aderente/deleghe",
+  attribute: "/aderente/anagrafica",
+} as const;
