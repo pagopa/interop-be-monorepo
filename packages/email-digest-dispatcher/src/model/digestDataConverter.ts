@@ -23,8 +23,8 @@ export type CertifiedAttribute =
 
 const UNKNOWN_NAME = "Unknown";
 
-type EntityWithProducer = {
-  entityProducerId: TenantId;
+type EntityWithTenant = {
+  tenantId: TenantId;
 };
 
 type EntityWithEService = {
@@ -32,24 +32,24 @@ type EntityWithEService = {
 };
 
 /**
- * Enriches items with producer names by batching tenant lookups.
+ * Enriches items with tenant names by batching tenant lookups.
+ * Can be used for any tenant type (producer, consumer, action performer, etc.)
  */
-async function enrichWithProducerNames<T extends EntityWithProducer>(
+async function enrichWithTenantNames<T extends EntityWithTenant>(
   items: T[],
   readModelService: ReadModelService
-): Promise<Array<T & { entityProducerName: string }>> {
+): Promise<Array<T & { tenantName: string }>> {
   if (items.length === 0) {
     return [];
   }
 
-  const uniqueProducerIds = [...new Set(items.map((i) => i.entityProducerId))];
+  const uniqueTenantIds = [...new Set(items.map((i) => i.tenantId))];
   const tenantNamesMap = await readModelService.getTenantsByIds(
-    uniqueProducerIds
+    uniqueTenantIds
   );
   return items.map((item) => ({
     ...item,
-    entityProducerName:
-      tenantNamesMap.get(item.entityProducerId) ?? UNKNOWN_NAME,
+    tenantName: tenantNamesMap.get(item.tenantId) ?? UNKNOWN_NAME,
   }));
 }
 
@@ -127,10 +127,10 @@ async function templateDataToBaseDigest<T extends TemplateDigestData>(
     return { items: [], totalCount: 0 };
   }
 
-  const enrichedItems = await enrichWithProducerNames(
+  const enrichedItems = await enrichWithTenantNames(
     data.map((item) => ({
       ...item,
-      entityProducerId: getProducerId(item),
+      tenantId: getProducerId(item),
     })),
     readModelService
   );
@@ -138,7 +138,7 @@ async function templateDataToBaseDigest<T extends TemplateDigestData>(
   return {
     items: enrichedItems.map((template) => ({
       name: template.eserviceTemplateName,
-      producerName: template.entityProducerName,
+      producerName: template.tenantName,
       link: buildEserviceTemplateLink(),
     })),
     totalCount: data[0].totalCount,
@@ -170,10 +170,10 @@ export async function eserviceToBaseDigest(
     return { items: [], totalCount: 0 };
   }
 
-  const enrichedItems = await enrichWithProducerNames(
+  const enrichedItems = await enrichWithTenantNames(
     data.map((item) => ({
       ...item,
-      entityProducerId: item.eserviceProducerId,
+      tenantId: item.eserviceProducerId,
     })),
     readModelService
   );
@@ -181,7 +181,7 @@ export async function eserviceToBaseDigest(
   return {
     items: enrichedItems.map((eservice) => ({
       name: eservice.eserviceName,
-      producerName: eservice.entityProducerName,
+      producerName: eservice.tenantName,
       link: buildEserviceLink(),
     })),
     totalCount: data[0].totalCount,
@@ -303,10 +303,10 @@ export async function verifiedAttributeToDigest(
     return { items: [], totalCount: 0 };
   }
 
-  const enrichedItems = await enrichWithProducerNames(
+  const enrichedItems = await enrichWithTenantNames(
     data.map((item) => ({
       ...item,
-      entityProducerId: item.actionPerformer,
+      tenantId: item.actionPerformer,
     })),
     readModelService
   );
@@ -314,7 +314,7 @@ export async function verifiedAttributeToDigest(
   return {
     items: enrichedItems.map((attr) => ({
       name: attr.attributeName,
-      producerName: attr.entityProducerName,
+      producerName: attr.tenantName,
       link: buildAttributeLink(),
       attributeKind: "verified" as const,
     })),
