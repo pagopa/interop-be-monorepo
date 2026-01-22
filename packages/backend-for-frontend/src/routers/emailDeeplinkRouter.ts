@@ -6,15 +6,23 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { emptyErrorMapper, NotificationType } from "pagopa-interop-models";
+import {
+  badRequestError,
+  DigestNotificationType,
+  emptyErrorMapper,
+  NotificationType,
+} from "pagopa-interop-models";
 import { fromBffAppContext } from "../utilities/context.js";
 import { makeApiProblem } from "../model/errors.js";
 import { config } from "../config/config.js";
-import { notificationTypeToUiSection } from "../model/modelMappingUtils.js";
+import {
+  digestNotificationTypeToUiSection,
+  notificationTypeToUiSection,
+} from "../model/modelMappingUtils.js";
 
-const emailDeeplinkRouter = (
+const emailDeeplinkRouters = (
   ctx: ZodiosContext
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const emailDeeplinkRouter = ctx.router(bffApi.emailDeepLinkApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
@@ -44,7 +52,47 @@ const emailDeeplinkRouter = (
     }
   );
 
-  return emailDeeplinkRouter;
+  const digestEmailDeeplinkRouter = ctx.router(
+    bffApi.digestEmailDeepLinkApi.api,
+    {
+      validationErrorHandler: zodiosValidationErrorToApiProblem,
+    }
+  );
+  digestEmailDeeplinkRouter.get(
+    "/emailDeepLink/:digestNotificationType",
+    async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      // query param and not path param because it is optional
+      const { entityId } = req.query;
+
+      try {
+        const parseResult = DigestNotificationType.safeParse(
+          req.params.digestNotificationType
+        );
+        if (!parseResult.success) {
+          throw badRequestError(
+            `Invalid digest notification type: ${req.params.digestNotificationType}`
+          );
+        }
+        const notificationType = parseResult.data;
+        const path = entityId
+          ? `${digestNotificationTypeToUiSection[notificationType]}/${entityId}`
+          : digestNotificationTypeToUiSection[notificationType];
+        const url = `${config.frontendBaseUrl}${path}`;
+        return res.redirect(url);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error generating email deepLink for digest"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    }
+  );
+
+  return [emailDeeplinkRouter, digestEmailDeeplinkRouter];
 };
 
-export default emailDeeplinkRouter;
+export default emailDeeplinkRouters;
