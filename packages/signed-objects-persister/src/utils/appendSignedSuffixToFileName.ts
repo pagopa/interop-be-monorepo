@@ -11,12 +11,7 @@ export const appendSignedSuffixToFileName = (
   const { name } = path.parse(fileName);
 
   return match(fileKind)
-    .with(
-      FileKindSchema.Enum.EVENT_JOURNAL,
-      () =>
-        // Since EVENT_JOURNAL has double extension (.ndjson.zip) we need to remove the remaining extension
-        `${path.parse(name).name}.json.zip.p7m`
-    )
+    .with(FileKindSchema.Enum.EVENT_JOURNAL, () => `${name}.zip.p7m`)
     .with(FileKindSchema.Enum.VOUCHER_AUDIT, () => `${name}.ndjson.zip.p7m`)
     .otherwise(() => `${name}${ext}`);
 };
