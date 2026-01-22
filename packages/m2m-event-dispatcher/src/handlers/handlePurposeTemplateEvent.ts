@@ -1,6 +1,9 @@
 import {
-  PurposeTemplateEventEnvelopeV2,
+  DescriptorId,
+  EServiceId,
+  PurposeTemplateEventEnvelope,
   fromPurposeTemplateV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
@@ -10,20 +13,15 @@ import { createPurposeTemplateM2MEvent } from "../services/event-builders/purpos
 import { toPurposeTemplateM2MEventSQL } from "../models/purposeTemplateM2MEventAdapterSQL.js";
 
 export async function handlePurposeTemplateEvent(
-  decodedMessage: PurposeTemplateEventEnvelopeV2,
+  decodedMessage: PurposeTemplateEventEnvelope,
   eventTimestamp: Date,
   logger: Logger,
   m2mEventWriterService: M2MEventWriterServiceSQL
 ): Promise<void> {
-  // 1. Validazione e parsing dei dati comuni
   assertPurposeTemplateExistsInEvent(decodedMessage);
   const purposeTemplate = fromPurposeTemplateV2(
     decodedMessage.data.purposeTemplate
   );
-  console.log("DEBUG purposeTemplate----", purposeTemplate);
-  console.log("DEBUG decodedMessage-----", decodedMessage);
-
-  // 2. Gestione eventi specifici
   return match(decodedMessage)
     .with(
       {
@@ -40,8 +38,6 @@ export async function handlePurposeTemplateEvent(
       {
         type: P.union(
           "PurposeTemplateAdded",
-          "PurposeTemplateEServiceLinked",
-          "PurposeTemplateEServiceUnlinked",
           "PurposeTemplateAnnotationDocumentAdded",
           "PurposeTemplateAnnotationDocumentUpdated",
           "PurposeTemplateAnnotationDocumentDeleted",
@@ -64,10 +60,27 @@ export async function handlePurposeTemplateEvent(
           event.type,
           eventTimestamp,
         );
-
-        console.log("DEBUG m2mEvent-----", m2mEvent);
-
-        // Scrittura su DB
+        await m2mEventWriterService.insertPurposeTemplateM2MEvent(
+          toPurposeTemplateM2MEventSQL(m2mEvent)
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union("PurposeTemplateEServiceLinked", "PurposeTemplateEServiceUnlinked"),
+      },
+      async (event) => {
+        logger.info(
+          `Creating Purpose Template M2M Event - type ${event.type}, purposeTemplateId ${purposeTemplate.id}, eserviceId ${event.data.eservice?.id}`
+        );
+        const m2mEvent = await createPurposeTemplateM2MEvent(
+          purposeTemplate,
+          event.version,
+          event.type,
+          eventTimestamp,
+          event.data.eservice?.id ? unsafeBrandId<EServiceId>(event.data.eservice.id) : undefined,
+          event.data.descriptorId ? unsafeBrandId<DescriptorId>(event.data.descriptorId) : undefined
+        );
         await m2mEventWriterService.insertPurposeTemplateM2MEvent(
           toPurposeTemplateM2MEventSQL(m2mEvent)
         );

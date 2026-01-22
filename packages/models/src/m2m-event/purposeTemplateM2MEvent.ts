@@ -1,5 +1,7 @@
 import { z } from "zod";
 import {
+    DescriptorId,
+    EServiceId,
     PurposeTemplateId,
     PurposeTemplateM2MEventId,
     TenantId,
@@ -43,8 +45,9 @@ export const PurposeTemplateM2MEvent = z.object({
     visibility: M2MEventVisibility.extract([
         m2mEventVisibility.owner,
         m2mEventVisibility.public,
-        // No Purpose M2M events with Public visibility
     ]),
+    eserviceId: EServiceId.optional(),
+    descriptorId: DescriptorId.optional(),
 });
 
 export type PurposeTemplateM2MEvent = z.infer<typeof PurposeTemplateM2MEvent>;

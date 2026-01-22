@@ -93,7 +93,6 @@ describe("handlePurposeTemplateEvent test", async () => {
             type: eventType,
             data: {
               purposeTemplate: toPurposeTemplateV2(purposeTemplate),
-              // Se l'evento è un Linked/Unlinked, aggiungeresti qui eserviceId e descriptorId
               eserviceId: eventType.includes("Linked") ? generateId() : undefined,
               descriptorId: eventType.includes("Linked") ? generateId() : undefined,
             },

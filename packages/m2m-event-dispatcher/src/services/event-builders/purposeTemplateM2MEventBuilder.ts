@@ -4,6 +4,8 @@ import {
   PurposeTemplateM2MEvent,
   purposeTemplateState,
   m2mEventVisibility,
+  DescriptorId,
+  EServiceId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { generateM2MEventId } from "../../utils/uuidv7.js";
@@ -17,6 +19,8 @@ export async function createPurposeTemplateM2MEvent(
   resourceVersion: number,
   eventType: PurposeTemplateM2MEvent["eventType"],
   eventTimestamp: Date,
+  eserviceId?: EServiceId,
+  descriptorId?: DescriptorId
 ): Promise<PurposeTemplateM2MEvent> {
   return {
     id: generateM2MEventId(),
@@ -29,6 +33,8 @@ export async function createPurposeTemplateM2MEvent(
       eventType,
       purposeTemplate
     ),
+    eserviceId,
+    descriptorId,
   };
 }
 
