@@ -273,6 +273,9 @@ export type AgreementM2MEventId = z.infer<typeof AgreementM2MEventId>;
 export const PurposeM2MEventId = z.string().uuid().brand("PurposeM2MEventId");
 export type PurposeM2MEventId = z.infer<typeof PurposeM2MEventId>;
 
+export const PurposeTemplateM2MEventId = z.string().uuid().brand("PurposeTemplateM2MEventId");
+export type PurposeTemplateM2MEventId = z.infer<typeof PurposeTemplateM2MEventId>;
+
 export const DelegationM2MEventId = z
   .string()
   .uuid()
