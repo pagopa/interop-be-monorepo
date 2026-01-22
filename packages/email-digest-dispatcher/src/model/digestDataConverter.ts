@@ -1,9 +1,4 @@
-import {
-  AgreementState,
-  EServiceId,
-  TenantId,
-  PurposeVersionState,
-} from "pagopa-interop-models";
+import { AgreementState, EServiceId, TenantId } from "pagopa-interop-models";
 import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
 import {
   NewEservice,
@@ -16,7 +11,10 @@ import {
   ReadModelService,
   ReceivedAgreement,
   SentAgreement,
-  BasePurpose,
+  SentPurpose,
+  SentPurposeState,
+  ReceivedPurpose,
+  ReceivedPurposeState,
 } from "../services/readModelService.js";
 
 export type VerifiedAttribute =
@@ -313,8 +311,8 @@ function buildPurposeLink(): string {
  * @param state - The purpose version state to filter by
  */
 export function sentPurposesToBaseDigest(
-  data: BasePurpose[],
-  state: PurposeVersionState
+  data: SentPurpose[],
+  state: SentPurposeState
 ): BaseDigest {
   const filteredData = data.filter((p) => p.state === state);
 
@@ -342,8 +340,8 @@ export function sentPurposesToBaseDigest(
  * @param state - The purpose version state to filter by
  */
 export function receivedPurposesToBaseDigest(
-  data: BasePurpose[],
-  state: PurposeVersionState
+  data: ReceivedPurpose[],
+  state: ReceivedPurposeState
 ): BaseDigest {
   const filteredData = data.filter((p) => p.state === state);
 

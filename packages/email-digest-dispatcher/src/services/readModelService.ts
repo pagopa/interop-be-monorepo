@@ -125,14 +125,32 @@ export type PopularEserviceTemplate = {
 };
 
 // Base type for purpose data shared between sent and received purposes
-export type BasePurpose = {
+type BasePurpose = {
   purposeId: PurposeId;
   purposeTitle: string;
   consumerId: TenantId;
-  consumerName: string;
   actionDate: string;
   totalCount: number;
-  state: PurposeVersionState;
+};
+
+// Sent purposes: Active, Rejected, WaitingForApproval states
+export type SentPurposeState =
+  | typeof purposeVersionState.active
+  | typeof purposeVersionState.rejected
+  | typeof purposeVersionState.waitingForApproval;
+
+export type SentPurpose = BasePurpose & {
+  state: SentPurposeState;
+};
+
+// Received purposes: Active, WaitingForApproval states, includes consumerName
+export type ReceivedPurposeState =
+  | typeof purposeVersionState.active
+  | typeof purposeVersionState.waitingForApproval;
+
+export type ReceivedPurpose = BasePurpose & {
+  state: ReceivedPurposeState;
+  consumerName: string;
 };
 
 /**
@@ -202,7 +220,7 @@ async function getCachedEntities<K, V>(
  */
 function groupAndMapSentPurposeResults(
   results: SentPurposeQueryResult[]
-): BasePurpose[] {
+): SentPurpose[] {
   const groupedByState = results.reduce((acc, row) => {
     const stateResults = acc.get(row.state) ?? [];
     return new Map(acc).set(row.state, [...stateResults, row]);
@@ -215,8 +233,7 @@ function groupAndMapSentPurposeResults(
         purposeId: unsafeBrandId<PurposeId>(row.purposeId),
         purposeTitle: row.purposeTitle,
         consumerId: unsafeBrandId<TenantId>(row.consumerId),
-        consumerName: "",
-        state: PurposeVersionState.parse(state),
+        state: PurposeVersionState.parse(state) as SentPurposeState,
         actionDate: row.actionDate,
         totalCount,
       }));
@@ -231,7 +248,7 @@ function groupAndMapSentPurposeResults(
  */
 function groupAndMapReceivedPurposeResults(
   results: ReceivedPurposeQueryResult[]
-): BasePurpose[] {
+): ReceivedPurpose[] {
   const groupedByState = results.reduce((acc, row) => {
     const stateResults = acc.get(row.state) ?? [];
     return new Map(acc).set(row.state, [...stateResults, row]);
@@ -245,7 +262,7 @@ function groupAndMapReceivedPurposeResults(
         purposeTitle: row.purposeTitle,
         consumerId: unsafeBrandId<TenantId>(row.consumerId),
         consumerName: row.consumerName,
-        state: PurposeVersionState.parse(state),
+        state: PurposeVersionState.parse(state) as ReceivedPurposeState,
         actionDate: row.actionDate,
         totalCount,
       }));
@@ -1109,7 +1126,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Uses COALESCE(updated_at, created_at) as the action date.
      * Limited to 5 per state.
      */
-    async getSentPurposes(consumerId: TenantId): Promise<BasePurpose[]> {
+    async getSentPurposes(consumerId: TenantId): Promise<SentPurpose[]> {
       logger.info(
         `Retrieving sent purposes for consumer ${consumerId} since ${dateThreshold.toISOString()}`
       );
@@ -1182,7 +1199,9 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Includes consumer name via join with tenant table.
      * Limited to 5 per state.
      */
-    async getReceivedPurposes(producerId: TenantId): Promise<BasePurpose[]> {
+    async getReceivedPurposes(
+      producerId: TenantId
+    ): Promise<ReceivedPurpose[]> {
       logger.info(
         `Retrieving received purposes for producer ${producerId} since ${dateThreshold.toISOString()}`
       );
