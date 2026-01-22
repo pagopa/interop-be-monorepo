@@ -120,9 +120,10 @@ describe("getUserById", () => {
     );
     const result = await callService();
     expect(result).toEqual({
-      id: userId,
-      firstName: "Mario",
-      lastName: "Rossi",
+      userId: mockCorrectUser[0].id,
+      name: mockCorrectUser[0].name,
+      familyName: mockCorrectUser[0].surname,
+      roles: mockCorrectUser[0].roles,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,

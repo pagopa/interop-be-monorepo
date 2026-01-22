@@ -22,9 +22,10 @@ describe("API GET /users/:userId", () => {
     role: "ADMIN_EA",
   };
   const mockResponse: m2mGatewayApiV3.User = {
-    id: mockUserResource.id,
-    firstName: mockUserResource.name,
-    lastName: mockUserResource.surname,
+    userId: mockUserResource.id,
+    name: mockUserResource.name,
+    familyName: mockUserResource.surname,
+    roles: mockUserResource.roles ?? [],
   };
 
   beforeEach(() => {

@@ -158,9 +158,10 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       const results: m2mGatewayApiV3.User = {
-        id: user.id,
-        firstName: user.name,
-        lastName: user.surname,
+        userId: user.id,
+        name: user.name,
+        familyName: user.surname,
+        roles: user.roles ?? [],
       };
 
       return results;
