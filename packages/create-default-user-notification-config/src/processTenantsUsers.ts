@@ -218,13 +218,15 @@ async function ensureUserNotificationConfig(
     );
 
     logger.info(
-      `Successfully ensured notification config for user ${userId}, tenant ${tenantId}, roles ${apiRoles.join(", ")}`
+      `Successfully ensured notification config for user ${userId}, tenant ${tenantId}, roles ${apiRoles.join(
+        ", "
+      )}`
     );
   } catch (error) {
     logger.error(
-      `Failed to ensure notification config for user ${userId}, tenant ${tenantId}, roles ${apiRoles.join(", ")}: ${
-        error instanceof Error ? error.message : String(error)
-      }`
+      `Failed to ensure notification config for user ${userId}, tenant ${tenantId}, roles ${apiRoles.join(
+        ", "
+      )}: ${error instanceof Error ? error.message : String(error)}`
     );
     throw error;
   }

@@ -294,7 +294,9 @@ export function notificationConfigServiceBuilder(
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<UserNotificationConfig> {
       logger.info(
-        `Checking to ensure that a user notification configuration for user ${userId} in tenant ${tenantId} exists and includes roles ${userRoles.join(", ")}`
+        `Checking to ensure that a user notification configuration for user ${userId} in tenant ${tenantId} exists and includes roles ${userRoles.join(
+          ", "
+        )}`
       );
 
       const existingConfig =
@@ -306,7 +308,9 @@ export function notificationConfigServiceBuilder(
       return match(existingConfig)
         .with(undefined, async () => {
           logger.info(
-            `Creating new default user notification configuration for user ${userId} in tenant ${tenantId} with roles ${userRoles.join(", ")}`
+            `Creating new default user notification configuration for user ${userId} in tenant ${tenantId} with roles ${userRoles.join(
+              ", "
+            )}`
           );
           const userNotificationConfig: UserNotificationConfig = {
             id: generateId<UserNotificationConfigId>(),
@@ -339,13 +343,17 @@ export function notificationConfigServiceBuilder(
 
           if (missingRoles.length === 0) {
             logger.info(
-              `User notification configuration for user ${userId} in tenant ${tenantId} already exists and has all roles ${userRoles.join(", ")}, no update needed`
+              `User notification configuration for user ${userId} in tenant ${tenantId} already exists and has all roles ${userRoles.join(
+                ", "
+              )}, no update needed`
             );
             return existingConfig.data;
           }
 
           logger.info(
-            `Adding roles ${missingRoles.join(", ")} to existing user notification configuration for user ${userId} in tenant ${tenantId}`
+            `Adding roles ${missingRoles.join(
+              ", "
+            )} to existing user notification configuration for user ${userId} in tenant ${tenantId}`
           );
           const updatedRoles = [
             ...existingConfig.data.userRoles,
