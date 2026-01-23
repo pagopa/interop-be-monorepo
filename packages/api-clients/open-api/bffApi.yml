@@ -29309,7 +29309,6 @@ components:
         - type
         - status
         - title
-        - errors
     UpdateEServiceTemplateVersionSeed:
       required:
         - voucherLifespan
