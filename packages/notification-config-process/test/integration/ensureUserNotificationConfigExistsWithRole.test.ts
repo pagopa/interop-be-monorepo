@@ -239,7 +239,11 @@ describe("createUserNotificationConfig", () => {
 
     const expectedFinalUserNotificationConfig: UserNotificationConfig = {
       ...userNotificationConfig,
-      userRoles: [userRole.SECURITY_ROLE, userRole.ADMIN_ROLE, userRole.API_ROLE],
+      userRoles: [
+        userRole.SECURITY_ROLE,
+        userRole.ADMIN_ROLE,
+        userRole.API_ROLE,
+      ],
       updatedAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedFinalUserNotificationConfig);

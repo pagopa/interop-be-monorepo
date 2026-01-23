@@ -357,28 +357,34 @@ export function notificationConfigServiceBuilder(
           );
           // Emit one event per missing role to maintain event granularity
           // Each event contains the config state after that specific role was added
-          let currentVersion = existingConfig.metadata.version;
-          let currentRoles = [...existingConfig.data.userRoles];
-          let userNotificationConfig: UserNotificationConfig =
-            existingConfig.data;
-          for (const missingRole of missingRoles) {
-            currentRoles = [...currentRoles, missingRole];
-            userNotificationConfig = {
-              ...existingConfig.data,
-              userRoles: [currentRoles[0], ...currentRoles.slice(1)],
-              updatedAt: new Date(),
-            };
-            const event = toCreateEventUserNotificationConfigRoleAdded(
-              existingConfig.data.id,
-              currentVersion,
-              userNotificationConfig,
-              missingRole,
-              correlationId
-            );
-            await repository.createEvent(event);
-            currentVersion++;
-          }
-          return userNotificationConfig;
+          const finalState = await missingRoles.reduce(
+            async (accPromise, missingRole, index) => {
+              const acc = await accPromise;
+              const updatedRoles = [...acc.currentRoles, missingRole];
+              const userNotificationConfig: UserNotificationConfig = {
+                ...existingConfig.data,
+                userRoles: [updatedRoles[0], ...updatedRoles.slice(1)],
+                updatedAt: new Date(),
+              };
+              const event = toCreateEventUserNotificationConfigRoleAdded(
+                existingConfig.data.id,
+                existingConfig.metadata.version + index,
+                userNotificationConfig,
+                missingRole,
+                correlationId
+              );
+              await repository.createEvent(event);
+              return {
+                currentRoles: updatedRoles,
+                userNotificationConfig,
+              };
+            },
+            Promise.resolve({
+              currentRoles: [...existingConfig.data.userRoles],
+              userNotificationConfig: existingConfig.data,
+            })
+          );
+          return finalState.userNotificationConfig;
         });
     },
 
