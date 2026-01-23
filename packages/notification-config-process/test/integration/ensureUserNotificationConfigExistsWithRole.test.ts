@@ -19,6 +19,7 @@ import {
   addOneUserNotificationConfig,
   notificationConfigService,
   readLastNotificationConfigEvent,
+  readNotificationConfigEventByVersion,
 } from "../integrationUtils.js";
 
 describe("createUserNotificationConfig", () => {
@@ -205,7 +206,8 @@ describe("createUserNotificationConfig", () => {
       tenantId: newTenantId,
       userRoles: [userRole.ADMIN_ROLE, userRole.API_ROLE],
       inAppNotificationPreference: false,
-      emailNotificationPreference: emailNotificationPreference.disabled,
+      emailNotificationPreference: false,
+      emailDigestPreference: false,
       inAppConfig: defaultInAppConfig,
       emailConfig: defaultEmailConfig,
       createdAt: new Date(),
@@ -213,6 +215,73 @@ describe("createUserNotificationConfig", () => {
     expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
     expect(writtenPayload.userNotificationConfig).toEqual(
       toUserNotificationConfigV2(expectedUserNotificationConfig)
+    );
+  });
+
+  it("should write two events when adding two missing roles to an existing config", async () => {
+    const newUserId: UserId = generateId();
+    const newTenantId: TenantId = generateId();
+    const userNotificationConfig: UserNotificationConfig = {
+      ...getMockUserNotificationConfig(),
+      userId: newUserId,
+      tenantId: newTenantId,
+      userRoles: [userRole.SECURITY_ROLE],
+    };
+    await addOneUserNotificationConfig(userNotificationConfig);
+
+    const serviceReturnValue =
+      await notificationConfigService.ensureUserNotificationConfigExistsWithRoles(
+        newUserId,
+        newTenantId,
+        [userRole.ADMIN_ROLE, userRole.API_ROLE],
+        getMockContextInternal({})
+      );
+
+    const expectedFinalUserNotificationConfig: UserNotificationConfig = {
+      ...userNotificationConfig,
+      userRoles: [userRole.SECURITY_ROLE, userRole.ADMIN_ROLE, userRole.API_ROLE],
+      updatedAt: new Date(),
+    };
+    expect(serviceReturnValue).toEqual(expectedFinalUserNotificationConfig);
+
+    // Read the last event (version 2) - should be the second role addition
+    const lastEvent = await readLastNotificationConfigEvent(
+      serviceReturnValue.id
+    );
+    expect(lastEvent.stream_id).toBe(userNotificationConfig.id);
+    expect(lastEvent.version).toBe("2");
+    expect(lastEvent.type).toBe("UserNotificationConfigRoleAdded");
+    expect(lastEvent.event_version).toBe(2);
+
+    const lastEventPayload = decodeProtobufPayload({
+      messageType: UserNotificationConfigRoleAddedV2,
+      payload: lastEvent.data,
+    });
+    expect(lastEventPayload.userNotificationConfig).toEqual(
+      toUserNotificationConfigV2(expectedFinalUserNotificationConfig)
+    );
+
+    // Read the previous event (version 1) - should be the first role addition
+    const firstRoleEvent = await readNotificationConfigEventByVersion(
+      serviceReturnValue.id,
+      1
+    );
+    expect(firstRoleEvent.stream_id).toBe(userNotificationConfig.id);
+    expect(firstRoleEvent.version).toBe("1");
+    expect(firstRoleEvent.type).toBe("UserNotificationConfigRoleAdded");
+    expect(firstRoleEvent.event_version).toBe(2);
+
+    const firstRoleEventPayload = decodeProtobufPayload({
+      messageType: UserNotificationConfigRoleAddedV2,
+      payload: firstRoleEvent.data,
+    });
+    const expectedAfterFirstRoleConfig: UserNotificationConfig = {
+      ...userNotificationConfig,
+      userRoles: [userRole.SECURITY_ROLE, userRole.ADMIN_ROLE],
+      updatedAt: new Date(),
+    };
+    expect(firstRoleEventPayload.userNotificationConfig).toEqual(
+      toUserNotificationConfigV2(expectedAfterFirstRoleConfig)
     );
   });
 });

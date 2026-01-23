@@ -355,25 +355,28 @@ export function notificationConfigServiceBuilder(
               ", "
             )} to existing user notification configuration for user ${userId} in tenant ${tenantId}`
           );
-          const updatedRoles = [
-            ...existingConfig.data.userRoles,
-            ...missingRoles,
-          ];
-          const userNotificationConfig: UserNotificationConfig = {
-            ...existingConfig.data,
-            userRoles: [updatedRoles[0], ...updatedRoles.slice(1)],
-            updatedAt: new Date(),
-          };
           // Emit one event per missing role to maintain event granularity
+          // Each event contains the config state after that specific role was added
+          let currentVersion = existingConfig.metadata.version;
+          let currentRoles = [...existingConfig.data.userRoles];
+          let userNotificationConfig: UserNotificationConfig =
+            existingConfig.data;
           for (const missingRole of missingRoles) {
+            currentRoles = [...currentRoles, missingRole];
+            userNotificationConfig = {
+              ...existingConfig.data,
+              userRoles: [currentRoles[0], ...currentRoles.slice(1)],
+              updatedAt: new Date(),
+            };
             const event = toCreateEventUserNotificationConfigRoleAdded(
               existingConfig.data.id,
-              existingConfig.metadata.version,
+              currentVersion,
               userNotificationConfig,
               missingRole,
               correlationId
             );
             await repository.createEvent(event);
+            currentVersion++;
           }
           return userNotificationConfig;
         });
