@@ -50,7 +50,7 @@ export function toBffEServiceTemplateDetails(
   };
 }
 
-export function toBffCatalogEServiceTemplateCompactOrganization(
+export function toBffCatalogEServiceTemplateCreator(
   organization: tenantApi.Tenant,
   hasNotifications?: boolean
 ): bffApi.CompactOrganization {
@@ -80,7 +80,7 @@ export function toBffCatalogEServiceTemplate(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     description: eserviceTemplate.intendedTarget,
-    creator: toBffCatalogEServiceTemplateCompactOrganization(creator),
+    creator: toBffCatalogEServiceTemplateCreator(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
 }

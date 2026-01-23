@@ -26696,7 +26696,7 @@ components:
         selfcareId:
           type: string
           format: uuid
-    CatalogEServiceTemplateCompactOrganization:
+    CatalogTemplateCreator:
       type: object
       additionalProperties: false
       required:
@@ -27361,7 +27361,7 @@ components:
         purposeDescription:
           type: string
         creator:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTemplateCreator"
     CatalogPurposeTemplates:
       type: object
       additionalProperties: false
@@ -29237,7 +29237,7 @@ components:
         description:
           type: string
         creator:
-          $ref: "#/components/schemas/CatalogEServiceTemplateCompactOrganization"
+          $ref: "#/components/schemas/CatalogTemplateCreator"
         publishedVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     ProducerEServiceTemplate:
