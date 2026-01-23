@@ -28,8 +28,13 @@ export function parseAuthHeader(req: Request): string | undefined {
 }
 
 export function parseDPoPHeader(req: Request): string | undefined {
-  const parsed = z.string().min(1).safeParse(req.headers.dpop);
-  return parsed.success ? parsed.data : undefined;
+  // check for existence and type (non-empty string)
+  const parsed = z.object({ dpop: z.string().min(1) }).safeParse(req.headers);
+
+  if (parsed.success) {
+    return parsed.data.dpop;
+  }
+  return undefined;
 }
 
 export function jwtFromAuthHeader(req: Request, logger: Logger): string {
@@ -58,23 +63,23 @@ export function jwtsFromAuthAndDPoPHeaders(
     throw missingHeader("Authorization");
   }
 
-  const authHeaderParts = authHeader.split(" ");
-  if (authHeaderParts.length !== 2 || authHeaderParts[0] !== "DPoP") {
+  const [scheme, accessToken] = authHeader.split(" ");
+  if (scheme !== "DPoP" || !accessToken) {
     logger.warn(
       `Invalid authentication provided for this call ${req.method} ${req.url}`
     );
     throw badDPoPToken;
   }
 
-  // check for missing DPoP header key
+  // check for missing DPoP header
   if (req.headers.dpop === undefined) {
     logger.warn(`Missing DPoP proof for this call ${req.method} ${req.url}`);
     throw missingHeader("DPoP");
   }
 
-  // check for missing malformed DPoP header value
-  const dpopHeader = parseDPoPHeader(req);
-  if (!dpopHeader) {
+  // check for malformed DPoP header value
+  const dpopProofJWS = parseDPoPHeader(req);
+  if (!dpopProofJWS) {
     logger.warn(
       `Invalid authentication provided for this call ${req.method} ${req.url}: malformed DPoP header`
     );
@@ -82,8 +87,8 @@ export function jwtsFromAuthAndDPoPHeaders(
   }
 
   return {
-    accessToken: authHeaderParts[1],
-    dpopProofJWS: dpopHeader,
+    accessToken,
+    dpopProofJWS,
   };
 }
 
