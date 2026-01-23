@@ -50,6 +50,18 @@ export function toBffEServiceTemplateDetails(
   };
 }
 
+export function toBffCatalogEServiceTemplateCompactOrganization(
+  organization: tenantApi.Tenant,
+  hasNotifications?: boolean
+): bffApi.CompactOrganization {
+  return {
+    id: organization.id,
+    name: organization.name,
+    hasUnreadNotifications: hasNotifications || false,
+    selfcareId: organization.selfcareId,
+  };
+}
+
 export function toBffCatalogEServiceTemplate(
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
   creator: tenantApi.Tenant
@@ -68,7 +80,7 @@ export function toBffCatalogEServiceTemplate(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     description: eserviceTemplate.intendedTarget,
-    creator: toBffCompactOrganization(creator),
+    creator: toBffCatalogEServiceTemplateCompactOrganization(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
 }

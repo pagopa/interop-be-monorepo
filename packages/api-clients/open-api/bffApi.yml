@@ -26696,6 +26696,24 @@ components:
         selfcareId:
           type: string
           format: uuid
+    CatalogEServiceTemplateCompactOrganization:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hasUnreadNotifications:
+          type: boolean
+          description: Indicates if there are unread notifications for this organization
+        selfcareId:
+          type: string
+          format: uuid
     TenantKind:
       type: string
       enum:
@@ -29219,7 +29237,7 @@ components:
         description:
           type: string
         creator:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogEServiceTemplateCompactOrganization"
         publishedVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     ProducerEServiceTemplate:
