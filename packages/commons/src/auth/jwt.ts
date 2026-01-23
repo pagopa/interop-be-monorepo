@@ -10,7 +10,6 @@ import { JWTConfig } from "../config/httpServiceConfig.js";
 import {
   AuthTokenDPoPPayload,
   AuthTokenPayload,
-  CNF,
 } from "../interop-token/models.js";
 import { buildJwksClients } from "./jwk.js";
 import {
@@ -43,18 +42,9 @@ export const readAuthDataFromJwtToken = (
   }
 };
 
-export const readAuthDataFromDPoPJwtToken = (
-  payload: JwtPayload | string
-): AuthData => {
-  // Here we use ONLY the DPoP validator. If 'cnf' is missing, the parse fails.
-  const result = AuthTokenDPoPPayload.safeParse(payload);
-
-  if (!result.success) {
-    throw invalidClaim(result.error); // Or a specific error "Invalid DPoP Token"
-  }
-  return getAuthDataFromToken(result.data);
-};
-
+// verify with AuthTokenDPoPPayload schema
+// if not necessary use verifyAccessTokenIsDPoP instead
+// and DELETE type/schema AuthTokenDPoPPayload
 export const verifyAccessTokenIsDPoP = (
   payload: JwtPayload | string
 ): AuthTokenDPoPPayload => {
@@ -66,11 +56,13 @@ export const verifyAccessTokenIsDPoP = (
   return result.data;
 };
 
-// can be used verifyAccessTokenIsDPoP
-export const isDPoPToken = (
-  input: JwtPayload | string
-): input is JwtPayload & typeof CNF =>
-  typeof input !== "string" && input.cnf !== undefined && input.cnf !== null;
+export const isDPoPToken = (input: JwtPayload | string): boolean =>
+  AuthTokenDPoPPayload.safeParse(input).success;
+
+// export const isDPoPToken = (
+//   input: JwtPayload | string
+// ): input is JwtPayload & typeof CNF =>
+//   typeof input !== "string" && input.cnf !== undefined && input.cnf !== null;
 
 export const verifyJwtToken = async (
   jwtToken: string,
@@ -78,8 +70,6 @@ export const verifyJwtToken = async (
   logger: Logger
   // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Promise<{ decoded: JwtPayload | string }> => {
-  // ONLY for error handling: try to extract user info from token
-  // not really need to strict check here, just extract what is possible
   const extractUserInfoForFailedToken = (): AuthDataUserInfo => {
     try {
       const decoded = decodeJwtToken(jwtToken, logger);
@@ -87,10 +77,9 @@ export const verifyJwtToken = async (
         logger.warn("Failed to decode JWT token");
         return getUserInfoFromAuthData(undefined);
       }
+
       try {
-        const authData = isDPoPToken(decoded)
-          ? readAuthDataFromDPoPJwtToken(decoded)
-          : readAuthDataFromJwtToken(decoded);
+        const authData = readAuthDataFromJwtToken(decoded);
         return getUserInfoFromAuthData(authData);
       } catch (authDataError) {
         logger.warn(`Invalid auth data from JWT token: ${authDataError}`);

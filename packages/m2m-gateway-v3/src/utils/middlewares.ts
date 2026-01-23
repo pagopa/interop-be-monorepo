@@ -129,7 +129,7 @@ export const authenticationDPoPMiddleware: (
       );
 
       // ----------------------------------------------------------------------
-      // Step 2 – Access Token Validation (Gatekeeper)
+      // Step 2 – Access Token Validation
       // verify JWT Access Token
       // ----------------------------------------------------------------------
       const { decoded: accessTokenDecoded } = await verifyJwtToken(
@@ -142,7 +142,7 @@ export const authenticationDPoPMiddleware: (
       // Step 3 – Access Token Binding Verification (cnf)
       // verify all claims (cnf included) are all present in JWT Token (Binding DPoP)
       // ----------------------------------------------------------------------
-      verifyAccessTokenIsDPoP(accessTokenDecoded);
+      const accessTokenDPoP = verifyAccessTokenIsDPoP(accessTokenDecoded);
 
       // ----------------------------------------------------------------------
       // Step 4a & 4b – DPoP Proof Validation (Static & Crypto)
@@ -151,7 +151,7 @@ export const authenticationDPoPMiddleware: (
       const { dpopProofJWT } = await validateDPoPProof(
         config,
         dpopProofJWS,
-        "1",
+        accessTokenDPoP.client_id,
         ctx.logger
       );
       if (!dpopProofJWT) {
@@ -180,7 +180,7 @@ export const authenticationDPoPMiddleware: (
       // verify binding key between DPoP Proof and JWT Access Token
       // ----------------------------------------------------------------------
 
-      verifyDPoPThumbprintMatch(dpopProofJWT, accessTokenDecoded, ctx.logger);
+      verifyDPoPThumbprintMatch(dpopProofJWT, accessTokenDPoP, ctx.logger);
 
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = readAuthDataFromJwtToken(accessTokenDecoded);
@@ -192,7 +192,13 @@ export const authenticationDPoPMiddleware: (
           match(err.code)
             .with("tokenVerificationFailed", () => 401)
             .with("operationForbidden", () => 403)
-            .with("missingHeader", "badBearerToken", "invalidClaim", () => 400)
+            .with(
+              "missingHeader",
+              "badBearerToken",
+              "badDPoPToken",
+              "invalidClaim",
+              () => 400
+            )
             .otherwise(() => 500),
         ctx
       );

@@ -220,7 +220,7 @@ export const verifyDPoPThumbprintMatch = (
   dpopProofJWT: DPoPProof,
   accessTokenPayload: JwtPayload | string,
   logger: Logger
-): void => {
+): ValidationResult<true> => {
   // 1. Safety Check: La Proof deve esistere (garantito se chiamato dopo validateDPoPProof)
   if (!dpopProofJWT.header.jwk) {
     throw failedValidation([
@@ -260,4 +260,5 @@ export const verifyDPoPThumbprintMatch = (
       ),
     ]);
   }
+  return successfulValidation(true);
 };
