@@ -110,7 +110,7 @@ describe("getCatalogEServiceDescriptor", () => {
     description: eService.description,
     technology: eService.technology,
     descriptors: [],
-    agreement: undefined,
+    agreements: [],
     isMine: false,
     hasCertifiedAttributes: false,
     isSubscribed: false,
