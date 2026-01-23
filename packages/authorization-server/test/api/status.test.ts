@@ -16,7 +16,8 @@ describe("API GET /status test", () => {
     title: "Service status OK",
   };
 
-  const makeRequest = async () => request(api).get("/status");
+  const makeRequest = async () =>
+    request(api).get("/authorization-server/status");
 
   it("Should return 200 when the service is healthy", async () => {
     const res = await makeRequest();
