@@ -1,13 +1,13 @@
+import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter, zodiosRouter } from "@zodios/express";
-import { ExpressContext } from "../context/context.js";
 import {
   CorrelationId,
   generateId,
   Problem,
   ProblemSchema,
 } from "pagopa-interop-models";
-import { constants } from "http2";
+import { ExpressContext } from "../context/context.js";
 
 type RequiresHealthStatus = [
   {

@@ -11,10 +11,10 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { tenantApi } from "pagopa-interop-api-clients";
 import tenantRouter from "./routers/TenantRouter.js";
 import { config } from "./config/config.js";
 import { TenantService } from "./services/tenantService.js";
-import { tenantApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: TenantService) {

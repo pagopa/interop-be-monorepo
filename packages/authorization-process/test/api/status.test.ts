@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { constants } from "http2";
 import { describe, expect, it } from "vitest";
-import { api } from "../vitest.api.setup.js";
 import request from "supertest";
 import { Problem } from "pagopa-interop-models";
-import { constants } from "http2";
 import { authorizationApi } from "pagopa-interop-api-clients";
+import { api } from "../vitest.api.setup.js";
 
 describe("API GET /status test", () => {
   const { HTTP_STATUS_OK } = constants;

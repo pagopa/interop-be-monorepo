@@ -11,11 +11,11 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import notificationConfigRouter from "./routers/NotificationConfigRouter.js";
 import { config } from "./config/config.js";
 import { NotificationConfigService } from "./services/notificationConfigService.js";
 import { notificationConfigFeatureFlagMiddleware } from "./utilities/middlewares.js";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: NotificationConfigService) {

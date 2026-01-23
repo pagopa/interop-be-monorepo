@@ -11,11 +11,11 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 import purposeTemplateRouter from "./routers/PurposeTemplateRouter.js";
 import { config } from "./config/config.js";
 import { purposeTemplateFeatureFlagMiddleware } from "./utilities/middleware.js";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: PurposeTemplateService) {

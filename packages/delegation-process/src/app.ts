@@ -11,10 +11,10 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { delegationApi } from "pagopa-interop-api-clients";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
 import { DelegationService } from "./services/delegationService.js";
-import { delegationApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: DelegationService) {

@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { constants } from "http2";
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { Problem } from "pagopa-interop-models";
-import { constants } from "http2";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { api } from "../../vitest.api.setup.js";
 

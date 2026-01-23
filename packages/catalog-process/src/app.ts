@@ -11,10 +11,10 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import eservicesRouter from "./routers/EServiceRouter.js";
 import { config } from "./config/config.js";
 import { CatalogService } from "./services/catalogService.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: CatalogService) {

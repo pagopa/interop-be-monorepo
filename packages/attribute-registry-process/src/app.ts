@@ -11,10 +11,10 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import attributeRouter from "./routers/AttributeRouter.js";
 import { config } from "./config/config.js";
 import { AttributeRegistryService } from "./services/attributeRegistryService.js";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service?: AttributeRegistryService) {

@@ -15,6 +15,7 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
@@ -42,7 +43,6 @@ import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
 import { EventService } from "./services/eventService.js";
 import eventRouter from "./routers/eventRouter.js";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;

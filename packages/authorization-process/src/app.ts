@@ -10,10 +10,10 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import authorizationRouter from "./routers/AuthorizationRouter.js";
 import { config } from "./config/config.js";
 import { AuthorizationService } from "./services/authorizationService.js";
-import { authorizationApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: AuthorizationService) {

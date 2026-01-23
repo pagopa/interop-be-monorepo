@@ -11,11 +11,11 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import { notificationRouter } from "./routers/notificationRouter.js";
 import { InAppNotificationService } from "./services/inAppNotificationService.js";
 import { notificationConfigFeatureFlagMiddleware } from "./utilities/middlewares.js";
-import { inAppNotificationApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: InAppNotificationService) {

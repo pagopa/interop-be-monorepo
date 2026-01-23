@@ -11,10 +11,10 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { m2mEventApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import { m2mEventRouter } from "./routers/m2mEventRouter.js";
 import { M2MEventService } from "./services/m2mEventService.js";
-import { m2mEventApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: M2MEventService) {
