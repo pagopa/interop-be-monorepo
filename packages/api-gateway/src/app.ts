@@ -2,6 +2,7 @@ import {
   authenticationMiddleware,
   contextMiddleware,
   errorsToApiProblemsMiddleware,
+  healthRouter,
   initRedisRateLimiter,
   loggerMiddleware,
   rateLimiterMiddleware,
@@ -12,10 +13,10 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import healthRouter from "./routers/healthRouter.js";
 import apiGatewayRouter from "./routers/apiGatewayRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
+import { apiGatewayApi } from "pagopa-interop-api-clients";
 
 const serviceName = modelsServiceName.API_GATEWAY;
 
@@ -41,7 +42,7 @@ app.use(loggerMiddleware(serviceName));
 
 app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
-  healthRouter,
+  healthRouter(apiGatewayApi.healthApi.api),
   contextMiddleware(serviceName, false),
   await applicationAuditBeginMiddleware(serviceName, config),
   await applicationAuditEndMiddleware(serviceName, config),

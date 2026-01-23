@@ -1,6 +1,7 @@
 import {
   contextMiddleware,
   errorsToApiProblemsMiddleware,
+  healthRouter,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -10,10 +11,10 @@ import {
   applicationAuditAuthorizationServerEndMiddleware,
   applicationAuditBeginMiddleware,
 } from "pagopa-interop-application-audit";
-import healthRouter from "./routers/HealthRouter.js";
 import authorizationServerRouter from "./routers/AuthorizationServerRouter.js";
 import { config } from "./config/config.js";
 import { TokenService } from "./services/tokenService.js";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: TokenService) {
@@ -27,7 +28,7 @@ export async function createApp(service: TokenService) {
 
   app.use(
     "/authorization-server",
-    healthRouter,
+    healthRouter(authorizationServerApi.healthApi.api),
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditAuthorizationServerEndMiddleware(serviceName, config),

@@ -2,6 +2,7 @@ import {
   authenticationMiddleware,
   contextMiddleware,
   errorsToApiProblemsMiddleware,
+  healthRouter,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -10,10 +11,10 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import healthRouter from "./routers/HealthRouter.js";
 import tenantRouter from "./routers/TenantRouter.js";
 import { config } from "./config/config.js";
 import { TenantService } from "./services/tenantService.js";
+import { tenantApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: TenantService) {
@@ -27,7 +28,7 @@ export async function createApp(service: TenantService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter);
+  app.use(healthRouter(tenantApi.healthApi.api));
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));

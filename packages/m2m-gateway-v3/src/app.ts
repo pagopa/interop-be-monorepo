@@ -3,6 +3,7 @@ import {
   contextMiddleware,
   errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
+  healthRouter,
   loggerMiddleware,
   multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
@@ -15,7 +16,6 @@ import {
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
 import { config } from "./config/config.js";
-import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import eserviceRouter from "./routers/eserviceRouter.js";
@@ -42,6 +42,7 @@ import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
 import { EventService } from "./services/eventService.js";
 import eventRouter from "./routers/eventRouter.js";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;
@@ -102,7 +103,7 @@ export async function createApp(
 
   app.use(
     appBasePath,
-    healthRouter,
+    healthRouter(m2mGatewayApiV3.healthApi.api),
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
