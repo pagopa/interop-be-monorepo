@@ -23,7 +23,9 @@ type UserWithRoles = { id: string; roles?: string[] };
  * This handles the case where the Selfcare API returns multiple entries
  * for the same user with different roles.
  */
-export function mergeUsersByIdWithRoles(users: UserWithRoles[]): UserWithRoles[] {
+export function mergeUsersByIdWithRoles(
+  users: UserWithRoles[]
+): UserWithRoles[] {
   const userMap = new Map<string, Set<string>>();
 
   for (const user of users) {
