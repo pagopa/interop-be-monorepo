@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiConsumerFullClient,
@@ -15,7 +15,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
 
 describe("getClientPurposes", () => {
   const mockParams: m2mGatewayApi.GetClientPurposesQueryParams = {
@@ -67,6 +66,21 @@ describe("getClientPurposes", () => {
     )
   );
 
+  const testToM2mGatewayApiPurposeVersion = (
+    version: purposeApi.PurposeVersion
+  ): m2mGatewayApi.PurposeVersion => {
+    return {
+      id: version.id,
+      createdAt: version.createdAt,
+      dailyCalls: version.dailyCalls,
+      state: version.state,
+      firstActivationAt: version.firstActivationAt,
+      rejectionReason: version.rejectionReason,
+      suspendedAt: version.suspendedAt,
+      updatedAt: version.updatedAt,
+    };
+  }
+
   mockInteropBeClients.authorizationClient = {
     client: {
       getClient: mockGetClient,
@@ -84,7 +98,7 @@ describe("getClientPurposes", () => {
     isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
     title: mockApiPurpose1.title,
     currentVersion: purposeVersion1
-      ? toM2mGatewayApiPurposeVersion(purposeVersion1)
+      ? testToM2mGatewayApiPurposeVersion(purposeVersion1)
       : undefined,
     delegationId: mockApiPurpose1.delegationId,
     freeOfChargeReason: mockApiPurpose1.freeOfChargeReason,
@@ -107,7 +121,7 @@ describe("getClientPurposes", () => {
     isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
     title: mockApiPurpose2.title,
     currentVersion: purposeVersion2
-      ? toM2mGatewayApiPurposeVersion(purposeVersion2)
+      ? testToM2mGatewayApiPurposeVersion(purposeVersion2)
       : undefined,
     delegationId: mockApiPurpose2.delegationId,
     freeOfChargeReason: mockApiPurpose2.freeOfChargeReason,
@@ -130,7 +144,7 @@ describe("getClientPurposes", () => {
     isRiskAnalysisValid: mockApiPurpose3.isRiskAnalysisValid,
     title: mockApiPurpose3.title,
     currentVersion: mockPurposeVersion3
-      ? toM2mGatewayApiPurposeVersion(mockPurposeVersion3)
+      ? testToM2mGatewayApiPurposeVersion(mockPurposeVersion3)
       : undefined,
     delegationId: mockApiPurpose3.delegationId,
     freeOfChargeReason: mockApiPurpose3.freeOfChargeReason,
