@@ -25772,6 +25772,7 @@ components:
         - isMine
         - hasCertifiedAttributes
         - isSubscribed
+        - agreements
       properties:
         id:
           type: string
