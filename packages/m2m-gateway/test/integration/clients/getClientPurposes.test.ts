@@ -68,18 +68,16 @@ describe("getClientPurposes", () => {
 
   const testToM2mGatewayApiPurposeVersion = (
     version: purposeApi.PurposeVersion
-  ): m2mGatewayApi.PurposeVersion => {
-    return {
-      id: version.id,
-      createdAt: version.createdAt,
-      dailyCalls: version.dailyCalls,
-      state: version.state,
-      firstActivationAt: version.firstActivationAt,
-      rejectionReason: version.rejectionReason,
-      suspendedAt: version.suspendedAt,
-      updatedAt: version.updatedAt,
-    };
-  }
+  ): m2mGatewayApi.PurposeVersion => ({
+    id: version.id,
+    createdAt: version.createdAt,
+    dailyCalls: version.dailyCalls,
+    state: version.state,
+    firstActivationAt: version.firstActivationAt,
+    rejectionReason: version.rejectionReason,
+    suspendedAt: version.suspendedAt,
+    updatedAt: version.updatedAt,
+  });
 
   mockInteropBeClients.authorizationClient = {
     client: {
