@@ -8,7 +8,7 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { UserId, emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { UserService } from "../services/userService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
@@ -49,7 +49,10 @@ const userRouter = (
         // Enforce m2m-admin role only
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        const user = await userService.getUserById(req.params.userId, ctx);
+        const user = await userService.getUserById(
+          unsafeBrandId<UserId>(req.params.userId),
+          ctx
+        );
 
         return res.status(200).send(m2mGatewayApiV3.User.parse(user));
       } catch (error) {

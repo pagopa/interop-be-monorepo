@@ -3,6 +3,7 @@ import {
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { TenantId, UserId, generateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { userServiceBuilder } from "../../../src/services/userService.js";
@@ -11,22 +12,6 @@ import {
   mockInteropBeClients,
   expectApiClientGetToHaveBeenCalledWith,
 } from "../../integrationUtils.js";
-
-interface SelfcareUser {
-  id: string;
-  name: string;
-  surname: string;
-  roles?: string[] | undefined;
-  email?: string | undefined;
-  fiscalCode?: string | undefined;
-  role?:
-    | "ADMIN_EA"
-    | "DELEGATE"
-    | "MANAGER"
-    | "OPERATOR"
-    | "SUB_DELEGATE"
-    | undefined;
-}
 
 describe("getUserById", () => {
   const tenantId = generateId<TenantId>();
@@ -38,7 +23,7 @@ describe("getUserById", () => {
     ...mockTenant,
     selfcareId: undefined,
   });
-  const mockCorrectUser: SelfcareUser[] = [
+  const mockCorrectUser: selfcareV2ClientApi.UserResource[] = [
     {
       id: userId,
       name: "Mario",
@@ -50,7 +35,7 @@ describe("getUserById", () => {
     },
   ];
 
-  const mockTooManyUsers: SelfcareUser[] = [
+  const mockTooManyUsers: selfcareV2ClientApi.UserResource[] = [
     {
       id: userId,
       name: "Mario",
@@ -71,7 +56,7 @@ describe("getUserById", () => {
     },
   ];
 
-  const mockDifferentUser: SelfcareUser[] = [
+  const mockDifferentUser: selfcareV2ClientApi.UserResource[] = [
     {
       id: differentUserId,
       name: "Mario",
@@ -83,7 +68,7 @@ describe("getUserById", () => {
     },
   ];
 
-  const mockNoUsers: SelfcareUser[] = [];
+  const mockNoUsers: selfcareV2ClientApi.UserResource[] = [];
 
   const mockGetTenant = vi.fn();
   const mockGetInstitutionUsersByProductUsingGET = vi.fn();

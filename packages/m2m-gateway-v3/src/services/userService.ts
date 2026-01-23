@@ -9,6 +9,7 @@ import {
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { userNotFound } from "../model/errors.js";
+import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 
 export type GetUsersQueryParams = {
   roles: string[];
@@ -93,7 +94,7 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       };
     },
     async getUserById(
-      userId: string,
+      userId: UserId,
       {
         logger,
         headers,
@@ -104,26 +105,15 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
         `Retrieving users for organization ${authData.organizationId} with userId ${userId}`
       );
 
-      // Resolve tenantId from organizationId
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
-      const userIdBranded = unsafeBrandId<UserId>(userId);
-
-      // Validate requester can only access their own organization's users
-      if (authData.organizationId !== tenantId) {
-        throw unauthorizedError(
-          `Requester ${authData.organizationId} cannot retrieve users for a different organization`
-        );
-      }
-
       const { data: tenant } =
         await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
+          params: { id: authData.organizationId },
           headers,
         });
 
       if (!tenant.selfcareId) {
         throw unauthorizedError(
-          `Tenant ${tenantId} does not have a SelfCare ID`
+          `Tenant ${authData.organizationId} does not have a SelfCare ID`
         );
       }
 
@@ -134,37 +124,22 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
         await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
           params: { institutionId: selfcareId },
           queries: {
-            userId: userIdBranded,
+            userId,
           },
           headers,
         });
 
-      if (users.length === 0) {
-        throw userNotFound(userIdBranded, tenantId);
-      }
-
-      if (users.length > 1) {
-        throw userNotFound(userIdBranded, tenantId);
-      }
-
       const user = users.at(0);
-
-      if (!user) {
-        throw userNotFound(userIdBranded, tenantId);
+      if (
+        users.length === 0 ||
+        users.length > 1 ||
+        !user ||
+        user.id !== userId
+      ) {
+        throw userNotFound(userId, authData.organizationId);
       }
 
-      if (user.id !== userIdBranded) {
-        throw userNotFound(userIdBranded, tenantId);
-      }
-
-      const results: m2mGatewayApiV3.User = {
-        userId: user.id,
-        name: user.name,
-        familyName: user.surname,
-        roles: user.roles ?? [],
-      };
-
-      return results;
+      return toM2MGatewayApiUser(user);
     },
   };
 }
