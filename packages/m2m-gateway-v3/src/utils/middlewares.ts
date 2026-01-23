@@ -173,14 +173,29 @@ export const authenticationDPoPMiddleware: (
       }
 
       // eslint-disable-next-line no-console
-      console.log(dpopProofJWT);
+      // console.log(dpopProofJWT);
 
       // ----------------------------------------------------------------------
       // Step 5 – Key Binding Verification (Thumbprint Match)
       // verify binding key between DPoP Proof and JWT Access Token
       // ----------------------------------------------------------------------
+      const { errors: bindingErrors } = verifyDPoPThumbprintMatch(
+        dpopProofJWT,
+        accessTokenDPoP.cnf.jkt
+      );
+      if (bindingErrors) {
+        // Logga qui l'errore specifico
+        ctx.logger.warn(
+          `DPoP Key Binding failed: ${bindingErrors
+            .map((e) => e.detail)
+            .join(", ")}`
+        );
 
-      verifyDPoPThumbprintMatch(dpopProofJWT, accessTokenDPoP, ctx.logger);
+        // Lancia l'eccezione che il catch del middleware trasformerà in 401/403
+        throw unauthorizedError(
+          "DPoP proof public key hash does not match token binding"
+        );
+      }
 
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = readAuthDataFromJwtToken(accessTokenDecoded);

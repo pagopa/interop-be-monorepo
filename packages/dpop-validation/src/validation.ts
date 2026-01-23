@@ -14,9 +14,8 @@ import {
   JWKKeyRS256,
   JWKKeyES256,
 } from "pagopa-interop-models";
-import { JwtPayload } from "jsonwebtoken";
 
-import { Logger, calculateKid } from "pagopa-interop-commons";
+import { calculateKid } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
   dpopProofInvalidClaims,
@@ -214,12 +213,11 @@ export const checkDPoPCache = async ({
 /**
  * Verifica il binding crittografico tra la DPoP Proof e l'Access Token.
  * Calcola il thumbprint (jkt) della chiave pubblica presente nella Proof
- * e lo confronta con il claim 'cnf.jkt' presente nel Token.
+ * e lo confronta con il la chiave pubblica dell'access Token.
  */
 export const verifyDPoPThumbprintMatch = (
   dpopProofJWT: DPoPProof,
-  accessTokenPayload: JwtPayload | string,
-  logger: Logger
+  accessTokenJkt: string
 ): ValidationResult<true> => {
   // 1. Safety Check: La Proof deve esistere (garantito se chiamato dopo validateDPoPProof)
   if (!dpopProofJWT.header.jwk) {
@@ -232,28 +230,8 @@ export const verifyDPoPThumbprintMatch = (
   // calculateKid normalizza il JWK e calcola l'hash SHA-256 (RFC 7638)
   const proofJkt = calculateKid(dpopProofJWT.header.jwk);
 
-  if (typeof accessTokenPayload === "string") {
-    throw failedValidation([
-      unexpectedDPoPProofError("Missing DPoP Proof JWK"),
-    ]);
-  }
-
-  // 3. Estrazione Thumbprint dal Token (cnf.jkt)
-  // Usiamo un cast sicuro o accesso diretto assumendo che la verifica precedente (verifyAccessTokenIsDPoP) sia passata
-  const tokenJkt = accessTokenPayload.cnf.jkt;
-
-  if (!tokenJkt) {
-    // Questo caso non dovrebbe accadere se verifyAccessTokenIsDPoP è stato chiamato prima
-    throw failedValidation([
-      unexpectedDPoPProofError("Access token missing 'cnf' binding claim"),
-    ]);
-  }
-
   // 4. Confronto (Binding Check)
-  if (proofJkt !== tokenJkt) {
-    logger.warn(
-      `DPoP binding mismatch. Token bound to: ${tokenJkt}, Proof signed by: ${proofJkt}`
-    );
+  if (proofJkt !== accessTokenJkt) {
     throw failedValidation([
       unexpectedDPoPProofError(
         "DPoP proof public key hash does not match token binding"
