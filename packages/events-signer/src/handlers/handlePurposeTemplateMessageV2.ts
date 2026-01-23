@@ -21,7 +21,7 @@ import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handlePurposeTemplateMessageV2 = async (
   eventsWithTimestamp: Array<{
-    purposeV2: PurposeTemplateEventV2;
+    purposeTemplateV2: PurposeTemplateEventV2;
     timestamp: Date;
   }>,
   fileManager: FileManager,
@@ -36,8 +36,8 @@ export const handlePurposeTemplateMessageV2 = async (
   });
   const allPurposeTemplateDataToStore: PurposeTemplateEventData[] = [];
 
-  for (const { purposeV2, timestamp } of eventsWithTimestamp) {
-    match(purposeV2)
+  for (const { purposeTemplateV2, timestamp } of eventsWithTimestamp) {
+    match(purposeTemplateV2)
       .with(
         {
           type: P.union(

@@ -70,7 +70,9 @@ describe("handlePurposeTemplateMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
+    const eventsWithTimestamp = [
+      { purposeTemplateV2: message, timestamp: new Date() },
+    ];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -119,7 +121,9 @@ describe("handlePurposeTemplateMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
+    const eventsWithTimestamp = [
+      { purposeTemplateV2: message, timestamp: new Date() },
+    ];
 
     vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
       uploadMethod: "POST",
@@ -157,7 +161,9 @@ describe("handlePurposeTemplateMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
+    const eventsWithTimestamp = [
+      { purposeTemplateV2: message, timestamp: new Date() },
+    ];
 
     const safeStorageCreateFileSpy = vi.spyOn(safeStorageService, "createFile");
 
@@ -184,7 +190,9 @@ describe("handlePurposeTemplateMessageV2 - Integration Test", () => {
       log_date: new Date(),
     };
 
-    const eventsWithTimestamp = [{ purposeV2: message, timestamp: new Date() }];
+    const eventsWithTimestamp = [
+      { purposeTemplateV2: message, timestamp: new Date() },
+    ];
 
     await expect(
       handlePurposeTemplateMessageV2(
