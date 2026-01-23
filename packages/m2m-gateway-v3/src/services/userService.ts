@@ -1,10 +1,6 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import {
-  TenantId,
-  unsafeBrandId,
-  unauthorizedError,
-} from "pagopa-interop-models";
+import { unauthorizedError } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 
@@ -30,31 +26,20 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const { roles, limit, offset } = queryParams;
 
       logger.info(
-        `Retrieving users for organization ${
-          authData.organizationId
+        `Retrieving users for organization ${authData.organizationId
         } with roles ${roles.join(",")}, limit ${limit}, offset ${offset}`
       );
-
-      // Resolve tenantId from organizationId
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
-
-      // Validate requester can only access their own organization's users
-      if (authData.organizationId !== tenantId) {
-        throw unauthorizedError(
-          `Requester ${authData.organizationId} cannot retrieve users for a different organization`
-        );
-      }
 
       // Get tenant to resolve institutionId (selfcareId)
       const { data: tenant } =
         await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
+          params: { id: authData.organizationId },
           headers,
         });
 
       if (!tenant.selfcareId) {
         throw unauthorizedError(
-          `Tenant ${tenantId} does not have a SelfCare ID`
+          `Tenant ${authData.organizationId} does not have a SelfCare ID`
         );
       }
 

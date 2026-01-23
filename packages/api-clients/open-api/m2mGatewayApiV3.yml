@@ -9189,7 +9189,7 @@ paths:
         - users
       summary: Get Users
       description: |
-        Retrieve active users belonging to the requester's organization from SelfCare.
+        Retrieve active users belonging to the requester's organization.
         Users are fetched in real-time and not persisted.
         Access is restricted to m2m-admin role only.
       operationId: getUsers
