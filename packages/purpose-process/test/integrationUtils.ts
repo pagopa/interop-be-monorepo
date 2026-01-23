@@ -77,8 +77,7 @@ const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
-export const clientReadModelServiceSQL =
-  clientReadModelServiceBuilder(readModelDB);
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -115,7 +114,8 @@ export const addOneClient = async (client: Client): Promise<void> => {
   await upsertClient(readModelDB, client, 0);
 };
 
-export const addOneConsumer = async (consumer: Tenant): Promise<void> => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const addOneConsumer = async (consumer: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, consumer, 0);
 };
 
