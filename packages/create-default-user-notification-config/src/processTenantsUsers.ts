@@ -152,17 +152,16 @@ async function processUser(
   }
 
   // Collect all valid roles first
-  const validRoles: UserRole[] = [];
-  for (const role of roles) {
+  const validRoles = roles.reduce<UserRole[]>((acc, role) => {
     const mappedRole = UserRole.safeParse(role);
     if (mappedRole.success) {
-      validRoles.push(mappedRole.data);
-    } else {
-      logger.warn(
-        `Unknown role ${role} for user ${user.id}, tenant ${tenant.id}, skipping`
-      );
+      return [...acc, mappedRole.data];
     }
-  }
+    logger.warn(
+      `Unknown role ${role} for user ${user.id}, tenant ${tenant.id}, skipping`
+    );
+    return acc;
+  }, []);
 
   if (validRoles.length === 0) {
     logger.warn(
