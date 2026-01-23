@@ -122,7 +122,6 @@ export const authenticationDPoPMiddleware: (
       // Step 1 – Schema and Presence Verification (Syntax Check)
       // verify HTTP DPoP Header and Authorization Header
       // ----------------------------------------------------------------------
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { accessToken, dpopProofJWS } = jwtsFromAuthAndDPoPHeaders(
         req,
         ctx.logger
@@ -158,7 +157,7 @@ export const authenticationDPoPMiddleware: (
         // TODO: improve error handling
         throw unauthorizedError("Invalid DPoP Proof structure");
       }
-      // Check if the cache contains the DPoP proof
+      //  JTI uniqueness: Check if the cache contains the DPoP proof
       if (dpopProofJWT) {
         const { errors: dpopCacheErrors } = await checkDPoPCache({
           dynamoDBClient,
