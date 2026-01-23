@@ -95,7 +95,7 @@ export async function toBffCatalogDescriptorEService(
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor,
   producerTenant: tenantApi.Tenant,
-  agreement: agreementApi.Agreement | undefined,
+  agreements: agreementApi.Agreement[],
   requesterTenant: tenantApi.Tenant,
   consumerDelegators: tenantApi.Tenant[]
 ): Promise<bffApi.CatalogDescriptorEService> {
@@ -111,7 +111,9 @@ export async function toBffCatalogDescriptorEService(
     description: eservice.description,
     technology: eservice.technology,
     descriptors: getValidDescriptor(eservice).map(toCompactDescriptor),
-    agreement: agreement && toBffCompactAgreement(agreement, eservice),
+    agreements: agreements.map((agreement) =>
+      toBffCompactAgreement(agreement, eservice)
+    ),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
     hasCertifiedAttributes: [requesterTenant, ...consumerDelegators].some(
       (t) => hasCertifiedAttributes(descriptor, t)
@@ -120,7 +122,9 @@ export async function toBffCatalogDescriptorEService(
       - the requester is the delegated consumer for the eservice and
         the delegator has the certified attributes required to consume the eservice */
     ),
-    isSubscribed: isAgreementSubscribed(agreement),
+    isSubscribed: agreements.some((agreement) =>
+      isAgreementSubscribed(agreement)
+    ),
     activeDescriptor: activeDescriptor
       ? toCompactDescriptor(activeDescriptor)
       : undefined,

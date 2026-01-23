@@ -637,6 +637,50 @@ export function agreementServiceBuilder(
   };
 }
 
+export const getLatestAgreementsOnDescriptor = async (
+  agreementProcessClient: AgreementProcessClient,
+  consumerId: string,
+  eservice: catalogApi.EService,
+  descriptorId: string,
+  headers: Headers
+): Promise<agreementApi.Agreement[]> => {
+  const allAgreements = await getAllAgreements(
+    agreementProcessClient,
+    headers,
+    {
+      consumersIds: [consumerId],
+      eservicesIds: [eservice.id],
+      descriptorsIds: [descriptorId],
+    }
+  );
+
+  // Even though the previous query is filtered by consumerId, there might be different consumerIds due to delegations
+  const agreementsByConsumer = allAgreements.reduce<
+    Map<string, agreementApi.Agreement[]>
+  >((acc, agreement) => {
+    const agreementsWithSameConsumerId = acc.get(agreement.consumerId) ?? [];
+    agreementsWithSameConsumerId.push(agreement);
+    acc.set(agreement.consumerId, agreementsWithSameConsumerId);
+    return acc;
+  }, new Map());
+
+  // For each consumerId, get the latest agreement by createdAt
+  const latestAgreements: agreementApi.Agreement[] = [];
+  for (const agreements of agreementsByConsumer.values()) {
+    const sorted = agreements.sort(
+      (first, second) =>
+        new Date(second.createdAt).getTime() -
+        new Date(first.createdAt).getTime()
+    );
+    const latest = sorted[0];
+    if (latest) {
+      latestAgreements.push(latest);
+    }
+  }
+
+  return latestAgreements;
+};
+
 export const getLatestAgreement = async (
   agreementProcessClient: AgreementProcessClient,
   consumerId: string,
