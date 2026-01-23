@@ -9262,9 +9262,9 @@ paths:
         - users
       summary: Get User
       description: |
-        Retrieve  an active users belonging to the requester's organization from SelfCare
+        Retrieve an active user belonging to the requester's organization
         and with a specific user id.
-      operationId: getUser
+      operationId: getUserById
       parameters:
         - in: path
           name: userId
