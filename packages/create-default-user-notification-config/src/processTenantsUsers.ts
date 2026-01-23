@@ -16,6 +16,32 @@ import { CreateDefaultUserNotificationConfigConfig } from "./config/config.js";
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+type UserWithRoles = { id: string; roles?: string[] };
+
+/**
+ * Merges users with the same ID into a single user with combined roles.
+ * This handles the case where the Selfcare API returns multiple entries
+ * for the same user with different roles.
+ */
+export function mergeUsersByIdWithRoles(
+  users: UserWithRoles[]
+): UserWithRoles[] {
+  const userMap = new Map<string, Set<string>>();
+
+  for (const user of users) {
+    const existingRoles = userMap.get(user.id) ?? new Set<string>();
+    for (const role of user.roles ?? []) {
+      existingRoles.add(role);
+    }
+    userMap.set(user.id, existingRoles);
+  }
+
+  return Array.from(userMap.entries()).map(([id, rolesSet]) => ({
+    id,
+    roles: Array.from(rolesSet),
+  }));
+}
+
 export function userRoleToApiUserRole(
   role: UserRole
 ): notificationConfigApi.UserRole {
@@ -119,7 +145,14 @@ async function processTenant(
     `Found ${users.length} users for tenant ${tenant.id} (selfcareId: ${tenant.selfcareId})`
   );
 
-  for (const user of users) {
+  // Merge users with the same ID to combine their roles
+  const mergedUsers = mergeUsersByIdWithRoles(users);
+
+  logger.info(
+    `Merged into ${mergedUsers.length} unique users for tenant ${tenant.id}`
+  );
+
+  for (const user of mergedUsers) {
     await processUser(
       user,
       tenant,
