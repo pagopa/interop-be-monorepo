@@ -9,6 +9,8 @@ import {
   systemRole,
   verifyJwtToken,
   verifyAccessTokenIsDPoP,
+  JWTConfig,
+  DPoPConfig,
 } from "pagopa-interop-commons";
 import {
   checkDPoPCache,
@@ -29,7 +31,6 @@ import {
   makeApiProblem,
 } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
-import type { M2MGatewayConfigV3 } from "../config/config.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 
 export async function validateM2MAdminUserId(
@@ -103,10 +104,10 @@ export function m2mAuthDataValidationMiddleware(
 }
 
 export const authenticationDPoPMiddleware: (
-  config: M2MGatewayConfigV3,
+  config: JWTConfig & DPoPConfig,
   dynamoDBClient: DynamoDBClient
 ) => ZodiosRouterContextRequestHandler<ExpressContext> =
-  (config: M2MGatewayConfigV3, dynamoDBClient: DynamoDBClient) =>
+  (config: JWTConfig & DPoPConfig, dynamoDBClient: DynamoDBClient) =>
   async (req, res, next): Promise<unknown> => {
     // We assume that:
     // - contextMiddleware already set ctx.serviceName and ctx.correlationId
@@ -221,7 +222,7 @@ export const authenticationDPoPMiddleware: (
   };
 
 const validateDPoPProof = async (
-  config: M2MGatewayConfigV3,
+  config: JWTConfig & DPoPConfig,
   dpopProofHeader: string | undefined,
   clientId: string | undefined,
   logger: Logger

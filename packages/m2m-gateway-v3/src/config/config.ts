@@ -139,7 +139,7 @@ export type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
 >;
 
-export const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
+const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   TenantProcessServerConfig
 )
   .and(AgreementProcessServerConfig)
