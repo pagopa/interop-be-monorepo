@@ -97,11 +97,11 @@ const makeProblemLogString = (
   originalError: unknown
 ): string => {
   const errorsString = problem.errors
-    ? `- errors: ${problem.errors
+    ? ` - errors: ${problem.errors
         .map((e) => `${e.code}, ${e.detail}`)
         .join("; ")}`
     : "";
-  return `- title: ${problem.title} ${errorsString} - original error: ${originalError}`;
+  return `- title: ${problem.title} - detail: ${problem.detail}${errorsString} - original error: ${originalError}`;
 };
 
 type ProblemBuilderOptions = {
