@@ -29,7 +29,7 @@ import {
   makeApiProblem,
 } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
-import { M2MGatewayConfigV3 } from "../config/config.js";
+import type { M2MGatewayConfigV3 } from "../config/config.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 
 export async function validateM2MAdminUserId(
