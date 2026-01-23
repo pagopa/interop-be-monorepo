@@ -14,11 +14,11 @@ type RequiresHealthStatus = [
     method: "get";
     path: "/status";
     response: typeof ProblemSchema;
-  },
+  }
 ];
 
 export const healthRouter = (
-  api: ZodiosEndpointDefinitions & RequiresHealthStatus,
+  api: ZodiosEndpointDefinitions & RequiresHealthStatus
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const healthRouter = zodiosRouter(api);
   healthRouter.get("/status", async (_req, res) => {
@@ -29,7 +29,7 @@ export const healthRouter = (
       title: "Service status OK",
     };
 
-    res.status(200).send(healthProblem);
+    res.type("application/problem+json").status(200).send(healthProblem);
   });
 
   return healthRouter;
