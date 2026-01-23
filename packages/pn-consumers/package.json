@@ -20,7 +20,6 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",
-    "@types/nodemailer": "6.4.17",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
@@ -28,9 +27,6 @@
     "vitest": "1.6.1"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.842.0",
-    "nodemailer": "7.0.11",
-    "axios": "1.12.0",
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "pagopa-interop-commons": "workspace:*",

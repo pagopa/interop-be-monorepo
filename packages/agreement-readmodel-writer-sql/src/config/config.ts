@@ -5,7 +5,7 @@ import { ReadModelWriterConfigSQL } from "pagopa-interop-commons";
 const AgreementReadModelWriterConfig =
   ReadModelWriterConfigSQL.and(AgreementTopicConfig);
 
-export type AgreementReadModelWriterConfig = z.infer<
+type AgreementReadModelWriterConfig = z.infer<
   typeof AgreementReadModelWriterConfig
 >;
 

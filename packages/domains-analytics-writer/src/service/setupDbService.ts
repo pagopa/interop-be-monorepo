@@ -11,7 +11,7 @@ import {
 } from "../model/errors.js";
 import { mapZodToSQLType } from "../utils/mapZodToSQLType.js";
 import { getColumnNameMapper } from "../utils/sqlQueryHelper.js";
-export interface SetupDbConfig {
+interface SetupDbConfig {
   mergeTableSuffix: string;
   dbSchemaName: string;
 }

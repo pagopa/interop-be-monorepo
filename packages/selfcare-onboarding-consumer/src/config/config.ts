@@ -5,7 +5,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 
-export const SelfcareOnboardingConsumerConfig = KafkaConsumerConfig.and(
+const SelfcareOnboardingConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig
 )
   .and(SelfcareConsumerConfig)
@@ -21,7 +21,7 @@ export const SelfcareOnboardingConsumerConfig = KafkaConsumerConfig.and(
       }))
   );
 
-export type SelfcareOnboardingConsumerConfig = z.infer<
+type SelfcareOnboardingConsumerConfig = z.infer<
   typeof SelfcareOnboardingConsumerConfig
 >;
 

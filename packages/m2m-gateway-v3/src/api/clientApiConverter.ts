@@ -16,7 +16,7 @@ export function toGetClientsApiQueryParams(
   };
 }
 
-export function toM2MGatewayApiConsumerFullClient(
+function toM2MGatewayApiConsumerFullClient(
   client: authorizationApi.FullClient
 ): m2mGatewayApiV3.FullClient {
   assertClientKindIs(client, authorizationApi.ClientKind.Values.CONSUMER);

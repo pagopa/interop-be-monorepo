@@ -9,7 +9,7 @@ import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors
 import { toBffCatalogApiEserviceRiskAnalysis } from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
-export function toBffCompactEServiceTemplateVersion(
+function toBffCompactEServiceTemplateVersion(
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
 ): bffApi.CompactEServiceTemplateVersion {
   return {
@@ -130,7 +130,7 @@ export function toCatalogCreateEServiceTemplateSeed(
   };
 }
 
-export function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
+function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
   riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
 ): bffApi.EServiceTemplateRiskAnalysis {
   const tenantKind = riskAnalysis.tenantKind;
