@@ -26322,10 +26322,6 @@ components:
           type: string
         producer:
           $ref: "#/components/schemas/CompactOrganization"
-        agreements:
-          type: array
-          items:
-            $ref: "#/components/schemas/CompactAgreement"
         isMine:
           type: boolean
         activeDescriptor:

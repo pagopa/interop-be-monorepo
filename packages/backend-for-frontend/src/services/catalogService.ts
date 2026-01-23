@@ -73,7 +73,6 @@ import {
 } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import {
-  getLatestAgreement,
   getAllAgreements,
   getLatestAgreementsOnDescriptor,
 } from "./agreementService.js";
@@ -94,7 +93,6 @@ import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
-  agreementProcessClient: AgreementProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
   ctx: WithLogger<BffAppContext>,
   requesterId: TenantId
@@ -133,8 +131,6 @@ const enhanceCatalogEservices = async (
   };
   const enhanceEService =
     (
-      agreementProcessClient: AgreementProcessClient,
-      headers: Headers,
       requesterId: TenantId,
       notifications: string[]
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
@@ -143,12 +139,6 @@ const enhanceCatalogEservices = async (
 
       const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
-      const latestAgreement = await getLatestAgreement(
-        agreementProcessClient,
-        requesterId,
-        eservice,
-        headers
-      );
       const hasNotifications = notifications.includes(eservice.id);
       const isRequesterEqProducer = requesterId === eservice.producerId;
 
@@ -157,22 +147,14 @@ const enhanceCatalogEservices = async (
         producerTenant,
         isRequesterEqProducer,
         hasNotifications,
-        latestActiveDescriptor,
-        latestAgreement
+        latestActiveDescriptor
       );
     };
 
   const notifications = await notificationsPromise;
 
   return await Promise.all(
-    eservices.map(
-      enhanceEService(
-        agreementProcessClient,
-        ctx.headers,
-        requesterId,
-        notifications
-      )
-    )
+    eservices.map(enhanceEService(requesterId, notifications))
   );
 };
 
@@ -364,7 +346,6 @@ export function catalogServiceBuilder(
       const results = await enhanceCatalogEservices(
         eservicesResponse.results,
         tenantProcessClient,
-        agreementProcessClient,
         inAppNotificationManagerClient,
         ctx,
         requesterId

@@ -28,7 +28,6 @@ import { ConfigurationRiskAnalysis } from "../model/types.js";
 import {
   hasCertifiedAttributes,
   isAgreementSubscribed,
-  isAgreementUpgradable,
   isInvalidDescriptor,
   isRequesterEserviceProducer,
   isValidDescriptor,
@@ -51,8 +50,7 @@ export function toBffCatalogApiEService(
   producerTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
   hasNotifications: boolean,
-  activeDescriptor?: catalogApi.EServiceDescriptor,
-  agreement?: agreementApi.Agreement
+  activeDescriptor?: catalogApi.EServiceDescriptor
 ): bffApi.CatalogEService {
   const partialEnhancedEservice = {
     id: eservice.id,
@@ -74,15 +72,6 @@ export function toBffCatalogApiEService(
             version: activeDescriptor.version,
             audience: activeDescriptor.audience,
             state: activeDescriptor.state,
-          },
-        }
-      : {}),
-    ...(agreement
-      ? {
-          agreement: {
-            id: agreement.id,
-            state: agreement.state,
-            canBeUpgraded: isAgreementUpgradable(eservice, agreement),
           },
         }
       : {}),
