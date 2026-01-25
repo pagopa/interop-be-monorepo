@@ -56,10 +56,7 @@ export const verifyAccessTokenIsDPoP = (
   return result.data;
 };
 
-export const isDPoPToken = (input: JwtPayload | string): boolean =>
-  AuthTokenDPoPPayload.safeParse(input).success;
-
-// export const isDPoPToken = (
+// export const isAccessTokenDPoPBound = (
 //   input: JwtPayload | string
 // ): input is JwtPayload & typeof CNF =>
 //   typeof input !== "string" && input.cnf !== undefined && input.cnf !== null;
@@ -142,4 +139,36 @@ export const verifyJwtToken = async (
     const { userId, selfcareId } = extractUserInfoForFailedToken();
     return Promise.reject(tokenVerificationFailed(userId, selfcareId));
   }
+};
+
+/**
+ * Orchestrates the complete verification of a DPoP-bound Access Token.
+ *
+ * This function combines two validation steps:
+ * 1. **Standard JWT Verification**: Validates the cryptographic signature, expiration (`exp`),
+ * and standard claims using `verifyJwtToken`.
+ * 2. **DPoP Structure Enforcement**: Ensures the token payload complies with the DPoP schema,
+ * specifically checking for the presence of the confirmation claim (`cnf`) using `verifyAccessTokenIsDPoP`.
+ *
+ * @param accessToken - The raw Base64 encoded JWT string extracted from the Authorization header.
+ * @param config - The JWT configuration object containing keys and validation options.
+ * @param logger - The logger instance used for tracking validation steps.
+ *
+ * @returns A Promise that resolves to the decoded token payload, strictly typed as `AuthTokenDPoPPayload`.
+ * This guarantees to the consumer that the `cnf` property is present and valid.
+ *
+ * @throws {tokenVerificationFailed} If the token signature is invalid, expired, or the token is malformed (HTTP 401).
+ * @throws {invalidClaim} If the token is cryptographically valid but misses required DPoP claims (e.g., missing `cnf`) (HTTP 400).
+ */
+export const verifyJwtDPoPToken = async (
+  accessToken: string,
+  config: JWTConfig,
+  logger: Logger
+): Promise<AuthTokenDPoPPayload> => {
+  // Verify JWT Signature & Expiration
+  const { decoded } = await verifyJwtToken(accessToken, config, logger);
+
+  // Step 2: Enforce DPoP Structure
+  // throws 'invalidClaim' (400) if DPoP claims are missing or malformed (cnf included)
+  return verifyAccessTokenIsDPoP(decoded);
 };

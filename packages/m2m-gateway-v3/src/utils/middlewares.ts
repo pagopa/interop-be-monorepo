@@ -7,10 +7,9 @@ import {
   jwtsFromAuthAndDPoPHeaders,
   readAuthDataFromJwtToken,
   systemRole,
-  verifyJwtToken,
-  verifyAccessTokenIsDPoP,
   JWTConfig,
   DPoPConfig,
+  verifyJwtDPoPToken,
 } from "pagopa-interop-commons";
 import {
   checkDPoPCache,
@@ -121,7 +120,7 @@ export const authenticationDPoPMiddleware: (
 
       // ----------------------------------------------------------------------
       // Step 1 – Schema and Presence Verification (Syntax Check)
-      // verify HTTP DPoP Header and Authorization Header
+      // verify HTTP Authorization Header and DPoP Header
       // ----------------------------------------------------------------------
       const { accessToken, dpopProofJWS } = jwtsFromAuthAndDPoPHeaders(
         req,
@@ -129,20 +128,15 @@ export const authenticationDPoPMiddleware: (
       );
 
       // ----------------------------------------------------------------------
-      // Step 2 – Access Token Validation
+      // Step 2 & 3 – Access Token Verification & DPoP Enforcement
       // verify JWT Access Token
+      // verify all claims (cnf included) are all present in JWT Token (Binding DPoP)
       // ----------------------------------------------------------------------
-      const { decoded: accessTokenDecoded } = await verifyJwtToken(
+      const accessTokenDPoP = await verifyJwtDPoPToken(
         accessToken,
         config,
         ctx.logger
       );
-
-      // ----------------------------------------------------------------------
-      // Step 3 – Access Token Binding Verification (cnf)
-      // verify all claims (cnf included) are all present in JWT Token (Binding DPoP)
-      // ----------------------------------------------------------------------
-      const accessTokenDPoP = verifyAccessTokenIsDPoP(accessTokenDecoded);
 
       // ----------------------------------------------------------------------
       // Step 4a & 4b – DPoP Proof Validation (Static & Crypto)
@@ -198,7 +192,7 @@ export const authenticationDPoPMiddleware: (
       }
 
       // eslint-disable-next-line functional/immutable-data
-      req.ctx.authData = readAuthDataFromJwtToken(accessTokenDecoded);
+      req.ctx.authData = readAuthDataFromJwtToken(accessTokenDPoP);
       return next();
     } catch (error) {
       const problem = makeApiProblem(
@@ -209,8 +203,11 @@ export const authenticationDPoPMiddleware: (
             .with("operationForbidden", () => 403)
             .with(
               "missingHeader",
-              "badBearerToken",
               "badDPoPToken",
+              "badDPoPProof",
+              "dpopProofValidationFailed",
+              "dpopProofSignatureValidationFailed",
+              "dpopProofJtiAlreadyUsed",
               "invalidClaim",
               () => 400
             )

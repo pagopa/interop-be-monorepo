@@ -54,6 +54,26 @@ export function jwtFromAuthHeader(req: Request, logger: Logger): string {
   return authHeaderParts[1];
 }
 
+/**
+ * Extracts and validates the presence of the:
+ * (1) Access Token DPoP and
+ * (2) the DPoP Proof
+ * from the HTTP request headers.
+ *
+ * This function performs a syntax and presence check on the `Authorization` and `DPoP` headers.
+ * It does not verify the cryptographic signatures or the claims of the tokens.
+ *
+ * @param req - The Express `Request` object containing the HTTP headers.
+ * @param logger - The `Logger` instance used to log warnings in case of missing or malformed headers.
+ *
+ * @returns An object containing the raw strings of the Access Token and the DPoP Proof JWS.
+ *
+ * @throws {missingHeader} If the `Authorization` header is missing entirely.
+ * @throws {badDPoPToken} If the `Authorization` scheme is not "DPoP" or the token value is missing.
+ * @throws {missingHeader} If the `DPoP` header is missing entirely.
+ * @throws {badDPoPProof} If the `DPoP` header is present but malformed (e.g., empty or invalid format according to `parseDPoPHeader`).
+ *
+ */
 export function jwtsFromAuthAndDPoPHeaders(
   req: Request,
   logger: Logger
