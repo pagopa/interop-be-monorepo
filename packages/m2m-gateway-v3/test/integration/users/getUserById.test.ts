@@ -91,6 +91,8 @@ describe("getUserById", () => {
     const context = getMockM2MAdminAppContext({ organizationId: tenantId });
     return await userService.getUserById(userId, context);
   };
+  const userNotFoundRegex =
+    /^User [0-9a-f-]+ not found for tenant [0-9a-f-]+$/gi;
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
@@ -136,7 +138,9 @@ describe("getUserById", () => {
     mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
       getMockWithMetadata(mockNoUsers)
     );
-    await expect(callService()).rejects.toThrowError();
+    await expect(callService()).rejects.toMatchObject({
+      message: expect.stringMatching(userNotFoundRegex),
+    });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: {
@@ -163,7 +167,9 @@ describe("getUserById", () => {
     mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
       getMockWithMetadata(mockTooManyUsers)
     );
-    await expect(callService()).rejects.toThrowError();
+    await expect(callService()).rejects.toMatchObject({
+      message: expect.stringMatching(userNotFoundRegex),
+    });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: {
@@ -190,7 +196,9 @@ describe("getUserById", () => {
     mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
       getMockWithMetadata(mockDifferentUser)
     );
-    await expect(callService()).rejects.toThrowError();
+    await expect(callService()).rejects.toMatchObject({
+      message: expect.stringMatching(userNotFoundRegex),
+    });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: {
@@ -217,7 +225,11 @@ describe("getUserById", () => {
     mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
       getMockWithMetadata(mockCorrectUser)
     );
-    await expect(callService()).rejects.toThrowError();
+    await expect(callService()).rejects.toMatchObject({
+      message: expect.stringMatching(
+        /^Tenant [0-9a-f-]+ does not have a SelfCare ID$/gi
+      ),
+    });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: {
