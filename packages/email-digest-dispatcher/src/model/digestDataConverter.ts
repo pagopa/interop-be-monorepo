@@ -3,7 +3,8 @@ import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
 import {
   buildAgreementLink,
   buildEserviceLink,
-  buildEserviceTemplateLink,
+  buildEserviceTemplateLinkToInstantiator,
+  buildEserviceTemplateLinkToCreator,
 } from "../services/deeplinkBuilder.js";
 import {
   NewEservice,
@@ -99,7 +100,11 @@ async function templateDataToBaseDigest<
 >(
   data: T[],
   readModelService: ReadModelService,
-  getProducerId: (item: T) => TenantId
+  getProducerId: (item: T) => TenantId,
+  buildLink: (
+    eserviceTemplateId: string,
+    eserviceTemplateVersionId: string
+  ) => string
 ): Promise<BaseDigest> {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
@@ -118,7 +123,7 @@ async function templateDataToBaseDigest<
       id: template.eserviceTemplateId,
       name: template.eserviceTemplateName,
       producerName: template.entityProducerName,
-      link: buildEserviceTemplateLink(
+      link: buildLink(
         template.eserviceTemplateId,
         template.eserviceTemplateVersionId
       ),
@@ -137,7 +142,8 @@ export async function eserviceTemplateToBaseDigest(
   return templateDataToBaseDigest(
     data,
     readModelService,
-    (item) => item.eserviceTemplateProducerId
+    (item) => item.eserviceTemplateProducerId,
+    buildEserviceTemplateLinkToCreator
   );
 }
 
@@ -184,7 +190,8 @@ export async function popularEserviceTemplateToBaseDigest(
   return templateDataToBaseDigest(
     data,
     readModelService,
-    (item) => item.eserviceTemplateCreatorId
+    (item) => item.eserviceTemplateCreatorId,
+    buildEserviceTemplateLinkToInstantiator
   );
 }
 
