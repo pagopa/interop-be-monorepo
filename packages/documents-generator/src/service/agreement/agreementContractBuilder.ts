@@ -59,9 +59,9 @@ const createAgreementDocumentName = (
   producerId: TenantId,
   documentCreatedAt: Date
 ): string =>
-  `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
+  `${formatDateyyyyMMddHHmmss(
     documentCreatedAt
-  )}_agreement_contract.pdf`;
+  )}_${consumerId}_${producerId}_agreement_contract.pdf`;
 
 const getAttributesData = async (
   consumer: Tenant,
