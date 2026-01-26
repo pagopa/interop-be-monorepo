@@ -187,6 +187,7 @@ describe("getClientPurposes", () => {
       results: [mockApiPurpose1],
     });
     mockGetPurposes.mockResolvedValueOnce(getMockApiPurpose1);
+
     const result1 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
       { ...mockParams, offset: 0, limit: 1 },
@@ -204,6 +205,12 @@ describe("getClientPurposes", () => {
 
     expect(mockGetClient).toHaveBeenCalledTimes(1);
     expect(mockGetPurposes).toHaveBeenCalledTimes(1);
+
+    const getMockApiPurpose2 = getMockWithMetadata({
+      ...mockResponse.data,
+      results: [mockApiPurpose2],
+    });
+    mockGetPurposes.mockResolvedValue(getMockApiPurpose2);
 
     const result2 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
