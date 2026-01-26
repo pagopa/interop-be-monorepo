@@ -17,6 +17,7 @@ import {
   PurposeTemplateId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -440,7 +441,7 @@ export function invalidSeedForPurposeFromTemplate(
 }
 
 export function userNotFound(
-  userId: string,
+  userId: UserId,
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
