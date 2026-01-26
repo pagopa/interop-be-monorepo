@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getMockPurposeTemplate, // Assumi esistano i mock necessari
 } from "pagopa-interop-commons-test";
@@ -22,6 +22,10 @@ import {
 
 describe("handlePurposeTemplateEvent test", async () => {
   vi.spyOn(testM2mEventWriterService, "insertPurposeTemplateM2MEvent");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   describe.each(PurposeTemplateEventV2.options.map((o) => o.shape.type.value))(
     "with %s event",
