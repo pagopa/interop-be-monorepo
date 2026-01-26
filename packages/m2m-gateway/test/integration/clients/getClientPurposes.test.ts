@@ -131,7 +131,7 @@ describe("getClientPurposes", () => {
     purposeTemplateId: mockApiPurpose2.purposeTemplateId,
   };
 
-  const mockPurposeVersion3 = mockApiPurpose3.versions.at(0);
+  const purposeVersion3 = mockApiPurpose3.versions.at(0);
   const expectedM2MPurpose3: m2mGatewayApi.Purpose = {
     consumerId: mockApiPurpose3.consumerId,
     createdAt: mockApiPurpose3.createdAt,
@@ -141,8 +141,8 @@ describe("getClientPurposes", () => {
     isFreeOfCharge: mockApiPurpose3.isFreeOfCharge,
     isRiskAnalysisValid: mockApiPurpose3.isRiskAnalysisValid,
     title: mockApiPurpose3.title,
-    currentVersion: mockPurposeVersion3
-      ? testToM2mGatewayApiPurposeVersion(mockPurposeVersion3)
+    currentVersion: purposeVersion3
+      ? testToM2mGatewayApiPurposeVersion(purposeVersion3)
       : undefined,
     delegationId: mockApiPurpose3.delegationId,
     freeOfChargeReason: mockApiPurpose3.freeOfChargeReason,
