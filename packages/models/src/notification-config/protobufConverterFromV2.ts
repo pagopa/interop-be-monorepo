@@ -1,7 +1,6 @@
 import { unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {
-  EmailNotificationPreferenceV2,
   NotificationConfigV2,
   TenantNotificationConfigV2,
   UserNotificationConfigV2,
@@ -10,8 +9,6 @@ import {
 import { UserRole, userRole } from "../user/user.js";
 import { bigIntToDate } from "../utils.js";
 import {
-  emailNotificationPreference,
-  EmailNotificationPreference,
   NotificationConfig,
   TenantNotificationConfig,
   UserNotificationConfig,
@@ -59,9 +56,8 @@ export const fromUserNotificationConfigV2 = (
     userId: unsafeBrandId(input.userId),
     tenantId: unsafeBrandId(input.tenantId),
     inAppNotificationPreference: input.inAppNotificationPreference,
-    emailNotificationPreference: fromEmailNotificationPreferenceV2(
-      input.emailNotificationPreference
-    ),
+    emailNotificationPreference: input.emailNotificationPreference,
+    emailDigestPreference: input.emailDigestPreference,
     inAppConfig: fromNotificationConfigV2(input.inAppConfig),
     emailConfig: fromNotificationConfigV2(input.emailConfig),
     userRoles: [
@@ -71,19 +67,6 @@ export const fromUserNotificationConfigV2 = (
     createdAt: bigIntToDate(input.createdAt),
     updatedAt: bigIntToDate(input.updatedAt),
   };
-};
-
-const fromEmailNotificationPreferenceV2 = (
-  input: EmailNotificationPreferenceV2
-): EmailNotificationPreference => {
-  switch (input) {
-    case EmailNotificationPreferenceV2.DISABLED:
-      return emailNotificationPreference.disabled;
-    case EmailNotificationPreferenceV2.ENABLED:
-      return emailNotificationPreference.enabled;
-    case EmailNotificationPreferenceV2.DIGEST:
-      return emailNotificationPreference.digest;
-  }
 };
 
 const fromUserRoleV2 = (input: UserRoleV2): UserRole => {

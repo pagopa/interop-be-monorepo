@@ -18,6 +18,7 @@ import {
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { HandlerCommonParams } from "../../models/handlerParams.js";
+import { config } from "../../config/config.js";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -131,9 +132,11 @@ export async function handleEserviceStateChanged(
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             copy,
             ctaLabel: `Visualizza e-service`,
+            selfcareId: t.selfcareId,
+            bffUrl: config.bffUrl,
           }),
         },
-        tenantId: producer.id,
+        tenantId: t.tenantId,
         ...mapRecipientToEmailPayload(t),
       },
     ];

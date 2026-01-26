@@ -18,6 +18,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "eserviceTemplateNameChangedToInstantiator";
@@ -97,6 +98,8 @@ export async function handleEServiceTemplateNameUpdated(
           ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
           oldName: oldName ?? eserviceTemplate.id,
           newName: eserviceTemplate.name,
+          selfcareId: t.selfcareId,
+          bffUrl: config.bffUrl,
         }),
       },
       tenantId: t.tenantId,

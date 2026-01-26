@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "delegationSubmittedRevokedToDelegate";
@@ -76,6 +77,8 @@ export async function handleProducerDelegationSubmitted(
         delegatorName: delegator.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta di delega`,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

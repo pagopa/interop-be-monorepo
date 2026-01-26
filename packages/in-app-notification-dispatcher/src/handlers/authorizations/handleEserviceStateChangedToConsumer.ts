@@ -1,6 +1,7 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   EServiceId,
+  EServiceIdDescriptorId,
   NewNotification,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -8,6 +9,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveEservice,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
@@ -53,11 +55,16 @@ export async function handleEserviceStateChangedToConsumer(
     eservice.name
   );
 
+  const descriptor = retrieveLatestDescriptor(eservice);
+  const entityId = EServiceIdDescriptorId.parse(
+    `${eservice.id}/${descriptor.id}`
+  );
+
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceStateChangedToConsumer",
-    entityId: eservice.id,
+    entityId,
   }));
 }

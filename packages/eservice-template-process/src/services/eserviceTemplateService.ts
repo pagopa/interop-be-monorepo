@@ -113,6 +113,7 @@ import {
   hasRoleToAccessDraftTemplateVersions,
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
+  assertRiskAnalysisExists,
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
@@ -1038,6 +1039,7 @@ export function eserviceTemplateServiceBuilder(
       assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
       assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
+      assertRiskAnalysisExists(template.data, riskAnalysisId);
 
       const newTemplate: EServiceTemplate = {
         ...template.data,
@@ -1513,16 +1515,17 @@ export function eserviceTemplateServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
       return {
         data: {
           eserviceTemplate: updatedEServiceTemplateWithDocs,
           createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
         },
-        metadata: { version: newVersion },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(
+              updatedEServiceTemplateWithDocs.id
+            ) ?? 0,
+        },
       };
     },
     async getEServiceTemplates(
