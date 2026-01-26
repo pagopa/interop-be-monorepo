@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose_template (
 
   eservice_id UUID, 
   descriptor_id UUID,
-
+  
   PRIMARY KEY (id)
 );
 
