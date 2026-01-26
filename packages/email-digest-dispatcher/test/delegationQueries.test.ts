@@ -42,14 +42,15 @@ const createStamp = (date: Date): DelegationStamp => ({
  * - WaitingForApproval: needs submission stamp (delegator submitted)
  * - Revoked: needs revocation stamp (delegator revoked)
  */
-const createDelegationWithStamps = (
-  delegatorId: TenantId,
-  delegateId: TenantId,
-  eservice: EService,
-  state: Delegation["state"],
-  kind: DelegationKind,
-  actionDate: Date
-): Delegation => {
+const createDelegationWithStamps = (params: {
+  delegatorId: TenantId;
+  delegateId: TenantId;
+  eservice: EService;
+  state: Delegation["state"];
+  kind: DelegationKind;
+  actionDate: Date;
+}): Delegation => {
+  const { delegatorId, delegateId, eservice, state, kind, actionDate } = params;
   const submissionStamp = createStamp(daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE));
 
   // Build stamps based on state (immutable approach)
@@ -117,14 +118,14 @@ describe("ReadModelService - getSentDelegations", async () => {
       await addOneEService(eservice);
 
       // Create delegation with activation stamp outside the time window (10 days ago)
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE)
-      );
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getSentDelegations(delegator.id);
@@ -142,14 +143,14 @@ describe("ReadModelService - getSentDelegations", async () => {
       await addOneEService(eservice);
 
       const activationDate = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        activationDate
-      );
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: activationDate,
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getSentDelegations(delegator.id);
@@ -169,14 +170,14 @@ describe("ReadModelService - getSentDelegations", async () => {
       await addOneEService(eservice);
 
       const rejectionDate = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.rejected,
-        delegationKind.delegatedConsumer,
-        rejectionDate
-      );
+        state: delegationState.rejected,
+        kind: delegationKind.delegatedConsumer,
+        actionDate: rejectionDate,
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getSentDelegations(delegator.id);
@@ -196,14 +197,14 @@ describe("ReadModelService - getSentDelegations", async () => {
       await addOneEService(eservice);
 
       const activationDate = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.active,
-        delegationKind.delegatedConsumer,
-        activationDate
-      );
+        state: delegationState.active,
+        kind: delegationKind.delegatedConsumer,
+        actionDate: activationDate,
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getSentDelegations(delegator.id);
@@ -223,14 +224,14 @@ describe("ReadModelService - getSentDelegations", async () => {
       const eservice = createMockEService(delegator.id);
       await addOneEService(eservice);
 
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
-      );
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getSentDelegations(delegator.id);
@@ -247,14 +248,14 @@ describe("ReadModelService - getSentDelegations", async () => {
       const eservice = createMockEService(delegator.id);
       await addOneEService(eservice);
 
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.revoked,
-        delegationKind.delegatedProducer,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
-      );
+        state: delegationState.revoked,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getSentDelegations(delegator.id);
@@ -272,22 +273,22 @@ describe("ReadModelService - getSentDelegations", async () => {
       await addOneEService(eservice);
 
       // Create one delegation for each valid state
-      const activeDelegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const activeDelegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        daysAgo(3)
-      );
-      const rejectedDelegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(3),
+      });
+      const rejectedDelegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.rejected,
-        delegationKind.delegatedConsumer,
-        daysAgo(2)
-      );
+        state: delegationState.rejected,
+        kind: delegationKind.delegatedConsumer,
+        actionDate: daysAgo(2),
+      });
 
       await addOneDelegation(activeDelegation);
       await addOneDelegation(rejectedDelegation);
@@ -313,14 +314,14 @@ describe("ReadModelService - getSentDelegations", async () => {
           await addOneTenant(delegate);
           const eservice = createMockEService(delegator.id);
           await addOneEService(eservice);
-          const delegation = createDelegationWithStamps(
-            delegator.id,
-            delegate.id,
+          const delegation = createDelegationWithStamps({
+            delegatorId: delegator.id,
+            delegateId: delegate.id,
             eservice,
             state,
-            delegationKind.delegatedProducer,
-            daysAgo(i + 1)
-          );
+            kind: delegationKind.delegatedProducer,
+            actionDate: daysAgo(i + 1),
+          });
           await addOneDelegation(delegation);
         }
       }
@@ -349,14 +350,14 @@ describe("ReadModelService - getSentDelegations", async () => {
         await addOneTenant(delegate);
         const eservice = createMockEService(delegator.id);
         await addOneEService(eservice);
-        const delegation = createDelegationWithStamps(
-          delegator.id,
-          delegate.id,
+        const delegation = createDelegationWithStamps({
+          delegatorId: delegator.id,
+          delegateId: delegate.id,
           eservice,
-          delegationState.active,
-          delegationKind.delegatedProducer,
-          daysAgo(i + 1)
-        );
+          state: delegationState.active,
+          kind: delegationKind.delegatedProducer,
+          actionDate: daysAgo(i + 1),
+        });
         await addOneDelegation(delegation);
       }
 
@@ -385,30 +386,30 @@ describe("ReadModelService - getSentDelegations", async () => {
       await addOneEService(eservice2);
       await addOneEService(eservice3);
 
-      const oldestDelegation = createDelegationWithStamps(
-        delegator.id,
-        delegate1.id,
-        eservice1,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        daysAgo(5)
-      );
-      const middleDelegation = createDelegationWithStamps(
-        delegator.id,
-        delegate2.id,
-        eservice2,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        daysAgo(3)
-      );
-      const newestDelegation = createDelegationWithStamps(
-        delegator.id,
-        delegate3.id,
-        eservice3,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        daysAgo(1)
-      );
+      const oldestDelegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate1.id,
+        eservice: eservice1,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(5),
+      });
+      const middleDelegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate2.id,
+        eservice: eservice2,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(3),
+      });
+      const newestDelegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate3.id,
+        eservice: eservice3,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(1),
+      });
 
       // Add in random order
       await addOneDelegation(newestDelegation);
@@ -438,22 +439,22 @@ describe("ReadModelService - getSentDelegations", async () => {
       await addOneEService(eservice1);
       await addOneEService(eservice2);
 
-      const delegation1 = createDelegationWithStamps(
-        delegator1.id,
-        delegate.id,
-        eservice1,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        daysAgo(2)
-      );
-      const delegation2 = createDelegationWithStamps(
-        delegator2.id,
-        delegate.id,
-        eservice2,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        daysAgo(2)
-      );
+      const delegation1 = createDelegationWithStamps({
+        delegatorId: delegator1.id,
+        delegateId: delegate.id,
+        eservice: eservice1,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(2),
+      });
+      const delegation2 = createDelegationWithStamps({
+        delegatorId: delegator2.id,
+        delegateId: delegate.id,
+        eservice: eservice2,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(2),
+      });
 
       await addOneDelegation(delegation1);
       await addOneDelegation(delegation2);
@@ -479,14 +480,14 @@ describe("ReadModelService - getSentDelegations", async () => {
         await addOneTenant(delegate);
         const eservice = createMockEService(delegator.id);
         await addOneEService(eservice);
-        const delegation = createDelegationWithStamps(
-          delegator.id,
-          delegate.id,
+        const delegation = createDelegationWithStamps({
+          delegatorId: delegator.id,
+          delegateId: delegate.id,
           eservice,
-          delegationState.active,
-          delegationKind.delegatedProducer,
-          daysAgo(i + 1)
-        );
+          state: delegationState.active,
+          kind: delegationKind.delegatedProducer,
+          actionDate: daysAgo(i + 1),
+        });
         await addOneDelegation(delegation);
       }
 
@@ -496,14 +497,14 @@ describe("ReadModelService - getSentDelegations", async () => {
         await addOneTenant(delegate);
         const eservice = createMockEService(delegator.id);
         await addOneEService(eservice);
-        const delegation = createDelegationWithStamps(
-          delegator.id,
-          delegate.id,
+        const delegation = createDelegationWithStamps({
+          delegatorId: delegator.id,
+          delegateId: delegate.id,
           eservice,
-          delegationState.rejected,
-          delegationKind.delegatedConsumer,
-          daysAgo(i + 1)
-        );
+          state: delegationState.rejected,
+          kind: delegationKind.delegatedConsumer,
+          actionDate: daysAgo(i + 1),
+        });
         await addOneDelegation(delegation);
       }
 
@@ -550,14 +551,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       await addOneEService(eservice);
 
       // Create delegation with submission stamp outside the time window (10 days ago)
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE)
-      );
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getReceivedDelegations(
@@ -577,14 +578,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       await addOneEService(eservice);
 
       const submissionDate = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        submissionDate
-      );
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: submissionDate,
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getReceivedDelegations(
@@ -606,14 +607,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       await addOneEService(eservice);
 
       const revocationDate = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.revoked,
-        delegationKind.delegatedConsumer,
-        revocationDate
-      );
+        state: delegationState.revoked,
+        kind: delegationKind.delegatedConsumer,
+        actionDate: revocationDate,
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getReceivedDelegations(
@@ -636,14 +637,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       const eservice = createMockEService(delegator.id);
       await addOneEService(eservice);
 
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.active,
-        delegationKind.delegatedProducer,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
-      );
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getReceivedDelegations(
@@ -662,14 +663,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       const eservice = createMockEService(delegator.id);
       await addOneEService(eservice);
 
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.rejected,
-        delegationKind.delegatedProducer,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
-      );
+        state: delegationState.rejected,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getReceivedDelegations(
@@ -690,22 +691,22 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       await addOneEService(eservice1);
       await addOneEService(eservice2);
 
-      const waitingDelegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
-        eservice1,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(3)
-      );
-      const revokedDelegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
-        eservice2,
-        delegationState.revoked,
-        delegationKind.delegatedConsumer,
-        daysAgo(2)
-      );
+      const waitingDelegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
+        eservice: eservice1,
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(3),
+      });
+      const revokedDelegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
+        eservice: eservice2,
+        state: delegationState.revoked,
+        kind: delegationKind.delegatedConsumer,
+        actionDate: daysAgo(2),
+      });
 
       await addOneDelegation(waitingDelegation);
       await addOneDelegation(revokedDelegation);
@@ -738,14 +739,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
           await addOneTenant(delegator);
           const eservice = createMockEService(delegator.id);
           await addOneEService(eservice);
-          const delegation = createDelegationWithStamps(
-            delegator.id,
-            delegate.id,
+          const delegation = createDelegationWithStamps({
+            delegatorId: delegator.id,
+            delegateId: delegate.id,
             eservice,
             state,
-            delegationKind.delegatedProducer,
-            daysAgo(i + 1)
-          );
+            kind: delegationKind.delegatedProducer,
+            actionDate: daysAgo(i + 1),
+          });
           await addOneDelegation(delegation);
         }
       }
@@ -776,14 +777,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
         await addOneTenant(delegator);
         const eservice = createMockEService(delegator.id);
         await addOneEService(eservice);
-        const delegation = createDelegationWithStamps(
-          delegator.id,
-          delegate.id,
+        const delegation = createDelegationWithStamps({
+          delegatorId: delegator.id,
+          delegateId: delegate.id,
           eservice,
-          delegationState.waitingForApproval,
-          delegationKind.delegatedProducer,
-          daysAgo(i + 1)
-        );
+          state: delegationState.waitingForApproval,
+          kind: delegationKind.delegatedProducer,
+          actionDate: daysAgo(i + 1),
+        });
         await addOneDelegation(delegation);
       }
 
@@ -814,30 +815,30 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       await addOneEService(eservice2);
       await addOneEService(eservice3);
 
-      const oldestDelegation = createDelegationWithStamps(
-        delegator1.id,
-        delegate.id,
-        eservice1,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(5)
-      );
-      const middleDelegation = createDelegationWithStamps(
-        delegator2.id,
-        delegate.id,
-        eservice2,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(3)
-      );
-      const newestDelegation = createDelegationWithStamps(
-        delegator3.id,
-        delegate.id,
-        eservice3,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(1)
-      );
+      const oldestDelegation = createDelegationWithStamps({
+        delegatorId: delegator1.id,
+        delegateId: delegate.id,
+        eservice: eservice1,
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(5),
+      });
+      const middleDelegation = createDelegationWithStamps({
+        delegatorId: delegator2.id,
+        delegateId: delegate.id,
+        eservice: eservice2,
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(3),
+      });
+      const newestDelegation = createDelegationWithStamps({
+        delegatorId: delegator3.id,
+        delegateId: delegate.id,
+        eservice: eservice3,
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(1),
+      });
 
       // Add in random order
       await addOneDelegation(newestDelegation);
@@ -867,22 +868,22 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       const eservice = createMockEService(delegator.id);
       await addOneEService(eservice);
 
-      const delegation1 = createDelegationWithStamps(
-        delegator.id,
-        delegate1.id,
+      const delegation1 = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate1.id,
         eservice,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(2)
-      );
-      const delegation2 = createDelegationWithStamps(
-        delegator.id,
-        delegate2.id,
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(2),
+      });
+      const delegation2 = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate2.id,
         eservice,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(2)
-      );
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(2),
+      });
 
       await addOneDelegation(delegation1);
       await addOneDelegation(delegation2);
@@ -910,14 +911,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
         await addOneTenant(delegator);
         const eservice = createMockEService(delegator.id);
         await addOneEService(eservice);
-        const delegation = createDelegationWithStamps(
-          delegator.id,
-          delegate.id,
+        const delegation = createDelegationWithStamps({
+          delegatorId: delegator.id,
+          delegateId: delegate.id,
           eservice,
-          delegationState.waitingForApproval,
-          delegationKind.delegatedProducer,
-          daysAgo(i + 1)
-        );
+          state: delegationState.waitingForApproval,
+          kind: delegationKind.delegatedProducer,
+          actionDate: daysAgo(i + 1),
+        });
         await addOneDelegation(delegation);
       }
 
@@ -927,14 +928,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
         await addOneTenant(delegator);
         const eservice = createMockEService(delegator.id);
         await addOneEService(eservice);
-        const delegation = createDelegationWithStamps(
-          delegator.id,
-          delegate.id,
+        const delegation = createDelegationWithStamps({
+          delegatorId: delegator.id,
+          delegateId: delegate.id,
           eservice,
-          delegationState.revoked,
-          delegationKind.delegatedConsumer,
-          daysAgo(i + 1)
-        );
+          state: delegationState.revoked,
+          kind: delegationKind.delegatedConsumer,
+          actionDate: daysAgo(i + 1),
+        });
         await addOneDelegation(delegation);
       }
 
@@ -969,14 +970,14 @@ describe("ReadModelService - getReceivedDelegations", async () => {
       const eservice = createMockEService(delegator.id);
       await addOneEService(eservice);
 
-      const delegation = createDelegationWithStamps(
-        delegator.id,
-        delegate.id,
+      const delegation = createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
         eservice,
-        delegationState.waitingForApproval,
-        delegationKind.delegatedProducer,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
-      );
+        state: delegationState.waitingForApproval,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      });
       await addOneDelegation(delegation);
 
       const results = await readModelService.getReceivedDelegations(

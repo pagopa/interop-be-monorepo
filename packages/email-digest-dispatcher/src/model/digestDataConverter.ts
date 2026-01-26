@@ -1,5 +1,16 @@
-import { AgreementState, EServiceId, TenantId } from "pagopa-interop-models";
-import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
+import {
+  AgreementState,
+  DelegationKind,
+  DelegationState,
+  DescriptorId,
+  EServiceId,
+  TenantId,
+} from "pagopa-interop-models";
+import {
+  AttributeDigest,
+  BaseDigest,
+  DelegationDigest,
+} from "../services/digestDataService.js";
 import {
   buildAgreementLink,
   buildEserviceLink,
@@ -17,7 +28,42 @@ import {
   ReadModelService,
   ReceivedAgreement,
   SentAgreement,
+  SentDelegation,
+  ReceivedDelegation,
 } from "../services/readModelService.js";
+
+// Module-level cache for descriptor IDs to avoid repeated readModelService calls
+const descriptorIdCache = new Map<EServiceId, DescriptorId>();
+
+/**
+ * Gets the latest published descriptor IDs for e-services, using module-level cache.
+ * Only calls readModelService for uncached IDs.
+ */
+async function getCachedDescriptorIds(
+  eserviceIds: EServiceId[],
+  readModelService: ReadModelService
+): Promise<Map<EServiceId, DescriptorId>> {
+  if (eserviceIds.length === 0) {
+    return new Map();
+  }
+
+  const uncachedIds = eserviceIds.filter((id) => !descriptorIdCache.has(id));
+  const cachedEntries: Array<[EServiceId, DescriptorId]> = eserviceIds
+    .filter((id) => descriptorIdCache.has(id))
+    .map((id) => [id, descriptorIdCache.get(id) as DescriptorId]);
+
+  if (uncachedIds.length > 0) {
+    const fetched = await readModelService.getLatestPublishedDescriptorIds(
+      uncachedIds
+    );
+    fetched.forEach((value, key) => {
+      descriptorIdCache.set(key, value);
+    });
+    return new Map([...cachedEntries, ...fetched.entries()]);
+  }
+
+  return new Map(cachedEntries);
+}
 
 export type VerifiedAttribute =
   | VerifiedAssignedAttribute
@@ -358,5 +404,111 @@ export function combineAttributeDigests(
   return {
     items: combinedItems,
     totalCount,
+  };
+}
+
+/**
+ * Converts DelegationKind to the digest format.
+ */
+function delegationKindToDigest(kind: DelegationKind): "producer" | "consumer" {
+  return kind === "DelegatedProducer" ? "producer" : "consumer";
+}
+
+/**
+ * Filters sent delegations by state and transforms to DelegationDigest.
+ * Sent delegations show e-service name with link, and delegate name as producerName.
+ *
+ * @param data - Sent delegation data to filter and transform
+ * @param state - The delegation state to filter by
+ * @param readModelService - Service for fetching tenant names and descriptor IDs
+ */
+export async function sentDelegationsToDigest(
+  data: SentDelegation[],
+  state: DelegationState,
+  readModelService: ReadModelService
+): Promise<DelegationDigest> {
+  const filteredData = data.filter((d) => d.state === state);
+
+  if (filteredData.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  // Get delegate names (counterparty for sent delegations)
+  const uniqueDelegateIds = [...new Set(filteredData.map((d) => d.delegateId))];
+  const tenantNamesMap = await readModelService.getTenantsByIds(
+    uniqueDelegateIds
+  );
+
+  // Get latest published descriptor IDs for e-service links (with caching)
+  const uniqueEServiceIds = [...new Set(filteredData.map((d) => d.eserviceId))];
+  const descriptorIdsMap = await getCachedDescriptorIds(
+    uniqueEServiceIds,
+    readModelService
+  );
+
+  return {
+    items: filteredData.map((delegation) => {
+      const descriptorId = descriptorIdsMap.get(delegation.eserviceId);
+      return {
+        name: delegation.delegationName,
+        producerName: tenantNamesMap.get(delegation.delegateId) ?? UNKNOWN_NAME,
+        link: descriptorId
+          ? buildEserviceLink(delegation.eserviceId, descriptorId)
+          : "",
+        delegationKind: delegationKindToDigest(delegation.delegationKind),
+      };
+    }),
+    totalCount: filteredData[0].totalCount,
+  };
+}
+
+/**
+ * Filters received delegations by state and transforms to DelegationDigest.
+ * Received delegations show e-service name with link, and delegator name as producerName.
+ *
+ * @param data - Received delegation data to filter and transform
+ * @param state - The delegation state to filter by
+ * @param readModelService - Service for fetching tenant names and descriptor IDs
+ */
+export async function receivedDelegationsToDigest(
+  data: ReceivedDelegation[],
+  state: DelegationState,
+  readModelService: ReadModelService
+): Promise<DelegationDigest> {
+  const filteredData = data.filter((d) => d.state === state);
+
+  if (filteredData.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  // Get delegator names (counterparty for received delegations)
+  const uniqueDelegatorIds = [
+    ...new Set(filteredData.map((d) => d.delegatorId)),
+  ];
+  const tenantNamesMap = await readModelService.getTenantsByIds(
+    uniqueDelegatorIds
+  );
+
+  // Get latest published descriptor IDs for e-service links (with caching)
+  const uniqueEServiceIds = [...new Set(filteredData.map((d) => d.eserviceId))];
+  const descriptorIdsMap = await getCachedDescriptorIds(
+    uniqueEServiceIds,
+    readModelService
+  );
+
+  return {
+    items: filteredData.map((delegation) => {
+      const descriptorId = descriptorIdsMap.get(delegation.eserviceId);
+      return {
+        name: delegation.delegationName,
+        producerName:
+          tenantNamesMap.get(delegation.delegatorId) ?? UNKNOWN_NAME,
+        link: descriptorId
+          ? buildEserviceLink(delegation.eserviceId, descriptorId)
+          : "",
+        delegationKind: delegationKindToDigest(delegation.delegationKind),
+      };
+    }),
+    totalCount: filteredData[0].totalCount,
   };
 }

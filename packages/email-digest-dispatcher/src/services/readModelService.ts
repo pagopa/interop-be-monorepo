@@ -125,10 +125,12 @@ type BaseDelegation = {
 
 export type SentDelegation = BaseDelegation & {
   state: DelegationState;
+  delegateId: TenantId;
 };
 
 export type ReceivedDelegation = BaseDelegation & {
   state: DelegationState;
+  delegatorId: TenantId;
 };
 
 export type PopularEserviceTemplate = {
@@ -140,25 +142,28 @@ export type PopularEserviceTemplate = {
   totalCount: number;
 };
 
-type DelegationQueryResult = {
+type DelegationQueryResult<T extends string = string> = {
   delegationId: string;
   eserviceId: string;
   delegationName: string;
   state: string;
   kind: string;
   actionDate: string;
+  counterpartyId: T;
 };
 
 /**
  * Groups delegation query results by state, limits to SECTION_LIST_LIMIT per state,
  * and maps to the output format with totalCount per state.
  */
-function processDelegationResults(
-  results: DelegationQueryResult[],
+function processDelegationResults<T extends string>(
+  results: Array<DelegationQueryResult<T>>,
   sectionLimit: number
-): Array<BaseDelegation & { state: DelegationState }> {
+): Array<
+  BaseDelegation & { state: DelegationState; counterpartyId: TenantId }
+> {
   // Group by state
-  const groupedByState = new Map<string, DelegationQueryResult[]>();
+  const groupedByState = new Map<string, Array<DelegationQueryResult<T>>>();
   for (const row of results) {
     const stateResults = groupedByState.get(row.state) ?? [];
     groupedByState.set(row.state, [...stateResults, row]);
@@ -175,6 +180,7 @@ function processDelegationResults(
         state: DelegationState.parse(state),
         delegationKind: DelegationKind.parse(row.kind),
         actionDate: row.actionDate,
+        counterpartyId: unsafeBrandId<TenantId>(row.counterpartyId),
         totalCount,
       }));
     }
@@ -826,6 +832,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           state: delegationInReadmodelDelegation.state,
           kind: delegationInReadmodelDelegation.kind,
           actionDate: delegationStampInReadmodelDelegation.when,
+          counterpartyId: delegationInReadmodelDelegation.delegateId,
         })
         .from(delegationInReadmodelDelegation)
         .innerJoin(
@@ -869,13 +876,25 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .orderBy(asc(delegationStampInReadmodelDelegation.when));
 
-      const allResults = processDelegationResults(results, SECTION_LIST_LIMIT);
-
-      logger.info(
-        `Retrieved ${allResults.length} sent delegations for delegator ${delegatorId} (up to ${SECTION_LIST_LIMIT} per state)`
+      const processedResults = processDelegationResults(
+        results,
+        SECTION_LIST_LIMIT
       );
 
-      return allResults;
+      logger.info(
+        `Retrieved ${processedResults.length} sent delegations for delegator ${delegatorId} (up to ${SECTION_LIST_LIMIT} per state)`
+      );
+
+      return processedResults.map((r) => ({
+        delegationId: r.delegationId,
+        eserviceId: r.eserviceId,
+        delegationName: r.delegationName,
+        state: r.state,
+        delegationKind: r.delegationKind,
+        actionDate: r.actionDate,
+        totalCount: r.totalCount,
+        delegateId: r.counterpartyId,
+      }));
     },
 
     /**
@@ -900,6 +919,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           state: delegationInReadmodelDelegation.state,
           kind: delegationInReadmodelDelegation.kind,
           actionDate: delegationStampInReadmodelDelegation.when,
+          counterpartyId: delegationInReadmodelDelegation.delegatorId,
         })
         .from(delegationInReadmodelDelegation)
         .innerJoin(
@@ -943,13 +963,25 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .orderBy(asc(delegationStampInReadmodelDelegation.when));
 
-      const allResults = processDelegationResults(results, SECTION_LIST_LIMIT);
-
-      logger.info(
-        `Retrieved ${allResults.length} received delegations for delegate ${delegateId} (up to ${SECTION_LIST_LIMIT} per state)`
+      const processedResults = processDelegationResults(
+        results,
+        SECTION_LIST_LIMIT
       );
 
-      return allResults;
+      logger.info(
+        `Retrieved ${processedResults.length} received delegations for delegate ${delegateId} (up to ${SECTION_LIST_LIMIT} per state)`
+      );
+
+      return processedResults.map((r) => ({
+        delegationId: r.delegationId,
+        eserviceId: r.eserviceId,
+        delegationName: r.delegationName,
+        state: r.state,
+        delegationKind: r.delegationKind,
+        actionDate: r.actionDate,
+        totalCount: r.totalCount,
+        delegatorId: r.counterpartyId,
+      }));
     },
 
     /**
@@ -1219,6 +1251,54 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         logger,
         "e-services"
       );
+    },
+
+    /**
+     * Retrieves the latest published descriptor ID for each e-service.
+     * Returns a map of eserviceId to descriptorId.
+     */
+    async getLatestPublishedDescriptorIds(
+      eserviceIds: EServiceId[]
+    ): Promise<Map<EServiceId, DescriptorId>> {
+      if (eserviceIds.length === 0) {
+        return new Map();
+      }
+
+      logger.info(
+        `Retrieving latest published descriptor IDs for ${eserviceIds.length} e-services`
+      );
+
+      const results = await db
+        .select({
+          eserviceId: eserviceDescriptorInReadmodelCatalog.eserviceId,
+          descriptorId: eserviceDescriptorInReadmodelCatalog.id,
+          version: eserviceDescriptorInReadmodelCatalog.version,
+        })
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .where(
+          and(
+            inArray(
+              eserviceDescriptorInReadmodelCatalog.eserviceId,
+              eserviceIds
+            ),
+            eq(eserviceDescriptorInReadmodelCatalog.state, "Published")
+          )
+        )
+        .orderBy(desc(eserviceDescriptorInReadmodelCatalog.version));
+
+      // Group by eserviceId and take the highest version (first in ordered results)
+      const descriptorMap = new Map<EServiceId, DescriptorId>();
+      for (const row of results) {
+        const eserviceId = unsafeBrandId<EServiceId>(row.eserviceId);
+        if (!descriptorMap.has(eserviceId)) {
+          descriptorMap.set(
+            eserviceId,
+            unsafeBrandId<DescriptorId>(row.descriptorId)
+          );
+        }
+      }
+
+      return descriptorMap;
     },
 
     /**
