@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose_template (
 
   visibility VARCHAR NOT NULL,
 
- eservice_id UUID, 
+  eservice_id UUID, 
   descriptor_id UUID,
   
   PRIMARY KEY (id)
