@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  getMockPurposeTemplate, // Assumi esistano i mock necessari
+  getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   PurposeTemplateEventV2,
