@@ -441,10 +441,10 @@ export function invalidSeedForPurposeFromTemplate(
 
 export function userNotFound(
   userId: string,
-  selfcareId: string
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `User ${userId} not found for institution ${selfcareId}`,
+    detail: `User ${userId} not found for tenant ${tenantId}`,
     code: "userNotFound",
     title: "User not found",
   });
