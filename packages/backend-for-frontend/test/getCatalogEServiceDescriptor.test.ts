@@ -239,26 +239,28 @@ describe("getCatalogEServiceDescriptor", () => {
 
   vi.spyOn(
     agreementService,
-    "getLatestAgreementsOnDescriptor",
-  ).mockResolvedValue([{
-    id: generateId(),
-    eserviceId: eServiceId,
-    descriptorId: mockDescriptorId,
-    producerId: generateId(),
-    consumerId: authData.organizationId,
-    state: "ACTIVE",
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    consumerDocuments: [],
-    createdAt: "2023-01-01T00:00:00.000Z",
-    stamps: {
-      activation: {
-        who: generateId(),
-        when: "2023-02-02T00:00:00.000Z",
+    "getLatestAgreementsOnDescriptor"
+  ).mockResolvedValue([
+    {
+      id: generateId(),
+      eserviceId: eServiceId,
+      descriptorId: mockDescriptorId,
+      producerId: generateId(),
+      consumerId: authData.organizationId,
+      state: "ACTIVE",
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      consumerDocuments: [],
+      createdAt: "2023-01-01T00:00:00.000Z",
+      stamps: {
+        activation: {
+          who: generateId(),
+          when: "2023-02-02T00:00:00.000Z",
+        },
       },
     },
-  }]);
+  ]);
 
   vi.spyOn(
     catalogApiConverter,
