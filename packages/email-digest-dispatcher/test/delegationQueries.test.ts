@@ -97,7 +97,7 @@ const addOneDelegation = async (delegation: Delegation): Promise<void> => {
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
-describe("ReadModelService - getSentDelegations", async () => {
+describe("ReadModelService - getSentDelegations", () => {
   describe("Basic functionality - Delegator is the protagonist who sent the delegation", () => {
     it("should return empty array when no delegations exist for the delegator", async () => {
       const delegator = getMockTenant();
@@ -528,7 +528,7 @@ describe("ReadModelService - getSentDelegations", async () => {
   });
 });
 
-describe("ReadModelService - getReceivedDelegations", async () => {
+describe("ReadModelService - getReceivedDelegations", () => {
   describe("Basic functionality - Delegate is the protagonist who received the delegation", () => {
     it("should return empty array when no delegations exist for the delegate", async () => {
       const delegate = getMockTenant();

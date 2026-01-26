@@ -409,8 +409,8 @@ export function combineAttributeDigests(
 
 /**
  * Converts DelegationKind to Italian labels for the digest email.
- * - DelegatedProducer -> "erogazione" (production/providing)
- * - DelegatedConsumer -> "fruizione" (consumption/using)
+ * - DelegatedProducer -> "erogazione"
+ * - DelegatedConsumer -> "fruizione"
  */
 function delegationKindToDigest(
   kind: DelegationKind
