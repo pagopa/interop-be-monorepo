@@ -1,10 +1,10 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { unauthorizedError, UserId } from "pagopa-interop-models";
+import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { userNotFound } from "../model/errors.js";
-import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 
 export type GetUsersQueryParams = {
   roles: string[];
@@ -62,12 +62,8 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const paginatedUsers = users.slice(offset, offset + limit);
 
       // Map to API response
-      const results: m2mGatewayApiV3.User[] = paginatedUsers.map((user) => ({
-        userId: user.id,
-        name: user.name,
-        familyName: user.surname,
-        roles: user.roles || [],
-      }));
+      const results: m2mGatewayApiV3.User[] =
+        paginatedUsers.map(toM2MGatewayApiUser);
 
       return {
         results,
