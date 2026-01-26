@@ -90,7 +90,6 @@ type TemplateDigestData = {
 
 /**
  * Generic converter for template data into a digest object.
- * Used by both eserviceTemplateToBaseDigest and popularEserviceTemplateToBaseDigest.
  */
 async function templateDataToBaseDigest<
   T extends TemplateDigestData & {
@@ -182,6 +181,7 @@ export async function eserviceToBaseDigest(
 
 /**
  * Transforms popular e-service template data into a digest object.
+ * Note: producerName is not retrieved as the creator is the digest recipient.
  */
 export async function popularEserviceTemplateToBaseDigest(
   data: PopularEserviceTemplate[],
