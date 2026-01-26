@@ -7,7 +7,6 @@ import {
 import {
   buildAgreementLink,
   buildEserviceLink,
-  buildEserviceTemplateLink,
   buildPurposeLink,
   buildEserviceTemplateLinkToInstantiator,
   buildEserviceTemplateLinkToCreator,
