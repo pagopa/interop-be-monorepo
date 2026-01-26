@@ -69,7 +69,6 @@ import {
   incompleteTokenGenerationStatesConsumerClient,
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
-  unexpectedDPoPProofForAPIToken,
 } from "../../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
@@ -1412,6 +1411,94 @@ describe("authorization server tests", () => {
     });
   });
 
+  it("should succeed - api key with DPoP - no audit - M2M role", async () => {
+    vi.spyOn(fileManager, "storeBytes");
+
+    const clientId = generateId<ClientId>();
+
+    const {
+      jws: clientAssertionJWS,
+      clientAssertion,
+      publicKeyEncodedPem,
+    } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+    });
+
+    const { dpopProofJWS } = await getMockDPoPProof();
+
+    const mockRequestWithDPoP = await getMockTokenRequest(true);
+    const request: typeof mockRequestWithDPoP = {
+      headers: {
+        ...mockRequestWithDPoP.headers,
+        DPoP: dpopProofJWS,
+      },
+      body: {
+        ...mockRequestWithDPoP.body,
+        client_assertion: clientAssertionJWS,
+        client_id: clientId,
+      },
+    };
+
+    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid: clientAssertion.header.kid!,
+    });
+
+    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
+      ...getMockTokenGenStatesApiClient(tokenClientKidK),
+      clientKind: clientKindTokenGenStates.api,
+      publicKey: publicKeyEncodedPem,
+    };
+
+    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
+
+    const fileListBefore = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListBefore).toHaveLength(0);
+
+    const response = await tokenService.generateToken(
+      request.headers,
+      request.body,
+      getMockContext({}),
+      () => {},
+      () => {},
+      () => {}
+    );
+
+    const fileListAfter = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListAfter).toHaveLength(0);
+    expect(fileManager.storeBytes).not.toHaveBeenCalled();
+
+    expect(response.limitReached).toBe(false);
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ROLE,
+    });
+    expect(response.token?.header).toMatchObject({
+      typ: "at+jwt",
+      alg: "RS256",
+    });
+
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ROLE,
+      cnf: {
+        jkt: expect.any(String),
+      },
+    });
+    expect(response.token?.payload).not.toMatchObject({
+      adminId: expect.any(String),
+    });
+    expect(response.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
+  });
+
   it("should succeed - api key - no audit - M2M_ADMIN role", async () => {
     vi.spyOn(fileManager, "storeBytes");
 
@@ -1482,20 +1569,31 @@ describe("authorization server tests", () => {
     });
   });
 
-  it("should throw unexpectedDPoPProofForAPIToken when requesting an API token with a DPoP proof", async () => {
-    const clientId = generateId<ClientId>();
+  it("should succeed - api key with DPoP - no audit - M2M_ADMIN role", async () => {
+    vi.spyOn(fileManager, "storeBytes");
 
-    const { jws, clientAssertion, publicKeyEncodedPem } =
-      await getMockClientAssertion({
-        standardClaimsOverride: { sub: clientId },
-      });
+    const clientId = generateId<ClientId>();
+    const clientAdminId = generateId<UserId>();
+
+    const {
+      jws: clientAssertionJWS,
+      clientAssertion,
+      publicKeyEncodedPem,
+    } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+    });
+
+    const { dpopProofJWS } = await getMockDPoPProof();
 
     const mockRequestWithDPoP = await getMockTokenRequest(true);
     const request: typeof mockRequestWithDPoP = {
-      headers: mockRequestWithDPoP.headers,
+      headers: {
+        ...mockRequestWithDPoP.headers,
+        DPoP: dpopProofJWS,
+      },
       body: {
         ...mockRequestWithDPoP.body,
-        client_assertion: jws,
+        client_assertion: clientAssertionJWS,
         client_id: clientId,
       },
     };
@@ -1509,19 +1607,54 @@ describe("authorization server tests", () => {
       ...getMockTokenGenStatesApiClient(tokenClientKidK),
       clientKind: clientKindTokenGenStates.api,
       publicKey: publicKeyEncodedPem,
+      adminId: clientAdminId,
     };
 
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
-    expect(
-      tokenService.generateToken(
-        request.headers,
-        request.body,
-        getMockContext({}),
-        () => {},
-        () => {},
-        () => {}
-      )
-    ).rejects.toThrowError(unexpectedDPoPProofForAPIToken(clientId));
+    const fileListBefore = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListBefore).toHaveLength(0);
+
+    const response = await tokenService.generateToken(
+      request.headers,
+      request.body,
+      getMockContext({}),
+      () => {},
+      () => {},
+      () => {}
+    );
+
+    const fileListAfter = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListAfter).toHaveLength(0);
+    expect(fileManager.storeBytes).not.toHaveBeenCalled();
+
+    expect(response.limitReached).toBe(false);
+    expect(response.token).toBeDefined();
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ADMIN_ROLE,
+      adminId: tokenClientKidEntry.adminId,
+    });
+    expect(response.token?.header).toMatchObject({
+      typ: "at+jwt",
+      alg: "RS256",
+    });
+
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ADMIN_ROLE,
+      cnf: {
+        jkt: expect.any(String),
+      },
+    });
+    expect(response.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
   });
 });
