@@ -15,7 +15,17 @@ export function buildEserviceLink(
 /**
  * Builds a link for an e-service template item.
  */
-export function buildEserviceTemplateLink(
+export function buildEserviceTemplateLinkToInstantiator(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): string {
+  return `${bffUrl}/emailDeepLink/eserviceTemplateToInstantiator?entityId=${eserviceTemplateId}/${eserviceTemplateVersionId}`;
+}
+
+/**
+ * Builds a link for an e-service template item.
+ */
+export function buildEserviceTemplateLinkToCreator(
   eserviceTemplateId: string,
   eserviceTemplateVersionId: string
 ): string {

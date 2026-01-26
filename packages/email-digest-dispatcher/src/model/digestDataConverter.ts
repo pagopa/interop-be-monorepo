@@ -3,7 +3,8 @@ import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
 import {
   buildAgreementLink,
   buildEserviceLink,
-  buildEserviceTemplateLink,
+  buildEserviceTemplateLinkToInstantiator,
+  buildEserviceTemplateLinkToCreator,
 } from "../services/deeplinkBuilder.js";
 import {
   NewEservice,
@@ -98,7 +99,11 @@ async function templateDataToBaseDigest<
 >(
   data: T[],
   readModelService: ReadModelService,
-  getProducerId: (item: T) => TenantId
+  getProducerId: (item: T) => TenantId,
+  buildLink: (
+    eserviceTemplateId: string,
+    eserviceTemplateVersionId: string
+  ) => string
 ): Promise<BaseDigest> {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
@@ -117,7 +122,7 @@ async function templateDataToBaseDigest<
       id: template.eserviceTemplateId,
       name: template.eserviceTemplateName,
       producerName: template.entityProducerName,
-      link: buildEserviceTemplateLink(
+      link: buildLink(
         template.eserviceTemplateId,
         template.eserviceTemplateVersionId
       ),
@@ -136,7 +141,8 @@ export async function eserviceTemplateToBaseDigest(
   return templateDataToBaseDigest(
     data,
     readModelService,
-    (item) => item.eserviceTemplateProducerId
+    (item) => item.eserviceTemplateProducerId,
+    buildEserviceTemplateLinkToCreator
   );
 }
 
@@ -177,25 +183,16 @@ export async function eserviceToBaseDigest(
  * Transforms popular e-service template data into a digest object.
  * Note: producerName is not retrieved as the creator is the digest recipient.
  */
-export function popularEserviceTemplateToBaseDigest(
-  data: PopularEserviceTemplate[]
-): BaseDigest {
-  if (data.length === 0) {
-    return { items: [], totalCount: 0 };
-  }
-
-  return {
-    items: data.map((template) => ({
-      id: template.eserviceTemplateId,
-      name: template.eserviceTemplateName,
-      producerName: "",
-      link: buildEserviceTemplateLink(
-        template.eserviceTemplateId,
-        template.eserviceTemplateVersionId
-      ),
-    })),
-    totalCount: data[0].totalCount,
-  };
+export async function popularEserviceTemplateToBaseDigest(
+  data: PopularEserviceTemplate[],
+  readModelService: ReadModelService
+): Promise<BaseDigest> {
+  return templateDataToBaseDigest(
+    data,
+    readModelService,
+    (item) => item.eserviceTemplateCreatorId,
+    buildEserviceTemplateLinkToInstantiator
+  );
 }
 
 /**

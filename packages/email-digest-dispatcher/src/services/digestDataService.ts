@@ -177,8 +177,9 @@ export function digestDataServiceBuilder(
           updatedEserviceTemplates,
           readModelService
         ),
-        popularEserviceTemplates: popularEserviceTemplateToBaseDigest(
-          popularEserviceTemplates
+        popularEserviceTemplates: await popularEserviceTemplateToBaseDigest(
+          popularEserviceTemplates,
+          readModelService
         ),
         acceptedSentAgreements: await sentAgreementsToBaseDigest(
           sentAgreements,
