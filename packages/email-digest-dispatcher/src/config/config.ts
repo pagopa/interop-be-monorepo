@@ -43,13 +43,25 @@ export const DigestFrequencyConfig = z
 
 export type DigestFrequencyConfig = z.infer<typeof DigestFrequencyConfig>;
 
+// Config for BFF URL
+export const BffUrlConfig = z
+  .object({
+    BFF_URL: z.string().url(),
+  })
+  .transform((c) => ({
+    bffUrl: c.BFF_URL,
+  }));
+
+export type BffUrlConfig = z.infer<typeof BffUrlConfig>;
+
 export const EmailNotificationDigestConfig = LoggerConfig.and(
   ReadModelSQLDbConfig
 )
   .and(KafkaProducerConfig)
   .and(EmailDispatchTopicConfig)
   .and(DigestTrackingDbConfig)
-  .and(DigestFrequencyConfig);
+  .and(DigestFrequencyConfig)
+  .and(BffUrlConfig);
 
 export type EmailNotificationDigestConfig = z.infer<
   typeof EmailNotificationDigestConfig
