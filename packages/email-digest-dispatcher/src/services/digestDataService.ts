@@ -44,7 +44,7 @@ export type BaseDigest = {
 
 export type DelegationDigest = BaseDigest & {
   items: Array<{
-    delegationKind: "producer" | "consumer";
+    delegationKind: "erogazione" | "fruizione";
   }>;
 };
 

@@ -408,10 +408,14 @@ export function combineAttributeDigests(
 }
 
 /**
- * Converts DelegationKind to the digest format.
+ * Converts DelegationKind to Italian labels for the digest email.
+ * - DelegatedProducer -> "erogazione" (production/providing)
+ * - DelegatedConsumer -> "fruizione" (consumption/using)
  */
-function delegationKindToDigest(kind: DelegationKind): "producer" | "consumer" {
-  return kind === "DelegatedProducer" ? "producer" : "consumer";
+function delegationKindToDigest(
+  kind: DelegationKind
+): "erogazione" | "fruizione" {
+  return kind === "DelegatedProducer" ? "erogazione" : "fruizione";
 }
 
 /**
