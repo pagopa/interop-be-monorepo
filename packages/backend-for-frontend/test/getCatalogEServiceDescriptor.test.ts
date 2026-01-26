@@ -237,7 +237,10 @@ describe("getCatalogEServiceDescriptor", () => {
 
   vi.spyOn(delegationService, "getAllDelegations").mockResolvedValue([]);
 
-  vi.spyOn(agreementService, "getLatestAgreement").mockResolvedValue({
+  vi.spyOn(
+    agreementService,
+    "getLatestAgreementsOnDescriptor",
+  ).mockResolvedValue([{
     id: generateId(),
     eserviceId: eServiceId,
     descriptorId: mockDescriptorId,
@@ -255,7 +258,7 @@ describe("getCatalogEServiceDescriptor", () => {
         when: "2023-02-02T00:00:00.000Z",
       },
     },
-  });
+  }]);
 
   vi.spyOn(
     catalogApiConverter,
