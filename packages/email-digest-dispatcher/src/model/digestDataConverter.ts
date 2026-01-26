@@ -89,7 +89,6 @@ type TemplateDigestData = {
 
 /**
  * Generic converter for template data into a digest object.
- * Used by both eserviceTemplateToBaseDigest and popularEserviceTemplateToBaseDigest.
  */
 async function templateDataToBaseDigest<
   T extends TemplateDigestData & {
@@ -176,16 +175,27 @@ export async function eserviceToBaseDigest(
 
 /**
  * Transforms popular e-service template data into a digest object.
+ * Note: producerName is not retrieved as the creator is the digest recipient.
  */
-export async function popularEserviceTemplateToBaseDigest(
-  data: PopularEserviceTemplate[],
-  readModelService: ReadModelService
-): Promise<BaseDigest> {
-  return templateDataToBaseDigest(
-    data,
-    readModelService,
-    (item) => item.eserviceTemplateCreatorId
-  );
+export function popularEserviceTemplateToBaseDigest(
+  data: PopularEserviceTemplate[]
+): BaseDigest {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((template) => ({
+      id: template.eserviceTemplateId,
+      name: template.eserviceTemplateName,
+      producerName: "",
+      link: buildEserviceTemplateLink(
+        template.eserviceTemplateId,
+        template.eserviceTemplateVersionId
+      ),
+    })),
+    totalCount: data[0].totalCount,
+  };
 }
 
 /**
