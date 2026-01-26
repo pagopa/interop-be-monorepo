@@ -7,6 +7,7 @@ import {
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
+import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
@@ -474,7 +475,7 @@ export async function decorateKey(
 }
 
 export const getAllClients = async (
-  authorizationClient: authorizationApi.AuthorizationProcessClient,
+  authorizationClient: AuthorizationProcessClient,
   consumerId: string,
   purposeId: string,
   headers: BffAppContext["headers"]

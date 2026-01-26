@@ -33,7 +33,7 @@ import {
 } from "./utils.js";
 
 describe("Message processor", () => {
-  let tenantProcessClientMock: tenantApi.TenantProcessClient =
+  let tenantProcessClientMock: Pick<tenantApi.TenantProcessClient, "selfcare"> =
     tenantProcessClientBuilder(config.tenantProcessUrl);
   let tokenGeneratorMock = new InteropTokenGenerator(config);
   let refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);

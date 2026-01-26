@@ -33,6 +33,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
+import {
   apiTechnologyToTechnology,
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
@@ -83,7 +87,7 @@ import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   ctx: WithLogger<BffAppContext>,
@@ -315,10 +319,10 @@ const getAllEserviceConsumers = async (
 
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
-  delegationProcessClient: delegationApi.DelegationProcessClient,
+  delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager,

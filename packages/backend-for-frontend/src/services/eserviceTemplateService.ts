@@ -22,6 +22,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
@@ -47,7 +48,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
@@ -765,7 +766,7 @@ const retrieveEServiceTemplateVersion = (
 };
 
 async function getTenantsFromEServiceTemplates(
-  tenantClient: tenantApi.TenantProcessClient,
+  tenantClient: TenantProcessClient,
   eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
   headers: BffAppContext["headers"]
 ): Promise<Map<string, tenantApi.Tenant>> {

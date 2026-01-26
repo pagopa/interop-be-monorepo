@@ -62,18 +62,20 @@ import {
 import {
   agreementApi,
   attributeRegistryApi,
-  authorizationApi,
   catalogApi,
-  delegationApi,
   eserviceTemplateApi,
   inAppNotificationApi,
   notificationConfigApi,
   purposeApi,
   purposeTemplateApi,
-  tenantApi,
   SelfcareV2UsersClient,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
+import type {
+  AuthorizationProcessClient,
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../src/clients/clientsProvider.js";
 import { createApp, createServices } from "../src/app.js";
 import { config } from "../src/config/config.js";
 
@@ -93,8 +95,7 @@ export const clients = {
     tenant: {},
     tenantAttribute: {},
     selfcare: {},
-    m2m: {},
-  } as tenantApi.TenantProcessClient,
+  } as TenantProcessClient,
   attributeProcessClient: {} as attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: {} as catalogApi.CatalogProcessClient,
   agreementProcessClient: {} as agreementApi.AgreementProcessClient,
@@ -103,18 +104,16 @@ export const clients = {
     {} as purposeTemplateApi.PurposeTemplateProcessClient,
   authorizationClient: {
     client: {},
-    key: {},
     producerKeychain: {},
-    user: {},
     token: {},
-  } as authorizationApi.AuthorizationProcessClient,
+  } as AuthorizationProcessClient,
   selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
   selfcareV2UserClient: {} as SelfcareV2UsersClient,
   delegationProcessClient: {
     producer: {},
     consumer: {},
     delegation: {},
-  } as delegationApi.DelegationProcessClient,
+  } as DelegationProcessClient,
   eserviceTemplateProcessClient:
     {} as eserviceTemplateApi.EServiceTemplateProcessClient,
   notificationConfigProcessClient:

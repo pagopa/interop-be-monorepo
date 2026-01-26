@@ -71,7 +71,7 @@ const retrieveEservice = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "tenant">,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient
 ) {
   return {
@@ -226,7 +226,7 @@ async function getDescriptorAttributes(
 }
 
 export async function enhanceEservice(
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "tenant">,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   eservice: catalogApi.EService,

@@ -9,7 +9,10 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
-  authorizationProcessClient: authorizationApi.AuthorizationProcessClient,
+  authorizationProcessClient: Pick<
+    authorizationApi.AuthorizationProcessClient,
+    "client"
+  >,
   readModelService: ReadModelServiceSQL
 ) {
   return {

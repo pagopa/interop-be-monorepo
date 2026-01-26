@@ -19,14 +19,16 @@ import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
-  delegationApi,
   eserviceTemplateApi,
   inAppNotificationApi,
-  tenantApi,
 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import AdmZip from "adm-zip";
 import * as apiUtils from "pagopa-interop-commons";
+import type {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../src/clients/clientsProvider.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { config } from "../src/config/config.js";
 import { invalidZipStructure } from "../src/model/errors.js";
@@ -77,14 +79,13 @@ describe("importEService", () => {
     getEServiceById: vi.fn().mockResolvedValue(baseEService),
     createEServiceDocument: vi.fn().mockResolvedValue(getMockDocument()),
   } as unknown as catalogApi.CatalogProcessClient;
-  const mockTenantProcessClient =
-    createDummyStub<tenantApi.TenantProcessClient>();
+  const mockTenantProcessClient = createDummyStub<TenantProcessClient>();
   const mockAgreementProcessClient =
     createDummyStub<agreementApi.AgreementProcessClient>();
   const mockAttributeProcessClient =
     createDummyStub<attributeRegistryApi.AttributeProcessClient>();
   const mockDelegationProcessClient =
-    createDummyStub<delegationApi.DelegationProcessClient>();
+    createDummyStub<DelegationProcessClient>();
   const mockEServiceTemplateProcessClient =
     createDummyStub<eserviceTemplateApi.EServiceTemplateProcessClient>();
 

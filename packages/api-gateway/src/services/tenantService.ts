@@ -23,7 +23,7 @@ import {
 import { enhanceEservice, getAllEservices } from "./catalogService.js";
 
 export async function getOrganization(
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "tenant">,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   tenantId: tenantApi.Tenant["id"]
@@ -54,7 +54,7 @@ export async function getOrganization(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "tenant" | "m2m">,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient
 ) {

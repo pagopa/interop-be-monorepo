@@ -19,6 +19,7 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import {
@@ -34,12 +35,12 @@ import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: purposeTemplateApi.PurposeTemplateProcessClient,
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: TenantProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   fileManager: FileManager
 ) {
   async function getTenantsFromPurposeTemplates(
-    tenantClient: tenantApi.TenantProcessClient,
+    tenantClient: TenantProcessClient,
     purposeTemplates: purposeTemplateApi.PurposeTemplate[],
     headers: BffAppContext["headers"]
   ): Promise<Map<string, tenantApi.Tenant>> {

@@ -71,7 +71,10 @@ const retrievePurpose = async (
     });
 
 const retrieveActiveProducerDelegationByEServiceId = async (
-  delegationProcessClient: delegationApi.DelegationProcessClient,
+  delegationProcessClient: Pick<
+    delegationApi.DelegationProcessClient,
+    "delegation"
+  >,
   headers: ApiGatewayAppContext["headers"],
   eserviceId: catalogApi.EService["id"]
 ): Promise<delegationApi.Delegation | undefined> => {
@@ -96,7 +99,10 @@ export function purposeServiceBuilder(
   purposeProcessClient: purposeApi.PurposeProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
-  delegationProcessClient: delegationApi.DelegationProcessClient
+  delegationProcessClient: Pick<
+    delegationApi.DelegationProcessClient,
+    "delegation"
+  >
 ) {
   return {
     getPurpose: async (

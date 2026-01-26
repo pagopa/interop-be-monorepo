@@ -12,6 +12,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { BffAppContext } from "../utilities/context.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   RegistryAttributesMap,
   toBffApiTenant,
@@ -39,7 +40,7 @@ async function getRegistryAttributesMap(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: TenantProcessClient,
   attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {

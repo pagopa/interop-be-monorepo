@@ -23,28 +23,6 @@ vi.doMock("pagopa-interop-api-clients", () => ({
     createClientApiClient: () => ({
       removePurposeFromClients: removePurposeFromClientsFn,
     }),
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    createKeyApiClient: () => ({
-      getKeys: vi.fn(),
-      createKey: vi.fn(),
-      deleteKey: vi.fn(),
-    }),
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    createProducerKeychainApiClient: () => ({
-      getProducerKeychains: vi.fn(),
-      createProducerKeychain: vi.fn(),
-      deleteProducerKeychain: vi.fn(),
-    }),
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    createUserApiClient: () => ({
-      getUsers: vi.fn(),
-      addUsers: vi.fn(),
-      removeUser: vi.fn(),
-    }),
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    createTokenGenerationApiClient: () => ({
-      getClientToken: vi.fn(),
-    }),
   },
 }));
 

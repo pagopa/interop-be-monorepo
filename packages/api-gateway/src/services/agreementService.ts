@@ -63,7 +63,7 @@ const retrieveAgreement = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
   agreementProcessClient: agreementApi.AgreementProcessClient,
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "tenant">,
   purposeProcessClient: purposeApi.PurposeProcessClient
 ) {
   return {

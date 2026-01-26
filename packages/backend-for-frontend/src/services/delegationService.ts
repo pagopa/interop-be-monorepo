@@ -15,6 +15,10 @@ import { DelegationContractId, DelegationId } from "pagopa-interop-models";
 import { isAxiosError } from "axios";
 import { match } from "ts-pattern";
 import {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
+import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
@@ -32,7 +36,7 @@ import { filterUnreadNotifications } from "../utilities/filterUnreadNotification
 async function enhanceDelegation<
   T extends bffApi.Delegation | bffApi.CompactDelegation
 >(
-  tenantClient: tenantApi.TenantProcessClient,
+  tenantClient: TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
   delegation: delegationApi.Delegation,
   headers: Headers,
@@ -121,7 +125,7 @@ async function enhanceDelegation<
 }
 
 async function getDelegation(
-  delegationClient: delegationApi.DelegationProcessClient,
+  delegationClient: DelegationProcessClient,
   headers: BffAppContext["headers"],
   delegationId: DelegationId
 ): Promise<delegationApi.Delegation> {
@@ -138,7 +142,7 @@ async function getDelegation(
 }
 
 export async function getTenantsFromDelegation(
-  tenantClient: tenantApi.TenantProcessClient,
+  tenantClient: TenantProcessClient,
   delegations: delegationApi.Delegation[],
   headers: BffAppContext["headers"]
 ): Promise<Map<string, tenantApi.Tenant>> {
@@ -164,7 +168,7 @@ export async function getTenantsFromDelegation(
 }
 
 export async function getTenantById(
-  tenantClient: tenantApi.TenantProcessClient,
+  tenantClient: TenantProcessClient,
   headers: BffAppContext["headers"],
   tenantId: string,
   tenantMap: Map<string, tenantApi.Tenant> = new Map()
@@ -179,7 +183,7 @@ export async function getTenantById(
 }
 
 export async function getAllDelegations(
-  delegationProcessClient: delegationApi.DelegationProcessClient,
+  delegationProcessClient: DelegationProcessClient,
   headers: BffAppContext["headers"],
   queryParams: DelegationsQueryParams
 ): Promise<delegationApi.Delegation[]> {
@@ -197,8 +201,8 @@ export async function getAllDelegations(
 }
 
 export function delegationServiceBuilder(
-  delegationClients: delegationApi.DelegationProcessClient,
-  tenantClient: tenantApi.TenantProcessClient,
+  delegationClients: DelegationProcessClient,
+  tenantClient: TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager

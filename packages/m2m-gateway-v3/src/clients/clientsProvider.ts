@@ -14,9 +14,14 @@ import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
 import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
 
+type TenantProcessClient = Pick<
+  tenantApi.TenantProcessClient,
+  "tenant" | "tenantAttribute"
+>;
+
 type TenantProcessClientWithMetadata = {
-  [K in keyof tenantApi.TenantProcessClient]: ZodiosClientWithMetadata<
-    tenantApi.TenantProcessClient[K]
+  [K in keyof TenantProcessClient]: ZodiosClientWithMetadata<
+    TenantProcessClient[K]
   >;
 };
 
@@ -39,9 +44,14 @@ export type DelegationProcessClientWithMetadata = {
   >;
 };
 
+type AuthorizationProcessClient = Pick<
+  authorizationApi.AuthorizationProcessClient,
+  "client" | "producerKeychain" | "key"
+>;
+
 type AuthorizationProcessClientWithMetadata = {
-  [K in keyof authorizationApi.AuthorizationProcessClient]: ZodiosClientWithMetadata<
-    authorizationApi.AuthorizationProcessClient[K]
+  [K in keyof AuthorizationProcessClient]: ZodiosClientWithMetadata<
+    AuthorizationProcessClient[K]
   >;
 };
 
@@ -75,14 +85,6 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         tenantApi.createTenantAttributeApiClient,
         config.tenantProcessUrl
       ),
-      selfcare: createZodiosClientEnhancedWithMetadata(
-        tenantApi.createSelfcareApiClient,
-        config.tenantProcessUrl
-      ),
-      m2m: createZodiosClientEnhancedWithMetadata(
-        tenantApi.createM2mApiClient,
-        config.tenantProcessUrl
-      ),
     },
     agreementProcessClient: createZodiosClientEnhancedWithMetadata(
       agreementApi.createAgreementApiClient,
@@ -107,14 +109,6 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       ),
       producerKeychain: createZodiosClientEnhancedWithMetadata(
         authorizationApi.createProducerKeychainApiClient,
-        config.authorizationUrl
-      ),
-      user: createZodiosClientEnhancedWithMetadata(
-        authorizationApi.createUserApiClient,
-        config.authorizationUrl
-      ),
-      token: createZodiosClientEnhancedWithMetadata(
-        authorizationApi.createTokenGenerationApiClient,
         config.authorizationUrl
       ),
       key: createZodiosClientEnhancedWithMetadata(

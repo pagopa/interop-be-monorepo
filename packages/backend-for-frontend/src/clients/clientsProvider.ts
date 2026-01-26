@@ -17,17 +17,32 @@ import {
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
+export type TenantProcessClient = Pick<
+  tenantApi.TenantProcessClient,
+  "tenant" | "tenantAttribute" | "selfcare"
+>;
+
+export type AuthorizationProcessClient = Pick<
+  authorizationApi.AuthorizationProcessClient,
+  "client" | "producerKeychain" | "token"
+>;
+
+export type DelegationProcessClient = Pick<
+  delegationApi.DelegationProcessClient,
+  "producer" | "consumer" | "delegation"
+>;
+
 export type PagoPAInteropBeClients = {
-  tenantProcessClient: tenantApi.TenantProcessClient;
+  tenantProcessClient: TenantProcessClient;
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
   purposeTemplateProcessClient: purposeTemplateApi.PurposeTemplateProcessClient;
-  authorizationClient: authorizationApi.AuthorizationProcessClient;
+  authorizationClient: AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UsersClient;
-  delegationProcessClient: delegationApi.DelegationProcessClient;
+  delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient;
   notificationConfigProcessClient: notificationConfigApi.NotificationConfigProcessClient;
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient;
@@ -41,7 +56,6 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         config.tenantProcessUrl
       ),
       selfcare: tenantApi.createSelfcareApiClient(config.tenantProcessUrl),
-      m2m: tenantApi.createM2mApiClient(config.tenantProcessUrl),
     },
     agreementProcessClient: agreementApi.createAgreementApiClient(
       config.agreementProcessUrl
@@ -59,11 +73,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       ),
     authorizationClient: {
       client: authorizationApi.createClientApiClient(config.authorizationUrl),
-      key: authorizationApi.createKeyApiClient(config.authorizationUrl),
       producerKeychain: authorizationApi.createProducerKeychainApiClient(
         config.authorizationUrl
       ),
-      user: authorizationApi.createUserApiClient(config.authorizationUrl),
       token: authorizationApi.createTokenGenerationApiClient(
         config.authorizationUrl
       ),

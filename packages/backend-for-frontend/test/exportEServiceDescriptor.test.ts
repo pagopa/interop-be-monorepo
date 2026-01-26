@@ -13,10 +13,13 @@ import {
   delegationApi,
   eserviceTemplateApi,
   inAppNotificationApi,
-  tenantApi,
 } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { AuthData } from "pagopa-interop-commons";
+import type {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../src/clients/clientsProvider.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { config } from "../src/config/config.js";
 import {
@@ -35,14 +38,12 @@ describe("exportEServiceDescriptor", () => {
     generateId<EServiceTemplateId>();
   const mockDate = "2023-01-01T12:00:00Z";
 
-  const mockTenantProcessClient =
-    {} as unknown as tenantApi.TenantProcessClient;
+  const mockTenantProcessClient = {} as unknown as TenantProcessClient;
   const mockAgreementProcessClient =
     {} as unknown as agreementApi.AgreementProcessClient;
   const mockAttributeProcessClient =
     {} as unknown as attributeRegistryApi.AttributeProcessClient;
-  const mockDelegationProcessClient =
-    {} as unknown as delegationApi.DelegationProcessClient;
+  const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
   const mockInAppNotificationManagerClient =
     {} as unknown as inAppNotificationApi.InAppNotificationManagerClient;
   const mockEServiceTemplateProcessClient =

@@ -17,7 +17,7 @@ import { InstitutionEventPayload } from "../model/institutionEvent.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareOnboardingProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
-  tenantProcessClient: tenantApi.TenantProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "selfcare">,
   productName: string,
   allowedOrigins: string[]
 ) {

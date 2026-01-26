@@ -23,7 +23,10 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareClientUsersUpdaterProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
-  authorizationProcessClient: authorizationApi.AuthorizationProcessClient,
+  authorizationProcessClient: Pick<
+    authorizationApi.AuthorizationProcessClient,
+    "client"
+  >,
   readModelService: ReadModelServiceSQL,
   productId: string
 ) {
