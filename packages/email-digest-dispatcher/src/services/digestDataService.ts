@@ -47,6 +47,12 @@ export type DelegationDigest = BaseDigest & {
   }>;
 };
 
+export type ReceivedPurposeDigest = BaseDigest & {
+  items: Array<{
+    consumerName: string;
+  }>;
+};
+
 export type AttributeDigest = BaseDigest & {
   items: Array<{
     attributeKind: "certified" | "verified";
@@ -78,8 +84,8 @@ export type TenantDigestData = {
   rejectedSentPurposes?: BaseDigest;
   waitingForApprovalSentPurposes?: BaseDigest;
   waitingForApprovalReceivedAgreements?: BaseDigest;
-  publishedReceivedPurposes?: BaseDigest;
-  waitingForApprovalReceivedPurposes?: BaseDigest;
+  publishedReceivedPurposes?: ReceivedPurposeDigest;
+  waitingForApprovalReceivedPurposes?: ReceivedPurposeDigest;
   activeSentDelegations?: DelegationDigest;
   rejectedSentDelegations?: DelegationDigest;
   waitingForApprovalReceivedDelegations?: DelegationDigest;

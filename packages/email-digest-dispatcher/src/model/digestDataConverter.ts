@@ -1,9 +1,14 @@
 import { AgreementState, EServiceId, TenantId } from "pagopa-interop-models";
-import { AttributeDigest, BaseDigest } from "../services/digestDataService.js";
+import {
+  AttributeDigest,
+  BaseDigest,
+  ReceivedPurposeDigest,
+} from "../services/digestDataService.js";
 import {
   buildAgreementLink,
   buildEserviceLink,
   buildEserviceTemplateLink,
+  buildPurposeLink,
 } from "../services/deeplinkBuilder.js";
 import {
   NewEservice,
@@ -285,14 +290,6 @@ export async function receivedAgreementsToBaseDigest(
 }
 
 /**
- * Builds a link for a purpose item.
- * TODO: Replace with actual link composition logic
- */
-function buildPurposeLink(): string {
-  return "#";
-}
-
-/**
  * Filters sent purposes by state and transforms to BaseDigest.
  * Sent purposes are in Active/Rejected/WaitingForApproval states.
  * Shows only purpose title (no tenant name needed per Figma design).
@@ -314,7 +311,7 @@ export function sentPurposesToBaseDigest(
     items: filteredData.map((purpose) => ({
       name: purpose.purposeTitle,
       producerName: "",
-      link: buildPurposeLink(),
+      link: buildPurposeLink(purpose.purposeId, false),
     })),
     totalCount: filteredData[0].totalCount,
   };
@@ -332,7 +329,7 @@ export function sentPurposesToBaseDigest(
 export function receivedPurposesToBaseDigest(
   data: ReceivedPurpose[],
   state: ReceivedPurposeState
-): BaseDigest {
+): ReceivedPurposeDigest {
   const filteredData = data.filter((p) => p.state === state);
 
   if (filteredData.length === 0) {
@@ -343,7 +340,8 @@ export function receivedPurposesToBaseDigest(
     items: filteredData.map((purpose) => ({
       name: purpose.purposeTitle,
       producerName: purpose.consumerName,
-      link: buildPurposeLink(),
+      consumerName: purpose.consumerName,
+      link: buildPurposeLink(purpose.purposeId, true),
     })),
     totalCount: filteredData[0].totalCount,
   };

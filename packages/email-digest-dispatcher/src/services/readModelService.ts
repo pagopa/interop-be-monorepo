@@ -154,20 +154,21 @@ export type ReceivedPurpose = BasePurpose & {
 };
 
 /**
- * Raw purpose query result type for sent purposes
+ * Raw purpose query result base type
  */
-type SentPurposeQueryResult = {
+type BasePurposeQueryResult = {
   purposeId: string;
   purposeTitle: string;
   consumerId: string;
   state: string;
-  actionDate: string;
+  updatedAt: string | null;
+  createdAt: string;
 };
 
 /**
  * Raw purpose query result type for received purposes (includes consumer name from join)
  */
-type ReceivedPurposeQueryResult = SentPurposeQueryResult & {
+type ReceivedPurposeQueryResult = BasePurposeQueryResult & {
   consumerName: string;
 };
 
@@ -215,59 +216,57 @@ async function getCachedEntities<K, V>(
 }
 
 /**
- * Groups sent purpose query results by state and maps to SentPurpose format.
- * Limits results to SECTION_LIST_LIMIT per state.
+ * Groups purpose query results by state, limits to SECTION_LIST_LIMIT per state,
+ * and maps each row using the provided mapper function.
  */
-function groupAndMapSentPurposeResults(
-  results: SentPurposeQueryResult[]
-): SentPurpose[] {
+function groupAndMapPurposeResults<
+  TInput extends BasePurposeQueryResult,
+  TOutput
+>(
+  results: TInput[],
+  mapRow: (row: TInput, state: string, totalCount: number) => TOutput
+): TOutput[] {
   const groupedByState = results.reduce((acc, row) => {
     const stateResults = acc.get(row.state) ?? [];
-    return new Map(acc).set(row.state, [...stateResults, row]);
-  }, new Map<string, SentPurposeQueryResult[]>());
+    acc.set(row.state, [...stateResults, row]);
+    return acc;
+  }, new Map<string, TInput[]>());
 
   return Array.from(groupedByState.entries()).flatMap(
     ([state, stateResults]) => {
       const totalCount = stateResults.length;
-      return stateResults.slice(0, SECTION_LIST_LIMIT).map((row) => ({
-        purposeId: unsafeBrandId<PurposeId>(row.purposeId),
-        purposeTitle: row.purposeTitle,
-        consumerId: unsafeBrandId<TenantId>(row.consumerId),
-        state: PurposeVersionState.parse(state) as SentPurposeState,
-        actionDate: row.actionDate,
-        totalCount,
-      }));
+      return stateResults
+        .slice(0, SECTION_LIST_LIMIT)
+        .map((row) => mapRow(row, state, totalCount));
     }
   );
 }
 
-/**
- * Groups received purpose query results by state and maps to ReceivedPurpose format.
- * Includes consumer name from the joined tenant table.
- * Limits results to SECTION_LIST_LIMIT per state.
- */
+function groupAndMapSentPurposeResults(
+  results: BasePurposeQueryResult[]
+): SentPurpose[] {
+  return groupAndMapPurposeResults(results, (row, state, totalCount) => ({
+    purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+    purposeTitle: row.purposeTitle,
+    consumerId: unsafeBrandId<TenantId>(row.consumerId),
+    state: PurposeVersionState.parse(state) as SentPurposeState,
+    actionDate: row.updatedAt ?? row.createdAt,
+    totalCount,
+  }));
+}
+
 function groupAndMapReceivedPurposeResults(
   results: ReceivedPurposeQueryResult[]
 ): ReceivedPurpose[] {
-  const groupedByState = results.reduce((acc, row) => {
-    const stateResults = acc.get(row.state) ?? [];
-    return new Map(acc).set(row.state, [...stateResults, row]);
-  }, new Map<string, ReceivedPurposeQueryResult[]>());
-
-  return Array.from(groupedByState.entries()).flatMap(
-    ([state, stateResults]) => {
-      const totalCount = stateResults.length;
-      return stateResults.slice(0, SECTION_LIST_LIMIT).map((row) => ({
-        purposeId: unsafeBrandId<PurposeId>(row.purposeId),
-        purposeTitle: row.purposeTitle,
-        consumerId: unsafeBrandId<TenantId>(row.consumerId),
-        consumerName: row.consumerName,
-        state: PurposeVersionState.parse(state) as ReceivedPurposeState,
-        actionDate: row.actionDate,
-        totalCount,
-      }));
-    }
-  );
+  return groupAndMapPurposeResults(results, (row, state, totalCount) => ({
+    purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+    purposeTitle: row.purposeTitle,
+    consumerId: unsafeBrandId<TenantId>(row.consumerId),
+    consumerName: row.consumerName,
+    state: PurposeVersionState.parse(state) as ReceivedPurposeState,
+    actionDate: row.updatedAt ?? row.createdAt,
+    totalCount,
+  }));
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1123,7 +1122,6 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
     /**
      * Returns purposes sent by the consumer tenant that changed to Active, Rejected, or WaitingForApproval.
-     * Uses COALESCE(updated_at, created_at) as the action date.
      * Limited to 5 per state.
      */
     async getSentPurposes(consumerId: TenantId): Promise<SentPurpose[]> {
@@ -1137,7 +1135,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           purposeTitle: purposeInReadmodelPurpose.title,
           consumerId: purposeInReadmodelPurpose.consumerId,
           state: purposeVersionInReadmodelPurpose.state,
-          actionDate: sql<string>`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`,
+          updatedAt: purposeVersionInReadmodelPurpose.updatedAt,
+          createdAt: purposeVersionInReadmodelPurpose.createdAt,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(
@@ -1156,9 +1155,18 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .where(
           and(
             eq(purposeInReadmodelPurpose.consumerId, consumerId),
-            gte(
-              sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`,
-              dateThreshold.toISOString()
+            or(
+              gte(
+                purposeVersionInReadmodelPurpose.updatedAt,
+                dateThreshold.toISOString()
+              ),
+              and(
+                isNull(purposeVersionInReadmodelPurpose.updatedAt),
+                gte(
+                  purposeVersionInReadmodelPurpose.createdAt,
+                  dateThreshold.toISOString()
+                )
+              )
             ),
             or(
               eq(
@@ -1213,7 +1221,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           consumerId: purposeInReadmodelPurpose.consumerId,
           consumerName: tenantInReadmodelTenant.name,
           state: purposeVersionInReadmodelPurpose.state,
-          actionDate: sql<string>`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`,
+          updatedAt: purposeVersionInReadmodelPurpose.updatedAt,
+          createdAt: purposeVersionInReadmodelPurpose.createdAt,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(
@@ -1245,9 +1254,18 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eq(eserviceInReadmodelCatalog.producerId, producerId),
             // Exclude purposes where tenant is also the consumer (avoid duplicates)
             ne(purposeInReadmodelPurpose.consumerId, producerId),
-            gte(
-              sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`,
-              dateThreshold.toISOString()
+            or(
+              gte(
+                purposeVersionInReadmodelPurpose.updatedAt,
+                dateThreshold.toISOString()
+              ),
+              and(
+                isNull(purposeVersionInReadmodelPurpose.updatedAt),
+                gte(
+                  purposeVersionInReadmodelPurpose.createdAt,
+                  dateThreshold.toISOString()
+                )
+              )
             ),
             or(
               eq(
