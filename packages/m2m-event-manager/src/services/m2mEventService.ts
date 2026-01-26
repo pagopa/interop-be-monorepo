@@ -222,7 +222,7 @@ export function m2mEventServiceBuilder(
       }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<PurposeTemplateM2MEvent[]> {
       logger.info(
-        `Getting e-service M2M events with lastEventId=${lastEventId}, limit=${limit}`
+        `Getting purposeTemplate M2M events with lastEventId=${lastEventId}, limit=${limit}`
       );
       return m2mEventReaderService.getPurposeTemplateM2MEvents(
         lastEventId,
