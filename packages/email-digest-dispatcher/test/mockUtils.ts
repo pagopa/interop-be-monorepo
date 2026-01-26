@@ -12,8 +12,7 @@ export function getMockTenantDigestData(): TenantDigestData {
     viewAllSentPurposesLink: "https://example.com/purposes/sent",
     viewAllReceivedAgreementsLink: "https://example.com/agreements/received",
     viewAllReceivedPurposesLink: "https://example.com/purposes/received",
-    viewAllSentDelegationsLink: "https://example.com/delegations/sent",
-    viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
+    viewAllDelegationsLink: "https://example.com/delegations/sent",
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",

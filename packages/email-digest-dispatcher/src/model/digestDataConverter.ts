@@ -9,6 +9,8 @@ import {
   buildEserviceLink,
   buildEserviceTemplateLink,
   buildPurposeLink,
+  buildEserviceTemplateLinkToInstantiator,
+  buildEserviceTemplateLinkToCreator,
 } from "../services/deeplinkBuilder.js";
 import {
   NewEservice,
@@ -98,7 +100,6 @@ type TemplateDigestData = {
 
 /**
  * Generic converter for template data into a digest object.
- * Used by both eserviceTemplateToBaseDigest and popularEserviceTemplateToBaseDigest.
  */
 async function templateDataToBaseDigest<
   T extends TemplateDigestData & {
@@ -108,7 +109,11 @@ async function templateDataToBaseDigest<
 >(
   data: T[],
   readModelService: ReadModelService,
-  getProducerId: (item: T) => TenantId
+  getProducerId: (item: T) => TenantId,
+  buildLink: (
+    eserviceTemplateId: string,
+    eserviceTemplateVersionId: string
+  ) => string
 ): Promise<BaseDigest> {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
@@ -127,7 +132,7 @@ async function templateDataToBaseDigest<
       id: template.eserviceTemplateId,
       name: template.eserviceTemplateName,
       producerName: template.entityProducerName,
-      link: buildEserviceTemplateLink(
+      link: buildLink(
         template.eserviceTemplateId,
         template.eserviceTemplateVersionId
       ),
@@ -146,7 +151,8 @@ export async function eserviceTemplateToBaseDigest(
   return templateDataToBaseDigest(
     data,
     readModelService,
-    (item) => item.eserviceTemplateProducerId
+    (item) => item.eserviceTemplateProducerId,
+    buildEserviceTemplateLinkToCreator
   );
 }
 
@@ -185,6 +191,7 @@ export async function eserviceToBaseDigest(
 
 /**
  * Transforms popular e-service template data into a digest object.
+ * Note: producerName is not retrieved as the creator is the digest recipient.
  */
 export async function popularEserviceTemplateToBaseDigest(
   data: PopularEserviceTemplate[],
@@ -193,7 +200,8 @@ export async function popularEserviceTemplateToBaseDigest(
   return templateDataToBaseDigest(
     data,
     readModelService,
-    (item) => item.eserviceTemplateCreatorId
+    (item) => item.eserviceTemplateCreatorId,
+    buildEserviceTemplateLinkToInstantiator
   );
 }
 
