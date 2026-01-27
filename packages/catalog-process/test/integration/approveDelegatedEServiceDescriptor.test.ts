@@ -338,6 +338,8 @@ describe("publish descriptor (after delegator's approval)", () => {
   );
 
   it("should throw missingPersonalDataFlag if the eservice has personalData undefined", async () => {
+    const testCI = 123456;
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
