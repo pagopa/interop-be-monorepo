@@ -193,8 +193,6 @@ export async function writePurposeTemplateM2MEvent(
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
-      eserviceId: event.eserviceId ?? null,
-      descriptorId: event.descriptorId ?? null,
     },
   ]);
 }
