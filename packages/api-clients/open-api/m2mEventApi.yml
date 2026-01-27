@@ -482,6 +482,44 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /events/purposeTemplates:
+    get:
+      tags:
+        - m2mEvents
+      summary: Get Purpose Template events
+      description: |
+        Retrieve list of Purpose Template events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getPurposeTemplateM2MEvents
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Purpose Template events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplateM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -1095,6 +1133,51 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplateM2MEvent"
+    PurposeTemplateM2MEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - PURPOSE_TEMPLATE_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_DELETED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_DELETED
+            - PURPOSE_TEMPLATE_PUBLISHED
+            - PURPOSE_TEMPLATE_SUSPENDED
+            - PURPOSE_TEMPLATE_UNSUSPENDED
+            - PURPOSE_TEMPLATE_ARCHIVED
+            - RISK_ANALYSIS_TEMPLATE_DOCUMENT_GENERATED
+            - PURPOSE_TEMPLATE_ESERVICE_LINKED
+            - PURPOSE_TEMPLATE_ESERVICE_UNLINKED
+        eventTimestamp:
+          type: string
+          format: date-time
+        purposeTemplateId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - purposeTemplateId
+
+    PurposeTemplateM2MEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplateM2MEvent"
     Problem:
       properties:
         type:

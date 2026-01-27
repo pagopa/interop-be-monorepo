@@ -35,6 +35,9 @@ import {
   TenantM2MEventId,
   generateId,
   unsafeBrandId,
+  PurposeTemplateM2MEvent,
+  PurposeTemplateM2MEventId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { v7 as uuidv7 } from "uuid";
 
@@ -54,6 +57,7 @@ export function generateM2MEventId<
     | ProducerKeychainM2MEventId
     | TenantM2MEventId
     | EServiceTemplateM2MEventId
+    | PurposeTemplateM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
@@ -292,5 +296,25 @@ export function getMockedEServiceTemplateM2MEvent({
     eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
     visibility,
     creatorId: creatorId ?? generateId<TenantId>(),
+  };
+}
+
+export function getMockedPurposeTemplateM2MEvent({
+  eventType,
+  visibility,
+  creatorId,
+}: {
+  eventType: PurposeTemplateM2MEvent["eventType"];
+  visibility: PurposeTemplateM2MEvent["visibility"];
+  creatorId?: TenantId;
+}): PurposeTemplateM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
+    purposeTemplateId: generateId<PurposeTemplateId>(),
+    creatorId: creatorId ?? generateId<TenantId>(),
+    visibility,
   };
 }
