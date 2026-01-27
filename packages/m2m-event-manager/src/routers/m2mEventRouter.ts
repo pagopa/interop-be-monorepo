@@ -430,7 +430,7 @@ export const m2mEventRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          "Error getting eservice template events"
+          "Error getting purpose template events"
         );
         return res.status(errorRes.status).send(errorRes);
       }
