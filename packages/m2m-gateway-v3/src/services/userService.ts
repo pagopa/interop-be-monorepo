@@ -1,9 +1,10 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { unauthorizedError, UserId } from "pagopa-interop-models";
+import { UserId } from "pagopa-interop-models";
 import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { userNotFound } from "../model/errors.js";
 
 export type GetUsersQueryParams = {
@@ -40,18 +41,12 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      if (!tenant.selfcareId) {
-        throw unauthorizedError(
-          `Tenant ${authData.organizationId} does not have a SelfCare ID`
-        );
-      }
-
-      const selfcareId = tenant.selfcareId;
+      assertTenantHasSelfcareId(tenant);
 
       // Fetch users from SelfCare (API already returns only active users)
       const { data: users } =
         await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
-          params: { institutionId: selfcareId },
+          params: { institutionId: tenant.selfcareId },
           queries: {
             productRoles: roles.length > 0 ? roles.join(",") : undefined,
           },
