@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  getMockPurposeTemplate, // Assumi esistano i mock necessari
-} from "pagopa-interop-commons-test";
+import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
 import {
   PurposeTemplateEventV2,
   m2mEventVisibility,
@@ -72,17 +70,15 @@ describe("handlePurposeTemplateEvent test", async () => {
             ),
             async () => [
               {
-                state: purposeTemplateState.published,
-                expectedVisibility: m2mEventVisibility.public,
-              },
-              {
                 state: purposeTemplateState.draft,
                 expectedVisibility: m2mEventVisibility.owner,
               },
-              {
-                state: purposeTemplateState.suspended,
-                expectedVisibility: m2mEventVisibility.owner,
-              },
+              ...Object.values(purposeTemplateState)
+                .filter((s) => s !== purposeTemplateState.draft)
+                .map((s) => ({
+                  state: s,
+                  expectedVisibility: m2mEventVisibility.public,
+                })),
             ]
           )
           .with("RiskAnalysisTemplateDocumentGenerated", async () => [])
@@ -97,12 +93,6 @@ describe("handlePurposeTemplateEvent test", async () => {
             type: eventType,
             data: {
               purposeTemplate: toPurposeTemplateV2(purposeTemplate),
-              eserviceId: eventType.includes("Linked")
-                ? generateId()
-                : undefined,
-              descriptorId: eventType.includes("Linked")
-                ? generateId()
-                : undefined,
             },
           } as PurposeTemplateEventEnvelopeV2;
 

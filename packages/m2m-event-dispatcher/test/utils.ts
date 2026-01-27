@@ -370,13 +370,7 @@ export async function retrieveAllPurposeTemplateM2MEvents({
     .limit(limit)
     .orderBy(desc(purposeTemplateInM2MEvent.id));
 
-  return sqlEvents.map((e) =>
-    PurposeTemplateM2MEvent.parse({
-      ...e,
-      eserviceId: e.eserviceId ?? undefined,
-      descriptorId: e.descriptorId ?? undefined,
-    })
-  );
+  return sqlEvents.map((e) => PurposeTemplateM2MEvent.parse(e));
 }
 
 export async function retrieveLastPurposeTemplateM2MEvent(): Promise<PurposeTemplateM2MEvent> {

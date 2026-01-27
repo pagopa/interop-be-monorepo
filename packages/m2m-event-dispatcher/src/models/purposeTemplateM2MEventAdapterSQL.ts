@@ -12,7 +12,5 @@ export function toPurposeTemplateM2MEventSQL(
     purposeTemplateId: event.purposeTemplateId,
     creatorId: event.creatorId,
     visibility: event.visibility,
-    eserviceId: event.eserviceId ?? null,
-    descriptorId: event.descriptorId ?? null,
   };
 }

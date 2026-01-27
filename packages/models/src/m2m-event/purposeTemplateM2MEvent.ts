@@ -46,8 +46,6 @@ export const PurposeTemplateM2MEvent = z.object({
     m2mEventVisibility.owner,
     m2mEventVisibility.public,
   ]),
-  eserviceId: z.string().uuid().optional(),
-  descriptorId: z.string().uuid().optional(),
 });
 
 export type PurposeTemplateM2MEvent = z.infer<typeof PurposeTemplateM2MEvent>;
