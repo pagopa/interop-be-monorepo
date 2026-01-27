@@ -11,6 +11,7 @@ import {
   PurposeM2MEventId,
   unsafeBrandId,
   TenantM2MEventId,
+  PurposeTemplateM2MEventId,
 } from "pagopa-interop-models";
 import { v7 as uuidv7 } from "uuid";
 
@@ -27,6 +28,7 @@ export function generateM2MEventId<
     | ProducerKeychainM2MEventId
     | ProducerKeyM2MEventId
     | TenantM2MEventId
+    | PurposeTemplateM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
