@@ -2,10 +2,9 @@ import { delegationApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   DelegationId,
   TenantId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { M2MAdminAuthData } from "pagopa-interop-commons";
-import { cannotEditDeclaredAttributesForTenant } from "../../model/errors.js";
+import { cannotEditDeclaredAttributesForTenant, missingSelfcareId } from "../../model/errors.js";
 import { DelegationProcessClient } from "../../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../context.js";
 import { assertRequesterIsDelegateConsumer } from "./delegationValidators.js";
@@ -42,6 +41,6 @@ export function assertTenantHasSelfcareId(
   tenant: tenantApi.Tenant
 ): asserts tenant is tenantApi.Tenant & { selfcareId: string } {
   if (!tenant.selfcareId) {
-    throw unauthorizedError(`Tenant ${tenant.id} does not have a SelfCare ID`);
+    throw missingSelfcareId(tenant.id);
   }
 }

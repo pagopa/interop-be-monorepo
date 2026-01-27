@@ -8,10 +8,10 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { UserService } from "../services/userService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { getSelfcareErrorMapper } from "../utils/errorMappers.js";
 
 const userRouter = (
   ctx: ZodiosContext,
@@ -34,7 +34,7 @@ const userRouter = (
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
-        emptyErrorMapper,
+        getSelfcareErrorMapper,
         ctx,
         "Error retrieving users"
       );
