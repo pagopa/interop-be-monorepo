@@ -87,11 +87,7 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      if (!tenant.selfcareId) {
-        throw unauthorizedError(
-          `Tenant ${authData.organizationId} does not have a SelfCare ID`
-        );
-      }
+      assertTenantHasSelfcareId(tenant);
 
       const selfcareId = tenant.selfcareId;
 
