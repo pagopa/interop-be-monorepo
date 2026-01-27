@@ -22,15 +22,15 @@
     "@aws-sdk/client-dynamodb": "3.840.0",
     "@aws-sdk/util-dynamodb": "3.840.0",
     "jose": "5.9.4",
+    "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
-    "pagopa-interop-models": "workspace:*",
-    "pagopa-interop-commons": "workspace:*"
+    "pagopa-interop-models": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "20.19.9",
     "eslint": "8.57.1",
     "prettier": "2.8.8",
     "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "vitest": "4.0.18"
   }
 }
