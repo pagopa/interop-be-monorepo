@@ -110,7 +110,7 @@
       }
       .text-secondary,
       .text-secondary div {
-        color: #5c6f82 !important;
+        color: #17324d !important;
       }
       p {
         margin-top: 12px;
@@ -178,7 +178,7 @@
       }
       .card-producer {
         font-size: 12px;
-        color: #5c6f82;
+        color: #17324d;
         margin: 0 0 4px 0;
         font-weight: 600;
       }
@@ -195,7 +195,7 @@
         margin-bottom: 4px;
       }
       .list-item-secondary {
-        color: #5c6f82;
+        color: #17324d;
       }
       .alert-success {
         border-left: 4px solid #00c853;
@@ -493,6 +493,7 @@
                                 </tr>
 
                                 <!-- Main Content -->
+                                {{#if hasEservicesContent}}
                                 <tr>
                                   <td
                                     align="left"
@@ -745,6 +746,8 @@
                                     {{/if}}
                                   </td>
                                 </tr>
+                                {{/if}}
+                                {{#if hasSentItemsContent}}
                                 <tr>
                                   <td
                                     align="left"
@@ -980,6 +983,8 @@
                                     {{/if}}
                                   </td>
                                 </tr>
+                                {{/if}}
+                                {{#if hasReceivedItemsContent}}
                                 <tr>
                                   <td
                                     align="left"
@@ -1152,6 +1157,8 @@
                                     {{/if}}
                                   </td>
                                 </tr>
+                                {{/if}}
+                                {{#if hasDelegationsContent}}
                                 <tr>
                                   <td
                                     align="left"
@@ -1306,6 +1313,8 @@
                                     {{/if}}
                                   </td>
                                 </tr>
+                                {{/if}}
+                                {{#if hasAttributesContent}}
                                 <tr>
                                   <td
                                     align="left"
@@ -1428,6 +1437,7 @@
                                     {{/if}}
                                   </td>
                                 </tr>
+                                {{/if}}
                                 <tr>
                                   <td
                                     align="left"
@@ -1623,7 +1633,7 @@
                                         font-weight: regular;
                                         line-height: 20px;
                                         text-align: left;
-                                        color: #5c6f82;
+                                        color: #17324d;
                                       "
                                     >
                                       <p>
