@@ -101,13 +101,8 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      const user = users.at(0);
-      if (
-        users.length === 0 ||
-        users.length > 1 ||
-        !user ||
-        user.id !== userId
-      ) {
+      const user = users[0];
+      if (users.length !== 1 || !user || user.id !== userId) {
         throw userNotFound(userId, authData.organizationId);
       }
 
