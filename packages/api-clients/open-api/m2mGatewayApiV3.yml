@@ -9247,7 +9247,7 @@ paths:
     get:
       tags:
         - users
-      summary: Get User
+      summary: Retrieve a User
       description: |
         Retrieve an active user belonging to the requester's organization
         and with a specific user id.
