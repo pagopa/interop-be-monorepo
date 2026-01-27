@@ -1164,6 +1164,7 @@ export const getMockBffApiNotificationsCountBySection =
     },
     "gestione-client": {
       "api-e-service": generateMock(z.number().int()),
+      "api-interop": generateMock(z.number().int()),
       totalCount: generateMock(z.number().int()),
     },
     notifiche: {
