@@ -1,9 +1,9 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { unauthorizedError } from "pagopa-interop-models";
 import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { Headers, M2MGatewayAppContext } from "../utils/context.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 
 export type GetUsersQueryParams = {
   roles: string[];
@@ -12,25 +12,6 @@ export type GetUsersQueryParams = {
 };
 
 export type UserService = ReturnType<typeof userServiceBuilder>;
-
-async function assertTenantSelfcareIdExists(
-  clients: PagoPAInteropBeClients,
-  organizationId: string,
-  headers: Headers
-): Promise<string> {
-  const { data: tenant } = await clients.tenantProcessClient.tenant.getTenant({
-    params: { id: organizationId },
-    headers,
-  });
-
-  if (!tenant.selfcareId) {
-    throw unauthorizedError(
-      `Tenant ${organizationId} does not have a SelfCare ID`
-    );
-  }
-
-  return tenant.selfcareId;
-}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function userServiceBuilder(clients: PagoPAInteropBeClients) {
@@ -52,16 +33,18 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       // Get tenant to resolve institutionId (selfcareId)
-      const selfcareId = await assertTenantSelfcareIdExists(
-        clients,
-        authData.organizationId,
-        headers
-      );
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: authData.organizationId },
+          headers,
+        });
+
+      assertTenantHasSelfcareId(tenant);
 
       // Fetch users from SelfCare (API already returns only active users)
       const { data: users } =
         await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
-          params: { institutionId: selfcareId },
+          params: { institutionId: tenant.selfcareId },
           queries: {
             productRoles: roles.length > 0 ? roles.join(",") : undefined,
           },
