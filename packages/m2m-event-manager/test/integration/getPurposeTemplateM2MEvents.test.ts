@@ -99,4 +99,23 @@ describe("getPurposeTemplateM2MEvents", () => {
       expect(events).toEqual(expectedEvents);
     }
   );
+  it.each([1, 3, 10])(
+    "should list the %d oldest purposeTemplate M2M events after the given lastEventId",
+    async (limit) => {
+      const lastEventId = mockPurposeTemplateM2MEvents[limit].id;
+      const events = await m2mEventService.getPurposeTemplateM2MEvents(
+        lastEventId,
+        limit,
+        getMockContextM2M({})
+      );
+
+      const filteredEvents = mockPurposeTemplateM2MEvents
+        .filter((e) => e.visibility === m2mEventVisibility.public)
+        .filter((e) => e.id > lastEventId);
+
+      expect(events).toEqual(
+        filteredEvents.slice(0, limit) // get the first N events after the lastEventId
+      );
+    }
+  );
 });

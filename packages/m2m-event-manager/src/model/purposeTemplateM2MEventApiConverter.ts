@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-function toApiPurposeTemplateM2MEventType(
+export function toApiPurposeTemplateM2MEventType(
   eventType: PurposeTemplateM2MEventType
 ): m2mEventApi.PurposeTemplateM2MEvent["eventType"] {
   return match<
@@ -33,7 +33,7 @@ function toApiPurposeTemplateM2MEventType(
     .with("PurposeTemplateArchived", () => "PURPOSE_TEMPLATE_ARCHIVED")
     .with(
       "RiskAnalysisTemplateSignedDocumentGenerated",
-      () => "RISK_ANALYSIS_TEMPLATE_SIGNED_DOCUMENT_GENERATED"
+      () => "RISK_ANALYSIS_TEMPLATE_DOCUMENT_GENERATED"
     )
     .with(
       "PurposeTemplateEServiceLinked",

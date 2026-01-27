@@ -13,7 +13,7 @@ import {
   getMockedPurposeTemplateM2MEvent,
 } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../utils.js";
+import { toApiPurposeTemplateM2MEventType } from "../../src/model/purposeTemplateM2MEventApiConverter.js";
 
 describe("API /events/purposeTemplates test", () => {
   const mockPurposeTemplateM2MEvents = PurposeTemplateM2MEventType.options
@@ -36,7 +36,7 @@ describe("API /events/purposeTemplates test", () => {
           ({
             id: e.id,
             eventTimestamp: e.eventTimestamp.toJSON(),
-            eventType: testToUpperSnakeCase(e.eventType),
+            eventType: toApiPurposeTemplateM2MEventType(e.eventType),
             purposeTemplateId: e.purposeTemplateId,
           } as m2mEventApi.PurposeTemplateM2MEvent)
       ),
