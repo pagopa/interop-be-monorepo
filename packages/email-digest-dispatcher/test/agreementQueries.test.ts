@@ -108,7 +108,7 @@ const createMockEServiceWithDescriptor = (producerId: TenantId): EService => ({
   ],
 });
 
-describe("ReadModelService - getSentAgreements", async () => {
+describe("ReadModelService - getSentAgreements", () => {
   describe("Basic functionality - Consumer is the protagonist who sent the request", () => {
     it("should return empty array when no agreements exist for the consumer", async () => {
       const consumer = getMockTenant();
@@ -678,7 +678,7 @@ describe("ReadModelService - getSentAgreements", async () => {
   });
 });
 
-describe("ReadModelService - getReceivedAgreements", async () => {
+describe("ReadModelService - getReceivedAgreements", () => {
   describe("Basic functionality - Producer is the protagonist who received the request", () => {
     it("should return empty array when no agreements exist for the producer", async () => {
       const producer = getMockTenant();
