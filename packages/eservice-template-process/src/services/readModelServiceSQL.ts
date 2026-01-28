@@ -21,7 +21,6 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -44,6 +43,7 @@ import {
 } from "pagopa-interop-readmodel";
 import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
 import { match } from "ts-pattern";
+import { CompactOrganization } from "../model/domain/models.js";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
 
@@ -325,7 +325,7 @@ export function readModelServiceBuilderSQL({
       name: string | undefined,
       limit: number,
       offset: number
-    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+    ): Promise<ListResult<CompactOrganization>> {
       const queryResult = await readModelDB
         .select(
           withTotalCount({
@@ -366,16 +366,12 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset);
 
-      const data: eserviceTemplateApi.CompactOrganization[] = queryResult.map(
-        (d) => ({
-          id: d.id,
-          name: d.name,
-        })
-      );
+      const data: CompactOrganization[] = queryResult.map((d) => ({
+        id: d.id,
+        name: d.name,
+      }));
 
-      const result = z
-        .array(eserviceTemplateApi.CompactOrganization)
-        .safeParse(data);
+      const result = z.array(CompactOrganization).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(

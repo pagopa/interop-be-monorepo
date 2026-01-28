@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
+import { CompactOrganization } from "./models.js";
 
 export function technologyToApiTechnology(
   input: Technology
@@ -172,4 +173,11 @@ export const eserviceTemplateToApiEServiceTemplate = (
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
   personalData: eserviceTemplate.personalData,
+});
+
+export const compactOrganizationToApi = (
+  organization: CompactOrganization
+): eserviceTemplateApi.CompactOrganization => ({
+  id: organization.id,
+  name: organization.name,
 });
