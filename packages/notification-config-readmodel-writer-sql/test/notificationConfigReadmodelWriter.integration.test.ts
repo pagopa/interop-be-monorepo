@@ -48,7 +48,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -79,7 +83,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -121,7 +129,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -258,7 +270,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -303,7 +319,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -348,7 +368,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -384,7 +408,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -416,7 +444,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -472,13 +504,13 @@ describe("database test", async () => {
           );
 
         expect(retrievedConfig).toBeDefined();
-        expect(retrievedConfig!.data.id).toBe(existingConfig.id);
-        expect(retrievedConfig!.data.userRoles).toEqual(
+        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
+        expect(retrievedConfig?.data.userRoles).toEqual(
           expect.arrayContaining([userRole.API_ROLE, userRole.SECURITY_ROLE])
         );
-        expect(retrievedConfig!.data.userRoles).toHaveLength(2);
-        expect(retrievedConfig!.metadata.version).toBe(1);
-        expect(retrievedConfig!.data.updatedAt).toEqual(newConfig.createdAt);
+        expect(retrievedConfig?.data.userRoles).toHaveLength(2);
+        expect(retrievedConfig?.metadata.version).toBe(1);
+        expect(retrievedConfig?.data.updatedAt).toEqual(newConfig.createdAt);
       });
 
       it("should throw error when Created event arrives with same ID as existing record", async () => {
@@ -557,7 +589,7 @@ describe("database test", async () => {
             existingConfig.tenantId
           );
         expect(retrievedConfig).toBeDefined();
-        expect(retrievedConfig!.data.id).toBe(existingConfig.id);
+        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
 
         const deleteNewPayload: UserNotificationConfigDeletedV2 = {
           userNotificationConfig: toUserNotificationConfigV2(newConfig),
@@ -585,7 +617,7 @@ describe("database test", async () => {
             existingConfig.tenantId
           );
         expect(retrievedConfig).toBeDefined();
-        expect(retrievedConfig!.data.id).toBe(existingConfig.id);
+        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
 
         const deleteOldPayload: UserNotificationConfigDeletedV2 = {
           userNotificationConfig: toUserNotificationConfigV2(existingConfig),

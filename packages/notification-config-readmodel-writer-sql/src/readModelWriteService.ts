@@ -207,7 +207,9 @@ export function notificationConfigReadModelWriteServiceBuilder(
             metadataVersion,
             userNotificationConfig.id
           );
-          if (!shouldUpsert) return;
+          if (!shouldUpsert) {
+            return;
+          }
 
           await tx
             .delete(userNotificationConfigInReadmodelNotificationConfig)
