@@ -175,7 +175,19 @@ export function notificationConfigReadModelWriteServiceBuilder(
           ];
 
           logger.warn(
-            `UserNotificationConfigCreated received for userId=${userNotificationConfig.userId}, tenantId=${userNotificationConfig.tenantId} but record already exists with different id. Existing id: ${existingRecord.id}, new id: ${userNotificationConfig.id}. Existing roles: [${existingRoles.join(", ")}], new roles: [${userNotificationConfig.userRoles.join(", ")}], merged roles: [${mergedRoles.join(", ")}].`
+            `UserNotificationConfigCreated received for userId=${
+              userNotificationConfig.userId
+            }, tenantId=${
+              userNotificationConfig.tenantId
+            } but record already exists with different id. Existing id: ${
+              existingRecord.id
+            }, new id: ${
+              userNotificationConfig.id
+            }. Existing roles: [${existingRoles.join(
+              ", "
+            )}], new roles: [${userNotificationConfig.userRoles.join(
+              ", "
+            )}], merged roles: [${mergedRoles.join(", ")}].`
           );
 
           await tx

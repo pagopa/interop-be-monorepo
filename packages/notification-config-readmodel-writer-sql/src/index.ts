@@ -36,7 +36,11 @@ async function processMessage({
 
   await match(decodedMessage)
     .with({ event_version: 2 }, (msg) =>
-      handleMessageV2(msg, notificationConfigReadModelWriteService, loggerInstance)
+      handleMessageV2(
+        msg,
+        notificationConfigReadModelWriteService,
+        loggerInstance
+      )
     )
     .exhaustive();
 
