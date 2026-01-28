@@ -114,11 +114,6 @@ export const addOneClient = async (client: Client): Promise<void> => {
   await upsertClient(readModelDB, client, 0);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const addOneConsumer = async (consumer: Tenant): Promise<void> => {
-  await upsertTenant(readModelDB, consumer, 0);
-};
-
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);
   await upsertPurpose(readModelDB, purpose, 0);
