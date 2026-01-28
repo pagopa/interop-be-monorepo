@@ -532,11 +532,19 @@
                                         </tr>
                                       </table>
                                       <p class="body-text">
+                                        {{#if newEservicesSingular}}
+                                        È stato pubblicato
+                                        <strong
+                                          >1 nuovo
+                                          e-service:</strong
+                                        >
+                                        {{else}}
                                         Sono stati pubblicati
                                         <strong
                                           >{{ newEservices.totalCount }} nuovi
-                                          e-service</strong
-                                        >. Ecco i più recenti:
+                                          e-service.</strong
+                                        > Ecco i più recenti:
+                                        {{/if}}
                                       </p>
 
                                       <!-- Grid Wrapper -->
@@ -608,12 +616,21 @@
                                         </tr>
                                       </table>
                                       <p class="body-text">
+                                        {{#if updatedEservicesSingular}}
+                                        È stato aggiornato
+                                        <strong
+                                          >1
+                                          e-service</strong
+                                        >
+                                        a cui sei iscritto:
+                                        {{else}}
                                         Sono stati aggiornati
                                         <strong
                                           >{{ updatedEservices.totalCount }}
                                           e-service</strong
                                         >
                                         a cui sei iscritto. Ecco i più recenti:
+                                        {{/if}}
                                       </p>
 
                                       <!-- Grid Wrapper -->
@@ -678,12 +695,21 @@
                                         </tr>
                                       </table>
                                       <p class="body-text">
+                                        {{#if updatedEserviceTemplatesSingular}}
+                                        È stato aggiornato
+                                        <strong
+                                          >1
+                                          template e-service da cui hai generato
+                                          una istanza</strong
+                                        >:
+                                        {{else}}
                                         Sono stati aggiornati
                                         <strong
                                           >{{ updatedEserviceTemplates.totalCount }}
                                           template e-service da cui hai generato
                                           una istanza</strong
                                         >, tra cui:
+                                        {{/if}}
                                       </p>
 
                                       <!-- Grid Wrapper -->
@@ -748,12 +774,21 @@
                                         </tr>
                                       </table>
                                       <p class="body-text">
+                                        {{#if popularEserviceTemplatesSingular}}
+                                        <strong
+                                          >1
+                                          dei tuoi template</strong
+                                        >
+                                        è stato utilizzato per creare nuovi
+                                        e-service:
+                                        {{else}}
                                         <strong
                                           >{{ popularEserviceTemplates.totalCount }}
                                           dei tuoi template</strong
                                         >
                                         sono stati utilizzati per creare nuovi
                                         e-service, tra cui:
+                                        {{/if}}
                                       </p>
 
                                       <!-- Grid Wrapper -->
@@ -824,11 +859,16 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
+                                        {{#if acceptedSentAgreementsSingular}}
+                                        È stata accettata
+                                        <strong>1 richiesta</strong>
+                                        {{else}}
                                         Sono state accettate
                                         <strong
                                           >{{ acceptedSentAgreements.totalCount
                                           }} richieste</strong
                                         >
+                                        {{/if}}
                                         per:
                                       </p>
                                       <ul class="list-items">
@@ -859,11 +899,16 @@
                                     rejectedSentAgreements.totalCount}}
                                     <div class="section-divider">
                                       <p class="body-text-no-margin">
+                                        {{#if rejectedSentAgreementsSingular}}
+                                        È stata rifiutata
+                                        <strong>1 richiesta</strong>
+                                        {{else}}
                                         Sono state rifiutate
                                         <strong
                                           >{{ rejectedSentAgreements.totalCount
                                           }} richieste</strong
                                         >
+                                        {{/if}}
                                         per:
                                       </p>
                                       <ul class="list-items">
@@ -885,11 +930,16 @@
                                     suspendedSentAgreements.totalCount}}
                                     <div class="section-divider">
                                       <p class="body-text-no-margin">
+                                        {{#if suspendedSentAgreementsSingular}}
+                                        È stata sospesa
+                                        <strong>1 richiesta</strong>
+                                        {{else}}
                                         Sono state sospese
                                         <strong
                                           >{{ suspendedSentAgreements.totalCount
                                           }} richieste</strong
                                         >
+                                        {{/if}}
                                         per:
                                       </p>
                                       <ul class="list-items">
@@ -940,11 +990,16 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
+                                        {{#if publishedSentPurposesSingular}}
+                                        È stata pubblicata
+                                        <strong>1 finalità</strong>:
+                                        {{else}}
                                         Sono state pubblicate
                                         <strong
                                           >{{ publishedSentPurposes.totalCount
                                           }} finalità</strong
                                         >:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each publishedSentPurposes.items}}
@@ -974,11 +1029,16 @@
                                     rejectedSentPurposes.totalCount}}
                                     <div class="section-divider">
                                       <p class="body-text-no-margin">
+                                        {{#if rejectedSentPurposesSingular}}
+                                        È stata rifiutata
+                                        <strong>1 finalità</strong>:
+                                        {{else}}
                                         Sono state rifiutate
                                         <strong
                                           >{{ rejectedSentPurposes.totalCount }}
                                           finalità</strong
                                         >:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each rejectedSentPurposes.items}}
@@ -1062,6 +1122,12 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
+                                        {{#if waitingForApprovalReceivedAgreementsSingular}}
+                                        Hai ricevuto
+                                        <strong>1 richiesta di fruizione</strong>
+                                        di un tuo servizio che richiede la tua
+                                        approvazione:
+                                        {{else}}
                                         Hai ricevuto
                                         <strong
                                           >{{
@@ -1070,6 +1136,7 @@
                                         >
                                         di tuoi servizi che richiedono la tua
                                         approvazione:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each
@@ -1235,6 +1302,12 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
+                                        {{#if waitingForApprovalReceivedDelegationsSingular}}
+                                        Hai
+                                        <strong>1
+                                          richiesta di delega</strong>
+                                        in attesa di approvazione da parte tua:
+                                        {{else}}
                                         Hai
                                         <strong>{{
                                           waitingForApprovalReceivedDelegations.totalCount
@@ -1242,6 +1315,7 @@
                                           richieste di delega</strong
                                         >
                                         in attesa di approvazione da parte tua:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each
@@ -1295,12 +1369,18 @@
                                       {{/unless}}
 
                                       <p class="body-text-no-margin">
+                                        {{#if revokedReceivedDelegationsSingular}}
+                                        È stata revocata
+                                        <strong>1
+                                          richiesta di delega</strong>:
+                                        {{else}}
                                         Sono state revocate
                                         <strong>{{
                                           revokedReceivedDelegations.totalCount
                                         }}
                                           richieste di delega</strong
                                         >:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each
@@ -1353,6 +1433,12 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
+                                        {{#if activeSentDelegationsSingular}}
+                                        È stata approvata
+                                        <strong>1
+                                          richiesta di delega</strong>
+                                        da te inoltrata:
+                                        {{else}}
                                         Sono state approvate
                                         <strong>{{
                                           activeSentDelegations.totalCount
@@ -1360,6 +1446,7 @@
                                           richieste di delega</strong
                                         >
                                         da te inoltrate:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each activeSentDelegations.items}}
@@ -1412,6 +1499,12 @@
                                       {{/unless}}
 
                                       <p class="body-text-no-margin">
+                                        {{#if rejectedSentDelegationsSingular}}
+                                        È stata rifiutata
+                                        <strong>1
+                                          richiesta di delega</strong>
+                                        da te inoltrata:
+                                        {{else}}
                                         Sono state rifiutate
                                         <strong>{{
                                           rejectedSentDelegations.totalCount
@@ -1419,6 +1512,7 @@
                                           richieste di delega</strong
                                         >
                                         da te inoltrate:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each rejectedSentDelegations.items}}
@@ -1477,11 +1571,16 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
+                                        {{#if receivedAttributesSingular}}
+                                        Ti è stato assegnato
+                                        <strong>1 nuovo attributo</strong>:
+                                        {{else}}
                                         Ti sono stati assegnati
                                         <strong
                                           >{{ receivedAttributes.totalCount }}
                                           nuovi attributi</strong
                                         >:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each receivedAttributes.items}}
@@ -1533,7 +1632,16 @@
                                       {{/unless}}
 
                                       <p class="body-text-no-margin">
-                                        Ti è stato revocato un attributo:
+                                        {{#if revokedAttributesSingular}}
+                                        Ti è stato revocato
+                                        <strong>1 attributo</strong>:
+                                        {{else}}
+                                        Ti sono stati revocati
+                                        <strong
+                                          >{{ revokedAttributes.totalCount }}
+                                          attributi</strong
+                                        >:
+                                        {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each revokedAttributes.items}}
