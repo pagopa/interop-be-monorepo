@@ -132,6 +132,14 @@ export function notificationConfigReadModelWriteServiceBuilder(
         );
     },
 
+    /**
+     * This function is needed because we could have genereted duplicated
+     * create event with different streamId but same (tenantId, userId).
+     * This happens if the creation endpoint is called multiple times
+     * while the readmodel is not updated.
+     * In this case we keep the existing streamId merging roles since
+     * roles are the only variable part when creating configuration.
+     * */
     async upsertOrMergeUserNotificationConfigOnCreate(
       userNotificationConfig: UserNotificationConfig,
       metadataVersion: number,
