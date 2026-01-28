@@ -14,7 +14,7 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
 
 describe("getClientPurposes", () => {
   const mockParams: m2mGatewayApi.GetClientPurposesQueryParams = {
@@ -65,19 +65,6 @@ describe("getClientPurposes", () => {
       mockApiConsumerClients.find((client) => client.id === clientId)
     )
   );
-
-  const testToM2mGatewayApiPurposeVersion = (
-    version: purposeApi.PurposeVersion
-  ): m2mGatewayApi.PurposeVersion => ({
-    id: version.id,
-    createdAt: version.createdAt,
-    dailyCalls: version.dailyCalls,
-    state: version.state,
-    firstActivationAt: version.firstActivationAt,
-    rejectionReason: version.rejectionReason,
-    suspendedAt: version.suspendedAt,
-    updatedAt: version.updatedAt,
-  });
 
   mockInteropBeClients.authorizationClient = {
     client: {

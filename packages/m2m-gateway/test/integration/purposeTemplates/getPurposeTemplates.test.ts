@@ -31,13 +31,13 @@ describe("getPurposeTemplates", () => {
   ];
 
   const mockPurposeTemplateProcessResponse: WithMaybeMetadata<purposeTemplateApi.PurposeTemplates> =
-    {
-      data: {
-        results: mockApiPurposeTemplates,
-        totalCount: mockApiPurposeTemplates.length,
-      },
-      metadata: undefined,
-    };
+  {
+    data: {
+      results: mockApiPurposeTemplates,
+      totalCount: mockApiPurposeTemplates.length,
+    },
+    metadata: undefined,
+  };
 
   const mockGetPurposeTemplates = vi
     .fn()
@@ -100,7 +100,7 @@ describe("getPurposeTemplates", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mPurposeTemplatesResponse);
+    expect(result).toStrictEqual(m2mPurposeTemplatesResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplates,

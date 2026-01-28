@@ -48,7 +48,7 @@ describe("getEservice", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceResponse);
+    expect(result).toStrictEqual(m2mEserviceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },

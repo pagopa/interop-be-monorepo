@@ -51,7 +51,7 @@ describe("getProducerKeychain", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mProducerKeychainResponse);
+    expect(result).toStrictEqual(m2mProducerKeychainResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.authorizationClient.producerKeychain
@@ -68,20 +68,20 @@ describe("getProducerKeychain", () => {
     );
 
     const m2mFullProducerKeychainResponse: m2mGatewayApi.FullProducerKeychain =
-      {
-        id: mockFullProducerKeychainFromProcess.data.id,
-        producerId: mockFullProducerKeychainFromProcess.data.producerId,
-        name: mockFullProducerKeychainFromProcess.data.name,
-        description: mockFullProducerKeychainFromProcess.data.description,
-        createdAt: mockFullProducerKeychainFromProcess.data.createdAt,
-      };
+    {
+      id: mockFullProducerKeychainFromProcess.data.id,
+      producerId: mockFullProducerKeychainFromProcess.data.producerId,
+      name: mockFullProducerKeychainFromProcess.data.name,
+      description: mockFullProducerKeychainFromProcess.data.description,
+      createdAt: mockFullProducerKeychainFromProcess.data.createdAt,
+    };
 
     const result = await producerKeychainService.getProducerKeychain(
       unsafeBrandId(mockFullProducerKeychainFromProcess.data.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mFullProducerKeychainResponse);
+    expect(result).toStrictEqual(m2mFullProducerKeychainResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.authorizationClient.producerKeychain

@@ -71,7 +71,7 @@ describe("updatePublishedEServiceDelegation", () => {
       templateId: mockEService.templateId,
     };
 
-    expect(result).toEqual(expectedM2MEService);
+    expect(result).toStrictEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.updateEServiceDelegationFlags,
@@ -124,7 +124,7 @@ describe("updatePublishedEServiceDelegation", () => {
       templateId: mockEService.templateId,
     };
 
-    expect(result).toEqual(expectedM2MEService);
+    expect(result).toStrictEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.updateEServiceDelegationFlags,

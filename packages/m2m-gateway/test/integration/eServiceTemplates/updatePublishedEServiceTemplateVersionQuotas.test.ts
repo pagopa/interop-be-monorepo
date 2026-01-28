@@ -41,11 +41,11 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
     getMockWithMetadata(mockEServiceTemplate);
 
   const mockQuotasSeed: m2mGatewayApi.EServiceTemplateVersionQuotasUpdateSeed =
-    {
-      voucherLifespan: 3600,
-      dailyCallsPerConsumer: 1000,
-      dailyCallsTotal: 10000,
-    };
+  {
+    voucherLifespan: 3600,
+    dailyCallsPerConsumer: 1000,
+    dailyCallsTotal: 10000,
+  };
 
   const mockPatchUpdateQuotas = vi
     .fn()
@@ -77,7 +77,7 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
     const expectedM2MEServiceTemplateVersion: m2mGatewayApi.EServiceTemplateVersion =
       toM2MGatewayEServiceTemplateVersion(mockVersion);
 
-    expect(result).toEqual(expectedM2MEServiceTemplateVersion);
+    expect(result).toStrictEqual(expectedM2MEServiceTemplateVersion);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient
@@ -153,7 +153,7 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
       deprecatedAt: mockVersion.deprecatedAt,
     };
 
-    expect(result).toEqual(expectedM2MDVersion);
+    expect(result).toStrictEqual(expectedM2MDVersion);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

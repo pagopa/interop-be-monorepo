@@ -21,13 +21,13 @@ describe("createEServiceTemplate", () => {
   const mockApiEserviceTemplate = getMockedApiEServiceTemplate();
 
   const mockApiEserviceTemplateWithVersion: m2mGatewayApi.VersionSeedForEServiceTemplateCreation =
-    {
-      voucherLifespan: 1000,
-      description: "Version description",
-      dailyCallsPerConsumer: 100,
-      dailyCallsTotal: 1000,
-      agreementApprovalPolicy: "AUTOMATIC",
-    };
+  {
+    voucherLifespan: 1000,
+    description: "Version description",
+    dailyCallsPerConsumer: 100,
+    dailyCallsTotal: 1000,
+    agreementApprovalPolicy: "AUTOMATIC",
+  };
 
   const mockEserviceTemplateSeed: m2mGatewayApi.EServiceTemplateSeed = {
     name: mockApiEserviceTemplate.name,
@@ -88,7 +88,7 @@ describe("createEServiceTemplate", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceResponse);
+    expect(result).toStrictEqual(m2mEserviceResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

@@ -97,7 +97,7 @@ describe("getProducerKeychainEServices", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mProducerKeychainEServicesResponse);
+    expect(result).toStrictEqual(m2mProducerKeychainEServicesResponse);
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetProducerKeychain,
@@ -122,7 +122,7 @@ describe("getProducerKeychainEServices", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result1).toEqual({
+    expect(result1).toStrictEqual({
       pagination: {
         offset: 0,
         limit: 1,
@@ -140,7 +140,7 @@ describe("getProducerKeychainEServices", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result2).toEqual({
+    expect(result2).toStrictEqual({
       pagination: {
         offset: 1,
         limit: 1,

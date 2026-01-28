@@ -22,7 +22,7 @@ import {
   missingMetadata,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
 
 describe("createPurposeVersion", () => {
   const mockApiPurposeVersion = getMockedApiPurposeVersion();
@@ -62,7 +62,10 @@ describe("createPurposeVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(mockApiPurposeVersion);
+    const expectedApiPurposeVersion = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion
+    );
+    expect(result).toStrictEqual(expectedApiPurposeVersion);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurposeVersion,
       body: mockPurposeVersionSeed,

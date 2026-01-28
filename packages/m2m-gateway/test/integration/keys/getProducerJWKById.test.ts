@@ -49,7 +49,7 @@ describe("getProducerJWKByKid", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedKey);
+    expect(result).toStrictEqual(expectedKey);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.key.getProducerJWKByKid,
       params: {

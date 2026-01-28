@@ -38,10 +38,10 @@ describe("unsuspendEServiceTemplateVersion", () => {
   );
 
   const mockApiTemplateVersionAfterUnsuspend: eserviceTemplateApi.EServiceTemplateVersion =
-    {
-      ...mockApiTemplateVersion,
-      state: "PUBLISHED",
-    };
+  {
+    ...mockApiTemplateVersion,
+    state: "PUBLISHED",
+  };
 
   const mockApiTemplateAfterUnsuspend = getMockWithMetadata(
     getMockedApiEServiceTemplate({
@@ -78,7 +78,7 @@ describe("unsuspendEServiceTemplateVersion", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(mockM2MTemplateVersionResponse);
+    expect(result).toStrictEqual(mockM2MTemplateVersionResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

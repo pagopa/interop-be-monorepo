@@ -50,9 +50,9 @@ describe("assignTenantCertifiedAttribute", () => {
   );
 
   const mockTenantCertifiedAttributeSeed: m2mGatewayApi.TenantCertifiedAttributeSeed =
-    {
-      id: mockCertifiedAttribute2.id,
-    };
+  {
+    id: mockCertifiedAttribute2.id,
+  };
 
   const mockAddCertifiedAttribute = vi
     .fn()
@@ -90,7 +90,7 @@ describe("assignTenantCertifiedAttribute", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantAttributeResponse);
+    expect(result).toStrictEqual(m2mTenantAttributeResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute

@@ -75,7 +75,7 @@ describe("updateDraftEService", () => {
       templateId: mockEServiceProcessGetResponse.data.templateId,
     };
 
-    expect(result).toEqual(expectedM2MEService);
+    expect(result).toStrictEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.patchUpdateDraftEServiceById,

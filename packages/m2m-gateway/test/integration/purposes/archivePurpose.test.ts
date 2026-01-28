@@ -23,7 +23,7 @@ import {
   missingMetadata,
   missingPurposeCurrentVersion,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
 
 describe("archivePurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
@@ -67,6 +67,12 @@ describe("archivePurposeVersion", () => {
     // The archive will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
+    const purposeVersion1 = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion1
+    );
+    const purposeVersion2 = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion2
+    );
     const expectedM2MPurpose: m2mGatewayApi.Purpose = {
       consumerId: mockApiPurpose.data.consumerId,
       createdAt: mockApiPurpose.data.createdAt,
@@ -79,8 +85,8 @@ describe("archivePurposeVersion", () => {
       delegationId: mockApiPurpose.data.delegationId,
       freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
       updatedAt: mockApiPurpose.data.updatedAt,
-      currentVersion: mockApiPurposeVersion1,
-      rejectedVersion: mockApiPurposeVersion2,
+      currentVersion: purposeVersion1,
+      rejectedVersion: purposeVersion2,
       purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
@@ -89,7 +95,7 @@ describe("archivePurposeVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(purpose).toEqual(expectedM2MPurpose);
+    expect(purpose).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.archivePurposeVersion,
       params: {

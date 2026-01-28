@@ -48,11 +48,11 @@ describe("assignTenantVerifiedAttribute", () => {
   );
 
   const mockTenantVerifiedAttributeSeed: m2mGatewayApi.TenantVerifiedAttributeSeed =
-    {
-      id: mockVerifiedAttribute2.id,
-      agreementId: generateId(),
-      expirationDate: new Date().toISOString(),
-    };
+  {
+    id: mockVerifiedAttribute2.id,
+    agreementId: generateId(),
+    expirationDate: new Date().toISOString(),
+  };
 
   const mockAddVerifiedAttribute = vi
     .fn()
@@ -89,7 +89,7 @@ describe("assignTenantVerifiedAttribute", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantAttributeResponse);
+    expect(result).toStrictEqual(m2mTenantAttributeResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute

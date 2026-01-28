@@ -63,7 +63,7 @@ describe("getPurposeAgreement", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementResponse);
+    expect(result).toStrictEqual(m2mAgreementResponse);
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
@@ -100,6 +100,6 @@ describe("getPurposeAgreement", () => {
         mockPurposeId,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toEqual(purposeAgreementNotFound(mockPurposeId));
+    ).rejects.toStrictEqual(purposeAgreementNotFound(mockPurposeId));
   });
 });

@@ -51,13 +51,13 @@ describe("getClients", () => {
   });
   const mockPartialClients = [mockPartialClient1, mockPartialClient2];
   const mockPartialClientsResponse: WithMaybeMetadata<authorizationApi.Clients> =
-    {
-      data: {
-        results: mockPartialClients,
-        totalCount: mockPartialClients.length,
-      },
-      metadata: undefined,
-    };
+  {
+    data: {
+      results: mockPartialClients,
+      totalCount: mockPartialClients.length,
+    },
+    metadata: undefined,
+  };
 
   mockInteropBeClients.authorizationClient = {
     client: {
@@ -102,7 +102,7 @@ describe("getClients", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientsResponse);
+    expect(result).toStrictEqual(m2mClientsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClients,
       queries: {
@@ -143,7 +143,7 @@ describe("getClients", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientsResponse);
+    expect(result).toStrictEqual(m2mClientsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClients,
       queries: {

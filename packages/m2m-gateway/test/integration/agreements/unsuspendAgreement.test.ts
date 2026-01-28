@@ -71,7 +71,7 @@ describe("unsuspendAgreement", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementResponse);
+    expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
       params: {

@@ -35,19 +35,19 @@ describe("getPurposeTemplateRiskAnalysis", () => {
     const mockRiskAnalysisFormTemplate =
       mockApiPurposeTemplateResponse.data.purposeRiskAnalysisForm!;
     const expectedM2MRiskAnalysisFormTemplate: m2mGatewayApi.RiskAnalysisFormTemplate =
-      {
-        version: mockRiskAnalysisFormTemplate.version,
-        answers: toM2MGatewayApiRiskAnalysisTemplateAnswers(
-          mockRiskAnalysisFormTemplate.answers
-        ),
-      };
+    {
+      version: mockRiskAnalysisFormTemplate.version,
+      answers: toM2MGatewayApiRiskAnalysisTemplateAnswers(
+        mockRiskAnalysisFormTemplate.answers
+      ),
+    };
 
     const result = await purposeTemplateService.getPurposeTemplateRiskAnalysis(
       unsafeBrandId(mockApiPurposeTemplateResponse.data.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MRiskAnalysisFormTemplate);
+    expect(result).toStrictEqual(expectedM2MRiskAnalysisFormTemplate);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,

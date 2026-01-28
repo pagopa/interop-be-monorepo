@@ -21,13 +21,13 @@ describe("createEService", () => {
   const mockedApiEservice = getMockedApiEservice();
 
   const mockApiEserviceWithDescriptor: m2mGatewayApi.DescriptorSeedForEServiceCreation =
-    {
-      audience: [],
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: 100,
-      dailyCallsTotal: 100,
-      agreementApprovalPolicy: "AUTOMATIC",
-    };
+  {
+    audience: [],
+    voucherLifespan: 1000,
+    dailyCallsPerConsumer: 100,
+    dailyCallsTotal: 100,
+    agreementApprovalPolicy: "AUTOMATIC",
+  };
 
   const mockEserviceSeed: m2mGatewayApi.EServiceSeed = {
     name: mockedApiEservice.name,
@@ -78,7 +78,7 @@ describe("createEService", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceResponse);
+    expect(result).toStrictEqual(m2mEserviceResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.createEService,
       body: mockEserviceSeed,

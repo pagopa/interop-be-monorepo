@@ -61,10 +61,10 @@ describe("replacePurposeTemplateRiskAnalysis", () => {
   };
 
   const mockRiskAnalysisFormTemplateSeed: m2mGatewayApi.RiskAnalysisFormTemplateSeed =
-    {
-      version: getLatestVersionFormRules(tenantKind.PA)!.version,
-      answers: newAnswer,
-    };
+  {
+    version: getLatestVersionFormRules(tenantKind.PA)!.version,
+    answers: newAnswer,
+  };
 
   const mockVersion = 2;
   const mockPurposeTemplateProcessUpdateResponse = getMockWithMetadata(
@@ -112,24 +112,24 @@ describe("replacePurposeTemplateRiskAnalysis", () => {
       );
 
     const expectedM2MRiskAnalysisFormTemplate: m2mGatewayApi.RiskAnalysisFormTemplate =
-      {
-        ...mockRiskAnalysisFormTemplate,
-        answers: {
-          ...Object.fromEntries(
-            Object.entries(mockRiskAnalysisFormTemplateSeed.answers).map(
-              ([key, value]) => [
-                key,
-                {
-                  ...value,
-                  id: result.answers[key].id,
-                },
-              ]
-            )
-          ),
-        },
-      };
+    {
+      ...mockRiskAnalysisFormTemplate,
+      answers: {
+        ...Object.fromEntries(
+          Object.entries(mockRiskAnalysisFormTemplateSeed.answers).map(
+            ([key, value]) => [
+              key,
+              {
+                ...value,
+                id: result.answers[key].id,
+              },
+            ]
+          )
+        ),
+      },
+    };
 
-    expect(result).toEqual(expectedM2MRiskAnalysisFormTemplate);
+    expect(result).toStrictEqual(expectedM2MRiskAnalysisFormTemplate);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeTemplateProcessClient

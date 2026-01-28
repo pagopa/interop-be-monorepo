@@ -48,17 +48,17 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
 
   const mockFileBuffer = Buffer.from("test content");
   const mockFileUpload: m2mGatewayApi.RiskAnalysisTemplateAnnotationDocumentUploadMultipart =
-    {
-      file: new File(
-        [mockFileBuffer],
-        mockPurposeTemplateProcessResponse.data.name,
-        {
-          type: mockPurposeTemplateProcessResponse.data.contentType,
-        }
-      ),
-      prettyName: mockPurposeTemplateProcessResponse.data.prettyName,
-      answerId: mockAnswerId,
-    };
+  {
+    file: new File(
+      [mockFileBuffer],
+      mockPurposeTemplateProcessResponse.data.name,
+      {
+        type: mockPurposeTemplateProcessResponse.data.contentType,
+      }
+    ),
+    prettyName: mockPurposeTemplateProcessResponse.data.prettyName,
+    answerId: mockAnswerId,
+  };
 
   const mockAddRiskAnalysisTemplateAnswerAnnotationDocument = vi
     .fn()
@@ -126,9 +126,9 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         config.purposeTemplateDocumentsContainer,
         genericLogger
       )
-    ).toEqual([matchExpectedPath]);
+    ).toStrictEqual([matchExpectedPath]);
 
-    expect(result).toEqual(m2mEServiceDocumentResponse);
+    expect(result).toStrictEqual(m2mEServiceDocumentResponse);
 
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
@@ -161,17 +161,17 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
 
   it("Should throw invalidDocumentDetected in case the file user is trying to upload is not a .pdf document", async () => {
     const mockFileUpload: m2mGatewayApi.RiskAnalysisTemplateAnnotationDocumentUploadMultipart =
-      {
-        file: new File(
-          [mockFileBuffer],
-          mockPurposeTemplateProcessResponse.data.name,
-          {
-            type: "application/json",
-          }
-        ),
-        prettyName: mockPurposeTemplateProcessResponse.data.prettyName,
-        answerId: mockAnswerId,
-      };
+    {
+      file: new File(
+        [mockFileBuffer],
+        mockPurposeTemplateProcessResponse.data.name,
+        {
+          type: "application/json",
+        }
+      ),
+      prettyName: mockPurposeTemplateProcessResponse.data.prettyName,
+      answerId: mockAnswerId,
+    };
 
     await expect(
       purposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument(

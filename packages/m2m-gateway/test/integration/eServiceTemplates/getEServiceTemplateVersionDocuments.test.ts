@@ -24,10 +24,10 @@ describe("getEServiceTemplateVersionDocuments", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEServiceTemplateVersionDocumentsQueryParams =
-    {
-      offset: 0,
-      limit: 10,
-    };
+  {
+    offset: 0,
+    limit: 10,
+  };
 
   const mockApiEServiceTemplateDoc1 = getMockedApiEserviceDoc();
   const mockApiEServiceTemplateDoc2 = getMockedApiEserviceDoc();
@@ -157,7 +157,7 @@ describe("getEServiceTemplateVersionDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(m2mDocumentsResponse);
+    expect(result).toStrictEqual(m2mDocumentsResponse);
   });
 
   it("Should apply filters (offset, limit)", async () => {
@@ -181,7 +181,7 @@ describe("getEServiceTemplateVersionDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(response1);
+    expect(result).toStrictEqual(response1);
 
     const response2: m2mGatewayApi.Documents = {
       pagination: {
@@ -203,7 +203,7 @@ describe("getEServiceTemplateVersionDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result2).toEqual(response2);
+    expect(result2).toStrictEqual(response2);
 
     const response3: m2mGatewayApi.Documents = {
       pagination: {
@@ -225,6 +225,6 @@ describe("getEServiceTemplateVersionDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result3).toEqual(response3);
+    expect(result3).toStrictEqual(response3);
   });
 });

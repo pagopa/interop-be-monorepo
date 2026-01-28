@@ -30,7 +30,7 @@ import {
   missingMetadata,
   requesterIsNotTheDelegateConsumer,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
 
 describe("createPurpose", () => {
   const mockPurposeProcessGetResponse: WithMetadata<purposeApi.Purpose> =
@@ -71,6 +71,7 @@ describe("createPurpose", () => {
     mockGetDelegation.mockClear();
   });
 
+  const purposeVersion = mockPurposeProcessGetResponse.data.versions[0];
   const expectedM2MPurpose: m2mGatewayApi.Purpose = {
     consumerId: mockPurposeProcessGetResponse.data.consumerId,
     createdAt: mockPurposeProcessGetResponse.data.createdAt,
@@ -80,7 +81,9 @@ describe("createPurpose", () => {
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
     isRiskAnalysisValid: mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
     title: mockPurposeProcessGetResponse.data.title,
-    currentVersion: mockPurposeProcessGetResponse.data.versions.at(0),
+    currentVersion: purposeVersion
+      ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+      : undefined,
     delegationId: mockPurposeProcessGetResponse.data.delegationId,
     freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
     rejectedVersion: undefined,
@@ -109,7 +112,7 @@ describe("createPurpose", () => {
       mockAppContext
     );
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurpose,
       body: {
@@ -159,7 +162,7 @@ describe("createPurpose", () => {
       mockAppContext
     );
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurpose,
       body: {

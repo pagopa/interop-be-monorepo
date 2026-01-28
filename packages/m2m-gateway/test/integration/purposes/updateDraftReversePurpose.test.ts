@@ -20,7 +20,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
 
 describe("updateDraftReversePurpose", () => {
   const mockPurpose = getMockedApiPurpose();
@@ -61,6 +61,7 @@ describe("updateDraftReversePurpose", () => {
       getMockM2MAdminAppContext()
     );
 
+    const purposeVersion = mockPurposeProcessGetResponse.data.versions.at(0);
     const expectedM2MPurpose: m2mGatewayApi.Purpose = {
       consumerId: mockPurposeProcessGetResponse.data.consumerId,
       createdAt: mockPurposeProcessGetResponse.data.createdAt,
@@ -71,7 +72,9 @@ describe("updateDraftReversePurpose", () => {
       isRiskAnalysisValid:
         mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
       title: mockPurposeProcessGetResponse.data.title,
-      currentVersion: mockPurposeProcessGetResponse.data.versions.at(0),
+      currentVersion: purposeVersion
+        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+        : undefined,
       delegationId: mockPurposeProcessGetResponse.data.delegationId,
       freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
       rejectedVersion: undefined,
@@ -81,7 +84,7 @@ describe("updateDraftReversePurpose", () => {
       waitingForApprovalVersion: undefined,
     };
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.patchUpdateReversePurpose,

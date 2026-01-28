@@ -33,13 +33,13 @@ describe("getConsumerDelegations", () => {
   const mockApiDelegations = [mockApiDelegation1, mockApiDelegation2];
 
   const mockDelegationProcessResponse: WithMaybeMetadata<delegationApi.Delegations> =
-    {
-      data: {
-        results: mockApiDelegations,
-        totalCount: mockApiDelegations.length,
-      },
-      metadata: undefined,
-    };
+  {
+    data: {
+      results: mockApiDelegations,
+      totalCount: mockApiDelegations.length,
+    },
+    metadata: undefined,
+  };
 
   const mockGetDelegations = vi
     .fn()
@@ -101,7 +101,7 @@ describe("getConsumerDelegations", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mDelegationsResponse);
+    expect(result).toStrictEqual(m2mDelegationsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.delegationProcessClient.delegation.getDelegations,

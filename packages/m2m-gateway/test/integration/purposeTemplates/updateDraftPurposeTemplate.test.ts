@@ -28,16 +28,16 @@ describe("updateDraftPurposeTemplate", () => {
     getMockWithMetadata(mockPurposeTemplate);
 
   const mockPurposeTemplateSeed: m2mGatewayApi.PurposeTemplateDraftUpdateSeed =
-    {
-      targetDescription: "updated target description",
-      targetTenantKind: tenantKind.PRIVATE,
-      purposeTitle: "updated purpose title",
-      purposeDescription: "updated purpose description",
-      purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: null,
-      purposeDailyCalls: 10,
-      handlesPersonalData: true,
-    };
+  {
+    targetDescription: "updated target description",
+    targetTenantKind: tenantKind.PRIVATE,
+    purposeTitle: "updated purpose title",
+    purposeDescription: "updated purpose description",
+    purposeIsFreeOfCharge: false,
+    purposeFreeOfChargeReason: null,
+    purposeDailyCalls: 10,
+    handlesPersonalData: true,
+  };
 
   const mockPatchUpdatePurposeTemplate = vi
     .fn()
@@ -86,7 +86,7 @@ describe("updateDraftPurposeTemplate", () => {
         mockPurposeTemplateProcessGetResponse.data.handlesPersonalData,
     };
 
-    expect(result).toEqual(expectedM2MPurposeTemplate);
+    expect(result).toStrictEqual(expectedM2MPurposeTemplate);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeTemplateProcessClient

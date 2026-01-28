@@ -113,7 +113,7 @@ describe("getVerifiedAttributes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantsResponse);
+    expect(result).toStrictEqual(m2mTenantsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: {
@@ -124,14 +124,14 @@ describe("getVerifiedAttributes", () => {
 
   it("Should apply filters (offset, limit)", async () => {
     const m2mVerifiedAttributesResponse1: m2mGatewayApi.TenantVerifiedAttributes =
-      {
-        pagination: {
-          offset: 0,
-          limit: 2,
-          totalCount: mockTenantProcessResponse.data.attributes.length,
-        },
-        results: [m2mVerifiedAttributeResponse1, m2mVerifiedAttributeResponse2],
-      };
+    {
+      pagination: {
+        offset: 0,
+        limit: 2,
+        totalCount: mockTenantProcessResponse.data.attributes.length,
+      },
+      results: [m2mVerifiedAttributeResponse1, m2mVerifiedAttributeResponse2],
+    };
 
     const result1 = await tenantService.getTenantVerifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
@@ -141,17 +141,17 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result1).toEqual(m2mVerifiedAttributesResponse1);
+    expect(result1).toStrictEqual(m2mVerifiedAttributesResponse1);
 
     const m2mVerifiedAttributesResponse2: m2mGatewayApi.TenantVerifiedAttributes =
-      {
-        pagination: {
-          offset: 2,
-          limit: 2,
-          totalCount: mockTenantProcessResponse.data.attributes.length,
-        },
-        results: [m2mVerifiedAttributeResponse3, m2mVerifiedAttributeResponse4],
-      };
+    {
+      pagination: {
+        offset: 2,
+        limit: 2,
+        totalCount: mockTenantProcessResponse.data.attributes.length,
+      },
+      results: [m2mVerifiedAttributeResponse3, m2mVerifiedAttributeResponse4],
+    };
     const result2 = await tenantService.getTenantVerifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
@@ -160,17 +160,17 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result2).toEqual(m2mVerifiedAttributesResponse2);
+    expect(result2).toStrictEqual(m2mVerifiedAttributesResponse2);
 
     const m2mVerifiedAttributesResponse3: m2mGatewayApi.TenantVerifiedAttributes =
-      {
-        pagination: {
-          offset: 4,
-          limit: 2,
-          totalCount: mockTenantProcessResponse.data.attributes.length,
-        },
-        results: [m2mVerifiedAttributeResponse5],
-      };
+    {
+      pagination: {
+        offset: 4,
+        limit: 2,
+        totalCount: mockTenantProcessResponse.data.attributes.length,
+      },
+      results: [m2mVerifiedAttributeResponse5],
+    };
     const result3 = await tenantService.getTenantVerifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
@@ -179,6 +179,6 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result3).toEqual(m2mVerifiedAttributesResponse3);
+    expect(result3).toStrictEqual(m2mVerifiedAttributesResponse3);
   });
 });

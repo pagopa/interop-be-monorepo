@@ -14,7 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { catalogApi, m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
@@ -116,3 +116,16 @@ export function testToM2MEServiceRiskAnalysisAnswers(
     ...expectedMultiAnswers,
   };
 }
+
+export const testToM2mGatewayApiPurposeVersion = (
+  version: purposeApi.PurposeVersion
+): m2mGatewayApi.PurposeVersion => ({
+  id: version.id,
+  createdAt: version.createdAt,
+  dailyCalls: version.dailyCalls,
+  state: version.state,
+  firstActivationAt: version.firstActivationAt,
+  rejectionReason: version.rejectionReason,
+  suspendedAt: version.suspendedAt,
+  updatedAt: version.updatedAt,
+});

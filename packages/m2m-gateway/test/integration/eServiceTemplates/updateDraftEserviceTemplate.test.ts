@@ -27,14 +27,14 @@ describe("updateDraftEServiceTemplate", () => {
     getMockWithMetadata(mockEServiceTemplate);
 
   const mockEServiceTemplateSeed: m2mGatewayApi.EServiceTemplateDraftUpdateSeed =
-    {
-      name: "updated name",
-      description: "updated description",
-      technology: "REST",
-      isSignalHubEnabled: true,
-      mode: "RECEIVE",
-      intendedTarget: "intendedTarget",
-    };
+  {
+    name: "updated name",
+    description: "updated description",
+    technology: "REST",
+    isSignalHubEnabled: true,
+    mode: "RECEIVE",
+    intendedTarget: "intendedTarget",
+  };
 
   const mockPatchUpdateEServiceTemplate = vi
     .fn()
@@ -74,7 +74,7 @@ describe("updateDraftEServiceTemplate", () => {
       personalData: mockEServiceTemplateProcessGetResponse.data.personalData,
     };
 
-    expect(result).toEqual(expectedM2MEServiceTemplate);
+    expect(result).toStrictEqual(expectedM2MEServiceTemplate);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

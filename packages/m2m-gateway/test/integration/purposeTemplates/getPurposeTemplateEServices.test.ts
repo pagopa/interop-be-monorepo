@@ -38,28 +38,28 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   const mockApiPurposeTemplateEServiceDescriptor1: purposeTemplateApi.EServiceDescriptorPurposeTemplate =
-    {
-      ...getMockedApiEServiceDescriptorPurposeTemplate(),
-      eserviceId: mockApiEService1.id,
-    };
+  {
+    ...getMockedApiEServiceDescriptorPurposeTemplate(),
+    eserviceId: mockApiEService1.id,
+  };
   const mockApiPurposeTemplateEServiceDescriptor2: purposeTemplateApi.EServiceDescriptorPurposeTemplate =
-    {
-      ...getMockedApiEServiceDescriptorPurposeTemplate(),
-      eserviceId: mockApiEService2.id,
-    };
+  {
+    ...getMockedApiEServiceDescriptorPurposeTemplate(),
+    eserviceId: mockApiEService2.id,
+  };
   const mockApiPurposeTemplateEServiceDescriptors = [
     mockApiPurposeTemplateEServiceDescriptor1,
     mockApiPurposeTemplateEServiceDescriptor2,
   ];
 
   const mockPurposeTemplateEServiceDescriptorsProcessResponse: WithMaybeMetadata<purposeTemplateApi.EServiceDescriptorsPurposeTemplate> =
-    {
-      data: {
-        results: mockApiPurposeTemplateEServiceDescriptors,
-        totalCount: mockApiPurposeTemplateEServiceDescriptors.length,
-      },
-      metadata: undefined,
-    };
+  {
+    data: {
+      results: mockApiPurposeTemplateEServiceDescriptors,
+      totalCount: mockApiPurposeTemplateEServiceDescriptors.length,
+    },
+    metadata: undefined,
+  };
 
   const mockGetPurposeTemplateEServices = vi
     .fn()
@@ -93,7 +93,7 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mPurposeTemplateEServicesResponse);
+    expect(result).toStrictEqual(m2mPurposeTemplateEServicesResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient
