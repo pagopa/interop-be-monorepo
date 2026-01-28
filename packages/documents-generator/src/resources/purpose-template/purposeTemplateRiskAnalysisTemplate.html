@@ -1,85 +1,85 @@
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Template Analisi del rischio</title>
-    <link
-      rel="stylesheet"
-      href="./purposeTemplateRiskAnalysisTemplate.css"
-      type="text/css"
-    />
-    {{{paged-pdf-polyfill}}}
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analisi del rischio</title>
+  <link 
+  rel="stylesheet" 
+  href="./purposeTemplateRiskAnalysisTemplate.css" 
+  type="text/css"
+   />
+  {{{paged-pdf-polyfill}}}
+</head>
 
-  <body>
-    <!--  Footer and header must be placed before other elements.
+<body>
+  <!--  Footer and header must be placed before other elements.
           See https://github.com/danfickle/openhtmltopdf/issues/661#issuecomment-787961020
     -->
-    <!-- Pié di pagina -->
-    <div class="footer">
-      <hr />
-      <div class="pagopa">
-        <div class="pagopa-data">
-          PagoPA S.p.A.<br />
-          società per azioni con socio unico<br />
-          capitale sociale di euro 1,000,000 interamente versato<br />
-          sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
-          n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
-        </div>
-        <div class="pictogram">
-          <img src="../assets/media/pictogram_pagopa.svg" />
-        </div>
+  <!-- Pié di pagina -->
+  <div class="footer">
+    <hr />
+    <div class="pagopa">
+      <div class="pagopa-data">
+        PagoPA S.p.A.<br />
+        società per azioni con socio unico<br />
+        capitale sociale di euro 1,000,000 interamente versato<br />
+        sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
+        n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
+      </div>
+      <div class="pictogram">
+        <img src="../assets/media/pictogram_pagopa.svg" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Intestazione di pagina -->
+  <div class="header">
+    <div class="logo">
+      <img src="../assets/media/logo_pagopa.png" />
+    </div>
+  </div>
+
+  <!-- Titolo del documento -->
+  <h1>Analisi del rischio</h1>
+
+  <!-- Informazioni di contesto -->
+  <div class="purpose-template-info">
+    <div class="item">
+      <div class="label">ID Finalità Agevolata</div>
+      <div class="value">{{purposeTemplateId}}</div>
+    </div>
+
+    <div class="item">
+      <div class="label">Ente erogatore</div>
+      <div class="value">
+        {{creatorName}}{{#if creatorIPACode}} (codice IPA:
+        {{creatorIPACode}}){{/if}}
       </div>
     </div>
 
-    <!-- Intestazione di pagina -->
-    <div class="header">
-      <div class="logo">
-        <img src="../assets/media/logo_pagopa.png" />
-      </div>
+    <div class="item">
+      <div class="label">Destinatari</div>
+      <div class="value">{{targetDescription}}</div>
     </div>
 
-    <!-- Titolo del documento -->
-    <h1>Template Analisi del rischio</h1>
-
-    <!-- Informazioni di contesto -->
-    <div class="purpose-template-info">
-      <div class="item">
-        <div class="label">ID Finalità Agevolata</div>
-        <div class="value">{{purposeTemplateId}}</div>
-      </div>
-
-      <div class="item">
-        <div class="label">Ente erogatore</div>
-        <div class="value">
-          {{creatorName}}{{#if creatorIPACode}} (codice IPA:
-          {{creatorIPACode}}){{/if}}
-        </div>
-      </div>
-
-      <div class="item">
-        <div class="label">Destinatari</div>
-        <div class="value">{{targetDescription}}</div>
-      </div>
-
-      <div class="item">
-        <div class="label">Tratta dati personali</div>
-        <div class="value">{{handlesPersonalData}}</div>
-      </div>
+    <div class="item">
+      <div class="label">Tratta dati personali</div>
+      <div class="value">{{handlesPersonalData}}</div>
     </div>
+  </div>
 
-    <!-- Blocco titolo gratuito -->
-    <div class="free-of-charge">
-      {{{purposeIsFreeOfCharge}}} {{{purposeFreeOfChargeReason}}}
-    </div>
+  <!-- Blocco titolo gratuito -->
+  <div class="free-of-charge">
+    {{{purposeIsFreeOfCharge}}} {{{purposeFreeOfChargeReason}}}
+  </div>
 
-    <!-- Blocco dell'analisi del rischio -->
-    <div class="purpose-template-answers">{{{answers}}}</div>
+  <!-- Blocco dell'analisi del rischio -->
+  <div class="purpose-template-answers">{{{answers}}}</div>
 
-    <div class="release-date">
-      <div class="date">{{date}}</div>
-    </div>
-  </body>
+  <div class="release-date">
+    <div class="date">{{date}}</div>
+  </div>
+</body>
 </html>
