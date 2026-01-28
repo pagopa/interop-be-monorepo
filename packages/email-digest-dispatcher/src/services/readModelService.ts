@@ -29,6 +29,10 @@ import {
   PurposeId,
   PurposeVersionState,
   purposeVersionState,
+  DelegationId,
+  DelegationKind,
+  DelegationState,
+  delegationState,
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
@@ -47,6 +51,8 @@ import {
   attributeInReadmodelAttribute,
   purposeInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 import { config } from "../config/config.js";
 
@@ -115,6 +121,25 @@ export type SentAgreement = BaseAgreement & {
 
 export type ReceivedAgreement = BaseAgreement;
 
+type BaseDelegation = {
+  delegationId: DelegationId;
+  eserviceId: EServiceId;
+  delegationName: string;
+  delegationKind: DelegationKind;
+  actionDate: string;
+  totalCount: number;
+};
+
+export type SentDelegation = BaseDelegation & {
+  state: DelegationState;
+  delegateId: TenantId;
+};
+
+export type ReceivedDelegation = BaseDelegation & {
+  state: DelegationState;
+  delegatorId: TenantId;
+};
+
 export type PopularEserviceTemplate = {
   eserviceTemplateId: string;
   eserviceTemplateVersionId: string;
@@ -171,6 +196,50 @@ type BasePurposeQueryResult = {
 type ReceivedPurposeQueryResult = BasePurposeQueryResult & {
   consumerName: string;
 };
+type DelegationQueryResult<T extends string = string> = {
+  delegationId: string;
+  eserviceId: string;
+  delegationName: string;
+  state: string;
+  kind: string;
+  actionDate: string;
+  counterpartyId: T;
+};
+
+/**
+ * Groups delegation query results by state, limits to SECTION_LIST_LIMIT per state,
+ * and maps to the output format with totalCount per state.
+ */
+function processDelegationResults<T extends string>(
+  results: Array<DelegationQueryResult<T>>,
+  sectionLimit: number
+): Array<
+  BaseDelegation & { state: DelegationState; counterpartyId: TenantId }
+> {
+  // Group by state
+  const groupedByState = new Map<string, Array<DelegationQueryResult<T>>>();
+  for (const row of results) {
+    const stateResults = groupedByState.get(row.state) ?? [];
+    groupedByState.set(row.state, [...stateResults, row]);
+  }
+
+  // Build final results with totalCount per state and limit per state
+  return Array.from(groupedByState.entries()).flatMap(
+    ([state, stateResults]) => {
+      const totalCount = stateResults.length;
+      return stateResults.slice(0, sectionLimit).map((row) => ({
+        delegationId: unsafeBrandId<DelegationId>(row.delegationId),
+        eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+        delegationName: row.delegationName,
+        state: DelegationState.parse(state),
+        delegationKind: DelegationKind.parse(row.kind),
+        actionDate: row.actionDate,
+        counterpartyId: unsafeBrandId<TenantId>(row.counterpartyId),
+        totalCount,
+      }));
+    }
+  );
+}
 
 /**
  * Generic helper to retrieve entities with request-scoped caching.
@@ -852,6 +921,178 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
+     * Returns delegations sent by the delegator tenant that changed to Active or Rejected.
+     * Uses the appropriate stamp for each state's action date:
+     * - Active → activation stamp
+     * - Rejected → rejection stamp
+     * Limited to 5 per state.
+     */
+    async getSentDelegations(delegatorId: TenantId): Promise<SentDelegation[]> {
+      logger.info(
+        `Retrieving sent delegations for delegator ${delegatorId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select({
+          delegationId: delegationInReadmodelDelegation.id,
+          eserviceId: delegationInReadmodelDelegation.eserviceId,
+          delegationName: eserviceInReadmodelCatalog.name,
+          state: delegationInReadmodelDelegation.state,
+          kind: delegationInReadmodelDelegation.kind,
+          actionDate: delegationStampInReadmodelDelegation.when,
+          counterpartyId: delegationInReadmodelDelegation.delegateId,
+        })
+        .from(delegationInReadmodelDelegation)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            delegationInReadmodelDelegation.eserviceId
+          )
+        )
+        .innerJoin(
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .where(
+          and(
+            eq(delegationInReadmodelDelegation.delegatorId, delegatorId),
+            or(
+              and(
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                ),
+                eq(delegationStampInReadmodelDelegation.kind, "activation")
+              ),
+              and(
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.rejected
+                ),
+                eq(delegationStampInReadmodelDelegation.kind, "rejection")
+              )
+            ),
+            gte(
+              delegationStampInReadmodelDelegation.when,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(asc(delegationStampInReadmodelDelegation.when));
+
+      const processedResults = processDelegationResults(
+        results,
+        SECTION_LIST_LIMIT
+      );
+
+      logger.info(
+        `Retrieved ${processedResults.length} sent delegations for delegator ${delegatorId} (up to ${SECTION_LIST_LIMIT} per state)`
+      );
+
+      return processedResults.map((r) => ({
+        delegationId: r.delegationId,
+        eserviceId: r.eserviceId,
+        delegationName: r.delegationName,
+        state: r.state,
+        delegationKind: r.delegationKind,
+        actionDate: r.actionDate,
+        totalCount: r.totalCount,
+        delegateId: r.counterpartyId,
+      }));
+    },
+
+    /**
+     * Returns delegations received by the delegate tenant that are waiting for approval or revoked.
+     * Uses the appropriate stamp for each state's action date:
+     * - WaitingForApproval → submission stamp
+     * - Revoked → revocation stamp
+     * Limited to 5 per state.
+     */
+    async getReceivedDelegations(
+      delegateId: TenantId
+    ): Promise<ReceivedDelegation[]> {
+      logger.info(
+        `Retrieving received delegations for delegate ${delegateId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select({
+          delegationId: delegationInReadmodelDelegation.id,
+          eserviceId: delegationInReadmodelDelegation.eserviceId,
+          delegationName: eserviceInReadmodelCatalog.name,
+          state: delegationInReadmodelDelegation.state,
+          kind: delegationInReadmodelDelegation.kind,
+          actionDate: delegationStampInReadmodelDelegation.when,
+          counterpartyId: delegationInReadmodelDelegation.delegatorId,
+        })
+        .from(delegationInReadmodelDelegation)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            delegationInReadmodelDelegation.eserviceId
+          )
+        )
+        .innerJoin(
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .where(
+          and(
+            eq(delegationInReadmodelDelegation.delegateId, delegateId),
+            or(
+              and(
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.waitingForApproval
+                ),
+                eq(delegationStampInReadmodelDelegation.kind, "submission")
+              ),
+              and(
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.revoked
+                ),
+                eq(delegationStampInReadmodelDelegation.kind, "revocation")
+              )
+            ),
+            gte(
+              delegationStampInReadmodelDelegation.when,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(asc(delegationStampInReadmodelDelegation.when));
+
+      const processedResults = processDelegationResults(
+        results,
+        SECTION_LIST_LIMIT
+      );
+
+      logger.info(
+        `Retrieved ${processedResults.length} received delegations for delegate ${delegateId} (up to ${SECTION_LIST_LIMIT} per state)`
+      );
+
+      return processedResults.map((r) => ({
+        delegationId: r.delegationId,
+        eserviceId: r.eserviceId,
+        delegationName: r.delegationName,
+        state: r.state,
+        delegationKind: r.delegationKind,
+        actionDate: r.actionDate,
+        totalCount: r.totalCount,
+        delegatorId: r.counterpartyId,
+      }));
+    },
+
+    /**
      * Retrieves tenant names by their IDs in batch.
      * Uses request-scoped caching to avoid duplicate lookups.
      */
@@ -1293,6 +1534,51 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       );
 
       return allResults;
+     * Retrieves the latest published descriptor ID for each e-service.
+     * Returns a map of eserviceId to descriptorId.
+     */
+    async getLatestPublishedDescriptorIds(
+      eserviceIds: EServiceId[]
+    ): Promise<Map<EServiceId, DescriptorId>> {
+      if (eserviceIds.length === 0) {
+        return new Map();
+      }
+
+      logger.info(
+        `Retrieving latest published descriptor IDs for ${eserviceIds.length} e-services`
+      );
+
+      const results = await db
+        .select({
+          eserviceId: eserviceDescriptorInReadmodelCatalog.eserviceId,
+          descriptorId: eserviceDescriptorInReadmodelCatalog.id,
+          version: eserviceDescriptorInReadmodelCatalog.version,
+        })
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .where(
+          and(
+            inArray(
+              eserviceDescriptorInReadmodelCatalog.eserviceId,
+              eserviceIds
+            ),
+            eq(eserviceDescriptorInReadmodelCatalog.state, "Published")
+          )
+        )
+        .orderBy(desc(eserviceDescriptorInReadmodelCatalog.version));
+
+      // Group by eserviceId and take the highest version (first in ordered results)
+      const descriptorMap = new Map<EServiceId, DescriptorId>();
+      for (const row of results) {
+        const eserviceId = unsafeBrandId<EServiceId>(row.eserviceId);
+        if (!descriptorMap.has(eserviceId)) {
+          descriptorMap.set(
+            eserviceId,
+            unsafeBrandId<DescriptorId>(row.descriptorId)
+          );
+        }
+      }
+
+      return descriptorMap;
     },
 
     /**

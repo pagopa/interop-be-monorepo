@@ -31,9 +31,9 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("Finalità inoltrate");
     expect(compiledHtml).toContain("Richieste di fruizione che hai ricevuto");
     expect(compiledHtml).toContain("Finalità che hai ricevuto");
-    expect(compiledHtml).toContain("Deleghe");
-    expect(compiledHtml).toContain("Inviate");
-    expect(compiledHtml).toContain("Ricevute");
+    expect(compiledHtml).toContain("Richieste di delega");
+    expect(compiledHtml).toContain("inoltrate come delegante");
+    expect(compiledHtml).toContain("ricevute come delegato");
     expect(compiledHtml).toContain("Attributi");
 
     // Assert - Verify new e-services content

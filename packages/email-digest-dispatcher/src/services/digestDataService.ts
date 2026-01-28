@@ -3,6 +3,8 @@ import {
   agreementState,
   TenantId,
   purposeVersionState,
+  delegationState,
+  TenantId,
 } from "pagopa-interop-models";
 import {
   receivedAgreementsToBaseDigest,
@@ -15,6 +17,8 @@ import {
   combineAttributeDigests,
   sentPurposesToBaseDigest,
   receivedPurposesToBaseDigest,
+  sentDelegationsToDigest,
+  receivedDelegationsToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewEservicesLink,
@@ -23,7 +27,8 @@ import {
   viewAllSentPurposesLink,
   viewAllReceivedAgreementsLink,
   viewAllReceivedPurposesLink,
-  viewAllDelegationsLink,
+  viewAllSentDelegationsLink,
+  viewAllReceivedDelegationsLink,
   viewAllAttributesLink,
   viewAllUpdatedEserviceTemplatesLink,
   viewAllPopularEserviceTemplatesLink,
@@ -43,7 +48,7 @@ export type BaseDigest = {
 
 export type DelegationDigest = BaseDigest & {
   items: Array<{
-    delegationKind: "producer" | "consumer";
+    delegationKind: "erogazione" | "fruizione";
   }>;
 };
 
@@ -69,7 +74,8 @@ export type TenantDigestData = {
   viewAllSentPurposesLink: string;
   viewAllReceivedAgreementsLink: string;
   viewAllReceivedPurposesLink: string;
-  viewAllDelegationsLink: string;
+  viewAllSentDelegationsLink: string;
+  viewAllReceivedDelegationsLink: string;
   viewAllAttributesLink: string;
   viewAllUpdatedEserviceTemplatesLink: string;
   viewAllPopularEserviceTemplatesLink: string;
@@ -147,6 +153,8 @@ export function digestDataServiceBuilder(
         receivedAgreements,
         sentPurposes,
         receivedPurposes,
+        sentDelegations,
+        receivedDelegations,
         verifiedAssignedAttributes,
         verifiedRevokedAttributes,
         certifiedAssignedAttributes,
@@ -162,6 +170,8 @@ export function digestDataServiceBuilder(
         readModelService.getReceivedAgreements(tenantId), // tenantId as producerId
         readModelService.getSentPurposes(tenantId), // tenantId as consumerId
         readModelService.getReceivedPurposes(tenantId), // tenantId as producerId
+        readModelService.getSentDelegations(tenantId), // tenantId as delegatorId
+        readModelService.getReceivedDelegations(tenantId), // tenantId as delegateId
         readModelService.getVerifiedAssignedAttributes(tenantId),
         readModelService.getVerifiedRevokedAttributes(tenantId),
         readModelService.getCertifiedAssignedAttributes(tenantId),
@@ -180,7 +190,8 @@ export function digestDataServiceBuilder(
         viewAllSentPurposesLink,
         viewAllReceivedAgreementsLink,
         viewAllReceivedPurposesLink,
-        viewAllDelegationsLink,
+        viewAllSentDelegationsLink,
+        viewAllReceivedDelegationsLink,
         viewAllAttributesLink,
         viewAllUpdatedEserviceTemplatesLink,
         viewAllPopularEserviceTemplatesLink,
@@ -253,6 +264,35 @@ export function digestDataServiceBuilder(
           items: [],
           totalCount: 0,
         },
+        publishedReceivedPurposes: {
+          items: [],
+          totalCount: 0,
+        },
+        waitingForApprovalReceivedPurposes: {
+          items: [],
+          totalCount: 0,
+        },
+        activeSentDelegations: await sentDelegationsToDigest(
+          sentDelegations,
+          delegationState.active,
+          readModelService
+        ),
+        rejectedSentDelegations: await sentDelegationsToDigest(
+          sentDelegations,
+          delegationState.rejected,
+          readModelService
+        ),
+        waitingForApprovalReceivedDelegations:
+          await receivedDelegationsToDigest(
+            receivedDelegations,
+            delegationState.waitingForApproval,
+            readModelService
+          ),
+        revokedReceivedDelegations: await receivedDelegationsToDigest(
+          receivedDelegations,
+          delegationState.revoked,
+          readModelService
+        ),
         receivedAttributes: combineAttributeDigests(
           await verifiedAttributeToDigest(
             verifiedAssignedAttributes,
