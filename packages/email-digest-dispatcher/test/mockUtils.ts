@@ -1,6 +1,9 @@
 import { generateId } from "pagopa-interop-models";
 import { TenantDigestData } from "../src/services/digestDataService.js";
 
+/**
+ * Returns mock digest data with all sections populated (full data)
+ */
 export function getMockTenantDigestData(): TenantDigestData {
   return {
     tenantId: generateId(),
@@ -217,6 +220,97 @@ export function getMockTenantDigestData(): TenantDigestData {
       ],
       totalCount: 1,
     },
+    receivedAttributes: {
+      items: [
+        {
+          name: "Attributo Certificato Nuovo",
+          producerName: "Ente Certificatore",
+          link: "https://example.com/attribute/1",
+          attributeKind: "certified",
+        },
+      ],
+      totalCount: 1,
+    },
+    revokedAttributes: {
+      items: [
+        {
+          name: "Attributo Revocato",
+          producerName: "Ente Revocatore",
+          link: "https://example.com/attribute/2",
+          attributeKind: "verified",
+        },
+      ],
+      totalCount: 1,
+    },
+  };
+}
+
+/**
+ * Returns mock digest data with only E-services and Attributes sections populated
+ * Used to verify that only populated section groups are rendered
+ */
+export function getMockPartialDigestData(): TenantDigestData {
+  return {
+    tenantId: generateId(),
+    tenantName: "Mock Tenant Organization",
+    timePeriod: "1-15 Dicembre 2025",
+    viewAllNewEservicesLink: "https://example.com/eservices/new",
+    viewAllUpdatedEservicesLink: "https://example.com/eservices/updated",
+    viewAllSentAgreementsLink: "https://example.com/agreements/sent",
+    viewAllSentPurposesLink: "https://example.com/purposes/sent",
+    viewAllReceivedAgreementsLink: "https://example.com/agreements/received",
+    viewAllReceivedPurposesLink: "https://example.com/purposes/received",
+    viewAllDelegationsLink: "https://example.com/delegations/sent",
+    viewAllAttributesLink: "https://example.com/attributes",
+    viewAllUpdatedEserviceTemplatesLink:
+      "https://example.com/eservice-templates/updated",
+    viewAllPopularEserviceTemplatesLink:
+      "https://example.com/eservice-templates/popular",
+    // E-services section - populated
+    newEservices: {
+      items: [
+        {
+          name: "Servizio Anagrafica Nazionale",
+          producerName: "Ministero dell'Interno",
+          link: "https://example.com/eservice/1",
+        },
+        {
+          name: "API Fatturazione Elettronica",
+          producerName: "Agenzia delle Entrate",
+          link: "https://example.com/eservice/2",
+        },
+      ],
+      totalCount: 5,
+    },
+    updatedEservices: {
+      items: [
+        {
+          name: "Servizio SPID",
+          producerName: "AgID",
+          link: "https://example.com/eservice/3",
+        },
+      ],
+      totalCount: 3,
+    },
+    updatedEserviceTemplates: { items: [], totalCount: 0 },
+    popularEserviceTemplates: { items: [], totalCount: 0 },
+    // Sent Items section - empty
+    acceptedSentAgreements: { items: [], totalCount: 0 },
+    rejectedSentAgreements: { items: [], totalCount: 0 },
+    suspendedSentAgreements: { items: [], totalCount: 0 },
+    publishedSentPurposes: { items: [], totalCount: 0 },
+    rejectedSentPurposes: { items: [], totalCount: 0 },
+    suspendedSentPurposes: { items: [], totalCount: 0 },
+    // Received Items section - empty
+    waitingForApprovalReceivedAgreements: { items: [], totalCount: 0 },
+    publishedReceivedPurposes: { items: [], totalCount: 0 },
+    waitingForApprovalReceivedPurposes: { items: [], totalCount: 0 },
+    // Delegations section - empty
+    activeSentDelegations: { items: [], totalCount: 0 },
+    rejectedSentDelegations: { items: [], totalCount: 0 },
+    waitingForApprovalReceivedDelegations: { items: [], totalCount: 0 },
+    revokedReceivedDelegations: { items: [], totalCount: 0 },
+    // Attributes section - populated
     receivedAttributes: {
       items: [
         {
