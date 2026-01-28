@@ -60,7 +60,7 @@ export async function handleClientKeyAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Client ${client.id}, key ${kid}, no emails to dispatch.`
+      `No users with email notifications enabled for handleClientKeyAdded - entityId: ${client.id}, eventType: ${notificationType}`
     );
     return [];
   }
