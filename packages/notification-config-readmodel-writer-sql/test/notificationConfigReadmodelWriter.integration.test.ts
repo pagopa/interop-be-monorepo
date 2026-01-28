@@ -429,7 +429,6 @@ describe("database test", async () => {
 
     describe("UserNotificationConfigCreated merge scenarios", () => {
       it("should merge roles when creating config with different ID but same userId+tenantId - keeps OLD id", async () => {
-        // Create an existing config with ID = A
         const existingConfig: UserNotificationConfig = {
           ...getMockUserNotificationConfig(),
           userRoles: [userRole.API_ROLE],
@@ -439,10 +438,9 @@ describe("database test", async () => {
           1
         );
 
-        // Create a new config with same userId+tenantId but different ID (ID = B)
         const newConfig: UserNotificationConfig = {
           ...existingConfig,
-          id: generateId(), // Different ID
+          id: generateId(),
           userRoles: [userRole.SECURITY_ROLE],
           createdAt: new Date(),
         };
@@ -473,16 +471,12 @@ describe("database test", async () => {
             existingConfig.tenantId
           );
 
-        // Should keep the OLD ID (existingConfig.id)
         expect(retrievedConfig?.data.id).toBe(existingConfig.id);
-        // Should have merged roles
         expect(retrievedConfig?.data.userRoles).toEqual(
           expect.arrayContaining([userRole.API_ROLE, userRole.SECURITY_ROLE])
         );
         expect(retrievedConfig?.data.userRoles).toHaveLength(2);
-        // metadataVersion should remain unchanged
         expect(retrievedConfig?.metadata.version).toBe(1);
-        // updatedAt should be updated to the new event's createdAt
         expect(retrievedConfig?.data.updatedAt).toEqual(newConfig.createdAt);
       });
 
@@ -493,7 +487,6 @@ describe("database test", async () => {
           1
         );
 
-        // Try to create with the SAME ID
         const payload: UserNotificationConfigCreatedV2 = {
           userNotificationConfig: toUserNotificationConfigV2(existingConfig),
         };
@@ -520,7 +513,6 @@ describe("database test", async () => {
       });
 
       it("should delete record with old ID, and delete for new ID should be no-op", async () => {
-        // Create an existing config with ID = A
         const existingConfig: UserNotificationConfig = {
           ...getMockUserNotificationConfig(),
           userRoles: [userRole.API_ROLE],
@@ -530,7 +522,6 @@ describe("database test", async () => {
           1
         );
 
-        // Simulate a Created event with different ID (ID = B) - triggers merge
         const newId = generateId<typeof existingConfig.id>();
         const newConfig: UserNotificationConfig = {
           ...existingConfig,
@@ -559,7 +550,6 @@ describe("database test", async () => {
           genericLogger
         );
 
-        // Verify record exists with old ID
         let retrievedConfig =
           await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
             existingConfig.userId,
@@ -567,7 +557,6 @@ describe("database test", async () => {
           );
         expect(retrievedConfig?.data.id).toBe(existingConfig.id);
 
-        // Delete for NEW ID should be a no-op (nothing to delete)
         const deleteNewPayload: UserNotificationConfigDeletedV2 = {
           userNotificationConfig: toUserNotificationConfigV2(newConfig),
         };
@@ -588,7 +577,6 @@ describe("database test", async () => {
           genericLogger
         );
 
-        // Record should still exist (delete for new ID was no-op)
         retrievedConfig =
           await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
             existingConfig.userId,
@@ -596,7 +584,6 @@ describe("database test", async () => {
           );
         expect(retrievedConfig?.data.id).toBe(existingConfig.id);
 
-        // Delete for OLD ID should work
         const deleteOldPayload: UserNotificationConfigDeletedV2 = {
           userNotificationConfig: toUserNotificationConfigV2(existingConfig),
         };
@@ -617,7 +604,6 @@ describe("database test", async () => {
           genericLogger
         );
 
-        // Record should be deleted
         retrievedConfig =
           await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
             existingConfig.userId,
