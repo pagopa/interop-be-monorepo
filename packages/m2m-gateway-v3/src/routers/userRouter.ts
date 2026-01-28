@@ -8,11 +8,14 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { UserId, emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import { UserId, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { UserService } from "../services/userService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { getUserErrorMapper, getSelfcareErrorMapper } from "../utils/errorMappers.js";
+import {
+  getUserErrorMapper,
+  getSelfcareErrorMapper,
+} from "../utils/errorMappers.js";
 
 const userRouter = (
   ctx: ZodiosContext,
