@@ -31,6 +31,7 @@ import {
   viewAllAttributesLink,
   viewAllUpdatedEserviceTemplatesLink,
   viewAllPopularEserviceTemplatesLink,
+  notificationSettingsLink,
 } from "./deeplinkBuilder.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
@@ -67,6 +68,7 @@ export type TenantDigestData = {
   tenantId: TenantId;
   tenantName: string;
   timePeriod: string;
+  notificationSettingsLink: string;
   viewAllNewEservicesLink: string;
   viewAllUpdatedEservicesLink: string;
   viewAllSentAgreementsLink: string;
@@ -183,6 +185,7 @@ export function digestDataServiceBuilder(
         tenantId,
         tenantName: tenantName ?? "Tenant Name Placeholder",
         timePeriod: "Time Period Placeholder",
+        notificationSettingsLink,
         viewAllNewEservicesLink,
         viewAllUpdatedEservicesLink,
         viewAllSentAgreementsLink,

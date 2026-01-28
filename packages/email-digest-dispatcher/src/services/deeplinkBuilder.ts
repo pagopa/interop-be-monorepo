@@ -74,3 +74,4 @@ export const viewAllReceivedDelegationsLink = `${bffUrl}/emailDeepLink/delegatio
 export const viewAllAttributesLink = `${bffUrl}/emailDeepLink/attribute`;
 export const viewAllUpdatedEserviceTemplatesLink = `${bffUrl}/emailDeepLink/eserviceTemplateToCreator`;
 export const viewAllPopularEserviceTemplatesLink = `${bffUrl}/emailDeepLink/eserviceTemplateToInstantiator`;
+export const notificationSettingsLink = `${bffUrl}/emailDeepLink/notificationSettings`;
