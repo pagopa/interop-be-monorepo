@@ -286,7 +286,7 @@ function getAnswerAnnotation(
   const docs = annotation.docs
     .map(
       (doc) =>
-        `<div class="doc"><i>Documento allegato: ${doc.prettyName} (documentId: ${doc.id}, checksum: ${doc.checksum})</i></div>`
+        `<div class="doc"><i>Documento allegato: ${doc.prettyName} (id: ${doc.id}, checksum: ${doc.checksum})</i></div>`
     )
     .join("");
 
