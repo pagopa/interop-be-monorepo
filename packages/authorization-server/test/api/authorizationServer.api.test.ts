@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
@@ -98,7 +99,8 @@ describe("POST /authorization-server/token.oauth2", () => {
       .set("Content-Type", "application/x-www-form-urlencoded")
       .send(body);
 
-  const mockDPoPJWT = "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IlJTMjU2IiwiandrIjp7Imt0eSI6IlJTQSIsIm4iOiI..."
+  const mockDPoPJWT =
+    "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IlJTMjU2IiwiandrIjp7Imt0eSI6IlJTQSIsIm4iOiI";
 
   const makeDPoPRequest = (
     body: authorizationServerApi.AccessTokenRequest = validRequestBody,
@@ -108,7 +110,7 @@ describe("POST /authorization-server/token.oauth2", () => {
       .post("/authorization-server/token.oauth2")
       .set("Content-Type", "application/x-www-form-urlencoded")
       .set("DPoP", dpopToken)
-      .send(new URLSearchParams(body as any).toString());
+      .send(new URLSearchParams(body).toString());
 
   beforeEach(() => {
     vi.restoreAllMocks();

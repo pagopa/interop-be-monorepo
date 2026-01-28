@@ -58,11 +58,14 @@ import {
   expiredDPoPProof,
   invalidDPoPSignature,
 } from "pagopa-interop-dpop-validation";
+import { PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall } from "@aws-sdk/util-dynamodb";
 import { config } from "../../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
+  dpopProofJtiAlreadyUsed,
   dpopProofSignatureValidationFailed,
   dpopProofValidationFailed,
   fallbackAuditFailed,
@@ -781,6 +784,68 @@ describe("authorization server tests", () => {
         invalidDPoPSignature().detail
       )
     );
+  });
+
+  it("should throw dpopProofJtiAlreadyUsed when the JTI is already in cache", async () => {
+    const clientId = generateId<ClientId>();
+
+    // 1. Setup Client Assertion
+    const {
+      jws: clientAssertionJws,
+      clientAssertion,
+      publicKeyEncodedPem,
+    } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+    });
+
+    // 2. Setup DPoP Proof
+    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
+    const jti = dpopProofJWT.payload.jti;
+
+    // 3. TokenGenerationStates Api Client entry
+    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid: clientAssertion.header.kid!,
+    });
+    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
+      ...getMockTokenGenStatesApiClient(tokenClientKidK),
+      clientKind: clientKindTokenGenStates.api,
+      publicKey: publicKeyEncodedPem,
+    };
+    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
+
+    // Simulate that the JTI is already in the DPoP cache
+    await dynamoDBClient.send(
+      new PutItemCommand({
+        TableName: config.dpopCacheTable,
+        Item: marshall({
+          jti,
+          iat: dpopProofJWT.payload.iat,
+          ttl: Math.floor(Date.now() / 1000) + 600,
+        }),
+      })
+    );
+
+    const mockRequest = await getMockTokenRequest();
+    const request = {
+      headers: { ...mockRequest.headers, DPoP: dpopProofJWS },
+      body: {
+        ...mockRequest.body,
+        client_assertion: clientAssertionJws,
+        client_id: clientId,
+      },
+    };
+
+    await expect(
+      tokenService.generateToken(
+        request.headers,
+        request.body,
+        getMockContext({}),
+        () => {},
+        () => {},
+        () => {}
+      )
+    ).rejects.toThrowError(dpopProofJtiAlreadyUsed(jti));
   });
 
   it("should succeed - consumer key - kafka audit failed and fallback audit succeeded", async () => {
