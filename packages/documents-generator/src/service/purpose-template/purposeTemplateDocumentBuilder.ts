@@ -1,3 +1,4 @@
+import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import path from "path";
 import Handlebars from "handlebars";
@@ -120,16 +121,11 @@ export const riskAnalysisTemplateDocumentBuilder = (
       const documentName =
         createRiskAnalysisTemplateDocumentName(messageTimestamp);
 
-      const documentPath = await fileManager.resumeOrStoreBytes(
-        {
-          bucket: config.s3Bucket,
-          path: config.riskAnalysisTemplateDocumentsPath,
-          resourceId: documentId,
-          name: documentName,
-          content: pdfBuffer,
-        },
-        logger
-      );
+      // Save locally instead of S3
+      const localOutputPath = path.resolve(dirname, "../..", documentName);
+      await fs.writeFile(localOutputPath, pdfBuffer);
+      logger.info(`PDF saved locally at: ${localOutputPath}`);
+      const documentPath = localOutputPath;
 
       return {
         id: documentId,
