@@ -143,8 +143,6 @@ export function notificationConfigReadModelWriteServiceBuilder(
             id: userNotificationConfigInReadmodelNotificationConfig.id,
             userRoles:
               userNotificationConfigInReadmodelNotificationConfig.userRoles,
-            metadataVersion:
-              userNotificationConfigInReadmodelNotificationConfig.metadataVersion,
           })
           .from(userNotificationConfigInReadmodelNotificationConfig)
           .where(
