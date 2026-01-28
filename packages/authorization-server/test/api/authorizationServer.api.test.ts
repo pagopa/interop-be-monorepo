@@ -98,6 +98,18 @@ describe("POST /authorization-server/token.oauth2", () => {
       .set("Content-Type", "application/x-www-form-urlencoded")
       .send(body);
 
+  const mockDPoPJWT = "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IlJTMjU2IiwiandrIjp7Imt0eSI6IlJTQSIsIm4iOiI..."
+
+  const makeDPoPRequest = (
+    body: authorizationServerApi.AccessTokenRequest = validRequestBody,
+    dpopToken: string = mockDPoPJWT
+  ) =>
+    request(api)
+      .post("/authorization-server/token.oauth2")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .set("DPoP", dpopToken)
+      .send(new URLSearchParams(body as any).toString());
+
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -143,7 +155,7 @@ describe("POST /authorization-server/token.oauth2", () => {
         isDPoP: true,
       } satisfies GeneratedTokenData);
 
-      const res = await makeRequest();
+      const res = await makeDPoPRequest();
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({
@@ -154,6 +166,14 @@ describe("POST /authorization-server/token.oauth2", () => {
       expect(res.headers["x-rate-limit-limit"]).toBe("100");
       expect(res.headers["x-rate-limit-interval"]).toBe("1");
       expect(res.headers["x-rate-limit-remaining"]).toBe("10");
+      expect(tokenService.generateToken).toHaveBeenCalledWith(
+        expect.objectContaining({ DPoP: mockDPoPJWT }),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything()
+      );
     }
   );
 

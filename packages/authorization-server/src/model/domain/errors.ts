@@ -17,7 +17,7 @@ const errorCodes = {
   platformStateValidationFailed: "0008",
   dpopProofValidationFailed: "0009",
   dpopProofSignatureValidationFailed: "0010",
-  dpopProofJtiAlreadyUsed: "0011",
+  dpopProofJtiAlreadyUsed: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
