@@ -57,13 +57,13 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
     description: "new description",
     attributes: {
       certified: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        [{ id: getMockAttribute().id }],
       ],
       declared: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        [{ id: getMockAttribute().id }],
       ],
       verified: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        [{ id: getMockAttribute().id }],
       ],
     },
   };
@@ -133,13 +133,13 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
       agreementApprovalPolicy: "AUTOMATIC",
       attributes: {
         certified: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+          [{ id: getMockAttribute().id }],
         ],
         declared: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+          [{ id: getMockAttribute().id }],
         ],
         verified: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+          [{ id: getMockAttribute().id }],
         ],
       },
     },
@@ -147,7 +147,7 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
       attributes: {
         certified: [],
         declared: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+          [{ id: getMockAttribute().id }],
         ],
       },
     },
@@ -155,8 +155,8 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
       attributes: {
         verified: [
           [
-            { id: getMockAttribute().id, explicitAttributeVerification: false },
-            { id: getMockAttribute().id, explicitAttributeVerification: false },
+            { id: getMockAttribute().id },
+            { id: getMockAttribute().id },
           ],
         ],
       },

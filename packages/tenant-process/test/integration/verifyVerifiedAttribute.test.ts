@@ -72,7 +72,6 @@ describe("verifyVerifiedAttribute", async () => {
         [
           {
             id: unsafeBrandId(tenantAttributeSeedId),
-            explicitAttributeVerification: false,
           },
         ],
       ],
@@ -334,7 +333,6 @@ describe("verifyVerifiedAttribute", async () => {
           [
             {
               id: generateId(),
-              explicitAttributeVerification: false,
             },
           ],
         ],

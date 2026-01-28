@@ -249,11 +249,11 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       ...getMockEServiceTemplateVersion(),
       attributes: {
         certified: [
-          [{ id: certifiedAttrId1, explicitAttributeVerification: true }],
-          [{ id: certifiedAttrId2, explicitAttributeVerification: true }],
+          [{ id: certifiedAttrId1 }],
+          [{ id: certifiedAttrId2 }],
         ],
         verified: [
-          [{ id: verifiedAttrId, explicitAttributeVerification: true }],
+          [{ id: verifiedAttrId }],
         ],
         declared: [],
       },

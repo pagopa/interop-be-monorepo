@@ -1835,11 +1835,8 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
       required:
         - id
-        - explicitAttributeVerification
     AgreementApprovalPolicy:
       type: string
       description: |
@@ -2170,11 +2167,8 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
       required:
         - id
-        - explicitAttributeVerification
     Attributes:
       additionalProperties: false
       properties:

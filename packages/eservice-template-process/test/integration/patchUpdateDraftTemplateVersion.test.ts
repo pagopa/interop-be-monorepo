@@ -76,7 +76,6 @@ describe("patchUpdateDraftTemplateVersion", () => {
             [
               {
                 id: certifiedAttribute.id,
-                explicitAttributeVerification: false,
               },
             ],
           ],
@@ -84,7 +83,6 @@ describe("patchUpdateDraftTemplateVersion", () => {
             [
               {
                 id: declaredAttribute.id,
-                explicitAttributeVerification: false,
               },
             ],
           ],
@@ -92,7 +90,6 @@ describe("patchUpdateDraftTemplateVersion", () => {
             [
               {
                 id: verifiedAttribute.id,
-                explicitAttributeVerification: false,
               },
             ],
           ],
@@ -171,13 +168,13 @@ describe("patchUpdateDraftTemplateVersion", () => {
       agreementApprovalPolicy: "MANUAL",
       attributes: {
         certified: [
-          [{ id: certifiedAttribute.id, explicitAttributeVerification: false }],
+          [{ id: certifiedAttribute.id }],
         ],
         declared: [
-          [{ id: declaredAttribute.id, explicitAttributeVerification: false }],
+          [{ id: declaredAttribute.id }],
         ],
         verified: [
-          [{ id: verifiedAttribute.id, explicitAttributeVerification: false }],
+          [{ id: verifiedAttribute.id }],
         ],
       },
     },
@@ -185,14 +182,14 @@ describe("patchUpdateDraftTemplateVersion", () => {
       attributes: {
         certified: [],
         declared: [
-          [{ id: declaredAttribute.id, explicitAttributeVerification: false }],
+          [{ id: declaredAttribute.id }],
         ],
       },
     },
     {
       attributes: {
         verified: [
-          [{ id: verifiedAttribute.id, explicitAttributeVerification: false }],
+          [{ id: verifiedAttribute.id }],
         ],
       },
     },
@@ -452,15 +449,12 @@ describe("patchUpdateDraftTemplateVersion", () => {
               [
                 {
                   id: declaredAttribute.id,
-                  explicitAttributeVerification: false,
                 },
                 {
                   id: notExistingId1,
-                  explicitAttributeVerification: false,
                 },
                 {
                   id: notExistingId2,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],

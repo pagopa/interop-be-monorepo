@@ -53,13 +53,13 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
       description: "new description",
       attributes: {
         certified: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+          [{ id: getMockAttribute().id }],
         ],
         declared: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+          [{ id: getMockAttribute().id }],
         ],
         verified: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+          [{ id: getMockAttribute().id }],
         ],
       },
     };
@@ -138,7 +138,7 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
       attributes: {
         certified: [],
         declared: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+          [{ id: getMockAttribute().id }],
         ],
       },
     },
@@ -146,8 +146,8 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
       attributes: {
         verified: [
           [
-            { id: getMockAttribute().id, explicitAttributeVerification: false },
-            { id: getMockAttribute().id, explicitAttributeVerification: false },
+            { id: getMockAttribute().id },
+            { id: getMockAttribute().id },
           ],
         ],
       },

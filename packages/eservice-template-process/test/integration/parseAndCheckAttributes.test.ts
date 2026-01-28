@@ -39,24 +39,24 @@ describe("parseAndCheckAttributes", () => {
   it("should parse and check attributes correctly", async () => {
     const seed: catalogApi.AttributesSeed = {
       certified: [
-        [{ id: certified1.id, explicitAttributeVerification: false }],
+        [{ id: certified1.id }],
         [
-          { id: certified2.id, explicitAttributeVerification: false },
-          { id: certified3.id, explicitAttributeVerification: false },
+          { id: certified2.id },
+          { id: certified3.id },
         ],
       ],
       declared: [
-        [{ id: declared1.id, explicitAttributeVerification: false }],
+        [{ id: declared1.id }],
         [
-          { id: declared2.id, explicitAttributeVerification: false },
-          { id: declared3.id, explicitAttributeVerification: false },
+          { id: declared2.id },
+          { id: declared3.id },
         ],
       ],
       verified: [
-        [{ id: verified1.id, explicitAttributeVerification: false }],
+        [{ id: verified1.id }],
         [
-          { id: verified2.id, explicitAttributeVerification: false },
-          { id: verified3.id, explicitAttributeVerification: false },
+          { id: verified2.id },
+          { id: verified3.id },
         ],
       ],
     };
@@ -69,27 +69,27 @@ describe("parseAndCheckAttributes", () => {
   it.each([
     {
       certified: [
-        [{ id: nonExistingAttributeId, explicitAttributeVerification: false }],
+        [{ id: nonExistingAttributeId }],
       ],
-      declared: [[{ id: declared1.id, explicitAttributeVerification: false }]],
-      verified: [[{ id: verified1.id, explicitAttributeVerification: false }]],
+      declared: [[{ id: declared1.id }]],
+      verified: [[{ id: verified1.id }]],
     },
     {
       certified: [
-        [{ id: certified1.id, explicitAttributeVerification: false }],
+        [{ id: certified1.id }],
       ],
       declared: [
-        [{ id: nonExistingAttributeId, explicitAttributeVerification: false }],
+        [{ id: nonExistingAttributeId }],
       ],
-      verified: [[{ id: verified1.id, explicitAttributeVerification: false }]],
+      verified: [[{ id: verified1.id }]],
     },
     {
       certified: [
-        [{ id: certified1.id, explicitAttributeVerification: false }],
+        [{ id: certified1.id }],
       ],
-      declared: [[{ id: declared1.id, explicitAttributeVerification: false }]],
+      declared: [[{ id: declared1.id }]],
       verified: [
-        [{ id: nonExistingAttributeId, explicitAttributeVerification: false }],
+        [{ id: nonExistingAttributeId }],
       ],
     },
   ])(
@@ -106,14 +106,14 @@ describe("parseAndCheckAttributes", () => {
       parseAndCheckAttributes(
         {
           certified: [
-            [{ id: verified1.id, explicitAttributeVerification: false }],
+            [{ id: verified1.id }],
             //     ^ Passing a verified attribute as certified
           ],
           declared: [
-            [{ id: declared1.id, explicitAttributeVerification: false }],
+            [{ id: declared1.id }],
           ],
           verified: [
-            [{ id: verified1.id, explicitAttributeVerification: false }],
+            [{ id: verified1.id }],
           ],
         },
         readModelService
@@ -124,15 +124,15 @@ describe("parseAndCheckAttributes", () => {
       parseAndCheckAttributes(
         {
           certified: [
-            [{ id: certified1.id, explicitAttributeVerification: false }],
+            [{ id: certified1.id }],
           ],
           declared: [
-            [{ id: declared1.id, explicitAttributeVerification: false }],
-            [{ id: certified1.id, explicitAttributeVerification: false }],
+            [{ id: declared1.id }],
+            [{ id: certified1.id }],
             //     ^ Passing a certified attribute as declared
           ],
           verified: [
-            [{ id: verified1.id, explicitAttributeVerification: false }],
+            [{ id: verified1.id }],
           ],
         },
         readModelService
@@ -143,17 +143,17 @@ describe("parseAndCheckAttributes", () => {
       parseAndCheckAttributes(
         {
           certified: [
-            [{ id: certified1.id, explicitAttributeVerification: false }],
+            [{ id: certified1.id }],
           ],
           declared: [
-            [{ id: declared1.id, explicitAttributeVerification: false }],
-            [{ id: declared2.id, explicitAttributeVerification: false }],
+            [{ id: declared1.id }],
+            [{ id: declared2.id }],
           ],
           verified: [
-            [{ id: verified1.id, explicitAttributeVerification: false }],
+            [{ id: verified1.id }],
             [
-              { id: verified2.id, explicitAttributeVerification: false },
-              { id: declared3.id, explicitAttributeVerification: false },
+              { id: verified2.id },
+              { id: declared3.id },
               //    ^ Passing a declared attribute as verified
             ],
           ],
@@ -169,15 +169,15 @@ describe("parseAndCheckAttributes", () => {
         {
           certified: [
             [
-              { id: certified1.id, explicitAttributeVerification: false },
-              { id: certified1.id, explicitAttributeVerification: false },
+              { id: certified1.id },
+              { id: certified1.id },
             ],
           ],
           declared: [
-            [{ id: declared1.id, explicitAttributeVerification: false }],
+            [{ id: declared1.id }],
           ],
           verified: [
-            [{ id: verified1.id, explicitAttributeVerification: false }],
+            [{ id: verified1.id }],
           ],
         },
         readModelService
@@ -188,17 +188,17 @@ describe("parseAndCheckAttributes", () => {
       parseAndCheckAttributes(
         {
           certified: [
-            [{ id: certified1.id, explicitAttributeVerification: false }],
+            [{ id: certified1.id }],
           ],
           declared: [
             [
-              { id: declared2.id, explicitAttributeVerification: false },
-              { id: declared2.id, explicitAttributeVerification: false },
+              { id: declared2.id },
+              { id: declared2.id },
             ],
           ],
           verified: [
-            [{ id: verified1.id, explicitAttributeVerification: false }],
-            [{ id: verified2.id, explicitAttributeVerification: false }],
+            [{ id: verified1.id }],
+            [{ id: verified2.id }],
           ],
         },
         readModelService
@@ -210,24 +210,24 @@ describe("parseAndCheckAttributes", () => {
         {
           certified: [
             [
-              { id: certified1.id, explicitAttributeVerification: false },
-              { id: certified2.id, explicitAttributeVerification: false },
+              { id: certified1.id },
+              { id: certified2.id },
             ],
           ],
           declared: [
             [
-              { id: declared2.id, explicitAttributeVerification: false },
-              { id: declared3.id, explicitAttributeVerification: false },
+              { id: declared2.id },
+              { id: declared3.id },
             ],
           ],
           verified: [
             [
-              { id: verified1.id, explicitAttributeVerification: false },
-              { id: verified2.id, explicitAttributeVerification: false },
+              { id: verified1.id },
+              { id: verified2.id },
             ],
             [
-              { id: verified3.id, explicitAttributeVerification: false },
-              { id: verified3.id, explicitAttributeVerification: false },
+              { id: verified3.id },
+              { id: verified3.id },
             ],
           ],
         },

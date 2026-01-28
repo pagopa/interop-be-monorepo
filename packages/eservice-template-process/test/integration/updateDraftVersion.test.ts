@@ -66,7 +66,7 @@ describe("update draft version", () => {
         attributes: {
           certified: [],
           declared: [
-            [{ id: attribute.id, explicitAttributeVerification: false }],
+            [{ id: attribute.id }],
           ],
           verified: [],
         },
@@ -81,7 +81,7 @@ describe("update draft version", () => {
           attributes: {
             certified: [],
             declared: [
-              [{ id: attribute.id, explicitAttributeVerification: false }],
+              [{ id: attribute.id }],
             ],
             verified: [],
           },
@@ -319,14 +319,12 @@ describe("update draft version", () => {
         certified: [],
         declared: [
           [
-            { id: attribute.id, explicitAttributeVerification: false },
+            { id: attribute.id },
             {
               id: notExistingId1,
-              explicitAttributeVerification: false,
             },
             {
               id: notExistingId2,
-              explicitAttributeVerification: false,
             },
           ],
         ],

@@ -55,7 +55,7 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     attributes: {
       certified: [],
       declared: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        [{ id: getMockAttribute().id }],
       ],
       verified: [],
     },

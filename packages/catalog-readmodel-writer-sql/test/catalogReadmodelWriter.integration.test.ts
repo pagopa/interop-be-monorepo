@@ -194,7 +194,6 @@ describe("database test", async () => {
           [
             {
               id: generateId<AttributeId>(),
-              explicitAttributeVerification: false,
             },
           ],
         ],

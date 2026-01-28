@@ -81,7 +81,7 @@ export const toEServiceAttributeV2 = (
 ): EServiceAttributeV2 => ({
   values: input.map((i) => ({
     id: i.id,
-    explicitAttributeVerification: i.explicitAttributeVerification,
+    explicitAttributeVerification: false,
   })),
 });
 

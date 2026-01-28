@@ -36,11 +36,9 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
     [
       {
         id: mockCertifiedAttribute1.id,
-        explicitAttributeVerification: false,
       },
       {
         id: mockCertifiedAttribute2.id,
-        explicitAttributeVerification: false,
       },
     ],
   ];
@@ -52,13 +50,11 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
     [
       {
         id: mockVerifiedAttribute1.id,
-        explicitAttributeVerification: false,
       },
     ],
     [
       {
         id: mockVerifiedAttribute2.id,
-        explicitAttributeVerification: false,
       },
     ],
   ];
@@ -79,7 +75,6 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
         ...validMockDescriptorCertifiedAttributes[0],
         {
           id: generateId(),
-          explicitAttributeVerification: false,
         },
       ],
     ],
@@ -88,7 +83,6 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
         ...validMockDescriptorVerifiedAttributes[0],
         {
           id: generateId(),
-          explicitAttributeVerification: false,
         },
       ],
       validMockDescriptorVerifiedAttributes[1],
@@ -202,7 +196,7 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
     ],
     [
       {
-        certified: [[{ id: 123, explicitAttributeVerification: false }]],
+        certified: [[{ id: 123 }]],
         verified: [],
         declared: [],
       },

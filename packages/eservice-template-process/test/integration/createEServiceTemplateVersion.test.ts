@@ -76,7 +76,7 @@ describe("createEServiceTemplateVersion", async () => {
       attributes: {
         certified: [],
         declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
+          [{ id: attribute.id }],
         ],
         verified: [],
       },
@@ -133,7 +133,7 @@ describe("createEServiceTemplateVersion", async () => {
       attributes: {
         certified: [],
         declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
+          [{ id: attribute.id }],
         ],
         verified: [],
       },
@@ -241,14 +241,12 @@ describe("createEServiceTemplateVersion", async () => {
         certified: [],
         declared: [
           [
-            { id: attribute.id, explicitAttributeVerification: false },
+            { id: attribute.id },
             {
               id: notExistingId1,
-              explicitAttributeVerification: false,
             },
             {
               id: notExistingId2,
-              explicitAttributeVerification: false,
             },
           ],
         ],

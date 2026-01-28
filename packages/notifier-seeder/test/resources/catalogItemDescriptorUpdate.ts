@@ -27,7 +27,6 @@ export const catalogItemDescriptorUpdatedNotification = {
         certified: [
           [
             {
-              explicitAttributeVerification: true,
               id: "cbddada9-ad22-42c9-bb1d-9a832e34179e",
             },
           ],
@@ -35,7 +34,6 @@ export const catalogItemDescriptorUpdatedNotification = {
         declared: [
           [
             {
-              explicitAttributeVerification: true,
               id: "cbddada9-ad22-42c9-bb1d-9a832e34179e",
             },
           ],
@@ -43,7 +41,6 @@ export const catalogItemDescriptorUpdatedNotification = {
         verified: [
           [
             {
-              explicitAttributeVerification: true,
               id: "cbddada9-ad22-42c9-bb1d-9a832e34179e",
             },
           ],
