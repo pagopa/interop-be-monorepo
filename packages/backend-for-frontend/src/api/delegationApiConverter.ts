@@ -57,7 +57,7 @@ export function toDelegationKind(
     .exhaustive();
 }
 
-export function toBffDelegationApiDelegationDoc(
+function toBffDelegationApiDelegationDoc(
   document: delegationApi.DelegationContractDocument
 ): bffApi.Document {
   return {
@@ -68,7 +68,7 @@ export function toBffDelegationApiDelegationDoc(
     createdAt: document.createdAt,
   };
 }
-export function toBffDelegationApiDelegationSignedDoc(
+function toBffDelegationApiDelegationSignedDoc(
   document: delegationApi.DelegationSignedContractDocument
 ): bffApi.SignedDocument {
   return {

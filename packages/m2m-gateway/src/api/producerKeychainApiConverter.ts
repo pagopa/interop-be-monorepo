@@ -14,7 +14,7 @@ export function toGetProducerKeychainsApiQueryParams(
   };
 }
 
-export function toM2MGatewayApiFullProducerKeychain(
+function toM2MGatewayApiFullProducerKeychain(
   producerKeychain: authorizationApi.FullProducerKeychain
 ): m2mGatewayApi.FullProducerKeychain {
   return {

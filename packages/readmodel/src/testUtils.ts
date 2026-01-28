@@ -82,6 +82,8 @@ import {
   purposeTemplateTables,
   agreementSignedContractInReadmodelAgreement,
   delegationSignedContractDocumentInReadmodelDelegation,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -831,6 +833,8 @@ export const upsertPurposeTemplate = async (
       riskAnalysisTemplateAnswersSQL,
       riskAnalysisTemplateAnswersAnnotationsSQL,
       riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+      riskAnalysisTemplateDocumentSQL,
+      riskAnalysisTemplateSignedDocumentSQL,
     } = splitPurposeTemplateIntoObjectsSQL(purposeTemplate, metadataVersion);
 
     await tx
@@ -869,6 +873,22 @@ export const upsertPurposeTemplate = async (
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
         )
         .values(annotationDocumentSQL);
+    }
+
+    if (riskAnalysisTemplateDocumentSQL) {
+      await tx
+        .insert(
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate
+        )
+        .values(riskAnalysisTemplateDocumentSQL);
+    }
+
+    if (riskAnalysisTemplateSignedDocumentSQL) {
+      await tx
+        .insert(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate
+        )
+        .values(riskAnalysisTemplateSignedDocumentSQL);
     }
 
     await updateMetadataVersionInPurposeTemplateTables(

@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const OnetrustServiceConfig = FileManagerConfig.and(LoggerConfig)
+const OnetrustServiceConfig = FileManagerConfig.and(LoggerConfig)
   .and(AWSConfig)
   .and(
     z
@@ -33,7 +33,7 @@ export const OnetrustServiceConfig = FileManagerConfig.and(LoggerConfig)
       }))
   );
 
-export type OnetrustServiceConfig = z.infer<typeof OnetrustServiceConfig>;
+type OnetrustServiceConfig = z.infer<typeof OnetrustServiceConfig>;
 
 export const config: OnetrustServiceConfig = OnetrustServiceConfig.parse(
   process.env

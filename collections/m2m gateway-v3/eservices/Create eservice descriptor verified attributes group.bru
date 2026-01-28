@@ -1,0 +1,28 @@
+meta {
+  name: Create eservice descriptor verified attributes group
+  type: http
+  seq: 40
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes/groups
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "attributeIds": [
+      "3d114930-fed0-4f47-a43b-7b2809122529"
+    ]
+  }
+}

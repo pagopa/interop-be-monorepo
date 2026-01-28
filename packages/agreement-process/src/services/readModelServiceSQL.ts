@@ -58,7 +58,7 @@ import {
   CompactOrganization,
 } from "../model/domain/models.js";
 
-export type AgreementQueryFilters = {
+type AgreementQueryFilters = {
   producerId?: TenantId | TenantId[];
   consumerId?: TenantId | TenantId[];
   eserviceId?: EServiceId | EServiceId[];
@@ -68,7 +68,7 @@ export type AgreementQueryFilters = {
   showOnlyUpgradeable?: boolean;
 };
 
-export type AgreementEServicesQueryFilters = {
+type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
   producerIds: TenantId[];

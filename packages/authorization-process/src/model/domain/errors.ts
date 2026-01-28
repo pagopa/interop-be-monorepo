@@ -12,7 +12,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   clientNotFound: "0001",
   tenantNotAllowedOnClient: "0002",
   clientUserIdNotFound: "0003",
