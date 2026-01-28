@@ -18,7 +18,10 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiAgreement,
+} from "../../mockUtils.js";
 
 describe("rejectAgreement", () => {
   const mockAgreementProcessResponse = getMockWithMetadata(
@@ -54,17 +57,8 @@ describe("rejectAgreement", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mAgreementResponse: m2mGatewayApi.Agreement = {
-      id: mockAgreementProcessResponse.data.id,
-      eserviceId: mockAgreementProcessResponse.data.eserviceId,
-      descriptorId: mockAgreementProcessResponse.data.descriptorId,
-      producerId: mockAgreementProcessResponse.data.producerId,
-      consumerId: mockAgreementProcessResponse.data.consumerId,
-      state: mockAgreementProcessResponse.data.state,
-      createdAt: mockAgreementProcessResponse.data.createdAt,
-      delegationId:
-        mockAgreementProcessResponse.data.stamps.submission?.delegationId,
-    };
+    const m2mAgreementResponse: m2mGatewayApi.Agreement =
+      testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data);
 
     const result = await agreementService.rejectAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
