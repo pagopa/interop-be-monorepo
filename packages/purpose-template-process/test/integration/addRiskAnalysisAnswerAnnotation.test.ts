@@ -204,7 +204,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           authData: getMockAuthData(mockPurposeTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
+    ).rejects.toThrow(hyperlinkDetectionError(textWithHyperlink).message);
 
     vi.useRealTimers();
   });
