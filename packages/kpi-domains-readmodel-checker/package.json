@@ -18,17 +18,17 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@types/json-diff": "1.0.3",
     "@pagopa/eslint-config": "3.0.0",
-    "eslint": "8.57.1",
+    "@types/json-diff": "1.0.3",
     "@types/node": "20.19.9",
     "@types/pg": "8.11.11",
+    "eslint": "8.57.1",
     "lodash.isequal": "4.5.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "vitest": "4.0.18"
   },
   "dependencies": {
     "@types/lodash.isequal": "4.5.8",

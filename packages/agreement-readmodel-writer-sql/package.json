@@ -19,6 +19,7 @@
   },
   "keywords": [],
   "devDependencies": {
+    "@anatine/zod-mock": "3.14.0",
     "@faker-js/faker": "8.4.1",
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",
@@ -26,18 +27,17 @@
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
-    "vitest": "1.6.1",
-    "@anatine/zod-mock": "3.14.0"
+    "vitest": "4.0.18"
   },
   "dependencies": {
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
+    "kafka-iam-auth": "workspace:*",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "kafka-iam-auth": "workspace:*",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }
