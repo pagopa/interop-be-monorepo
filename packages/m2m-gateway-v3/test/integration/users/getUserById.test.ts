@@ -94,6 +94,8 @@ describe("getUserById", () => {
   const userNotFoundRegex =
     /^User [0-9a-f-]+ not found for tenant [0-9a-f-]+$/gi;
 
+  const selfcareNotFoundRegex = /^SelfcareId in Tenant [0-9a-f-]+ not found$/gi;
+
   beforeEach(() => {
     // Clear mock counters and call information before each test
     mockGetTenant.mockClear();
@@ -226,9 +228,7 @@ describe("getUserById", () => {
       getMockWithMetadata(mockCorrectUser)
     );
     await expect(callService()).rejects.toMatchObject({
-      message: expect.stringMatching(
-        /^Tenant [0-9a-f-]+ does not have a SelfCare ID$/gi
-      ),
+      message: expect.stringMatching(selfcareNotFoundRegex),
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,

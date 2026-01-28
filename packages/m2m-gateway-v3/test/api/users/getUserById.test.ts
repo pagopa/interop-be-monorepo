@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { UserId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -66,7 +66,9 @@ describe("API GET /users/:userId", () => {
 
     mockUserService.getUserById = vi
       .fn()
-      .mockRejectedValue(userNotFound(mockUserResource.id, generateId()));
+      .mockRejectedValue(
+        userNotFound(mockUserResource.id as UserId, generateId())
+      );
 
     const res = await makeRequest(mockUserResource.id, token);
     expect(res.status).toBe(404);
@@ -79,8 +81,6 @@ describe("API GET /users/:userId", () => {
     { ...mockResponse, lastName: 9 },
     { ...mockResponse, firstName: null },
     { ...mockResponse, lastName: null },
-    // { ...mockResponse, firstName: "" }, // Should we validate against empty strings?
-    // { ...mockResponse, lastName: "" },
     { ...mockResponse, firstName: undefined },
     { ...mockResponse, lastName: undefined },
     { ...mockResponse, additionalProp: "invalid" },
