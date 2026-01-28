@@ -58,10 +58,7 @@ describe("exportDtdPublicCatalog", () => {
         certified: [],
         verified: [],
         declared: [
-          [
-            { id: attribute1Mock.id },
-            { id: attribute2Mock.id },
-          ],
+          [{ id: attribute1Mock.id }, { id: attribute2Mock.id }],
           [{ id: attribute3Mock.id }],
         ],
       },
@@ -184,9 +181,7 @@ describe("exportDtdPublicCatalog", () => {
       attributes: {
         certified: [],
         verified: [],
-        declared: [
-          [{ id: attributeMock.id }],
-        ],
+        declared: [[{ id: attributeMock.id }]],
       },
     };
 
@@ -218,10 +213,7 @@ describe("exportDtdPublicCatalog", () => {
         certified: [],
         verified: [],
         declared: [
-          [
-            { id: attribute1Mock.id },
-            { id: attribute2Mock.id },
-          ],
+          [{ id: attribute1Mock.id }, { id: attribute2Mock.id }],
           [{ id: attribute3Mock.id }],
         ],
       },

@@ -74,15 +74,9 @@ describe("updateDraftDescriptor", () => {
       ...buildUpdateDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
-        certified: [
-          [{ id: certifiedAttribute.id }],
-        ],
-        declared: [
-          [{ id: declaredAttribute.id }],
-        ],
-        verified: [
-          [{ id: verifiedAttribute.id }],
-        ],
+        certified: [[{ id: certifiedAttribute.id }]],
+        declared: [[{ id: declaredAttribute.id }]],
+        verified: [[{ id: verifiedAttribute.id }]],
       },
     };
 
@@ -168,9 +162,7 @@ describe("updateDraftDescriptor", () => {
       dailyCallsTotal: 200,
       attributes: {
         certified: [],
-        declared: [
-          [{ id: declaredAttribute.id }],
-        ],
+        declared: [[{ id: declaredAttribute.id }]],
         verified: [],
       },
     };

@@ -65,9 +65,7 @@ describe("update draft version", () => {
         dailyCallsTotal: 200,
         attributes: {
           certified: [],
-          declared: [
-            [{ id: attribute.id }],
-          ],
+          declared: [[{ id: attribute.id }]],
           verified: [],
         },
       };
@@ -80,9 +78,7 @@ describe("update draft version", () => {
           dailyCallsTotal: 200,
           attributes: {
             certified: [],
-            declared: [
-              [{ id: attribute.id }],
-            ],
+            declared: [[{ id: attribute.id }]],
             verified: [],
           },
         },

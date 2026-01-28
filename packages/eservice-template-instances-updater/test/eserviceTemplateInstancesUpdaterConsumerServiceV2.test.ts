@@ -248,13 +248,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const updatedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       attributes: {
-        certified: [
-          [{ id: certifiedAttrId1 }],
-          [{ id: certifiedAttrId2 }],
-        ],
-        verified: [
-          [{ id: verifiedAttrId }],
-        ],
+        certified: [[{ id: certifiedAttrId1 }], [{ id: certifiedAttrId2 }]],
+        verified: [[{ id: verifiedAttrId }]],
         declared: [],
       },
     };

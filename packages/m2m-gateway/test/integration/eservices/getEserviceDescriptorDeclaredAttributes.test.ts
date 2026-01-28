@@ -219,9 +219,7 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
     const descriptorWithMissingAttribute: catalogApi.EServiceDescriptor = {
       ...getMockedApiEserviceDescriptor(),
       attributes: {
-        declared: [
-          [{ id: MISSING_ATTRIBUTE_ID }],
-        ],
+        declared: [[{ id: MISSING_ATTRIBUTE_ID }]],
         certified: [],
         verified: [],
       },

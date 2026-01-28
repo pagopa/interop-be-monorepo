@@ -75,9 +75,7 @@ describe("createEServiceTemplateVersion", async () => {
       ...buildCreateVersionSeed(mockVersion),
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
     };
@@ -132,9 +130,7 @@ describe("createEServiceTemplateVersion", async () => {
       id: newVersionId,
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
       docs: [],

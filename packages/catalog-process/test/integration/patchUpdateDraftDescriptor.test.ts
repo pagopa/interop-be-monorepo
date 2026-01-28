@@ -78,15 +78,9 @@ describe("patchUpdateDraftDescriptor", () => {
       dailyCallsTotal: 200,
       agreementApprovalPolicy: "AUTOMATIC",
       attributes: {
-        certified: [
-          [{ id: certifiedAttribute.id }],
-        ],
-        declared: [
-          [{ id: declaredAttribute.id }],
-        ],
-        verified: [
-          [{ id: verifiedAttribute.id }],
-        ],
+        certified: [[{ id: certifiedAttribute.id }]],
+        declared: [[{ id: declaredAttribute.id }]],
+        verified: [[{ id: verifiedAttribute.id }]],
       },
     };
 
@@ -163,30 +157,20 @@ describe("patchUpdateDraftDescriptor", () => {
       dailyCallsTotal: 200,
       agreementApprovalPolicy: "MANUAL",
       attributes: {
-        certified: [
-          [{ id: certifiedAttribute.id }],
-        ],
-        declared: [
-          [{ id: declaredAttribute.id }],
-        ],
-        verified: [
-          [{ id: verifiedAttribute.id }],
-        ],
+        certified: [[{ id: certifiedAttribute.id }]],
+        declared: [[{ id: declaredAttribute.id }]],
+        verified: [[{ id: verifiedAttribute.id }]],
       },
     },
     {
       attributes: {
         certified: [],
-        declared: [
-          [{ id: declaredAttribute.id }],
-        ],
+        declared: [[{ id: declaredAttribute.id }]],
       },
     },
     {
       attributes: {
-        verified: [
-          [{ id: verifiedAttribute.id }],
-        ],
+        verified: [[{ id: verifiedAttribute.id }]],
       },
     },
   ] as catalogApi.PatchUpdateEServiceDescriptorSeed[])(
