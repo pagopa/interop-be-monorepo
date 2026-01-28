@@ -32,9 +32,7 @@ export async function getNotificationRecipients(
 ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
   if (config.notificationTypeBlocklist.includes(notificationType)) {
     logger.info(
-      `Notification type ${notificationType} is in the blocklist, skipping notification for tenants ${tenantIds.join(
-        ","
-      )}`
+      `Notification type ${notificationType} is in the blocklist - tenantIds: ${tenantIds.join(",")}`
     );
     return [];
   }

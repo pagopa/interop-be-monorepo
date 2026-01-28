@@ -33,13 +33,13 @@ export async function handlePurposeQuotaAdjustmentResponseToConsumer(
   // Only send notification if there are multiple versions (version count > 1)
   if (purpose.versions.length <= 1) {
     logger.info(
-      `Purpose ${purpose.id} has only one version, skipping purposeQuotaAdjustmentResponseToConsumer notification`
+      `Skipping in-app notification for handlePurposeQuotaAdjustmentResponseToConsumer - entityId: ${purpose.id}, eventType: ${type}, reason: single version`
     );
     return [];
   }
 
   logger.info(
-    `Sending in-app notification for handlePurposeQuotaAdjustmentResponseToConsumer ${purpose.id}`
+    `Sending in-app notification for handlePurposeQuotaAdjustmentResponseToConsumer - entityId: ${purpose.id}, eventType: ${type}`
   );
 
   const usersWithNotifications = await getNotificationRecipients(
@@ -50,7 +50,7 @@ export async function handlePurposeQuotaAdjustmentResponseToConsumer(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${type} purpose ${purpose.id}`
+      `No users with notifications enabled for handlePurposeQuotaAdjustmentResponseToConsumer - entityId: ${purpose.id}, eventType: ${type}`
     );
     return [];
   }

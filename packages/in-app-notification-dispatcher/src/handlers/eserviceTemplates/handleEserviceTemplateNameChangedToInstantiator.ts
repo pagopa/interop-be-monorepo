@@ -30,7 +30,7 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
   }
 
   logger.info(
-    `Sending in-app notification for handleEserviceTemplateNameChangedToInstantiator ${eserviceTemplateV2Msg.id}`
+    `Sending in-app notification for handleEserviceTemplateNameChangedToInstantiator - entityId: ${eserviceTemplateV2Msg.id}, eventType: EServiceTemplateNameUpdated`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
@@ -58,7 +58,7 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No user notification configs found for handleEserviceTemplateNameChangedToInstantiator ${eserviceTemplate.id}`
+      `No users with notifications enabled for handleEserviceTemplateNameChangedToInstantiator - entityId: ${eserviceTemplate.id}, eventType: EServiceTemplateNameUpdated`
     );
     return [];
   }
