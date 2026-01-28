@@ -11,6 +11,7 @@ import {
   UserNotificationConfigRoleAddedV2,
   UserNotificationConfigRoleRemovedV2,
   UserNotificationConfigUpdatedV2,
+  generateId,
   toTenantNotificationConfigV2,
   toUserNotificationConfigV2,
   toUserRoleV2,
@@ -20,6 +21,7 @@ import {
   getMockTenantNotificationConfig,
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test/index.js";
+import { genericLogger } from "pagopa-interop-commons";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   notificationConfigReadModelService,
@@ -46,7 +48,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -77,7 +79,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -119,7 +121,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -256,7 +258,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -301,7 +303,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -346,7 +348,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -382,7 +384,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -414,7 +416,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(message, notificationConfigReadModelWriteService, genericLogger);
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -423,6 +425,206 @@ describe("database test", async () => {
         );
 
       expect(retrievedConfig).toBeUndefined();
+    });
+
+    describe("UserNotificationConfigCreated merge scenarios", () => {
+      it("should merge roles when creating config with different ID but same userId+tenantId - keeps OLD id", async () => {
+        // Create an existing config with ID = A
+        const existingConfig: UserNotificationConfig = {
+          ...getMockUserNotificationConfig(),
+          userRoles: [userRole.API_ROLE],
+        };
+        await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+          existingConfig,
+          1
+        );
+
+        // Create a new config with same userId+tenantId but different ID (ID = B)
+        const newConfig: UserNotificationConfig = {
+          ...existingConfig,
+          id: generateId(), // Different ID
+          userRoles: [userRole.SECURITY_ROLE],
+          createdAt: new Date(),
+        };
+
+        const payload: UserNotificationConfigCreatedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(newConfig),
+        };
+
+        const message: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: newConfig.id,
+          version: 0,
+          type: "UserNotificationConfigCreated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(
+          message,
+          notificationConfigReadModelWriteService,
+          genericLogger
+        );
+
+        const retrievedConfig =
+          await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+            existingConfig.userId,
+            existingConfig.tenantId
+          );
+
+        // Should keep the OLD ID (existingConfig.id)
+        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
+        // Should have merged roles
+        expect(retrievedConfig?.data.userRoles).toEqual(
+          expect.arrayContaining([userRole.API_ROLE, userRole.SECURITY_ROLE])
+        );
+        expect(retrievedConfig?.data.userRoles).toHaveLength(2);
+        // metadataVersion should remain unchanged
+        expect(retrievedConfig?.metadata.version).toBe(1);
+        // updatedAt should be updated to the new event's createdAt
+        expect(retrievedConfig?.data.updatedAt).toEqual(newConfig.createdAt);
+      });
+
+      it("should throw error when Created event arrives with same ID as existing record", async () => {
+        const existingConfig = getMockUserNotificationConfig();
+        await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+          existingConfig,
+          1
+        );
+
+        // Try to create with the SAME ID
+        const payload: UserNotificationConfigCreatedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(existingConfig),
+        };
+
+        const message: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: existingConfig.id,
+          version: 0,
+          type: "UserNotificationConfigCreated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await expect(
+          handleMessageV2(
+            message,
+            notificationConfigReadModelWriteService,
+            genericLogger
+          )
+        ).rejects.toThrow(
+          `UserNotificationConfigCreated received for existing id ${existingConfig.id}`
+        );
+      });
+
+      it("should delete record with old ID, and delete for new ID should be no-op", async () => {
+        // Create an existing config with ID = A
+        const existingConfig: UserNotificationConfig = {
+          ...getMockUserNotificationConfig(),
+          userRoles: [userRole.API_ROLE],
+        };
+        await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+          existingConfig,
+          1
+        );
+
+        // Simulate a Created event with different ID (ID = B) - triggers merge
+        const newId = generateId<typeof existingConfig.id>();
+        const newConfig: UserNotificationConfig = {
+          ...existingConfig,
+          id: newId,
+          userRoles: [userRole.SECURITY_ROLE],
+          createdAt: new Date(),
+        };
+
+        const createPayload: UserNotificationConfigCreatedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(newConfig),
+        };
+
+        const createMessage: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: newConfig.id,
+          version: 0,
+          type: "UserNotificationConfigCreated",
+          event_version: 2,
+          data: createPayload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(
+          createMessage,
+          notificationConfigReadModelWriteService,
+          genericLogger
+        );
+
+        // Verify record exists with old ID
+        let retrievedConfig =
+          await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+            existingConfig.userId,
+            existingConfig.tenantId
+          );
+        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
+
+        // Delete for NEW ID should be a no-op (nothing to delete)
+        const deleteNewPayload: UserNotificationConfigDeletedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(newConfig),
+        };
+
+        const deleteNewMessage: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: newConfig.id,
+          version: 1,
+          type: "UserNotificationConfigDeleted",
+          event_version: 2,
+          data: deleteNewPayload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(
+          deleteNewMessage,
+          notificationConfigReadModelWriteService,
+          genericLogger
+        );
+
+        // Record should still exist (delete for new ID was no-op)
+        retrievedConfig =
+          await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+            existingConfig.userId,
+            existingConfig.tenantId
+          );
+        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
+
+        // Delete for OLD ID should work
+        const deleteOldPayload: UserNotificationConfigDeletedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(existingConfig),
+        };
+
+        const deleteOldMessage: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: existingConfig.id,
+          version: 2,
+          type: "UserNotificationConfigDeleted",
+          event_version: 2,
+          data: deleteOldPayload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(
+          deleteOldMessage,
+          notificationConfigReadModelWriteService,
+          genericLogger
+        );
+
+        // Record should be deleted
+        retrievedConfig =
+          await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+            existingConfig.userId,
+            existingConfig.tenantId
+          );
+        expect(retrievedConfig).toBeUndefined();
+      });
     });
   });
 });
