@@ -11,7 +11,7 @@ import {
   Tenant,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { CompactOrganization } from "../../src/model/domain/models.js";
 import {
   addOneEServiceTemplate,
   addOneTenant,
@@ -26,9 +26,7 @@ describe("getEServiceTemplateCreators", () => {
   let tenant5: Tenant;
   let tenant6: Tenant;
 
-  const toCompactOrganization = (
-    tenant: Tenant
-  ): eserviceTemplateApi.CompactOrganization => ({
+  const toCompactOrganization = (tenant: Tenant): CompactOrganization => ({
     id: tenant.id,
     name: tenant.name,
   });

@@ -5,11 +5,12 @@ import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { CompactOrganization } from "../../src/model/domain/models.js";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /creators", () => {
-  const mockEserviceTemplate: eserviceTemplateApi.CompactOrganization[] = [
-    eserviceTemplateApi.CompactOrganization.strip().parse(getMockTenant()),
+  const mockEserviceTemplate: CompactOrganization[] = [
+    CompactOrganization.parse(getMockTenant()),
   ];
 
   const mockEserviceTemplateCreatorsResult = {
@@ -50,7 +51,12 @@ describe("API GET /creators", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      const expected = mockEserviceTemplateCreatorsResult;
+      const expected = {
+        results: mockEserviceTemplate.map((creator) =>
+          eserviceTemplateApi.CompactOrganization.parse(creator)
+        ),
+        totalCount: mockEserviceTemplateCreatorsResult.totalCount,
+      };
 
       expect(res.body).toEqual(expected);
       expect(res.status).toBe(200);
