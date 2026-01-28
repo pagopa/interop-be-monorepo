@@ -122,9 +122,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       clientAssertionRequestValidationFailed(
@@ -156,9 +156,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       clientAssertionValidationFailed(clientId, issuedAtNotFound().detail)
@@ -193,9 +193,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
   });
@@ -241,9 +241,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       incompleteTokenGenerationStatesConsumerClient(
@@ -288,9 +288,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       incompleteTokenGenerationStatesConsumerClient(
@@ -345,9 +345,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       clientAssertionSignatureValidationFailed(
@@ -402,9 +402,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       platformStateValidationFailed(
@@ -456,9 +456,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       );
       expect(response.limitReached).toBe(false);
       expect(response.rateLimiterStatus.remainingRequests).toBe(
@@ -470,9 +470,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({}),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     expect(responseAfterLimitExceeded).toEqual({
@@ -540,9 +540,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       Error("JWT Signature failed. Empty signature returned")
@@ -593,9 +593,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       Error("JWT Signature failed. Empty signature returned")
@@ -654,9 +654,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(fallbackAuditFailed(clientId));
   });
@@ -687,9 +687,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       dpopProofValidationFailed(clientId, invalidDPoPTyp(wrongTyp).detail)
@@ -727,9 +727,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       dpopProofValidationFailed(
@@ -775,9 +775,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(
       dpopProofSignatureValidationFailed(
@@ -842,9 +842,9 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
-        () => { },
-        () => { },
-        () => { }
+        () => {},
+        () => {},
+        () => {}
       )
     ).rejects.toThrowError(dpopProofJtiAlreadyUsed(jti));
   });
@@ -904,9 +904,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({ correlationId }),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     const date = new Date();
@@ -1049,9 +1049,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({ correlationId }),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     expect(result.limitReached).toBe(false);
@@ -1173,9 +1173,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({ correlationId }),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     const date = new Date();
@@ -1335,9 +1335,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({ correlationId }),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     expect(result.limitReached).toBe(false);
@@ -1451,9 +1451,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({}),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     const fileListAfter = await fileManager.listFiles(
@@ -1528,9 +1528,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({}),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     const fileListAfter = await fileManager.listFiles(
@@ -1610,9 +1610,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({}),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     const fileListAfter = await fileManager.listFiles(
@@ -1688,9 +1688,9 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({}),
-      () => { },
-      () => { },
-      () => { }
+      () => {},
+      () => {},
+      () => {}
     );
 
     const fileListAfter = await fileManager.listFiles(
