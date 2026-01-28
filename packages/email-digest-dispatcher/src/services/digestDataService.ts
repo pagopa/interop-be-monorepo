@@ -1,8 +1,9 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   agreementState,
-  delegationState,
   TenantId,
+  purposeVersionState,
+  delegationState,
 } from "pagopa-interop-models";
 import {
   receivedAgreementsToBaseDigest,
@@ -13,6 +14,8 @@ import {
   verifiedAttributeToDigest,
   certifiedAttributeToDigest,
   combineAttributeDigests,
+  sentPurposesToBaseDigest,
+  receivedPurposesToBaseDigest,
   sentDelegationsToDigest,
   receivedDelegationsToDigest,
 } from "../model/digestDataConverter.js";
@@ -48,6 +51,12 @@ export type DelegationDigest = BaseDigest & {
   }>;
 };
 
+export type ReceivedPurposeDigest = BaseDigest & {
+  items: Array<{
+    consumerName: string;
+  }>;
+};
+
 export type AttributeDigest = BaseDigest & {
   items: Array<{
     attributeKind: "certified" | "verified";
@@ -78,10 +87,10 @@ export type TenantDigestData = {
   suspendedSentAgreements?: BaseDigest;
   publishedSentPurposes?: BaseDigest;
   rejectedSentPurposes?: BaseDigest;
-  suspendedSentPurposes?: BaseDigest;
+  waitingForApprovalSentPurposes?: BaseDigest;
   waitingForApprovalReceivedAgreements?: BaseDigest;
-  publishedReceivedPurposes?: BaseDigest;
-  waitingForApprovalReceivedPurposes?: BaseDigest;
+  publishedReceivedPurposes?: ReceivedPurposeDigest;
+  waitingForApprovalReceivedPurposes?: ReceivedPurposeDigest;
   activeSentDelegations?: DelegationDigest;
   rejectedSentDelegations?: DelegationDigest;
   waitingForApprovalReceivedDelegations?: DelegationDigest;
@@ -141,6 +150,8 @@ export function digestDataServiceBuilder(
         newEservices,
         sentAgreements,
         receivedAgreements,
+        sentPurposes,
+        receivedPurposes,
         sentDelegations,
         receivedDelegations,
         verifiedAssignedAttributes,
@@ -156,6 +167,8 @@ export function digestDataServiceBuilder(
         getNewEservicesDigest([]),
         readModelService.getSentAgreements(tenantId), // tenantId as consumerId
         readModelService.getReceivedAgreements(tenantId), // tenantId as producerId
+        readModelService.getSentPurposes(tenantId), // tenantId as consumerId
+        readModelService.getReceivedPurposes(tenantId), // tenantId as producerId
         readModelService.getSentDelegations(tenantId), // tenantId as delegatorId
         readModelService.getReceivedDelegations(tenantId), // tenantId as delegateId
         readModelService.getVerifiedAssignedAttributes(tenantId),
@@ -209,31 +222,31 @@ export function digestDataServiceBuilder(
           agreementState.suspended,
           readModelService
         ),
-        publishedSentPurposes: {
-          items: [],
-          totalCount: 0,
-        },
-        rejectedSentPurposes: {
-          items: [],
-          totalCount: 0,
-        },
-        suspendedSentPurposes: {
-          items: [],
-          totalCount: 0,
-        },
+        publishedSentPurposes: sentPurposesToBaseDigest(
+          sentPurposes,
+          purposeVersionState.active
+        ),
+        rejectedSentPurposes: sentPurposesToBaseDigest(
+          sentPurposes,
+          purposeVersionState.rejected
+        ),
+        waitingForApprovalSentPurposes: sentPurposesToBaseDigest(
+          sentPurposes,
+          purposeVersionState.waitingForApproval
+        ),
         waitingForApprovalReceivedAgreements:
           await receivedAgreementsToBaseDigest(
             receivedAgreements,
             readModelService
           ),
-        publishedReceivedPurposes: {
-          items: [],
-          totalCount: 0,
-        },
-        waitingForApprovalReceivedPurposes: {
-          items: [],
-          totalCount: 0,
-        },
+        publishedReceivedPurposes: receivedPurposesToBaseDigest(
+          receivedPurposes,
+          purposeVersionState.active
+        ),
+        waitingForApprovalReceivedPurposes: receivedPurposesToBaseDigest(
+          receivedPurposes,
+          purposeVersionState.waitingForApproval
+        ),
         activeSentDelegations: await sentDelegationsToDigest(
           sentDelegations,
           delegationState.active,
@@ -283,7 +296,7 @@ export function digestDataServiceBuilder(
         data.suspendedSentAgreements?.totalCount ||
         data.publishedSentPurposes?.totalCount ||
         data.rejectedSentPurposes?.totalCount ||
-        data.suspendedSentPurposes?.totalCount ||
+        data.waitingForApprovalSentPurposes?.totalCount ||
         data.waitingForApprovalReceivedAgreements?.totalCount ||
         data.publishedReceivedPurposes?.totalCount ||
         data.waitingForApprovalReceivedPurposes?.totalCount ||

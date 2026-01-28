@@ -76,10 +76,6 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("Finalità Rifiutata");
     expect(compiledHtml).toContain("Ente Rifiutante");
 
-    // Assert - Verify suspended purposes
-    expect(compiledHtml).toContain("Finalità Sospesa");
-    expect(compiledHtml).toContain("Ente Sospendente");
-
     // Assert - Verify waiting for approval received agreements
     expect(compiledHtml).toContain("Richiesta in Attesa");
     expect(compiledHtml).toContain("Ente Richiedente");

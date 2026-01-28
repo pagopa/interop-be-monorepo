@@ -8,6 +8,8 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockAttribute,
+  getMockPurpose,
+  getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -34,6 +36,9 @@ import {
   tenantAttributeType,
   TenantVerifier,
   TenantRevoker,
+  Purpose,
+  PurposeVersion,
+  PurposeVersionState,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
@@ -42,6 +47,7 @@ import {
   upsertTenant,
   upsertEServiceTemplate,
   upsertAttribute,
+  upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
 import { logger } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -968,4 +974,59 @@ export const createTenantWithMultipleAttributes = async (config: {
   await addOneTenant(tenant);
 
   return { tenant, verifiers, revokers, attributes };
+};
+
+/**
+ * Adds a purpose to the database
+ */
+export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
+  await upsertPurpose(readModelDB, purpose, 0);
+};
+
+/**
+ * Creates a mock purpose with specified versions
+ */
+export const createMockPurpose = (
+  consumerId: TenantId,
+  eserviceId: EServiceId,
+  versions: PurposeVersion[] = [],
+  overrides?: Partial<Purpose>
+): Purpose => ({
+  ...getMockPurpose(versions),
+  consumerId,
+  eserviceId,
+  title: `Test Purpose ${Math.random().toString(36).substring(7)}`,
+  ...overrides,
+});
+
+/**
+ * Creates a mock purpose version with specified state and dates
+ */
+export const createMockPurposeVersion = (
+  state: PurposeVersionState,
+  createdAt: Date,
+  updatedAt?: Date
+): PurposeVersion => ({
+  ...getMockPurposeVersion(state),
+  createdAt,
+  updatedAt,
+});
+
+/**
+ * Creates a purpose with a version in a specific state at a specific time
+ */
+export const createPurposeWithVersion = (
+  consumerId: TenantId,
+  eserviceId: EServiceId,
+  state: PurposeVersionState,
+  actionDate: Date,
+  overrides?: Partial<Purpose>
+): Purpose => {
+  const version = createMockPurposeVersion(
+    state,
+    daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE), // createdAt is older
+    actionDate // updatedAt is the action date
+  );
+
+  return createMockPurpose(consumerId, eserviceId, [version], overrides);
 };
