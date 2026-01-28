@@ -1168,8 +1168,8 @@
                                     align="left"
                                     class="mobile-padding content-wrapper"
                                   >
-                                    <!-- Deleghe -->
-                                    {{#if activeSentDelegations.totalCount}}
+                                    <!-- Richieste di delega ricevute come delegato -->
+                                    {{#if waitingForApprovalReceivedDelegations.totalCount}}
                                     <div class="section-divider">
                                       <table
                                         class="section-header-table"
@@ -1181,80 +1181,8 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-delegation }} Deleghe
-                                              Inviate
-                                            </h2>
-                                          </td>
-                                          {{#if viewAllSentDelegationsLink}}
-                                          <td valign="middle" align="right">
-                                            <a
-                                              href="{{viewAllSentDelegationsLink}}"
-                                              class="link-primary"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
-                                            >
-                                          </td>
-                                          {{/if}}
-                                        </tr>
-                                      </table>
-
-                                      <p class="body-text-no-margin">
-                                        Hai delegato i seguenti enti:
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each activeSentDelegations.items}}
-                                        <li class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary">
-                                            - delegato a {{ producerName
-                                            }}</span
-                                          >
-                                        </li>
-                                        {{/each}}
-                                      </ul>
-                                    </div>
-                                    {{/if}} {{#if
-                                    rejectedSentDelegations.totalCount}}
-                                    <div class="section-divider">
-                                      <p class="body-text-no-margin">
-                                        Le seguenti deleghe sono state
-                                        rifiutate:
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each rejectedSentDelegations.items}}
-                                        <li class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary">
-                                            - delegato a {{ producerName
-                                            }}</span
-                                          >
-                                        </li>
-                                        {{/each}}
-                                      </ul>
-                                    </div>
-                                    {{/if}} {{#if
-                                    waitingForApprovalReceivedDelegations.totalCount}}
-                                    <div class="section-divider">
-                                      <table
-                                        class="section-header-table"
-                                        width="100%"
-                                        cellpadding="0"
-                                        cellspacing="0"
-                                        border="0"
-                                      >
-                                        <tr>
-                                          <td valign="middle">
-                                            <h2 class="h2-title">
-                                              {{> icon-delegation }} Deleghe
-                                              Ricevute
+                                              {{> icon-delegation }} Richieste di
+                                              delega ricevute come delegato
                                             </h2>
                                           </td>
                                           {{#if viewAllReceivedDelegationsLink}}
@@ -1271,22 +1199,27 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
-                                        Alcuni enti ti hanno chiesto
-                                        l'approvazione per pubblicare un
-                                        e-service o una nuova versione:
+                                        Hai
+                                        <strong>{{
+                                          waitingForApprovalReceivedDelegations.totalCount
+                                        }}
+                                          richieste di delega</strong
+                                        >
+                                        in attesa di approvazione da parte tua:
                                       </p>
                                       <ul class="list-items">
                                         {{#each
                                         waitingForApprovalReceivedDelegations.items}}
                                         <li class="list-item">
+                                          Richiesta di delega in
+                                          {{ delegationKind }} dell'e-service
                                           <a
                                             href="{{ link }}"
                                             class="link-primary"
                                             >{{ name }}</a
                                           >
-                                          <span class="list-item-secondary">
-                                            - richiesto da {{ producerName
-                                            }}</span
+                                          <span class="list-item-secondary"
+                                            >da parte di {{ producerName }}</span
                                           >
                                         </li>
                                         {{/each}}
@@ -1295,20 +1228,174 @@
                                     {{/if}} {{#if
                                     revokedReceivedDelegations.totalCount}}
                                     <div class="section-divider">
+                                      {{#unless
+                                      waitingForApprovalReceivedDelegations.totalCount}}
+                                      <table
+                                        class="section-header-table"
+                                        width="100%"
+                                        cellpadding="0"
+                                        cellspacing="0"
+                                        border="0"
+                                      >
+                                        <tr>
+                                          <td valign="middle">
+                                            <h2 class="h2-title">
+                                              {{> icon-delegation }} Richieste di
+                                              delega ricevute come delegato
+                                            </h2>
+                                          </td>
+                                          {{#if viewAllReceivedDelegationsLink}}
+                                          <td valign="middle" align="right">
+                                            <a
+                                              href="{{viewAllReceivedDelegationsLink}}"
+                                              class="link-primary"
+                                              >Visualizza tutte {{>
+                                              icon-external-link }}</a
+                                            >
+                                          </td>
+                                          {{/if}}
+                                        </tr>
+                                      </table>
+                                      {{/unless}}
+
                                       <p class="body-text-no-margin">
-                                        Le seguenti deleghe sono state revocate:
+                                        Sono state revocate
+                                        <strong>{{
+                                          revokedReceivedDelegations.totalCount
+                                        }}
+                                          richieste di delega</strong
+                                        >:
                                       </p>
                                       <ul class="list-items">
                                         {{#each
                                         revokedReceivedDelegations.items}}
                                         <li class="list-item">
+                                          Richiesta di delega in
+                                          {{ delegationKind }} dell'e-service
                                           <a
                                             href="{{ link }}"
                                             class="link-primary"
                                             >{{ name }}</a
                                           >
-                                          <span class="list-item-secondary">
-                                            - da {{ producerName }}</span
+                                          <span class="list-item-secondary"
+                                            >da parte di {{ producerName }}</span
+                                          >
+                                        </li>
+                                        {{/each}}
+                                      </ul>
+                                    </div>
+                                    {{/if}}
+
+                                    <!-- Richieste di delega inoltrate come delegante -->
+                                    {{#if activeSentDelegations.totalCount}}
+                                    <div class="section-divider">
+                                      <table
+                                        class="section-header-table"
+                                        width="100%"
+                                        cellpadding="0"
+                                        cellspacing="0"
+                                        border="0"
+                                      >
+                                        <tr>
+                                          <td valign="middle">
+                                            <h2 class="h2-title">
+                                              {{> icon-delegation }} Richieste di
+                                              delega inoltrate come delegante
+                                            </h2>
+                                          </td>
+                                          {{#if viewAllSentDelegationsLink}}
+                                          <td valign="middle" align="right">
+                                            <a
+                                              href="{{viewAllSentDelegationsLink}}"
+                                              class="link-primary"
+                                              >Visualizza tutte {{>
+                                              icon-external-link }}</a
+                                            >
+                                          </td>
+                                          {{/if}}
+                                        </tr>
+                                      </table>
+
+                                      <p class="body-text-no-margin">
+                                        Sono state approvate
+                                        <strong>{{
+                                          activeSentDelegations.totalCount
+                                        }}
+                                          richieste di delega</strong
+                                        >
+                                        da te inoltrate:
+                                      </p>
+                                      <ul class="list-items">
+                                        {{#each activeSentDelegations.items}}
+                                        <li class="list-item">
+                                          Richiesta di delega in
+                                          {{ delegationKind }} dell'e-service
+                                          <a
+                                            href="{{ link }}"
+                                            class="link-primary"
+                                            >{{ name }}</a
+                                          >
+                                          <span class="list-item-secondary"
+                                            >verso {{ producerName }}</span
+                                          >
+                                        </li>
+                                        {{/each}}
+                                      </ul>
+                                    </div>
+                                    {{/if}} {{#if
+                                    rejectedSentDelegations.totalCount}}
+                                    <div class="section-divider">
+                                      {{#unless
+                                      activeSentDelegations.totalCount}}
+                                      <table
+                                        class="section-header-table"
+                                        width="100%"
+                                        cellpadding="0"
+                                        cellspacing="0"
+                                        border="0"
+                                      >
+                                        <tr>
+                                          <td valign="middle">
+                                            <h2 class="h2-title">
+                                              {{> icon-delegation }} Richieste di
+                                              delega inoltrate come delegante
+                                            </h2>
+                                          </td>
+                                          {{#if viewAllSentDelegationsLink}}
+                                          <td valign="middle" align="right">
+                                            <a
+                                              href="{{viewAllSentDelegationsLink}}"
+                                              class="link-primary"
+                                              >Visualizza tutte {{>
+                                              icon-external-link }}</a
+                                            >
+                                          </td>
+                                          {{/if}}
+                                        </tr>
+                                      </table>
+                                      {{/unless}}
+
+                                      <p class="body-text-no-margin">
+                                        Sono state rifiutate
+                                        <strong>{{
+                                          rejectedSentDelegations.totalCount
+                                        }}
+                                          richieste di delega</strong
+                                        >
+                                        da te inoltrate:
+                                      </p>
+                                      <ul class="list-items">
+                                        {{#each rejectedSentDelegations.items}}
+                                        <li class="list-item">
+                                          Richiesta di delega in
+                                          {{ delegationKind }} dell'e-service
+                                          <a
+                                            href="{{ link }}"
+                                            class="link-primary"
+                                            >{{ name }}</a
+                                          >
+                                          <span class="list-item-secondary"
+                                            >verso {{ producerName }}</span
                                           >
                                         </li>
                                         {{/each}}
