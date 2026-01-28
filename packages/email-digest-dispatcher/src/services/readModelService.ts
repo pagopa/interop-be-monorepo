@@ -1,5 +1,6 @@
 import {
   eq,
+  ne,
   desc,
   asc,
   and,
@@ -11,6 +12,7 @@ import {
   countDistinct,
   inArray,
   gt,
+  sql,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Logger, withTotalCount } from "pagopa-interop-commons";
@@ -24,6 +26,9 @@ import {
   AgreementId,
   AgreementState,
   agreementState,
+  PurposeId,
+  PurposeVersionState,
+  purposeVersionState,
   DelegationId,
   DelegationKind,
   DelegationState,
@@ -44,6 +49,8 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
   attributeInReadmodelAttribute,
+  purposeInReadmodelPurpose,
+  purposeVersionInReadmodelPurpose,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
@@ -142,6 +149,54 @@ export type PopularEserviceTemplate = {
   totalCount: number;
 };
 
+// Base type for purpose data shared between sent and received purposes
+type BasePurpose = {
+  purposeId: PurposeId;
+  purposeTitle: string;
+  consumerId: TenantId;
+  actionDate: string;
+  totalCount: number;
+};
+
+// Sent purposes: Active, Rejected, WaitingForApproval states
+export type SentPurposeState =
+  | typeof purposeVersionState.active
+  | typeof purposeVersionState.rejected
+  | typeof purposeVersionState.waitingForApproval;
+
+export type SentPurpose = BasePurpose & {
+  state: SentPurposeState;
+};
+
+// Received purposes: Active, WaitingForApproval states, includes consumerName
+export type ReceivedPurposeState =
+  | typeof purposeVersionState.active
+  | typeof purposeVersionState.waitingForApproval;
+
+export type ReceivedPurpose = BasePurpose & {
+  state: ReceivedPurposeState;
+  consumerName: string;
+};
+
+/**
+ * Raw purpose query result base type
+ */
+type BasePurposeQueryResult = {
+  purposeId: string;
+  purposeTitle: string;
+  consumerId: string;
+  state: string;
+  updatedAt: string | null;
+  createdAt: string;
+};
+
+/**
+ * Raw purpose query result type for received purposes (includes consumer name from join)
+ */
+type ReceivedPurposeQueryResult = BasePurposeQueryResult & {
+  consumerName: string;
+};
+
 type DelegationQueryResult<T extends string = string> = {
   delegationId: string;
   eserviceId: string;
@@ -228,6 +283,60 @@ async function getCachedEntities<K, V>(
   }
 
   return new Map(cachedEntries);
+}
+
+/**
+ * Groups purpose query results by state, limits to SECTION_LIST_LIMIT per state,
+ * and maps each row using the provided mapper function.
+ */
+function groupAndMapPurposeResults<
+  TInput extends BasePurposeQueryResult,
+  TOutput
+>(
+  results: TInput[],
+  mapRow: (row: TInput, state: string, totalCount: number) => TOutput
+): TOutput[] {
+  const groupedByState = results.reduce((acc, row) => {
+    const stateResults = acc.get(row.state) ?? [];
+    acc.set(row.state, [...stateResults, row]);
+    return acc;
+  }, new Map<string, TInput[]>());
+
+  return Array.from(groupedByState.entries()).flatMap(
+    ([state, stateResults]) => {
+      const totalCount = stateResults.length;
+      return stateResults
+        .slice(0, SECTION_LIST_LIMIT)
+        .map((row) => mapRow(row, state, totalCount));
+    }
+  );
+}
+
+function groupAndMapSentPurposeResults(
+  results: BasePurposeQueryResult[]
+): SentPurpose[] {
+  return groupAndMapPurposeResults(results, (row, state, totalCount) => ({
+    purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+    purposeTitle: row.purposeTitle,
+    consumerId: unsafeBrandId<TenantId>(row.consumerId),
+    state: PurposeVersionState.parse(state) as SentPurposeState,
+    actionDate: row.updatedAt ?? row.createdAt,
+    totalCount,
+  }));
+}
+
+function groupAndMapReceivedPurposeResults(
+  results: ReceivedPurposeQueryResult[]
+): ReceivedPurpose[] {
+  return groupAndMapPurposeResults(results, (row, state, totalCount) => ({
+    purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+    purposeTitle: row.purposeTitle,
+    consumerId: unsafeBrandId<TenantId>(row.consumerId),
+    consumerName: row.consumerName,
+    state: PurposeVersionState.parse(state) as ReceivedPurposeState,
+    actionDate: row.updatedAt ?? row.createdAt,
+    totalCount,
+  }));
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1251,6 +1360,181 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         logger,
         "e-services"
       );
+    },
+
+    /**
+     * Returns purposes sent by the consumer tenant that changed to Active, Rejected, or WaitingForApproval.
+     * Limited to 5 per state.
+     */
+    async getSentPurposes(consumerId: TenantId): Promise<SentPurpose[]> {
+      logger.info(
+        `Retrieving sent purposes for consumer ${consumerId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .selectDistinctOn([purposeInReadmodelPurpose.id], {
+          purposeId: purposeInReadmodelPurpose.id,
+          purposeTitle: purposeInReadmodelPurpose.title,
+          consumerId: purposeInReadmodelPurpose.consumerId,
+          state: purposeVersionInReadmodelPurpose.state,
+          updatedAt: purposeVersionInReadmodelPurpose.updatedAt,
+          createdAt: purposeVersionInReadmodelPurpose.createdAt,
+        })
+        .from(purposeInReadmodelPurpose)
+        .innerJoin(
+          purposeVersionInReadmodelPurpose,
+          and(
+            eq(
+              purposeInReadmodelPurpose.id,
+              purposeVersionInReadmodelPurpose.purposeId
+            ),
+            eq(
+              purposeInReadmodelPurpose.metadataVersion,
+              purposeVersionInReadmodelPurpose.metadataVersion
+            )
+          )
+        )
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.consumerId, consumerId),
+            or(
+              gte(
+                purposeVersionInReadmodelPurpose.updatedAt,
+                dateThreshold.toISOString()
+              ),
+              and(
+                isNull(purposeVersionInReadmodelPurpose.updatedAt),
+                gte(
+                  purposeVersionInReadmodelPurpose.createdAt,
+                  dateThreshold.toISOString()
+                )
+              )
+            ),
+            or(
+              eq(
+                purposeVersionInReadmodelPurpose.state,
+                purposeVersionState.active
+              ),
+              eq(
+                purposeVersionInReadmodelPurpose.state,
+                purposeVersionState.rejected
+              ),
+              eq(
+                purposeVersionInReadmodelPurpose.state,
+                purposeVersionState.waitingForApproval
+              )
+            )
+          )
+        )
+        .orderBy(
+          purposeInReadmodelPurpose.id,
+          desc(
+            sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`
+          )
+        );
+
+      const allResults = groupAndMapSentPurposeResults(results);
+
+      logger.info(
+        `Retrieved ${allResults.length} sent purposes for consumer ${consumerId} (up to ${SECTION_LIST_LIMIT} per state)`
+      );
+
+      return allResults;
+    },
+
+    /**
+     * Returns purposes received by the producer tenant (via e-service ownership)
+     * that are in Active or WaitingForApproval state.
+     * Excludes purposes where the tenant is also the consumer (to avoid duplicates).
+     * Includes consumer name via join with tenant table.
+     * Limited to 5 per state.
+     */
+    async getReceivedPurposes(
+      producerId: TenantId
+    ): Promise<ReceivedPurpose[]> {
+      logger.info(
+        `Retrieving received purposes for producer ${producerId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .selectDistinctOn([purposeInReadmodelPurpose.id], {
+          purposeId: purposeInReadmodelPurpose.id,
+          purposeTitle: purposeInReadmodelPurpose.title,
+          consumerId: purposeInReadmodelPurpose.consumerId,
+          consumerName: tenantInReadmodelTenant.name,
+          state: purposeVersionInReadmodelPurpose.state,
+          updatedAt: purposeVersionInReadmodelPurpose.updatedAt,
+          createdAt: purposeVersionInReadmodelPurpose.createdAt,
+        })
+        .from(purposeInReadmodelPurpose)
+        .innerJoin(
+          purposeVersionInReadmodelPurpose,
+          and(
+            eq(
+              purposeInReadmodelPurpose.id,
+              purposeVersionInReadmodelPurpose.purposeId
+            ),
+            eq(
+              purposeInReadmodelPurpose.metadataVersion,
+              purposeVersionInReadmodelPurpose.metadataVersion
+            )
+          )
+        )
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            purposeInReadmodelPurpose.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .innerJoin(
+          tenantInReadmodelTenant,
+          eq(purposeInReadmodelPurpose.consumerId, tenantInReadmodelTenant.id)
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            // Exclude purposes where tenant is also the consumer (avoid duplicates)
+            ne(purposeInReadmodelPurpose.consumerId, producerId),
+            or(
+              gte(
+                purposeVersionInReadmodelPurpose.updatedAt,
+                dateThreshold.toISOString()
+              ),
+              and(
+                isNull(purposeVersionInReadmodelPurpose.updatedAt),
+                gte(
+                  purposeVersionInReadmodelPurpose.createdAt,
+                  dateThreshold.toISOString()
+                )
+              )
+            ),
+            or(
+              eq(
+                purposeVersionInReadmodelPurpose.state,
+                purposeVersionState.active
+              ),
+              eq(
+                purposeVersionInReadmodelPurpose.state,
+                purposeVersionState.waitingForApproval
+              )
+            )
+          )
+        )
+        .orderBy(
+          purposeInReadmodelPurpose.id,
+          desc(
+            sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`
+          )
+        );
+
+      const allResults = groupAndMapReceivedPurposeResults(results);
+
+      logger.info(
+        `Retrieved ${allResults.length} received purposes for producer ${producerId} (up to ${SECTION_LIST_LIMIT} per state)`
+      );
+
+      return allResults;
     },
 
     /**

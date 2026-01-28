@@ -47,6 +47,21 @@ export function buildAgreementLink(
   return `${bffUrl}/emailDeepLink/${notificationType}?entityId=${agreementId}`;
 }
 
+/**
+ * Builds a link for a purpose item.
+ *
+ * @param isProducerView - true if the link is for the producer (received purposes), false for consumer (sent purposes)
+ */
+export function buildPurposeLink(
+  purposeId: string,
+  isProducerView: boolean
+): string {
+  const notificationType = isProducerView
+    ? "purposeToProducer"
+    : "purposeToConsumer";
+  return `${bffUrl}/emailDeepLink/${notificationType}?entityId=${purposeId}`;
+}
+
 // "View all" links for digest email sections
 export const viewAllNewEservicesLink = `${bffUrl}/emailDeepLink/eserviceCatalog`;
 export const viewAllUpdatedEservicesLink = `${bffUrl}/emailDeepLink/eserviceCatalog`;
