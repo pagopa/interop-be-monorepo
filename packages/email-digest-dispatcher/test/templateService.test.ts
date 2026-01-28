@@ -67,9 +67,8 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("Ente Sospeso");
     expect(compiledHtml).toContain("sospese");
 
-    // Assert - Verify published purposes
+    // Assert - Verify published purposes (producerName is not shown for sent purposes)
     expect(compiledHtml).toContain("Finalità Gestione Utenti");
-    expect(compiledHtml).toContain("Sistema Centrale");
     expect(compiledHtml).toContain("pubblicate");
 
     // Assert - Verify rejected purposes

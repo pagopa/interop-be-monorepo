@@ -3,7 +3,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { digestTemplateServiceBuilder } from "../src/services/templateService.js";
-import { getMockTenantDigestData } from "../test/mockUtils.js";
+import {
+  getMockTenantDigestData,
+  getMockPartialDigestData,
+} from "../test/mockUtils.js";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -16,15 +19,25 @@ if (!fs.existsSync(outputDir)) {
 const htmlTemplateService = buildHTMLTemplateService();
 const digestTemplateService = digestTemplateServiceBuilder(htmlTemplateService);
 
-const mockData = getMockTenantDigestData();
+// Generate full data email
+const fullData = getMockTenantDigestData();
+const fullHtml = digestTemplateService.compileDigestEmail(fullData);
+const fullOutputPath = path.join(outputDir, "mock-digest-email.html");
+fs.writeFileSync(fullOutputPath, fullHtml);
 
-const compiledHtml = digestTemplateService.compileDigestEmail(mockData);
-
-const outputPath = path.join(outputDir, "mock-digest-email.html");
-fs.writeFileSync(outputPath, compiledHtml);
+// Generate partial data email (only E-services and Attributes)
+const partialData = getMockPartialDigestData();
+const partialHtml = digestTemplateService.compileDigestEmail(partialData);
+const partialOutputPath = path.join(
+  outputDir,
+  "mock-digest-email-partial.html"
+);
+fs.writeFileSync(partialOutputPath, partialHtml);
 
 /* eslint-disable no-console */
-console.log(`✅ Mock digest email generated successfully!`);
-console.log(`📧 Output file: ${outputPath}`);
-console.log(`\nYou can open it in your browser to preview the email.`);
+console.log(`✅ Mock digest emails generated successfully!`);
+console.log(`\n📧 Output files:`);
+console.log(`   - ${fullOutputPath} (all sections)`);
+console.log(`   - ${partialOutputPath} (only E-services and Attributes)`);
+console.log(`\nYou can open them in your browser to preview the emails.`);
 /* eslint-enable no-console */
