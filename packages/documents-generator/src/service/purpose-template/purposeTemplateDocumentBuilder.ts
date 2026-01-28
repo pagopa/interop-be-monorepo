@@ -284,12 +284,15 @@ function getAnswerAnnotation(
   }
 
   const docs = annotation.docs
-    .map((doc) => `<div class="doc">${doc.prettyName}.pdf</div>`)
+    .map(
+      (doc) =>
+        `<div class="doc"><i>Documento allegato: ${doc.prettyName} (documentId: ${doc.id}, checksum: ${doc.checksum})</i></div>`
+    )
     .join("");
 
-  return `<div class="info-label">Annotazione: ${Handlebars.escapeExpression(
+  return `<div class="info-label"><i>Annotazione: ${Handlebars.escapeExpression(
     annotation.text
-  )}</div>
+  )}</i></div>
         ${docs}`;
 }
 
