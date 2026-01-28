@@ -1,0 +1,19 @@
+meta {
+  name: Digest email deepLink redirect
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-bff}}/emailDeeplink/:digestNotificationType?entityId=08a6f113-8ab9-4925-ae0f-250e5f1ae449
+  body: none
+  auth: inherit
+}
+
+params:query {
+  entityId: 08a6f113-8ab9-4925-ae0f-250e5f1ae449
+}
+
+params:path {
+  digestNotificationType: eserviceCatalog
+}
