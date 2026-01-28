@@ -25,17 +25,17 @@
     "pagopa-interop-commons-test": "workspace:*",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "vitest": "4.0.18"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.840.0",
     "@aws-sdk/client-s3": "3.842.0",
     "@aws-sdk/client-sqs": "3.840.0",
+    "date-fns": "3.6.0",
+    "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pagopa-interop-api-clients": "workspace:*",
     "ts-pattern": "5.2.0",
-    "zod": "3.23.8",
-    "date-fns": "3.6.0"
+    "zod": "3.23.8"
   }
 }
