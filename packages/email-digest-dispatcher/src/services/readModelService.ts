@@ -196,6 +196,7 @@ type BasePurposeQueryResult = {
 type ReceivedPurposeQueryResult = BasePurposeQueryResult & {
   consumerName: string;
 };
+
 type DelegationQueryResult<T extends string = string> = {
   delegationId: string;
   eserviceId: string;
@@ -1534,6 +1535,9 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       );
 
       return allResults;
+    },
+
+    /**
      * Retrieves the latest published descriptor ID for each e-service.
      * Returns a map of eserviceId to descriptorId.
      */

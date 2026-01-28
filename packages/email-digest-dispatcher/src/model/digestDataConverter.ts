@@ -1,8 +1,3 @@
-import { AgreementState, EServiceId, TenantId } from "pagopa-interop-models";
-import {
-  AttributeDigest,
-  BaseDigest,
-  ReceivedPurposeDigest,
 import {
   AgreementState,
   DelegationKind,
@@ -15,6 +10,7 @@ import {
   AttributeDigest,
   BaseDigest,
   DelegationDigest,
+  ReceivedPurposeDigest,
 } from "../services/digestDataService.js";
 import {
   buildAgreementLink,

@@ -4,7 +4,6 @@ import {
   TenantId,
   purposeVersionState,
   delegationState,
-  TenantId,
 } from "pagopa-interop-models";
 import {
   receivedAgreementsToBaseDigest,
@@ -248,30 +247,6 @@ export function digestDataServiceBuilder(
           receivedPurposes,
           purposeVersionState.waitingForApproval
         ),
-        activeSentDelegations: {
-          items: [],
-          totalCount: 0,
-        },
-        rejectedSentDelegations: {
-          items: [],
-          totalCount: 0,
-        },
-        waitingForApprovalReceivedDelegations: {
-          items: [],
-          totalCount: 0,
-        },
-        revokedReceivedDelegations: {
-          items: [],
-          totalCount: 0,
-        },
-        publishedReceivedPurposes: {
-          items: [],
-          totalCount: 0,
-        },
-        waitingForApprovalReceivedPurposes: {
-          items: [],
-          totalCount: 0,
-        },
         activeSentDelegations: await sentDelegationsToDigest(
           sentDelegations,
           delegationState.active,
