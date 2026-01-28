@@ -139,12 +139,13 @@
       /* Utility Classes */
       .section-divider {
         margin-bottom: 32px;
-        padding-bottom: 32px;
-        border-bottom: 1px solid #e3e7eb;
       }
       .section-divider:last-child {
-        border-bottom: none;
         margin-bottom: 0;
+      }
+      .section-divider + .section-divider {
+        border-top: 1px solid #e3e7eb;
+        padding-top: 32px;
       }
       .h2-title {
         font-size: 24px;
@@ -242,7 +243,7 @@
         margin-bottom: 16px;
       }
       .content-wrapper {
-        padding: 24px 25px 0px 25px;
+        padding: 24px 25px 24px 25px;
         background-color: #fafafa;
         border-radius: 8px;
       }
