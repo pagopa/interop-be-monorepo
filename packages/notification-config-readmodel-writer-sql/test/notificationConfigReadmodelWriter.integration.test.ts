@@ -583,13 +583,13 @@ describe("database test", async () => {
           genericLogger
         );
 
-        let retrievedConfig =
+        const retrievedConfigAfterCreate =
           await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
             existingConfig.userId,
             existingConfig.tenantId
           );
-        expect(retrievedConfig).toBeDefined();
-        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
+        expect(retrievedConfigAfterCreate).toBeDefined();
+        expect(retrievedConfigAfterCreate?.data.id).toBe(existingConfig.id);
 
         const deleteNewPayload: UserNotificationConfigDeletedV2 = {
           userNotificationConfig: toUserNotificationConfigV2(newConfig),
@@ -611,13 +611,13 @@ describe("database test", async () => {
           genericLogger
         );
 
-        retrievedConfig =
+        const retrievedConfigAfterDeleteNew =
           await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
             existingConfig.userId,
             existingConfig.tenantId
           );
-        expect(retrievedConfig).toBeDefined();
-        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
+        expect(retrievedConfigAfterDeleteNew).toBeDefined();
+        expect(retrievedConfigAfterDeleteNew?.data.id).toBe(existingConfig.id);
 
         const deleteOldPayload: UserNotificationConfigDeletedV2 = {
           userNotificationConfig: toUserNotificationConfigV2(existingConfig),
@@ -639,12 +639,12 @@ describe("database test", async () => {
           genericLogger
         );
 
-        retrievedConfig =
+        const retrievedConfigAfterDeleteOld =
           await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
             existingConfig.userId,
             existingConfig.tenantId
           );
-        expect(retrievedConfig).toBeUndefined();
+        expect(retrievedConfigAfterDeleteOld).toBeUndefined();
       });
     });
   });
