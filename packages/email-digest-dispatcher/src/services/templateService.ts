@@ -52,7 +52,7 @@ export function digestTemplateServiceBuilder(
         data.suspendedSentAgreements?.totalCount ||
         data.publishedSentPurposes?.totalCount ||
         data.rejectedSentPurposes?.totalCount ||
-        data.suspendedSentPurposes?.totalCount
+        data.waitingForApprovalSentPurposes?.totalCount
       );
       const hasReceivedItemsContent = !!(
         data.waitingForApprovalReceivedAgreements?.totalCount ||

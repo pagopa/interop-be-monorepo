@@ -136,11 +136,11 @@ export function getMockTenantDigestData(): TenantDigestData {
       ],
       totalCount: 1,
     },
-    suspendedSentPurposes: {
+    waitingForApprovalSentPurposes: {
       items: [
         {
-          name: "Finalità Sospesa",
-          producerName: "Ente Sospendente",
+          name: "Finalità In Attesa",
+          producerName: "Ente Erogatore",
           link: "https://example.com/purpose/3",
         },
       ],

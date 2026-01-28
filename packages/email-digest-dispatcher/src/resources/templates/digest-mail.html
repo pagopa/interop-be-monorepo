@@ -995,17 +995,17 @@
                                       </ul>
                                     </div>
                                     {{/if}} {{#if
-                                    suspendedSentPurposes.totalCount}}
+                                    waitingForApprovalSentPurposes.totalCount}}
                                     <div class="section-divider">
                                       <p class="body-text-no-margin">
-                                        Sono state sospese
+                                        A causa del superamento della soglia imposta dall'erogatore,
                                         <strong
-                                          >{{ suspendedSentPurposes.totalCount
-                                          }} finalità</strong
+                                          >{{ waitingForApprovalSentPurposes.totalCount
+                                          }} finalità in attesa di approvazione</strong
                                         >:
                                       </p>
                                       <ul class="list-items">
-                                        {{#each suspendedSentPurposes.items}}
+                                        {{#each waitingForApprovalSentPurposes.items}}
                                         <li class="list-item">
                                           <a
                                             href="{{ link }}"
