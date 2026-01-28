@@ -41,6 +41,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import {
+  calculateKid,
   dateToSeconds,
   formatDateyyyyMMdd,
   genericLogger,
@@ -57,9 +58,8 @@ import {
   invalidDPoPTyp,
   expiredDPoPProof,
   invalidDPoPSignature,
+  writeDPoPCache,
 } from "pagopa-interop-dpop-validation";
-import { PutItemCommand } from "@aws-sdk/client-dynamodb";
-import { marshall } from "@aws-sdk/util-dynamodb";
 import { config } from "../../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -810,22 +810,19 @@ describe("authorization server tests", () => {
     });
     const tokenClientKidEntry: TokenGenerationStatesApiClient = {
       ...getMockTokenGenStatesApiClient(tokenClientKidK),
-      clientKind: clientKindTokenGenStates.api,
       publicKey: publicKeyEncodedPem,
     };
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     // Simulate that the JTI is already in the DPoP cache
-    await dynamoDBClient.send(
-      new PutItemCommand({
-        TableName: config.dpopCacheTable,
-        Item: marshall({
-          jti,
-          iat: dpopProofJWT.payload.iat,
-          ttl: Math.floor(Date.now() / 1000) + 600,
-        }),
-      })
-    );
+
+    await writeDPoPCache({
+      dynamoDBClient,
+      dpopCacheTable: config.dpopCacheTable,
+      jti,
+      iat: dpopProofJWT.payload.iat,
+      durationSeconds: Math.floor(Date.now() / 1000) + 600,
+    });
 
     const mockRequest = await getMockTokenRequest();
     const request = {
@@ -1490,9 +1487,9 @@ describe("authorization server tests", () => {
       standardClaimsOverride: { sub: clientId },
     });
 
-    const { dpopProofJWS } = await getMockDPoPProof();
+    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
 
-    const mockRequestWithDPoP = await getMockTokenRequest(true);
+    const mockRequestWithDPoP = await getMockTokenRequest();
     const request: typeof mockRequestWithDPoP = {
       headers: {
         ...mockRequestWithDPoP.headers,
@@ -1512,7 +1509,6 @@ describe("authorization server tests", () => {
 
     const tokenClientKidEntry: TokenGenerationStatesApiClient = {
       ...getMockTokenGenStatesApiClient(tokenClientKidK),
-      clientKind: clientKindTokenGenStates.api,
       publicKey: publicKeyEncodedPem,
     };
 
@@ -1552,7 +1548,7 @@ describe("authorization server tests", () => {
     expect(response.token?.payload).toMatchObject({
       role: systemRole.M2M_ROLE,
       cnf: {
-        jkt: expect.any(String),
+        jkt: calculateKid(dpopProofJWT.header.jwk),
       },
     });
     expect(response.token?.payload).not.toMatchObject({

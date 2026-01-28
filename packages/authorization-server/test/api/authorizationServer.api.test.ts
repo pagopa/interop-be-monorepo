@@ -17,7 +17,7 @@ import {
   InteropJwtConsumerPayload,
   InteropJwtHeader,
 } from "pagopa-interop-commons";
-import { getMockClient } from "pagopa-interop-commons-test";
+import { getMockClient, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { api, tokenService } from "../vitest.api.setup.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -31,7 +31,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { GeneratedTokenData } from "../../src/services/tokenService.js";
 
-describe("POST /authorization-server/token.oauth2", () => {
+describe("POST /authorization-server/token.oauth2", async () => {
   const clientId = getMockClient().id;
   const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
     clientId,
@@ -99,17 +99,16 @@ describe("POST /authorization-server/token.oauth2", () => {
       .set("Content-Type", "application/x-www-form-urlencoded")
       .send(body);
 
-  const mockDPoPJWT =
-    "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IlJTMjU2IiwiandrIjp7Imt0eSI6IlJTQSIsIm4iOiI";
+  const { dpopProofJWS } = await getMockDPoPProof();
 
   const makeDPoPRequest = (
     body: authorizationServerApi.AccessTokenRequest = validRequestBody,
-    dpopToken: string = mockDPoPJWT
+    dpopProof: string = dpopProofJWS
   ) =>
     request(api)
       .post("/authorization-server/token.oauth2")
       .set("Content-Type", "application/x-www-form-urlencoded")
-      .set("DPoP", dpopToken)
+      .set("DPoP", dpopProof)
       .send(new URLSearchParams(body).toString());
 
   beforeEach(() => {
@@ -169,7 +168,7 @@ describe("POST /authorization-server/token.oauth2", () => {
       expect(res.headers["x-rate-limit-interval"]).toBe("1");
       expect(res.headers["x-rate-limit-remaining"]).toBe("10");
       expect(tokenService.generateToken).toHaveBeenCalledWith(
-        expect.objectContaining({ DPoP: mockDPoPJWT }),
+        expect.objectContaining({ DPoP: dpopProofJWS }),
         expect.anything(),
         expect.anything(),
         expect.anything(),
