@@ -26319,7 +26319,7 @@ components:
         description:
           type: string
         producer:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogCreator"
         agreement:
           $ref: "#/components/schemas/CompactAgreement"
         isMine:
@@ -26693,10 +26693,7 @@ components:
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this organization
-        selfcareId:
-          type: string
-          format: uuid
-    CatalogTemplateCreator:
+    CatalogCreator:
       type: object
       additionalProperties: false
       required:
@@ -27361,7 +27358,7 @@ components:
         purposeDescription:
           type: string
         creator:
-          $ref: "#/components/schemas/CatalogTemplateCreator"
+          $ref: "#/components/schemas/CatalogCreator"
     CatalogPurposeTemplates:
       type: object
       additionalProperties: false
@@ -29237,7 +29234,7 @@ components:
         description:
           type: string
         creator:
-          $ref: "#/components/schemas/CatalogTemplateCreator"
+          $ref: "#/components/schemas/CatalogCreator"
         publishedVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     ProducerEServiceTemplate:

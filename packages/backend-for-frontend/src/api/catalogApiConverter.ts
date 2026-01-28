@@ -46,6 +46,18 @@ export function toEserviceCatalogProcessQueryParams(
   };
 }
 
+export function toBffCatalogCreator(
+  organization: tenantApi.Tenant,
+  hasNotifications?: boolean
+): bffApi.CatalogCreator {
+  return {
+    id: organization.id,
+    name: organization.name,
+    hasUnreadNotifications: hasNotifications || false,
+    selfcareId: organization.selfcareId,
+  };
+}
+
 export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,

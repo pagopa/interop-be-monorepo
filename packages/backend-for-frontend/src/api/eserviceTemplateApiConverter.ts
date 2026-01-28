@@ -6,7 +6,10 @@ import {
 import { genericError } from "pagopa-interop-models";
 import { getRulesetExpiration } from "pagopa-interop-commons";
 import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors.js";
-import { toBffCatalogApiEserviceRiskAnalysis } from "./catalogApiConverter.js";
+import {
+  toBffCatalogApiEserviceRiskAnalysis,
+  toBffCatalogCreator,
+} from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
 function toBffCompactEServiceTemplateVersion(
@@ -50,18 +53,6 @@ export function toBffEServiceTemplateDetails(
   };
 }
 
-export function toBffCatalogEServiceTemplateCreator(
-  organization: tenantApi.Tenant,
-  hasNotifications?: boolean
-): bffApi.CompactOrganization {
-  return {
-    id: organization.id,
-    name: organization.name,
-    hasUnreadNotifications: hasNotifications || false,
-    selfcareId: organization.selfcareId,
-  };
-}
-
 export function toBffCatalogEServiceTemplate(
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
   creator: tenantApi.Tenant
@@ -80,7 +71,7 @@ export function toBffCatalogEServiceTemplate(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     description: eserviceTemplate.intendedTarget,
-    creator: toBffCatalogEServiceTemplateCreator(creator),
+    creator: toBffCatalogCreator(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
 }
