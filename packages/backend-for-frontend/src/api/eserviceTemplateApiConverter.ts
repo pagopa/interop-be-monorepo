@@ -8,7 +8,7 @@ import { getRulesetExpiration } from "pagopa-interop-commons";
 import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors.js";
 import {
   toBffCatalogApiEserviceRiskAnalysis,
-  toBffCatalogCreator,
+  toBffCatalogTenant,
 } from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
@@ -71,7 +71,7 @@ export function toBffCatalogEServiceTemplate(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     description: eserviceTemplate.intendedTarget,
-    creator: toBffCatalogCreator(creator),
+    creator: toBffCatalogTenant(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
 }

@@ -46,10 +46,10 @@ export function toEserviceCatalogProcessQueryParams(
   };
 }
 
-export function toBffCatalogCreator(
+export function toBffCatalogTenant(
   organization: tenantApi.Tenant,
   hasNotifications?: boolean
-): bffApi.CatalogCreator {
+): bffApi.CatalogTenant {
   return {
     id: organization.id,
     name: organization.name,
