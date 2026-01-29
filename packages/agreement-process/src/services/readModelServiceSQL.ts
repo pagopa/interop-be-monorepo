@@ -1,4 +1,13 @@
-import { ilike, inArray, or, and, eq, SQL, asc } from "drizzle-orm";
+import {
+  ilike,
+  inArray,
+  or,
+  and,
+  eq,
+  SQL,
+  asc,
+  countDistinct,
+} from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -662,38 +671,74 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const resultSet = await addDelegationJoins(
-        readmodelDB
-          .select(
-            withTotalCount({
-              id: tenantInReadmodelTenant.id,
-              name: tenantInReadmodelTenant.name,
-            })
-          )
+      return await readmodelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(tenantInReadmodelTenant.id),
+          })
           .from(tenantInReadmodelTenant)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.consumerId
-            )
+          .$dynamic();
+
+        const idsQuery = tx
+          .select({ id: tenantInReadmodelTenant.id })
+          .from(tenantInReadmodelTenant)
+          .$dynamic();
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithNameFilter = addDelegationJoins(
+            tx
+              .selectDistinctOn([tenantInReadmodelTenant.id], {
+                id: tenantInReadmodelTenant.id,
+              })
+              .from(tenantInReadmodelTenant)
+              .leftJoin(
+                agreementInReadmodelAgreement,
+                eq(
+                  tenantInReadmodelTenant.id,
+                  agreementInReadmodelAgreement.consumerId
+                )
+              )
+              .$dynamic()
           )
-          .where(
-            and(
-              getNameFilter(tenantInReadmodelTenant.name, consumerName),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(tenantInReadmodelTenant.name, consumerName),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
+            .as("subqueryWithNameFilter");
+
+          return query
+            .innerJoin(
+              subqueryWithNameFilter,
+              eq(tenantInReadmodelTenant.id, subqueryWithNameFilter.id)
+            )
+            .$dynamic();
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
           .groupBy(tenantInReadmodelTenant.id)
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
-          .offset(offset)
-          .$dynamic()
-      );
-      return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
-        resultSet[0]?.totalCount
-      );
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              id: tenantInReadmodelTenant.id,
+              name: tenantInReadmodelTenant.name,
+            })
+            .from(tenantInReadmodelTenant)
+            .where(inArray(tenantInReadmodelTenant.id, ids))
+            .orderBy(ascLower(tenantInReadmodelTenant.name)),
+          buildQuery(totalCountQuery),
+        ]);
+
+        return createListResult(queryResult, totalCount[0]?.count);
+      });
     },
 
     async getAgreementsProducers(
@@ -702,38 +747,74 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const resultSet = await addDelegationJoins(
-        readmodelDB
-          .select(
-            withTotalCount({
-              id: tenantInReadmodelTenant.id,
-              name: tenantInReadmodelTenant.name,
-            })
-          )
+      return await readmodelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(tenantInReadmodelTenant.id),
+          })
           .from(tenantInReadmodelTenant)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.producerId
-            )
+          .$dynamic();
+
+        const idsQuery = tx
+          .select({ id: tenantInReadmodelTenant.id })
+          .from(tenantInReadmodelTenant)
+          .$dynamic();
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithNameFilter = addDelegationJoins(
+            tx
+              .selectDistinctOn([tenantInReadmodelTenant.id], {
+                id: tenantInReadmodelTenant.id,
+              })
+              .from(tenantInReadmodelTenant)
+              .leftJoin(
+                agreementInReadmodelAgreement,
+                eq(
+                  tenantInReadmodelTenant.id,
+                  agreementInReadmodelAgreement.producerId
+                )
+              )
+              .$dynamic()
           )
-          .where(
-            and(
-              getNameFilter(tenantInReadmodelTenant.name, producerName),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(tenantInReadmodelTenant.name, producerName),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
+            .as("subqueryWithNameFilter");
+
+          return query
+            .innerJoin(
+              subqueryWithNameFilter,
+              eq(tenantInReadmodelTenant.id, subqueryWithNameFilter.id)
+            )
+            .$dynamic();
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
           .groupBy(tenantInReadmodelTenant.id)
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
-          .offset(offset)
-          .$dynamic()
-      );
-      return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
-        resultSet[0]?.totalCount
-      );
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              id: tenantInReadmodelTenant.id,
+              name: tenantInReadmodelTenant.name,
+            })
+            .from(tenantInReadmodelTenant)
+            .where(inArray(tenantInReadmodelTenant.id, ids))
+            .orderBy(ascLower(tenantInReadmodelTenant.name)),
+          buildQuery(totalCountQuery),
+        ]);
+
+        return createListResult(queryResult, totalCount[0]?.count);
+      });
     },
 
     async getAgreementsEServices(
@@ -745,40 +826,76 @@ export function readModelServiceBuilderSQL(
       const { consumerIds, producerIds, eserviceName } = filters;
       const withDelegationFilter = true;
 
-      const resultSet = await addDelegationJoins(
-        readmodelDB
-          .select(
-            withTotalCount({
-              id: eserviceInReadmodelCatalog.id,
-              name: eserviceInReadmodelCatalog.name,
-            })
-          )
+      return await readmodelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(eserviceInReadmodelCatalog.id),
+          })
           .from(eserviceInReadmodelCatalog)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              eserviceInReadmodelCatalog.id,
-              agreementInReadmodelAgreement.eserviceId
-            )
+          .$dynamic();
+
+        const idsQuery = tx
+          .select({ id: eserviceInReadmodelCatalog.id })
+          .from(eserviceInReadmodelCatalog)
+          .$dynamic();
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithFilters = addDelegationJoins(
+            tx
+              .selectDistinctOn([eserviceInReadmodelCatalog.id], {
+                id: eserviceInReadmodelCatalog.id,
+              })
+              .from(eserviceInReadmodelCatalog)
+              .leftJoin(
+                agreementInReadmodelAgreement,
+                eq(
+                  eserviceInReadmodelCatalog.id,
+                  agreementInReadmodelAgreement.eserviceId
+                )
+              )
+              .$dynamic()
           )
-          .where(
-            and(
-              getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
-              getProducerIdsFilter(producerIds, withDelegationFilter),
-              getConsumerIdsFilter(consumerIds, withDelegationFilter),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
+                getProducerIdsFilter(producerIds, withDelegationFilter),
+                getConsumerIdsFilter(consumerIds, withDelegationFilter),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
+            .as("subqueryWithFilters");
+
+          return query
+            .innerJoin(
+              subqueryWithFilters,
+              eq(eserviceInReadmodelCatalog.id, subqueryWithFilters.id)
+            )
+            .$dynamic();
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
           .groupBy(eserviceInReadmodelCatalog.id)
           .orderBy(ascLower(eserviceInReadmodelCatalog.name))
           .limit(limit)
-          .offset(offset)
-          .$dynamic()
-      );
-      return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
-        resultSet[0]?.totalCount
-      );
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              id: eserviceInReadmodelCatalog.id,
+              name: eserviceInReadmodelCatalog.name,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(inArray(eserviceInReadmodelCatalog.id, ids))
+            .orderBy(ascLower(eserviceInReadmodelCatalog.name)),
+          buildQuery(totalCountQuery),
+        ]);
+
+        return createListResult(queryResult, totalCount[0]?.count);
+      });
     },
 
     async getActiveProducerDelegationByEserviceId(
@@ -844,45 +961,56 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<AgreementDocument>> {
-      const resultsSet = await readmodelDB
-        .select(
-          withTotalCount({
-            id: agreementConsumerDocumentInReadmodelAgreement.id,
-            path: agreementConsumerDocumentInReadmodelAgreement.path,
-            name: agreementConsumerDocumentInReadmodelAgreement.name,
-            prettyName:
-              agreementConsumerDocumentInReadmodelAgreement.prettyName,
-            contentType:
-              agreementConsumerDocumentInReadmodelAgreement.contentType,
-            createdAt: agreementConsumerDocumentInReadmodelAgreement.createdAt,
-          })
-        )
-        .from(agreementConsumerDocumentInReadmodelAgreement)
-        .where(
-          eq(
-            agreementConsumerDocumentInReadmodelAgreement.agreementId,
-            agreementId
-          )
-        )
-        .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
-        .limit(limit)
-        .offset(offset)
-        .$dynamic();
+      return await readmodelDB.transaction(async (tx) => {
+        const filters = eq(
+          agreementConsumerDocumentInReadmodelAgreement.agreementId,
+          agreementId
+        );
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              id: agreementConsumerDocumentInReadmodelAgreement.id,
+              path: agreementConsumerDocumentInReadmodelAgreement.path,
+              name: agreementConsumerDocumentInReadmodelAgreement.name,
+              prettyName:
+                agreementConsumerDocumentInReadmodelAgreement.prettyName,
+              contentType:
+                agreementConsumerDocumentInReadmodelAgreement.contentType,
+              createdAt:
+                agreementConsumerDocumentInReadmodelAgreement.createdAt,
+            })
+            .from(agreementConsumerDocumentInReadmodelAgreement)
+            .where(filters)
+            .orderBy(
+              asc(agreementConsumerDocumentInReadmodelAgreement.createdAt)
+            )
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({
+              count: countDistinct(
+                agreementConsumerDocumentInReadmodelAgreement.id
+              ),
+            })
+            .from(agreementConsumerDocumentInReadmodelAgreement)
+            .where(filters),
+        ]);
 
-      return createListResult(
-        resultsSet.map(
-          (doc) =>
-            ({
-              id: unsafeBrandId<AgreementDocumentId>(doc.id),
-              path: doc.path,
-              name: doc.name,
-              prettyName: doc.prettyName,
-              contentType: doc.contentType,
-              createdAt: stringToDate(doc.createdAt),
-            } satisfies AgreementDocument)
-        ),
-        resultsSet[0]?.totalCount
-      );
+        return createListResult(
+          queryResult.map(
+            (doc) =>
+              ({
+                id: unsafeBrandId<AgreementDocumentId>(doc.id),
+                path: doc.path,
+                name: doc.name,
+                prettyName: doc.prettyName,
+                contentType: doc.contentType,
+                createdAt: stringToDate(doc.createdAt),
+              } satisfies AgreementDocument)
+          ),
+          totalCount[0].count
+        );
+      });
     },
   };
 }
