@@ -276,6 +276,14 @@ paths:
             default: []
           explode: false
         - in: query
+          name: clientId
+          description: client ID
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
           name: states
           description: comma separated sequence of states
           schema:
@@ -1980,7 +1988,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

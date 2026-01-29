@@ -17,9 +17,7 @@ const TokenReadModelCheckerConfig = LoggerConfig.and(ReadModelSQLDbConfig)
       }))
   );
 
-export type TokenReadModelCheckerConfig = z.infer<
-  typeof TokenReadModelCheckerConfig
->;
+type TokenReadModelCheckerConfig = z.infer<typeof TokenReadModelCheckerConfig>;
 
 export const config: TokenReadModelCheckerConfig =
   TokenReadModelCheckerConfig.parse(process.env);

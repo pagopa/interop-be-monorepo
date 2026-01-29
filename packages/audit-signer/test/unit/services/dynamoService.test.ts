@@ -25,6 +25,7 @@ describe("signatureServiceBuilder", () => {
       fileKind: "AUDIT_EVENTS",
       fileName: "file.json",
       correlationId: "correlation-1",
+      path: "path/to",
     };
 
     await signatureService.saveSignatureReference(mockReference, genericLogger);
@@ -36,6 +37,7 @@ describe("signatureServiceBuilder", () => {
       fileKind: { S: "AUDIT_EVENTS" },
       fileName: { S: "file.json" },
       correlationId: { S: "correlation-1" },
+      path: { S: "path/to" },
       creationTimestamp: { N: expect.any(String) },
     });
   });
@@ -46,6 +48,7 @@ describe("signatureServiceBuilder", () => {
       fileKind: "AUDIT_EVENTS",
       fileName: "file2.json",
       correlationId: "correlation-2",
+      path: "path/to",
     };
 
     const sendError = new Error("Dynamo error");

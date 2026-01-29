@@ -30,7 +30,15 @@ import {
   tenantKind,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { config } from "../../src/config/config.js";
 import {
@@ -63,7 +71,9 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-
+  afterEach(async () => {
+    vi.restoreAllMocks();
+  });
   const riskAnalysisPAVersion = getLatestVersionFormRules(
     tenantKind.PA
   )!.version;

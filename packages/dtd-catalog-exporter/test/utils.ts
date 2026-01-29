@@ -17,15 +17,14 @@ import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExpo
 import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, fileManager, readModelDB } =
-  await setupTestContainersVitest(
-    undefined,
-    inject("fileManagerConfig"),
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+const { cleanup, fileManager, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 

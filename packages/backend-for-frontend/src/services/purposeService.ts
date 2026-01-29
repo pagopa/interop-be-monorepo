@@ -94,7 +94,7 @@ const enrichPurposeDelegation = async (
   };
 };
 
-export const getCurrentVersion = (
+const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
 ): purposeApi.PurposeVersion | undefined => {
   const statesToExclude: purposeApi.PurposeVersionState[] = [
@@ -245,6 +245,7 @@ export function purposeServiceBuilder(
           isReversePurpose ? producer.kind : delegation.delegator.kind,
           purpose.riskAnalysisForm.version
         );
+      } else {
         rulesetExpiration = undefined;
       }
     }

@@ -109,6 +109,8 @@ export async function handlePurposeMessageV2(
           .with(eserviceMode.receive, () => getTenantKind(producer))
           .exhaustive();
 
+        const messageTimestamp = msg.log_date;
+
         const contract =
           await riskAnalysisDocumentBuilder.createRiskAnalysisDocument(
             purpose,
@@ -116,7 +118,8 @@ export async function handlePurposeMessageV2(
             eserviceInfo,
             purposeVersion.stamps?.creation.who,
             tenantKind,
-            "it"
+            "it",
+            messageTimestamp
           );
         const contractWithIsoString: purposeApi.PurposeVersionDocument = {
           ...contract,

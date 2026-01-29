@@ -14,7 +14,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
+const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   KafkaProducerConfig
 )
   .and(AgreementTopicConfig)
@@ -37,7 +37,7 @@ export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
       }))
   );
 
-export type EmailNotificationDispatcherConfig = z.infer<
+type EmailNotificationDispatcherConfig = z.infer<
   typeof EmailNotificationDispatcherConfig
 >;
 

@@ -1,24 +1,17 @@
+import path from "path";
 import { match } from "ts-pattern";
 import { FileKind, FileKindSchema } from "./fileKind.config.js";
 
 export const appendSignedSuffixToFileName = (
   fileKey: string,
-  fileKind: FileKind
+  fileKind: FileKind,
+  fileName: string
 ): string => {
-  const dotIndex = fileKey.lastIndexOf(".");
-
-  if (dotIndex === -1) {
-    return `${fileKey}-signed`;
-  }
-
-  const name = fileKey.slice(0, dotIndex);
-  const ext = fileKey.slice(dotIndex);
+  const ext = path.extname(fileKey);
+  const { name } = path.parse(fileName);
 
   return match(fileKind)
-    .with(FileKindSchema.Enum.EVENT_JOURNAL, () => `${name}-signed.json.gz.p7m`)
-    .with(
-      FileKindSchema.Enum.VOUCHER_AUDIT,
-      () => `${name}-signed.ndjson.gz.p7m`
-    )
-    .otherwise(() => `${name}-signed${ext}`);
+    .with(FileKindSchema.Enum.EVENT_JOURNAL, () => `${name}.zip.p7m`)
+    .with(FileKindSchema.Enum.VOUCHER_AUDIT, () => `${name}.ndjson.zip.p7m`)
+    .otherwise(() => `${name}${ext}`);
 };

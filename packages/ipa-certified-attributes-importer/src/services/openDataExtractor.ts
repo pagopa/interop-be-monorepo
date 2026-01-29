@@ -9,7 +9,7 @@ import { config } from "../config/config.js";
 
 type Classification = "Agency" | "AOO" | "UO";
 
-export type InstitutionKind = "Agency" | "AOO" | "UO";
+type InstitutionKind = "Agency" | "AOO" | "UO";
 
 export type Institution = {
   id: string;

@@ -44,6 +44,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     uploadPreparedFileToS3: vi.fn(() => ({
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
+      path: "path/to",
     })),
   }));
 
@@ -111,6 +112,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
       creationTimestamp: expect.any(Number),
+      path: "path/to",
     });
   });
 
