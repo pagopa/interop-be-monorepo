@@ -1,8 +1,6 @@
 import {
   NewNotification,
-  DescriptorId,
   EServiceEventEnvelopeV2,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
@@ -42,10 +40,9 @@ export async function handleEServiceEvent(
     )
     .with(
       { type: "EServiceDescriptorSubmittedByDelegate" },
-      ({ data: { eservice, descriptorId } }) =>
+      ({ data: { eservice } }) =>
         handleEserviceNewVersionSubmittedToDelegator(
           eservice,
-          unsafeBrandId<DescriptorId>(descriptorId),
           logger,
           readModelService
         )
@@ -57,10 +54,9 @@ export async function handleEServiceEvent(
           "EServiceDescriptorRejectedByDelegator"
         ),
       },
-      ({ data: { eservice, descriptorId }, type }) =>
+      ({ data: { eservice }, type }) =>
         handleEserviceNewVersionApprovedRejectedToDelegate(
           eservice,
-          unsafeBrandId<DescriptorId>(descriptorId),
           logger,
           readModelService,
           type
