@@ -44,6 +44,7 @@ export const DigestNotificationType = z.enum([
   "purposeToConsumer",
   "delegation",
   "attribute",
+  "notificationSettings",
 ]);
 
 export type DigestNotificationType = z.infer<typeof DigestNotificationType>;

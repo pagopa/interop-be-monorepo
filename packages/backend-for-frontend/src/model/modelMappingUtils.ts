@@ -71,7 +71,8 @@ export type UiSection =
   | "/aderente/deleghe"
   | "/aderente/anagrafica"
   | "/gestione-client"
-  | "/gestione-client/api-e-service";
+  | "/gestione-client/api-e-service"
+  | "/notifiche/configurazione";
 
 export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
   {
@@ -157,4 +158,5 @@ export const digestNotificationTypeToUiSection: Record<
   purposeToConsumer: "/fruizione/finalita",
   delegation: "/aderente/deleghe",
   attribute: "/aderente/anagrafica",
+  notificationSettings: "/notifiche/configurazione",
 } as const;

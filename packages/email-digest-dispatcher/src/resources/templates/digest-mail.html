@@ -192,6 +192,11 @@
         color: #17324d;
         margin: 0 0 16px 0;
         line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .list-item {
         font-size: 16px;
@@ -301,6 +306,9 @@
           max-width: none !important;
           padding: 0 !important;
           margin-bottom: 16px !important;
+        }
+        .card-title {
+          font-size: 14px !important;
         }
         .section-header-table td {
           display: block !important;
@@ -507,7 +515,7 @@
                                     {{#if newEservices.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -516,7 +524,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-grid }} Nuovi e-service
+                                              Nuovi e-service
                                             </h2>
                                           </td>
                                           {{#if viewAllNewEservicesLink}}
@@ -524,8 +532,8 @@
                                             <a
                                               href="{{viewAllNewEservicesLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutti {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutti i nuovi e-service"
+                                              >Visualizza tutti</a
                                             >
                                           </td>
                                           {{/if}}
@@ -559,7 +567,7 @@
                                         {{#each newEservices.items}}
                                         <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0 8px; margin-bottom: 16px; box-sizing: border-box;">
                                           <div class="card" style="border: 1px solid #e3e7eb; border-radius: 8px; padding: 0; height: 140px; box-sizing: border-box; background-color: #ffffff;">
-                                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
+                                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
                                               <tr>
                                                 <td style="padding: 16px 16px 0 16px; vertical-align: top;">
                                                   <p class="card-producer">
@@ -573,9 +581,9 @@
                                                   <a
                                                     href="{{ link }}"
                                                     class="link-primary" style="color: #0073e6;"
+                                                    aria-label="Visualizza dettaglio di {{name}}"
                                                   >
-                                                    Visualizza {{> icon-external-link }}
-                                                  </a>
+                                                    Visualizza                                                  </a>
                                                 </td>
                                               </tr>
                                             </table>
@@ -590,7 +598,7 @@
                                     {{#if updatedEservices.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -599,7 +607,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-grid }} E-service
+                                              E-service
                                               aggiornati
                                             </h2>
                                           </td>
@@ -608,8 +616,8 @@
                                             <a
                                               href="{{viewAllUpdatedEservicesLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutti {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutti gli e-service aggiornati"
+                                              >Visualizza tutti</a
                                             >
                                           </td>
                                           {{/if}}
@@ -638,7 +646,7 @@
                                         {{#each updatedEservices.items}}
                                         <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0 8px; margin-bottom: 16px; box-sizing: border-box;">
                                           <div class="card" style="border: 1px solid #e3e7eb; border-radius: 8px; padding: 0; height: 140px; box-sizing: border-box; background-color: #ffffff;">
-                                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
+                                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
                                               <tr>
                                                 <td style="padding: 16px 16px 0 16px; vertical-align: top;">
                                                   <p class="card-producer">
@@ -652,9 +660,9 @@
                                                   <a
                                                     href="{{ link }}"
                                                     class="link-primary" style="color: #0073e6;"
+                                                    aria-label="Visualizza dettaglio di {{name}}"
                                                   >
-                                                    Visualizza {{> icon-external-link }}
-                                                  </a>
+                                                    Visualizza                                                  </a>
                                                 </td>
                                               </tr>
                                             </table>
@@ -669,7 +677,7 @@
                                     {{#if updatedEserviceTemplates.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -678,7 +686,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-grid }} Template e-service
+                                              Template e-service
                                               aggiornati
                                             </h2>
                                           </td>
@@ -687,8 +695,8 @@
                                             <a
                                               href="{{viewAllUpdatedEserviceTemplatesLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutti {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutti i template e-service aggiornati"
+                                              >Visualizza tutti</a
                                             >
                                           </td>
                                           {{/if}}
@@ -717,7 +725,7 @@
                                         {{#each updatedEserviceTemplates.items}}
                                         <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0 8px; margin-bottom: 16px; box-sizing: border-box;">
                                           <div class="card" style="border: 1px solid #e3e7eb; border-radius: 8px; padding: 0; height: 140px; box-sizing: border-box; background-color: #ffffff;">
-                                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
+                                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
                                               <tr>
                                                 <td style="padding: 16px 16px 0 16px; vertical-align: top;">
                                                   <p class="card-producer">
@@ -731,9 +739,9 @@
                                                   <a
                                                     href="{{ link }}"
                                                     class="link-primary" style="color: #0073e6;"
+                                                    aria-label="Visualizza dettaglio di {{name}}"
                                                   >
-                                                    Visualizza {{> icon-external-link }}
-                                                  </a>
+                                                    Visualizza                                                  </a>
                                                 </td>
                                               </tr>
                                             </table>
@@ -748,7 +756,7 @@
                                     {{#if popularEserviceTemplates.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -757,7 +765,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-grid }} I tuoi template
+                                              I tuoi template
                                               più utilizzati
                                             </h2>
                                           </td>
@@ -766,8 +774,8 @@
                                             <a
                                               href="{{viewAllPopularEserviceTemplatesLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutti {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutti i template più utilizzati"
+                                              >Visualizza tutti</a
                                             >
                                           </td>
                                           {{/if}}
@@ -796,7 +804,7 @@
                                         {{#each popularEserviceTemplates.items}}
                                         <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0 8px; margin-bottom: 16px; box-sizing: border-box;">
                                           <div class="card" style="border: 1px solid #e3e7eb; border-radius: 8px; padding: 0; height: 140px; box-sizing: border-box; background-color: #ffffff;">
-                                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
+                                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
                                               <tr>
                                                 <td style="padding: 16px 16px 0 16px; vertical-align: top;">
                                                   <p class="card-title">{{ name }}</p>
@@ -807,9 +815,9 @@
                                                   <a
                                                     href="{{ link }}"
                                                     class="link-primary" style="color: #0073e6;"
+                                                    aria-label="Visualizza dettaglio di {{name}}"
                                                   >
-                                                    Visualizza {{> icon-external-link }}
-                                                  </a>
+                                                    Visualizza                                                  </a>
                                                 </td>
                                               </tr>
                                             </table>
@@ -832,7 +840,7 @@
                                     {{#if acceptedSentAgreements.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -841,7 +849,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-inbox }} Richieste di
+                                              Richieste di
                                               fruizione inoltrate
                                             </h2>
                                           </td>
@@ -850,8 +858,8 @@
                                             <a
                                               href="{{viewAllSentAgreementsLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutte le richieste di fruizione inoltrate"
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -887,9 +895,9 @@
                                       </ul>
 
                                       <!-- Green Alert -->
-                                      <div class="alert-success">
+                                      <div class="alert-success" role="note">
                                         <p class="alert-text">
-                                          {{> icon-success }} Puoi proseguire
+                                          Puoi proseguire
                                           formulando almeno una finalità per
                                           ciascuna richiesta accettata.
                                         </p>
@@ -963,7 +971,7 @@
                                     {{#if publishedSentPurposes.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -972,7 +980,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-purpose }} Finalità
+                                              Finalità
                                               inoltrate
                                             </h2>
                                           </td>
@@ -981,8 +989,8 @@
                                             <a
                                               href="{{viewAllSentPurposesLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutte le finalità inoltrate"
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1014,9 +1022,9 @@
                                       </ul>
 
                                       <!-- Green Alert -->
-                                      <div class="alert-success">
+                                      <div class="alert-success" role="note">
                                         <p class="alert-text">
-                                          {{> icon-success }} Puoi proseguire
+                                          Puoi proseguire
                                           associando almeno un client per
                                           ciascuna finalità.
                                         </p>
@@ -1087,7 +1095,7 @@
                                     waitingForApprovalReceivedAgreements.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -1096,7 +1104,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-inbox }} Richieste di
+                                              Richieste di
                                               fruizione che hai ricevuto
                                             </h2>
                                           </td>
@@ -1105,8 +1113,8 @@
                                             <a
                                               href="{{viewAllReceivedAgreementsLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutte le richieste di fruizione ricevute"
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1148,9 +1156,9 @@
                                       </ul>
 
                                       <!-- Yellow Alert -->
-                                      <div class="alert-warning">
+                                      <div class="alert-warning" role="note">
                                         <p class="alert-text">
-                                          {{> icon-warning }} Verifica le
+                                          Verifica le
                                           richieste per permettere agli enti
                                           Fruitori di completare
                                           l'implementazione.
@@ -1163,7 +1171,7 @@
                                     {{#if publishedReceivedPurposes.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -1172,7 +1180,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-purpose }} Finalità che
+                                              Finalità che
                                               hai ricevuto
                                             </h2>
                                           </td>
@@ -1181,8 +1189,8 @@
                                             <a
                                               href="{{viewAllReceivedPurposesLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutte le finalità ricevute"
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1244,9 +1252,9 @@
                                       </ul>
 
                                       <!-- Yellow Alert -->
-                                      <div class="alert-warning">
+                                      <div class="alert-warning" role="note">
                                         <p class="alert-text">
-                                          {{> icon-warning }} Verifica le
+                                          Verifica le
                                           finalità per permettere agli enti
                                           Fruitori di completare
                                           l'implementazione.
@@ -1267,7 +1275,7 @@
                                     {{#if waitingForApprovalReceivedDelegations.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -1276,7 +1284,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-delegation }} Richieste di
+                                              Richieste di
                                               delega ricevute come delegato
                                             </h2>
                                           </td>
@@ -1285,8 +1293,8 @@
                                             <a
                                               href="{{viewAllReceivedDelegationsLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutte le deleghe ricevute"
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1333,7 +1341,7 @@
                                       {{#unless
                                       waitingForApprovalReceivedDelegations.totalCount}}
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -1342,7 +1350,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-delegation }} Richieste di
+                                              Richieste di
                                               delega ricevute come delegato
                                             </h2>
                                           </td>
@@ -1351,8 +1359,8 @@
                                             <a
                                               href="{{viewAllReceivedDelegationsLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutte le deleghe ricevute"
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1398,7 +1406,7 @@
                                     {{#if activeSentDelegations.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -1407,7 +1415,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-delegation }} Richieste di
+                                              Richieste di
                                               delega inoltrate come delegante
                                             </h2>
                                           </td>
@@ -1416,8 +1424,8 @@
                                             <a
                                               href="{{viewAllSentDelegationsLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutte le deleghe inoltrate"
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1463,7 +1471,7 @@
                                       {{#unless
                                       activeSentDelegations.totalCount}}
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -1472,7 +1480,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-delegation }} Richieste di
+                                              Richieste di
                                               delega inoltrate come delegante
                                             </h2>
                                           </td>
@@ -1481,8 +1489,8 @@
                                             <a
                                               href="{{viewAllSentDelegationsLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutte {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutte le deleghe inoltrate"
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1537,7 +1545,7 @@
                                     {{#if receivedAttributes.totalCount}}
                                     <div class="section-divider">
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -1546,7 +1554,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-code }} Attributi
+                                              Attributi
                                             </h2>
                                           </td>
                                           {{#if viewAllAttributesLink}}
@@ -1554,8 +1562,8 @@
                                             <a
                                               href="{{viewAllAttributesLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutti {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutti gli attributi"
+                                              >Visualizza tutti</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1597,7 +1605,7 @@
                                     <div class="section-divider">
                                       {{#unless receivedAttributes.totalCount}}
                                       <table
-                                        class="section-header-table"
+                                        class="section-header-table" role="presentation"
                                         width="100%"
                                         cellpadding="0"
                                         cellspacing="0"
@@ -1606,7 +1614,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              {{> icon-code }} Attributi
+                                              Attributi
                                             </h2>
                                           </td>
                                           {{#if viewAllAttributesLink}}
@@ -1614,8 +1622,8 @@
                                             <a
                                               href="{{viewAllAttributesLink}}"
                                               class="link-primary" style="color: #0073e6;"
-                                              >Visualizza tutti {{>
-                                              icon-external-link }}</a
+                                              aria-label="Visualizza tutti gli attributi"
+                                              >Visualizza tutti</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1652,9 +1660,9 @@
                                       </ul>
 
                                       <!-- Red Alert -->
-                                      <div class="alert-error">
+                                      <div class="alert-error" role="note">
                                         <p class="alert-text">
-                                          {{> icon-error }} Ricorda che la
+                                          Ricorda che la
                                           rimozione di un attributo interrompe
                                           la generazione dei voucher e l'accesso
                                           ai dati per gli e-service collegati.
@@ -1687,7 +1695,7 @@
                                       "
                                     >
                                       <p style="margin-top: 0px">
-                                        A presto,<br aria-hidden="true" />Il
+                                        Questa comunicazione è relativa all'ente {{tenantName}}. La visualizzazione dei dettagli è disponibile previa autenticazione al portale.<br />Il
                                         team di PDND Interoperabilità
                                       </p>
                                     </div>
@@ -1760,6 +1768,7 @@
                                     "
                                   >
                                     <p
+                                      aria-hidden="true"
                                       style="
                                         border-top: solid 1px #e3e7eb;
                                         font-size: 1px;
@@ -1847,7 +1856,6 @@
                                 <tr>
                                   <td
                                     align="left"
-                                    class="text-secondary"
                                     style="
                                       font-size: 0px;
                                       padding: 0px;
@@ -1857,25 +1865,34 @@
                                     <div
                                       style="
                                         font-size: 14px;
-                                        font-weight: regular;
-                                        line-height: 20px;
+                                        font-weight: 400;
+                                        line-height: 18px;
                                         text-align: left;
-                                        color: #17324d;
+                                        color: #5C6F82;
                                       "
                                     >
                                       <p>
                                         Ricevi questa comunicazione perché hai
-                                        attivato la ricezione del riepilogo
-                                        periodico delle notifiche su PDND
-                                        Interoperabilità.
+                                        associato questo indirizzo email al tuo
+                                        profilo di PDND Interoperabilità
+                                        attraverso l'Area Riservata di PagoPA
+                                        S.p.A.
                                       </p>
                                       <p>
-                                        <strong>
-                                          Non rispondere a questo indirizzo
-                                          email: è utilizzato solo per l'invio
-                                          di questa comunicazione e, non essendo
-                                          monitorato, non riceveresti risposta.
-                                        </strong>
+                                        Puoi personalizzare la ricezione di
+                                        queste comunicazioni attraverso la
+                                        pagina di
+                                        <a
+                                          href="{{notificationSettingsLink}}"
+                                          style="color: #5C6F82; text-decoration: underline"
+                                          >configurazione delle notifiche</a
+                                        >.
+                                      </p>
+                                      <p>
+                                        Non rispondere a questa email: è usata
+                                        solo per l'invio di comunicazioni e, non
+                                        essendo monitorato, non riceverai
+                                        risposta.
                                       </p>
                                     </div>
                                   </td>

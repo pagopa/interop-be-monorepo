@@ -57,19 +57,19 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("2");
     expect(compiledHtml).toContain("richieste");
 
-    // Assert - Verify rejected agreements
+    // Assert - Verify rejected agreements (singular - totalCount: 1)
     expect(compiledHtml).toContain("Servizio Test Rifiutato");
     expect(compiledHtml).toContain("Ente Test");
-    expect(compiledHtml).toContain("rifiutate");
+    expect(compiledHtml).toContain("rifiutata");
 
-    // Assert - Verify suspended agreements
+    // Assert - Verify suspended agreements (singular - totalCount: 1)
     expect(compiledHtml).toContain("Servizio Sospeso");
     expect(compiledHtml).toContain("Ente Sospeso");
-    expect(compiledHtml).toContain("sospese");
+    expect(compiledHtml).toContain("sospesa");
 
-    // Assert - Verify published purposes (producerName is not shown for sent purposes)
+    // Assert - Verify published purposes (singular - totalCount: 1, producerName is not shown for sent purposes)
     expect(compiledHtml).toContain("Finalità Gestione Utenti");
-    expect(compiledHtml).toContain("pubblicate");
+    expect(compiledHtml).toContain("pubblicata");
 
     // Assert - Verify rejected purposes
     expect(compiledHtml).toContain("Finalità Rifiutata");
