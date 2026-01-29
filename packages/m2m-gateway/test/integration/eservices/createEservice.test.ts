@@ -15,19 +15,22 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiEService,
+} from "../../mockUtils.js";
 
 describe("createEService", () => {
   const mockedApiEservice = getMockedApiEservice();
 
   const mockApiEserviceWithDescriptor: m2mGatewayApi.DescriptorSeedForEServiceCreation =
-  {
-    audience: [],
-    voucherLifespan: 1000,
-    dailyCallsPerConsumer: 100,
-    dailyCallsTotal: 100,
-    agreementApprovalPolicy: "AUTOMATIC",
-  };
+    {
+      audience: [],
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 100,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockEserviceSeed: m2mGatewayApi.EServiceSeed = {
     name: mockedApiEservice.name,
@@ -59,19 +62,8 @@ describe("createEService", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mEserviceResponse: m2mGatewayApi.EService = {
-      id: mockEserviceProcessResponse.data.id,
-      name: mockEserviceProcessResponse.data.name,
-      producerId: mockEserviceProcessResponse.data.producerId,
-      description: mockEserviceProcessResponse.data.description,
-      technology: mockEserviceProcessResponse.data.technology,
-      mode: mockEserviceProcessResponse.data.mode,
-      isSignalHubEnabled: mockEserviceProcessResponse.data.isSignalHubEnabled,
-      isClientAccessDelegable:
-        mockEserviceProcessResponse.data.isClientAccessDelegable,
-      isConsumerDelegable: mockEserviceProcessResponse.data.isConsumerDelegable,
-      templateId: mockEserviceProcessResponse.data.templateId,
-    };
+    const m2mEserviceResponse: m2mGatewayApi.EService =
+      testToM2mGatewayApiEService(mockEserviceProcessResponse.data);
 
     const result = await eserviceService.createEService(
       mockEserviceSeed,

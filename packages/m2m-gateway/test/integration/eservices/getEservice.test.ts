@@ -11,7 +11,10 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiEService,
+} from "../../mockUtils.js";
 
 describe("getEservice", () => {
   const mockCatalogProcessResponse = getMockWithMetadata(
@@ -29,19 +32,8 @@ describe("getEservice", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mEserviceResponse: m2mGatewayApi.EService = {
-      id: mockCatalogProcessResponse.data.id,
-      producerId: mockCatalogProcessResponse.data.producerId,
-      name: mockCatalogProcessResponse.data.name,
-      description: mockCatalogProcessResponse.data.description,
-      technology: mockCatalogProcessResponse.data.technology,
-      mode: mockCatalogProcessResponse.data.mode,
-      isSignalHubEnabled: mockCatalogProcessResponse.data.isSignalHubEnabled,
-      isConsumerDelegable: mockCatalogProcessResponse.data.isConsumerDelegable,
-      isClientAccessDelegable:
-        mockCatalogProcessResponse.data.isClientAccessDelegable,
-      templateId: mockCatalogProcessResponse.data.templateId,
-    };
+    const m2mEserviceResponse: m2mGatewayApi.EService =
+      testToM2mGatewayApiEService(mockCatalogProcessResponse.data);
 
     const result = await eserviceService.getEService(
       unsafeBrandId(mockCatalogProcessResponse.data.id),

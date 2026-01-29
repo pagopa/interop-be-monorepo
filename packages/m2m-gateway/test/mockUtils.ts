@@ -16,6 +16,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
   agreementApi,
+  catalogApi,
 } from "pagopa-interop-api-clients";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
@@ -150,5 +151,21 @@ export const testToM2mGatewayApiAgreement = (
   createdAt: agreement.createdAt,
   updatedAt: agreement.updatedAt,
   suspendedAt: agreement.suspendedAt,
+});
+
+export const testToM2mGatewayApiEService = (
+  eservice: catalogApi.EService
+): m2mGatewayApi.EService => ({
+  id: eservice.id,
+  producerId: eservice.producerId,
+  name: eservice.name,
+  description: eservice.description,
+  technology: eservice.technology,
+  mode: eservice.mode,
+  isSignalHubEnabled: eservice.isSignalHubEnabled,
+  isConsumerDelegable: eservice.isConsumerDelegable,
+  isClientAccessDelegable: eservice.isClientAccessDelegable,
+  templateId: eservice.templateId,
+  personalData: eservice.personalData,
 });
 
