@@ -2,6 +2,8 @@ import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
   missingKafkaMessageDataError,
+  clientKind,
+  NotificationType,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
@@ -34,16 +36,20 @@ export async function handleClientKeyAddedDeletedToClientUsers(
   );
 
   const client = fromClientV2(decodedMessage.data.client);
+  const notificationType: NotificationType =
+    client.kind === clientKind.consumer
+      ? "clientKeyConsumerAddedDeletedToClientUsers"
+      : "clientKeyAddedDeletedToClientUsers";
 
   const usersWithNotifications = await getNotificationRecipients(
     [client.consumerId],
-    "clientKeyAddedDeletedToClientUsers",
+    notificationType,
     readModelService,
     logger
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for clientKeyAddedDeletedToClientUsers message`
+      `No users with notifications enabled for ${notificationType} message`
     );
     return [];
   }
@@ -56,7 +62,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
           userId,
           tenantId,
           body: inAppTemplates.clientKeyDeletedToClientUsers(client.name, kid),
-          notificationType: "clientKeyAddedDeletedToClientUsers" as const,
+          notificationType,
           entityId: client.id,
         }))
     )
@@ -65,7 +71,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
         userId,
         tenantId,
         body: inAppTemplates.clientKeyAddedToClientUsers(client.name),
-        notificationType: "clientKeyAddedDeletedToClientUsers" as const,
+        notificationType,
         entityId: client.id,
       }))
     )
@@ -76,7 +82,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
           userId,
           tenantId,
           body: inAppTemplates.clientUserDeletedToClientUsers(client.name),
-          notificationType: "clientKeyAddedDeletedToClientUsers" as const,
+          notificationType,
           entityId: client.id,
         }))
     )

@@ -92,12 +92,16 @@ export function notificationConfigServiceBuilder(
             ...restInAppConfig,
             clientKeyAddedDeletedToClientUsers:
               inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+            clientKeyConsumerAddedDeletedToClientUsers:
+              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
             producerKeychainKeyAddedDeletedToClientUsers:
               inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
           },
           emailConfig: {
             ...restEmailConfig,
             clientKeyAddedDeletedToClientUsers:
+              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+            clientKeyConsumerAddedDeletedToClientUsers:
               emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
             producerKeychainKeyAddedDeletedToClientUsers:
               emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,

@@ -1135,6 +1135,9 @@ export const getMockInAppNotificationApiNotificationsByType =
         z.number().int()
       ),
       clientKeyAddedDeletedToClientUsers: generateMock(z.number().int()),
+      clientKeyConsumerAddedDeletedToClientUsers: generateMock(
+        z.number().int()
+      ),
     },
     totalCount: generateMock(z.number().int()),
   });

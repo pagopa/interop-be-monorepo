@@ -133,6 +133,10 @@ export const aggregateUserNotificationConfig = ({
     clientKeyAddedDeletedToClientUsers: enabledInAppNotifications.includes(
       "clientKeyAddedDeletedToClientUsers"
     ),
+    clientKeyConsumerAddedDeletedToClientUsers:
+      enabledInAppNotifications.includes(
+        "clientKeyConsumerAddedDeletedToClientUsers"
+      ),
     producerKeychainKeyAddedDeletedToClientUsers:
       enabledInAppNotifications.includes(
         "producerKeychainKeyAddedDeletedToClientUsers"
@@ -207,6 +211,10 @@ export const aggregateUserNotificationConfig = ({
     clientKeyAddedDeletedToClientUsers: enabledEmailNotifications.includes(
       "clientKeyAddedDeletedToClientUsers"
     ),
+    clientKeyConsumerAddedDeletedToClientUsers:
+      enabledEmailNotifications.includes(
+        "clientKeyConsumerAddedDeletedToClientUsers"
+      ),
     producerKeychainKeyAddedDeletedToClientUsers:
       enabledEmailNotifications.includes(
         "producerKeychainKeyAddedDeletedToClientUsers"
