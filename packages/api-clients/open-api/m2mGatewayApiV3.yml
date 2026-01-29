@@ -9297,6 +9297,24 @@ paths:
       summary: List client users
       description: List client users
       operationId: getClientUsers
+      parameters:
+        - in: query
+          name: limit
+          description: Maximum number of users to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
       responses:
         "200":
           description: Request succeed
@@ -12733,9 +12751,19 @@ components:
         - name
         - familyName
     CompactUsers:
-      type: array
-      items:
-        $ref: "#/components/schemas/CompactUser"
+      type: object
+      additionalProperties: false
+      description: Paginated list of users
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactUser"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     Problem:
       properties:
         type:

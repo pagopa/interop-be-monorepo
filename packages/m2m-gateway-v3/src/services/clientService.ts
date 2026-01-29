@@ -285,7 +285,8 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getClientUsers(
       clientId: string,
-      ctx: WithLogger<M2MGatewayAppContext>
+      ctx: WithLogger<M2MGatewayAppContext>,
+      { limit, offset }: m2mGatewayApiV3.GetClientsQueryParams
     ): Promise<m2mGatewayApiV3.CompactUsers> {
       ctx.logger.info(`Retrieving users for client ${clientId}`);
 
@@ -295,11 +296,25 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
           headers: ctx.headers,
         });
 
-      return await Promise.all(
+      const users = await Promise.all(
         clientUsers.data.map(async (id) =>
           getSelfcareCompactUserById(clients, id, ctx)
         )
       );
+
+      const results: m2mGatewayApiV3.CompactUser[] = users.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results,
+        pagination: {
+          limit,
+          offset,
+          totalCount: users.length,
+        },
+      };
     },
   };
 }
