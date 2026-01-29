@@ -1,4 +1,4 @@
-import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import { delay, logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   genericInternalError,
   generateId,
@@ -34,10 +34,19 @@ export async function processUserEvent(
 ): Promise<void> {
   const userId = payload.user.userId;
   const institutionId = payload.institutionId;
-  const tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(
-    institutionId
-  );
   const productRole = payload.user.productRole;
+
+  let tenantId: Awaited<
+    ReturnType<ReadModelServiceSQL["getTenantIdBySelfcareId"]>
+  >;
+  for (let attempt = 0; attempt < config.tenantLookupMaxRetries; attempt++) {
+    tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(institutionId);
+    if (tenantId) break;
+    loggerInstance.warn(
+      `Tenant not found for selfcareId ${institutionId}, attempt ${attempt + 1}/${config.tenantLookupMaxRetries}`
+    );
+    await delay(config.tenantLookupRetryDelayMs);
+  }
 
   if (!tenantId) {
     throw genericInternalError(
