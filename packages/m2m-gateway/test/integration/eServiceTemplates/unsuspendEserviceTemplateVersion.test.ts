@@ -20,7 +20,6 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import {
   eserviceTemplateVersionNotFound,
-  eserviceTemplateVersionNotInSuspendedState,
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
@@ -147,38 +146,6 @@ describe("unsuspendEServiceTemplateVersion", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
-  });
-
-  it("Should throw eserviceTemplateVersionNotInSuspendedState in case of version not in suspended state", async () => {
-    const notSuspendedTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion =
-      {
-        ...getMockedApiEserviceTemplateVersion(),
-        state: "PUBLISHED",
-      };
-
-    const templateWithNotSuspendedVersion: eserviceTemplateApi.EServiceTemplate =
-      {
-        ...mockApiTemplate.data,
-        versions: [notSuspendedTemplateVersion],
-      };
-
-    mockGetEServiceTemplateById.mockResolvedValue({
-      data: templateWithNotSuspendedVersion,
-      metadata: { version: 1 },
-    });
-
-    await expect(
-      eserviceTemplateService.unsuspendEServiceTemplateVersion(
-        unsafeBrandId(templateWithNotSuspendedVersion.id),
-        unsafeBrandId(notSuspendedTemplateVersion.id),
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(
-      eserviceTemplateVersionNotInSuspendedState(
-        unsafeBrandId(templateWithNotSuspendedVersion.id),
-        unsafeBrandId(notSuspendedTemplateVersion.id)
-      )
-    );
   });
 
   it("Should throw missingMetadata in case the template returned by the polling GET call has no metadata", async () => {

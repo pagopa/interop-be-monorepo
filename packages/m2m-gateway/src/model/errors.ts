@@ -57,7 +57,6 @@ export const errorCodes = {
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
-  eserviceTemplateVersionNotInSuspendedState: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -436,16 +435,5 @@ export function invalidSeedForPurposeFromTemplate(
     )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",
-  });
-}
-
-export function eserviceTemplateVersionNotInSuspendedState(
-  templateId: string,
-  versionId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Version ${versionId} of e-service template ${templateId} is not in suspended state`,
-    code: "eserviceTemplateVersionNotInSuspendedState",
-    title: "E-Service Template Version Not In Suspended State",
   });
 }
