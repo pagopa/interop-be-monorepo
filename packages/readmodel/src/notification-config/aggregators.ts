@@ -143,6 +143,9 @@ export const aggregateUserNotificationConfig = ({
     purposeOverQuotaStateToConsumer: enabledInAppNotifications.includes(
       "purposeOverQuotaStateToConsumer"
     ),
+    clientCreatedDeletedToTenantUsers: enabledInAppNotifications.includes(
+      "clientCreatedDeletedToTenantUsers"
+    ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -216,6 +219,9 @@ export const aggregateUserNotificationConfig = ({
     ),
     purposeOverQuotaStateToConsumer: enabledEmailNotifications.includes(
       "purposeOverQuotaStateToConsumer"
+    ),
+    clientCreatedDeletedToTenantUsers: enabledEmailNotifications.includes(
+      "clientCreatedDeletedToTenantUsers"
     ),
   };
 

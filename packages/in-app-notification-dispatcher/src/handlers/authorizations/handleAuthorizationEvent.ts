@@ -9,6 +9,7 @@ import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedTo
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAddedDeletedToClientUsers.js";
 import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
+import { handleClientCreatedDeletedToTenantUsers } from "./handleClientCreatedDeletedToTenantUsers.js";
 
 export async function handleAuthorizationEvent(
   decodedMessage: AuthorizationEventEnvelopeV2,
@@ -70,10 +71,15 @@ export async function handleAuthorizationEvent(
     )
     .with(
       {
+        type: P.union("ClientAdded", "ClientDeleted"),
+      },
+      (msg) =>
+        handleClientCreatedDeletedToTenantUsers(msg, logger, readModelService)
+    )
+    .with(
+      {
         type: P.union(
-          "ClientAdded",
           "ClientAdminSet",
-          "ClientDeleted",
           "ClientUserAdded",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
