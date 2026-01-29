@@ -5,7 +5,7 @@ import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { CompactOrganization } from "../../src/model/domain/models.js";
+import { CompactOrganization } from "pagopa-interop-models";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /creators", () => {

@@ -10,10 +10,10 @@ import {
   EServiceTemplateVersionState,
   EServiceTemplateVersion,
   EServiceTemplate,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { CompactOrganization } from "./models.js";
 
 export function technologyToApiTechnology(
   input: Technology

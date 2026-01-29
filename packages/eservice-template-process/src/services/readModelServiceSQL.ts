@@ -19,6 +19,7 @@ import {
   WithMetadata,
   eserviceTemplateVersionState,
   genericInternalError,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import {
@@ -43,7 +44,6 @@ import {
 } from "pagopa-interop-readmodel";
 import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
 import { match } from "ts-pattern";
-import { CompactOrganization } from "../model/domain/models.js";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
 

@@ -41,10 +41,10 @@ import {
   TenantId,
   Tenant,
   EServiceTemplateEvent,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { CompactOrganization } from "../model/domain/models.js";
 import {
   attributeNotFound,
   checksumDuplicate,
