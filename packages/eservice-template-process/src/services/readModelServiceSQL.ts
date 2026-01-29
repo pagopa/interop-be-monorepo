@@ -20,6 +20,7 @@ import {
   eserviceTemplateVersionState,
   genericInternalError,
   CompactOrganization,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import {
@@ -367,7 +368,7 @@ export function readModelServiceBuilderSQL({
         .offset(offset);
 
       const data: CompactOrganization[] = queryResult.map((d) => ({
-        id: d.id,
+        id: unsafeBrandId(d.id),
         name: d.name,
       }));
 
