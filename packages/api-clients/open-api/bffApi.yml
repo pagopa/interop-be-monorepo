@@ -26331,7 +26331,7 @@ components:
         description:
           type: string
         producer:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTenant"
         agreement:
           $ref: "#/components/schemas/CompactAgreement"
         isMine:
@@ -26705,6 +26705,24 @@ components:
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this organization
+    CatalogTenant:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hasUnreadNotifications:
+          type: boolean
+          description: Indicates if there are unread notifications for this organization
+        selfcareId:
+          type: string
+          format: uuid
     TenantKind:
       type: string
       enum:
@@ -27352,7 +27370,7 @@ components:
         purposeDescription:
           type: string
         creator:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTenant"
     CatalogPurposeTemplates:
       type: object
       additionalProperties: false
@@ -29228,7 +29246,7 @@ components:
         description:
           type: string
         creator:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTenant"
         publishedVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     ProducerEServiceTemplate:
