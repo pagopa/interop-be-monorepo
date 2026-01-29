@@ -6,7 +6,11 @@ import {
   getMockedApiPurposeVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   mockInteropBeClients,
@@ -68,23 +72,14 @@ describe("toM2MGatewayApiPurpose", () => {
       const purposeVersion3 = testToM2mGatewayApiPurposeVersion(
         mockApiPurposeVersion3
       );
-      const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-        consumerId: mockApiPurpose.data.consumerId,
-        createdAt: mockApiPurpose.data.createdAt,
-        description: mockApiPurpose.data.description,
-        eserviceId: mockApiPurpose.data.eserviceId,
-        id: mockApiPurpose.data.id,
-        isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-        isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-        title: mockApiPurpose.data.title,
-        delegationId: mockApiPurpose.data.delegationId,
-        freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-        updatedAt: mockApiPurpose.data.updatedAt,
-        currentVersion: purposeVersion2,
-        rejectedVersion: purposeVersion4,
-        waitingForApprovalVersion: purposeVersion3,
-        purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-      };
+      const expectedM2MPurpose = testToM2mGatewayApiPurpose(
+        mockApiPurpose.data,
+        {
+          currentVersion: purposeVersion2,
+          rejectedVersion: purposeVersion4,
+          waitingForApprovalVersion: purposeVersion3,
+        }
+      );
 
       const result = await purposeService.getPurpose(
         generateId(),
@@ -123,22 +118,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const purposeVersion3 = testToM2mGatewayApiPurposeVersion(
       mockApiPurposeVersion3
     );
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
       currentVersion: purposeVersion2,
       waitingForApprovalVersion: purposeVersion3,
-      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-    };
+      rejectedVersion: undefined,
+    });
 
     const result = await purposeService.getPurpose(
       generateId(),
@@ -176,22 +160,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const purposeVersion3 = testToM2mGatewayApiPurposeVersion(
       mockApiPurposeVersion3
     );
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
       currentVersion: purposeVersion2,
       rejectedVersion: purposeVersion3,
-      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-    };
+      waitingForApprovalVersion: undefined,
+    });
 
     const result = await purposeService.getPurpose(
       generateId(),
@@ -222,23 +195,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const purposeVersion2 = testToM2mGatewayApiPurposeVersion(
       mockApiPurposeVersion2
     );
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
       waitingForApprovalVersion: purposeVersion1,
       rejectedVersion: purposeVersion2,
       currentVersion: undefined,
-      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-    };
+    });
 
     const result = await purposeService.getPurpose(
       generateId(),
@@ -269,22 +230,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const purposeVersion2 = testToM2mGatewayApiPurposeVersion(
       mockApiPurposeVersion2
     );
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
       currentVersion: purposeVersion1,
       rejectedVersion: purposeVersion2,
-      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-    };
+      waitingForApprovalVersion: undefined,
+    });
 
     const result = await purposeService.getPurpose(
       generateId(),
@@ -315,22 +265,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const purposeVersion2 = testToM2mGatewayApiPurposeVersion(
       mockApiPurposeVersion2
     );
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
       currentVersion: purposeVersion1,
       waitingForApprovalVersion: purposeVersion2,
-      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-    };
+      rejectedVersion: undefined,
+    });
 
     const result = await purposeService.getPurpose(
       generateId(),
@@ -368,22 +307,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const purposeVersion3 = testToM2mGatewayApiPurposeVersion(
       mockApiPurposeVersion3
     );
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
       currentVersion: purposeVersion1,
       waitingForApprovalVersion: purposeVersion3,
-      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-    };
+      rejectedVersion: undefined,
+    });
 
     const result = await purposeService.getPurpose(
       generateId(),

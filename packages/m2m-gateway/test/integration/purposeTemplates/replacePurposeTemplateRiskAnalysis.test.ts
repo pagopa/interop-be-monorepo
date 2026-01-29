@@ -22,7 +22,10 @@ import {
   mockPollingResponse,
   purposeTemplateService,
 } from "../../integrationUtils.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2MRiskAnalysisTemplateAnswer,
+} from "../../mockUtils.js";
 
 describe("replacePurposeTemplateRiskAnalysis", () => {
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
@@ -61,10 +64,10 @@ describe("replacePurposeTemplateRiskAnalysis", () => {
   };
 
   const mockRiskAnalysisFormTemplateSeed: m2mGatewayApi.RiskAnalysisFormTemplateSeed =
-  {
-    version: getLatestVersionFormRules(tenantKind.PA)!.version,
-    answers: newAnswer,
-  };
+    {
+      version: getLatestVersionFormRules(tenantKind.PA)!.version,
+      answers: newAnswer,
+    };
 
   const mockVersion = 2;
   const mockPurposeTemplateProcessUpdateResponse = getMockWithMetadata(
@@ -112,22 +115,22 @@ describe("replacePurposeTemplateRiskAnalysis", () => {
       );
 
     const expectedM2MRiskAnalysisFormTemplate: m2mGatewayApi.RiskAnalysisFormTemplate =
-    {
-      ...mockRiskAnalysisFormTemplate,
-      answers: {
-        ...Object.fromEntries(
-          Object.entries(mockRiskAnalysisFormTemplateSeed.answers).map(
-            ([key, value]) => [
-              key,
-              {
-                ...value,
-                id: result.answers[key].id,
-              },
-            ]
-          )
-        ),
-      },
-    };
+      {
+        version: mockRiskAnalysisFormTemplate.version,
+        answers: {
+          ...Object.fromEntries(
+            Object.entries(mockRiskAnalysisFormTemplateSeed.answers).map(
+              ([key, value]) => [
+                key,
+                testToM2MRiskAnalysisTemplateAnswer({
+                  ...value,
+                  id: result.answers[key].id,
+                }),
+              ]
+            )
+          ),
+        },
+      };
 
     expect(result).toStrictEqual(expectedM2MRiskAnalysisFormTemplate);
     expectApiClientPostToHaveBeenCalledWith({

@@ -12,7 +12,11 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getAgreementPurposes", () => {
@@ -53,45 +57,25 @@ describe("getAgreementPurposes", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const expectedM2MPurpose1: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose1.consumerId,
-      createdAt: mockApiPurpose1.createdAt,
-      description: mockApiPurpose1.description,
-      eserviceId: mockApiPurpose1.eserviceId,
-      id: mockApiPurpose1.id,
-      isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
-      title: mockApiPurpose1.title,
-      currentVersion: mockApiPurpose1.versions.at(0),
-      delegationId: mockApiPurpose1.delegationId,
-      freeOfChargeReason: mockApiPurpose1.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockApiPurpose1.updatedAt,
-      waitingForApprovalVersion: undefined,
-      purposeTemplateId: mockApiPurpose1.purposeTemplateId,
-    };
+    const purposeVersion1 = mockApiPurpose1.versions.at(0);
+    const expectedM2MPurpose1: m2mGatewayApi.Purpose =
+      testToM2mGatewayApiPurpose(mockApiPurpose1, {
+        currentVersion: purposeVersion1
+          ? testToM2mGatewayApiPurposeVersion(purposeVersion1)
+          : undefined,
+        waitingForApprovalVersion: undefined,
+        rejectedVersion: undefined,
+      });
 
-    const expectedM2MPurpose2: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose2.consumerId,
-      createdAt: mockApiPurpose2.createdAt,
-      description: mockApiPurpose2.description,
-      eserviceId: mockApiPurpose2.eserviceId,
-      id: mockApiPurpose2.id,
-      isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
-      title: mockApiPurpose2.title,
-      currentVersion: mockApiPurpose2.versions.at(0),
-      delegationId: mockApiPurpose2.delegationId,
-      freeOfChargeReason: mockApiPurpose2.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockApiPurpose2.updatedAt,
-      waitingForApprovalVersion: undefined,
-      purposeTemplateId: mockApiPurpose2.purposeTemplateId,
-    };
+    const purposeVersion2 = mockApiPurpose2.versions.at(0);
+    const expectedM2MPurpose2: m2mGatewayApi.Purpose =
+      testToM2mGatewayApiPurpose(mockApiPurpose2, {
+        currentVersion: purposeVersion2
+          ? testToM2mGatewayApiPurposeVersion(purposeVersion2)
+          : undefined,
+        waitingForApprovalVersion: undefined,
+        rejectedVersion: undefined,
+      });
 
     const m2mPurposesResponse: m2mGatewayApi.Purposes = {
       pagination: {

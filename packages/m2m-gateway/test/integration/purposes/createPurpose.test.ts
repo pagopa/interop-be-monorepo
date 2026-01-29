@@ -30,7 +30,11 @@ import {
   missingMetadata,
   requesterIsNotTheDelegateConsumer,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("createPurpose", () => {
   const mockPurposeProcessGetResponse: WithMetadata<purposeApi.Purpose> =
@@ -72,26 +76,16 @@ describe("createPurpose", () => {
   });
 
   const purposeVersion = mockPurposeProcessGetResponse.data.versions[0];
-  const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-    consumerId: mockPurposeProcessGetResponse.data.consumerId,
-    createdAt: mockPurposeProcessGetResponse.data.createdAt,
-    description: mockPurposeProcessGetResponse.data.description,
-    eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
-    id: mockPurposeProcessGetResponse.data.id,
-    isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-    isRiskAnalysisValid: mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
-    title: mockPurposeProcessGetResponse.data.title,
-    currentVersion: purposeVersion
-      ? testToM2mGatewayApiPurposeVersion(purposeVersion)
-      : undefined,
-    delegationId: mockPurposeProcessGetResponse.data.delegationId,
-    freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
-    rejectedVersion: undefined,
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
-    waitingForApprovalVersion: undefined,
-  };
+  const expectedM2MPurpose = testToM2mGatewayApiPurpose(
+    mockPurposeProcessGetResponse.data,
+    {
+      currentVersion: purposeVersion
+        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+        : undefined,
+      rejectedVersion: undefined,
+      waitingForApprovalVersion: undefined,
+    }
+  );
 
   const mockAppContext = getMockM2MAdminAppContext();
   const mockConsumerDelegation: delegationApi.Delegation =

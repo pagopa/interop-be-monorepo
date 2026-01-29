@@ -23,7 +23,11 @@ import {
   missingMetadata,
   missingPurposeCurrentVersion,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("archivePurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
@@ -73,22 +77,11 @@ describe("archivePurposeVersion", () => {
     const purposeVersion2 = testToM2mGatewayApiPurposeVersion(
       mockApiPurposeVersion2
     );
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
       currentVersion: purposeVersion1,
       rejectedVersion: purposeVersion2,
-      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-    };
+      waitingForApprovalVersion: undefined,
+    });
 
     const purpose = await purposeService.archivePurpose(
       unsafeBrandId(mockApiPurpose.data.id),

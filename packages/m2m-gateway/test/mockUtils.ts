@@ -17,6 +17,10 @@ import { z } from "zod";
 import {
   agreementApi,
   catalogApi,
+  m2mEventApi,
+  m2mGatewayApi,
+  purposeApi,
+  purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
@@ -169,3 +173,64 @@ export const testToM2mGatewayApiEService = (
   personalData: eservice.personalData,
 });
 
+export const testToM2mGatewayApiEServiceEvent = (
+  eserviceEvent: m2mEventApi.EServiceM2MEvent
+): m2mGatewayApi.EServiceEvent => ({
+  id: eserviceEvent.id,
+  eserviceId: eserviceEvent.eserviceId,
+  eventType: eserviceEvent.eventType,
+  eventTimestamp: eserviceEvent.eventTimestamp,
+  descriptorId: eserviceEvent.descriptorId,
+  producerDelegationId: eserviceEvent.producerDelegationId,
+});
+
+export const testToM2mGatewayApiEServiceTemplateEvent = (
+  eserviceTemplateEvent: m2mEventApi.EServiceTemplateM2MEvent
+): m2mGatewayApi.EServiceTemplateEvent => ({
+  id: eserviceTemplateEvent.id,
+  eventTimestamp: eserviceTemplateEvent.eventTimestamp,
+  eventType: eserviceTemplateEvent.eventType,
+  eserviceTemplateId: eserviceTemplateEvent.eserviceTemplateId,
+  eserviceTemplateVersionId: eserviceTemplateEvent.eserviceTemplateVersionId,
+});
+
+export const testToM2mGatewayApiPurpose = (
+  purpose: purposeApi.Purpose,
+  {
+    currentVersion,
+    waitingForApprovalVersion,
+    rejectedVersion,
+  }: {
+    currentVersion?: m2mGatewayApi.PurposeVersion;
+    waitingForApprovalVersion?: m2mGatewayApi.PurposeVersion;
+    rejectedVersion?: m2mGatewayApi.PurposeVersion;
+  }
+): m2mGatewayApi.Purpose => ({
+  id: purpose.id,
+  eserviceId: purpose.eserviceId,
+  consumerId: purpose.consumerId,
+  suspendedByConsumer: purpose.suspendedByConsumer,
+  suspendedByProducer: purpose.suspendedByProducer,
+  title: purpose.title,
+  description: purpose.description,
+  createdAt: purpose.createdAt,
+  updatedAt: purpose.updatedAt,
+  isRiskAnalysisValid: purpose.isRiskAnalysisValid,
+  isFreeOfCharge: purpose.isFreeOfCharge,
+  freeOfChargeReason: purpose.freeOfChargeReason,
+  delegationId: purpose.delegationId,
+  currentVersion,
+  waitingForApprovalVersion,
+  rejectedVersion,
+  purposeTemplateId: purpose.purposeTemplateId,
+});
+
+export const testToM2MRiskAnalysisTemplateAnswer = (
+  answer: purposeTemplateApi.RiskAnalysisTemplateAnswer
+): m2mGatewayApi.RiskAnalysisTemplateAnswer => ({
+  id: answer.id,
+  values: answer.values,
+  editable: answer.editable,
+  annotationText: answer.annotation ? answer.annotation.text : undefined,
+  suggestedValues: answer.suggestedValues,
+});
