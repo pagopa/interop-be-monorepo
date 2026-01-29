@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
 import { WithLogger, assertFeatureFlagEnabled } from "pagopa-interop-commons";
-import { NotificationConfigProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import {
@@ -11,7 +10,7 @@ import {
 } from "../api/notificationConfigApiConverter.js";
 
 export function notificationConfigServiceBuilder(
-  notificationConfigClient: NotificationConfigProcessClient
+  notificationConfigClient: notificationConfigApi.NotificationConfigProcessClient
 ) {
   return {
     getTenantNotificationConfig: async ({
