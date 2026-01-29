@@ -1,11 +1,11 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
-export type CatalogProcessClient = {
+type CatalogProcessClient = {
   client: ReturnType<typeof catalogApi.createProcessApiClient>;
 };
 
-export type PagoPAInteropBeClients = {
+type PagoPAInteropBeClients = {
   catalogProcess: CatalogProcessClient;
 };
 

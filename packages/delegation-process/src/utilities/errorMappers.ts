@@ -19,7 +19,9 @@ export const getDelegationsErrorMapper = (
 ): number =>
   match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const getConsumerDelegatorsErrorMapper = getDelegationsErrorMapper;
+/** @alias */
 export const getConsumerDelegatorsWithAgreementsErrorMapper =
   getConsumerDelegatorsErrorMapper;
 export const getConsumerEservicesErrorMapper = (
@@ -94,6 +96,7 @@ export const approveDelegationErrorMapper = (
     .with("incorrectState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const rejectDelegationErrorMapper = approveDelegationErrorMapper;
 
 export const getDelegationContractErrorMapper = (

@@ -11,7 +11,6 @@ import {
   Purpose,
 } from "pagopa-interop-models";
 import {
-  genericLogger,
   initPDFGenerator,
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
@@ -32,20 +31,22 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/service/readModelSql.js";
-import { config } from "../src/config/config.js";
-import { agreementContractBuilder } from "../src/service/agreement/agreementContractBuilder.js";
 
-export const { cleanup, postgresDB, fileManager, readModelDB } =
-  await setupTestContainersVitest(
-    undefined,
-    inject("fileManagerConfig"),
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+const { cleanup, fileManager, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
-afterEach(cleanup);
+afterEach(async () => {
+  vi.clearAllMocks();
+  await cleanup();
+});
+
+export { cleanup, fileManager };
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
   pipe: true,
@@ -79,20 +80,7 @@ export const readModelService = readModelServiceBuilderSQL({
 
 export const pdfGenerator = await initPDFGenerator();
 
-export const agreementContract = agreementContractBuilder(
-  readModelService,
-  pdfGenerator,
-  fileManager,
-  config,
-  genericLogger
-);
-
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await upsertAgreement(readModelDB, agreement, 0);
-};
-export const writeOnlyOneAgreement = async (
-  agreement: Agreement
-): Promise<void> => {
   await upsertAgreement(readModelDB, agreement, 0);
 };
 

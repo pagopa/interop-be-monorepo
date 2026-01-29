@@ -13,9 +13,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const M2MEventsDispatcherConfig = KafkaConsumerConfig.and(
-  AgreementTopicConfig
-)
+const M2MEventsDispatcherConfig = KafkaConsumerConfig.and(AgreementTopicConfig)
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
   .and(DelegationTopicConfig)
@@ -26,9 +24,7 @@ export const M2MEventsDispatcherConfig = KafkaConsumerConfig.and(
   .and(M2MEventSQLDbConfig)
   .and(ReadModelSQLDbConfig);
 
-export type M2MEventsDispatcherConfig = z.infer<
-  typeof M2MEventsDispatcherConfig
->;
+type M2MEventsDispatcherConfig = z.infer<typeof M2MEventsDispatcherConfig>;
 
 export const config: M2MEventsDispatcherConfig =
   M2MEventsDispatcherConfig.parse(process.env);

@@ -27,6 +27,6 @@ const PnConsumersConfig = LoggerConfig.and(ReadModelSQLDbConfig)
       }))
   );
 
-export type PnConsumersConfig = z.infer<typeof PnConsumersConfig>;
+type PnConsumersConfig = z.infer<typeof PnConsumersConfig>;
 
 export const config: PnConsumersConfig = PnConsumersConfig.parse(process.env);

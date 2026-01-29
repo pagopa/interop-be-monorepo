@@ -25,7 +25,7 @@ import {
   RiskAnalysisTemplateDocumentId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
-  TenantKind,
+  TargetTenantKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTemplateModels.js";
@@ -70,7 +70,7 @@ export const riskAnalysisTemplateDocumentBuilder = (
       purposeTemplate: PurposeTemplate,
       creatorName: string,
       creatorIPACode: string | undefined,
-      tenantKind: TenantKind,
+      tenantKind: TargetTenantKind,
       language: Language,
       messageTimestamp: Date
     ): Promise<RiskAnalysisTemplateDocument> => {
@@ -284,12 +284,15 @@ function getAnswerAnnotation(
   }
 
   const docs = annotation.docs
-    .map((doc) => `<div class="doc">${doc.prettyName}.pdf</div>`)
+    .map(
+      (doc) =>
+        `<div class="doc"><i>Documento allegato: ${doc.prettyName} (id: ${doc.id}, checksum: ${doc.checksum})</i></div>`
+    )
     .join("");
 
-  return `<div class="info-label">Annotazione: ${Handlebars.escapeExpression(
+  return `<div class="info-label"><i>Annotazione: ${Handlebars.escapeExpression(
     annotation.text
-  )}</div>
+  )}</i></div>
         ${docs}`;
 }
 

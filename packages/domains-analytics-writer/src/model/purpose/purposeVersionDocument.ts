@@ -10,12 +10,3 @@ export const PurposeVersionDocumentSchema = createSelectSchema(
 export type PurposeVersionDocumentSchema = z.infer<
   typeof PurposeVersionDocumentSchema
 >;
-
-export const PurposeVersionDocumentDeletingSchema =
-  PurposeVersionDocumentSchema.pick({
-    id: true,
-    deleted: true,
-  });
-export type PurposeVersionDocumentDeletingSchema = z.infer<
-  typeof PurposeVersionDocumentDeletingSchema
->;

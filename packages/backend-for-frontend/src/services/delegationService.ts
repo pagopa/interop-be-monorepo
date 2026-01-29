@@ -125,7 +125,7 @@ async function enhanceDelegation<
     .exhaustive();
 }
 
-export async function getDelegation(
+async function getDelegation(
   delegationClient: DelegationProcessClient,
   headers: BffAppContext["headers"],
   delegationId: DelegationId
