@@ -3,6 +3,13 @@ import { QueryParametersByAlias } from "./utils.js";
 
 type TenantApi = typeof tenantApi.tenantApi.api;
 
+export type TenantProcessClient = {
+  tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
+  tenantAttribute: ReturnType<typeof tenantApi.createTenantAttributeApiClient>;
+  selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;
+  m2m: ReturnType<typeof tenantApi.createM2mApiClient>;
+};
+
 export type GetTenantsQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenants"
