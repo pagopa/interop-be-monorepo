@@ -1,6 +1,5 @@
 import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
-import { InAppNotificationManagerClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import {
@@ -10,7 +9,7 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(
-  inAppNotificationManagerClient: InAppNotificationManagerClient
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient
 ) {
   return {
     // eslint-disable-next-line max-params
