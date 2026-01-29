@@ -89,6 +89,7 @@ export const riskAnalysisDocumentBuilder = (
         // eslint-disable-next-line functional/immutable-data
         purpose.riskAnalysisForm.version = "1.0";
       }
+
       const documentCreatedAt = messageTimestamp;
       const riskAnalysisVersion = purpose.riskAnalysisForm.version;
 
