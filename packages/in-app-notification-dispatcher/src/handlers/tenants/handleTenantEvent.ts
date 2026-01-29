@@ -8,6 +8,7 @@ import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleCertifiedVerifiedAttributeAssignedRevokedToAssignee } from "./handleCertifiedVerifiedAttributeAssignedRevokedToAssignee.js";
+import { handleDeclaredAttributeAssignedRevokedToAssignee } from "./handleDeclaredAttributeAssignedRevokedToAssignee.js";
 
 export async function handleTenantEvent(
   decodedMessage: TenantEventEnvelopeV2,
@@ -36,10 +37,24 @@ export async function handleTenantEvent(
     .with(
       {
         type: P.union(
+          "TenantDeclaredAttributeAssigned",
+          "TenantDeclaredAttributeRevoked"
+        ),
+      },
+      ({ data: { tenant, attributeId }, type }) =>
+        handleDeclaredAttributeAssignedRevokedToAssignee(
+          tenant,
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: P.union(
           "TenantOnboarded",
           "TenantOnboardDetailsUpdated",
-          "TenantDeclaredAttributeAssigned",
-          "TenantDeclaredAttributeRevoked",
           "TenantVerifiedAttributeExpirationUpdated",
           "TenantVerifiedAttributeExtensionUpdated",
           "MaintenanceTenantDeleted",
