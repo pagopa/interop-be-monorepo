@@ -93,7 +93,6 @@ type SelfcareProcessClient = {
   >;
 };
 
-
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;

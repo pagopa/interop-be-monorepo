@@ -117,8 +117,9 @@ export function testToM2MEServiceRiskAnalysisAnswers(
   };
 }
 
-export const getMockm2mGatewayApiV3CompactUser = (): m2mGatewayApiV3.CompactUser => ({
-  userId: generateId(),
-  name: generateMock(z.string()),
-  familyName: generateMock(z.string()),
-});
+export const getMockm2mGatewayApiV3CompactUser =
+  (): m2mGatewayApiV3.CompactUser => ({
+    userId: generateId(),
+    name: generateMock(z.string()),
+    familyName: generateMock(z.string()),
+  });

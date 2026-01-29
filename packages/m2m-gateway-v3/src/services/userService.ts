@@ -1,7 +1,10 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { UserId } from "pagopa-interop-models";
-import { toM2MGatewayApiCompactUser, toM2MGatewayApiUser } from "../api/usersApiConverter.js";
+import {
+  toM2MGatewayApiCompactUser,
+  toM2MGatewayApiUser,
+} from "../api/usersApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
@@ -15,7 +18,6 @@ export type GetUsersQueryParams = {
 
 export type UserService = ReturnType<typeof userServiceBuilder>;
 
-
 export async function getSelfcareCompactUserById(
   clients: PagoPAInteropBeClients,
   userId: string,
@@ -25,15 +27,12 @@ export async function getSelfcareCompactUserById(
     correlationId,
   }: WithLogger<M2MGatewayAppContext<M2MAdminAuthData>>
 ): Promise<m2mGatewayApiV3.CompactUser> {
-
-  const { data: tenant } =
-    await clients.tenantProcessClient.tenant.getTenant({
-      params: { id: authData.organizationId },
-      headers,
-    });
+  const { data: tenant } = await clients.tenantProcessClient.tenant.getTenant({
+    params: { id: authData.organizationId },
+    headers,
+  });
 
   assertTenantHasSelfcareId(tenant);
-
 
   const user = await clients.selfcareProcessClient.user.getUserInfoUsingGET({
     params: { id: userId },
@@ -60,7 +59,8 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const { roles, limit, offset } = queryParams;
 
       logger.info(
-        `Retrieving users for organization ${authData.organizationId
+        `Retrieving users for organization ${
+          authData.organizationId
         } with roles ${roles.join(",")}, limit ${limit}, offset ${offset}`
       );
 
@@ -75,13 +75,15 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
 
       // Fetch users from SelfCare (API already returns only active users)
       const { data: users } =
-        await clients.selfcareProcessClient.institution.getInstitutionUsersByProductUsingGET({
-          params: { institutionId: tenant.selfcareId },
-          queries: {
-            productRoles: roles.length > 0 ? roles.join(",") : undefined,
-          },
-          headers,
-        });
+        await clients.selfcareProcessClient.institution.getInstitutionUsersByProductUsingGET(
+          {
+            params: { institutionId: tenant.selfcareId },
+            queries: {
+              productRoles: roles.length > 0 ? roles.join(",") : undefined,
+            },
+            headers,
+          }
+        );
 
       // Apply pagination (in-memory since SelfCare doesn't support pagination)
       const paginatedUsers = users.slice(offset, offset + limit);
@@ -123,13 +125,15 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
 
       // Fetch users from SelfCare (API already returns only active users)
       const { data: users } =
-        await clients.selfcareProcessClient.institution.getInstitutionUsersByProductUsingGET({
-          params: { institutionId: selfcareId },
-          queries: {
-            userId,
-          },
-          headers,
-        });
+        await clients.selfcareProcessClient.institution.getInstitutionUsersByProductUsingGET(
+          {
+            params: { institutionId: selfcareId },
+            queries: {
+              userId,
+            },
+            headers,
+          }
+        );
 
       const user = users[0];
       if (users.length !== 1 || !user || user.id !== userId) {

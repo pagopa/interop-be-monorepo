@@ -289,18 +289,15 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.CompactUsers> {
       ctx.logger.info(`Retrieving users for client ${clientId}`);
 
-      const clientUsers = await clients.authorizationClient.client.getClientUsers({
-        params: { clientId },
-        headers: ctx.headers,
-      });
+      const clientUsers =
+        await clients.authorizationClient.client.getClientUsers({
+          params: { clientId },
+          headers: ctx.headers,
+        });
 
       return await Promise.all(
         clientUsers.data.map(async (id) =>
-          getSelfcareCompactUserById(
-            clients,
-            id,
-            ctx
-          )
+          getSelfcareCompactUserById(clients, id, ctx)
         )
       );
     },

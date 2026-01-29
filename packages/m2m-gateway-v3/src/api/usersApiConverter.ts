@@ -15,7 +15,6 @@ export function toM2MGatewayApiUser(
   };
 }
 
-
 export const toM2MGatewayApiCompactUser = (
   input: selfcareV2ClientApi.UserResponse,
   userId: string
