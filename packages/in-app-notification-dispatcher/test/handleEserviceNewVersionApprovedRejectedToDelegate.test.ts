@@ -33,6 +33,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   const eservice = getMockEService(generateId<EServiceId>(), delegator.id, [
     getMockDescriptorPublished(),
   ]);
+  const descriptorId = eservice.descriptors[0].id;
 
   const delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,
@@ -58,6 +59,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     await expect(() =>
       handleEserviceNewVersionApprovedRejectedToDelegate(
         undefined,
+        descriptorId,
         logger,
         readModelService,
         "EServiceDescriptorApprovedByDelegator"
@@ -79,6 +81,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     await expect(() =>
       handleEserviceNewVersionApprovedRejectedToDelegate(
         toEServiceV2(eserviceWithoutDelegation),
+        descriptorId,
         logger,
         readModelService,
         "EServiceDescriptorApprovedByDelegator"
@@ -98,6 +101,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     await expect(() =>
       handleEserviceNewVersionApprovedRejectedToDelegate(
         toEServiceV2(eservice),
+        descriptorId,
         logger,
         readModelService,
         "EServiceDescriptorApprovedByDelegator"
@@ -115,6 +119,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     await expect(() =>
       handleEserviceNewVersionApprovedRejectedToDelegate(
         toEServiceV2(eservice),
+        descriptorId,
         logger,
         readModelService,
         "EServiceDescriptorApprovedByDelegator"
@@ -138,6 +143,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
       await expect(() =>
         handleEserviceNewVersionApprovedRejectedToDelegate(
           toEServiceV2(eservice),
+          descriptorId,
           logger,
           readModelService,
           "EServiceDescriptorApprovedByDelegator"
@@ -166,6 +172,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     await expect(() =>
       handleEserviceNewVersionApprovedRejectedToDelegate(
         toEServiceV2(eserviceWithUnknownDelegator),
+        descriptorId,
         logger,
         readModelService,
         "EServiceDescriptorApprovedByDelegator"
@@ -179,6 +186,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     const notifications =
       await handleEserviceNewVersionApprovedRejectedToDelegate(
         toEServiceV2(eservice),
+        descriptorId,
         logger,
         readModelService,
         "EServiceDescriptorApprovedByDelegator"
@@ -195,11 +203,11 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   }>([
     {
       eventType: "EServiceDescriptorApprovedByDelegator",
-      expectedBody: `L'ente delegante ${delegator.name} ha approvato la pubblicazione della nuova versione dell'e-service ${eservice.name} che gestisci tramite delega.`,
+      expectedBody: `L'ente delegante ${delegator.name} ha approvato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.`,
     },
     {
       eventType: "EServiceDescriptorRejectedByDelegator",
-      expectedBody: `L'ente delegante ${delegator.name} ha rifiutato la pubblicazione della nuova versione dell'e-service ${eservice.name} che gestisci tramite delega.`,
+      expectedBody: `L'ente delegante ${delegator.name} ha rifiutato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.`,
     },
   ])(
     "should handle $eventType event correctly",
@@ -214,6 +222,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
       const notifications =
         await handleEserviceNewVersionApprovedRejectedToDelegate(
           toEServiceV2(eservice),
+          descriptorId,
           logger,
           readModelService,
           eventType
@@ -226,7 +235,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         tenantId: user.tenantId,
         body: expectedBody,
         notificationType: "eserviceNewVersionApprovedRejectedToDelegate",
-        entityId: delegation.id,
+        entityId: `${eservice.id}/${descriptorId}`,
       }));
 
       expect(notifications).toEqual(
@@ -246,6 +255,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     const notifications =
       await handleEserviceNewVersionApprovedRejectedToDelegate(
         toEServiceV2(eservice),
+        descriptorId,
         logger,
         readModelService,
         "EServiceDescriptorApprovedByDelegator"

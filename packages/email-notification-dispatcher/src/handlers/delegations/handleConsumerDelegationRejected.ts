@@ -76,7 +76,6 @@ export async function handleConsumerDelegationRejected(
         ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
-        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

@@ -53,11 +53,11 @@ export async function processUserEvent(
 
       try {
         const { serialized } = await refreshableToken.get();
-        await notificationConfigProcessClient.ensureUserNotificationConfigExistsWithRoles(
+        await notificationConfigProcessClient.ensureUserNotificationConfigExistsWithRole(
           {
             userId,
             tenantId,
-            userRoles: [userRoleToApiUserRole(productRole)],
+            userRole: userRoleToApiUserRole(productRole),
           },
           {
             headers: {

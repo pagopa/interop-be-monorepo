@@ -49,7 +49,7 @@ export async function handlePurposeStatusChangedToProducer(
 
   const consumer = await retrieveTenant(purpose.consumerId, readModelService);
 
-  const body = inAppTemplates.purposeStatusChangedToProducer(
+  const body = inAppTemplates.purposeStatusChangedToConsumer(
     purpose.title,
     consumer.name,
     eservice.name,

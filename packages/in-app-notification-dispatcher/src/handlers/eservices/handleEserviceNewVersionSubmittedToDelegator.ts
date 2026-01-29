@@ -3,6 +3,8 @@ import {
   EServiceV2,
   missingKafkaMessageDataError,
   fromEServiceV2,
+  DescriptorId,
+  EServiceIdDescriptorId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -15,6 +17,7 @@ import { activeProducerDelegationNotFound } from "../../models/errors.js";
 
 export async function handleEserviceNewVersionSubmittedToDelegator(
   eserviceV2Msg: EServiceV2 | undefined,
+  descriptorId: DescriptorId,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
@@ -63,11 +66,15 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
     eservice.name
   );
 
+  const entityId = EServiceIdDescriptorId.parse(
+    `${eservice.id}/${descriptorId}`
+  );
+
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceNewVersionSubmittedToDelegator",
-    entityId: producerDelegation.id,
+    entityId,
   }));
 }

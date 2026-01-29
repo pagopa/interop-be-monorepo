@@ -12,7 +12,6 @@ import {
   Agreement,
   agreementState,
   CorrelationId,
-  DescriptorId,
   EService,
   EServiceId,
   generateId,
@@ -21,7 +20,10 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { descriptorNotFound, tenantNotFound } from "../src/models/errors.js";
+import {
+  eserviceWithoutDescriptors,
+  tenantNotFound,
+} from "../src/models/errors.js";
 import { handleEserviceDescriptorSuspended } from "../src/handlers/eservices/handleEserviceDescriptorSuspended.js";
 import {
   addOneAgreement,
@@ -78,7 +80,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
     await expect(() =>
       handleEserviceDescriptorSuspended({
         eserviceV2Msg: undefined,
-        descriptorId: descriptor.id,
         logger,
         templateService,
         readModelService,
@@ -101,7 +102,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
     await expect(() =>
       handleEserviceDescriptorSuspended({
         eserviceV2Msg: toEServiceV2(eserviceWithUnknownProducer),
-        descriptorId: descriptor.id,
         logger,
         templateService,
         readModelService,
@@ -110,25 +110,37 @@ describe("handleEserviceDescriptorSuspended", async () => {
     ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
-  it("should throw descriptorNotFound when descriptor is not found", async () => {
-    const nonExistentDescriptorId = generateId<DescriptorId>();
+  it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {
+    const eserviceNoDescriptor: EService = {
+      ...getMockEService(),
+      descriptors: [],
+    };
+    await addOneEService(eserviceNoDescriptor);
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: {},
+      producerId: producerTenant.id,
+      eserviceId: eserviceNoDescriptor.id,
+      consumerId: consumerTenants[0].id,
+    };
+    await addOneAgreement(agreement);
 
     await expect(() =>
       handleEserviceDescriptorSuspended({
-        eserviceV2Msg: toEServiceV2(eservice),
-        descriptorId: nonExistentDescriptorId,
+        eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
         logger,
         templateService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(descriptorNotFound(eservice.id, nonExistentDescriptorId));
+    ).rejects.toThrow(eserviceWithoutDescriptors(agreement.eserviceId));
   });
 
   it("should skip event if no consumer is present for the eservice", async () => {
     const messages = await handleEserviceDescriptorSuspended({
       eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: descriptor.id,
       logger,
       templateService,
       readModelService,
@@ -152,7 +164,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
 
     const messages = await handleEserviceDescriptorSuspended({
       eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: descriptor.id,
       logger,
       templateService,
       readModelService,
@@ -213,7 +224,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
 
     const messages = await handleEserviceDescriptorSuspended({
       eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: descriptor.id,
       logger,
       templateService,
       readModelService,
@@ -257,7 +267,6 @@ describe("handleEserviceDescriptorSuspended", async () => {
 
     const messages = await handleEserviceDescriptorSuspended({
       eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: descriptor.id,
       logger,
       templateService,
       readModelService,
@@ -276,77 +285,5 @@ describe("handleEserviceDescriptorSuspended", async () => {
       expect(message.email.body).toContain(descriptor.version);
       expect(message.email.body).toContain(`Visualizza e-service`);
     });
-  });
-
-  it("should include both eserviceId and descriptorId in the deeplink entityId", async () => {
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      state: agreementState.active,
-      stamps: {},
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenants[0].id,
-    };
-    await addOneAgreement(agreement);
-
-    const messages = await handleEserviceDescriptorSuspended({
-      eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: descriptor.id,
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toBeGreaterThan(0);
-    // Verify that the email body contains the correctly formatted deeplink with eserviceId/descriptorId
-    // The entityId is URL-encoded in the template, so we need to check for the encoded version
-    const expectedEntityId = encodeURIComponent(
-      `${eservice.id}/${descriptor.id}`
-    );
-    messages.forEach((message) => {
-      expect(message.email.body).toContain(expectedEntityId);
-    });
-  });
-
-  it("should set tenantId to consumer's tenant ID, not producer's ID", async () => {
-    const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({
-      ...getMockAgreement(),
-      state: agreementState.active,
-      stamps: {},
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    }));
-    await addOneAgreement(agreements[0]);
-    await addOneAgreement(agreements[1]);
-
-    const messages = await handleEserviceDescriptorSuspended({
-      eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: descriptor.id,
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(4);
-    // Verify that all messages have tenantId set to consumer's tenant ID, not producer's ID
-    messages.forEach((message) => {
-      expect(message.tenantId).not.toBe(producerTenant.id);
-      expect(
-        consumerTenants.some((consumer) => consumer.id === message.tenantId)
-      ).toBe(true);
-    });
-
-    // Verify specific consumer tenant IDs are present
-    expect(
-      messages.some((message) => message.tenantId === consumerTenants[0].id)
-    ).toBe(true);
-    expect(
-      messages.some((message) => message.tenantId === consumerTenants[1].id)
-    ).toBe(true);
   });
 });

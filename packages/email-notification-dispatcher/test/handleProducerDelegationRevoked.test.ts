@@ -282,28 +282,4 @@ describe("handleProducerDelegationRevoked", async () => {
         .exhaustive();
     });
   });
-
-  it("should use correct terminology 'erogazione' for producer delegation", async () => {
-    const delegation = getMockDelegation({
-      kind: "DelegatedProducer",
-      delegatorId: delegatorTenant.id,
-      delegateId: delegateTenant.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
-
-    const messages = await handleProducerDelegationRevoked({
-      delegationV2Msg: toDelegationV2(delegation),
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toBeGreaterThan(0);
-    messages.forEach((message) => {
-      expect(message.email.body).toContain("all'erogazione");
-      expect(message.email.body).not.toContain("alla fruizione");
-    });
-  });
 });

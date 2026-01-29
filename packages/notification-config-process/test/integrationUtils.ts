@@ -1,7 +1,6 @@
 import {
   ReadEvent,
   StoredEvent,
-  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
@@ -53,17 +52,6 @@ export const readLastNotificationConfigEvent = async (
   id: TenantNotificationConfigId | UserNotificationConfigId
 ): Promise<ReadEvent<NotificationConfigEvent>> =>
   await readLastEventByStreamId(id, "notification_config", postgresDB);
-
-export const readNotificationConfigEventByVersion = async (
-  id: TenantNotificationConfigId | UserNotificationConfigId,
-  version: number
-): Promise<ReadEvent<NotificationConfigEvent>> =>
-  await readEventByStreamIdAndVersion(
-    id,
-    version,
-    "notification_config",
-    postgresDB
-  );
 
 const writeTenantNotificationConfigInEventstore = async (
   tenantNotificationConfig: TenantNotificationConfig

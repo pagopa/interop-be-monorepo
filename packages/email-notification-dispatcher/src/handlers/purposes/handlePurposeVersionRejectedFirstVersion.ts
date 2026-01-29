@@ -46,7 +46,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
 
   const [htmlTemplate, eservice, consumer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.purposeVersionRejectedMailTemplate
+      eventMailTemplateType.purposeVersionActivatedMailTemplate
     ),
     retrieveEService(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
@@ -82,7 +82,6 @@ export async function handlePurposeVersionRejectedFirstVersion(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
-        selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },
