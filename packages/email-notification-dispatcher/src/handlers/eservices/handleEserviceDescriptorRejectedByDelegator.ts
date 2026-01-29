@@ -79,7 +79,6 @@ export async function handleEserviceDescriptorRejectedByDelegator(
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
-        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

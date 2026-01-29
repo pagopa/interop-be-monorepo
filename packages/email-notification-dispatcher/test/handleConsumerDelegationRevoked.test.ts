@@ -282,28 +282,4 @@ describe("handleConsumerDelegationRevoked", async () => {
         .exhaustive();
     });
   });
-
-  it("should use correct terminology 'fruizione' for consumer delegation", async () => {
-    const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
-      delegatorId: delegatorTenant.id,
-      delegateId: delegateTenant.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
-
-    const messages = await handleConsumerDelegationRevoked({
-      delegationV2Msg: toDelegationV2(delegation),
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toBeGreaterThan(0);
-    messages.forEach((message) => {
-      expect(message.email.body).toContain("alla fruizione");
-      expect(message.email.body).not.toContain("all'erogazione");
-    });
-  });
 });

@@ -145,8 +145,8 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
       );
 
     const body = inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
-      updatedEServiceTemplate.name,
-      "A tenant"
+      creatorTenant.name,
+      updatedEServiceTemplate.name
     );
 
     const expectedNotifications = users.map((user) => ({

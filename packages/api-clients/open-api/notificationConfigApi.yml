@@ -284,7 +284,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/ensureUserNotificationConfigExistsWithRoles:
+  /internal/ensureUserNotificationConfigExistsWithRole:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -292,9 +292,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Create a user's default notification configuration if missing or add roles to it
-      description: Create a user's default notification configuration if missing or add roles to it
-      operationId: ensureUserNotificationConfigExistsWithRoles
+      summary: Create a user's default notification configuration if missing or add role to it
+      description: Create a user's default notification configuration if missing or add role to it
+      operationId: ensureUserNotificationConfigExistsWithRole
       requestBody:
         description: A user notification config seed
         content:
@@ -304,7 +304,7 @@ paths:
         required: true
       responses:
         "204":
-          description: User notification config created or roles added if missing
+          description: User notification config created or role added if missing
         "400":
           description: Invalid input
           content:
@@ -556,7 +556,7 @@ components:
       required:
         - userId
         - tenantId
-        - userRoles
+        - userRole
       properties:
         userId:
           type: string
@@ -564,11 +564,8 @@ components:
         tenantId:
           type: string
           format: uuid
-        userRoles:
-          type: array
-          minItems: 1
-          items:
-            $ref: "#/components/schemas/UserRole"
+        userRole:
+          $ref: "#/components/schemas/UserRole"
     TenantNotificationConfigUpdateSeed:
       type: object
       additionalProperties: false

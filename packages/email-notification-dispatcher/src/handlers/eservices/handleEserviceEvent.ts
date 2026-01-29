@@ -23,41 +23,32 @@ export async function handleEServiceEvent(
     correlationId,
   } = params;
   return match(decodedMessage)
-    .with(
-      { type: "EServiceDescriptorPublished" },
-      ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorPublished({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+    .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
+      handleEserviceDescriptorPublished({
+        eserviceV2Msg: eservice,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
-    .with(
-      { type: "EServiceDescriptorActivated" },
-      ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorActivated({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+    .with({ type: "EServiceDescriptorActivated" }, ({ data: { eservice } }) =>
+      handleEserviceDescriptorActivated({
+        eserviceV2Msg: eservice,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
-    .with(
-      { type: "EServiceDescriptorSuspended" },
-      ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorSuspended({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+    .with({ type: "EServiceDescriptorSuspended" }, ({ data: { eservice } }) =>
+      handleEserviceDescriptorSuspended({
+        eserviceV2Msg: eservice,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .with(
       { type: "EServiceDescriptorSubmittedByDelegate" },

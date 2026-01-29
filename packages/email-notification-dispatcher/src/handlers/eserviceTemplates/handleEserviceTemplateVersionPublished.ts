@@ -117,7 +117,6 @@ export async function handleEServiceTemplateVersionPublished(
             creatorName: creator.name,
             version: eserviceTemplateVersion.version,
             templateName: eserviceTemplate.name,
-            selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),
         },

@@ -294,43 +294,4 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       expect(message.email.body).toContain(eservice.name);
     });
   });
-
-  it("should set tenantId to consumer's tenant ID, not producer's ID", async () => {
-    const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({
-      ...getMockAgreement(),
-      state: agreementState.active,
-      stamps: {},
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    }));
-    await addOneAgreement(agreements[0]);
-    await addOneAgreement(agreements[1]);
-
-    const messages = await handleProducerKeychainEserviceAdded({
-      eserviceId: eservice.id,
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(4);
-    // Verify that all messages have tenantId set to consumer's tenant ID, not producer's ID
-    messages.forEach((message) => {
-      expect(message.tenantId).not.toBe(producerTenant.id);
-      expect(
-        consumerTenants.some((consumer) => consumer.id === message.tenantId)
-      ).toBe(true);
-    });
-
-    // Verify specific consumer tenant IDs are present
-    expect(
-      messages.some((message) => message.tenantId === consumerTenants[0].id)
-    ).toBe(true);
-    expect(
-      messages.some((message) => message.tenantId === consumerTenants[1].id)
-    ).toBe(true);
-  });
 });

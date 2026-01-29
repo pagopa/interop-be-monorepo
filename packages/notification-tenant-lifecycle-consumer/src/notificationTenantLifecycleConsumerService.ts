@@ -68,9 +68,15 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
         }
       );
     } catch (error) {
-      throw genericInternalError(
-        `Error deleting default notification config for tenant ${tenantId}. Reason: ${error}`
-      );
+      if (isAxiosError(error) && error.response?.status === 404) {
+        logger.info(
+          `Notification config for tenant ${tenantId} not found, skipping deletion`
+        );
+      } else {
+        throw genericInternalError(
+          `Error deleting default notification config for tenant ${tenantId}. Reason: ${error}`
+        );
+      }
     }
   };
 

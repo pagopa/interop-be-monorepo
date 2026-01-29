@@ -88,7 +88,6 @@ export async function handleTenantCertifiedAttributeRevoked(
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         certifierName,
         attributeName: attribute.name,
-        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

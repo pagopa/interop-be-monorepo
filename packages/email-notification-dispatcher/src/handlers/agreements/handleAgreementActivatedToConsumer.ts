@@ -74,7 +74,6 @@ export async function handleAgreementActivatedToConsumer(
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
-        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

@@ -114,22 +114,22 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
     {
       eventType: "ProducerDelegationApproved",
       kind: delegationKind.delegatedProducer,
-      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha accettato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service "Test EService". La delega è ora attiva.`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha approvato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>. La delega è ora attiva.`,
     },
     {
       eventType: "ConsumerDelegationApproved",
       kind: delegationKind.delegatedConsumer,
-      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha accettato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service "Test EService". La delega è ora attiva.`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha approvato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>. La delega è ora attiva.`,
     },
     {
       eventType: "ProducerDelegationRejected",
       kind: delegationKind.delegatedProducer,
-      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service "Test EService".`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>.`,
     },
     {
       eventType: "ConsumerDelegationRejected",
       kind: delegationKind.delegatedConsumer,
-      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service "Test EService".`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>.`,
     },
   ])(
     "should handle $eventType event correctly",

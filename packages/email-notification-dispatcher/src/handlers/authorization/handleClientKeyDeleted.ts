@@ -72,7 +72,6 @@ export async function handleClientKeyDeleted(
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         keyId: kid,
         clientName: client.name,
-        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

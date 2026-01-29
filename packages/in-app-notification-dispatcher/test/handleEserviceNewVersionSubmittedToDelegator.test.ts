@@ -34,6 +34,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
   const eservice = getMockEService(generateId<EServiceId>(), delegator.id, [
     getMockDescriptorPublished(),
   ]);
+  const descriptorId = eservice.descriptors[0].id;
 
   const delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,
@@ -59,6 +60,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
     await expect(() =>
       handleEserviceNewVersionSubmittedToDelegator(
         undefined,
+        descriptorId,
         logger,
         readModelService
       )
@@ -79,6 +81,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
     await expect(() =>
       handleEserviceNewVersionSubmittedToDelegator(
         toEServiceV2(eserviceWithoutDelegation),
+        descriptorId,
         logger,
         readModelService
       )
@@ -97,6 +100,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
     await expect(() =>
       handleEserviceNewVersionSubmittedToDelegator(
         toEServiceV2(eservice),
+        descriptorId,
         logger,
         readModelService
       )
@@ -113,6 +117,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
     await expect(() =>
       handleEserviceNewVersionSubmittedToDelegator(
         toEServiceV2(eservice),
+        descriptorId,
         logger,
         readModelService
       )
@@ -135,6 +140,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
       await expect(() =>
         handleEserviceNewVersionSubmittedToDelegator(
           toEServiceV2(eservice),
+          descriptorId,
           logger,
           readModelService
         )
@@ -158,6 +164,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
     await expect(() =>
       handleEserviceNewVersionSubmittedToDelegator(
         toEServiceV2(eservice),
+        descriptorId,
         logger,
         readModelService
       )
@@ -169,6 +176,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
 
     const notifications = await handleEserviceNewVersionSubmittedToDelegator(
       toEServiceV2(eservice),
+      descriptorId,
       logger,
       readModelService
     );
@@ -186,6 +194,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
 
     const notifications = await handleEserviceNewVersionSubmittedToDelegator(
       toEServiceV2(eservice),
+      descriptorId,
       logger,
       readModelService
     );
@@ -200,7 +209,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
         eservice.name
       ),
       notificationType: "eserviceNewVersionSubmittedToDelegator",
-      entityId: delegation.id,
+      entityId: `${eservice.id}/${descriptorId}`,
     }));
 
     expect(notifications).toEqual(
@@ -218,6 +227,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
 
     const notifications = await handleEserviceNewVersionSubmittedToDelegator(
       toEServiceV2(eservice),
+      descriptorId,
       logger,
       readModelService
     );
