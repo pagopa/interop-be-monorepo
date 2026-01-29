@@ -7,7 +7,10 @@ import {
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getPurposes", () => {
@@ -95,12 +98,8 @@ describe("getPurposes", () => {
         offset: mockParams.offset,
         totalCount: mockPurposeProcessResponse.data.totalCount,
       },
-      results: [
-        expectedM2MPurpose1,
-        expectedM2MPurpose2
-      ],
+      results: [expectedM2MPurpose1, expectedM2MPurpose2],
     };
-
 
     const result = await purposeService.getPurposes(
       mockParams,

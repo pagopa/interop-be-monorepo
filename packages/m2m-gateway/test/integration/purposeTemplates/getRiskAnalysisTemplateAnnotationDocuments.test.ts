@@ -13,10 +13,10 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
   const mockQueryParams: m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockApiRiskAnalysisTemplateAnswerAnnotationDoc1 =
     getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId();
@@ -29,13 +29,13 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
   ];
 
   const mockPurposeTemplateProcessResponse: WithMaybeMetadata<purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentsWithAnswerId> =
-  {
-    data: {
-      results: mockApiRiskAnalysisTemplateAnswerAnnotationDocs,
-      totalCount: mockApiRiskAnalysisTemplateAnswerAnnotationDocs.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiRiskAnalysisTemplateAnswerAnnotationDocs,
+        totalCount: mockApiRiskAnalysisTemplateAnswerAnnotationDocs.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetRiskAnalysisTemplateAnnotationDocuments = vi
     .fn()
@@ -81,14 +81,14 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
     };
 
     const m2mDocumentsResponse: m2mGatewayApi.RiskAnalysisTemplateAnnotationDocuments =
-    {
-      pagination: {
-        limit: mockQueryParams.limit,
-        offset: mockQueryParams.offset,
-        totalCount: mockPurposeTemplateProcessResponse.data.totalCount,
-      },
-      results: [m2mDocument1, m2mDocument2],
-    };
+      {
+        pagination: {
+          limit: mockQueryParams.limit,
+          offset: mockQueryParams.offset,
+          totalCount: mockPurposeTemplateProcessResponse.data.totalCount,
+        },
+        results: [m2mDocument1, m2mDocument2],
+      };
 
     const purposeTemplateId = generateId<PurposeTemplateId>();
     const result =

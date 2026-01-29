@@ -41,11 +41,11 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
     getMockWithMetadata(mockEServiceTemplate);
 
   const mockQuotasSeed: m2mGatewayApi.EServiceTemplateVersionQuotasUpdateSeed =
-  {
-    voucherLifespan: 3600,
-    dailyCallsPerConsumer: 1000,
-    dailyCallsTotal: 10000,
-  };
+    {
+      voucherLifespan: 3600,
+      dailyCallsPerConsumer: 1000,
+      dailyCallsTotal: 10000,
+    };
 
   const mockPatchUpdateQuotas = vi
     .fn()

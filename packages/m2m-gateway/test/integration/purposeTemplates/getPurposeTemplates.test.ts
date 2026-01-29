@@ -31,13 +31,13 @@ describe("getPurposeTemplates", () => {
   ];
 
   const mockPurposeTemplateProcessResponse: WithMaybeMetadata<purposeTemplateApi.PurposeTemplates> =
-  {
-    data: {
-      results: mockApiPurposeTemplates,
-      totalCount: mockApiPurposeTemplates.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiPurposeTemplates,
+        totalCount: mockApiPurposeTemplates.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetPurposeTemplates = vi
     .fn()

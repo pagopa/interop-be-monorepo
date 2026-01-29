@@ -4,7 +4,7 @@ import {
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,

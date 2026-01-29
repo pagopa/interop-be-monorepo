@@ -41,10 +41,10 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     );
 
   const mockCreateResponseData: eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis =
-  {
-    eserviceTemplate: mockEServiceTemplate,
-    createdRiskAnalysisId: mockRiskAnalysis.id,
-  };
+    {
+      eserviceTemplate: mockEServiceTemplate,
+      createdRiskAnalysisId: mockRiskAnalysis.id,
+    };
   const mockCreateRiskAnalysis = vi.fn().mockResolvedValue({
     data: mockCreateResponseData,
     metadata: { version: 0 },

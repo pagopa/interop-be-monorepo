@@ -23,7 +23,10 @@ import {
   invalidSeedForPurposeFromTemplate,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("updateDraftPurpose", () => {
   const mockPurposeWithTemplate = getMockedApiPurpose();
@@ -45,11 +48,11 @@ describe("updateDraftPurpose", () => {
     riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
   };
   const mockPurposeSeedFromTemplate: m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed =
-  {
-    title: mockPurposeSeed.title,
-    riskAnalysisForm: mockPurposeSeed.riskAnalysisForm,
-    dailyCalls: mockPurposeSeed.dailyCalls,
-  };
+    {
+      title: mockPurposeSeed.title,
+      riskAnalysisForm: mockPurposeSeed.riskAnalysisForm,
+      dailyCalls: mockPurposeSeed.dailyCalls,
+    };
 
   const mockPatchUpdatePurposeFromTemplate = vi
     .fn()
@@ -146,7 +149,8 @@ describe("updateDraftPurpose", () => {
       getMockM2MAdminAppContext()
     );
 
-    const purposeVersion = mockPurposeProcessGetResponseWithTemplate.data.versions.at(0);
+    const purposeVersion =
+      mockPurposeProcessGetResponseWithTemplate.data.versions.at(0);
     const expectedM2MPurpose: m2mGatewayApi.Purpose = {
       consumerId: mockPurposeProcessGetResponseWithTemplate.data.consumerId,
       createdAt: mockPurposeProcessGetResponseWithTemplate.data.createdAt,

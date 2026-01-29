@@ -36,13 +36,13 @@ describe("updateDraftEserviceTemplateVersion", () => {
     getMockWithMetadata(mockEServiceTemplate);
 
   const versionSeed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed =
-  {
-    description: "Test Template Version",
-    voucherLifespan: 100,
-    dailyCallsPerConsumer: 10,
-    dailyCallsTotal: 10,
-    agreementApprovalPolicy: "AUTOMATIC",
-  };
+    {
+      description: "Test Template Version",
+      voucherLifespan: 100,
+      dailyCallsPerConsumer: 10,
+      dailyCallsTotal: 10,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockPatchUpdateTemplateVersion = vi
     .fn()

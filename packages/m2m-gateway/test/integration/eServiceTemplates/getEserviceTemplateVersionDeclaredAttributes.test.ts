@@ -228,21 +228,21 @@ describe("getEserviceTemplateVersionDeclaredAttributes", () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
     const descriptorWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion =
-    {
-      ...getMockedApiEserviceTemplateVersion(),
-      attributes: {
-        certified: [],
-        declared: [
-          [
-            {
-              id: MISSING_ATTRIBUTE_ID,
-              explicitAttributeVerification: false,
-            },
+      {
+        ...getMockedApiEserviceTemplateVersion(),
+        attributes: {
+          certified: [],
+          declared: [
+            [
+              {
+                id: MISSING_ATTRIBUTE_ID,
+                explicitAttributeVerification: false,
+              },
+            ],
           ],
-        ],
-        verified: [],
-      },
-    };
+          verified: [],
+        },
+      };
 
     const eserviceWithDescriptorWithoutAttribute: eserviceTemplateApi.EServiceTemplate =
       getMockedApiEServiceTemplate({

@@ -31,7 +31,10 @@ import {
   mockPollingResponse,
   purposeService,
 } from "../../integrationUtils.js";
-import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("createPurposeFromTemplate", () => {
   const mockPurposeTemplate = getMockPurposeTemplate();
@@ -153,10 +156,10 @@ describe("createPurposeFromTemplate", () => {
     );
 
     const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeFromTemplateSeed =
-    {
-      ...mockPurposeFromTemplateSeed,
-      delegationId: mockConsumerDelegation.id,
-    };
+      {
+        ...mockPurposeFromTemplateSeed,
+        delegationId: mockConsumerDelegation.id,
+      };
 
     const result = await purposeService.createPurposeFromTemplate(
       mockPurposeTemplate.id,
@@ -204,10 +207,10 @@ describe("createPurposeFromTemplate", () => {
     mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
     const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeFromTemplateSeed =
-    {
-      ...mockPurposeFromTemplateSeed,
-      delegationId: mockDelegation.id,
-    };
+      {
+        ...mockPurposeFromTemplateSeed,
+        delegationId: mockDelegation.id,
+      };
 
     await expect(
       purposeService.createPurposeFromTemplate(
@@ -251,10 +254,10 @@ describe("createPurposeFromTemplate", () => {
       mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
       const mockPurposeSeedWithDelegation: m2mGatewayApi.PurposeFromTemplateSeed =
-      {
-        ...mockPurposeFromTemplateSeed,
-        delegationId: mockDelegation.id,
-      };
+        {
+          ...mockPurposeFromTemplateSeed,
+          delegationId: mockDelegation.id,
+        };
 
       await expect(
         purposeService.createPurposeFromTemplate(

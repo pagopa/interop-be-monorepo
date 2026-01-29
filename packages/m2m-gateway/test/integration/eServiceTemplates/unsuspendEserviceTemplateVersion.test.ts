@@ -38,10 +38,10 @@ describe("unsuspendEServiceTemplateVersion", () => {
   );
 
   const mockApiTemplateVersionAfterUnsuspend: eserviceTemplateApi.EServiceTemplateVersion =
-  {
-    ...mockApiTemplateVersion,
-    state: "PUBLISHED",
-  };
+    {
+      ...mockApiTemplateVersion,
+      state: "PUBLISHED",
+    };
 
   const mockApiTemplateAfterUnsuspend = getMockWithMetadata(
     getMockedApiEServiceTemplate({

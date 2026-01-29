@@ -12,7 +12,10 @@ import {
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("getPurposeVersions", () => {
   const mockParams: m2mGatewayApi.GetPurposeVersionsQueryParams = {
@@ -94,7 +97,7 @@ describe("getPurposeVersions", () => {
       },
       results: [
         testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion1),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion2)
+        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion2),
       ],
     };
     const result = await purposeService.getPurposeVersions(
@@ -116,7 +119,7 @@ describe("getPurposeVersions", () => {
       },
       results: [
         testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion3),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion4)
+        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion4),
       ],
     };
     const result2 = await purposeService.getPurposeVersions(
@@ -159,7 +162,7 @@ describe("getPurposeVersions", () => {
       },
       results: [
         testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion2),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion4)
+        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion4),
       ],
     };
     const result1 = await purposeService.getPurposeVersions(

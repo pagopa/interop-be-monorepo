@@ -50,9 +50,9 @@ describe("assignTenantCertifiedAttribute", () => {
   );
 
   const mockTenantCertifiedAttributeSeed: m2mGatewayApi.TenantCertifiedAttributeSeed =
-  {
-    id: mockCertifiedAttribute2.id,
-  };
+    {
+      id: mockCertifiedAttribute2.id,
+    };
 
   const mockAddCertifiedAttribute = vi
     .fn()

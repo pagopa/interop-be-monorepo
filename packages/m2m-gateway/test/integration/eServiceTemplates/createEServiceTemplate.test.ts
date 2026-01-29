@@ -21,13 +21,13 @@ describe("createEServiceTemplate", () => {
   const mockApiEserviceTemplate = getMockedApiEServiceTemplate();
 
   const mockApiEserviceTemplateWithVersion: m2mGatewayApi.VersionSeedForEServiceTemplateCreation =
-  {
-    voucherLifespan: 1000,
-    description: "Version description",
-    dailyCallsPerConsumer: 100,
-    dailyCallsTotal: 1000,
-    agreementApprovalPolicy: "AUTOMATIC",
-  };
+    {
+      voucherLifespan: 1000,
+      description: "Version description",
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 1000,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockEserviceTemplateSeed: m2mGatewayApi.EServiceTemplateSeed = {
     name: mockApiEserviceTemplate.name,

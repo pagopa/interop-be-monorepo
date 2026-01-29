@@ -22,7 +22,10 @@ import {
   missingMetadata,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext, testToM2mGatewayApiPurposeVersion } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("createPurposeVersion", () => {
   const mockApiPurposeVersion = getMockedApiPurposeVersion();

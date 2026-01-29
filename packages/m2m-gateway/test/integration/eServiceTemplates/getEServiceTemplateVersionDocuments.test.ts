@@ -24,10 +24,10 @@ describe("getEServiceTemplateVersionDocuments", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEServiceTemplateVersionDocumentsQueryParams =
-  {
-    offset: 0,
-    limit: 10,
-  };
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockApiEServiceTemplateDoc1 = getMockedApiEserviceDoc();
   const mockApiEServiceTemplateDoc2 = getMockedApiEserviceDoc();

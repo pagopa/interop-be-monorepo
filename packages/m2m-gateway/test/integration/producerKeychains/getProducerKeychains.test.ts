@@ -32,13 +32,13 @@ describe("getProducerKeychains", () => {
   ];
 
   const mockFullProducerKeychainsResponse: WithMaybeMetadata<authorizationApi.ProducerKeychains> =
-  {
-    data: {
-      results: mockFullProducerKeychains,
-      totalCount: mockFullProducerKeychains.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockFullProducerKeychains,
+        totalCount: mockFullProducerKeychains.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetProducerKeychains = vi.fn();
 
@@ -49,13 +49,13 @@ describe("getProducerKeychains", () => {
     mockPartialProducerKeychain2,
   ];
   const mockPartialProducerKeychainsResponse: WithMaybeMetadata<authorizationApi.ProducerKeychains> =
-  {
-    data: {
-      results: mockPartialProducerKeychains,
-      totalCount: mockPartialProducerKeychains.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockPartialProducerKeychains,
+        totalCount: mockPartialProducerKeychains.length,
+      },
+      metadata: undefined,
+    };
 
   mockInteropBeClients.authorizationClient = {
     producerKeychain: {
@@ -124,15 +124,15 @@ describe("getProducerKeychains", () => {
     );
 
     const m2mProducerKeychainResponse1: m2mGatewayApi.PartialProducerKeychain =
-    {
-      id: mockPartialProducerKeychain1.id,
-      producerId: mockPartialProducerKeychain1.producerId,
-    };
+      {
+        id: mockPartialProducerKeychain1.id,
+        producerId: mockPartialProducerKeychain1.producerId,
+      };
     const m2mProducerKeychainResponse2: m2mGatewayApi.PartialProducerKeychain =
-    {
-      id: mockPartialProducerKeychain2.id,
-      producerId: mockPartialProducerKeychain2.producerId,
-    };
+      {
+        id: mockPartialProducerKeychain2.id,
+        producerId: mockPartialProducerKeychain2.producerId,
+      };
 
     const m2mProducerKeychainsResponse: m2mGatewayApi.ProducerKeychains = {
       pagination: {

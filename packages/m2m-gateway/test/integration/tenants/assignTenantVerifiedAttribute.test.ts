@@ -48,11 +48,11 @@ describe("assignTenantVerifiedAttribute", () => {
   );
 
   const mockTenantVerifiedAttributeSeed: m2mGatewayApi.TenantVerifiedAttributeSeed =
-  {
-    id: mockVerifiedAttribute2.id,
-    agreementId: generateId(),
-    expirationDate: new Date().toISOString(),
-  };
+    {
+      id: mockVerifiedAttribute2.id,
+      agreementId: generateId(),
+      expirationDate: new Date().toISOString(),
+    };
 
   const mockAddVerifiedAttribute = vi
     .fn()

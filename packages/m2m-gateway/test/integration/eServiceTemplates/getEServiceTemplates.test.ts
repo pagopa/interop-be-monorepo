@@ -30,13 +30,13 @@ describe("getEserviceTemplates", () => {
   ];
 
   const mockEserviceTemplatesProcessResponse: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplates> =
-  {
-    data: {
-      results: mockApiEserviceTemplates,
-      totalCount: mockApiEserviceTemplates.length,
-    },
-    metadata: undefined,
-  };
+    {
+      data: {
+        results: mockApiEserviceTemplates,
+        totalCount: mockApiEserviceTemplates.length,
+      },
+      metadata: undefined,
+    };
 
   const mockGetEserviceTemplates = vi
     .fn()

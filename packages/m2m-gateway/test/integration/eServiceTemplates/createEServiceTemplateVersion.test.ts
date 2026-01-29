@@ -36,10 +36,10 @@ describe("createEServiceTemplateVersion", () => {
   });
 
   const mockCreateResponseData: eserviceTemplateApi.CreatedEServiceTemplateVersion =
-  {
-    eserviceTemplate: mockEServiceTemplate,
-    createdEServiceTemplateVersionId: mockEServiceTemplate.versions[0].id,
-  };
+    {
+      eserviceTemplate: mockEServiceTemplate,
+      createdEServiceTemplateVersionId: mockEServiceTemplate.versions[0].id,
+    };
   const mockCreateVersion = vi.fn().mockResolvedValue({
     data: mockCreateResponseData,
     metadata: { version: 0 },
@@ -61,19 +61,19 @@ describe("createEServiceTemplateVersion", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mEServiceTemplateVersionResponse: m2mGatewayApi.EServiceTemplateVersion =
-    {
-      id: mockVersion.id,
-      description: mockVersion.description,
-      state: mockVersion.state,
-      version: mockVersion.version,
-      voucherLifespan: mockVersion.voucherLifespan,
-      dailyCallsPerConsumer: mockVersion.dailyCallsPerConsumer,
-      dailyCallsTotal: mockVersion.dailyCallsTotal,
-      agreementApprovalPolicy: mockVersion.agreementApprovalPolicy,
-      deprecatedAt: mockVersion.deprecatedAt,
-      publishedAt: mockVersion.publishedAt,
-      suspendedAt: mockVersion.suspendedAt,
-    };
+      {
+        id: mockVersion.id,
+        description: mockVersion.description,
+        state: mockVersion.state,
+        version: mockVersion.version,
+        voucherLifespan: mockVersion.voucherLifespan,
+        dailyCallsPerConsumer: mockVersion.dailyCallsPerConsumer,
+        dailyCallsTotal: mockVersion.dailyCallsTotal,
+        agreementApprovalPolicy: mockVersion.agreementApprovalPolicy,
+        deprecatedAt: mockVersion.deprecatedAt,
+        publishedAt: mockVersion.publishedAt,
+        suspendedAt: mockVersion.suspendedAt,
+      };
 
     const result = await eserviceTemplateService.createEServiceTemplateVersion(
       mockEServiceTemplate.id as EServiceTemplateId,

@@ -59,9 +59,9 @@ describe("assignTenantDeclaredAttribute", () => {
   const mockTenantProcessResponse = getMockWithMetadata(mockTenant);
 
   const mockTenantDeclaredAttributeSeed: m2mGatewayApi.TenantDeclaredAttributeSeed =
-  {
-    id: mockDeclaredAttribute2.id,
-  };
+    {
+      id: mockDeclaredAttribute2.id,
+    };
 
   const mockConsumerDelegation: delegationApi.Delegation =
     getMockedApiDelegation({
