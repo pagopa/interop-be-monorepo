@@ -76,6 +76,7 @@ export async function handlePurposeWaitingForApprovalToConsumer(
         dailyCalls: dailyCallsPerConsumer,
         isNewVersion: false,
         ctaLabel: `Gestisci finalità`,
+        selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

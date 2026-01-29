@@ -70,7 +70,3 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceDescriptorAttributeRepository = ReturnType<
-  typeof eserviceDescriptorAttributeRepository
->;

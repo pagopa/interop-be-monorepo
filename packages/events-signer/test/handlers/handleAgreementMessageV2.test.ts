@@ -44,8 +44,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     uploadPreparedFileToS3: vi.fn(() => ({
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
-      correlationId: "correlation-id",
-      filename: "filename.gz",
+      path: "path/to",
     })),
   }));
 
@@ -103,6 +102,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
       creationTimestamp: expect.any(Number),
+      path: "path/to",
     });
   });
   it("should not process an AgreementAdded event", async () => {

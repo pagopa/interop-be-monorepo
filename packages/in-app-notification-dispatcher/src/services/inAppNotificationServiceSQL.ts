@@ -18,7 +18,3 @@ export function inAppNotificationServiceBuilderSQL(
     },
   };
 }
-
-export type InAppNotificationServiceSQL = ReturnType<
-  typeof inAppNotificationServiceBuilderSQL
->;

@@ -1,0 +1,19 @@
+meta {
+  name: Get eservice
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

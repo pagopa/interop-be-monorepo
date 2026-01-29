@@ -4,6 +4,7 @@ import {
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
@@ -24,6 +25,7 @@ import {
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   interfaceAlreadyExists,
+  notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
 import { buildDocumentSeed } from "../mockUtils.js";
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
@@ -122,6 +124,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents"
       error: checksumDuplicate(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 409,
+    },
+    {
+      error: notValidEServiceTemplateVersionState(
+        mockEserviceTemplate.versions[0].id,
+        eserviceTemplateVersionState.published
       ),
       expectedStatus: 409,
     },

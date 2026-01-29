@@ -12,6 +12,7 @@ import {
   EventsSignerConfig,
   SafeStorageApiConfig,
   DynamoDBClientConfig,
+  PurposeTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -19,6 +20,7 @@ export const EventSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
   .and(DelegationTopicConfig)
+  .and(PurposeTemplateTopicConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)

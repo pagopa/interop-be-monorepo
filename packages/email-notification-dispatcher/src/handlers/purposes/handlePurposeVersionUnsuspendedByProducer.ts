@@ -80,6 +80,7 @@ export async function handlePurposeVersionUnsuspendedByProducer(
         producerName: producer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },
