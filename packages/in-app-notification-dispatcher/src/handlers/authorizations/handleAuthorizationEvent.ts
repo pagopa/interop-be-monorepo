@@ -29,7 +29,12 @@ export async function handleAuthorizationEvent(
         )
     )
     .with(
-      { type: "ProducerKeychainEServiceAdded" },
+      {
+        type: P.union(
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
+        ),
+      },
       ({ data: { eserviceId } }) =>
         handleEserviceStateChangedToConsumer(
           eserviceId,
@@ -72,7 +77,6 @@ export async function handleAuthorizationEvent(
           "ClientUserAdded",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
-          "ProducerKeychainEServiceRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
           "ProducerKeychainUserAdded"

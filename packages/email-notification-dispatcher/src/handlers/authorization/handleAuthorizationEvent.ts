@@ -30,7 +30,12 @@ export async function handleAuthorizationEvent(
   } = params;
   return match(decodedMessage)
     .with(
-      { type: "ProducerKeychainEServiceAdded" },
+      {
+        type: P.union(
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
+        ),
+      },
       ({ data: { eserviceId } }) =>
         handleProducerKeychainEserviceAdded({
           eserviceId: unsafeBrandId<EServiceId>(eserviceId),
@@ -136,7 +141,6 @@ export async function handleAuthorizationEvent(
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
           "ProducerKeychainUserAdded",
-          "ProducerKeychainEServiceRemoved"
         ),
       },
       () => {
