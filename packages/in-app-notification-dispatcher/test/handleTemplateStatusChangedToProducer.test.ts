@@ -92,8 +92,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
     );
 
     const body = inAppTemplates.templateStatusChangedToProducer(
-      eserviceTemplate.name,
-      creatorTenant.name
+      eserviceTemplate.name
     );
     const expectedNotifications = users.map((user) => ({
       userId: user.userId,
