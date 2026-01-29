@@ -1,0 +1,36 @@
+{
+  "name": "pagopa-interop-check-selfcare-user-notification-diff",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability check-selfcare-user-notification-diff script",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@pagopa/eslint-config": "3.0.0",
+    "@types/node": "20.19.9",
+    "prettier": "2.8.8",
+    "tsx": "4.19.1",
+    "typescript": "5.4.5"
+  },
+  "dependencies": {
+    "dotenv-flow": "4.1.0",
+    "drizzle-orm": "0.39.3",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
+    "zod": "3.23.8"
+  }
+}
