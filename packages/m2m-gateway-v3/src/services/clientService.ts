@@ -282,5 +282,35 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       await pollClientKeyUntilDeletion(clientId, keyId, headers);
     },
+    // async getClientUsers(
+    //   clientId: string,
+    //   { logger, headers, correlationId, authData }: WithLogger<M2MGatewayAppContext>
+    // ): Promise<m2mGatewayApiV3.CompactUsers> {
+    //   logger.info(`Retrieving users for client ${clientId}`);
+
+    //   const { data: tenant } =
+    //     await clients.tenantProcessClient.tenant.getTenant({
+    //       params: { id: authData.organizationId },
+    //       headers,
+    //     });
+
+    //   assertTenantHasSelfcareId(tenant);
+
+    //   const clientUsers = await clients.authorizationClient.client.getClientUsers({
+    //     params: { clientId },
+    //     headers,
+    //   });
+
+    //   return await Promise.all(
+    //     clientUsers.data.map(async (id) =>
+    //       getSelfcareCompactUserById(
+    //         clients.selfcareV2UserClient,
+    //         id,
+    //         tenant.selfcareId,
+    //         correlationId
+    //       )
+    //     )
+    //   );
+    // },
   };
 }

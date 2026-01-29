@@ -192,6 +192,27 @@ const clientRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     });
+  // .get("/clients/:clientId/users", async (req, res) => {
+  //   const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+  //   try {
+
+  //     const users = await clientService.getClientUsers(
+  //       req.params.clientId,
+  //       ctx
+  //     );
+
+  //     return res.status(200).send(m2mGatewayApiV3.CompactUsers.parse(users));
+  //   } catch (error) {
+  //     const errorRes = makeApiProblem(
+  //       error,
+  //       emptyErrorMapper,
+  //       ctx,
+  //       `Error retrieving users of client ${req.params.clientId}`
+  //     );
+  //     return res.status(errorRes.status).send(errorRes);
+  //   }
+  // });
   return clientRouter;
 };
 
