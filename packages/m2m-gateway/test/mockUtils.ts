@@ -16,6 +16,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
   agreementApi,
+  authorizationApi,
   catalogApi,
   m2mEventApi,
   m2mGatewayApi,
@@ -223,6 +224,49 @@ export const testToM2mGatewayApiPurpose = (
   waitingForApprovalVersion,
   rejectedVersion,
   purposeTemplateId: purpose.purposeTemplateId,
+});
+
+export const testToM2MJWK = (
+  key: authorizationApi.JWKKey
+): m2mGatewayApi.JWK => ({
+  kid: key.kid,
+  kty: key.kty,
+  "x5t#S256": key["x5t#S256"],
+  alg: key.alg,
+  crv: key.crv,
+  d: key.d,
+  dp: key.dp,
+  dq: key.dq,
+  e: key.e,
+  k: key.k,
+  key_ops: key.key_ops,
+  n: key.n,
+  oth: key.oth,
+  p: key.p,
+  q: key.q,
+  qi: key.qi,
+  use: key.use,
+  x: key.x,
+  x5c: key.x5c,
+  x5t: key.x5t,
+  x5u: key.x5u,
+  y: key.y,
+});
+
+export const testToM2MKey = ({
+  clientId,
+  jwk,
+}: authorizationApi.ClientJWK): m2mGatewayApi.Key => ({
+  clientId,
+  jwk: testToM2MJWK(jwk),
+});
+
+export const testToM2MProducerKey = ({
+  jwk,
+  producerKeychainId,
+}: authorizationApi.ProducerJWK): m2mGatewayApi.ProducerKey => ({
+  producerKeychainId,
+  jwk: testToM2MJWK(jwk),
 });
 
 export const testToM2MRiskAnalysisTemplateAnswer = (
