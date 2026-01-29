@@ -132,11 +132,10 @@ export async function handleEserviceStateChanged(
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             copy,
             ctaLabel: `Visualizza e-service`,
-            selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),
         },
-        tenantId: t.tenantId,
+        tenantId: producer.id,
         ...mapRecipientToEmailPayload(t),
       },
     ];

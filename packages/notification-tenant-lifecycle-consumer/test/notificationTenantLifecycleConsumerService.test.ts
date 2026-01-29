@@ -228,7 +228,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
     });
 
-    it("Should not ignore 404 errors when calling the deleteTenantNotificationConfig route", async () => {
+    it("Should ignore 404 errors when calling the deleteTenantNotificationConfig route", async () => {
       interopBeClients.notificationConfigProcess.client.deleteTenantNotificationConfig =
         vi.fn().mockRejectedValue(
           new AxiosError("Not Found", "404", undefined, undefined, {
@@ -242,13 +242,11 @@ describe("notificationTenantLifecycleProcessor", async () => {
         data: { tenantId },
         event_version: 1,
       });
-      await expect(
-        notificationTenantLifecycleConsumerService.handleMessageV1(
-          message,
-          correlationId,
-          loggerInstance
-        )
-      ).rejects.toThrow();
+      await notificationTenantLifecycleConsumerService.handleMessageV1(
+        message,
+        correlationId,
+        loggerInstance
+      );
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
         interopBeClients.notificationConfigProcess.client
@@ -472,12 +470,45 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
     });
 
-    it("Should not ignore 404 errors when calling the deleteTenantNotificationConfig route", async () => {
+    it("Should ignore 404 errors when calling the deleteTenantNotificationConfig route", async () => {
       interopBeClients.notificationConfigProcess.client.deleteTenantNotificationConfig =
         vi.fn().mockRejectedValue(
           new AxiosError("Not Found", "404", undefined, undefined, {
             status: 404,
             statusText: "Not Found",
+          } as AxiosResponse)
+        );
+      const tenantId = generateId();
+      const message = toTenantEventEnvelopeV2({
+        type: "MaintenanceTenantDeleted",
+        data: { tenantId },
+        event_version: 2,
+      });
+      await notificationTenantLifecycleConsumerService.handleMessageV2(
+        message,
+        correlationId,
+        loggerInstance
+      );
+      expect(refreshableToken.get).toHaveBeenCalledOnce();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .deleteTenantNotificationConfig
+      ).toHaveBeenCalledOnce();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .deleteTenantNotificationConfig
+      ).toHaveBeenCalledWith(undefined, {
+        params: { tenantId },
+        headers: expectedHeaders,
+      });
+    });
+
+    it("Should not ignore other errors when calling the deleteTenantNotificationConfig route", async () => {
+      interopBeClients.notificationConfigProcess.client.deleteTenantNotificationConfig =
+        vi.fn().mockRejectedValue(
+          new AxiosError("Internal Server Error", "500", undefined, undefined, {
+            status: 500,
+            statusText: "Internal Server Error",
           } as AxiosResponse)
         );
       const tenantId = generateId();

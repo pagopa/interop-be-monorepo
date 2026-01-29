@@ -8,7 +8,6 @@ import { handleProducerDelegationApproved } from "./handleProducerDelegationAppr
 import { handleConsumerDelegationApproved } from "./handleConsumerDelegationApproved.js";
 import { handleConsumerDelegationRejected } from "./handleConsumerDelegationRejected.js";
 import { handleProducerDelegationRejected } from "./handleProducerDelegationRejected.js";
-import { handleProducerDelegationRevoked } from "./handleProducerDelegationRevoked.js";
 
 export async function handleDelegationEvent(
   params: HandlerParams<typeof DelegationEventV2>
@@ -57,19 +56,11 @@ export async function handleDelegationEvent(
         correlationId,
       })
     )
-    .with({ type: "ProducerDelegationRevoked" }, ({ data: { delegation } }) =>
-      handleProducerDelegationRevoked({
-        delegationV2Msg: delegation,
-        logger,
-        readModelService,
-        templateService,
-        correlationId,
-      })
-    )
     .with(
       {
         type: P.union(
           "ProducerDelegationSubmitted",
+          "ProducerDelegationRevoked",
           "ConsumerDelegationSubmitted",
           "ConsumerDelegationRevoked",
           "DelegationContractGenerated",

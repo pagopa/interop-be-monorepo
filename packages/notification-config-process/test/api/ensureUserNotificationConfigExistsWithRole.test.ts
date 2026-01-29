@@ -6,15 +6,15 @@ import request from "supertest";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { api, notificationConfigService } from "../vitest.api.setup.js";
 
-describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", () => {
+describe("API POST /internal/ensureUserNotificationConfigExistsWithRole test", () => {
   const defaultTenantId: TenantId = generateId();
   const defaultUserId: UserId = generateId();
-  const defaultUserRoles = [userRole.ADMIN_ROLE];
+  const defaultUserRole = userRole.ADMIN_ROLE;
   const notificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
     {
       userId: defaultUserId,
       tenantId: defaultTenantId,
-      userRoles: ["ADMIN"],
+      userRole: "ADMIN",
     };
 
   const makeRequest = async (
@@ -22,13 +22,13 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
     body: notificationConfigApi.UserNotificationConfigSeed = notificationConfigSeed
   ) =>
     request(api)
-      .post("/internal/ensureUserNotificationConfigExistsWithRoles")
+      .post("/internal/ensureUserNotificationConfigExistsWithRole")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
   beforeEach(() => {
-    notificationConfigService.ensureUserNotificationConfigExistsWithRoles = vi
+    notificationConfigService.ensureUserNotificationConfigExistsWithRole = vi
       .fn()
       .mockResolvedValue(undefined);
   });
@@ -42,11 +42,11 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
       const res = await makeRequest(token);
       expect(res.status).toBe(204);
       expect(
-        notificationConfigService.ensureUserNotificationConfigExistsWithRoles
+        notificationConfigService.ensureUserNotificationConfigExistsWithRole
       ).toHaveBeenCalledWith(
         defaultUserId,
         defaultTenantId,
-        defaultUserRoles,
+        defaultUserRole,
         expect.any(Object)
       );
     }
@@ -59,7 +59,7 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
     expect(
-      notificationConfigService.ensureUserNotificationConfigExistsWithRoles
+      notificationConfigService.ensureUserNotificationConfigExistsWithRole
     ).not.toHaveBeenCalled();
   });
 
@@ -67,11 +67,10 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
     { body: {} },
     { body: { ...notificationConfigSeed, userId: undefined } },
     { body: { ...notificationConfigSeed, tenantId: undefined } },
-    { body: { ...notificationConfigSeed, userRoles: undefined } },
-    { body: { ...notificationConfigSeed, userRoles: [] } },
+    { body: { ...notificationConfigSeed, userRole: undefined } },
     { body: { ...notificationConfigSeed, userId: "invalid" as UserId } },
     { body: { ...notificationConfigSeed, tenantId: "invalid" as TenantId } },
-    { body: { ...notificationConfigSeed, userRoles: ["invalid"] } },
+    { body: { ...notificationConfigSeed, userRole: "invalid" } },
     { body: { ...notificationConfigSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid params: %s", async ({ body }) => {
     const token = generateToken(authRole.INTERNAL_ROLE);
@@ -81,7 +80,7 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
     );
     expect(res.status).toBe(400);
     expect(
-      notificationConfigService.ensureUserNotificationConfigExistsWithRoles
+      notificationConfigService.ensureUserNotificationConfigExistsWithRole
     ).not.toHaveBeenCalledWith();
   });
 });

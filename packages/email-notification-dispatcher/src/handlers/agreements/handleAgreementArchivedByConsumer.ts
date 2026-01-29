@@ -77,7 +77,6 @@ export async function handleAgreementArchivedByConsumer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
-        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

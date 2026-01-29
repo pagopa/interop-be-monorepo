@@ -1,33 +1,30 @@
 import {
-  DescriptorId,
   fromEServiceV2,
   EmailNotificationMessagePayload,
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
-  EServiceDescriptorHandlerParams,
+  EServiceHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { config } from "../../config/config.js";
-import { descriptorNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
 export async function handleEserviceDescriptorPublished(
-  data: EServiceDescriptorHandlerParams
+  data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
-    descriptorId: descriptorIdFromEvent,
     readModelService,
     logger,
     templateService,
@@ -42,18 +39,13 @@ export async function handleEserviceDescriptorPublished(
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
-  const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
 
-  if (!descriptor) {
-    throw descriptorNotFound(eservice.id, descriptorId);
-  }
-
-  const [htmlTemplate, agreements, producer] = await Promise.all([
+  const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
+    retrieveLatestDescriptor(eservice),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
 
@@ -98,17 +90,16 @@ export async function handleEserviceDescriptorPublished(
           body: templateService.compileHtml(htmlTemplate, {
             title: `Nuova versione disponibile per "${eservice.name}"`,
             notificationType,
-            entityId: `${eservice.id}/${descriptor.id}`,
+            entityId: descriptor.id,
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             producerName: producer.name,
             ctaLabel: `Visualizza e-service`,
-            selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),
         },
-        tenantId: t.tenantId,
+        tenantId: producer.id,
         ...mapRecipientToEmailPayload(t),
       },
     ];
