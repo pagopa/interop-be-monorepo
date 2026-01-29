@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ClientId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { api, mockClientService } from "../../vitest.api.setup.js";
@@ -11,11 +11,18 @@ import { userNotFound } from "../../../src/model/errors.js";
 import { getMockm2mGatewayApiV3CompactUser } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/users", () => {
-  const mockResponse: m2mGatewayApiV3.CompactUsers = [
-    getMockm2mGatewayApiV3CompactUser(),
-    getMockm2mGatewayApiV3CompactUser(),
-    getMockm2mGatewayApiV3CompactUser(),
-  ];
+  const mockResponse: m2mGatewayApiV3.CompactUsers = {
+    results: [
+      getMockm2mGatewayApiV3CompactUser(),
+      getMockm2mGatewayApiV3CompactUser(),
+      getMockm2mGatewayApiV3CompactUser(),
+    ],
+    pagination: {
+      limit: 10,
+      offset: 0,
+      totalCount: 3,
+    },
+  };
 
   beforeEach(() => {
     mockClientService.getClientUsers = vi.fn().mockResolvedValue(mockResponse);
@@ -23,32 +30,54 @@ describe("API GET /clients/:clientId/users", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = generateId()
+    clientId: ClientId,
+    query: {
+      limit: number;
+      offset: number;
+    }
   ) =>
     request(api)
       .get(`${appBasePath}/clients/${clientId}/users`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .query(query)
+      .send();
 
-  it("Should return 200 for user with role M2M Admin", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockResponse);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.M2M_ADMIN_ROLE,
+    authRole.M2M_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, generateId(), {
+        limit: 10,
+        offset: 0,
+      });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockResponse);
+    }
+  );
 
   it("Should return 404 for userNotFound", async () => {
     mockClientService.getClientUsers = vi
       .fn()
       .mockRejectedValue(userNotFound(generateId(), generateId()));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
+    const res = await makeRequest(token, generateId(), {
+      limit: 10,
+      offset: 0,
+    });
     expect(res.status).toBe(404);
   });
 
   it("Should return 400 if passed an invalid client id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as ClientId);
+    const res = await makeRequest(token, "invalid" as ClientId, {
+      limit: 10,
+      offset: 0,
+    });
     expect(res.status).toBe(400);
   });
 });
