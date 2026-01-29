@@ -56,7 +56,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
@@ -79,6 +79,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
         dailyCalls: dailyCallsPerConsumer,
         isNewVersion: true,
         ctaLabel: `Gestisci finalità`,
+        selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },
