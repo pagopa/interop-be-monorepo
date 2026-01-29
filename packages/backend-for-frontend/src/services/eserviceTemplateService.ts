@@ -3,7 +3,10 @@
 import { randomUUID } from "crypto";
 import {
   bffApi,
+  attributeRegistryApi,
+  catalogApi,
   eserviceTemplateApi,
+  inAppNotificationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -19,6 +22,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
@@ -30,13 +34,6 @@ import {
   toBffEServiceTemplateDetails,
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
-import {
-  AttributeProcessClient,
-  CatalogProcessClient,
-  EServiceTemplateProcessClient,
-  InAppNotificationManagerClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   eserviceTemplateNotFound,
@@ -50,11 +47,11 @@ import { filterUnreadNotifications } from "../utilities/filterUnreadNotification
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
-  eserviceTemplateClient: EServiceTemplateProcessClient,
+  eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
@@ -750,7 +747,7 @@ export function eserviceTemplateServiceBuilder(
   };
 }
 
-export const retrieveEServiceTemplateVersion = (
+const retrieveEServiceTemplateVersion = (
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): eserviceTemplateApi.EServiceTemplateVersion => {
@@ -787,7 +784,7 @@ async function getTenantsFromEServiceTemplates(
 }
 export const retrieveEServiceTemplate = async (
   templateId: string,
-  eserviceTemplateClient: EServiceTemplateProcessClient,
+  eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   headers: BffAppContext["headers"]
 ): Promise<eserviceTemplateApi.EServiceTemplate> => {
   const eserviceTemplate = await eserviceTemplateClient.getEServiceTemplateById(

@@ -7,6 +7,7 @@ import {
   EServiceId,
   InternalError,
   PurposeId,
+  PurposeTemplateId,
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
@@ -92,7 +93,7 @@ export function riskAnalysisConfigVersionNotFound(
 }
 
 export function missingRiskAnalysis(
-  purposeId: PurposeId
+  purposeId: PurposeId | PurposeTemplateId
 ): DocumentsGeneratorError {
   return new InternalError({
     detail: `Purpose ${purposeId} must contain a valid risk analysis`,

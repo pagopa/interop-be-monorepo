@@ -20,12 +20,13 @@
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.2",
     "@types/pg": "8.11.11",
+    "eslint": "8.57.1",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "vitest": "4.0.18"
   },
   "dependencies": {
     "dotenv-flow": "4.1.0",

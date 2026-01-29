@@ -17,7 +17,7 @@ import {
 import { tenantApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
-export function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
+function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
   return match<TenantKind, tenantApi.TenantKind>(input)
     .with(tenantKind.GSP, () => "GSP")
     .with(tenantKind.PA, () => "PA")
@@ -26,16 +26,14 @@ export function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
     .exhaustive();
 }
 
-export function toApiTenantExternalId(input: ExternalId): tenantApi.ExternalId {
+function toApiTenantExternalId(input: ExternalId): tenantApi.ExternalId {
   return {
     origin: input.origin,
     value: input.value,
   };
 }
 
-export function toApiTenantFeature(
-  input: TenantFeature
-): tenantApi.TenantFeature {
+function toApiTenantFeature(input: TenantFeature): tenantApi.TenantFeature {
   return match<TenantFeature, tenantApi.TenantFeature>(input)
     .with({ type: "PersistentCertifier" }, (feature) => ({
       certifier: {
@@ -80,7 +78,7 @@ export function toApiTenantRevoker(
   };
 }
 
-export function toApiTenantAttribute(
+function toApiTenantAttribute(
   input: TenantAttribute
 ): tenantApi.TenantAttribute {
   return match<TenantAttribute, tenantApi.TenantAttribute>(input)
@@ -110,14 +108,14 @@ export function toApiTenantAttribute(
     .exhaustive();
 }
 
-export function toApiMailKind(kind: TenantMailKind): tenantApi.MailKind {
+function toApiMailKind(kind: TenantMailKind): tenantApi.MailKind {
   return match<TenantMailKind, tenantApi.MailKind>(kind)
     .with(tenantMailKind.ContactEmail, () => "CONTACT_EMAIL")
     .with(tenantMailKind.DigitalAddress, () => "DIGITAL_ADDRESS")
     .exhaustive();
 }
 
-export function toApiMail(mail: TenantMail): tenantApi.Mail {
+function toApiMail(mail: TenantMail): tenantApi.Mail {
   return {
     id: mail.id,
     kind: toApiMailKind(mail.kind),

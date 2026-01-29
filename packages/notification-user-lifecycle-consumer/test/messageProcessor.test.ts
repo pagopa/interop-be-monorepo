@@ -24,9 +24,7 @@ describe("processUserEvent", () => {
   const mockNotificationConfigProcessClient = {
     ensureUserNotificationConfigExistsWithRoles: vi.fn(),
     removeUserNotificationConfigRole: vi.fn(),
-  } as unknown as ReturnType<
-    typeof notificationConfigApi.createProcessApiClient
-  >;
+  } as unknown as notificationConfigApi.NotificationConfigProcessClient;
 
   const mockInteropTokenGenerator: RefreshableInteropToken = {
     get: vi.fn(),

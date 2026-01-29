@@ -168,5 +168,3 @@ export function messageProcessorBuilder(
     },
   };
 }
-
-export type MessageProcessor = ReturnType<typeof messageProcessorBuilder>;

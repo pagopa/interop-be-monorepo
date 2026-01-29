@@ -63,12 +63,15 @@ export async function handleAgreementMessageV2(
           readModelService
         );
 
+        const messageTimestamp = msg.log_date;
+
         const contract = await agreementContractBuilder.createContract(
           agreement,
           eservice,
           consumer,
           producer,
-          activeDelegations
+          activeDelegations,
+          messageTimestamp
         );
 
         const contractWithIsoString: agreementApi.Document = {

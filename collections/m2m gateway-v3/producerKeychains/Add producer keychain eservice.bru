@@ -1,0 +1,26 @@
+meta {
+  name: Add producer keychain eservice
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/producerKeychains/:keychainId/eservices
+  body: json
+  auth: none
+}
+
+params:path {
+  keychainId: {{keychainId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "eserviceId": "{{eserviceId}}"
+  }
+}
+

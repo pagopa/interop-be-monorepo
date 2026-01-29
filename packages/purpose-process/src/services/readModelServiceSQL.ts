@@ -24,6 +24,8 @@ import {
   PurposeTemplateId,
   PurposeTemplate,
   purposeTemplateState,
+  ClientId,
+  Client,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -43,6 +45,7 @@ import {
   aggregatePurposeArray,
   AgreementReadModelService,
   CatalogReadModelService,
+  ClientReadModelService,
   DelegationReadModelService,
   PurposeReadModelService,
   PurposeTemplateReadModelService,
@@ -67,6 +70,7 @@ export type GetPurposesFilters = {
   eservicesIds: EServiceId[];
   consumersIds: TenantId[];
   producersIds: TenantId[];
+  purposesIds: PurposeId[];
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
 };
@@ -114,6 +118,11 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
         eq(purposeInReadmodelPurpose.delegationId, activeConsumerDelegations.id)
       )
     );
+
+const getPurposesIdsFilter = (purposesIds: PurposeId[]): SQL | undefined =>
+  purposesIds.length > 0
+    ? inArray(purposeInReadmodelPurpose.id, purposesIds)
+    : undefined;
 
 const getProducerIdsFilter = (producersIds: TenantId[]): SQL | undefined =>
   producersIds.length > 0
@@ -205,6 +214,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
+  clientReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   purposeReadModelServiceSQL: PurposeReadModelService;
@@ -213,6 +223,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL: AgreementReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
+  clientReadModelServiceSQL: ClientReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -244,7 +255,8 @@ export function readModelServiceBuilderSQL({
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
-      const { producersIds, consumersIds, ...otherFilters } = filters;
+      const { producersIds, consumersIds, purposesIds, ...otherFilters } =
+        filters;
 
       const subquery = addDelegationJoins(
         readModelDB
@@ -273,6 +285,7 @@ export function readModelServiceBuilderSQL({
               getProducerIdsFilter(producersIds),
               getConsumerIdsFilter(consumersIds),
               getVisibilityFilter(requesterId),
+              getPurposesIdsFilter(purposesIds),
               ...getPurposesFilters(readModelDB, otherFilters)
             )
           )
@@ -466,6 +479,11 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
+    },
+    async getClientById(
+      id: ClientId
+    ): Promise<WithMetadata<Client> | undefined> {
+      return clientReadModelServiceSQL.getClientById(id);
     },
   };
 }

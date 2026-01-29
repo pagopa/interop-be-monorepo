@@ -186,7 +186,6 @@ export async function mergeDeletingCascadeById<
   }
 }
 
-export type ColumnValue = string | number | Date | undefined | null | boolean;
 const sanitizeColumnValue = (s: string): string => s.replace(/\\$/, "\\\\");
 
 /**
