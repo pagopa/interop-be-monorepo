@@ -18,6 +18,7 @@ import {
 } from "../api/clientApiConverter.js";
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
+import { getSelfcareCompactUserById } from "./userService.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -281,6 +282,27 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       await pollClientKeyUntilDeletion(clientId, keyId, headers);
+    },
+    async getClientUsers(
+      clientId: string,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.CompactUsers> {
+      ctx.logger.info(`Retrieving users for client ${clientId}`);
+
+      const clientUsers = await clients.authorizationClient.client.getClientUsers({
+        params: { clientId },
+        headers: ctx.headers,
+      });
+
+      return await Promise.all(
+        clientUsers.data.map(async (id) =>
+          getSelfcareCompactUserById(
+            clients,
+            id,
+            ctx
+          )
+        )
+      );
     },
   };
 }

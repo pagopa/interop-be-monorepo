@@ -9282,6 +9282,54 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  "/clients/{clientId}/users":
+    parameters:
+      - name: clientId
+        in: path
+        description: ID of Client the users belong to
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - clients
+      summary: List client users
+      description: List client users
+      operationId: getClientUsers
+      responses:
+        "200":
+          description: Request succeed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactUsers"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
     LastEventId:
@@ -12668,6 +12716,26 @@ components:
       required:
         - results
         - pagination
+    CompactUser:
+      description: Contains some details about user
+      type: object
+      additionalProperties: false
+      properties:
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        familyName:
+          type: string
+      required:
+        - userId
+        - name
+        - familyName
+    CompactUsers:
+      type: array
+      items:
+        $ref: "#/components/schemas/CompactUser"
     Problem:
       properties:
         type:

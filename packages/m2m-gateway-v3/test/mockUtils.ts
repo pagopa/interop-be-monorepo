@@ -116,3 +116,9 @@ export function testToM2MEServiceRiskAnalysisAnswers(
     ...expectedMultiAnswers,
   };
 }
+
+export const getMockm2mGatewayApiV3CompactUser = (): m2mGatewayApiV3.CompactUser => ({
+  userId: generateId(),
+  name: generateMock(z.string()),
+  familyName: generateMock(z.string()),
+});

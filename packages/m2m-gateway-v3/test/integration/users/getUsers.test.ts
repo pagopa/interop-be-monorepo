@@ -21,12 +21,12 @@ interface SelfcareUser {
   email?: string | undefined;
   fiscalCode?: string | undefined;
   role?:
-    | "ADMIN_EA"
-    | "DELEGATE"
-    | "MANAGER"
-    | "OPERATOR"
-    | "SUB_DELEGATE"
-    | undefined;
+  | "ADMIN_EA"
+  | "DELEGATE"
+  | "MANAGER"
+  | "OPERATOR"
+  | "SUB_DELEGATE"
+  | undefined;
 }
 
 describe("getUsers", () => {
@@ -80,10 +80,10 @@ describe("getUsers", () => {
     },
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
 
-  mockInteropBeClients.selfcareV2Client = {
+  mockInteropBeClients.selfcareProcessClient = {
     getInstitutionUsersByProductUsingGET:
       mockGetInstitutionUsersByProductUsingGET,
-  } as unknown as PagoPAInteropBeClients["selfcareV2Client"];
+  } as unknown as PagoPAInteropBeClients["selfcareProcessClient"];
 
   const callService = async (queryParams: GetUsersQueryParams) => {
     const context = getMockM2MAdminAppContext({ organizationId: tenantId });
@@ -147,7 +147,7 @@ describe("getUsers", () => {
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareProcessClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -227,7 +227,7 @@ describe("getUsers", () => {
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareProcessClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -273,7 +273,7 @@ describe("getUsers", () => {
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareProcessClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
