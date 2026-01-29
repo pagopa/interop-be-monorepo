@@ -47,7 +47,7 @@ type EServiceStateChangedEvent = Extract<
   { type: EServiceStateChangedEventType }
 >;
 
-export type EServiceUpdatedHandlerParams = HandlerCommonParams & {
+type EServiceUpdatedHandlerParams = HandlerCommonParams & {
   payload: EServiceStateChangedEvent;
 };
 
@@ -132,10 +132,11 @@ export async function handleEserviceStateChanged(
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             copy,
             ctaLabel: `Visualizza e-service`,
+            selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),
         },
-        tenantId: producer.id,
+        tenantId: t.tenantId,
         ...mapRecipientToEmailPayload(t),
       },
     ];

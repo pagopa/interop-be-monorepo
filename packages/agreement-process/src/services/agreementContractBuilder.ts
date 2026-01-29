@@ -44,7 +44,7 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
-export type DelegationData = {
+type DelegationData = {
   delegation: Delegation;
   delegate: Tenant;
 };

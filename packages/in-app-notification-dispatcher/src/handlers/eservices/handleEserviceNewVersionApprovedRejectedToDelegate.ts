@@ -3,8 +3,6 @@ import {
   EServiceV2,
   missingKafkaMessageDataError,
   fromEServiceV2,
-  DescriptorId,
-  EServiceIdDescriptorId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -21,7 +19,6 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
 
 export async function handleEserviceNewVersionApprovedRejectedToDelegate(
   eserviceV2Msg: EServiceV2 | undefined,
-  descriptorId: DescriptorId,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
   eventType: EserviceNewVersionApprovedRejectedToDelegateEventType
@@ -66,15 +63,11 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
     eventType
   );
 
-  const entityId = EServiceIdDescriptorId.parse(
-    `${eservice.id}/${descriptorId}`
-  );
-
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceNewVersionApprovedRejectedToDelegate",
-    entityId,
+    entityId: producerDelegation.id,
   }));
 }

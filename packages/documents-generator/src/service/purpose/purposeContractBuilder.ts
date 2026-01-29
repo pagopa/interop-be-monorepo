@@ -48,8 +48,10 @@ const CONTENT_TYPE_PDF = "application/pdf";
 
 type Language = keyof LocalizedText;
 
-const createRiskAnalysisDocumentName = (): string =>
-  `${formatDateyyyyMMddHHmmss(new Date())}_${generateId()}_risk_analysis.pdf`;
+const createRiskAnalysisDocumentName = (messageTimestamp: Date): string =>
+  `${formatDateyyyyMMddHHmmss(
+    messageTimestamp
+  )}_${generateId()}_risk_analysis.pdf`;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const riskAnalysisDocumentBuilder = (
@@ -69,7 +71,8 @@ export const riskAnalysisDocumentBuilder = (
       eserviceInfo: PurposeDocumentEServiceInfo,
       userId: UserId | undefined,
       tenantKind: TenantKind,
-      language: Language
+      language: Language,
+      messageTimestamp: Date
     ): Promise<PurposeVersionDocument> => {
       const templateFilePath = path.resolve(
         dirname,
@@ -87,6 +90,7 @@ export const riskAnalysisDocumentBuilder = (
         purpose.riskAnalysisForm.version = "1.0";
       }
 
+      const documentCreatedAt = messageTimestamp;
       const riskAnalysisVersion = purpose.riskAnalysisForm.version;
 
       // Handle GSP that were previously PA and have access to PA risk analysis versions (3.0, 3.1)
@@ -117,6 +121,7 @@ export const riskAnalysisDocumentBuilder = (
         isFreeOfCharge: purpose.isFreeOfCharge,
         freeOfChargeReason: purpose.freeOfChargeReason,
         language,
+        documentCreatedAt,
       });
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
@@ -125,7 +130,7 @@ export const riskAnalysisDocumentBuilder = (
       );
 
       const documentId = generateId<PurposeVersionDocumentId>();
-      const documentName = createRiskAnalysisDocumentName();
+      const documentName = createRiskAnalysisDocumentName(messageTimestamp);
 
       const documentPath = await fileManager.resumeOrStoreBytes(
         {
@@ -158,6 +163,7 @@ const getPdfPayload = ({
   isFreeOfCharge,
   freeOfChargeReason,
   language,
+  documentCreatedAt,
 }: {
   riskAnalysisFormConfig: RiskAnalysisFormRules;
   riskAnalysisForm: PurposeRiskAnalysisForm;
@@ -168,6 +174,7 @@ const getPdfPayload = ({
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
   language: Language;
+  documentCreatedAt: Date;
 }): RiskAnalysisDocumentPDFPayload => {
   const answers = formatAnswers(
     riskAnalysisFormConfig,
@@ -195,7 +202,7 @@ const getPdfPayload = ({
     consumerIpaCode: eserviceInfo.consumerIpaCode,
     freeOfCharge: freeOfChargeHtml,
     freeOfChargeReason: freeOfChargeReasonHtml,
-    date: dateAtRomeZone(new Date()),
+    date: dateAtRomeZone(documentCreatedAt),
     eServiceMode,
     producerDelegationId: eserviceInfo.producerDelegationId,
     producerDelegateName: eserviceInfo.producerDelegateName,

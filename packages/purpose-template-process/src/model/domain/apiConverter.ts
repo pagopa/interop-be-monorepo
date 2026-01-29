@@ -18,7 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export function purposeTemplateStateToApiPurposeTemplateState(
+function purposeTemplateStateToApiPurposeTemplateState(
   input: PurposeTemplateState
 ): purposeTemplateApi.PurposeTemplateState {
   return match<PurposeTemplateState, purposeTemplateApi.PurposeTemplateState>(
@@ -122,7 +122,7 @@ export const riskAnalysisAnswerToApiRiskAnalysisAnswer = (
     : undefined,
 });
 
-function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
+export function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
   riskAnalysisForm: RiskAnalysisFormTemplate
 ): purposeTemplateApi.RiskAnalysisFormTemplate {
   const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
@@ -144,7 +144,7 @@ function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
   };
 }
 
-export const multiAnswersToApiMultiAnswers = (
+const multiAnswersToApiMultiAnswers = (
   multiAnswers: RiskAnalysisTemplateMultiAnswer[]
 ): Array<{
   responseKey: string;
@@ -164,7 +164,7 @@ export const multiAnswersToApiMultiAnswers = (
     },
   }));
 
-export const singleAnswersToApiSingleAnswers = (
+const singleAnswersToApiSingleAnswers = (
   singleAnswers: RiskAnalysisTemplateSingleAnswer[]
 ): Array<{
   responseKey: string;
@@ -255,3 +255,38 @@ export const toRiskAnalysisFormTemplateToValidate = (
       {}
     ),
 });
+
+export function purposeTemplateToApiPurposeTemplateSeed(
+  purposeTemplate: PurposeTemplate
+): purposeTemplateApi.PurposeTemplateSeed {
+  const form = purposeTemplate.purposeRiskAnalysisForm;
+
+  if (!form) {
+    return { ...purposeTemplate, purposeRiskAnalysisForm: undefined };
+  }
+
+  const updatedForm = {
+    version: form.version,
+    answers: {
+      ...form.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
+        }),
+        {}
+      ),
+      ...form.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: multiAnswer.values,
+        }),
+        {}
+      ),
+    },
+  };
+
+  return {
+    ...purposeTemplate,
+    purposeRiskAnalysisForm: updatedForm,
+  };
+}

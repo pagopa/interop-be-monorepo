@@ -11845,7 +11845,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
-          description: Purpose template is not in Draft state
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -22963,6 +22963,28 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}:
     parameters:
       - name: eServiceTemplateId
@@ -23428,7 +23450,8 @@ paths:
                 $ref: "#/components/schemas/Problem"
   "/inAppNotifications":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - inAppNotifications
       summary: Retrieves a list of notifications
@@ -24604,7 +24627,8 @@ paths:
 
   "/tenantNotificationConfigs":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Retrieve the tenant's notification configuration
@@ -24722,7 +24746,8 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Update the tenant's notification configuration
@@ -24845,7 +24870,8 @@ paths:
 
   "/userNotificationConfigs":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Retrieve the user's notification configuration
@@ -24963,7 +24989,8 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Update the user's notification configuration
@@ -25063,7 +25090,8 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/emailDeepLink/{notificationType}/{entityId}":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - emailDeepLink
       summary: Redirect the user to the correct deepLink based on notification type and entity id
@@ -25080,6 +25108,12 @@ paths:
           in: path
           required: true
           description: The id of the entity
+          schema:
+            type: string
+        - name: selfcareId
+          in: query
+          required: false
+          description: The selfcare ID for the institution (optional, falls back to generic URL if not provided)
           schema:
             type: string
       responses:
@@ -26297,7 +26331,7 @@ components:
         description:
           type: string
         producer:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTenant"
         agreement:
           $ref: "#/components/schemas/CompactAgreement"
         isMine:
@@ -26671,6 +26705,24 @@ components:
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this organization
+    CatalogTenant:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hasUnreadNotifications:
+          type: boolean
+          description: Indicates if there are unread notifications for this organization
+        selfcareId:
+          type: string
+          format: uuid
     TenantKind:
       type: string
       enum:
@@ -27318,7 +27370,7 @@ components:
         purposeDescription:
           type: string
         creator:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTenant"
     CatalogPurposeTemplates:
       type: object
       additionalProperties: false
@@ -29194,7 +29246,7 @@ components:
         description:
           type: string
         creator:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTenant"
         publishedVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     ProducerEServiceTemplate:
@@ -29287,7 +29339,6 @@ components:
         - type
         - status
         - title
-        - errors
     UpdateEServiceTemplateVersionSeed:
       required:
         - voucherLifespan
