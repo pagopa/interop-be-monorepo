@@ -492,14 +492,62 @@
                               width="100%"
                             >
                               <tbody>
-                                <!-- Title & Main Message -->
+                                <!-- Logo -->
                                 <tr>
-                                  <td align="left" class="title title-cell">
-                                    <div class="title-wrapper">
-                                      <!-- H4 Desktop (from MUI Italia)-->
-                                      <h2 class="page-title">
-                                        PDND Interoperabilità
-                                      </h2>
+                                  <td align="left" style="padding: 0;">
+                                    <img
+                                      src="data:image/png;base64,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"
+                                      alt="PagoPA"
+                                      aria-label="Logo PagoPA"
+                                      width="110"
+                                      style="display: block; width: 110px; height: auto;"
+                                    />
+                                  </td>
+                                </tr>
+
+                                <!-- Title & Intro -->
+                                <tr>
+                                  <td
+                                    align="left"
+                                    class="title"
+                                    style="
+                                      padding-top: 24px;
+                                      padding-bottom: 0px;
+                                      padding-left: 0px;
+                                      padding-right: 0px;
+                                    "
+                                  >
+                                    <div style="
+                                      font-size: 28px;
+                                      font-weight: 700;
+                                      line-height: 1.3;
+                                      text-align: left;
+                                      color: #17324d;
+                                    ">
+                                      La tua sintesi da PDND interoperabilità
+                                    </div>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td
+                                    align="left"
+                                    class="text"
+                                    style="
+                                      padding-top: 8px;
+                                      padding-bottom: 24px;
+                                      padding-left: 0px;
+                                      padding-right: 0px;
+                                    "
+                                  >
+                                    <div style="
+                                      font-size: 16px;
+                                      line-height: 24px;
+                                      text-align: left;
+                                      color: #17324d;
+                                    ">
+                                      {{#if userName}}Ciao {{userName}},{{else}}Ciao,{{/if}}
+                                      <br /><br />
+                                      ti presentiamo una sintesi degli eventi dell'ultima settimana sulla PDND.
                                     </div>
                                   </td>
                                 </tr>
