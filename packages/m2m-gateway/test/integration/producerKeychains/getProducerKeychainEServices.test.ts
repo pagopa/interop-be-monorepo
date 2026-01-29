@@ -12,7 +12,10 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiEService,
+} from "../../mockUtils.js";
 
 describe("getProducerKeychainEServices", () => {
   const mockParams: m2mGatewayApi.GetProducerKeychainEServicesQueryParams = {
@@ -50,31 +53,11 @@ describe("getProducerKeychainEServices", () => {
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
-  const expectedM2MEService1: m2mGatewayApi.EService = {
-    id: mockApiEService1.id,
-    producerId: mockApiEService1.producerId,
-    name: mockApiEService1.name,
-    description: mockApiEService1.description,
-    technology: mockApiEService1.technology,
-    mode: mockApiEService1.mode,
-    isSignalHubEnabled: mockApiEService1.isSignalHubEnabled,
-    isConsumerDelegable: mockApiEService1.isConsumerDelegable,
-    isClientAccessDelegable: mockApiEService1.isClientAccessDelegable,
-    templateId: mockApiEService1.templateId,
-  };
+  const expectedM2MEService1: m2mGatewayApi.EService =
+    testToM2mGatewayApiEService(mockApiEService1);
 
-  const expectedM2MEService2: m2mGatewayApi.EService = {
-    id: mockApiEService2.id,
-    producerId: mockApiEService2.producerId,
-    name: mockApiEService2.name,
-    description: mockApiEService2.description,
-    technology: mockApiEService2.technology,
-    mode: mockApiEService2.mode,
-    isSignalHubEnabled: mockApiEService2.isSignalHubEnabled,
-    isConsumerDelegable: mockApiEService2.isConsumerDelegable,
-    isClientAccessDelegable: mockApiEService2.isClientAccessDelegable,
-    templateId: mockApiEService2.templateId,
-  };
+  const expectedM2MEService2: m2mGatewayApi.EService =
+    testToM2mGatewayApiEService(mockApiEService2);
 
   beforeEach(() => {
     mockGetProducerKeychain.mockClear();
