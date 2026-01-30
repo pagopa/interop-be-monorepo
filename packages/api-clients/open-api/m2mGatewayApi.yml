@@ -22297,7 +22297,6 @@ components:
           type: boolean
         purposeFreeOfChargeReason:
           type: string
-          nullable: true
         purposeDailyCalls:
           type: integer
           format: int32
