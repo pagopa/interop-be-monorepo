@@ -662,6 +662,7 @@ async function updateDraftPurposeTemplate(
     targetTenantKind,
     purposeTitle,
     purposeFreeOfChargeReason,
+    purposeIsFreeOfCharge,
     purposeDailyCalls,
     handlesPersonalData,
   } = typeAndSeed.seed;
@@ -716,14 +717,22 @@ async function updateDraftPurposeTemplate(
     .with({ type: "patch" }, () => purposeTemplate.data.purposeRiskAnalysisForm)
     .exhaustive();
 
+  const normalizedSeedFreeOfChargeReason =
+    typeof purposeFreeOfChargeReason === "string" &&
+    purposeFreeOfChargeReason.length > 0
+      ? purposeFreeOfChargeReason
+      : undefined;
+  const updatedPurposeFreeOfChargeReason =
+    normalizedSeedFreeOfChargeReason ||
+    (purposeIsFreeOfCharge !== undefined &&
+      purposeIsFreeOfCharge !== purposeTemplate.data.purposeIsFreeOfCharge)
+      ? normalizedSeedFreeOfChargeReason
+      : purposeTemplate.data.purposeFreeOfChargeReason;
+
   const updatedPurposeTemplate: PurposeTemplate = {
     ...purposeTemplate.data,
     ...typeAndSeed.seed,
-    purposeFreeOfChargeReason:
-      purposeFreeOfChargeReason === null
-        ? undefined
-        : purposeFreeOfChargeReason ??
-          purposeTemplate.data.purposeFreeOfChargeReason,
+    purposeFreeOfChargeReason: updatedPurposeFreeOfChargeReason,
     purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
     purposeDailyCalls:
       purposeDailyCalls === null

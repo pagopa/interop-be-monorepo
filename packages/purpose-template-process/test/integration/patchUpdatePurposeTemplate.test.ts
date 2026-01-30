@@ -71,7 +71,6 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: null,
     },
     {
       targetDescription: "updated target description",
@@ -79,7 +78,6 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
     },
     {
@@ -88,7 +86,6 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: null,
       purposeDailyCalls: null,
       handlesPersonalData: true,
     },
@@ -165,6 +162,142 @@ describe("patch update purpose template", () => {
         data: expectedPurposeTemplate,
         metadata: { version: 1 },
       });
+    }
+  );
+
+  const successFreeOfChargeTestCases: [
+    Pick<
+      PurposeTemplate,
+      "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+    >,
+    Pick<
+      purposeTemplateApi.PatchUpdatePurposeTemplateSeed,
+      "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+    >,
+    Pick<PurposeTemplate, "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason">
+  ][] = [
+    [
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+    ],
+    [
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+    ],
+    [
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      { purposeIsFreeOfCharge: true },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+    ],
+    [
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      { purposeIsFreeOfCharge: false },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      { purposeFreeOfChargeReason: "New reason" },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+  ];
+  it.each(successFreeOfChargeTestCases)(
+    "should successfully update purposeIsFreeOfCharge and purposeFreeOfChargeReason (seed #%#)",
+    async (initData, seed, expected) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: initData.purposeFreeOfChargeReason,
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      const patchPurposeTemplateResult =
+        await purposeTemplateService.patchUpdatePurposeTemplate(
+          mockPurposeTemplate.id,
+          seed,
+          getMockContextM2MAdmin({
+            organizationId: mockPurposeTemplate.creatorId,
+          })
+        );
+
+      const expectedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate,
+        purposeIsFreeOfCharge: expected.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: expected.purposeFreeOfChargeReason,
+        updatedAt: new Date(),
+      };
+
+      expect(patchPurposeTemplateResult).toEqual({
+        data: expectedPurposeTemplate,
+        metadata: { version: 1 },
+      });
+    }
+  );
+
+  const failureFreeOfChargeTestCases: [
+    Pick<
+      PurposeTemplate,
+      "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+    >,
+    Pick<
+      purposeTemplateApi.PatchUpdatePurposeTemplateSeed,
+      "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+    >,
+    Pick<PurposeTemplate, "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason">
+  ][] = [
+    [
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeFreeOfChargeReason: "New reason" },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+    ],
+  ];
+  it.each(failureFreeOfChargeTestCases)(
+    "should throw invalidFreeOfChargeReason (seed #%#)",
+    async (initData, seed, wrongUpdatedData) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: initData.purposeFreeOfChargeReason,
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      expect(
+        purposeTemplateService.patchUpdatePurposeTemplate(
+          mockPurposeTemplate.id,
+          seed,
+          getMockContextM2MAdmin({
+            organizationId: mockPurposeTemplate.creatorId,
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(
+          wrongUpdatedData.purposeIsFreeOfCharge,
+          wrongUpdatedData.purposeFreeOfChargeReason
+        )
+      );
     }
   );
 
@@ -271,33 +404,4 @@ describe("patch update purpose template", () => {
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
-
-  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
-    "should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false",
-    async ({ freeOfChargeReason }) => {
-      const purposeTemplate: PurposeTemplate = {
-        ...mockPurposeTemplate,
-        purposeIsFreeOfCharge: true,
-        purposeFreeOfChargeReason: "Some reason",
-      };
-
-      await addOnePurposeTemplate(purposeTemplate);
-
-      const isFreeOfCharge = false;
-      expect(
-        purposeTemplateService.patchUpdatePurposeTemplate(
-          purposeTemplate.id,
-          {
-            purposeIsFreeOfCharge: isFreeOfCharge,
-            purposeFreeOfChargeReason: freeOfChargeReason,
-          },
-          getMockContextM2MAdmin({
-            organizationId: purposeTemplate.creatorId,
-          })
-        )
-      ).rejects.toThrowError(
-        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
-      );
-    }
-  );
 });
