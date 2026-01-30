@@ -31,6 +31,7 @@ import {
   eserviceNotFound,
   tenantKindNotFound,
   tenantNotFound,
+  invalidFreeOfChargeReason,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
@@ -98,6 +99,11 @@ describe("API POST /purposes/{purposeId} test", () => {
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
     { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
+    {
+      error: invalidFreeOfChargeReason(false, "Some reason"),
+      expectedStatus: 400,
+    },
+
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
       error: tenantIsNotTheDelegatedConsumer(
