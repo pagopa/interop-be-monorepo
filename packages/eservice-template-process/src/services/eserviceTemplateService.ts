@@ -11,7 +11,6 @@ import {
   M2MAdminAuthData,
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
-  isFeatureFlagEnabled,
   Logger,
 } from "pagopa-interop-commons";
 import {
@@ -523,10 +522,8 @@ export function eserviceTemplateServiceBuilder(
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
       }
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eserviceTemplate.data.personalData === undefined
-      ) {
+
+      if (eserviceTemplate.data.personalData === undefined) {
         throw missingPersonalDataFlag(
           eserviceTemplateId,
           eserviceTemplateVersionId
@@ -1330,9 +1327,7 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
-        ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-          ? { personalData: seed.personalData }
-          : {}),
+        personalData: seed.personalData,
       };
 
       const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
@@ -2167,9 +2162,7 @@ async function updateDraftEServiceTemplate(
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
-      : {}),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(
