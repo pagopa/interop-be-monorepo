@@ -2876,12 +2876,6 @@ importers:
       '@aws-sdk/client-dynamodb':
         specifier: 3.840.0
         version: 3.840.0
-      '@aws-sdk/util-dynamodb':
-        specifier: 3.840.0
-        version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
       archiver:
         specifier: 7.0.1
         version: 7.0.1
