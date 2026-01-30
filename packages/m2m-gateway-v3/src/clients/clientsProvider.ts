@@ -1,3 +1,4 @@
+import { ZodiosOptions } from "@zodios/core";
 import {
   tenantApi,
   attributeRegistryApi,
@@ -14,6 +15,14 @@ import {
 import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
 import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
+
+const createSelfcareClientConfig = (selfcareApiKey: string): ZodiosOptions => ({
+  axiosConfig: {
+    headers: {
+      "Ocp-Apim-Subscription-Key": selfcareApiKey,
+    },
+  },
+});
 
 type TenantProcessClient = Pick<
   tenantApi.TenantProcessClient,
@@ -149,7 +158,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     ),
     selfcareV2Client: createZodiosClientEnhancedWithMetadata(
       selfcareV2ClientApi.createInstitutionApiClient,
-      config.selfcareV2Url
+      config.selfcareBaseUrl,
+      createSelfcareClientConfig(config.selfcareApiKey)
     ),
   };
 }
