@@ -68,6 +68,7 @@ export async function handleClientPurposeAdded(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza richiesta`,
+        selfcareId: producer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

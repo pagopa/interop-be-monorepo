@@ -118,10 +118,7 @@ import {
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 
-export type GetPurposesFilters = Omit<
-  ReadModelGetPurposesFilters,
-  "purposesIds"
-> & {
+type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
   clientId?: ClientId;
 };
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
