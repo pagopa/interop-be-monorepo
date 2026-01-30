@@ -92,7 +92,7 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const selfcareId = tenant.selfcareId;
 
       // Fetch users from SelfCare (API already returns only active users)
-      const { data: users } =
+      const users =
         await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
           params: { institutionId: selfcareId },
           queries: {
