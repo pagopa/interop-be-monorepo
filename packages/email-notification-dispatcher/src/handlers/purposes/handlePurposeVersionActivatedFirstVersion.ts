@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeActivatedRejectedToConsumer";
 
@@ -81,6 +82,8 @@ export async function handlePurposeVersionActivatedFirstVersion(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
+        selfcareId: consumer.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: consumer.id,

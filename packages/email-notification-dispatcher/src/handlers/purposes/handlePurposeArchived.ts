@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeStatusChangedToProducer";
 
@@ -71,6 +72,8 @@ export async function handlePurposeArchived(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
+        selfcareId: producer.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: producer.id,
