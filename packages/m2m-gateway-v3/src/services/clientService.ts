@@ -353,5 +353,32 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
+
+    async addClientUsers(
+      clientId: ClientId,
+      userIds: string[],
+      { headers, logger, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Adding users ${userIds.join(", ")} to client with id ${clientId}`
+      );
+
+      const { data: tenant } = await clients.tenantProcessClient.tenant.getTenant({
+        params: { id: authData.organizationId },
+        headers,
+      });
+
+      assertTenantHasSelfcareId(tenant);
+
+      const updatedHeaders = { ...headers, selfcareId: tenant.selfcareId };
+
+      const response =
+        await clients.authorizationClient.client.addUsers({ userIds }, {
+          params: { clientId },
+          headers: updatedHeaders,
+        });
+
+      await pollClient(response, updatedHeaders);
+    },
   };
 }
