@@ -104,9 +104,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     const result = await callService(queryParams);
 
@@ -169,9 +167,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     const result = await callService(queryParams);
 
@@ -217,9 +213,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     const result = await callService(queryParams);
 
@@ -249,9 +243,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockNoUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockNoUsers);
 
     const result = await callService(queryParams);
 
@@ -295,9 +287,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadataAndEmptySelfcareId);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     await expect(callService(queryParams)).rejects.toThrowError();
 
@@ -320,9 +310,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     const result = await callService(queryParams);
 
