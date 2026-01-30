@@ -19,6 +19,9 @@ import {
   PurposeId,
   PurposeVersionState,
   purposeVersionState,
+  SelfcareId,
+  Tenant,
+  TenantId,
   unsafeBrandId,
   UserId,
   WithMetadata,
@@ -325,7 +328,7 @@ export function authorizationServiceBuilder(
 
       const userIds =
         isUiAuthData(authData) &&
-        hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
+          hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
           ? [authData.userId]
           : filters.userIds;
 
@@ -555,7 +558,7 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         userIds: UserId[];
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Client> {
       logger.info(`Binding client ${clientId} with user ${userIds.join(",")}`);
       const client = await retrieveClient(clientId, readModelService);
@@ -564,7 +567,7 @@ export function authorizationServiceBuilder(
       await Promise.all(
         userIds.map((userId) =>
           assertUserSelfcareSecurityPrivileges({
-            selfcareId: authData.selfcareId,
+            selfcareId,
             requesterUserId: authData.userId,
             consumerId: authData.organizationId,
             selfcareV2InstitutionClient,
@@ -974,7 +977,7 @@ export function authorizationServiceBuilder(
 
       const userIds =
         isUiAuthData(authData) &&
-        hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
+          hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
           ? [authData.userId]
           : filters.userIds;
 

@@ -19,6 +19,7 @@ import {
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
 import { getSelfcareCompactUserById } from "./userService.js";
+import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -315,6 +316,33 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount: users.length,
         },
       };
+    },
+
+    async addClientUsers(
+      clientId: ClientId,
+      userIds: string[],
+      { headers, logger, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Adding users ${userIds.join(", ")} to client with id ${clientId}`
+      );
+
+      const { data: tenant } = await clients.tenantProcessClient.tenant.getTenant({
+        params: { id: authData.organizationId },
+        headers,
+      });
+
+      assertTenantHasSelfcareId(tenant);
+
+      const updatedHeaders = { ...headers, selfcareId: tenant.selfcareId };
+
+      const response =
+        await clients.authorizationClient.client.addUsers({ userIds }, {
+          params: { clientId },
+          headers: updatedHeaders,
+        });
+
+      await pollClient(response, updatedHeaders);
     },
   };
 }
