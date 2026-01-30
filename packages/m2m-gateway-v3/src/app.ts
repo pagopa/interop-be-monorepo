@@ -1,11 +1,14 @@
 import {
+  authenticationMiddleware,
   contextMiddleware,
   errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
+  healthRouter,
   loggerMiddleware,
   multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   zodiosCtx,
+  integrityRest02Middleware,
 } from "pagopa-interop-commons";
 import {
   applicationAuditBeginMiddleware,
@@ -13,9 +16,8 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
-import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import eserviceRouter from "./routers/eserviceRouter.js";
@@ -37,7 +39,7 @@ import { PurposeService } from "./services/purposeService.js";
 import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 import { TenantService } from "./services/tenantService.js";
 import {
-  authenticationDPoPMiddleware,
+  // authenticationDPoPMiddleware,
   m2mAuthDataValidationMiddleware,
 } from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
@@ -45,6 +47,8 @@ import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
 import { EventService } from "./services/eventService.js";
 import eventRouter from "./routers/eventRouter.js";
+import { UserService } from "./services/userService.js";
+import userRouter from "./routers/userRouter.js";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;
@@ -59,6 +63,7 @@ export type M2MGatewayServices = {
   keyService: KeyService;
   producerKeychainService: ProducerKeychainService;
   eventService: EventService;
+  userService: UserService;
 };
 
 export type RateLimiterMiddleware = ReturnType<
@@ -68,8 +73,7 @@ export type RateLimiterMiddleware = ReturnType<
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(
   services: M2MGatewayServices,
-  rateLimiterMiddleware: RateLimiterMiddleware,
-  dynamoDBClient: DynamoDBClient
+  rateLimiterMiddleware: RateLimiterMiddleware
 ) {
   const serviceName = modelsServiceName.M2M_GATEWAY;
   const {
@@ -85,6 +89,7 @@ export async function createApp(
     keyService,
     producerKeychainService,
     eventService,
+    userService,
   } = services;
 
   const app = zodiosCtx.app();
@@ -104,15 +109,20 @@ export async function createApp(
 
   app.use(loggerMiddleware(serviceName));
 
+  // // eslint-disable-next-line no-console
+  // console.log(typeof dynamoDBClient);
+
   app.use(
     appBasePath,
-    healthRouter,
+    healthRouter(m2mGatewayApiV3.healthApi.api),
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
-    authenticationDPoPMiddleware(config, dynamoDBClient),
+    authenticationMiddleware(config),
+    // authenticationDPoPMiddleware(config, dynamoDBClient),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
     m2mAuthDataValidationMiddleware(clientService),
+    integrityRest02Middleware("m2mv3", config),
     rateLimiterMiddleware,
     eserviceRouter(zodiosCtx, eserviceService),
     attributeRouter(zodiosCtx, attributeService),
@@ -125,7 +135,8 @@ export async function createApp(
     clientRouter(zodiosCtx, clientService),
     producerKeychainRouter(zodiosCtx, producerKeychainService),
     keyRouter(zodiosCtx, keyService),
-    eventRouter(zodiosCtx, eventService)
+    eventRouter(zodiosCtx, eventService),
+    userRouter(zodiosCtx, userService)
   );
 
   app.use(errorsToApiProblemsMiddleware);

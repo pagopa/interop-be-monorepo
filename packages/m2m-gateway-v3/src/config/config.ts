@@ -2,25 +2,22 @@ import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
-  DPoPConfig,
   FileManagerConfig,
-  JWTConfig,
   RedisRateLimiterConfig,
+  // TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const TenantProcessServerConfig = z
+const TenantProcessServerConfig = z
   .object({
     TENANT_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     tenantProcessUrl: c.TENANT_PROCESS_URL,
   }));
-export type TenantProcessServerConfig = z.infer<
-  typeof TenantProcessServerConfig
->;
+type TenantProcessServerConfig = z.infer<typeof TenantProcessServerConfig>;
 
-export const AgreementProcessServerConfig = z
+const AgreementProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
     AGREEMENT_CONSUMER_DOCUMENTS_PATH: z.string(),
@@ -34,11 +31,11 @@ export const AgreementProcessServerConfig = z
     agreementConsumerDocumentsContainer:
       c.AGREEMENT_CONSUMER_DOCUMENTS_CONTAINER,
   }));
-export type AgreementProcessServerConfig = z.infer<
+type AgreementProcessServerConfig = z.infer<
   typeof AgreementProcessServerConfig
 >;
 
-export const CatalogProcessServerConfig = z
+const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
     ESERVICE_DOCUMENTS_CONTAINER: z.string(),
@@ -49,22 +46,20 @@ export const CatalogProcessServerConfig = z
     eserviceDocumentsContainer: c.ESERVICE_DOCUMENTS_CONTAINER,
     eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
-export type CatalogProcessServerConfig = z.infer<
-  typeof CatalogProcessServerConfig
->;
+type CatalogProcessServerConfig = z.infer<typeof CatalogProcessServerConfig>;
 
-export const AttributeRegistryProcessServerConfig = z
+const AttributeRegistryProcessServerConfig = z
   .object({
     ATTRIBUTE_REGISTRY_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     attributeRegistryUrl: c.ATTRIBUTE_REGISTRY_PROCESS_URL,
   }));
-export type AttributeRegistryProcessServerConfig = z.infer<
+type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
-export const PurposeProcessServerConfig = z
+const PurposeProcessServerConfig = z
   .object({
     PURPOSE_PROCESS_URL: APIEndpoint,
     RISK_ANALYSIS_DOCUMENTS_CONTAINER: z.string(),
@@ -75,33 +70,31 @@ export const PurposeProcessServerConfig = z
     riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCUMENTS_CONTAINER,
     riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
   }));
-export type PurposeProcessServerConfig = z.infer<
-  typeof PurposeProcessServerConfig
->;
+type PurposeProcessServerConfig = z.infer<typeof PurposeProcessServerConfig>;
 
-export const AuthorizationProcessServerConfig = z
+const AuthorizationProcessServerConfig = z
   .object({
     AUTHORIZATION_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
   }));
-export type AuthorizationProcessServerConfig = z.infer<
+type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
-export const DelegationProcessServerConfig = z
+const DelegationProcessServerConfig = z
   .object({
     DELEGATION_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     delegationProcessUrl: c.DELEGATION_PROCESS_URL,
   }));
-export type DelegationProcessServerConfig = z.infer<
+type DelegationProcessServerConfig = z.infer<
   typeof DelegationProcessServerConfig
 >;
 
-export const EServiceTemplateProcessServerConfig = z
+const EServiceTemplateProcessServerConfig = z
   .object({
     ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
     ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
@@ -112,19 +105,19 @@ export const EServiceTemplateProcessServerConfig = z
     eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
     eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
   }));
-export type EServiceTemplateProcessServerConfig = z.infer<
+type EServiceTemplateProcessServerConfig = z.infer<
   typeof EServiceTemplateProcessServerConfig
 >;
 
-export const EventManagerServerConfig = z
+const EventManagerServerConfig = z
   .object({
     EVENT_MANAGER_URL: APIEndpoint,
   })
   .transform((c) => ({
     eventManagerUrl: c.EVENT_MANAGER_URL,
   }));
-export type EventManagerServerConfig = z.infer<typeof EventManagerServerConfig>;
-export const PurposeTemplateProcessServerConfig = z
+type EventManagerServerConfig = z.infer<typeof EventManagerServerConfig>;
+const PurposeTemplateProcessServerConfig = z
   .object({
     PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
     PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
@@ -135,9 +128,37 @@ export const PurposeTemplateProcessServerConfig = z
     purposeTemplateDocumentsContainer: c.PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER,
     purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
   }));
-export type PurposeTemplateProcessServerConfig = z.infer<
+type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
 >;
+
+export const SelfcareV2ServerConfig = z
+  .object({
+    SELFCARE_V2_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    selfcareV2Url: c.SELFCARE_V2_URL,
+  }));
+export type SelfcareV2ServerConfig = z.infer<typeof SelfcareV2ServerConfig>;
+
+const TokenGenerationConfig = z
+  .object({
+    GENERATED_INTEROP_TOKEN_ALGORITHM: z.string(),
+    GENERATED_INTEROP_TOKEN_KID: z.string(),
+    GENERATED_INTEROP_TOKEN_ISSUER: z.string(),
+    GENERATED_INTEROP_TOKEN_M2M_AUDIENCE: z.string(),
+    GENERATED_INTEROP_TOKEN_M2M_DURATION_SECONDS: z.coerce.number(),
+    GENERATED_INTEROP_TOKEN_SUBJECT: z.string(),
+  })
+  .transform((c) => ({
+    algorithm: c.GENERATED_INTEROP_TOKEN_ALGORITHM,
+    kid: c.GENERATED_INTEROP_TOKEN_KID,
+    issuer: c.GENERATED_INTEROP_TOKEN_ISSUER,
+    audience: c.GENERATED_INTEROP_TOKEN_M2M_AUDIENCE.split(","),
+    secondsDuration: c.GENERATED_INTEROP_TOKEN_M2M_DURATION_SECONDS,
+    subject: c.GENERATED_INTEROP_TOKEN_SUBJECT,
+  }));
+type TokenGenerationConfig = z.infer<typeof TokenGenerationConfig>;
 
 const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   TenantProcessServerConfig
@@ -152,10 +173,12 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(EServiceTemplateProcessServerConfig)
   .and(EventManagerServerConfig)
   .and(PurposeTemplateProcessServerConfig)
+  .and(SelfcareV2ServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
-  .and(DPoPConfig)
-  .and(JWTConfig)
+  // .and(DPoPConfig)
+  // .and(JWTConfig)
+  .and(TokenGenerationConfig)
   .and(
     z
       .object({
@@ -170,5 +193,5 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
       }))
   );
 
-export type M2MGatewayConfigV3 = z.infer<typeof M2MGatewayConfigV3>;
+type M2MGatewayConfigV3 = z.infer<typeof M2MGatewayConfigV3>;
 export const config: M2MGatewayConfigV3 = M2MGatewayConfigV3.parse(process.env);
