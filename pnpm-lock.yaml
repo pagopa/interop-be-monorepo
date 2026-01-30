@@ -738,6 +738,9 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
+      '@types/adm-zip':
+        specifier: 0.5.7
+        version: 0.5.7
       '@types/archiver':
         specifier: 6.0.2
         version: 6.0.2
