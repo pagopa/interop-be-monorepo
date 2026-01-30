@@ -10,9 +10,7 @@ import {
   m2mEventApi,
   purposeTemplateApi,
   selfcareV2InstitutionClientBuilder,
-  // selfcareV2UsersClientBuilder,
   SelfcareV2InstitutionClient,
-  // SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
