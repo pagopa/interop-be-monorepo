@@ -1,4 +1,3 @@
-import { ZodiosOptions } from "@zodios/core";
 import {
   tenantApi,
   attributeRegistryApi,
@@ -10,19 +9,14 @@ import {
   eserviceTemplateApi,
   m2mEventApi,
   purposeTemplateApi,
-  selfcareV2ClientApi,
+  selfcareV2InstitutionClientBuilder,
+  // selfcareV2UsersClientBuilder,
+  SelfcareV2InstitutionClient,
+  // SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
 import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
-
-const createSelfcareClientConfig = (selfcareApiKey: string): ZodiosOptions => ({
-  axiosConfig: {
-    headers: {
-      "Ocp-Apim-Subscription-Key": selfcareApiKey,
-    },
-  },
-});
 
 type TenantProcessClient = Pick<
   tenantApi.TenantProcessClient,
@@ -71,10 +65,6 @@ export type EServiceTemplateProcessClientWithMetadata =
 type PurposeTemplateProcessClientWithMetadata =
   ZodiosClientWithMetadata<purposeTemplateApi.PurposeTemplateProcessClient>;
 
-export type SelfcareV2Client = ZodiosClientWithMetadata<
-  ReturnType<typeof selfcareV2ClientApi.createInstitutionApiClient>
->;
-
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClientWithMetadata;
   attributeProcessClient: AttributeProcessClientWithMetadata;
@@ -86,7 +76,7 @@ export type PagoPAInteropBeClients = {
   eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
   eventManagerClient: m2mEventApi.EventManagerClient;
   purposeTemplateProcessClient: PurposeTemplateProcessClientWithMetadata;
-  selfcareV2Client: SelfcareV2Client;
+  selfcareV2Client: SelfcareV2InstitutionClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -156,10 +146,6 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       purposeTemplateApi.createPurposeTemplateApiClient,
       config.purposeTemplateProcessUrl
     ),
-    selfcareV2Client: createZodiosClientEnhancedWithMetadata(
-      selfcareV2ClientApi.createInstitutionApiClient,
-      config.selfcareBaseUrl,
-      createSelfcareClientConfig(config.selfcareApiKey)
-    ),
+    selfcareV2Client: selfcareV2InstitutionClientBuilder(config),
   };
 }
