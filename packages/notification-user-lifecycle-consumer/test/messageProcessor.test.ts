@@ -22,7 +22,7 @@ describe("processUserEvent", () => {
   };
 
   const mockNotificationConfigProcessClient = {
-    ensureUserNotificationConfigExistsWithRole: vi.fn(),
+    ensureUserNotificationConfigExistsWithRoles: vi.fn(),
     removeUserNotificationConfigRole: vi.fn(),
   } as unknown as notificationConfigApi.NotificationConfigProcessClient;
 
@@ -67,7 +67,7 @@ describe("processUserEvent", () => {
 
     vi.spyOn(
       mockNotificationConfigProcessClient,
-      "ensureUserNotificationConfigExistsWithRole"
+      "ensureUserNotificationConfigExistsWithRoles"
     ).mockResolvedValue(undefined);
 
     vi.spyOn(
@@ -115,7 +115,7 @@ describe("processUserEvent", () => {
   });
 
   it.each(["add" as const, "update" as const])(
-    "should call the ensureUserNotificationConfigExistsWithRole process endpoint for '%s' events",
+    "should call the ensureUserNotificationConfigExistsWithRoles process endpoint for '%s' events",
     async (eventType) => {
       const addEvent: UsersEventPayload = {
         ...baseEvent,
@@ -132,12 +132,12 @@ describe("processUserEvent", () => {
       );
 
       expect(
-        mockNotificationConfigProcessClient.ensureUserNotificationConfigExistsWithRole
+        mockNotificationConfigProcessClient.ensureUserNotificationConfigExistsWithRoles
       ).toHaveBeenCalledWith(
         {
           userId,
           tenantId: unsafeBrandId<TenantId>(tenantId),
-          userRole: apiProductRole,
+          userRoles: [apiProductRole],
         },
         {
           headers: {
@@ -160,7 +160,7 @@ describe("processUserEvent", () => {
       const apiError = new Error("API Error");
       vi.spyOn(
         mockNotificationConfigProcessClient,
-        "ensureUserNotificationConfigExistsWithRole"
+        "ensureUserNotificationConfigExistsWithRoles"
       ).mockRejectedValueOnce(apiError);
 
       await expect(
