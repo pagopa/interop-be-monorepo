@@ -61,6 +61,28 @@ export const verifyAccessTokenIsDPoP = (
 // ): input is JwtPayload & typeof CNF =>
 //   typeof input !== "string" && input.cnf !== undefined && input.cnf !== null;
 
+/**
+ * Verifies the cryptographic integrity and validity of a JWT Access Token.
+ *
+ * This function performs the following checks:
+ * 1. **Signature Verification**: Retrieves the public key from the configured JWKS providers
+ * (supporting multiple clients/key rotation) matching the token's `kid` header.
+ * 2. **Standard Claims Validation**: Checks that the token is not expired (`exp`) and matches the expected audience (`aud`).
+ *
+ * @remarks
+ * If verification fails (due to invalid signature, expiration, or missing keys), this function
+ * attempts to insecurely decode the token payload solely to extract context (`userId`, `selfcareId`)
+ * to populate the thrown `tokenVerificationFailed` error for better auditing.
+ *
+ * @param jwtToken - The raw Base64 encoded JWT string.
+ * @param config - Configuration object containing accepted audiences and JWKS URL(s).
+ * @param logger - Logger instance for debug and error tracking.
+ *
+ * @returns A Promise that resolves to an object containing the `decoded` payload if verification is successful.
+ *
+ * @throws {tokenVerificationFailed} If the token is invalid, expired, tampered with, or if the signing key cannot be found.
+ * The error object includes user context if extractable.
+ */
 export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,

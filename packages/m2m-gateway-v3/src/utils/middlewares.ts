@@ -20,7 +20,8 @@ import { Logger } from "pagopa-interop-commons";
 import { makeApiProblem } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
-import { verifyDPoPFlow } from "./dpop.js";
+import { verifyDPoPCompliance } from "./dpop.js";
+import { extractRequestDetails } from "./request.js";
 
 async function validateM2MAdminUserId(
   authData: M2MAdminAuthData,
@@ -104,9 +105,13 @@ export const authenticationDPoPMiddleware: (
 
     try {
       // ----------------------------------------------------------------------
-      // Step 0 – Request Normalization
-      // request normalization to obtain the HTTP method, htm, hti
+      // Step 0 – Request Normalization (RFC 9449)
+      // Reconstruct the Target URI (HTU) and Method (HTM) from the request
+      // to ensure the DPoP proof signature matches the actual call.
       // ----------------------------------------------------------------------
+      const { url, method } = extractRequestDetails(req);
+      // eslint-disable-next-line no-console
+      console.log(`Request URL: ${url}, Method: ${method}`);
 
       // ----------------------------------------------------------------------
       // Step 1 – Schema and Presence Verification (Syntax Check)
@@ -128,13 +133,14 @@ export const authenticationDPoPMiddleware: (
         ctx.logger
       );
 
-      // 4. Verifica COMPLETA del DPoP (Firma, Cache, Binding)
-      // Tutta la complessità è spostata qui dentro
-      await verifyDPoPFlow({
+      // 4. Full DPoP Validation (Signature, Replay Check, Key Binding)
+      await verifyDPoPCompliance({
         config,
         dpopProofJWS,
         accessTokenClientId: accessTokenDPoP.client_id,
         accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
+        expectedHtu: url,
+        expectedHtm: method,
         dynamoDBClient,
         logger: ctx.logger,
       });
@@ -147,15 +153,18 @@ export const authenticationDPoPMiddleware: (
         error,
         (err) =>
           match(err.code)
-            .with("tokenVerificationFailed", () => 401)
+            .with(
+              "tokenVerificationFailed",
+              "dpopProofValidationFailed",
+              "dpopProofSignatureValidationFailed",
+              "dpopProofJtiAlreadyUsed",
+              () => 401
+            )
             .with("operationForbidden", () => 403)
             .with(
               "missingHeader",
               "badDPoPToken",
               "badDPoPProof",
-              "dpopProofValidationFailed",
-              "dpopProofSignatureValidationFailed",
-              "dpopProofJtiAlreadyUsed",
               "invalidClaim",
               () => 400
             )

@@ -98,6 +98,7 @@ export function jwtsFromAuthAndDPoPHeaders(
   }
 
   // check for malformed DPoP header value
+  // NOT VERY USEFUL AS WE CANNOT VALIDATE THE DPoP JWS STRUCTURE HERE
   const dpopProofJWS = parseDPoPHeader(req);
   if (!dpopProofJWS) {
     logger.warn(
