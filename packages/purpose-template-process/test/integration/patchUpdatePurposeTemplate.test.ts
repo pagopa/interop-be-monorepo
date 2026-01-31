@@ -219,10 +219,27 @@ describe("patch update purpose template", () => {
       { purposeIsFreeOfCharge: false },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
     ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: "Some reason",
+      },
+      {
+        purposeIsFreeOfCharge: undefined,
+        purposeFreeOfChargeReason: undefined,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
   ];
   it.each(successFreeOfChargeTestCases)(
     "should successfully update purposeIsFreeOfCharge and purposeFreeOfChargeReason (seed #%#)",
     async (initData, seed, expected) => {
+      const cleanedSeed = Object.fromEntries(
+        Object.entries({
+          ...seed,
+        }).filter(([_, v]) => v !== undefined)
+      ) as purposeTemplateApi.PatchUpdatePurposeTemplateSeed;
+
       const purposeTemplate: PurposeTemplate = {
         ...mockPurposeTemplate,
         purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
@@ -234,7 +251,7 @@ describe("patch update purpose template", () => {
       const patchPurposeTemplateResult =
         await purposeTemplateService.patchUpdatePurposeTemplate(
           mockPurposeTemplate.id,
-          seed,
+          cleanedSeed,
           getMockContextM2MAdmin({
             organizationId: mockPurposeTemplate.creatorId,
           })

@@ -717,20 +717,24 @@ async function updateDraftPurposeTemplate(
     .with({ type: "patch" }, () => purposeTemplate.data.purposeRiskAnalysisForm)
     .exhaustive();
 
+  const updatedIsFreeOfCharge =
+    purposeIsFreeOfCharge ?? purposeTemplate.data.purposeIsFreeOfCharge;
   const normalizedSeedFreeOfChargeReason =
     typeof purposeFreeOfChargeReason === "string" &&
     purposeFreeOfChargeReason.length > 0
       ? purposeFreeOfChargeReason
       : undefined;
   const updatedPurposeFreeOfChargeReason =
-    normalizedSeedFreeOfChargeReason ||
-    (purposeIsFreeOfCharge !== undefined && purposeIsFreeOfCharge === false)
+    normalizedSeedFreeOfChargeReason !== undefined
       ? normalizedSeedFreeOfChargeReason
+      : updatedIsFreeOfCharge === false
+      ? undefined
       : purposeTemplate.data.purposeFreeOfChargeReason;
 
   const updatedPurposeTemplate: PurposeTemplate = {
     ...purposeTemplate.data,
     ...typeAndSeed.seed,
+    purposeIsFreeOfCharge: updatedIsFreeOfCharge,
     purposeFreeOfChargeReason: updatedPurposeFreeOfChargeReason,
     purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
     purposeDailyCalls:
