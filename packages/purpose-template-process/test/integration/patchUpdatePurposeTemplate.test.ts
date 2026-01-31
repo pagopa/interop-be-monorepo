@@ -165,6 +165,8 @@ describe("patch update purpose template", () => {
     }
   );
 
+  const oldFreeOfChargeReason = "Some reason";
+  const newFreeOfChargeReason = "New reason";
   const successFreeOfChargeTestCases: [
     Pick<
       PurposeTemplate,
@@ -177,34 +179,84 @@ describe("patch update purpose template", () => {
     Pick<PurposeTemplate, "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason">
   ][] = [
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
       { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
     ],
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
       { purposeIsFreeOfCharge: true },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
     ],
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
       { purposeIsFreeOfCharge: false },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
     ],
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
-      { purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeFreeOfChargeReason: newFreeOfChargeReason },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: undefined,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
     ],
     [
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
     [
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
@@ -214,7 +266,7 @@ describe("patch update purpose template", () => {
     [
       {
         purposeIsFreeOfCharge: false,
-        purposeFreeOfChargeReason: "Some reason",
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
       { purposeIsFreeOfCharge: false },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
@@ -222,7 +274,7 @@ describe("patch update purpose template", () => {
     [
       {
         purposeIsFreeOfCharge: false,
-        purposeFreeOfChargeReason: "Some reason",
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
       {
         purposeIsFreeOfCharge: undefined,
@@ -283,19 +335,37 @@ describe("patch update purpose template", () => {
     Pick<PurposeTemplate, "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason">
   ][] = [
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
     [
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
     [
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
-      { purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+      { purposeFreeOfChargeReason: newFreeOfChargeReason },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
   ];
   it.each(failureFreeOfChargeTestCases)(

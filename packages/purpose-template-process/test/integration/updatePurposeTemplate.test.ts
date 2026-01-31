@@ -605,6 +605,8 @@ describe("updatePurposeTemplate", () => {
     expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
   });
 
+  const oldFreeOfChargeReason = "Some reason";
+  const newFreeOfChargeReason = "New reason";
   const successFreeOfChargeTestCases: [
     Pick<
       PurposeTemplate,
@@ -617,29 +619,59 @@ describe("updatePurposeTemplate", () => {
     Pick<PurposeTemplate, "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason">
   ][] = [
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
       { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
     ],
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
       { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: undefined },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
     ],
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
     ],
     [
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
     [
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
@@ -649,7 +681,7 @@ describe("updatePurposeTemplate", () => {
     [
       {
         purposeIsFreeOfCharge: false,
-        purposeFreeOfChargeReason: "Some reason",
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
@@ -704,14 +736,29 @@ describe("updatePurposeTemplate", () => {
     Pick<PurposeTemplate, "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason">
   ][] = [
     [
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "Some reason" },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
     [
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "New reason" },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
   ];
   it.each(failureFreeOfChargeTestCases)(
