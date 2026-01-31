@@ -15,7 +15,7 @@ import {
   JWKKeyES256,
 } from "pagopa-interop-models";
 
-import { calculateKid } from "pagopa-interop-commons";
+import { calculateThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
   dpopProofInvalidClaims,
@@ -211,26 +211,32 @@ export const checkDPoPCache = async ({
 };
 
 /**
- * Verifica il binding crittografico tra la DPoP Proof e l'Access Token.
- * Calcola il thumbprint (jkt) della chiave pubblica presente nella Proof
- * e lo confronta con il la chiave pubblica dell'access Token.
+ * Verifies the cryptographic binding between the DPoP Proof and the Access Token.
+ *
+ * This function ensures that the public key used to sign the DPoP Proof matches the
+ * key bound to the Access Token (via the `cnf` confirmation claim).
+ * It calculates the JWK Thumbprint (RFC 7638) of the Proof's key and compares it
+ * with the `jkt` hash provided in the token.
+ *
+ * @param dpopProofJWT - The parsed DPoP Proof object containing the header with the JWK.
+ * @param accessTokenJkt - The expected thumbprint (hash) extracted from the Access Token's `cnf` claim.
+ * @returns A `ValidationResult` indicating success (`true`) or failure with specific error details.
  */
 export const verifyDPoPThumbprintMatch = (
   dpopProofJWT: DPoPProof,
   accessTokenJkt: string
 ): ValidationResult<true> => {
-  // 1. Safety Check: La Proof deve esistere (garantito se chiamato dopo validateDPoPProof)
+  // Safety Check: Ensure the JWK is present in the Proof header.
   if (!dpopProofJWT.header.jwk) {
     throw failedValidation([
       unexpectedDPoPProofError("Missing DPoP Proof JWK"),
     ]);
   }
 
-  // 2. Calcolo Thumbprint dalla Chiave Pubblica (Proof)
-  // calculateKid normalizza il JWK e calcola l'hash SHA-256 (RFC 7638)
-  const proofJkt = calculateKid(dpopProofJWT.header.jwk);
+  // Calculate Thumbprint from Public Key (Proof).
+  const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
 
-  // 4. Confronto (Binding Check)
+  // Compare Thumbprints (Binding Check).
   if (proofJkt !== accessTokenJkt) {
     throw failedValidation([
       unexpectedDPoPProofError(

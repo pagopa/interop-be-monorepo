@@ -6,7 +6,7 @@ import {
   checkDPoPCache,
   verifyDPoPThumbprintMatch,
 } from "pagopa-interop-dpop-validation";
-import { DPoPProof, unauthorizedError } from "pagopa-interop-models";
+import { DPoPProof } from "pagopa-interop-models";
 import {
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
@@ -31,12 +31,11 @@ import {
  * @param params.dynamoDBClient - The DynamoDB client instance used for JTI cache operations.
  * @param params.logger - Logger instance for tracking validation steps and warnings.
  *
- * @returns A Promise that resolves to the parsed and validated `DPoPProof` object (containing header and payload).
+ * @returns A Promise that resolves to the parsed and validated `DPoPProof` object.
  *
- * @throws {dpopProofValidationFailed} If the Proof syntax is invalid, expired, or if HTU/HTM do not match the request.
- * @throws {dpopProofSignatureValidationFailed} If the cryptographic signature of the DPoP Proof is invalid.
- * @throws {dpopProofJtiAlreadyUsed} If the JTI (JWT ID) has already been used within the validity window (Replay Attack detected).
- * @throws {unauthorizedError} If the Proof structure is malformed or if the Key Binding check fails (the Proof key does not match the Token binding).
+ * @throws {dpopProofValidationFailed} If the Proof is missing, malformed, expired, has mismatched HTM/HTU, or fails Key Binding (RFC: invalid_dpop_proof).
+ * @throws {dpopProofSignatureValidationFailed} If the cryptographic signature verification fails (RFC: invalid_token).
+ * @throws {dpopProofJtiAlreadyUsed} If the JTI has been used previously within the validity window (Replay Attack) (RFC: invalid_dpop_proof).
  */
 export const verifyDPoPCompliance = async ({
   config,
@@ -58,7 +57,7 @@ export const verifyDPoPCompliance = async ({
   logger: Logger;
 }): Promise<DPoPProof> => {
   // ----------------------------------------------------------------------
-  // Step 1: Parsing e Validazione Firma (Static & Crypto)
+  // Step 1: Parsing & Signature Validation (Static & Crypto)
   // ----------------------------------------------------------------------
   const { dpopProofJWT } = await validateDPoPProof(
     config,
@@ -70,11 +69,14 @@ export const verifyDPoPCompliance = async ({
   );
 
   if (!dpopProofJWT) {
-    throw unauthorizedError("Invalid DPoP Proof structure");
+    throw dpopProofValidationFailed(
+      accessTokenClientId,
+      "DPoP Proof missing or invalid"
+    );
   }
 
   // ----------------------------------------------------------------------
-  // Step 2: Controllo Replay Attack (JTI Cache)
+  // Step 2: Replay Attack Protection (JTI Cache)
   // ----------------------------------------------------------------------
   const { errors: dpopCacheErrors } = await checkDPoPCache({
     dynamoDBClient,
@@ -89,7 +91,7 @@ export const verifyDPoPCompliance = async ({
   }
 
   // ----------------------------------------------------------------------
-  // Step 3: Verifica Binding (Thumbprint Match)
+  // Step 3: Key Binding Verification (Thumbprint Match)
   // ----------------------------------------------------------------------
   const { errors: bindingErrors } = verifyDPoPThumbprintMatch(
     dpopProofJWT,
@@ -97,18 +99,18 @@ export const verifyDPoPCompliance = async ({
   );
 
   if (bindingErrors) {
-    logger.warn(
-      `DPoP Key Binding failed: ${bindingErrors
-        .map((e) => e.detail)
-        .join(", ")}`
-    );
-    throw unauthorizedError(
-      "DPoP proof public key hash does not match token binding"
-    );
+    const errorDetails = bindingErrors.map((e) => e.detail).join(", ");
+    logger.warn(`DPoP Key Binding failed: ${errorDetails}`);
+    throw dpopProofValidationFailed(accessTokenClientId, errorDetails);
   }
 
   return dpopProofJWT;
 };
+
+/**
+ * Internal helper to validate DPoP Proof syntax, standard claims, and signature.
+ * Note: Logic duplicated from 'tokenService.ts'. Consider centralization.
+ */
 const validateDPoPProof = async (
   config: JWTConfig & DPoPConfig,
   dpopProofHeader: string | undefined,

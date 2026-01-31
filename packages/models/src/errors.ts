@@ -311,6 +311,7 @@ export const commonErrorCodes = {
   hyperlinkDetectionError: "10027",
   badDPoPToken: "10028",
   badDPoPProof: "10029",
+  unsupportedJWKType: "10030",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -486,7 +487,11 @@ export function pdfGenerationError(
 
 const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
-    .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "badRequestError",
+      "unsupportedJWKType",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
       "unauthorizedError",
@@ -744,6 +749,15 @@ export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
     title: "Error extracting info from interface file",
   });
 }
+
+export function unsupportedJWKType(kty: string): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The provided JWK key type '${kty}' is not supported`,
+    code: "unsupportedJWKType",
+    title: "Unsupported Key Type",
+  });
+}
+
 export function interfaceExtractingSoapFiledError(
   fieldName: string
 ): ApiError<CommonErrorCodes> {

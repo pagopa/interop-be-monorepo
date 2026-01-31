@@ -1,4 +1,4 @@
-import crypto, { JsonWebKey, KeyObject } from "crypto";
+import crypto, { createHash, JsonWebKey, KeyObject } from "crypto";
 import jwksClient, { JwksClient } from "jwks-rsa";
 import {
   notAnRSAKey,
@@ -8,6 +8,7 @@ import {
   notAllowedCertificateException,
   notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
+  unsupportedJWKType,
 } from "pagopa-interop-models";
 import { JWTConfig } from "../config/index.js";
 
@@ -34,6 +35,35 @@ export const calculateKid = (jwk: JsonWebKey): string => {
   const sortedJwk = sortJWK(jwk);
   const jwkString = JSON.stringify(sortedJwk);
   return crypto.createHash("sha256").update(jwkString).digest("base64url");
+};
+
+export const calculateThumbprint = (jwk: JsonWebKey): string => {
+  // 1. Identify valid keys based on key type (RFC 7638)
+  const allowedKeys =
+    jwk.kty === "EC"
+      ? ["crv", "kty", "x", "y"]
+      : jwk.kty === "RSA"
+      ? ["e", "kty", "n"]
+      : jwk.kty === "oct"
+      ? ["k", "kty"]
+      : [];
+
+  if (allowedKeys.length === 0) {
+    throw unsupportedJWKType(jwk.kty ?? "undefined");
+  }
+
+  // 2. Build the canonical object: Filter -> Sort -> Construct
+  const canonicalJwk = Object.fromEntries(
+    Object.keys(jwk)
+      .filter((key) => allowedKeys.includes(key))
+      .sort()
+      .map((key) => [key, jwk[key]])
+  );
+
+  // 3. Hash the canonical string
+  return createHash("sha256")
+    .update(JSON.stringify(canonicalJwk))
+    .digest("base64url");
 };
 
 function assertNotCertificate(key: string): void {
