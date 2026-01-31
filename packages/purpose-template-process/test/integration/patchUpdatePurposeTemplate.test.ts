@@ -211,6 +211,14 @@ describe("patch update purpose template", () => {
       { purposeIsFreeOfCharge: false },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
     ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: "Some reason",
+      },
+      { purposeIsFreeOfCharge: false },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
   ];
   it.each(successFreeOfChargeTestCases)(
     "should successfully update purposeIsFreeOfCharge and purposeFreeOfChargeReason (seed #%#)",
