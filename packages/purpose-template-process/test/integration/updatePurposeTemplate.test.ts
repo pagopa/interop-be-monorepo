@@ -607,17 +607,22 @@ describe("updatePurposeTemplate", () => {
 
   const oldFreeOfChargeReason = "Some reason";
   const newFreeOfChargeReason = "New reason";
-  const successFreeOfChargeTestCases: [
-    Pick<
-      PurposeTemplate,
-      "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-    >,
-    Pick<
-      purposeTemplateApi.PurposeTemplateSeed,
-      "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-    >,
-    Pick<PurposeTemplate, "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason">
-  ][] = [
+  const successFreeOfChargeTestCases: Array<
+    [
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        purposeTemplateApi.PurposeTemplateSeed,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >
+    ]
+  > = [
     [
       {
         purposeIsFreeOfCharge: true,
@@ -724,17 +729,22 @@ describe("updatePurposeTemplate", () => {
     }
   );
 
-  const failureFreeOfChargeTestCases: [
-    Pick<
-      PurposeTemplate,
-      "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-    >,
-    Pick<
-      purposeTemplateApi.PurposeTemplateSeed,
-      "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-    >,
-    Pick<PurposeTemplate, "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason">
-  ][] = [
+  const failureFreeOfChargeTestCases: Array<
+    [
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        purposeTemplateApi.PurposeTemplateSeed,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >
+    ]
+  > = [
     [
       {
         purposeIsFreeOfCharge: true,
