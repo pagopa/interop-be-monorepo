@@ -34,7 +34,6 @@ describe("updateDraftPurposeTemplate", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
       handlesPersonalData: true,
     };
