@@ -110,8 +110,6 @@ export const authenticationDPoPMiddleware: (
       // to ensure the DPoP proof signature matches the actual call.
       // ----------------------------------------------------------------------
       const { url, method } = extractRequestDetails(req);
-      // eslint-disable-next-line no-console
-      console.log(`Request URL: ${url}, Method: ${method}`);
 
       // ----------------------------------------------------------------------
       // Step 1 – Schema and Presence Verification (Syntax Check)

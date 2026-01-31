@@ -71,13 +71,14 @@ export const validateJWK = (
 };
 
 export const validateHtm = (
-  htm: unknown | undefined
+  htm: unknown | undefined,
+  expectedDPoPProofHtm: string | undefined
 ): ValidationResult<string> => {
-  if (!htm) {
+  if (typeof htm !== "string" || !htm) {
     return failedValidation([dpopHtmNotFound()]);
   }
-
-  if (htm !== EXPECTED_HTM) {
+  const expectedHtm = expectedDPoPProofHtm ?? EXPECTED_HTM;
+  if (htm !== expectedHtm) {
     return failedValidation([invalidDPoPHtm(htm)]);
   }
 

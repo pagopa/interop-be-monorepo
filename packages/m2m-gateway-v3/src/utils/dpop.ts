@@ -63,8 +63,8 @@ export const verifyDPoPCompliance = async ({
     config,
     dpopProofJWS,
     accessTokenClientId,
-    expectedHtm,
     expectedHtu,
+    expectedHtm,
     logger
   );
 
@@ -116,7 +116,7 @@ const validateDPoPProof = async (
   dpopProofHeader: string | undefined,
   clientId: string | undefined,
   expectedHtu: string,
-  _expectedHtm: string,
+  expectedHtm: string,
   logger: Logger
 ): Promise<{
   dpopProofJWS: string | undefined;
@@ -127,6 +127,7 @@ const validateDPoPProof = async (
     ? verifyDPoPProof({
         dpopProofJWS: dpopProofHeader,
         expectedDPoPProofHtu: expectedHtu,
+        expectedDPoPProofHtm: expectedHtm,
         dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: config.dpopDurationSeconds,
       })

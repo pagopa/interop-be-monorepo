@@ -44,11 +44,13 @@ import {
 export const verifyDPoPProof = ({
   dpopProofJWS,
   expectedDPoPProofHtu,
+  expectedDPoPProofHtm,
   dpopProofIatToleranceSeconds,
   dpopProofDurationSeconds,
 }: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
+  expectedDPoPProofHtm?: string;
   dpopProofIatToleranceSeconds: number;
   dpopProofDurationSeconds: number;
 }): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
@@ -73,7 +75,8 @@ export const verifyDPoPProof = ({
 
     // JWT payload
     const { errors: htmErrors, data: validatedHtm } = validateHtm(
-      decodedPayload.htm
+      decodedPayload.htm,
+      expectedDPoPProofHtm
     );
     const { errors: htuErrors, data: validatedHtu } = validateHtu(
       decodedPayload.htu,
@@ -198,7 +201,6 @@ export const checkDPoPCache = async ({
   if (dpopCache) {
     return failedValidation([dpopJtiAlreadyCached(dpopProofJti)]);
   }
-
   await writeDPoPCache({
     dynamoDBClient,
     dpopCacheTable,
@@ -226,19 +228,16 @@ export const verifyDPoPThumbprintMatch = (
   dpopProofJWT: DPoPProof,
   accessTokenJkt: string
 ): ValidationResult<true> => {
-  // Safety Check: Ensure the JWK is present in the Proof header.
   if (!dpopProofJWT.header.jwk) {
-    throw failedValidation([
+    return failedValidation([
       unexpectedDPoPProofError("Missing DPoP Proof JWK"),
     ]);
   }
 
-  // Calculate Thumbprint from Public Key (Proof).
   const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
 
-  // Compare Thumbprints (Binding Check).
   if (proofJkt !== accessTokenJkt) {
-    throw failedValidation([
+    return failedValidation([
       unexpectedDPoPProofError(
         "DPoP proof public key hash does not match token binding"
       ),
