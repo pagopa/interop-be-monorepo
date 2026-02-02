@@ -256,6 +256,20 @@ describe("patch update purpose template", () => {
       },
     ],
     [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: null,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
       {
         purposeIsFreeOfCharge: true,
@@ -288,6 +302,33 @@ describe("patch update purpose template", () => {
     [
       {
         purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: null,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeFreeOfChargeReason: null,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
         purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
       { purposeIsFreeOfCharge: false },
@@ -315,6 +356,27 @@ describe("patch update purpose template", () => {
       {
         purposeIsFreeOfCharge: undefined,
         purposeFreeOfChargeReason: undefined,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: null,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeFreeOfChargeReason: null,
       },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
     ],

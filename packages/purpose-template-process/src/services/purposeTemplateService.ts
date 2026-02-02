@@ -727,7 +727,7 @@ async function updateDraftPurposeTemplate(
   const updatedPurposeFreeOfChargeReason =
     normalizedSeedFreeOfChargeReason !== undefined
       ? normalizedSeedFreeOfChargeReason
-      : !updatedIsFreeOfCharge
+      : !updatedIsFreeOfCharge || purposeFreeOfChargeReason === null
       ? undefined
       : purposeTemplate.data.purposeFreeOfChargeReason;
 
