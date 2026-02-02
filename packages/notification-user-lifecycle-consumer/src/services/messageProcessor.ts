@@ -43,7 +43,9 @@ export async function processUserEvent(
     tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(institutionId);
     if (tenantId) break;
     loggerInstance.warn(
-      `Tenant not found for selfcareId ${institutionId}, attempt ${attempt + 1}/${config.tenantLookupMaxRetries}`
+      `Tenant not found for selfcareId ${institutionId}, attempt ${
+        attempt + 1
+      }/${config.tenantLookupMaxRetries}`
     );
     await delay(config.tenantLookupRetryDelayMs);
   }
