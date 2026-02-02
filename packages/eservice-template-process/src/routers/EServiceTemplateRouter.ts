@@ -46,6 +46,7 @@ import {
   deleteEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
+  compactOrganizationToApi,
   eserviceTemplateToApiEServiceTemplate,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   documentToApiDocument,
@@ -893,7 +894,7 @@ const eserviceTemplatesRouter = (
 
         return res.status(200).send(
           eserviceTemplateApi.CompactOrganizations.parse({
-            results,
+            results: results.map(compactOrganizationToApi),
             totalCount,
           })
         );

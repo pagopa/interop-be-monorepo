@@ -39,6 +39,7 @@ import {
   descriptorState,
   generateId,
   CompactTenant,
+  CompactOrganization,
   CorrelationId,
   DelegationId,
   AgreementSignedContract,
@@ -70,7 +71,6 @@ import {
 import {
   ActiveDelegations,
   CompactEService,
-  CompactOrganization,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -166,7 +166,7 @@ export const retrieveEService = async (
   return eservice;
 };
 
-export const retrieveAgreement = async (
+const retrieveAgreement = async (
   agreementId: AgreementId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Agreement>> => {
@@ -216,7 +216,7 @@ function retrieveAgreementDocument(
   return document;
 }
 
-export const getActiveConsumerAndProducerDelegations = async (
+const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
   readModelService: ReadModelServiceSQL,
   cachedActiveDelegations?: ActiveDelegations

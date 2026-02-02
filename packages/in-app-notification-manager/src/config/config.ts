@@ -12,7 +12,7 @@ const InAppNotificationManagerConfig = CommonHTTPServiceConfig.and(
   .and(InAppNotificationDBConfig)
   .and(FeatureFlagNotificationConfig);
 
-export type InAppNotificationManagerConfig = z.infer<
+type InAppNotificationManagerConfig = z.infer<
   typeof InAppNotificationManagerConfig
 >;
 

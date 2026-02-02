@@ -60,6 +60,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { ClientId } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import {
   agreementNotFound,
@@ -112,8 +113,14 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
   toCreateEventRiskAnalysisSignedDocumentGenerated,
 } from "../model/domain/toEvent.js";
-import { GetPurposesFilters } from "./readModelService.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import {
+  GetPurposesFilters as ReadModelGetPurposesFilters,
+  ReadModelServiceSQL,
+} from "./readModelServiceSQL.js";
+
+type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
+  clientId?: ClientId;
+};
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 import {
   assertConsistentFreeOfCharge,
@@ -854,10 +861,28 @@ export function purposeServiceBuilder(
         )}, limit = ${limit}, offset = ${offset}`
       );
 
+      const { clientId, ...otherFilters } = filters;
+
+      const effectivePurposesIds = await (async (): Promise<PurposeId[]> => {
+        if (!clientId) {
+          return [];
+        }
+        const client = await readModelService.getClientById(clientId);
+
+        // Client purposes are visible only to the client owner (i.e., the client consumerId)
+        if (authData.organizationId !== client?.data.consumerId) {
+          return [];
+        }
+        return client?.data.purposes ?? [];
+      })();
+
       // Permissions are checked in the readModelService
       return await readModelService.getPurposes(
         authData.organizationId,
-        filters,
+        {
+          ...otherFilters,
+          purposesIds: effectivePurposesIds,
+        },
         {
           offset,
           limit,

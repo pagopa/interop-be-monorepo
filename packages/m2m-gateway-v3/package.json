@@ -1,0 +1,50 @@
+{
+  "name": "pagopa-interop-m2m-gateway-v3",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interop M2M Gateway V3",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test:api": "vitest --config vitest.api.config.ts",
+    "test:integration": "vitest --config vitest.integration.config.ts",
+    "test": "pnpm test:api && pnpm test:integration",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@anatine/zod-mock": "3.14.0",
+    "@pagopa/eslint-config": "3.0.0",
+    "@types/express": "4.17.21",
+    "@types/node": "20.19.9",
+    "@types/qs": "6.9.15",
+    "@types/supertest": "6.0.3",
+    "pagopa-interop-commons-test": "workspace:*",
+    "prettier": "2.8.8",
+    "supertest": "7.0.0",
+    "tsx": "4.19.1",
+    "typescript": "5.4.5",
+    "vitest": "4.0.18"
+  },
+  "dependencies": {
+    "@zodios/core": "10.9.6",
+    "@zodios/express": "10.6.1",
+    "axios": "1.12.0",
+    "dotenv-flow": "4.1.0",
+    "express": "4.20.0",
+    "form-data-encoder": "4.1.0",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-application-audit": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "qs": "6.14.1",
+    "ts-pattern": "5.2.0",
+    "zod": "3.23.8"
+  }
+}

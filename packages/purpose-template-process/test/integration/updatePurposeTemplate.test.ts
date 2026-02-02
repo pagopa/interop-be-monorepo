@@ -32,7 +32,15 @@ import {
   toPurposeTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { config } from "../../src/config/config.js";
 import {
   invalidFreeOfChargeReason,
@@ -65,6 +73,9 @@ describe("updatePurposeTemplate", () => {
   });
   afterAll(() => {
     vi.useRealTimers();
+  });
+  afterEach(async () => {
+    vi.restoreAllMocks();
   });
 
   const riskAnalysisPAVersion = getLatestVersionFormRules(
