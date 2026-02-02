@@ -733,7 +733,8 @@ async function updateDraftPurposeTemplate(
       return normalizedSeedFreeOfChargeReason;
     }
 
-    // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null
+    // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null.
+    // A purpose template should only have a purposeFreeOfChargeReason when purposeIsFreeOfCharge is true.
     if (!updatedPurposeIsFreeOfCharge || purposeFreeOfChargeReason === null) {
       return undefined;
     }
