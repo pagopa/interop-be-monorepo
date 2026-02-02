@@ -71,6 +71,7 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
+      purposeFreeOfChargeReason: null,
     },
     {
       targetDescription: "updated target description",
@@ -78,6 +79,7 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
+      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
     },
     {
@@ -86,6 +88,7 @@ describe("patch update purpose template", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
+      purposeFreeOfChargeReason: null,
       purposeDailyCalls: null,
       handlesPersonalData: true,
     },
