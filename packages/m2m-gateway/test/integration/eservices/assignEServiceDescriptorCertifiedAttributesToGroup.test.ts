@@ -104,7 +104,6 @@ describe("assignEServiceDescriptorCertifiedAttributesToGroup", () => {
                   ...group,
                   ...seed.attributeIds.map((id) => ({
                     id,
-                    explicitAttributeVerification: false,
                   })),
                 ];
               }

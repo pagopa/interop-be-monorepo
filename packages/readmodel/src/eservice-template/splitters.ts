@@ -128,7 +128,6 @@ const attributeToAttributeSQL = ({
   metadataVersion,
   attributeId: attribute.id,
   versionId: eserviceTemplateVersionId,
-  explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind,
   groupId,
 });

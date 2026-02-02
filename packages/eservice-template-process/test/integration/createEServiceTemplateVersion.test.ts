@@ -75,9 +75,7 @@ describe("createEServiceTemplateVersion", async () => {
       ...buildCreateVersionSeed(mockVersion),
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
     };
@@ -132,9 +130,7 @@ describe("createEServiceTemplateVersion", async () => {
       id: newVersionId,
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
       docs: [],
@@ -241,14 +237,12 @@ describe("createEServiceTemplateVersion", async () => {
         certified: [],
         declared: [
           [
-            { id: attribute.id, explicitAttributeVerification: false },
+            { id: attribute.id },
             {
               id: notExistingId1,
-              explicitAttributeVerification: false,
             },
             {
               id: notExistingId2,
-              explicitAttributeVerification: false,
             },
           ],
         ],

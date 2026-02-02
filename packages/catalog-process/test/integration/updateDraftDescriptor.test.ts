@@ -74,15 +74,9 @@ describe("updateDraftDescriptor", () => {
       ...buildUpdateDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
-        certified: [
-          [{ id: certifiedAttribute.id, explicitAttributeVerification: false }],
-        ],
-        declared: [
-          [{ id: declaredAttribute.id, explicitAttributeVerification: false }],
-        ],
-        verified: [
-          [{ id: verifiedAttribute.id, explicitAttributeVerification: false }],
-        ],
+        certified: [[{ id: certifiedAttribute.id }]],
+        declared: [[{ id: declaredAttribute.id }]],
+        verified: [[{ id: verifiedAttribute.id }]],
       },
     };
 
@@ -97,7 +91,6 @@ describe("updateDraftDescriptor", () => {
               [
                 {
                   id: certifiedAttribute.id,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],
@@ -105,7 +98,6 @@ describe("updateDraftDescriptor", () => {
               [
                 {
                   id: declaredAttribute.id,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],
@@ -113,7 +105,6 @@ describe("updateDraftDescriptor", () => {
               [
                 {
                   id: verifiedAttribute.id,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],
@@ -171,9 +162,7 @@ describe("updateDraftDescriptor", () => {
       dailyCallsTotal: 200,
       attributes: {
         certified: [],
-        declared: [
-          [{ id: declaredAttribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: declaredAttribute.id }]],
         verified: [],
       },
     };
@@ -190,7 +179,6 @@ describe("updateDraftDescriptor", () => {
               [
                 {
                   id: declaredAttribute.id,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],
@@ -390,14 +378,12 @@ describe("updateDraftDescriptor", () => {
         certified: [],
         declared: [
           [
-            { id: declaredAttribute.id, explicitAttributeVerification: false },
+            { id: declaredAttribute.id },
             {
               id: notExistingId1,
-              explicitAttributeVerification: false,
             },
             {
               id: notExistingId2,
-              explicitAttributeVerification: false,
             },
           ],
         ],
