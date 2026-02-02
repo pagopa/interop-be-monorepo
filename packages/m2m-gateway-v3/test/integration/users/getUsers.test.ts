@@ -21,12 +21,12 @@ interface SelfcareUser {
   email?: string | undefined;
   fiscalCode?: string | undefined;
   role?:
-  | "ADMIN_EA"
-  | "DELEGATE"
-  | "MANAGER"
-  | "OPERATOR"
-  | "SUB_DELEGATE"
-  | undefined;
+    | "ADMIN_EA"
+    | "DELEGATE"
+    | "MANAGER"
+    | "OPERATOR"
+    | "SUB_DELEGATE"
+    | undefined;
 }
 
 describe("getUsers", () => {

@@ -4,7 +4,12 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { TenantId, UserId, WithMetadata, generateId } from "pagopa-interop-models";
+import {
+  TenantId,
+  UserId,
+  WithMetadata,
+  generateId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { userServiceBuilder } from "../../../src/services/userService.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
@@ -23,52 +28,56 @@ describe("getUserById", () => {
     ...mockTenant,
     selfcareId: undefined,
   });
-  const mockCorrectUser: WithMetadata<selfcareV2ClientApi.UserResource[]> = getMockWithMetadata([
-    {
-      id: userId,
-      name: "Mario",
-      surname: "Rossi",
-      roles: ["ADMIN_EA", "MANAGER"],
-      email: "mario.rossi@example.com",
-      fiscalCode: "AAABBB123A",
-      role: "ADMIN_EA",
-    },
-  ]);
+  const mockCorrectUser: WithMetadata<selfcareV2ClientApi.UserResource[]> =
+    getMockWithMetadata([
+      {
+        id: userId,
+        name: "Mario",
+        surname: "Rossi",
+        roles: ["ADMIN_EA", "MANAGER"],
+        email: "mario.rossi@example.com",
+        fiscalCode: "AAABBB123A",
+        role: "ADMIN_EA",
+      },
+    ]);
 
-  const mockTooManyUsers: WithMetadata<selfcareV2ClientApi.UserResource[]> = getMockWithMetadata([
-    {
-      id: userId,
-      name: "Mario",
-      surname: "Rossi",
-      roles: ["ADMIN_EA", "MANAGER"],
-      email: "mario.rossi@example.com",
-      fiscalCode: "AAABBB123A",
-      role: "ADMIN_EA",
-    },
-    {
-      id: differentUserId,
-      name: "Mario",
-      surname: "Rossi",
-      roles: ["ADMIN_EA", "MANAGER"],
-      email: "mario.rossi@example.com",
-      fiscalCode: "AAABBB123A",
-      role: "ADMIN_EA",
-    },
-  ]);
+  const mockTooManyUsers: WithMetadata<selfcareV2ClientApi.UserResource[]> =
+    getMockWithMetadata([
+      {
+        id: userId,
+        name: "Mario",
+        surname: "Rossi",
+        roles: ["ADMIN_EA", "MANAGER"],
+        email: "mario.rossi@example.com",
+        fiscalCode: "AAABBB123A",
+        role: "ADMIN_EA",
+      },
+      {
+        id: differentUserId,
+        name: "Mario",
+        surname: "Rossi",
+        roles: ["ADMIN_EA", "MANAGER"],
+        email: "mario.rossi@example.com",
+        fiscalCode: "AAABBB123A",
+        role: "ADMIN_EA",
+      },
+    ]);
 
-  const mockDifferentUser: WithMetadata<selfcareV2ClientApi.UserResource[]> = getMockWithMetadata([
-    {
-      id: differentUserId,
-      name: "Mario",
-      surname: "Rossi",
-      roles: ["ADMIN_EA", "MANAGER"],
-      email: "mario.rossi@example.com",
-      fiscalCode: "AAABBB123A",
-      role: "ADMIN_EA",
-    },
-  ]);
+  const mockDifferentUser: WithMetadata<selfcareV2ClientApi.UserResource[]> =
+    getMockWithMetadata([
+      {
+        id: differentUserId,
+        name: "Mario",
+        surname: "Rossi",
+        roles: ["ADMIN_EA", "MANAGER"],
+        email: "mario.rossi@example.com",
+        fiscalCode: "AAABBB123A",
+        role: "ADMIN_EA",
+      },
+    ]);
 
-  const mockNoUsers: WithMetadata<selfcareV2ClientApi.UserResource[]> = getMockWithMetadata([]);
+  const mockNoUsers: WithMetadata<selfcareV2ClientApi.UserResource[]> =
+    getMockWithMetadata([]);
 
   const mockGetTenant = vi.fn();
   const mockGetInstitutionUsersByProductUsingGET = vi.fn();
