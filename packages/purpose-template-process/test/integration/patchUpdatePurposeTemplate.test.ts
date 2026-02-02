@@ -271,10 +271,38 @@ describe("patch update purpose template", () => {
     [
       {
         purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeIsFreeOfCharge: undefined,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
         purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
       { purposeIsFreeOfCharge: false },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
     ],
     [
       {

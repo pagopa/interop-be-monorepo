@@ -688,6 +688,20 @@ describe("updatePurposeTemplate", () => {
         purposeIsFreeOfCharge: false,
         purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
     ],
