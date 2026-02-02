@@ -8,4 +8,5 @@ const selfcareClient = selfcareV2InstitutionClientBuilder(config);
 
 const result = await checkDifferences(db, selfcareClient, config);
 
+// eslint-disable-next-line no-console
 console.log(JSON.stringify(result, null, 2));

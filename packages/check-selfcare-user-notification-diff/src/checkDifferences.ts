@@ -11,7 +11,7 @@ import { CheckDiffConfig } from "./config/config.js";
 type UserWithRoles = { id: string; roles: string[] };
 
 function mergeUsersByIdWithRoles(
-  users: { id: string; roles?: string[] }[]
+  users: Array<{ id: string; roles?: string[] }>
 ): UserWithRoles[] {
   const userMap = new Map<string, Set<string>>();
 
@@ -34,13 +34,13 @@ type TenantDiff = {
   tenantName: string;
   selfcareId: string;
   differences: {
-    missingInConfig: { userId: string; selfcareRoles: string[] }[];
-    extraInConfig: { userId: string; configRoles: string[] }[];
-    roleMismatches: {
+    missingInConfig: Array<{ userId: string; selfcareRoles: string[] }>;
+    extraInConfig: Array<{ userId: string; configRoles: string[] }>;
+    roleMismatches: Array<{
       userId: string;
       selfcareRoles: string[];
       configRoles: string[];
-    }[];
+    }>;
   };
 };
 
@@ -70,11 +70,15 @@ export async function checkDifferences(
     .where(isNotNull(tenantInReadmodelTenant.selfcareId));
 
   const tenantsWithDiffs: TenantDiff[] = [];
+  // eslint-disable-next-line functional/no-let
   let totalMissing = 0;
+  // eslint-disable-next-line functional/no-let
   let totalExtra = 0;
+  // eslint-disable-next-line functional/no-let
   let totalMismatches = 0;
 
   for (const tenant of tenants) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const selfcareId = tenant.selfcareId!;
 
     const selfcareUsers =
@@ -116,16 +120,19 @@ export async function checkDifferences(
     for (const [userId, selfcareRoles] of selfcareUserMap) {
       const configRoles = configUserMap.get(userId);
       if (!configRoles) {
+        // eslint-disable-next-line functional/immutable-data
         missingInConfig.push({ userId, selfcareRoles });
       } else if (
         JSON.stringify(selfcareRoles) !== JSON.stringify(configRoles)
       ) {
+        // eslint-disable-next-line functional/immutable-data
         roleMismatches.push({ userId, selfcareRoles, configRoles });
       }
     }
 
     for (const [userId, configRoles] of configUserMap) {
       if (!selfcareUserMap.has(userId)) {
+        // eslint-disable-next-line functional/immutable-data
         extraInConfig.push({ userId, configRoles });
       }
     }
@@ -135,6 +142,7 @@ export async function checkDifferences(
       extraInConfig.length > 0 ||
       roleMismatches.length > 0
     ) {
+      // eslint-disable-next-line functional/immutable-data
       tenantsWithDiffs.push({
         tenantId: tenant.id,
         tenantName: tenant.name,
