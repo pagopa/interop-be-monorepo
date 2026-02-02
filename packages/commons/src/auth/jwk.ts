@@ -8,7 +8,6 @@ import {
   notAllowedCertificateException,
   notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
-  unsupportedJWKType,
 } from "pagopa-interop-models";
 import { JWTConfig } from "../config/index.js";
 
@@ -37,30 +36,28 @@ export const calculateKid = (jwk: JsonWebKey): string => {
   return crypto.createHash("sha256").update(jwkString).digest("base64url");
 };
 
+/*
+ * Difference between `calculateThumbprint` and `calculateKid`
+ * `calculateThumbprint`:
+ * 1. RFC 7638 Compliance: It follows the standard method for canonicalizing a JWK.
+ * 2. Determinism: It ignores optional metadata (like 'alg', 'use', or 'kid').
+ * The ID remains consistent as long as the key material is the same.
+ * 3. Security: It uses a strict whitelist. If a private key (containing 'd')
+ * is accidentally passed, the private part is excluded from the hash.
+ */
+
 export const calculateThumbprint = (jwk: JsonWebKey): string => {
-  // 1. Identify valid keys based on key type (RFC 7638)
-  const allowedKeys =
-    jwk.kty === "EC"
-      ? ["crv", "kty", "x", "y"]
-      : jwk.kty === "RSA"
-      ? ["e", "kty", "n"]
-      : jwk.kty === "oct"
-      ? ["k", "kty"]
-      : [];
-
-  if (allowedKeys.length === 0) {
-    throw unsupportedJWKType(jwk.kty ?? "undefined");
+  if (jwk.kty !== "RSA") {
+    throw new Error(jwk.kty ?? "undefined");
   }
-
-  // 2. Build the canonical object: Filter -> Sort -> Construct
+  if (!jwk.n || !jwk.e) {
+    throw new Error("JWK invalid: missing 'n' or 'e' properties for RSA key");
+  }
+  const allowedKeys: Array<keyof JsonWebKey> = ["e", "kty", "n"];
   const canonicalJwk = Object.fromEntries(
-    Object.keys(jwk)
-      .filter((key) => allowedKeys.includes(key))
-      .sort()
-      .map((key) => [key, jwk[key]])
+    [...allowedKeys].sort().map((key) => [key, jwk[key]])
   );
 
-  // 3. Hash the canonical string
   return createHash("sha256")
     .update(JSON.stringify(canonicalJwk))
     .digest("base64url");
