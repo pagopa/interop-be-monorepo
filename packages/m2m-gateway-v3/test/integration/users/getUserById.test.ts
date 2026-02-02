@@ -4,7 +4,7 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { TenantId, UserId, generateId } from "pagopa-interop-models";
+import { TenantId, UserId, WithMetadata, generateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { userServiceBuilder } from "../../../src/services/userService.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
@@ -23,7 +23,7 @@ describe("getUserById", () => {
     ...mockTenant,
     selfcareId: undefined,
   });
-  const mockCorrectUser: selfcareV2ClientApi.UserResource[] = [
+  const mockCorrectUser: WithMetadata<selfcareV2ClientApi.UserResource[]> = getMockWithMetadata([
     {
       id: userId,
       name: "Mario",
@@ -33,9 +33,9 @@ describe("getUserById", () => {
       fiscalCode: "AAABBB123A",
       role: "ADMIN_EA",
     },
-  ];
+  ]);
 
-  const mockTooManyUsers: selfcareV2ClientApi.UserResource[] = [
+  const mockTooManyUsers: WithMetadata<selfcareV2ClientApi.UserResource[]> = getMockWithMetadata([
     {
       id: userId,
       name: "Mario",
@@ -54,9 +54,9 @@ describe("getUserById", () => {
       fiscalCode: "AAABBB123A",
       role: "ADMIN_EA",
     },
-  ];
+  ]);
 
-  const mockDifferentUser: selfcareV2ClientApi.UserResource[] = [
+  const mockDifferentUser: WithMetadata<selfcareV2ClientApi.UserResource[]> = getMockWithMetadata([
     {
       id: differentUserId,
       name: "Mario",
@@ -66,9 +66,9 @@ describe("getUserById", () => {
       fiscalCode: "AAABBB123A",
       role: "ADMIN_EA",
     },
-  ];
+  ]);
 
-  const mockNoUsers: selfcareV2ClientApi.UserResource[] = [];
+  const mockNoUsers: WithMetadata<selfcareV2ClientApi.UserResource[]> = getMockWithMetadata([]);
 
   const mockGetTenant = vi.fn();
   const mockGetInstitutionUsersByProductUsingGET = vi.fn();
@@ -109,10 +109,10 @@ describe("getUserById", () => {
     mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockCorrectUser);
     const result = await callService();
     expect(result).toEqual({
-      userId: mockCorrectUser[0].id,
-      name: mockCorrectUser[0].name,
-      familyName: mockCorrectUser[0].surname,
-      roles: mockCorrectUser[0].roles,
+      userId: mockCorrectUser.data[0].id,
+      name: mockCorrectUser.data[0].name,
+      familyName: mockCorrectUser.data[0].surname,
+      roles: mockCorrectUser.data[0].roles,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
