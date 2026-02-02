@@ -14,6 +14,10 @@ import { makeDigestTrackingDbConnection } from "./model/digestTrackingDb.js";
 import { digestTrackingServiceBuilder } from "./services/digestTrackingService.js";
 import { createResultsCollector } from "./utils/resultsCollector.js";
 import { processUserWithTenantData } from "./utils/processUserWithTenantData.js";
+import {
+  getVisibleSections,
+  hasVisibleDigestContent,
+} from "./utils/digestAdmittedRoles.js";
 
 const correlationId = generateId<CorrelationId>();
 const log = logger({
@@ -69,9 +73,26 @@ try {
       continue;
     }
 
-    const emailBody = templateService.compileDigestEmail(tenantData);
-
     for (const user of users) {
+      const visibility = getVisibleSections(user.userRoles);
+
+      if (!hasVisibleDigestContent(tenantData, visibility)) {
+        log.info(
+          `No visible digest content for user ${
+            user.userId
+          } with roles [${user.userRoles.join(
+            ","
+          )}] in tenant ${tenantId}, skipping`
+        );
+        resultsCollector.add("skipped");
+        continue;
+      }
+
+      const emailBody = templateService.compileDigestEmail(
+        tenantData,
+        visibility
+      );
+
       const result = await processUserWithTenantData(
         user,
         tenantData,

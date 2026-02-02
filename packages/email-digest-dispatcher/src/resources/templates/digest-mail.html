@@ -512,6 +512,7 @@
                                     class="mobile-padding content-wrapper"
                                   >
                                     <!-- Nuovi E-services -->
+                                    {{#if showNewEservices}}
                                     {{#if newEservices.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -593,8 +594,10 @@
                                       </div>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
 
                                     <!-- E-services Aggiornati -->
+                                    {{#if showUpdatedEservices}}
                                     {{#if updatedEservices.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -672,8 +675,10 @@
                                       </div>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
 
                                     <!-- Template E-services Aggiornati -->
+                                    {{#if showUpdatedEserviceTemplates}}
                                     {{#if updatedEserviceTemplates.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -751,8 +756,10 @@
                                       </div>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
 
                                     <!-- I tuoi template più utilizzati -->
+                                    {{#if showPopularEserviceTemplates}}
                                     {{#if popularEserviceTemplates.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -827,6 +834,7 @@
                                       </div>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
                                   </td>
                                 </tr>
                                 {{/if}}
@@ -837,6 +845,7 @@
                                     class="mobile-padding content-wrapper"
                                   >
                                     <!-- Richieste di fruizione inoltrate (Sent Agreements) -->
+                                    {{#if showSentAgreements}}
                                     {{#if acceptedSentAgreements.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -966,8 +975,10 @@
                                       </ul>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
 
                                     <!-- Finalità inoltrate (Sent Purposes) -->
+                                    {{#if showSentPurposes}}
                                     {{#if publishedSentPurposes.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -1081,6 +1092,7 @@
                                       </ul>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
                                   </td>
                                 </tr>
                                 {{/if}}
@@ -1091,6 +1103,7 @@
                                     class="mobile-padding content-wrapper"
                                   >
                                     <!-- Richieste di fruizione che hai ricevuto (Received Agreements) -->
+                                    {{#if showReceivedAgreements}}
                                     {{#if
                                     waitingForApprovalReceivedAgreements.totalCount}}
                                     <div class="section-divider">
@@ -1166,8 +1179,10 @@
                                       </div>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
 
                                     <!-- Finalità che hai ricevuto (Received Purposes) -->
+                                    {{#if showReceivedPurposes}}
                                     {{#if publishedReceivedPurposes.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -1262,6 +1277,7 @@
                                       </div>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
                                   </td>
                                 </tr>
                                 {{/if}}
@@ -1272,6 +1288,7 @@
                                     class="mobile-padding content-wrapper"
                                   >
                                     <!-- Richieste di delega ricevute come delegato -->
+                                    {{#if showDelegations}}
                                     {{#if waitingForApprovalReceivedDelegations.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -1532,6 +1549,7 @@
                                       </ul>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
                                   </td>
                                 </tr>
                                 {{/if}}
@@ -1542,6 +1560,7 @@
                                     class="mobile-padding content-wrapper"
                                   >
                                     <!-- Attributi -->
+                                    {{#if showAttributes}}
                                     {{#if receivedAttributes.totalCount}}
                                     <div class="section-divider">
                                       <table
@@ -1669,6 +1688,7 @@
                                         </p>
                                       </div>
                                     </div>
+                                    {{/if}}
                                     {{/if}}
                                   </td>
                                 </tr>
