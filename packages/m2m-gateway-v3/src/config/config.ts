@@ -4,6 +4,7 @@ import {
   CommonHTTPServiceConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
+  SelfCareClientConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -144,6 +145,7 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(EServiceTemplateProcessServerConfig)
   .and(EventManagerServerConfig)
   .and(PurposeTemplateProcessServerConfig)
+  .and(SelfCareClientConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
   .and(

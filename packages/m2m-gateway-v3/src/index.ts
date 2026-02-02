@@ -19,6 +19,7 @@ import { tenantServiceBuilder } from "./services/tenantService.js";
 import { keyServiceBuilder } from "./services/keyService.js";
 import { producerKeychainServiceBuilder } from "./services/producerKeychainService.js";
 import { eventServiceBuilder } from "./services/eventService.js";
+import { userServiceBuilder } from "./services/userService.js";
 
 const clients = getInteropBeClients();
 const fileManager = initFileManager(config);
@@ -36,6 +37,7 @@ const services: M2MGatewayServices = {
   keyService: keyServiceBuilder(clients),
   producerKeychainService: producerKeychainServiceBuilder(clients),
   eventService: eventServiceBuilder(clients),
+  userService: userServiceBuilder(clients),
 };
 
 const redisRateLimiter = await initRedisRateLimiter({
