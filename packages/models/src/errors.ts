@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import { constants } from "http2";
 import { P, match } from "ts-pattern";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { AxiosError, isAxiosError } from "axios";
 import { CorrelationId } from "./brandedIds.js";
@@ -63,20 +63,20 @@ export class InternalError<T> extends Error {
   }
 }
 
-type ProblemError = {
-  code: string;
-  detail: string;
-};
+const ProblemError = z.strictObject({
+  code: z.string(),
+  detail: z.string(),
+});
 
-export type Problem = {
-  type: string;
-  status: number;
-  title: string;
-  correlationId?: string;
-  detail: string;
-  errors: ProblemError[];
-  toString: () => string;
-};
+export const ProblemSchema = z.strictObject({
+  type: z.string(),
+  status: z.number(),
+  title: z.string(),
+  correlationId: z.string().optional(),
+  detail: z.string().optional(),
+  errors: z.array(ProblemError).min(1).optional(),
+});
+export type Problem = z.infer<typeof ProblemSchema>;
 
 type MakeApiProblemFn<T extends string> = (
   error: unknown,
@@ -96,8 +96,12 @@ const makeProblemLogString = (
   problem: Problem,
   originalError: unknown
 ): string => {
-  const errorsString = problem.errors.map((e) => e.detail).join(" - ");
-  return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
+  const errorsString = problem.errors
+    ? ` - errors: ${problem.errors
+        .map((e) => `${e.code}, ${e.detail}`)
+        .join("; ")}`
+    : "";
+  return `- title: ${problem.title} - detail: ${problem.detail}${errorsString} - original error: ${originalError}`;
 };
 
 type ProblemBuilderOptions = {
@@ -239,9 +243,7 @@ export function makeApiProblemBuilder<T extends string>(
             logger.warn(
               makeProblemLogString(
                 genericProblem,
-                `${receivedProblem.title}, code ${
-                  receivedProblem.errors.at(0)?.code
-                }, ${receivedProblem.errors.at(0)?.detail}`
+                `${receivedProblem.title} - status ${receivedProblem.status}`
               )
             );
             return genericProblem;
@@ -308,7 +310,6 @@ export const commonErrorCodes = {
   invalidServerUrl: "10026",
   hyperlinkDetectionError: "10027",
   badDPoPToken: "10028",
-  badDPoPProof: "10029",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -594,12 +595,6 @@ export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
   title: "Bad DPoP Token format",
 });
 
-export const badDPoPProof: ApiError<CommonErrorCodes> = new ApiError({
-  detail: `Bad DPoP Proof format in DPoP header`,
-  code: "badDPoPProof",
-  title: "Bad DPoP Proof format",
-});
-
 export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
   detail: `Insufficient privileges`,
   code: "operationForbidden",
@@ -742,6 +737,7 @@ export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
     title: "Error extracting info from interface file",
   });
 }
+
 export function interfaceExtractingSoapFiledError(
   fieldName: string
 ): ApiError<CommonErrorCodes> {

@@ -42,10 +42,14 @@ export const readAuthDataFromJwtToken = (
   }
 };
 
-// verify with AuthTokenDPoPPayload schema
-// if not necessary use verifyAccessTokenIsDPoP instead
-// and DELETE type/schema AuthTokenDPoPPayload
-export const verifyAccessTokenIsDPoP = (
+/**
+ * Enforces DPoP schema compliance using Zod, strictly validating the `cnf` claim structure.
+ *
+ * @param payload - The decoded JWT payload.
+ * @returns The strongly-typed payload guaranteed to have a valid `cnf`.
+ * @throws {invalidClaim} If the payload is missing required DPoP claims or is malformed.
+ */
+const verifyAccessTokenIsDPoP = (
   payload: JwtPayload | string
 ): AuthTokenDPoPPayload => {
   const result = AuthTokenDPoPPayload.safeParse(payload);
@@ -56,11 +60,26 @@ export const verifyAccessTokenIsDPoP = (
   return result.data;
 };
 
-// export const isAccessTokenDPoPBound = (
-//   input: JwtPayload | string
-// ): input is JwtPayload & typeof CNF =>
-//   typeof input !== "string" && input.cnf !== undefined && input.cnf !== null;
+/** 
+export const isAccessTokenDPoPBound = (
+  input: JwtPayload | string
+): input is JwtPayload & typeof CNF =>
+  typeof input !== "string" && input.cnf !== undefined && input.cnf !== null;
+ */
 
+/**
+ * Verifies the cryptographic integrity and standard claims (exp, aud) of a JWT Access Token.
+ *
+ * It retrieves the public key via the configured JWKS providers and validates the signature.
+ * On verification failure, it attempts to extract user context (`userId`, `selfcareId`)
+ * from the payload to populate the `tokenVerificationFailed` error for auditing purposes.
+ *
+ * @param jwtToken - The raw JWT string.
+ * @param config - JWT configuration containing accepted audiences and JWKS URL(s).
+ * @param logger - Logger instance.
+ * @returns A Promise that resolves to an object containing the verified `decoded` payload.
+ * @throws {tokenVerificationFailed} If the token is invalid, expired, has the wrong audience, or the signing key cannot be found.
+ */
 export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
@@ -142,23 +161,20 @@ export const verifyJwtToken = async (
 };
 
 /**
- * Orchestrates the complete verification of a DPoP-bound Access Token.
+ * Verifies the cryptographic integrity and DPoP compliance of an Access Token.
  *
- * This function combines two validation steps:
- * 1. **Standard JWT Verification**: Validates the cryptographic signature, expiration (`exp`),
- * and standard claims using `verifyJwtToken`.
- * 2. **DPoP Structure Enforcement**: Ensures the token payload complies with the DPoP schema,
- * specifically checking for the presence of the confirmation claim (`cnf`) using `verifyAccessTokenIsDPoP`.
+ * This function performs a two-step validation:
+ * 1. **Standard Verification**: Validates signature, expiration, and audience via `verifyJwtToken`.
+ * 2. **DPoP Binding Check**: Validates that the payload conforms to the `AuthTokenDPoPPayload` schema (specifically checking for the `cnf` claim).
  *
- * @param accessToken - The raw Base64 encoded JWT string extracted from the Authorization header.
- * @param config - The JWT configuration object containing keys and validation options.
- * @param logger - The logger instance used for tracking validation steps.
+ * If the token is cryptographically valid but fails the DPoP schema check (e.g., missing `cnf`),
+ * it catches the validation error, attempts to extract user context for auditing, and throws a `tokenVerificationFailed`.
  *
- * @returns A Promise that resolves to the decoded token payload, strictly typed as `AuthTokenDPoPPayload`.
- * This guarantees to the consumer that the `cnf` property is present and valid.
- *
- * @throws {tokenVerificationFailed} If the token signature is invalid, expired, or the token is malformed (HTTP 401).
- * @throws {invalidClaim} If the token is cryptographically valid but misses required DPoP claims (e.g., missing `cnf`) (HTTP 400).
+ * @param accessToken - The raw JWT string from the Authorization header.
+ * @param config - JWT configuration containing allowed audiences and JWKS providers.
+ * @param logger - Logger instance for observability.
+ * @returns A Promise resolving to the strongly-typed `AuthTokenDPoPPayload` containing the `cnf` binding.
+ * @throws {tokenVerificationFailed} If the token has an invalid signature, is expired, has the wrong audience, or lacks the required DPoP binding.
  */
 export const verifyJwtDPoPToken = async (
   accessToken: string,
@@ -168,7 +184,23 @@ export const verifyJwtDPoPToken = async (
   // Verify JWT Signature & Expiration
   const { decoded } = await verifyJwtToken(accessToken, config, logger);
 
-  // Step 2: Enforce DPoP Structure
-  // throws 'invalidClaim' (400) if DPoP claims are missing or malformed (cnf included)
-  return verifyAccessTokenIsDPoP(decoded);
+  try {
+    // Enforce DPoP Structure (check for 'cnf')
+    return verifyAccessTokenIsDPoP(decoded);
+  } catch (error) {
+    logger.warn(
+      `Token verified (cryptographically valid) but DPoP structure check failed: ${error}`
+    );
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const { userId, selfcareId } = (() => {
+      try {
+        return getUserInfoFromAuthData(readAuthDataFromJwtToken(decoded));
+      } catch (e) {
+        logger.debug(`Could not extract user info from validated token: ${e}`);
+        return { userId: undefined, selfcareId: undefined };
+      }
+    })();
+
+    throw tokenVerificationFailed(userId, selfcareId);
+  }
 };

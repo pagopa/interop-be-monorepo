@@ -23,7 +23,7 @@ const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   )
   .and(ApplicationAuditProducerConfig);
 
-export type TenantProcessConfig = z.infer<typeof TenantProcessConfig>;
+type TenantProcessConfig = z.infer<typeof TenantProcessConfig>;
 
 export const config: TenantProcessConfig = TenantProcessConfig.parse(
   process.env

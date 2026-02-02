@@ -45,6 +45,11 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
+export type EServiceDescriptorHandlerParams = HandlerCommonParams & {
+  eserviceV2Msg?: EServiceV2;
+  descriptorId: string;
+};
+
 export type EServiceNameUpdatedHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
   oldName?: string;
@@ -102,16 +107,18 @@ export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
   eserviceId: EServiceId;
 };
 
-export type TenantEmailNotificationRecipient = {
+type TenantEmailNotificationRecipient = {
   type: "Tenant";
   tenantId: TenantId;
+  selfcareId: string | undefined;
   address: string;
 };
 
-export type UserEmailNotificationRecipient = {
+type UserEmailNotificationRecipient = {
   type: "User";
   userId: UserId;
   tenantId: TenantId;
+  selfcareId: string | undefined;
 };
 
 type EmailNotificationRecipient =
@@ -210,6 +217,11 @@ export const getRecipientsForTenants = async ({
     );
     return [];
   }
+  // Create a map of tenantId -> selfcareId for quick lookup
+  const tenantSelfcareIdMap = new Map<TenantId, string | undefined>(
+    tenants.map((tenant) => [tenant.id, tenant.selfcareId])
+  );
+
   const tenantUsers =
     await readModelService.getTenantUsersWithNotificationEnabled(
       tenants.map((tenant) => tenant.id),
@@ -234,6 +246,7 @@ export const getRecipientsForTenants = async ({
       type: "User" as const,
       userId,
       tenantId,
+      selfcareId: tenantSelfcareIdMap.get(tenantId),
     }));
 
   const tenantRecipients: TenantEmailNotificationRecipient[] =
@@ -243,6 +256,7 @@ export const getRecipientsForTenants = async ({
             tenants.map(async (tenant) => ({
               type: "Tenant" as const,
               tenantId: tenant.id,
+              selfcareId: tenant.selfcareId,
               address: await getTenantContactEmailIfEnabled(
                 tenant,
                 readModelService,

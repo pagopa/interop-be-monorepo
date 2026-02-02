@@ -133,7 +133,3 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceDescriptorInterfaceRepository = ReturnType<
-  typeof eserviceDescriptorInterfaceRepository
->;

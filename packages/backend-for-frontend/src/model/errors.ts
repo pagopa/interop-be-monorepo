@@ -5,7 +5,7 @@ import {
   parseErrorMessage,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",

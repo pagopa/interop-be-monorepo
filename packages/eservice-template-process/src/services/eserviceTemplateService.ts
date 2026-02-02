@@ -41,6 +41,7 @@ import {
   TenantId,
   Tenant,
   EServiceTemplateEvent,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -120,7 +121,7 @@ import {
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
-export const retrieveEServiceTemplate = async (
+const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<EServiceTemplate>> => {
@@ -133,7 +134,7 @@ export const retrieveEServiceTemplate = async (
   return eserviceTemplate;
 };
 
-export const retrieveEServiceTemplateRiskAnalysis = (
+const retrieveEServiceTemplateRiskAnalysis = (
   eserviceTemplate: EServiceTemplate,
   riskAnalysisId: RiskAnalysisId
 ): EServiceTemplateRiskAnalysis => {
@@ -250,7 +251,7 @@ const replaceEServiceTemplateVersion = (
   };
 };
 
-export function validateRiskAnalysisSchemaOrThrow(
+function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind,
   dateForExpirationValidation: Date,
@@ -1561,7 +1562,7 @@ export function eserviceTemplateServiceBuilder(
       limit: number,
       offset: number,
       { logger }: WithLogger<AppContext>
-    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+    ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving eservice template creator with name ${creatorName}, limit ${limit}, offset ${offset}`
       );

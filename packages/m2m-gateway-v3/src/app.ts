@@ -16,6 +16,7 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import agreementRouter from "./routers/agreementRouter.js";

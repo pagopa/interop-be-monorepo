@@ -2,6 +2,7 @@ import {
   attributeRegistryApi,
   bffApi,
   tenantApi,
+  SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import { isDefined, Logger, WithLogger } from "pagopa-interop-commons";
 import {
@@ -10,12 +11,8 @@ import {
   CorrelationId,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  AttributeProcessClient,
-  SelfcareV2InstitutionClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   RegistryAttributesMap,
   toBffApiTenant,
@@ -29,7 +26,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(
   tenantAttributesIds: string[],
-  attributeRegistryProcessClient: AttributeProcessClient,
+  attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: WithLogger<BffAppContext>["headers"]
 ): Promise<RegistryAttributesMap> {
   const registryAttributes = await getAllBulkAttributes(
@@ -44,7 +41,7 @@ async function getRegistryAttributesMap(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
-  attributeRegistryProcessClient: AttributeProcessClient,
+  attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   async function getLogoUrl(
@@ -58,16 +55,14 @@ export function tenantServiceBuilder(
 
     try {
       const institution =
-        await selfcareV2InstitutionClient.institution.retrieveInstitutionByIdUsingGET(
-          {
-            params: {
-              id: selfcareId,
-            },
-            headers: {
-              "X-Correlation-Id": correlationId,
-            },
-          }
-        );
+        await selfcareV2InstitutionClient.retrieveInstitutionByIdUsingGET({
+          params: {
+            id: selfcareId,
+          },
+          headers: {
+            "X-Correlation-Id": correlationId,
+          },
+        });
 
       return institution.logo;
     } catch (error) {
@@ -478,7 +473,7 @@ export function enhanceTenantAttributes(
   };
 }
 
-export function getDeclaredTenantAttribute(
+function getDeclaredTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.DeclaredTenantAttribute | undefined {
@@ -500,7 +495,7 @@ export function getDeclaredTenantAttribute(
   };
 }
 
-export function getCertifiedTenantAttribute(
+function getCertifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.CertifiedTenantAttribute | undefined {
@@ -521,7 +516,7 @@ export function getCertifiedTenantAttribute(
   };
 }
 
-export function toApiVerifiedTenantAttribute(
+function toApiVerifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.VerifiedTenantAttribute | undefined {

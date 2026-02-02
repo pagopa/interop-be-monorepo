@@ -10,7 +10,7 @@ type MakeUndefinedOptional<T> = {
   [K in keyof T as undefined extends T[K] ? never : K]: T[K];
 };
 
-export type QueryParameters<T extends ZodiosEndpointParameter[]> = {
+type QueryParameters<T extends ZodiosEndpointParameter[]> = {
   [K in T[number] as K["type"] extends "Query"
     ? K["name"]
     : never]: K["schema"] extends ZodType ? z.infer<K["schema"]> : never;

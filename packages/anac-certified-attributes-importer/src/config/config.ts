@@ -26,7 +26,7 @@ const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(
       }))
   );
 
-export type AnacCertifiedAttributesImporterConfig = z.infer<
+type AnacCertifiedAttributesImporterConfig = z.infer<
   typeof AnacCertifiedAttributesImporterConfig
 >;
 

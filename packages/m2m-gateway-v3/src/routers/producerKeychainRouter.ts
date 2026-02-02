@@ -116,6 +116,28 @@ const producerKeychainRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/producerKeychains/:keychainId/keys", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const key = await producerKeychainService.createProducerKeychainKey(
+          unsafeBrandId(req.params.keychainId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(key);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating key for producer keychain with id ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/producerKeychains/:keychainId/eservices", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
@@ -162,7 +184,29 @@ const producerKeychainRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .delete("/producerKeychains/:keychainId/keys/:keyId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await producerKeychainService.deleteProducerKeychainKey(
+          unsafeBrandId(req.params.keychainId),
+          req.params.keyId,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting key with id ${req.params.keyId} from producer keychain with id ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return producerKeychainRouter;
 };

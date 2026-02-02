@@ -128,7 +128,3 @@ export function purposeTemplateEServiceDescriptorRepository(
     },
   };
 }
-
-export type PurposeTemplateEServiceDescriptorRepository = ReturnType<
-  typeof purposeTemplateEServiceDescriptorRepository
->;
