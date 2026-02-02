@@ -1,13 +1,13 @@
 import crypto from "crypto";
-import jwt, { SignOptions, JwtHeader } from "jsonwebtoken";
+import jwt, { SignOptions, JwtHeader, JwtPayload } from "jsonwebtoken";
 import { decodeBase64ToPem } from "../auth/jwk.js";
-import { type SignedHeaders } from "./headers.js";
+import { type IntegrityRest02SignedHeader } from "../interop-token/models.js";
 
 /**
  * Options for signing a REST 02 response
  */
 export interface SignRest02ResponseOptions {
-  signedHeaders: SignedHeaders;
+  signedHeaders: IntegrityRest02SignedHeader;
   privateKeyBase64: string; // Base64-encoded PEM
   kid: string;
   issuer: string;
@@ -32,11 +32,11 @@ export function buildAgidJwtSignature({
 }: SignRest02ResponseOptions): string {
   // Step 1: Prepare JWT payload
   const now = Math.floor(Date.now() / 1000);
-  const payload = {
+  const payload: JwtPayload = {
     iat: now,
     exp: now + ttlSeconds,
     iss: issuer,
-    aud: audience, // now can be string or array of strings
+    aud: audience,
     sub,
     jti,
     signed_headers: signedHeaders,

@@ -1,8 +1,9 @@
 import crypto from "crypto";
 
-export function calculateDigestFromBody(
-  body: string | Buffer | object | undefined | null
+export function calculateIntegrityRest02DigestFromBody(
+  body: string | Buffer | object | undefined | null // Keep object?
 ): string {
+  // TODO: Check if it is necessary to sort
   // eslint-disable-next-line functional/no-let
   let payloadBytes: Buffer;
   if (Buffer.isBuffer(body)) {
@@ -13,5 +14,5 @@ export function calculateDigestFromBody(
     payloadBytes = Buffer.from(String(body));
   }
 
-  return crypto.createHash("sha256").update(payloadBytes).digest("base64");
+  return crypto.createHash("sha256").update(payloadBytes).digest("base64url");
 }

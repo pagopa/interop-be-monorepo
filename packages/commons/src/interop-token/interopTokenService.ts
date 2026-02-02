@@ -32,6 +32,8 @@ import {
   UIClaims,
   InteropJwtInternalPayload,
   InteropJwtApiDPoPPayload,
+  AgidIntegrityRest02TokenPayload,
+  IntegrityRest02SignedHeader,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
@@ -316,13 +318,54 @@ export class InteropTokenGenerator {
     };
   }
 
+  public async generateAgidIntegrityRest02Token({
+    signedHeaders,
+  }: {
+    signedHeaders: IntegrityRest02SignedHeader;
+  }): Promise<string> {
+    if (
+      !this.config.generatedInteropTokenKid ||
+      !this.config.generatedInteropTokenIssuer ||
+      !this.config.generatedInteropTokenM2MAudience
+    ) {
+      throw Error(
+        "AuthorizationServerTokenGenerationConfig not provided or incomplete"
+      );
+    }
+    const currentTimestamp = dateToSeconds(new Date());
+
+    const header: InteropJwtHeader = {
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
+      kid: this.config.generatedInteropTokenKid,
+    };
+
+    const payload: AgidIntegrityRest02TokenPayload = {
+      jti: generateId(),
+      iss: this.config.generatedInteropTokenIssuer,
+      aud: this.config.generatedInteropTokenM2MAudience,
+      iat: currentTimestamp,
+      nbf: currentTimestamp,
+      exp:
+        currentTimestamp +
+        (this.config.generatedInteropTokenM2MDurationSeconds ?? 100), // TODO: Check default to set
+      signed_headers: signedHeaders,
+    };
+    return await this.createAndSignToken({
+      header,
+      payload,
+      keyId: this.config.generatedInteropTokenKid,
+    });
+  }
+
   private async createAndSignToken({
     header,
     payload,
     keyId,
   }: {
     header: InteropJwtHeader;
-    payload: SerializedAuthTokenPayload;
+    payload: SerializedAuthTokenPayload | AgidIntegrityRest02TokenPayload;
     keyId: string;
   }): Promise<string> {
     const serializedToken = `${b64UrlEncode(
