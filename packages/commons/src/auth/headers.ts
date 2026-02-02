@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import {
   badBearerToken,
   badDPoPToken,
-  badDPoPProof,
   missingHeader,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -27,14 +26,17 @@ export function parseAuthHeader(req: Request): string | undefined {
   return undefined;
 }
 
-export function parseDPoPHeader(req: Request): string | undefined {
-  // check for existence and type (non-empty string)
+export function parseDPoPHeader(req: Request, logger: Logger): string {
   const parsed = z.object({ dpop: z.string().min(1) }).safeParse(req.headers);
 
-  if (parsed.success) {
-    return parsed.data.dpop;
+  if (!parsed.success) {
+    logger.warn(
+      `Invalid authentication provided for this call ${req.method} ${req.url} - missing or malformed DPoP header`
+    );
+    throw missingHeader("DPoP");
   }
-  return undefined;
+
+  return parsed.data.dpop;
 }
 
 export function jwtFromAuthHeader(req: Request, logger: Logger): string {
@@ -70,8 +72,7 @@ export function jwtFromAuthHeader(req: Request, logger: Logger): string {
  *
  * @throws {missingHeader} If the `Authorization` header is missing entirely.
  * @throws {badDPoPToken} If the `Authorization` scheme is not "DPoP" or the token value is missing.
- * @throws {missingHeader} If the `DPoP` header is missing entirely.
- * @throws {badDPoPProof} If the `DPoP` header is present but malformed (e.g., empty or invalid format according to `parseDPoPHeader`).
+ * @throws {missingHeader} If the `DPoP` header is missing or malformed (e.g., empty or invalid format according to `parseDPoPHeader`)
  *
  */
 export function jwtsFromAuthAndDPoPHeaders(
@@ -90,23 +91,7 @@ export function jwtsFromAuthAndDPoPHeaders(
     );
     throw badDPoPToken;
   }
-
-  // check for missing DPoP header
-  if (req.headers.dpop === undefined) {
-    logger.warn(`Missing DPoP proof for this call ${req.method} ${req.url}`);
-    throw missingHeader("DPoP");
-  }
-
-  // check for malformed DPoP header value
-  // NOT VERY USEFUL AS WE CANNOT VALIDATE THE DPoP JWS STRUCTURE HERE
-  const dpopProofJWS = parseDPoPHeader(req);
-  if (!dpopProofJWS) {
-    logger.warn(
-      `Invalid authentication provided for this call ${req.method} ${req.url}: malformed DPoP header`
-    );
-    throw badDPoPProof;
-  }
-
+  const dpopProofJWS = parseDPoPHeader(req, logger);
   return {
     accessToken,
     dpopProofJWS,

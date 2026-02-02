@@ -310,8 +310,7 @@ export const commonErrorCodes = {
   invalidServerUrl: "10026",
   hyperlinkDetectionError: "10027",
   badDPoPToken: "10028",
-  badDPoPProof: "10029",
-  unsupportedJWKType: "10030",
+  unsupportedJWKType: "10029",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -599,12 +598,6 @@ export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
   detail: `Bad DPoP Token format in Authorization header`,
   code: "badDPoPToken",
   title: "Bad DPoP Token format",
-});
-
-export const badDPoPProof: ApiError<CommonErrorCodes> = new ApiError({
-  detail: `Bad DPoP Proof format in DPoP header`,
-  code: "badDPoPProof",
-  title: "Bad DPoP Proof format",
 });
 
 export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({

@@ -159,13 +159,7 @@ export const authenticationDPoPMiddleware: (
               () => 401
             )
             .with("operationForbidden", () => 403)
-            .with(
-              "missingHeader",
-              "badDPoPToken",
-              "badDPoPProof",
-              "invalidClaim",
-              () => 400
-            )
+            .with("missingHeader", "badDPoPToken", "invalidClaim", () => 400)
             .otherwise(() => 500),
         ctx
       );
