@@ -186,6 +186,8 @@ describe("database test", async () => {
             !initialInAppConfig.certifiedVerifiedAttributeAssignedRevokedToAssignee,
           clientKeyAddedDeletedToClientUsers:
             !initialInAppConfig.clientKeyAddedDeletedToClientUsers,
+          clientKeyConsumerAddedDeletedToClientUsers:
+            !initialInAppConfig.clientKeyConsumerAddedDeletedToClientUsers,
           producerKeychainKeyAddedDeletedToClientUsers:
             !initialInAppConfig.producerKeychainKeyAddedDeletedToClientUsers,
           purposeQuotaAdjustmentRequestToProducer:
@@ -232,6 +234,8 @@ describe("database test", async () => {
             !initialEmailConfig.certifiedVerifiedAttributeAssignedRevokedToAssignee,
           clientKeyAddedDeletedToClientUsers:
             !initialEmailConfig.clientKeyAddedDeletedToClientUsers,
+          clientKeyConsumerAddedDeletedToClientUsers:
+            !initialEmailConfig.clientKeyConsumerAddedDeletedToClientUsers,
           producerKeychainKeyAddedDeletedToClientUsers:
             !initialEmailConfig.producerKeychainKeyAddedDeletedToClientUsers,
           purposeQuotaAdjustmentRequestToProducer:
