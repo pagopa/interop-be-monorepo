@@ -21,16 +21,14 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",
-    "date-fns": "3.6.0",
+    "eslint": "8.57.1",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "vitest": "4.0.18"
   },
   "dependencies": {
-    "@protobuf-ts/runtime": "2.9.4",
-    "connection-string": "4.4.0",
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "kafka-iam-auth": "workspace:*",

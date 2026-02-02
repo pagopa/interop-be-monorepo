@@ -6,6 +6,10 @@ export const FILE_KIND_CONFIG = Object.freeze({
     bucket: config.signedDocumentsBucket,
     process: "riskAnalysis",
   },
+  RISK_ANALYSIS_TEMPLATE_DOCUMENT: {
+    bucket: config.signedDocumentsBucket,
+    process: "purposeTemplate",
+  },
   AGREEMENT_CONTRACT: {
     bucket: config.signedDocumentsBucket,
     process: "agreement",
@@ -20,6 +24,7 @@ export const FILE_KIND_CONFIG = Object.freeze({
 
 const FILE_KIND_KEYS = [
   "RISK_ANALYSIS_DOCUMENT",
+  "RISK_ANALYSIS_TEMPLATE_DOCUMENT",
   "AGREEMENT_CONTRACT",
   "DELEGATION_CONTRACT",
   "VOUCHER_AUDIT",

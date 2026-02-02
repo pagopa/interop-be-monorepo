@@ -1,0 +1,38 @@
+meta {
+  name: Create Reverse Purpose
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/reversePurposes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+      "eserviceId": "{{eserviceId}}",
+      "riskAnalysisId": "{{riskAnalysisId}}",
+      "delegationId": "{{delegationId}}",
+      "title": "{{randomName}}",
+      "description": "a purpose long description",
+      "isFreeOfCharge": true,
+      "dailyCalls": 100,
+      "freeOfChargeReason": "Free!"
+  }
+}
+
+vars:post-response {
+  reversePurposeId: res.body.id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+
+  bru.setVar("randomName",`test name ${random}`)
+}

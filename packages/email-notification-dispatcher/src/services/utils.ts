@@ -3,7 +3,6 @@ import fs from "fs/promises";
 import path from "path";
 import { z } from "zod";
 import {
-  Agreement,
   Delegation,
   Descriptor,
   descriptorState,
@@ -16,7 +15,6 @@ import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
-  descriptorNotFound,
   eServiceNotFound,
   eserviceWithoutDescriptors,
   htmlTemplateNotFound,
@@ -123,7 +121,7 @@ const EventMailTemplateType = z.enum([
   ...Object.values(eventMailTemplateType).slice(1),
 ]);
 
-export type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
+type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
 
 export async function retrieveTenant(
   tenantId: TenantId,
@@ -134,20 +132,6 @@ export async function retrieveTenant(
     throw tenantNotFound(tenantId);
   }
   return tenant;
-}
-
-export function retrieveAgreementDescriptor(
-  eservice: EService,
-  agreement: Agreement
-): Descriptor {
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-
-  if (!descriptor) {
-    throw descriptorNotFound(agreement.eserviceId, agreement.descriptorId);
-  }
-  return descriptor;
 }
 
 export const retrieveEService = async (

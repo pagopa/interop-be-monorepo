@@ -21,6 +21,7 @@ import {
   unsafeBrandId,
   AgreementDocumentId,
   stringToDate,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -53,12 +54,9 @@ import {
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
-import {
-  CompactEService,
-  CompactOrganization,
-} from "../model/domain/models.js";
+import { CompactEService } from "../model/domain/models.js";
 
-export type AgreementQueryFilters = {
+type AgreementQueryFilters = {
   producerId?: TenantId | TenantId[];
   consumerId?: TenantId | TenantId[];
   eserviceId?: EServiceId | EServiceId[];
@@ -68,7 +66,7 @@ export type AgreementQueryFilters = {
   showOnlyUpgradeable?: boolean;
 };
 
-export type AgreementEServicesQueryFilters = {
+type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
   producerIds: TenantId[];
@@ -691,7 +689,7 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
         resultSet[0]?.totalCount
       );
     },
@@ -731,7 +729,7 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
         resultSet[0]?.totalCount
       );
     },

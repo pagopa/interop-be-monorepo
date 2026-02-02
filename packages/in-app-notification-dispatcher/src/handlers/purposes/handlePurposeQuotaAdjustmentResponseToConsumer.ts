@@ -14,7 +14,7 @@ import {
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
-export type PurposeQuotaAdjustmentResponseToConsumerType =
+type PurposeQuotaAdjustmentResponseToConsumerType =
   | "PurposeVersionActivated"
   | "PurposeVersionRejected";
 

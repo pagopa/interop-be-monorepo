@@ -1,4 +1,9 @@
-import { apiGatewayApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  apiGatewayApi,
+  attributeRegistryApi,
+  catalogApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import {
   getAllFromPaginated,
   Logger,
@@ -14,11 +19,6 @@ import {
 } from "../api/catalogApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
-  AttributeProcessClient,
-  CatalogProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
-import {
   eserviceDescriptorNotFound,
   eserviceNotFound,
 } from "../models/errors.js";
@@ -31,7 +31,7 @@ import {
 } from "./validators.js";
 
 export function getAllEservices(
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   headers: ApiGatewayAppContext["headers"],
   producerId: catalogApi.EService["producerId"],
   attributeId: catalogApi.Attribute["id"]
@@ -51,7 +51,7 @@ export function getAllEservices(
 }
 
 const retrieveEservice = async (
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   headers: ApiGatewayAppContext["headers"],
   eserviceId: catalogApi.EService["id"]
 ): Promise<catalogApi.EService> =>
@@ -70,9 +70,9 @@ const retrieveEservice = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
-  catalogProcessClient: CatalogProcessClient,
-  tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient
+  catalogProcessClient: catalogApi.CatalogProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "tenant">,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient
 ) {
   return {
     getEservices: async (
@@ -201,7 +201,7 @@ function getLatestValidDescriptor(
 }
 
 async function getDescriptorAttributes(
-  attributeProcessClient: AttributeProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   descriptor: ValidCatalogApiDescriptor
 ): Promise<apiGatewayApi.EServiceAttributes> {
@@ -226,8 +226,8 @@ async function getDescriptorAttributes(
 }
 
 export async function enhanceEservice(
-  tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "tenant">,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   eservice: catalogApi.EService,
   logger: Logger

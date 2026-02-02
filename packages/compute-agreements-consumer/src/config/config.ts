@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const ComputeAgreementsConsumerConfig = KafkaConsumerConfig.and(
+const ComputeAgreementsConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig
 )
   .and(TenantTopicConfig)
@@ -19,7 +19,7 @@ export const ComputeAgreementsConsumerConfig = KafkaConsumerConfig.and(
       }))
   );
 
-export type ComputeAgreementsConsumerConfig = z.infer<
+type ComputeAgreementsConsumerConfig = z.infer<
   typeof ComputeAgreementsConsumerConfig
 >;
 

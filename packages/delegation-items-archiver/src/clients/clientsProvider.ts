@@ -1,16 +1,9 @@
 import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
-export type AgreementProcessClient = ReturnType<
-  typeof agreementApi.createAgreementApiClient
->;
-
-export type PurposeProcessClient = ReturnType<
-  typeof purposeApi.createPurposeApiClient
->;
-export type PagoPAInteropBeClients = {
-  agreementProcessClient: AgreementProcessClient;
-  purposeProcessClient: PurposeProcessClient;
+type PagoPAInteropBeClients = {
+  agreementProcessClient: agreementApi.AgreementProcessClient;
+  purposeProcessClient: purposeApi.PurposeProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
