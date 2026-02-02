@@ -19,7 +19,6 @@ import {
   PurposeId,
   PurposeVersionState,
   purposeVersionState,
-  SelfcareId,
   Tenant,
   TenantId,
   unsafeBrandId,
@@ -72,6 +71,7 @@ import {
   userNotAllowedToDeleteClientKey,
   userNotAllowedToDeleteProducerKeychainKey,
   userNotFound,
+  tenantNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -117,6 +117,7 @@ import {
   assertClientIsConsumer,
   assertClientIsAPI,
   assertAdminInClient,
+  assertTenantHasSelfcareId,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -197,6 +198,31 @@ const retrieveProducerKeychain = async (
     throw producerKeychainNotFound(producerKeychainId);
   }
   return producerKeychain;
+};
+
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
+const getSelfcareIdFromAuthData = async (
+  authData: UIAuthData | M2MAdminAuthData,
+  readModelService: ReadModelServiceSQL
+): Promise<string> => {
+  const tenant = await retrieveTenant(
+    authData.organizationId,
+    readModelService
+  );
+
+  assertTenantHasSelfcareId(tenant);
+
+  return tenant.selfcareId;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -328,7 +354,7 @@ export function authorizationServiceBuilder(
 
       const userIds =
         isUiAuthData(authData) &&
-          hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
+        hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
           ? [authData.userId]
           : filters.userIds;
 
@@ -558,11 +584,19 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         userIds: UserId[];
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Client> {
       logger.info(`Binding client ${clientId} with user ${userIds.join(",")}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData, client.data);
+
+      const selfcareId = isUiAuthData(authData)
+        ? authData.selfcareId
+        : await getSelfcareIdFromAuthData(authData, readModelService);
 
       await Promise.all(
         userIds.map((userId) =>
@@ -977,7 +1011,7 @@ export function authorizationServiceBuilder(
 
       const userIds =
         isUiAuthData(authData) &&
-          hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
+        hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
           ? [authData.userId]
           : filters.userIds;
 
