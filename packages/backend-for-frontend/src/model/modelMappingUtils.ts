@@ -82,7 +82,8 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service",
     eserviceTemplateStatusChangedToInstantiator: "/erogazione/e-service",
     clientKeyAddedDeletedToClientUsers: "/gestione-client/api-interop",
-    clientKeyConsumerAddedDeletedToClientUsers: "/gestione-client/api-e-service",
+    clientKeyConsumerAddedDeletedToClientUsers:
+      "/gestione-client/api-e-service",
     agreementActivatedRejectedToConsumer: "/fruizione/richieste",
     purposeActivatedRejectedToConsumer: "/fruizione/finalita",
     purposeSuspendedUnsuspendedToConsumer: "/fruizione/finalita",
