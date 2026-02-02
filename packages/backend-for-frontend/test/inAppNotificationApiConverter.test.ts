@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect } from "vitest";
 import { inAppNotificationApi, bffApi } from "pagopa-interop-api-clients";
-import { toBffApiNotificationsCountBySection } from "../src/api/inAppNotificationApiConverter.js";
+import {
+  toBffApiNotificationsCountBySection,
+  toBffApiNotification,
+} from "../src/api/inAppNotificationApiConverter.js";
 
 describe("toBffApiNotificationsCountBySection", () => {
   it("should correctly transform notification counts with all sections having data", () => {
@@ -255,5 +258,41 @@ describe("toBffApiNotificationsCountBySection", () => {
     };
 
     expect(result).toEqual(expected);
+  });
+});
+
+describe("toBffApiNotification", () => {
+  it("should include entityId in deepLink for standard notification types", () => {
+    const notification: inAppNotificationApi.Notification = {
+      id: "notification-id",
+      tenantId: "tenant-id",
+      userId: "user-id",
+      body: "Test notification body",
+      entityId: "entity-uuid",
+      notificationType: "agreementManagementToProducer",
+      createdAt: "2024-01-01T00:00:00.000Z",
+      readAt: null,
+    };
+
+    const result = toBffApiNotification(notification);
+
+    expect(result.deepLink).toBe("/erogazione/richieste/entity-uuid");
+  });
+
+  it("should NOT include entityId in deepLink for certifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
+    const notification: inAppNotificationApi.Notification = {
+      id: "notification-id",
+      tenantId: "tenant-id",
+      userId: "user-id",
+      body: "Test notification body",
+      entityId: "attribute-uuid",
+      notificationType: "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+      createdAt: "2024-01-01T00:00:00.000Z",
+      readAt: null,
+    };
+
+    const result = toBffApiNotification(notification);
+
+    expect(result.deepLink).toBe("/aderente/anagrafica");
   });
 });

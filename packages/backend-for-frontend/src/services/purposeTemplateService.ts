@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import {
   bffApi,
+  catalogApi,
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -18,11 +19,7 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
-import {
-  CatalogProcessClient,
-  PurposeTemplateProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import {
@@ -37,9 +34,9 @@ import { eserviceDescriptorNotFound, tenantNotFound } from "../model/errors.js";
 import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 
 export function purposeTemplateServiceBuilder(
-  purposeTemplateClient: PurposeTemplateProcessClient,
+  purposeTemplateClient: purposeTemplateApi.PurposeTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   fileManager: FileManager
 ) {
   async function getTenantsFromPurposeTemplates(

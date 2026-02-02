@@ -8,14 +8,14 @@ import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { userNotFound } from "../../../src/model/errors.js";
-import { getMockm2mGatewayApiV3CompactUser } from "../../mockUtils.js";
+import { getMockm2mGatewayApiV3User } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/users", () => {
-  const mockResponse: m2mGatewayApiV3.CompactUsers = {
+  const mockResponse: m2mGatewayApiV3.Users = {
     results: [
-      getMockm2mGatewayApiV3CompactUser(),
-      getMockm2mGatewayApiV3CompactUser(),
-      getMockm2mGatewayApiV3CompactUser(),
+      getMockm2mGatewayApiV3User(),
+      getMockm2mGatewayApiV3User(),
+      getMockm2mGatewayApiV3User(),
     ],
     pagination: {
       limit: 10,

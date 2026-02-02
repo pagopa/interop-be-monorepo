@@ -204,7 +204,7 @@ const clientRouter = (
           req.query
         );
 
-        return res.status(200).send(m2mGatewayApiV3.CompactUsers.parse(users));
+        return res.status(200).send(m2mGatewayApiV3.Users.parse(users));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

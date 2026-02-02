@@ -4,6 +4,7 @@ import {
   CommonHTTPServiceConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
+  SelfCareClientConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -131,15 +132,6 @@ type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
 >;
 
-export const SelfcareV2ServerConfig = z
-  .object({
-    SELFCARE_V2_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    selfcareV2Url: c.SELFCARE_V2_URL,
-  }));
-export type SelfcareV2ServerConfig = z.infer<typeof SelfcareV2ServerConfig>;
-
 const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   TenantProcessServerConfig
 )
@@ -153,7 +145,7 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(EServiceTemplateProcessServerConfig)
   .and(EventManagerServerConfig)
   .and(PurposeTemplateProcessServerConfig)
-  .and(SelfcareV2ServerConfig)
+  .and(SelfCareClientConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
   .and(

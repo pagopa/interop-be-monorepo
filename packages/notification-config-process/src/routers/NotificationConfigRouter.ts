@@ -172,16 +172,16 @@ const notificationConfigRouter = (
       }
     })
     .post(
-      "/internal/ensureUserNotificationConfigExistsWithRole",
+      "/internal/ensureUserNotificationConfigExistsWithRoles",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
-          await notificationConfigService.ensureUserNotificationConfigExistsWithRole(
+          await notificationConfigService.ensureUserNotificationConfigExistsWithRoles(
             unsafeBrandId(req.body.userId),
             unsafeBrandId(req.body.tenantId),
-            apiUserRoleToUserRole(req.body.userRole),
+            req.body.userRoles.map(apiUserRoleToUserRole),
             ctx
           );
           return res.status(204).send();

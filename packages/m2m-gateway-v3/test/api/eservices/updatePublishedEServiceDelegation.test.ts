@@ -33,6 +33,7 @@ describe("PATCH /eservices/:eserviceId/delegation router test", () => {
     request(api)
       .patch(`${appBasePath}/eservices/${eserviceId}/delegation`)
       .set("Authorization", `Bearer ${token}`)
+      .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

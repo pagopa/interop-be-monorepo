@@ -3,7 +3,7 @@ import {
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { TenantId, generateId } from "pagopa-interop-models";
+import { TenantId, WithMetadata, generateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { GetUsersQueryParams } from "../../../src/services/userService.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
@@ -21,12 +21,12 @@ interface SelfcareUser {
   email?: string | undefined;
   fiscalCode?: string | undefined;
   role?:
-    | "ADMIN_EA"
-    | "DELEGATE"
-    | "MANAGER"
-    | "OPERATOR"
-    | "SUB_DELEGATE"
-    | undefined;
+  | "ADMIN_EA"
+  | "DELEGATE"
+  | "MANAGER"
+  | "OPERATOR"
+  | "SUB_DELEGATE"
+  | undefined;
 }
 
 describe("getUsers", () => {
@@ -38,7 +38,7 @@ describe("getUsers", () => {
     selfcareId: undefined,
   });
 
-  const mockUsers: SelfcareUser[] = [
+  const mockUsers: WithMetadata<SelfcareUser[]> = getMockWithMetadata([
     {
       id: generateId(),
       name: "Mario",
@@ -66,9 +66,9 @@ describe("getUsers", () => {
       fiscalCode: "EEEFFF789C",
       role: "MANAGER",
     },
-  ];
+  ]);
 
-  const mockNoUsers: SelfcareUser[] = [];
+  const mockNoUsers: WithMetadata<SelfcareUser[]> = getMockWithMetadata([]);
 
   const mockGetTenant = vi.fn();
   const mockGetInstitutionUsersByProductUsingGET = vi.fn();
@@ -81,8 +81,10 @@ describe("getUsers", () => {
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
 
   mockInteropBeClients.selfcareProcessClient = {
-    getInstitutionUsersByProductUsingGET:
-      mockGetInstitutionUsersByProductUsingGET,
+    institution: {
+      getInstitutionUsersByProductUsingGET:
+        mockGetInstitutionUsersByProductUsingGET,
+    },
   } as unknown as PagoPAInteropBeClients["selfcareProcessClient"];
 
   const callService = async (queryParams: GetUsersQueryParams) => {
@@ -104,28 +106,26 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     const result = await callService(queryParams);
 
     expect(result).toEqual({
       results: [
         {
-          userId: mockUsers[0].id,
+          userId: mockUsers.data[0].id,
           name: "Mario",
           familyName: "Rossi",
           roles: ["ADMIN_EA", "MANAGER"],
         },
         {
-          userId: mockUsers[1].id,
+          userId: mockUsers.data[1].id,
           name: "Luigi",
           familyName: "Verdi",
           roles: ["OPERATOR"],
         },
         {
-          userId: mockUsers[2].id,
+          userId: mockUsers.data[2].id,
           name: "Anna",
           familyName: "Bianchi",
           roles: ["MANAGER"],
@@ -169,9 +169,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     const result = await callService(queryParams);
 
@@ -179,13 +177,13 @@ describe("getUsers", () => {
     expect(result).toEqual({
       results: [
         {
-          userId: mockUsers[1].id,
+          userId: mockUsers.data[1].id,
           name: "Luigi",
           familyName: "Verdi",
           roles: ["OPERATOR"],
         },
         {
-          userId: mockUsers[2].id,
+          userId: mockUsers.data[2].id,
           name: "Anna",
           familyName: "Bianchi",
           roles: ["MANAGER"],
@@ -217,9 +215,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     const result = await callService(queryParams);
 
@@ -249,9 +245,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockNoUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockNoUsers);
 
     const result = await callService(queryParams);
 
@@ -295,9 +289,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadataAndEmptySelfcareId);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     await expect(callService(queryParams)).rejects.toThrowError();
 
@@ -320,9 +312,7 @@ describe("getUsers", () => {
     };
 
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockUsers);
 
     const result = await callService(queryParams);
 

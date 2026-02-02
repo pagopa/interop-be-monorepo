@@ -95,6 +95,9 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
   } as const;
 
+export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
+  new Set(["certifiedVerifiedAttributeAssignedRevokedToAssignee"]);
+
 export const Category = z.enum([
   "Subscribers",
   "Providers",

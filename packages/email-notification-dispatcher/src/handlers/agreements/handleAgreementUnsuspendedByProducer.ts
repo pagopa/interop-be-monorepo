@@ -77,6 +77,7 @@ export async function handleAgreementUnsuspendedByProducer(
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza la richiesta`,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

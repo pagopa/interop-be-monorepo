@@ -19,6 +19,13 @@ export function buildHTMLTemplateService(): HtmlTemplateService {
     }
   );
 
+  Handlebars.registerHelper("encodeURIComponent", function (value) {
+    if (value === undefined || value === null) {
+      return "";
+    }
+    return encodeURIComponent(String(value));
+  });
+
   return {
     registerPartial: async (name: string, partial: string): Promise<void> => {
       Handlebars.registerPartial(name, partial);

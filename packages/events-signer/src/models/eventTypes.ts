@@ -14,6 +14,8 @@ const PurposeEventSchema = BaseEventSchema.extend({
 
 const AgreementEventSchema = BaseEventSchema;
 
+const PurposeTemplateEventSchema = BaseEventSchema;
+
 const AuthorizationEventSchema = BaseEventSchema.extend({
   kid: z.string().optional(),
   user_id: z.string().optional(),
@@ -28,6 +30,9 @@ const DelegationEventSchema = BaseEventSchema;
 
 export type BaseEventData = z.infer<typeof BaseEventSchema>;
 export type PurposeEventData = z.infer<typeof PurposeEventSchema>;
+export type PurposeTemplateEventData = z.infer<
+  typeof PurposeTemplateEventSchema
+>;
 export type AgreementEventData = z.infer<typeof AgreementEventSchema>;
 export type AuthorizationEventData = z.infer<typeof AuthorizationEventSchema>;
 export type CatalogEventData = z.infer<typeof CatalogEventSchema>;
@@ -39,6 +44,7 @@ const AllEventSchemas = z.union([
   AuthorizationEventSchema,
   CatalogEventSchema,
   DelegationEventSchema,
+  PurposeTemplateEventSchema,
 ]);
 
 export type AllEventData = z.infer<typeof AllEventSchemas>;

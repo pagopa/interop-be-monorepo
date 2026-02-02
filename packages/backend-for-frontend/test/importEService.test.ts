@@ -14,18 +14,19 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  attributeRegistryApi,
+  bffApi,
+  catalogApi,
+  eserviceTemplateApi,
+  inAppNotificationApi,
+} from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import AdmZip from "adm-zip";
-import { catalogApi } from "pagopa-interop-api-clients";
 import * as apiUtils from "pagopa-interop-commons";
-import {
-  AgreementProcessClient,
-  AttributeProcessClient,
-  CatalogProcessClient,
+import type {
   DelegationProcessClient,
-  EServiceTemplateProcessClient,
-  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -77,17 +78,19 @@ describe("importEService", () => {
     createEService: vi.fn().mockResolvedValue(baseEService),
     getEServiceById: vi.fn().mockResolvedValue(baseEService),
     createEServiceDocument: vi.fn().mockResolvedValue(getMockDocument()),
-  } as unknown as CatalogProcessClient;
+  } as unknown as catalogApi.CatalogProcessClient;
   const mockTenantProcessClient = createDummyStub<TenantProcessClient>();
-  const mockAgreementProcessClient = createDummyStub<AgreementProcessClient>();
-  const mockAttributeProcessClient = createDummyStub<AttributeProcessClient>();
+  const mockAgreementProcessClient =
+    createDummyStub<agreementApi.AgreementProcessClient>();
+  const mockAttributeProcessClient =
+    createDummyStub<attributeRegistryApi.AttributeProcessClient>();
   const mockDelegationProcessClient =
     createDummyStub<DelegationProcessClient>();
   const mockEServiceTemplateProcessClient =
-    createDummyStub<EServiceTemplateProcessClient>();
+    createDummyStub<eserviceTemplateApi.EServiceTemplateProcessClient>();
 
   const mockInAppNotificationManagerClient =
-    createDummyStub<InAppNotificationManagerClient>();
+    createDummyStub<inAppNotificationApi.InAppNotificationManagerClient>();
 
   const mockPollingFunction = vi.fn(() => Promise.resolve());
   vi.spyOn(apiUtils, "createPollingByCondition").mockImplementation(

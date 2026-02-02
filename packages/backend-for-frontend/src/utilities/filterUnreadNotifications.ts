@@ -1,10 +1,10 @@
 import { isFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
-import { InAppNotificationManagerClient } from "../clients/clientsProvider.js";
+import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { BffAppContext } from "./context.js";
 
 export async function filterUnreadNotifications(
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   entityIds: string[],
   ctx: WithLogger<BffAppContext>
 ): Promise<string[]> {

@@ -39,6 +39,7 @@ import {
   descriptorState,
   generateId,
   CompactTenant,
+  CompactOrganization,
   CorrelationId,
   DelegationId,
   AgreementSignedContract,
@@ -70,7 +71,6 @@ import {
 import {
   ActiveDelegations,
   CompactEService,
-  CompactOrganization,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {

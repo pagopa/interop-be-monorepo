@@ -35,6 +35,7 @@ describe("PATCH /eserviceTemplates/:templateId/description router test", () => {
     request(api)
       .patch(`${appBasePath}/eserviceTemplates/${templateId}/description`)
       .set("Authorization", `Bearer ${token}`)
+      .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
