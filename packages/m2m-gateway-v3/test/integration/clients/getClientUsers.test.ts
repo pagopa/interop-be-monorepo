@@ -105,7 +105,7 @@ describe("getClientUsers", () => {
           userId: userId2,
         },
       ],
-    }
+    };
 
     expect(result).toEqual(response);
 
@@ -130,7 +130,7 @@ describe("getClientUsers", () => {
         totalCount: 0,
       },
       results: [],
-    }
+    };
 
     expect(result).toEqual(response);
     expect(mockGetClientUsers).toBeCalledTimes(1);
