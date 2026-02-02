@@ -19,10 +19,7 @@ import {
   delegationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import {
-  AgreementProcessClient,
-  PagoPAInteropBeClients,
-} from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   agreementDescriptorNotFound,
@@ -51,7 +48,7 @@ import { isAgreementUpgradable } from "./validators.js";
 import { getTenantById } from "./delegationService.js";
 
 export async function getAllAgreements(
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   headers: BffAppContext["headers"],
   getAgreementsQueryParams: Partial<agreementApi.GetAgreementsQueryParams>
 ): Promise<agreementApi.Agreement[]> {
@@ -682,7 +679,7 @@ export const getLatestAgreementsOnDescriptor = async (
 };
 
 export const getLatestAgreement = async (
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
   eservice: catalogApi.EService,
   headers: Headers
