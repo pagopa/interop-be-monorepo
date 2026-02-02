@@ -300,3 +300,8 @@ export const getPurposeTemplateRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("missingSelfcareId", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
