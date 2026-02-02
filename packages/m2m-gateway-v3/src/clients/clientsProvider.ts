@@ -15,76 +15,54 @@ import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
 import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
 
-type TenantProcessClient = {
-  tenant: ZodiosClientWithMetadata<
-    ReturnType<typeof tenantApi.createTenantApiClient>
-  >;
-  tenantAttribute: ZodiosClientWithMetadata<
-    ReturnType<typeof tenantApi.createTenantAttributeApiClient>
-  >;
-  selfcare: ZodiosClientWithMetadata<
-    ReturnType<typeof tenantApi.createSelfcareApiClient>
+type TenantProcessClient = Pick<
+  tenantApi.TenantProcessClient,
+  "tenant" | "tenantAttribute"
+>;
+
+type TenantProcessClientWithMetadata = {
+  [K in keyof TenantProcessClient]: ZodiosClientWithMetadata<
+    TenantProcessClient[K]
   >;
 };
 
-type AttributeProcessClient = ZodiosClientWithMetadata<
+type AttributeProcessClientWithMetadata = ZodiosClientWithMetadata<
   ReturnType<typeof attributeRegistryApi.createAttributeApiClient>
 >;
 
-export type CatalogProcessClient = ZodiosClientWithMetadata<
-  ReturnType<typeof catalogApi.createProcessApiClient>
->;
+export type CatalogProcessClientWithMetadata =
+  ZodiosClientWithMetadata<catalogApi.CatalogProcessClient>;
 
-type AgreementProcessClient = ZodiosClientWithMetadata<
-  ReturnType<typeof agreementApi.createAgreementApiClient>
->;
+type AgreementProcessClient =
+  ZodiosClientWithMetadata<agreementApi.AgreementProcessClient>;
 
-type PurposeProcessClient = ZodiosClientWithMetadata<
-  ReturnType<typeof purposeApi.createPurposeApiClient>
->;
+type PurposeProcessClient =
+  ZodiosClientWithMetadata<purposeApi.PurposeProcessClient>;
 
-export type DelegationProcessClient = {
-  producer: ZodiosClientWithMetadata<
-    ReturnType<typeof delegationApi.createProducerApiClient>
-  >;
-  consumer: ZodiosClientWithMetadata<
-    ReturnType<typeof delegationApi.createConsumerApiClient>
-  >;
-  delegation: ZodiosClientWithMetadata<
-    ReturnType<typeof delegationApi.createDelegationApiClient>
+export type DelegationProcessClientWithMetadata = {
+  [K in keyof delegationApi.DelegationProcessClient]: ZodiosClientWithMetadata<
+    delegationApi.DelegationProcessClient[K]
   >;
 };
 
-type AuthorizationProcessClient = {
-  client: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createClientApiClient>
-  >;
-  producerKeychain: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createProducerKeychainApiClient>
-  >;
-  user: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createUserApiClient>
-  >;
-  token: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createTokenGenerationApiClient>
-  >;
-  key: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createKeyApiClient>
+type AuthorizationProcessClient = Pick<
+  authorizationApi.AuthorizationProcessClient,
+  "client" | "producerKeychain" | "key"
+>;
+
+type AuthorizationProcessClientWithMetadata = {
+  [K in keyof AuthorizationProcessClient]: ZodiosClientWithMetadata<
+    AuthorizationProcessClient[K]
   >;
 };
 
-export type EServiceTemplateProcessClient = ZodiosClientWithMetadata<
-  ReturnType<typeof eserviceTemplateApi.createProcessApiClient>
->;
-type EventManagerClient = ReturnType<
-  typeof m2mEventApi.createM2mEventsApiClient
->;
+export type EServiceTemplateProcessClientWithMetadata =
+  ZodiosClientWithMetadata<eserviceTemplateApi.EServiceTemplateProcessClient>;
 
-type PurposeTemplateProcessClient = ZodiosClientWithMetadata<
-  ReturnType<typeof purposeTemplateApi.createPurposeTemplateApiClient>
->;
+type PurposeTemplateProcessClientWithMetadata =
+  ZodiosClientWithMetadata<purposeTemplateApi.PurposeTemplateProcessClient>;
 
-type SelfcareProcessClient = {
+type SelfcareProcessClientWithMetadata = {
   institution: ZodiosClientWithMetadata<
     ReturnType<typeof selfcareV2ClientApi.createInstitutionApiClient>
   >;
@@ -94,17 +72,17 @@ type SelfcareProcessClient = {
 };
 
 export type PagoPAInteropBeClients = {
-  tenantProcessClient: TenantProcessClient;
-  attributeProcessClient: AttributeProcessClient;
-  catalogProcessClient: CatalogProcessClient;
+  tenantProcessClient: TenantProcessClientWithMetadata;
+  attributeProcessClient: AttributeProcessClientWithMetadata;
+  catalogProcessClient: CatalogProcessClientWithMetadata;
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
-  authorizationClient: AuthorizationProcessClient;
-  delegationProcessClient: DelegationProcessClient;
-  eserviceTemplateProcessClient: EServiceTemplateProcessClient;
-  eventManagerClient: EventManagerClient;
-  purposeTemplateProcessClient: PurposeTemplateProcessClient;
-  selfcareProcessClient: SelfcareProcessClient;
+  authorizationClient: AuthorizationProcessClientWithMetadata;
+  delegationProcessClient: DelegationProcessClientWithMetadata;
+  eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
+  eventManagerClient: m2mEventApi.EventManagerClient;
+  purposeTemplateProcessClient: PurposeTemplateProcessClientWithMetadata;
+  selfcareProcessClient: SelfcareProcessClientWithMetadata;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -116,10 +94,6 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       ),
       tenantAttribute: createZodiosClientEnhancedWithMetadata(
         tenantApi.createTenantAttributeApiClient,
-        config.tenantProcessUrl
-      ),
-      selfcare: createZodiosClientEnhancedWithMetadata(
-        tenantApi.createSelfcareApiClient,
         config.tenantProcessUrl
       ),
     },
@@ -146,14 +120,6 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       ),
       producerKeychain: createZodiosClientEnhancedWithMetadata(
         authorizationApi.createProducerKeychainApiClient,
-        config.authorizationUrl
-      ),
-      user: createZodiosClientEnhancedWithMetadata(
-        authorizationApi.createUserApiClient,
-        config.authorizationUrl
-      ),
-      token: createZodiosClientEnhancedWithMetadata(
-        authorizationApi.createTokenGenerationApiClient,
         config.authorizationUrl
       ),
       key: createZodiosClientEnhancedWithMetadata(

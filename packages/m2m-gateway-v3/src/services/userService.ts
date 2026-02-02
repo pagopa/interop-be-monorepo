@@ -59,8 +59,7 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const { roles, limit, offset } = queryParams;
 
       logger.info(
-        `Retrieving users for organization ${
-          authData.organizationId
+        `Retrieving users for organization ${authData.organizationId
         } with roles ${roles.join(",")}, limit ${limit}, offset ${offset}`
       );
 

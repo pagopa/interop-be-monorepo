@@ -80,10 +80,11 @@ describe("getUserById", () => {
     },
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
 
-  mockInteropBeClients.selfcareV2Client = {
-    getInstitutionUsersByProductUsingGET:
-      mockGetInstitutionUsersByProductUsingGET,
-  } as unknown as PagoPAInteropBeClients["selfcareV2Client"];
+  mockInteropBeClients.selfcareProcessClient = {
+    institution: {
+      getInstitutionUsersByProductUsingGET: mockGetInstitutionUsersByProductUsingGET,
+    },
+  } as unknown as PagoPAInteropBeClients["selfcareProcessClient"];
 
   const userService = userServiceBuilder(mockInteropBeClients);
 
@@ -104,9 +105,7 @@ describe("getUserById", () => {
 
   it("Should succeed and perform API calls", async () => {
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockCorrectUser)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockCorrectUser);
     const result = await callService();
     expect(result).toEqual({
       userId: mockCorrectUser[0].id,
@@ -122,7 +121,7 @@ describe("getUserById", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareProcessClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -137,9 +136,7 @@ describe("getUserById", () => {
 
   it("Should throw error if user is not found", async () => {
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockNoUsers)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockNoUsers);
     await expect(callService()).rejects.toMatchObject({
       message: expect.stringMatching(userNotFoundRegex),
     });
@@ -151,7 +148,7 @@ describe("getUserById", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareProcessClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -167,7 +164,7 @@ describe("getUserById", () => {
   it("Should throw error if more than one user is found", async () => {
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
     mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockTooManyUsers)
+      mockTooManyUsers
     );
     await expect(callService()).rejects.toMatchObject({
       message: expect.stringMatching(userNotFoundRegex),
@@ -180,7 +177,7 @@ describe("getUserById", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareProcessClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -196,7 +193,7 @@ describe("getUserById", () => {
   it("Should throw error if the wrong user is found", async () => {
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
     mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockDifferentUser)
+      mockDifferentUser
     );
     await expect(callService()).rejects.toMatchObject({
       message: expect.stringMatching(userNotFoundRegex),
@@ -209,7 +206,7 @@ describe("getUserById", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareProcessClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -224,9 +221,7 @@ describe("getUserById", () => {
 
   it("Should throw error if selfcare id is not found in the tenant", async () => {
     mockGetTenant.mockResolvedValue(mockTenantWithMetadataAndEmptySelfcareId);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
-      getMockWithMetadata(mockCorrectUser)
-    );
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(mockCorrectUser);
     await expect(callService()).rejects.toMatchObject({
       message: expect.stringMatching(selfcareNotFoundRegex),
     });
