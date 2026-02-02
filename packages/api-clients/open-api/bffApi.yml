@@ -25784,6 +25784,7 @@ components:
         - isMine
         - hasCertifiedAttributes
         - isSubscribed
+        - agreements
       properties:
         id:
           type: string
@@ -25806,8 +25807,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
-        agreement:
-          $ref: "#/components/schemas/CompactAgreement"
+        agreements:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactAgreement"
         isMine:
           type: boolean
         hasCertifiedAttributes:
@@ -26332,8 +26335,6 @@ components:
           type: string
         producer:
           $ref: "#/components/schemas/CatalogTenant"
-        agreement:
-          $ref: "#/components/schemas/CompactAgreement"
         isMine:
           type: boolean
         activeDescriptor:
@@ -26416,6 +26417,7 @@ components:
         - id
         - state
         - canBeUpgraded
+        - consumerId
       properties:
         id:
           type: string
@@ -26424,6 +26426,9 @@ components:
           $ref: "#/components/schemas/AgreementState"
         canBeUpgraded:
           type: boolean
+        consumerId:
+          type: string
+          format: uuid
     CompactDescriptor:
       type: object
       additionalProperties: false
