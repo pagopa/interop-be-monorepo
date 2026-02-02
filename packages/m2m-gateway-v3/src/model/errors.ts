@@ -17,6 +17,7 @@ import {
   PurposeTemplateId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -58,6 +59,7 @@ const errorCodes = {
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
+  userNotFound: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -444,5 +446,16 @@ export function invalidSeedForPurposeFromTemplate(
     )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",
+  });
+}
+
+export function userNotFound(
+  userId: UserId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for tenant ${tenantId}`,
+    code: "userNotFound",
+    title: "User not found",
   });
 }
