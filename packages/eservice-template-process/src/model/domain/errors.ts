@@ -9,7 +9,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   eserviceTemplateNotFound: "0001",
   eserviceTemplateVersionNotFound: "0002",
   notValidEServiceTemplateVersionState: "0003",

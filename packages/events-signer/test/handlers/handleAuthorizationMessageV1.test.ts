@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-let */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
@@ -11,7 +12,11 @@ import {
   toKeyV1,
   ClientAddedV1,
 } from "pagopa-interop-models";
-import { FileManager, initFileManager } from "pagopa-interop-commons";
+import {
+  FileManager,
+  genericLogger,
+  initFileManager,
+} from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -43,6 +48,7 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
     uploadPreparedFileToS3: vi.fn(() => ({
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
+      path: "path/to",
     })),
   }));
 
@@ -106,7 +112,8 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -115,6 +122,7 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
       creationTimestamp: expect.any(Number),
+      path: "path/to",
     });
   });
 
@@ -154,7 +162,8 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -163,6 +172,7 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
       creationTimestamp: expect.any(Number),
+      path: "path/to",
     });
   });
 
@@ -197,7 +207,8 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

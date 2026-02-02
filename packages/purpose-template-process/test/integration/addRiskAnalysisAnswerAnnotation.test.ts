@@ -12,11 +12,12 @@ import {
 import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
-  tenantKind,
+  targetTenantKind,
   generateId,
   TenantId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -36,7 +37,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
   const mockPurposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-      tenantKind.PA
+      targetTenantKind.PA
     ),
   };
 
@@ -119,10 +120,10 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     const mockPurposeTemplateWithAnnotation: PurposeTemplate = {
       ...getMockPurposeTemplate(),
       purposeRiskAnalysisForm: {
-        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA),
+        ...getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA),
         singleAnswers: [
           {
-            ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+            ...getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA)
               .singleAnswers[0],
             annotation: {
               id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
@@ -131,7 +132,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
             },
           },
           ...getMockValidRiskAnalysisFormTemplate(
-            tenantKind.PA
+            targetTenantKind.PA
           ).singleAnswers.slice(1),
         ],
       },
@@ -176,8 +177,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  // todo disabled until hyperlinks validation rules are defined
-  /* it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
+  it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -204,10 +204,10 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           authData: getMockAuthData(mockPurposeTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
+    ).rejects.toThrow(hyperlinkDetectionError(textWithHyperlink).message);
 
     vi.useRealTimers();
-  }); */
+  });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if purpose template has no risk analysis form", async () => {
     vi.useFakeTimers();

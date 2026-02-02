@@ -19,9 +19,10 @@ import {
   WithMetadata,
   eserviceTemplateVersionState,
   genericInternalError,
+  CompactOrganization,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -413,7 +414,7 @@ export function readModelServiceBuilderSQL({
       name: string | undefined,
       limit: number,
       offset: number
-    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+    ): Promise<ListResult<CompactOrganization>> {
       const queryResult = await readModelDB
         .select(
           withTotalCount({
@@ -454,16 +455,12 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset);
 
-      const data: eserviceTemplateApi.CompactOrganization[] = queryResult.map(
-        (d) => ({
-          id: d.id,
-          name: d.name,
-        })
-      );
+      const data: CompactOrganization[] = queryResult.map((d) => ({
+        id: unsafeBrandId(d.id),
+        name: d.name,
+      }));
 
-      const result = z
-        .array(eserviceTemplateApi.CompactOrganization)
-        .safeParse(data);
+      const result = z.array(CompactOrganization).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(

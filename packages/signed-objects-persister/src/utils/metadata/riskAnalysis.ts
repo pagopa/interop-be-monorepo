@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
+  generateId,
   PurposeId,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
@@ -29,6 +30,7 @@ export const addPurposeRiskAnalysisSignedDocument = async (
   const token = (await refreshableToken.get()).serialized;
   const documentSigned: purposeApi.PurposeVersionSignedDocument = {
     ...document,
+    id: generateId(),
     createdAt: new Date(document.createdAt).toISOString(),
     signedAt: new Date().toISOString(),
   };

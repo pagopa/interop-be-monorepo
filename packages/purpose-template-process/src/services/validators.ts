@@ -18,6 +18,7 @@ import {
   DescriptorState,
   descriptorState,
   EService,
+  EServiceDescriptorPurposeTemplate,
   EServiceId,
   PurposeTemplate,
   PurposeTemplateId,
@@ -29,7 +30,7 @@ import {
   RiskAnalysisTemplateAnswer,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
-  TenantKind,
+  TargetTenantKind,
   userRole,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -63,8 +64,9 @@ import {
   conflictDuplicatedDocument,
   disassociationEServicesFromPurposeTemplateFailed,
   hyperlinkDetectionError,
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
+  purposeTemplateTitleConflict,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
@@ -106,10 +108,14 @@ export const isPurposeTemplateDraft = (
 
 export const assertConsistentFreeOfCharge = (
   isFreeOfCharge: boolean,
-  freeOfChargeReason: string | undefined
+  freeOfChargeReason: string | undefined | null
 ): void => {
   if (isFreeOfCharge && !freeOfChargeReason) {
     throw missingFreeOfChargeReason();
+  }
+
+  if (!isFreeOfCharge && typeof freeOfChargeReason === "string") {
+    throw invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason);
   }
 };
 
@@ -120,13 +126,12 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   readModelService: ReadModelServiceSQL;
   title: string;
 }): Promise<void> => {
-  const purposeTemplateWithSameName = await readModelService.getPurposeTemplate(
-    title
-  );
-  if (purposeTemplateWithSameName) {
-    throw purposeTemplateNameConflict(
-      purposeTemplateWithSameName.data.id,
-      purposeTemplateWithSameName.data.purposeTitle
+  const purposeTemplatesWithSameTitle =
+    await readModelService.getPurposeTemplatesByTitle(title);
+  if (purposeTemplatesWithSameTitle.length > 0) {
+    throw purposeTemplateTitleConflict(
+      purposeTemplatesWithSameTitle.map((pt) => pt.data.id),
+      title
     );
   }
 };
@@ -187,7 +192,7 @@ export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed
     | undefined,
-  tenantKind: TenantKind,
+  targetTenantKind: TargetTenantKind,
   personalDataInPurposeTemplate: boolean
 ): RiskAnalysisFormTemplate | undefined {
   if (!riskAnalysisFormTemplate) {
@@ -196,7 +201,7 @@ export function validateAndTransformRiskAnalysisTemplate(
 
   const validatedForm = validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate,
-    tenantKind,
+    targetTenantKind,
     personalDataInPurposeTemplate,
   });
 
@@ -213,16 +218,16 @@ export function validateRiskAnalysisAnswerAnnotationOrThrow(
 
 export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisFormTemplate,
-  tenantKind,
+  targetTenantKind,
   personalDataInPurposeTemplate,
 }: {
   riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed;
-  tenantKind: TenantKind;
+  targetTenantKind: TargetTenantKind;
   personalDataInPurposeTemplate: boolean;
 }): RiskAnalysisTemplateValidatedForm {
   const result = validatePurposeTemplateRiskAnalysis(
     toRiskAnalysisFormTemplateToValidate(riskAnalysisFormTemplate),
-    tenantKind,
+    targetTenantKind,
     personalDataInPurposeTemplate
   );
 
@@ -236,10 +241,10 @@ export function validateRiskAnalysisTemplateOrThrow({
 
 export function validateRiskAnalysisAnswerOrThrow({
   riskAnalysisAnswer,
-  tenantKind,
+  targetTenantKind,
 }: {
   riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest;
-  tenantKind: TenantKind;
+  targetTenantKind: TargetTenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
   if (riskAnalysisAnswer.answerData.annotation) {
     validateRiskAnalysisAnswerAnnotationOrThrow(
@@ -250,7 +255,7 @@ export function validateRiskAnalysisAnswerOrThrow({
   const result = validateRiskAnalysisAnswer(
     riskAnalysisAnswer.answerKey,
     toRiskAnalysisTemplateAnswerToValidate(riskAnalysisAnswer.answerData),
-    tenantKind
+    targetTenantKind
   );
 
   if (result.type === "invalid") {
@@ -456,7 +461,9 @@ async function getEServiceAssociationResults(
   validEservices: EService[],
   purposeTemplateId: PurposeTemplateId,
   readModelService: ReadModelServiceSQL
-): Promise<Array<PromiseSettledResult<unknown>>> {
+): Promise<
+  Array<PromiseSettledResult<EServiceDescriptorPurposeTemplate | undefined>>
+> {
   return Promise.allSettled(
     validEservices.map(
       async (eservice) =>
@@ -521,20 +528,27 @@ async function validateEServiceAssociations(
  * @param validEservices the list of valid eservices
  * @param purposeTemplateId the purpose template id
  * @param readModelService the read model service to use
- * @returns the validation issues
+ * @returns the validation issues and the valid eservice descriptor purpose templates retrieved
  */
 async function validateEServiceDisassociations(
   validEservices: EService[],
   purposeTemplateId: PurposeTemplateId,
   readModelService: ReadModelServiceSQL
-): Promise<PurposeTemplateValidationIssue[]> {
-  const associationValidationResults = await getEServiceAssociationResults(
+): Promise<{
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[];
+}> {
+  const validationIssues: PurposeTemplateValidationIssue[] = [];
+  const validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[] =
+    [];
+
+  const eServiceAssociationResults = await getEServiceAssociationResults(
     validEservices,
     purposeTemplateId,
     readModelService
   );
 
-  return associationValidationResults.flatMap((result, index) => {
+  eServiceAssociationResults.forEach((result, index) => {
     if (result.status === "rejected") {
       throw unexpectedUnassociationEServiceError(
         result.reason.message,
@@ -542,58 +556,32 @@ async function validateEServiceDisassociations(
       );
     }
 
-    if (result.status === "fulfilled" && result.value === undefined) {
-      return [
-        eserviceNotAssociatedError(validEservices[index].id, purposeTemplateId),
-      ];
+    if (result.value === undefined) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        eserviceNotAssociatedError(validEservices[index].id, purposeTemplateId)
+      );
+      return;
     }
-    return [];
+
+    // eslint-disable-next-line functional/immutable-data
+    validEServiceDescriptorPurposeTemplates.push(result.value);
   });
-}
 
-function validateEServiceDescriptorsToAssociate(validEservices: EService[]): {
-  validationIssues: PurposeTemplateValidationIssue[];
-  validEServiceDescriptorPairs: Array<{
-    eservice: EService;
-    descriptorId: DescriptorId;
-  }>;
-} {
-  return validateEServiceDescriptors(
-    validEservices,
-    ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION
-  );
-}
-
-function validateEServiceDescriptorsToDisassociate(
-  validEservices: EService[]
-): {
-  validationIssues: PurposeTemplateValidationIssue[];
-  validEServiceDescriptorPairs: Array<{
-    eservice: EService;
-    descriptorId: DescriptorId;
-  }>;
-} {
-  return validateEServiceDescriptors(
-    validEservices,
-    ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
-  );
+  return { validationIssues, validEServiceDescriptorPurposeTemplates };
 }
 
 /**
- * Validate the descriptors for each eservice
+ * Validate the descriptors for each eservice when associating
  * For each eservice:
  * - If the eservice has no descriptors, return a validation issue with the eservice id
- * - If the eservice has descriptors, return the descriptor id if the descriptor is in one of the valid states
+ * - If the eservice has descriptors, return the descriptor id if the descriptor is Published
  * Finally, return the validation issues and the valid eservice descriptor pairs
  *
  * @param validEservices the list of valid eservices
- * @param validDescriptorStates the list of valid descriptor states
  * @returns the validation issues and the valid eservice descriptor pairs
  */
-function validateEServiceDescriptors(
-  validEservices: EService[],
-  validDescriptorStates: DescriptorState[]
-): {
+function validateEServiceDescriptorsToAssociate(validEservices: EService[]): {
   validationIssues: PurposeTemplateValidationIssue[];
   validEServiceDescriptorPairs: Array<{
     eservice: EService;
@@ -614,13 +602,18 @@ function validateEServiceDescriptors(
     }
 
     const validDescriptor = eservice.descriptors.find((descriptor) =>
-      validDescriptorStates.includes(descriptor.state)
+      ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION.includes(
+        descriptor.state
+      )
     );
 
     if (!validDescriptor) {
       // eslint-disable-next-line functional/immutable-data
       validationIssues.push(
-        invalidDescriptorStateError(eservice.id, validDescriptorStates)
+        invalidDescriptorStateError(
+          eservice.id,
+          ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION
+        )
       );
       return;
     }
@@ -629,6 +622,113 @@ function validateEServiceDescriptors(
     validEServiceDescriptorPairs.push({
       eservice,
       descriptorId: validDescriptor.id,
+    });
+  });
+
+  return { validationIssues, validEServiceDescriptorPairs };
+}
+
+/**
+ * Validate the descriptors for each eservice when disassociating
+ * For each eservice:
+ * - If the eservice has no descriptors, return a validation issue with the eservice id
+ * - If the eservice has descriptors, return the descriptor id if the descriptor is in one of the valid states
+ * Finally, return the validation issues and the valid eservice descriptor pairs
+ *
+ * @param validEservices the list of valid eservices
+ * @param validEServiceDescriptorPurposeTemplates the list of valid eservice descriptor purpose templates
+ * @returns the validation issues and the valid eservice descriptor pairs
+ */
+function validateEServiceDescriptorsToDisassociate(
+  validEservices: EService[],
+  validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[]
+): {
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEServiceDescriptorPairs: Array<{
+    eservice: EService;
+    descriptorId: DescriptorId;
+  }>;
+} {
+  const validationIssues: PurposeTemplateValidationIssue[] = [];
+  const validEServiceDescriptorPairs: Array<{
+    eservice: EService;
+    descriptorId: DescriptorId;
+  }> = [];
+
+  // Get the eservice from the eservice id.
+  // If the eservice is not found, return a validation issue.
+  const eserviceDisassociationData =
+    validEServiceDescriptorPurposeTemplates.reduce(
+      (acc, { eserviceId, descriptorId, purposeTemplateId }) => {
+        const eservice = validEservices.find(
+          (eservice) => eservice.id === eserviceId
+        );
+
+        if (!eservice) {
+          // eslint-disable-next-line functional/immutable-data
+          validationIssues.push(
+            eserviceNotAssociatedError(eserviceId, purposeTemplateId)
+          );
+          return acc;
+        }
+
+        return [
+          ...acc,
+          {
+            eservice,
+            descriptorId,
+            purposeTemplateId,
+          },
+        ];
+      },
+      [] as Array<{
+        eservice: EService;
+        descriptorId: DescriptorId;
+        purposeTemplateId: PurposeTemplateId;
+      }>
+    );
+
+  // Validate the descriptors, checking the descriptor is linked to the purpose template and is in a valid state
+  eserviceDisassociationData.forEach((disassociationData) => {
+    const { eservice, descriptorId, purposeTemplateId } = disassociationData;
+
+    if (!eservice.descriptors || eservice.descriptors.length === 0) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(missingDescriptorError(eservice.id));
+      return;
+    }
+
+    const descriptor = eservice.descriptors.find(
+      (descriptor) => descriptor.id === descriptorId
+    );
+
+    if (!descriptor) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        eserviceNotAssociatedError(eservice.id, purposeTemplateId)
+      );
+      return;
+    }
+
+    if (
+      !ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION.includes(
+        descriptor.state
+      )
+    ) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        invalidDescriptorStateError(
+          eservice.id,
+          ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+        )
+      );
+      return;
+    }
+
+    // eslint-disable-next-line functional/immutable-data
+    validEServiceDescriptorPairs.push({
+      eservice,
+      descriptorId,
     });
   });
 
@@ -733,7 +833,10 @@ export async function validateEservicesDisassociations(
     );
   }
 
-  const disassociationValidationIssues = await validateEServiceDisassociations(
+  const {
+    validationIssues: disassociationValidationIssues,
+    validEServiceDescriptorPurposeTemplates,
+  } = await validateEServiceDisassociations(
     validEservices,
     purposeTemplate.id,
     readModelService
@@ -750,7 +853,10 @@ export async function validateEservicesDisassociations(
   const {
     validationIssues: descriptorValidationIssues,
     validEServiceDescriptorPairs,
-  } = validateEServiceDescriptorsToDisassociate(validEservices);
+  } = validateEServiceDescriptorsToDisassociate(
+    validEservices,
+    validEServiceDescriptorPurposeTemplates
+  );
 
   if (descriptorValidationIssues.length > 0) {
     return invalidPurposeTemplateResult(descriptorValidationIssues);

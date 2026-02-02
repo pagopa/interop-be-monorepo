@@ -15,7 +15,6 @@ import {
   UserNotificationConfig,
   UserNotificationConfigUpdatedV2,
   toUserNotificationConfigV2,
-  emailNotificationPreference,
   NotificationType,
   UserRole,
   userRole,
@@ -44,7 +43,8 @@ describe("updateUserNotificationConfig", () => {
   const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
       inAppNotificationPreference: true,
-      emailNotificationPreference: "ENABLED",
+      emailNotificationPreference: true,
+      emailDigestPreference: false,
       inAppConfig: {
         agreementSuspendedUnsuspendedToProducer:
           !userNotificationConfig.inAppConfig
@@ -101,6 +101,11 @@ describe("updateUserNotificationConfig", () => {
         producerKeychainKeyAddedDeletedToClientUsers:
           !userNotificationConfig.inAppConfig
             .producerKeychainKeyAddedDeletedToClientUsers,
+        purposeQuotaAdjustmentRequestToProducer:
+          !userNotificationConfig.inAppConfig
+            .purposeQuotaAdjustmentRequestToProducer,
+        purposeOverQuotaStateToConsumer:
+          !userNotificationConfig.inAppConfig.purposeOverQuotaStateToConsumer,
       },
       emailConfig: getMockNotificationConfig(),
     };
@@ -138,7 +143,6 @@ describe("updateUserNotificationConfig", () => {
       tenantId,
       userRoles: [userRole.ADMIN_ROLE],
       ...userNotificationConfigSeed,
-      emailNotificationPreference: emailNotificationPreference.enabled,
       createdAt: userNotificationConfig.createdAt,
       updatedAt: new Date(),
     };

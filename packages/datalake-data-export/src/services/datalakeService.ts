@@ -66,5 +66,3 @@ export function datalakeServiceBuilder(
     },
   };
 }
-
-export type DatalakeService = ReturnType<typeof datalakeServiceBuilder>;

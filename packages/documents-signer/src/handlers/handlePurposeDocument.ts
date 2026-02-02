@@ -40,6 +40,10 @@ export async function handlePurposeDocument(
 
         const s3Key = purposeVersion.riskAnalysis?.path;
 
+        logger.info(
+          `Processing and signing riskAnalysis file with key ${s3Key}`
+        );
+
         if (!s3Key) {
           throw genericInternalError(
             `Handle Purpose Document - riskAnalysis path not found for id: ${msg.data.versionId}`
@@ -54,39 +58,47 @@ export async function handlePurposeDocument(
 
         const fileName = path.basename(s3Key);
         const checksum = await calculateSha256Base64(Buffer.from(file));
+        const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
-          contentType: "application/pdf",
+          contentType,
           documentType: config.safeStorageDocType,
           status: config.safeStorageDocStatus,
           checksumValue: checksum,
         };
 
         const { uploadUrl, secret, key } = await safeStorageService.createFile(
-          safeStorageRequest
+          safeStorageRequest,
+          logger
         );
+
+        logger.info(`Created file on safe storage with key: ${key}`);
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
           Buffer.from(file),
-          "application/pdf",
+          contentType,
           secret,
-          checksum
+          checksum,
+          logger
         );
 
-        await signatureService.saveDocumentSignatureReference({
-          safeStorageId: key,
-          fileKind: "RISK_ANALYSIS_DOCUMENT",
-          streamId: msg.data.purpose.id,
-          subObjectId: msg.data.versionId,
-          contentType: "application/pdf",
-          path: s3Key,
-          prettyname: "",
-          fileName,
-          version: msg.event_version,
-          createdAt: msg.data.purpose.createdAt,
-          correlationId: msg.correlation_id ?? "",
-        });
+        await signatureService.saveDocumentSignatureReference(
+          {
+            safeStorageId: key,
+            fileKind: "RISK_ANALYSIS_DOCUMENT",
+            streamId: msg.data.purpose.id,
+            subObjectId: msg.data.versionId,
+            contentType,
+            path: s3Key,
+            prettyname: "",
+            fileName,
+            version: msg.event_version,
+            createdAt: msg.data.purpose.createdAt,
+            correlationId: msg.correlation_id ?? "",
+          },
+          logger
+        );
       }
     })
     .with(

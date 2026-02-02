@@ -1,29 +1,33 @@
 import {
+  DescriptorId,
   fromEServiceV2,
   EmailNotificationMessagePayload,
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
-  EServiceHandlerParams,
+  EServiceDescriptorHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
+import { descriptorNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
 export async function handleEserviceDescriptorSuspended(
-  data: EServiceHandlerParams
+  data: EServiceDescriptorHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
+    descriptorId: descriptorIdFromEvent,
     readModelService,
     logger,
     templateService,
@@ -38,13 +42,18 @@ export async function handleEserviceDescriptorSuspended(
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
+  const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
 
-  const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
+  if (!descriptor) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+
+  const [htmlTemplate, agreements, producer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.eserviceDescriptorSuspendedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
-    retrieveLatestPublishedDescriptor(eservice),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
 
@@ -89,15 +98,17 @@ export async function handleEserviceDescriptorSuspended(
           body: templateService.compileHtml(htmlTemplate, {
             title: `Una versione di "${eservice.name}" è stata sospesa`,
             notificationType,
-            entityId: descriptor.id,
+            entityId: `${eservice.id}/${descriptor.id}`,
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             eserviceName: eservice.name,
             producerName: producer.name,
             eserviceVersion: descriptor.version,
             ctaLabel: `Visualizza e-service`,
+            selfcareId: t.selfcareId,
+            bffUrl: config.bffUrl,
           }),
         },
-        tenantId: producer.id,
+        tenantId: t.tenantId,
         ...mapRecipientToEmailPayload(t),
       },
     ];

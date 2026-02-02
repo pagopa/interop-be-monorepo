@@ -1982,7 +1982,7 @@ paths:
           description: |
             This is the valid status from the server.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}/purposes":
@@ -2922,7 +2922,7 @@ components:
           description: human readable name
           pattern: '^[a-zA-Z0-9\s\-_]+$'
           minLength: 2
-          maxLength: 24
+          maxLength: 500
         description:
           type: string
           description: human readable description
@@ -2951,7 +2951,6 @@ components:
           type: string
           pattern: '^[a-zA-Z0-9\s\-_]+$'
           minLength: 2
-          maxLength: 24
         kind:
           $ref: "#/components/schemas/AttributeKind"
       required:
@@ -3127,7 +3126,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

@@ -43,6 +43,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     await expect(() =>
       handleEserviceTemplateStatusChangedToInstantiator(
         undefined,
+        generateId(),
         logger,
         readModelService
       )
@@ -82,6 +83,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     const notifications =
       await handleEserviceTemplateStatusChangedToInstantiator(
         toEServiceTemplateV2(updatedEServiceTemplate),
+        updatedEServiceTemplate.versions[0].id,
         logger,
         readModelService
       );
@@ -137,13 +139,14 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     const notifications =
       await handleEserviceTemplateStatusChangedToInstantiator(
         toEServiceTemplateV2(updatedEServiceTemplate),
+        updatedEServiceTemplate.versions[0].id,
         logger,
         readModelService
       );
 
     const body = inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
-      creatorTenant.name,
-      updatedEServiceTemplate.name
+      updatedEServiceTemplate.name,
+      "A tenant"
     );
 
     const expectedNotifications = users.map((user) => ({

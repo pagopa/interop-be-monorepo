@@ -12,13 +12,14 @@ import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   getNotificationRecipients,
   retrieveTenant,
 } from "../handlerCommons.js";
 
 export async function handleEserviceTemplateStatusChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
+  eserviceTemplateVersionId: string,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
@@ -30,7 +31,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   }
 
   logger.info(
-    `Sending in-app notification for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplateV2Msg.id}`
+    `Sending in-app notification for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplateV2Msg.id}/${eserviceTemplateVersionId}`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
@@ -57,11 +58,10 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No user notification configs found for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplate.id}`
+      `No user notification configs found for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplate.id}/${eserviceTemplateVersionId}`
     );
     return [];
   }
-
   const creator = await retrieveTenant(
     eserviceTemplate.creatorId,
     readModelService
@@ -70,15 +70,20 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   return usersWithNotifications.flatMap(({ userId, tenantId }) => {
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
+      const descriptor =
+        eservice.descriptors.find(
+          (d) => d.templateVersionRef?.id === eserviceTemplateVersionId
+        ) || retrieveLatestDescriptor(eservice);
+
       const entityId = EServiceIdDescriptorId.parse(
-        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+        `${eservice.id}/${descriptor?.id}`
       );
       return {
         userId,
         tenantId,
         body: inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
-          creator.name,
-          eserviceTemplate.name
+          eserviceTemplate.name,
+          creator.name
         ),
         notificationType: "eserviceTemplateStatusChangedToInstantiator",
         entityId,

@@ -32,12 +32,12 @@ export class PurposeTemplateValidationIssue extends InternalError<PurposeTemplat
   }
 }
 
-export type purposeTemplateValidationInvalid = {
+type purposeTemplateValidationInvalid = {
   type: "invalid";
   issues: PurposeTemplateValidationIssue[];
 };
 
-export type purposeTemplateValidationValid<T> = {
+type purposeTemplateValidationValid<T> = {
   type: "valid";
   value: T;
 };

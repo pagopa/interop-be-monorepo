@@ -375,7 +375,7 @@ export const retrieveKey = async (
   }
 };
 
-export const publishAudit = async ({
+const publishAudit = async ({
   producer,
   generatedToken,
   key,
@@ -515,7 +515,7 @@ const deconstructGSIPK_eserviceId_descriptorId = (
   };
 };
 
-export const logTokenGenerationInfo = ({
+const logTokenGenerationInfo = ({
   validatedJwt,
   clientKind,
   tokenJti,
