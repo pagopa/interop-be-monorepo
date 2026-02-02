@@ -4,6 +4,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   fromClientV2,
+  clientKind,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -16,8 +17,6 @@ import {
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { config } from "../../config/config.js";
-
-const notificationType: NotificationType = "clientKeyAddedDeletedToClientUsers";
 
 export async function handleClientKeyDeleted(
   data: ClientKeyHandlerParams
@@ -36,6 +35,10 @@ export async function handleClientKeyDeleted(
   }
 
   const client = fromClientV2(clientV2Msg);
+  const notificationType: NotificationType =
+    client.kind === clientKind.consumer
+      ? "clientKeyConsumerAddedDeletedToClientUsers"
+      : "clientKeyAddedDeletedToClientUsers";
 
   const [htmlTemplate, consumer] = await Promise.all([
     retrieveHTMLTemplate(eventMailTemplateType.clientKeyDeletedMailTemplate),
