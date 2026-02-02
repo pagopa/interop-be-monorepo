@@ -163,16 +163,18 @@ export const verifyJwtToken = async (
 /**
  * Verifies the cryptographic integrity and DPoP compliance of an Access Token.
  *
- * It ensures the token is correctly signed and contains the required `cnf` claim.
- * If the token is valid but lacks DPoP binding, it throws a `tokenVerificationFailed` (401)
- * instead of a schema validation error.
+ * This function performs a two-step validation:
+ * 1. **Standard Verification**: Validates signature, expiration, and audience via `verifyJwtToken`.
+ * 2. **DPoP Binding Check**: Validates that the payload conforms to the `AuthTokenDPoPPayload` schema (specifically checking for the `cnf` claim).
  *
- * @param accessToken - The JWT string from the Authorization header.
- * @param config - JWT configuration for signature verification.
- * @param logger - Logger instance.
- * @returns A Promise that resolves to the strictly typed `AuthTokenDPoPPayload` (validated DPoP schema).
- * @throws {tokenVerificationFailed} If the token is invalid (wrong signature, expired, wrong audience)
- * OR if it lacks the required DPoP binding (`cnf` claim).
+ * If the token is cryptographically valid but fails the DPoP schema check (e.g., missing `cnf`),
+ * it catches the validation error, attempts to extract user context for auditing, and throws a `tokenVerificationFailed`.
+ *
+ * @param accessToken - The raw JWT string from the Authorization header.
+ * @param config - JWT configuration containing allowed audiences and JWKS providers.
+ * @param logger - Logger instance for observability.
+ * @returns A Promise resolving to the strongly-typed `AuthTokenDPoPPayload` containing the `cnf` binding.
+ * @throws {tokenVerificationFailed} If the token has an invalid signature, is expired, has the wrong audience, or lacks the required DPoP binding.
  */
 export const verifyJwtDPoPToken = async (
   accessToken: string,
