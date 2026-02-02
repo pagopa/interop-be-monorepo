@@ -2,9 +2,11 @@ import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
+  DPoPConfig,
   FileManagerConfig,
+  JWTConfig,
   RedisRateLimiterConfig,
-  // TokenGenerationConfig,
+  TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -132,34 +134,6 @@ type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
 >;
 
-export const SelfcareV2ServerConfig = z
-  .object({
-    SELFCARE_V2_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    selfcareV2Url: c.SELFCARE_V2_URL,
-  }));
-export type SelfcareV2ServerConfig = z.infer<typeof SelfcareV2ServerConfig>;
-
-const TokenGenerationConfig = z
-  .object({
-    GENERATED_INTEROP_TOKEN_ALGORITHM: z.string(),
-    GENERATED_INTEROP_TOKEN_KID: z.string(),
-    GENERATED_INTEROP_TOKEN_ISSUER: z.string(),
-    GENERATED_INTEROP_TOKEN_M2M_AUDIENCE: z.string(),
-    GENERATED_INTEROP_TOKEN_M2M_DURATION_SECONDS: z.coerce.number(),
-    GENERATED_INTEROP_TOKEN_SUBJECT: z.string(),
-  })
-  .transform((c) => ({
-    algorithm: c.GENERATED_INTEROP_TOKEN_ALGORITHM,
-    kid: c.GENERATED_INTEROP_TOKEN_KID,
-    issuer: c.GENERATED_INTEROP_TOKEN_ISSUER,
-    audience: c.GENERATED_INTEROP_TOKEN_M2M_AUDIENCE.split(","),
-    secondsDuration: c.GENERATED_INTEROP_TOKEN_M2M_DURATION_SECONDS,
-    subject: c.GENERATED_INTEROP_TOKEN_SUBJECT,
-  }));
-type TokenGenerationConfig = z.infer<typeof TokenGenerationConfig>;
-
 const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   TenantProcessServerConfig
 )
@@ -173,11 +147,10 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(EServiceTemplateProcessServerConfig)
   .and(EventManagerServerConfig)
   .and(PurposeTemplateProcessServerConfig)
-  .and(SelfcareV2ServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
-  // .and(DPoPConfig)
-  // .and(JWTConfig)
+  .and(DPoPConfig)
+  .and(JWTConfig)
   .and(TokenGenerationConfig)
   .and(
     z
