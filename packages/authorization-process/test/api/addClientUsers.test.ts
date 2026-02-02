@@ -12,7 +12,9 @@ import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientNotFound,
   clientUserAlreadyAssigned,
+  missingSelfcareId,
   tenantNotAllowedOnClient,
+  tenantNotFound,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
 import { testToFullClient } from "../apiUtils.js";
@@ -39,7 +41,10 @@ describe("API /clients/{clientId}/users authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send({ userIds });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   it.each(authorizedRoles)(
     "Should return 200 with a full client for user with role %s",
@@ -59,7 +64,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([
+  const errors = [
     {
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
@@ -76,7 +81,21 @@ describe("API /clients/{clientId}/users authorization test", () => {
       error: clientUserAlreadyAssigned(mockClient.id, userIds[0]),
       expectedStatus: 400,
     },
-  ])(
+    {
+      error: tenantNotFound(generateId()),
+      expectedStatus: 404,
+    },
+    {
+      error: missingSelfcareId(generateId()),
+      expectedStatus: 404,
+    },
+  ];
+
+  const errorScenarios = authorizedRoles.flatMap((role) =>
+    errors.map((params) => ({ role, ...params }))
+  );
+
+  it.each(errorScenarios)(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.addClientUsers = vi.fn().mockRejectedValue(error);
@@ -86,11 +105,17 @@ describe("API /clients/{clientId}/users authorization test", () => {
     }
   );
 
-  it.each([
+  const invalidParams = [
     {},
     { clientId: "invalidId", userIds: usersToAdd },
     { clientId: mockClient.id, userIds: ["invalidId"] },
-  ])(
+  ];
+
+  const testScenarios = authorizedRoles.flatMap((role) =>
+    invalidParams.map((params) => ({ role, ...params }))
+  );
+
+  it.each(testScenarios)(
     "Should return 400 if passed invalid params: %s",
     async ({ clientId, userIds }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

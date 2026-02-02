@@ -3,6 +3,7 @@ import {
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
+  UserId,
 } from "pagopa-interop-models";
 import {
   getMockedApiConsumerFullClient,
@@ -20,12 +21,13 @@ import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("addClientPurpose", () => {
-  const userIds = [generateId(), generateId()];;
+describe("addClientUsers", () => {
+  const userIds: UserId[] = [generateId()];
 
-  const mockAuthorizationProcessResponse = getMockWithMetadata(
-    getMockedApiConsumerFullClient()
-  );
+  const mockAuthorizationProcessResponse = getMockWithMetadata({
+    ...getMockedApiConsumerFullClient(),
+    users: userIds,
+  });
 
   const mockAddClientUsers = vi
     .fn()
@@ -38,7 +40,7 @@ describe("addClientPurpose", () => {
   mockInteropBeClients.authorizationClient = {
     client: {
       getClient: mockGetClient,
-      addClientUsers: mockAddClientUsers,
+      addUsers: mockAddClientUsers,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
@@ -57,12 +59,11 @@ describe("addClientPurpose", () => {
 
     expect(result).toEqual(undefined);
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost:
-        mockInteropBeClients.authorizationClient.client.addClientPurpose,
+      mockPost: mockInteropBeClients.authorizationClient.client.addUsers,
       params: {
         clientId: mockAuthorizationProcessResponse.data.id,
       },
-      body: userIds,
+      body: { userIds },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
