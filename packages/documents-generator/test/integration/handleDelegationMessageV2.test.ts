@@ -75,6 +75,9 @@ vi.mock("pagopa-interop-api-clients", () => ({
   purposeApi: {
     createPurposeApiClient: vi.fn(),
   },
+  purposeTemplateApi: {
+    createPurposeTemplateApiClient: vi.fn(),
+  },
 }));
 
 describe("handleDelegationMessageV2", () => {
@@ -91,7 +94,6 @@ describe("handleDelegationMessageV2", () => {
     vi.useRealTimers();
   });
 
-  const currentExecutionTime = new Date();
   const testToken = "mockToken";
 
   const testHeaders = {
@@ -149,7 +151,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
     await handleDelegationMessageV2(
       mockEvent,
@@ -166,7 +168,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
@@ -212,7 +214,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     testHeaders["X-Correlation-Id"] = unsafeBrandId<CorrelationId>(
@@ -290,7 +292,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     await handleDelegationMessageV2(
@@ -308,7 +310,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
@@ -356,7 +358,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     await handleDelegationMessageV2(
@@ -374,7 +376,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
@@ -461,8 +463,8 @@ describe("handleDelegationMessageV2", () => {
     const expectedPayload = {
       delegationKindText: "all’erogazione",
       delegationActionText: "ad erogare l’",
-      todayDate: dateAtRomeZone(currentExecutionTime),
-      todayTime: timeAtRomeZone(currentExecutionTime),
+      todayDate: dateAtRomeZone(mockEvent.log_date),
+      todayTime: timeAtRomeZone(mockEvent.log_date),
       delegationId: mockDelegation.id,
       delegatorName: mockDelegator.name,
       delegatorIpaCode: getIpaCode(mockDelegator),

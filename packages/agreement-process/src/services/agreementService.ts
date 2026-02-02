@@ -39,6 +39,7 @@ import {
   descriptorState,
   generateId,
   CompactTenant,
+  CompactOrganization,
   CorrelationId,
   DelegationId,
   AgreementSignedContract,
@@ -70,7 +71,6 @@ import {
 import {
   ActiveDelegations,
   CompactEService,
-  CompactOrganization,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -166,7 +166,7 @@ export const retrieveEService = async (
   return eservice;
 };
 
-export const retrieveAgreement = async (
+const retrieveAgreement = async (
   agreementId: AgreementId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Agreement>> => {
@@ -216,7 +216,7 @@ function retrieveAgreementDocument(
   return document;
 }
 
-export const getActiveConsumerAndProducerDelegations = async (
+const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
   readModelService: ReadModelServiceSQL,
   cachedActiveDelegations?: ActiveDelegations
@@ -672,15 +672,11 @@ export function agreementServiceBuilder(
         ...archivedAgreementsUpdates,
       ]);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: submittedAgreement,
         metadata: {
-          version: newVersion,
+          version:
+            createdEvents.latestNewVersions.get(submittedAgreement.id) ?? 0,
         },
       };
     },
@@ -808,17 +804,10 @@ export function agreementServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents
-          .filter((e) => e.streamId === agreement.id)
-          .map((event) => event.newVersion)
-      );
-
       return {
         data: agreement,
         metadata: {
-          version: newVersion,
+          version: createdEvents.latestNewVersions.get(agreement.id) ?? 0,
         },
       };
     },
@@ -1424,14 +1413,12 @@ export function agreementServiceBuilder(
         ...archiveEvents,
       ]);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: updatedAgreement,
-        metadata: { version: newVersion },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedAgreement.id) ?? 0,
+        },
       };
     },
     async archiveAgreement(

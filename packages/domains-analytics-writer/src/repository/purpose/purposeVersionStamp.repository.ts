@@ -62,7 +62,3 @@ export function purposeVersionStampRepo(conn: DBConnection) {
     },
   };
 }
-
-export type PurposeVersionStampRepo = ReturnType<
-  typeof purposeVersionStampRepo
->;

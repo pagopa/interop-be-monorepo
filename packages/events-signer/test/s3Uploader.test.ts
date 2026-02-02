@@ -18,10 +18,10 @@ describe("uploadPreparedFileToS3", () => {
     const mockPreparedFile = {
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
-      filePath: "year=2024/month=07/day=30",
+      filePath: "path/to",
       resourceId: "resource-id-123",
     };
-    const mockS3Key = "bucket/year=2024/month=07/day=30/test-file.ndjson.gz";
+    const mockS3Key = "path/to/test-file.ndjson.gz";
     const fileManagerStoreBytesSpy = vi
       .spyOn(fileManager, "storeBytes")
       .mockResolvedValue(mockS3Key);
@@ -47,6 +47,7 @@ describe("uploadPreparedFileToS3", () => {
     expect(result).toEqual({
       fileContentBuffer: mockPreparedFile.fileContentBuffer,
       fileName: "test-file.ndjson.gz",
+      path: "path/to",
     });
   });
 
@@ -54,7 +55,7 @@ describe("uploadPreparedFileToS3", () => {
     const mockPreparedFile = {
       fileContentBuffer: Buffer.from("test content"),
       fileName: "failing-file.ndjson.gz",
-      filePath: "year=2024/month=07/day=30",
+      filePath: "path/to",
     };
     const mockError = new Error("S3 upload failed");
     const fileManagerStoreBytesSpy = vi.spyOn(fileManager, "storeBytes");

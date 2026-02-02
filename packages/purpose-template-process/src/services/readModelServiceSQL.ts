@@ -37,7 +37,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
-  TenantKind,
+  TargetTenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -59,6 +59,8 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
@@ -68,7 +70,7 @@ import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
-  targetTenantKind?: TenantKind;
+  targetTenantKind?: TargetTenantKind;
   creatorIds: TenantId[];
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
@@ -132,11 +134,11 @@ const getPurposeTemplatesFilters = (
   const excludeExpiredRiskAnalysisFilters = excludeExpiredRiskAnalysis
     ? or(
         ...Array.from(validFormRulesByTenantKind.entries()).map(
-          ([tenantKind, versions]) =>
+          ([targetTenantKind, versions]) =>
             and(
               eq(
                 purposeTemplateInReadmodelPurposeTemplate.targetTenantKind,
-                tenantKind
+                targetTenantKind
               ),
               inArray(
                 purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.version,
@@ -200,10 +202,10 @@ export function readModelServiceBuilderSQL({
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
-    async getPurposeTemplate(
+    async getPurposeTemplatesByTitle(
       title: string
-    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
+    ): Promise<Array<WithMetadata<PurposeTemplate>>> {
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplatesByFilter(
         ilike(
           purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
           escapeRegExp(title)
@@ -256,6 +258,10 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
           purposeRiskAnalysisTemplateAnswerAnnotationDocument:
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateDocument:
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateSignedDocument:
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
           totalCount: subquery.totalCount,
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
@@ -292,6 +298,20 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         )
         .orderBy(

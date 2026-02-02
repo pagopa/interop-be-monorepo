@@ -19,6 +19,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "newEserviceTemplateVersionToInstantiator";
@@ -116,6 +117,8 @@ export async function handleEServiceTemplateVersionPublished(
             creatorName: creator.name,
             version: eserviceTemplateVersion.version,
             templateName: eserviceTemplate.name,
+            selfcareId: t.selfcareId,
+            bffUrl: config.bffUrl,
           }),
         },
         tenantId: t.tenantId,

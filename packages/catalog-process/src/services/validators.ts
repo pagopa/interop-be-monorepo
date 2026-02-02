@@ -68,10 +68,13 @@ export function descriptorStatesNotAllowingDocumentOperations(
     .exhaustive();
 }
 
-export const notActiveDescriptorState: DescriptorState[] = [
-  descriptorState.draft,
-  descriptorState.waitingForApproval,
-];
+export function descriptorStatesNotAllowingInterfaceOperations(
+  descriptor: Descriptor
+): boolean {
+  return match(descriptor.state)
+    .with(descriptorState.draft, () => false)
+    .otherwise(() => true);
+}
 
 export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.published,
@@ -80,7 +83,7 @@ export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.archived,
 ];
 
-export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
+function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
     .with(

@@ -116,7 +116,3 @@ export function purposeTemplateRepository(conn: DBConnection) {
     },
   };
 }
-
-export type PurposeTemplateRepository = ReturnType<
-  typeof purposeTemplateRepository
->;

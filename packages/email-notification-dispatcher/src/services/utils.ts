@@ -3,7 +3,6 @@ import fs from "fs/promises";
 import path from "path";
 import { z } from "zod";
 import {
-  Agreement,
   Delegation,
   Descriptor,
   descriptorState,
@@ -12,13 +11,10 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
-  agreementStampDateNotFound,
-  descriptorNotFound,
   eServiceNotFound,
   eserviceWithoutDescriptors,
   htmlTemplateNotFound,
@@ -125,7 +121,7 @@ const EventMailTemplateType = z.enum([
   ...Object.values(eventMailTemplateType).slice(1),
 ]);
 
-export type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
+type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
 
 export async function retrieveTenant(
   tenantId: TenantId,
@@ -136,20 +132,6 @@ export async function retrieveTenant(
     throw tenantNotFound(tenantId);
   }
   return tenant;
-}
-
-export function retrieveAgreementDescriptor(
-  eservice: EService,
-  agreement: Agreement
-): Descriptor {
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-
-  if (!descriptor) {
-    throw descriptorNotFound(agreement.eserviceId, agreement.descriptorId);
-  }
-  return descriptor;
 }
 
 export const retrieveEService = async (
@@ -192,18 +174,6 @@ export async function retrieveHTMLTemplate(
   } catch {
     throw htmlTemplateNotFound(templatePath);
   }
-}
-
-export function getFormattedAgreementStampDate(
-  agreement: Agreement,
-  stamp: keyof Agreement["stamps"]
-): string {
-  const stampDate = agreement.stamps[stamp]?.when;
-
-  if (stampDate === undefined) {
-    throw agreementStampDateNotFound(stamp, agreement.id);
-  }
-  return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
 export function retrieveLatestDescriptor(eservice: EService): Descriptor {

@@ -3,7 +3,6 @@ import {
   EServiceId,
   TenantId,
   InternalError,
-  AgreementId,
 } from "pagopa-interop-models";
 
 type EmailNotificationDispatcherErrorCode =
@@ -44,31 +43,12 @@ export function htmlTemplateNotFound(
   });
 }
 
-export function agreementStampDateNotFound(
-  stamp: string,
-  agreementId: AgreementId
-): EmailNotificationDispatcherError {
-  return new InternalError({
-    detail: `${stamp} date not found for agreement ${agreementId}`,
-    code: "agreementStampDateNotFound",
-  });
-}
-
 export function eServiceNotFound(
   eserviceId: EServiceId
 ): EmailNotificationDispatcherError {
   return new InternalError({
     detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
-  });
-}
-
-export function eserviceAgreementsNotFound(
-  eserviceId: EServiceId
-): EmailNotificationDispatcherError {
-  return new InternalError({
-    detail: `Agreements not found for eservice ${eserviceId}`,
-    code: "eserviceAgreementsNotFound",
   });
 }
 

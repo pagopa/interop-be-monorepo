@@ -14,7 +14,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   eServiceDescriptorNotFound: "0001",
   eServiceDescriptorWithoutInterface: "0002",
   notValidDescriptor: "0003",

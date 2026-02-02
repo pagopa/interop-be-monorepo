@@ -6,7 +6,6 @@ import { z } from "zod";
 import {
   DescriptorState,
   AgreementState,
-  DescriptorId,
   EServiceId,
   EServiceMode,
   AttributeId,
@@ -33,21 +32,6 @@ export type ApiGetEServicesFilters = {
   delegated?: boolean;
   templatesIds: EServiceTemplateId[];
   personalData?: PersonalDataFilter;
-};
-
-export type EServiceDocument = {
-  readonly eserviceId: EServiceId;
-  readonly descriptorId: DescriptorId;
-  readonly document: {
-    readonly name: string;
-    readonly contentType: string;
-    readonly prettyName: string;
-    readonly path: string;
-    readonly checksum: string;
-    readonly uploadDate: number;
-  };
-  readonly isInterface: boolean;
-  readonly serverUrls: string[];
 };
 
 export const Consumer = z.object({

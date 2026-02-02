@@ -12,7 +12,7 @@ import {
   getMockedProducerDelegationM2MEvent,
 } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { toApiProducerDelegationM2MEventType } from "../../src/model/delegationM2MEventConverter.js";
+import { toApiProducerDelegationM2MEventType } from "../../src/model/delegationM2MEventApiConverter.js";
 
 describe("API /events/producerDelegations test", () => {
   const mockProducerDelegationM2MEvents = ProducerDelegationM2MEventType.options

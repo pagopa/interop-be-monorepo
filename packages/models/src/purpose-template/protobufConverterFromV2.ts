@@ -5,18 +5,24 @@ import {
   RiskAnalysisFormTemplateV2,
   RiskAnalysisTemplateAnswerAnnotationDocumentV2,
   RiskAnalysisTemplateAnswerAnnotationV2,
+  RiskAnalysisTemplateDocumentV2,
+  RiskAnalysisTemplateSignedDocumentV2,
+  TargetTenantKindV2,
 } from "../gen/v2/purpose-template/purpose-template.js";
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateSignedDocument,
 } from "../risk-analysis-template/riskAnalysisTemplate.js";
-import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import { bigIntToDate } from "../utils.js";
 import {
   PurposeTemplate,
   purposeTemplateState,
   PurposeTemplateState,
+  TargetTenantKind,
+  targetTenantKind,
 } from "./purposeTemplate.js";
 
 export const fromPurposeTemplateStateV2 = (
@@ -50,6 +56,24 @@ export const fromRiskAnalysisTemplateAnswerAnnotationV2 = (
   docs: input.docs.map(fromRiskAnalysisTemplateAnswerAnnotationDocumentV2),
 });
 
+export const fromRiskAnalysisTemplateDocumentV2 = (
+  input: RiskAnalysisTemplateDocumentV2
+  // eslint-disable-next-line sonarjs/no-identical-functions
+): RiskAnalysisTemplateDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: bigIntToDate(input.createdAt),
+});
+
+export const fromRiskAnalysisTemplateSignedDocumentV2 = (
+  input: RiskAnalysisTemplateSignedDocumentV2
+): RiskAnalysisTemplateSignedDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: bigIntToDate(input.createdAt),
+  signedAt: bigIntToDate(input.signedAt),
+});
+
 export const fromPurposeRiskAnalysisFormTemplateV2 = (
   input: RiskAnalysisFormTemplateV2
 ): RiskAnalysisFormTemplate => ({
@@ -70,6 +94,12 @@ export const fromPurposeRiskAnalysisFormTemplateV2 = (
       ? fromRiskAnalysisTemplateAnswerAnnotationV2(a.annotation)
       : undefined,
   })),
+  document: input.document
+    ? fromRiskAnalysisTemplateDocumentV2(input.document)
+    : undefined,
+  signedDocument: input.signedDocument
+    ? fromRiskAnalysisTemplateSignedDocumentV2(input.signedDocument)
+    : undefined,
 });
 
 export const fromPurposeTemplateV2 = (
@@ -77,7 +107,7 @@ export const fromPurposeTemplateV2 = (
 ): PurposeTemplate => ({
   ...input,
   id: unsafeBrandId(input.id),
-  targetTenantKind: fromTenantKindV2(input.targetTenantKind),
+  targetTenantKind: fromTargetTenantKindV2(input.targetTenantKind),
   creatorId: unsafeBrandId(input.creatorId),
   state: fromPurposeTemplateStateV2(input.state),
   createdAt: bigIntToDate(input.createdAt),
@@ -86,3 +116,14 @@ export const fromPurposeTemplateV2 = (
     ? fromPurposeRiskAnalysisFormTemplateV2(input.purposeRiskAnalysisForm)
     : undefined,
 });
+
+export const fromTargetTenantKindV2 = (
+  input: TargetTenantKindV2
+): TargetTenantKind => {
+  switch (input) {
+    case TargetTenantKindV2.PA:
+      return targetTenantKind.PA;
+    case TargetTenantKindV2.PRIVATE:
+      return targetTenantKind.PRIVATE;
+  }
+};

@@ -19,10 +19,7 @@ import {
   delegationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import {
-  AgreementProcessClient,
-  PagoPAInteropBeClients,
-} from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   agreementDescriptorNotFound,
@@ -51,7 +48,7 @@ import { isAgreementUpgradable } from "./validators.js";
 import { getTenantById } from "./delegationService.js";
 
 export async function getAllAgreements(
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   headers: BffAppContext["headers"],
   getAgreementsQueryParams: Partial<agreementApi.GetAgreementsQueryParams>
 ): Promise<agreementApi.Agreement[]> {
@@ -222,12 +219,21 @@ export function agreementServiceBuilder(
         path: storagePath,
       };
 
-      await agreementProcessClient.addAgreementConsumerDocument(seed, {
-        params: { agreementId },
-        headers,
-      });
+      try {
+        await agreementProcessClient.addAgreementConsumerDocument(seed, {
+          params: { agreementId },
+          headers,
+        });
 
-      return documentContent;
+        return documentContent;
+      } catch (error) {
+        await fileManager.delete(
+          config.consumerDocumentsContainer,
+          storagePath,
+          logger
+        );
+        throw error;
+      }
     },
 
     async getAgreementConsumerDocument(
@@ -629,7 +635,7 @@ export function agreementServiceBuilder(
 }
 
 export const getLatestAgreement = async (
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
   eservice: catalogApi.EService,
   headers: Headers

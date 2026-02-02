@@ -7,7 +7,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 
-export const NotificationUserLifecycleConsumerConfig = KafkaConsumerConfig.and(
+const NotificationUserLifecycleConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig
 )
   .and(ReadModelSQLDbConfig)
@@ -23,7 +23,7 @@ export const NotificationUserLifecycleConsumerConfig = KafkaConsumerConfig.and(
       }))
   );
 
-export type NotificationUserLifecycleConsumerConfig = z.infer<
+type NotificationUserLifecycleConsumerConfig = z.infer<
   typeof NotificationUserLifecycleConsumerConfig
 >;
 
