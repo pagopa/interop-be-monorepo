@@ -36,12 +36,16 @@ export async function processUserEvent(
   const institutionId = payload.institutionId;
   const productRole = payload.user.productRole;
 
+  // eslint-disable-next-line functional/no-let
   let tenantId: Awaited<
     ReturnType<ReadModelServiceSQL["getTenantIdBySelfcareId"]>
   >;
+  // eslint-disable-next-line functional/no-let
   for (let attempt = 0; attempt < config.tenantLookupMaxRetries; attempt++) {
     tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(institutionId);
-    if (tenantId) break;
+    if (tenantId) {
+      break;
+    }
     loggerInstance.warn(
       `Tenant not found for selfcareId ${institutionId}, attempt ${
         attempt + 1

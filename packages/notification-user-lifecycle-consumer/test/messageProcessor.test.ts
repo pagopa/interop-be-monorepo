@@ -22,10 +22,7 @@ vi.mock("pagopa-interop-commons", async (importOriginal) => {
 });
 
 vi.mock("../src/config/config.js", async (importOriginal) => {
-  const mod =
-    await importOriginal<
-      typeof import("../src/config/config.js")
-    >();
+  const mod = await importOriginal<typeof import("../src/config/config.js")>();
   return {
     ...mod,
     config: {
