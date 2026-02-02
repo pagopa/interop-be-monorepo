@@ -1,9 +1,11 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { UserId } from "pagopa-interop-models";
 import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
+import { userNotFound } from "../model/errors.js";
 
 export type GetUsersQueryParams = {
   roles: string[];
@@ -66,6 +68,45 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount: users.length,
         },
       };
+    },
+    async getUserById(
+      userId: UserId,
+      {
+        logger,
+        headers,
+        authData,
+      }: WithLogger<M2MGatewayAppContext<M2MAdminAuthData>>
+    ): Promise<m2mGatewayApiV3.User> {
+      logger.info(
+        `Retrieving users for organization ${authData.organizationId} with userId ${userId}`
+      );
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: authData.organizationId },
+          headers,
+        });
+
+      assertTenantHasSelfcareId(tenant);
+
+      const selfcareId = tenant.selfcareId;
+
+      // Fetch users from SelfCare (API already returns only active users)
+      const users =
+        await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
+          params: { institutionId: selfcareId },
+          queries: {
+            userId,
+          },
+          headers,
+        });
+
+      const user = users[0];
+      if (users.length !== 1 || !user || user.id !== userId) {
+        throw userNotFound(userId, authData.organizationId);
+      }
+
+      return toM2MGatewayApiUser(user);
     },
   };
 }
