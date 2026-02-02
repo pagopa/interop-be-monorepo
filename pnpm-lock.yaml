@@ -3810,8 +3810,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       qs:
-        specifier: 6.12.3
-        version: 6.12.3
+        specifier: 6.14.1
+        version: 6.14.1
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -10503,10 +10503,6 @@ packages:
 
   qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
-    engines: {node: '>=0.6'}
-
-  qs@6.12.3:
-    resolution: {integrity: sha512-AWJm14H1vVaO/iNZ4/hO+HyaTehuy9nRqVdkTqlJt0HWvBiBIEXFmb4C0DGeYo3Xes9rrEW+TxHsaigCbN5ICQ==}
     engines: {node: '>=0.6'}
 
   qs@6.13.0:
@@ -18442,10 +18438,6 @@ snapshots:
       - utf-8-validate
 
   qs@6.11.0:
-    dependencies:
-      side-channel: 1.1.0
-
-  qs@6.12.3:
     dependencies:
       side-channel: 1.1.0
 
