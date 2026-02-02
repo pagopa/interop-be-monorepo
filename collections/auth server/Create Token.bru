@@ -10,9 +10,45 @@ post {
   auth: none
 }
 
+headers {
+  ~DPoP: {{dpopProof}}
+}
+
 body:form-urlencoded {
-  client_assertion: <string>
-  client_assertion_type: <string>
+  client_assertion: {{clientAssertion}}
+  client_assertion_type: urn:ietf:params:oauth:client-assertion-type:jwt-bearer
   grant_type: client_credentials
-  client_id: <string>
+  client_id: {{client_id}}
+}
+
+script:pre-request {
+  const { execSync } = require('child_process');
+  
+  const dpopScript = bru.getEnvVar('create-dpop-proof-path');
+  const assertionScript = bru.getEnvVar('create-client-assertion-path');
+  const privKey = bru.getEnvVar('priv-key-path');
+  const pubKey = bru.getEnvVar('pub-key-path');
+  
+  const clientId = bru.getEnvVar('clientId');
+  const aud = bru.getEnvVar('auth-server-audience');
+  const kid = bru.getEnvVar('kid');
+  const purposeId = bru.getEnvVar('purposeId');
+
+  try {
+    const dpopProof = execSync(
+      `python3 "${dpopScript}" -e=dev -pr="${privKey}" -pu="${pubKey}"`,
+      { encoding: 'utf-8' }
+    ).trim();
+    bru.setVar('dpopProof', dpopProof);
+
+    const clientAssertion = execSync(
+      `python3 "${assertionScript}" --kid="${kid}" --alg="RS256" --typ="JWT" --issuer="${clientId}" --subject="${clientId}" --audience="${aud}" --purposeId="${purposeId}" --keyPath="${privKey}"`,
+      { encoding: 'utf-8' }
+    ).trim();
+    bru.setVar('clientAssertion', clientAssertion);
+  } catch (err) {
+    bru.setVar('dpopProof', '');
+    bru.setVar('clientAssertion', '');
+    console.error(err.message);
+  }
 }
