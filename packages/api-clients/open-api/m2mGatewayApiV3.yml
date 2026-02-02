@@ -9346,7 +9346,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CompactUsers"
+                $ref: "#/components/schemas/Users"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12754,36 +12754,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/User"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
-    CompactUser:
-      description: Contains some details about user
-      type: object
-      additionalProperties: false
-      properties:
-        userId:
-          type: string
-          format: uuid
-        name:
-          type: string
-        familyName:
-          type: string
-      required:
-        - userId
-        - name
-        - familyName
-    CompactUsers:
-      type: object
-      additionalProperties: false
-      description: Paginated list of users
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/CompactUser"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:

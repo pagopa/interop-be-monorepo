@@ -82,7 +82,8 @@ describe("getUsers", () => {
 
   mockInteropBeClients.selfcareProcessClient = {
     institution: {
-      getInstitutionUsersByProductUsingGET: mockGetInstitutionUsersByProductUsingGET,
+      getInstitutionUsersByProductUsingGET:
+        mockGetInstitutionUsersByProductUsingGET,
     },
   } as unknown as PagoPAInteropBeClients["selfcareProcessClient"];
 

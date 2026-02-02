@@ -1,10 +1,7 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { UserId } from "pagopa-interop-models";
-import {
-  toM2MGatewayApiCompactUser,
-  toM2MGatewayApiUser,
-} from "../api/usersApiConverter.js";
+import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
@@ -18,7 +15,7 @@ export type GetUsersQueryParams = {
 
 export type UserService = ReturnType<typeof userServiceBuilder>;
 
-export async function getSelfcareCompactUserById(
+export async function getSelfcareUserById(
   clients: PagoPAInteropBeClients,
   userId: string,
   {
@@ -26,7 +23,7 @@ export async function getSelfcareCompactUserById(
     authData,
     correlationId,
   }: WithLogger<M2MGatewayAppContext<M2MAdminAuthData>>
-): Promise<m2mGatewayApiV3.CompactUser> {
+): Promise<m2mGatewayApiV3.User> {
   const { data: tenant } = await clients.tenantProcessClient.tenant.getTenant({
     params: { id: authData.organizationId },
     headers,
@@ -42,7 +39,7 @@ export async function getSelfcareCompactUserById(
     },
   });
 
-  return toM2MGatewayApiCompactUser(user.data, userId);
+  return toM2MGatewayApiUser(user.data);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -59,7 +56,8 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const { roles, limit, offset } = queryParams;
 
       logger.info(
-        `Retrieving users for organization ${authData.organizationId
+        `Retrieving users for organization ${
+          authData.organizationId
         } with roles ${roles.join(",")}, limit ${limit}, offset ${offset}`
       );
 

@@ -29,12 +29,14 @@ describe("getClientUsers", () => {
     id: userId1,
     name: "Mario",
     surname: "Rossi",
+    roles: [],
   };
 
   const mockSelfcareUser2 = {
     id: userId2,
     name: "Anna",
     surname: "Bianchi",
+    roles: [],
   };
 
   const mockGetClientUsers = vi.fn();
@@ -61,14 +63,17 @@ describe("getClientUsers", () => {
 
   const callService = async () => {
     const context = getMockM2MAdminAppContext({ organizationId: tenantId });
-    return await clientService.getClientUsers(clientId, context);
+    return await clientService.getClientUsers(clientId, context, {
+      limit: 10,
+      offset: 0,
+    });
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("Should succeed and return a list of compact users", async () => {
+  it("Should succeed and return a list of users", async () => {
     mockGetClientUsers.mockResolvedValue(
       getMockWithMetadata([userId1, userId2])
     );
@@ -80,11 +85,29 @@ describe("getClientUsers", () => {
       .mockResolvedValueOnce(getMockWithMetadata(mockSelfcareUser2));
 
     const result = await callService();
+    const response = {
+      pagination: {
+        limit: 10,
+        offset: 0,
+        totalCount: 2,
+      },
+      results: [
+        {
+          familyName: "Rossi",
+          name: "Mario",
+          roles: [],
+          userId: userId1,
+        },
+        {
+          familyName: "Bianchi",
+          name: "Anna",
+          roles: [],
+          userId: userId2,
+        },
+      ],
+    }
 
-    expect(result).toEqual([
-      { userId: userId1, name: "Mario", familyName: "Rossi" },
-      { userId: userId2, name: "Anna", familyName: "Bianchi" },
-    ]);
+    expect(result).toEqual(response);
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClientUsers,
@@ -100,8 +123,16 @@ describe("getClientUsers", () => {
     mockGetClientUsers.mockResolvedValue(getMockWithMetadata([]));
 
     const result = await callService();
+    const response = {
+      pagination: {
+        limit: 10,
+        offset: 0,
+        totalCount: 0,
+      },
+      results: [],
+    }
 
-    expect(result).toEqual([]);
+    expect(result).toEqual(response);
     expect(mockGetClientUsers).toBeCalledTimes(1);
     expect(mockGetTenant).toBeCalledTimes(0);
     expect(mockGetUserInfoUsingGET).toBeCalledTimes(0);

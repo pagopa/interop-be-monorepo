@@ -155,11 +155,11 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     selfcareProcessClient: {
       institution: createZodiosClientEnhancedWithMetadata(
         selfcareV2ClientApi.createInstitutionApiClient,
-        config.selfcareV2Url
+        config.selfcareBaseUrl
       ),
       user: createZodiosClientEnhancedWithMetadata(
         selfcareV2ClientApi.createUserApiClient,
-        config.selfcareV2Url
+        config.selfcareBaseUrl
       ),
     },
   };

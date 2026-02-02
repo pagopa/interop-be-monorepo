@@ -21,7 +21,7 @@ import {
   toM2MGatewayApiPurpose,
 } from "../api/purposeApiConverter.js";
 import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
-import { getSelfcareCompactUserById } from "./userService.js";
+import { getSelfcareUserById } from "./userService.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -310,7 +310,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       clientId: string,
       ctx: WithLogger<M2MGatewayAppContext>,
       { limit, offset }: m2mGatewayApiV3.GetClientsQueryParams
-    ): Promise<m2mGatewayApiV3.CompactUsers> {
+    ): Promise<m2mGatewayApiV3.Users> {
       ctx.logger.info(`Retrieving users for client ${clientId}`);
 
       const clientUsers =
@@ -321,11 +321,11 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const users = await Promise.all(
         clientUsers.data.map(async (id) =>
-          getSelfcareCompactUserById(clients, id, ctx)
+          getSelfcareUserById(clients, id, ctx)
         )
       );
 
-      const results: m2mGatewayApiV3.CompactUser[] = users.slice(
+      const results: m2mGatewayApiV3.User[] = users.slice(
         offset,
         offset + limit
       );
