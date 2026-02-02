@@ -717,25 +717,36 @@ async function updateDraftPurposeTemplate(
     .with({ type: "patch" }, () => purposeTemplate.data.purposeRiskAnalysisForm)
     .exhaustive();
 
-  const updatedIsFreeOfCharge =
+  const updatedPurposeIsFreeOfCharge =
     purposeIsFreeOfCharge ?? purposeTemplate.data.purposeIsFreeOfCharge;
-  const normalizedSeedFreeOfChargeReason =
-    typeof purposeFreeOfChargeReason === "string" &&
-    purposeFreeOfChargeReason.length > 0
-      ? purposeFreeOfChargeReason
-      : undefined;
-  const updatedPurposeFreeOfChargeReason =
-    normalizedSeedFreeOfChargeReason !== undefined
-      ? normalizedSeedFreeOfChargeReason
-      : !updatedIsFreeOfCharge || purposeFreeOfChargeReason === null
-      ? undefined
-      : purposeTemplate.data.purposeFreeOfChargeReason;
+
+  // Context: https://github.com/pagopa/interop-be-monorepo/pull/2954
+  function updatePurposeFreeOfChargeReason(): string | undefined {
+    const normalizedSeedFreeOfChargeReason =
+      typeof purposeFreeOfChargeReason === "string" &&
+      purposeFreeOfChargeReason.length > 0
+        ? purposeFreeOfChargeReason
+        : undefined;
+
+    // Return the seed purposeFreeOfChargeReason if defined and not empty
+    if (normalizedSeedFreeOfChargeReason !== undefined) {
+      return normalizedSeedFreeOfChargeReason;
+    }
+
+    // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null
+    if (!updatedPurposeIsFreeOfCharge || purposeFreeOfChargeReason === null) {
+      return undefined;
+    }
+
+    // Fallback to the existing reason in the purpose template
+    return purposeTemplate.data.purposeFreeOfChargeReason;
+  }
 
   const updatedPurposeTemplate: PurposeTemplate = {
     ...purposeTemplate.data,
     ...typeAndSeed.seed,
-    purposeIsFreeOfCharge: updatedIsFreeOfCharge,
-    purposeFreeOfChargeReason: updatedPurposeFreeOfChargeReason,
+    purposeIsFreeOfCharge: updatedPurposeIsFreeOfCharge,
+    purposeFreeOfChargeReason: updatePurposeFreeOfChargeReason(),
     purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
     purposeDailyCalls:
       purposeDailyCalls === null
