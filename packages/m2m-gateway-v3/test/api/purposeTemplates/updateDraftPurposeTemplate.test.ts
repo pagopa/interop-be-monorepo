@@ -93,6 +93,7 @@ describe("PATCH /purposeTemplates/:purposeTemplateId router test", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
+      purposeFreeOfChargeReason: null,
     },
     {
       targetDescription: "updated target description",
@@ -100,6 +101,7 @@ describe("PATCH /purposeTemplates/:purposeTemplateId router test", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
+      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
     },
     {
@@ -108,6 +110,7 @@ describe("PATCH /purposeTemplates/:purposeTemplateId router test", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
+      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
       handlesPersonalData: true,
     },
