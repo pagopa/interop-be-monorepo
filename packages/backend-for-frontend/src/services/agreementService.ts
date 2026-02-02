@@ -635,7 +635,7 @@ export function agreementServiceBuilder(
 }
 
 export const getLatestAgreementsOnDescriptor = async (
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
   eservice: catalogApi.EService,
   descriptorId: string,
