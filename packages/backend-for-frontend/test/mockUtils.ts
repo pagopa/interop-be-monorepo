@@ -149,7 +149,7 @@ export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   id: generateId(),
   name: generateMock(z.string()),
   description: generateMock(z.string()),
-  producer: generateMock(bffApi.CompactOrganization),
+  producer: generateMock(bffApi.CatalogTenant),
   agreement: generateMock(bffApi.CompactAgreement.optional()),
   isMine: generateMock(z.boolean()),
   activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
@@ -779,7 +779,7 @@ export const getMockBffApiCatalogEServiceTemplate =
     id: generateId(),
     name: generateMock(z.string()),
     description: generateMock(z.string()),
-    creator: generateMock(bffApi.CompactOrganization),
+    creator: generateMock(bffApi.CatalogTenant),
     publishedVersion: generateMock(bffApi.CompactEServiceTemplateVersion),
   });
 
@@ -1116,7 +1116,7 @@ export const getMockBffApiCatalogPurposeTemplate =
     targetTenantKind: generateMock(bffApi.TargetTenantKind),
     purposeTitle: generateMock(z.string()),
     purposeDescription: generateMock(z.string()),
-    creator: generateMock(bffApi.CompactOrganization),
+    creator: generateMock(bffApi.CatalogTenant),
   });
 
 export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor =

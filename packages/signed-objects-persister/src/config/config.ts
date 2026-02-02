@@ -25,6 +25,7 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
         S3_BUCKET_EVENTS: z.string(),
         DELEGATION_PROCESS_URL: APIEndpoint,
         PURPOSE_PROCESS_URL: APIEndpoint,
+        PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
         AGREEMENT_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
@@ -34,6 +35,7 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
         eventsBucket: c.S3_BUCKET_EVENTS,
         delegationProcessUrl: c.DELEGATION_PROCESS_URL,
         purposeProcessUrl: c.PURPOSE_PROCESS_URL,
+        purposeTemplateProcessUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
         agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
       }))
   );

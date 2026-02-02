@@ -40,6 +40,8 @@ tags:
     description: Verify service status
   - name: events
     description: Events routes
+  - name: users
+    description: Users routes
 paths:
   /agreements:
     get:
@@ -1760,6 +1762,31 @@ paths:
             format: int32
             minimum: 1
             maximum: 50
+        - in: query
+          name: eserviceIds
+          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+          required: false
+        - in: query
+          name: states
+          description: >
+            Filter Purposes by states. If not specified, return Purposes for any state.
+            If "ARCHIVED" is included in the filter, only Purposes where all
+            their versions are in the "ARCHIVED" state will be returned,
+            excluding those that have versions in other states.
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PurposeVersionState"
+            default: []
+          explode: false
+          required: false
       responses:
         "200":
           description: List of Purposes linked to the Client
@@ -1917,6 +1944,41 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - clients
+      summary: Create a new Client Key for a specific Client
+      description: Create a new client key associated with a Client
+      operationId: createClientKey
+      requestBody:
+        description: Client Key to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeySeed"
+      responses:
+        "200":
+          description: Client Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Key"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}/keys/{keyId}:
@@ -2234,6 +2296,82 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JWKs"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - producerKeychains
+      summary: Create a new Producer Keychain Key
+      description: Create a new producer keychain key associated with a Producer Keychain
+      operationId: createProducerKeychainKey
+      requestBody:
+        description: Producer Keychain Key to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeySeed"
+      responses:
+        "200":
+          description: Client Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKey"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producerKeychains/{keychainId}/keys/{keyId}:
+    parameters:
+      - name: keychainId
+        in: path
+        description: The ID of the Producer Keychain
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: keyId
+        in: path
+        description: the unique identifier of the key (kid) to delete
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - producerKeychains
+      summary: Deletes a key by producer keychain and key identifier (kid).
+      description: "Given a producer keychain and key identifiers it deletes the corresponding key, if any"
+      operationId: deleteProducerKeychainKeyById
+      responses:
+        "204":
+          description: the corresponding key has been deleted.
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -9070,6 +9208,66 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /users:
+    get:
+      tags:
+        - users
+      summary: List Users
+      description: |
+        Retrieve active users belonging to the requester's organization.
+        Users are fetched in real-time and not persisted.
+        Access is restricted to m2m-admin role only.
+      operationId: getUsers
+      parameters:
+        - in: query
+          name: roles
+          description: Filter users by role
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            default: []
+          explode: false
+        - in: query
+          name: limit
+          description: Maximum number of users to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
     LastEventId:
@@ -11223,6 +11421,35 @@ components:
       required:
         - kty
         - kid
+    KeySeed:
+      description: Models the seed for a public key to be persisted
+      type: object
+      additionalProperties: false
+      properties:
+        key:
+          type: string
+          description: Base64 UTF-8 encoding of a public key in PEM format
+        use:
+          $ref: "#/components/schemas/KeyUse"
+        alg:
+          type: string
+          description: The algorithm type of the key.
+        name:
+          type: string
+          description: Name given to the current key.
+          minLength: 5
+          maxLength: 60
+      required:
+        - key
+        - use
+        - alg
+        - name
+    KeyUse:
+      type: string
+      description: Represents the Use field of key
+      enum:
+        - SIG
+        - ENC
     OtherPrimeInfo:
       type: object
       additionalProperties: false
@@ -12388,6 +12615,45 @@ components:
       required:
         - document
         - answerId
+    User:
+      type: object
+      additionalProperties: false
+      description: User information
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: User identifier
+        name:
+          type: string
+          description: User first name
+        familyName:
+          type: string
+          description: User last name
+        roles:
+          type: array
+          items:
+            type: string
+          description: User roles
+      required:
+        - userId
+        - name
+        - familyName
+        - roles
+    Users:
+      type: object
+      additionalProperties: false
+      description: Paginated list of users
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     Problem:
       properties:
         type:
@@ -12428,7 +12694,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

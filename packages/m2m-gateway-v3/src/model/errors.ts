@@ -42,6 +42,7 @@ const errorCodes = {
   unexpectedClientKind: "0021",
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
+  missingSelfcareId: "0024",
   requesterIsNotTheDelegateConsumer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
@@ -265,6 +266,14 @@ export function agreementContractNotFound(
     detail: `Contract not found for agreement ${agreementId}`,
     code: "agreementContractNotFound",
     title: "Agreement contract not found",
+  });
+}
+
+export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `SelfcareId in Tenant ${tenantId} not found`,
+    code: "missingSelfcareId",
+    title: "SelfcareId not found",
   });
 }
 

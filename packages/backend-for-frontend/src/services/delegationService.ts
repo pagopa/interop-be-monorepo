@@ -3,6 +3,7 @@ import {
   bffApi,
   catalogApi,
   delegationApi,
+  inAppNotificationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -14,16 +15,14 @@ import { DelegationContractId, DelegationId } from "pagopa-interop-models";
 import { isAxiosError } from "axios";
 import { match } from "ts-pattern";
 import {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
+import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
 } from "../api/delegationApiConverter.js";
-import {
-  CatalogProcessClient,
-  DelegationProcessClient,
-  InAppNotificationManagerClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
 import {
   delegationContractNotFound,
   delegationNotFound,
@@ -38,7 +37,7 @@ async function enhanceDelegation<
   T extends bffApi.Delegation | bffApi.CompactDelegation
 >(
   tenantClient: TenantProcessClient,
-  catalogClient: CatalogProcessClient,
+  catalogClient: catalogApi.CatalogProcessClient,
   delegation: delegationApi.Delegation,
   headers: Headers,
   toApiConverter: (
@@ -204,8 +203,8 @@ export async function getAllDelegations(
 export function delegationServiceBuilder(
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
-  catalogClient: CatalogProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  catalogClient: catalogApi.CatalogProcessClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
