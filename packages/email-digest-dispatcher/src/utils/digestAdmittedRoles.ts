@@ -1,5 +1,17 @@
 import { UserRole, userRole } from "pagopa-interop-models";
-import { TenantDigestData } from "../services/digestDataService.js";
+import { BaseDigest, TenantDigestData } from "../services/digestDataService.js";
+
+/**
+ * Keys of TenantDigestData whose values extend BaseDigest | undefined.
+ * This excludes string metadata fields (tenantId, tenantName, links, etc.).
+ */
+type DigestDataField = {
+  [K in keyof TenantDigestData]-?: TenantDigestData[K] extends
+    | BaseDigest
+    | undefined
+    ? K
+    : never;
+}[keyof TenantDigestData];
 
 const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, SUPPORT_ROLE } = userRole;
 
@@ -113,10 +125,7 @@ export function getVisibleSections(
  * Which TenantDigestData fields each section controls.
  * Used to check whether a section has data.
  */
-const digestSectionFields: Record<
-  DigestSection,
-  Array<keyof TenantDigestData>
-> = {
+const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
   newEservices: ["newEservices"],
   updatedEservices: ["updatedEservices"],
   updatedEserviceTemplates: ["updatedEserviceTemplates"],
@@ -152,9 +161,7 @@ function sectionHasContent(
   data: TenantDigestData,
   section: DigestSection
 ): boolean {
-  return digestSectionFields[section].some(
-    (field) => (data[field] as { totalCount?: number } | undefined)?.totalCount
-  );
+  return digestSectionFields[section].some((field) => data[field]?.totalCount);
 }
 
 /**
