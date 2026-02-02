@@ -146,6 +146,18 @@ const digestSectionFields: Record<
 };
 
 /**
+ * Returns true if a section has data (at least one field with totalCount > 0).
+ */
+function sectionHasContent(
+  data: TenantDigestData,
+  section: DigestSection
+): boolean {
+  return digestSectionFields[section].some(
+    (field) => (data[field] as { totalCount?: number } | undefined)?.totalCount
+  );
+}
+
+/**
  * Returns true if the tenant has data in at least one section
  * that is visible for the user's roles.
  */
@@ -154,11 +166,41 @@ export function hasVisibleDigestContent(
   visibility: Record<DigestSection, boolean>
 ): boolean {
   return allSections.some(
-    (section) =>
-      visibility[section] &&
-      digestSectionFields[section].some(
-        (field) =>
-          (data[field] as { totalCount?: number } | undefined)?.totalCount
-      )
+    (section) => visibility[section] && sectionHasContent(data, section)
+  );
+}
+
+/**
+ * Which sections belong to each template group.
+ * A group is shown when at least one of its sections is visible AND has data.
+ */
+const digestGroups: Record<string, DigestSection[]> = {
+  hasEservicesContent: [
+    "newEservices",
+    "updatedEservices",
+    "updatedEserviceTemplates",
+    "popularEserviceTemplates",
+  ],
+  hasSentItemsContent: ["sentAgreements", "sentPurposes"],
+  hasReceivedItemsContent: ["receivedAgreements", "receivedPurposes"],
+  hasDelegationsContent: ["delegations"],
+  hasAttributesContent: ["attributes"],
+};
+
+/**
+ * Computes group-level flags for the template.
+ * A group is shown when at least one of its sections is visible AND has data.
+ */
+export function computeGroupFlags(
+  data: TenantDigestData,
+  visibility: Record<DigestSection, boolean>
+): Record<string, boolean> {
+  return Object.fromEntries(
+    Object.entries(digestGroups).map(([group, sections]) => [
+      group,
+      sections.some(
+        (section) => visibility[section] && sectionHasContent(data, section)
+      ),
+    ])
   );
 }

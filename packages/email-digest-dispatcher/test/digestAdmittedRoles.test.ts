@@ -164,6 +164,36 @@ describe("hasVisibleDigestContent", () => {
     );
   });
 
+  it("should return false when all sections are empty even if role allows them", () => {
+    const empty = { items: [], totalCount: 0 };
+    const allEmptyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      popularEserviceTemplates: empty,
+      acceptedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+      waitingForApprovalReceivedAgreements: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      activeSentDelegations: empty,
+      rejectedSentDelegations: empty,
+      waitingForApprovalReceivedDelegations: empty,
+      revokedReceivedDelegations: empty,
+      receivedAttributes: empty,
+      revokedAttributes: empty,
+    };
+
+    // Admin can see everything, but there's no data at all
+    const visibility = getVisibleSections(["admin"]);
+    expect(hasVisibleDigestContent(allEmptyData, visibility)).toBe(false);
+  });
+
   it("should return false for empty roles array", () => {
     const visibility = getVisibleSections([]);
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(false);

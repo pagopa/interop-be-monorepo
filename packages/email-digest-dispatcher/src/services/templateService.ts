@@ -2,7 +2,10 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
 import { HtmlTemplateService } from "pagopa-interop-commons";
-import { DigestSection } from "../utils/digestAdmittedRoles.js";
+import {
+  DigestSection,
+  computeGroupFlags,
+} from "../utils/digestAdmittedRoles.js";
 import { TenantDigestData } from "./digestDataService.js";
 
 export type DigestTemplateService = {
@@ -11,55 +14,6 @@ export type DigestTemplateService = {
     visibility: Record<DigestSection, boolean>
   ) => string;
 };
-
-/**
- * Computes group-level flags: a group is shown when it has data
- * AND at least one of its sub-sections is visible for the user's roles.
- */
-// eslint-disable-next-line complexity
-function computeGroupFlags(
-  data: TenantDigestData,
-  v: Record<DigestSection, boolean>
-): Record<string, boolean> {
-  return {
-    hasEservicesContent: !!(
-      (v.newEservices && data.newEservices?.totalCount) ||
-      (v.updatedEservices && data.updatedEservices?.totalCount) ||
-      (v.updatedEserviceTemplates &&
-        data.updatedEserviceTemplates?.totalCount) ||
-      (v.popularEserviceTemplates && data.popularEserviceTemplates?.totalCount)
-    ),
-    hasSentItemsContent: !!(
-      (v.sentAgreements &&
-        (data.acceptedSentAgreements?.totalCount ||
-          data.rejectedSentAgreements?.totalCount ||
-          data.suspendedSentAgreements?.totalCount)) ||
-      (v.sentPurposes &&
-        (data.publishedSentPurposes?.totalCount ||
-          data.rejectedSentPurposes?.totalCount ||
-          data.waitingForApprovalSentPurposes?.totalCount))
-    ),
-    hasReceivedItemsContent: !!(
-      (v.receivedAgreements &&
-        data.waitingForApprovalReceivedAgreements?.totalCount) ||
-      (v.receivedPurposes &&
-        (data.publishedReceivedPurposes?.totalCount ||
-          data.waitingForApprovalReceivedPurposes?.totalCount))
-    ),
-    hasDelegationsContent: !!(
-      v.delegations &&
-      (data.activeSentDelegations?.totalCount ||
-        data.rejectedSentDelegations?.totalCount ||
-        data.waitingForApprovalReceivedDelegations?.totalCount ||
-        data.revokedReceivedDelegations?.totalCount)
-    ),
-    hasAttributesContent: !!(
-      v.attributes &&
-      (data.receivedAttributes?.totalCount ||
-        data.revokedAttributes?.totalCount)
-    ),
-  };
-}
 
 export function digestTemplateServiceBuilder(
   templateService: HtmlTemplateService
@@ -130,6 +84,7 @@ export function digestTemplateServiceBuilder(
       return templateService.compileHtml(digestTemplate, {
         title: "Riepilogo notifiche",
         ...data,
+        ...computeGroupFlags(data, visibility),
         showNewEservices: visibility.newEservices,
         showUpdatedEservices: visibility.updatedEservices,
         showUpdatedEserviceTemplates: visibility.updatedEserviceTemplates,
@@ -140,7 +95,6 @@ export function digestTemplateServiceBuilder(
         showReceivedPurposes: visibility.receivedPurposes,
         showDelegations: visibility.delegations,
         showAttributes: visibility.attributes,
-        ...computeGroupFlags(data, visibility),
         newEservicesSingular,
         updatedEservicesSingular,
         updatedEserviceTemplatesSingular,
