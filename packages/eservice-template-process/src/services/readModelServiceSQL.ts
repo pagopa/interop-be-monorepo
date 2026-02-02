@@ -297,6 +297,11 @@ export function readModelServiceBuilderSQL({
 
         const ids = (await idsSQLquery).map((result) => result.id);
 
+        if (ids.length === 0) {
+          const totalCount = await buildQuery(totalCountQuery);
+          return createListResult([], totalCount[0]?.count ?? 0);
+        }
+
         const [queryResult, totalCount] = await Promise.all([
           tx
             .select({
