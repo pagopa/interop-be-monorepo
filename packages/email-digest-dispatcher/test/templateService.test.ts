@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { digestTemplateServiceBuilder } from "../src/services/templateService.js";
+import { getVisibleSections } from "../src/utils/digestAdmittedRoles.js";
 import { getMockTenantDigestData } from "./mockUtils.js";
 
 describe("Template Service", () => {
@@ -10,9 +11,13 @@ describe("Template Service", () => {
     const digestTemplateService =
       digestTemplateServiceBuilder(htmlTemplateService);
     const mockData = getMockTenantDigestData();
+    const visibility = getVisibleSections(["admin"]);
 
     // Act
-    const compiledHtml = digestTemplateService.compileDigestEmail(mockData);
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      mockData,
+      visibility
+    );
 
     // Assert - Verify the HTML was compiled
     expect(compiledHtml).toBeDefined();

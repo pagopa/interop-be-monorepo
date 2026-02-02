@@ -2,10 +2,17 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
 import { HtmlTemplateService } from "pagopa-interop-commons";
+import {
+  DigestSection,
+  computeGroupFlags,
+} from "../utils/digestAdmittedRoles.js";
 import { TenantDigestData } from "./digestDataService.js";
 
 export type DigestTemplateService = {
-  compileDigestEmail: (data: TenantDigestData) => string;
+  compileDigestEmail: (
+    data: TenantDigestData,
+    visibility: Record<DigestSection, boolean>
+  ) => string;
 };
 
 export function digestTemplateServiceBuilder(
@@ -38,38 +45,10 @@ export function digestTemplateServiceBuilder(
   const digestTemplate = fs.readFileSync(digestTemplatePath).toString();
 
   return {
-    compileDigestEmail(data: TenantDigestData): string {
-      // Computed boolean flags to conditionally render section groups
-      const hasEservicesContent = !!(
-        data.newEservices?.totalCount ||
-        data.updatedEservices?.totalCount ||
-        data.updatedEserviceTemplates?.totalCount ||
-        data.popularEserviceTemplates?.totalCount
-      );
-      const hasSentItemsContent = !!(
-        data.acceptedSentAgreements?.totalCount ||
-        data.rejectedSentAgreements?.totalCount ||
-        data.suspendedSentAgreements?.totalCount ||
-        data.publishedSentPurposes?.totalCount ||
-        data.rejectedSentPurposes?.totalCount ||
-        data.waitingForApprovalSentPurposes?.totalCount
-      );
-      const hasReceivedItemsContent = !!(
-        data.waitingForApprovalReceivedAgreements?.totalCount ||
-        data.publishedReceivedPurposes?.totalCount ||
-        data.waitingForApprovalReceivedPurposes?.totalCount
-      );
-      const hasDelegationsContent = !!(
-        data.activeSentDelegations?.totalCount ||
-        data.rejectedSentDelegations?.totalCount ||
-        data.waitingForApprovalReceivedDelegations?.totalCount ||
-        data.revokedReceivedDelegations?.totalCount
-      );
-      const hasAttributesContent = !!(
-        data.receivedAttributes?.totalCount ||
-        data.revokedAttributes?.totalCount
-      );
-
+    compileDigestEmail(
+      data: TenantDigestData,
+      visibility: Record<DigestSection, boolean>
+    ): string {
       // Singular flags for conditional text (singular vs plural forms)
       const newEservicesSingular = data.newEservices?.totalCount === 1;
       const updatedEservicesSingular = data.updatedEservices?.totalCount === 1;
@@ -105,11 +84,17 @@ export function digestTemplateServiceBuilder(
       return templateService.compileHtml(digestTemplate, {
         title: "Riepilogo notifiche",
         ...data,
-        hasEservicesContent,
-        hasSentItemsContent,
-        hasReceivedItemsContent,
-        hasDelegationsContent,
-        hasAttributesContent,
+        ...computeGroupFlags(data, visibility),
+        showNewEservices: visibility.newEservices,
+        showUpdatedEservices: visibility.updatedEservices,
+        showUpdatedEserviceTemplates: visibility.updatedEserviceTemplates,
+        showPopularEserviceTemplates: visibility.popularEserviceTemplates,
+        showSentAgreements: visibility.sentAgreements,
+        showReceivedAgreements: visibility.receivedAgreements,
+        showSentPurposes: visibility.sentPurposes,
+        showReceivedPurposes: visibility.receivedPurposes,
+        showDelegations: visibility.delegations,
+        showAttributes: visibility.attributes,
         newEservicesSingular,
         updatedEservicesSingular,
         updatedEserviceTemplatesSingular,
