@@ -3,8 +3,8 @@ import { IntegrityRest02SignedHeader } from "../interop-token/models.js";
 /**
  * Build signed headers for Integrity REST 02 responses.
  *
- * This takes a response and a digest and returns an array of signed headers
- * that can be used to sign the response.
+ * This takes a response and a digest and returns only the headers that
+ * will need to be used in the `signed_headers` parameter of the Agid-JWT-Signature.
  */
 export function buildIntegrityRest02SignedHeaders({
   res,

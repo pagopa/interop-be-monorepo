@@ -57,6 +57,7 @@ import {
 } from "pagopa-interop-commons";
 import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { createApp } from "../src/app.js";
 import { AgreementService } from "../src/services/agreementService.js";
 import { AttributeService } from "../src/services/attributeService.js";
@@ -112,6 +113,11 @@ export const mockKeyService = {} as KeyService;
 export const mockProducerKeychainService = {} as ProducerKeychainService;
 export const mockEventService = {} as EventService;
 export const mockDynamoDBClient = {} as DynamoDBClient;
+export const mockKmsClient = {
+  send: vi.fn().mockResolvedValue({
+    Signature: new Uint8Array([1, 2, 3]),
+  }),
+} as unknown as KMSClient;
 
 export const api = await createApp(
   {
@@ -129,5 +135,6 @@ export const api = await createApp(
     eventService: mockEventService,
   },
   rateLimiterMiddleware(mockRateLimiter),
-  mockDynamoDBClient
+  mockDynamoDBClient,
+  mockKmsClient
 );

@@ -318,16 +318,19 @@ export class InteropTokenGenerator {
     };
   }
 
+  /**
+   * Generates an Agid-JWT-Signature for Integrity REST 02 responses.
+   *
+   * This takes a set of signed headers and returns a JWT that can be used to sign the response.
+   *
+   * **Notice**: This method is used for the Integrity REST 02 _response_, not for the request.
+   */
   public async generateAgidIntegrityRest02Token({
     signedHeaders,
   }: {
     signedHeaders: IntegrityRest02SignedHeader;
   }): Promise<string> {
-    if (
-      !this.config.generatedInteropTokenKid ||
-      !this.config.generatedInteropTokenIssuer ||
-      !this.config.generatedInteropTokenM2MAudience
-    ) {
+    if (!this.config.kid || !this.config.issuer || !this.config.audience) {
       throw Error(
         "AuthorizationServerTokenGenerationConfig not provided or incomplete"
       );
@@ -338,24 +341,22 @@ export class InteropTokenGenerator {
       alg: JWT_HEADER_ALG,
       use: JWT_HEADER_USE,
       typ: JWT_HEADER_TYP,
-      kid: this.config.generatedInteropTokenKid,
+      kid: this.config.kid,
     };
 
     const payload: AgidIntegrityRest02TokenPayload = {
       jti: generateId(),
-      iss: this.config.generatedInteropTokenIssuer,
-      aud: this.config.generatedInteropTokenM2MAudience,
+      iss: this.config.issuer,
+      aud: this.config.audience,
       iat: currentTimestamp,
       nbf: currentTimestamp,
-      exp:
-        currentTimestamp +
-        (this.config.generatedInteropTokenM2MDurationSeconds ?? 100), // TODO: Check default to set
+      exp: currentTimestamp + (this.config.secondsDuration ?? 100), // TODO: Check default to set
       signed_headers: signedHeaders,
     };
     return await this.createAndSignToken({
       header,
       payload,
-      keyId: this.config.generatedInteropTokenKid,
+      keyId: this.config.kid,
     });
   }
 
