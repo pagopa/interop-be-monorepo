@@ -18,6 +18,7 @@ import {
   buildPurposeLink,
   buildEserviceTemplateLinkToInstantiator,
   buildEserviceTemplateLinkToCreator,
+  buildDelegationLink,
 } from "../services/deeplinkBuilder.js";
 import {
   NewEservice,
@@ -101,13 +102,13 @@ async function enrichWithProducerNames<T extends EntityWithProducer>(
   }
 
   const uniqueProducerIds = [...new Set(items.map((i) => i.entityProducerId))];
-  const tenantNamesMap = await readModelService.getTenantsByIds(
+  const tenantDataMap = await readModelService.getTenantsByIds(
     uniqueProducerIds
   );
   return items.map((item) => ({
     ...item,
     entityProducerName:
-      tenantNamesMap.get(item.entityProducerId) ?? UNKNOWN_NAME,
+      tenantDataMap.get(item.entityProducerId)?.name ?? UNKNOWN_NAME,
   }));
 }
 
@@ -151,10 +152,12 @@ async function templateDataToBaseDigest<
 >(
   data: T[],
   readModelService: ReadModelService,
+  selfcareId: string | null,
   getProducerId: (item: T) => TenantId,
   buildLink: (
     eserviceTemplateId: string,
-    eserviceTemplateVersionId: string
+    eserviceTemplateVersionId: string,
+    selfcareId: string | null
   ) => string
 ): Promise<BaseDigest> {
   if (data.length === 0) {
@@ -176,7 +179,8 @@ async function templateDataToBaseDigest<
       producerName: template.entityProducerName,
       link: buildLink(
         template.eserviceTemplateId,
-        template.eserviceTemplateVersionId
+        template.eserviceTemplateVersionId,
+        selfcareId
       ),
     })),
     totalCount: data[0].totalCount,
@@ -188,11 +192,13 @@ async function templateDataToBaseDigest<
  */
 export async function eserviceTemplateToBaseDigest(
   data: NewEserviceTemplate[],
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   return templateDataToBaseDigest(
     data,
     readModelService,
+    selfcareId,
     (item) => item.eserviceTemplateProducerId,
     buildEserviceTemplateLinkToCreator
   );
@@ -203,7 +209,8 @@ export async function eserviceTemplateToBaseDigest(
  */
 export async function eserviceToBaseDigest(
   data: NewEservice[],
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
@@ -224,7 +231,8 @@ export async function eserviceToBaseDigest(
       producerName: eservice.entityProducerName,
       link: buildEserviceLink(
         eservice.eserviceId,
-        eservice.eserviceDescriptorId
+        eservice.eserviceDescriptorId,
+        selfcareId
       ),
     })),
     totalCount: data[0].totalCount,
@@ -237,11 +245,13 @@ export async function eserviceToBaseDigest(
  */
 export async function popularEserviceTemplateToBaseDigest(
   data: PopularEserviceTemplate[],
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   return templateDataToBaseDigest(
     data,
     readModelService,
+    selfcareId,
     (item) => item.eserviceTemplateCreatorId,
     buildEserviceTemplateLinkToInstantiator
   );
@@ -263,11 +273,13 @@ type AgreementWithIds = EntityWithEService & {
  * @param data - Agreement data to transform
  * @param getTenantId - Function to extract the relevant tenant ID (producer or consumer)
  * @param readModelService - Service for fetching names
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 async function agreementsToBaseDigest<T extends AgreementWithIds>(
   data: T[],
   getTenantId: (agreement: T) => TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
@@ -281,17 +293,17 @@ async function agreementsToBaseDigest<T extends AgreementWithIds>(
 
   // Get tenant names (the entity that performed the action or created the request)
   const uniqueTenantIds = [...new Set(data.map(getTenantId))];
-  const tenantNamesMap = await readModelService.getTenantsByIds(
-    uniqueTenantIds
-  );
+  const tenantDataMap = await readModelService.getTenantsByIds(uniqueTenantIds);
 
   return {
     items: withEServiceNames.map((agreement) => ({
       name: agreement.eserviceName,
-      producerName: tenantNamesMap.get(getTenantId(agreement)) ?? UNKNOWN_NAME,
+      producerName:
+        tenantDataMap.get(getTenantId(agreement))?.name ?? UNKNOWN_NAME,
       link: buildAgreementLink(
         agreement.agreementId,
-        getTenantId(agreement) === agreement.producerId
+        getTenantId(agreement) === agreement.producerId,
+        selfcareId
       ),
     })),
     totalCount: data[0].totalCount,
@@ -306,17 +318,20 @@ async function agreementsToBaseDigest<T extends AgreementWithIds>(
  * @param data - Sent agreement data to filter and transform
  * @param state - The agreement state to filter by
  * @param readModelService - Service for fetching tenant and e-service names
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 export async function sentAgreementsToBaseDigest(
   data: SentAgreement[],
   state: AgreementState,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   const filteredData = data.filter((a) => a.state === state);
   return agreementsToBaseDigest(
     filteredData,
     (agreement) => agreement.producerId,
-    readModelService
+    readModelService,
+    selfcareId
   );
 }
 
@@ -327,15 +342,18 @@ export async function sentAgreementsToBaseDigest(
  *
  * @param data - Received agreement data to transform
  * @param readModelService - Service for fetching tenant and e-service names
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 export async function receivedAgreementsToBaseDigest(
   data: ReceivedAgreement[],
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   return agreementsToBaseDigest(
     data,
     (agreement) => agreement.consumerId,
-    readModelService
+    readModelService,
+    selfcareId
   );
 }
 
@@ -346,10 +364,12 @@ export async function receivedAgreementsToBaseDigest(
  *
  * @param data - Sent purpose data to filter and transform
  * @param state - The purpose version state to filter by
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 export function sentPurposesToBaseDigest(
   data: SentPurpose[],
-  state: SentPurposeState
+  state: SentPurposeState,
+  selfcareId: string | null
 ): BaseDigest {
   const filteredData = data.filter((p) => p.state === state);
 
@@ -361,7 +381,7 @@ export function sentPurposesToBaseDigest(
     items: filteredData.map((purpose) => ({
       name: purpose.purposeTitle,
       producerName: "",
-      link: buildPurposeLink(purpose.purposeId, false),
+      link: buildPurposeLink(purpose.purposeId, false, selfcareId),
     })),
     totalCount: filteredData[0].totalCount,
   };
@@ -375,10 +395,12 @@ export function sentPurposesToBaseDigest(
  *
  * @param data - Received purpose data to filter and transform
  * @param state - The purpose version state to filter by
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 export function receivedPurposesToBaseDigest(
   data: ReceivedPurpose[],
-  state: ReceivedPurposeState
+  state: ReceivedPurposeState,
+  selfcareId: string | null
 ): ReceivedPurposeDigest {
   const filteredData = data.filter((p) => p.state === state);
 
@@ -391,7 +413,7 @@ export function receivedPurposesToBaseDigest(
       name: purpose.purposeTitle,
       producerName: purpose.consumerName,
       consumerName: purpose.consumerName,
-      link: buildPurposeLink(purpose.purposeId, true),
+      link: buildPurposeLink(purpose.purposeId, true, selfcareId),
     })),
     totalCount: filteredData[0].totalCount,
   };
@@ -500,12 +522,14 @@ type DelegationWithIds = {
  * @param state - The delegation state to filter by
  * @param getCounterpartyId - Function to extract the relevant tenant ID (delegate or delegator)
  * @param readModelService - Service for fetching tenant names and descriptor IDs
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 async function delegationsToDigest<T extends DelegationWithIds>(
   data: T[],
   state: DelegationState,
   getCounterpartyId: (delegation: T) => TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<DelegationDigest> {
   const filteredData = data.filter((d) => d.state === state);
 
@@ -516,7 +540,7 @@ async function delegationsToDigest<T extends DelegationWithIds>(
   const uniqueCounterpartyIds = [
     ...new Set(filteredData.map(getCounterpartyId)),
   ];
-  const tenantNamesMap = await readModelService.getTenantsByIds(
+  const tenantDataMap = await readModelService.getTenantsByIds(
     uniqueCounterpartyIds
   );
 
@@ -532,10 +556,11 @@ async function delegationsToDigest<T extends DelegationWithIds>(
       return {
         name: delegation.delegationName,
         producerName:
-          tenantNamesMap.get(getCounterpartyId(delegation)) ?? UNKNOWN_NAME,
+          tenantDataMap.get(getCounterpartyId(delegation))?.name ??
+          UNKNOWN_NAME,
         link: descriptorId
-          ? buildEserviceLink(delegation.eserviceId, descriptorId)
-          : "",
+          ? buildEserviceLink(delegation.eserviceId, descriptorId, selfcareId)
+          : buildDelegationLink(selfcareId),
         delegationKind: delegationKindToDigest(delegation.delegationKind),
       };
     }),
@@ -550,17 +575,20 @@ async function delegationsToDigest<T extends DelegationWithIds>(
  * @param data - Sent delegation data to filter and transform
  * @param state - The delegation state to filter by
  * @param readModelService - Service for fetching tenant names and descriptor IDs
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 export async function sentDelegationsToDigest(
   data: SentDelegation[],
   state: DelegationState,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<DelegationDigest> {
   return delegationsToDigest(
     data,
     state,
     (delegation) => delegation.delegateId,
-    readModelService
+    readModelService,
+    selfcareId
   );
 }
 
@@ -571,16 +599,19 @@ export async function sentDelegationsToDigest(
  * @param data - Received delegation data to filter and transform
  * @param state - The delegation state to filter by
  * @param readModelService - Service for fetching tenant names and descriptor IDs
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 export async function receivedDelegationsToDigest(
   data: ReceivedDelegation[],
   state: DelegationState,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<DelegationDigest> {
   return delegationsToDigest(
     data,
     state,
     (delegation) => delegation.delegatorId,
-    readModelService
+    readModelService,
+    selfcareId
   );
 }

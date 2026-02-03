@@ -25178,6 +25178,12 @@ paths:
           description: The id of the entity
           schema:
             type: string
+        - name: selfcareId
+          in: query
+          required: false
+          description: The selfcare ID for the institution (optional, falls back to generic URL if not provided)
+          schema:
+            type: string
       responses:
         "302":
           description: Redirect to the correct deepLink based on notification type and entity id

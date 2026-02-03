@@ -20,8 +20,7 @@ import {
   receivedDelegationsToDigest,
 } from "../model/digestDataConverter.js";
 import {
-  viewAllNewEservicesLink,
-  viewAllUpdatedEservicesLink,
+  viewAllNewUpdatedEservicesLink,
   viewAllSentAgreementsLink,
   viewAllSentPurposesLink,
   viewAllReceivedAgreementsLink,
@@ -116,14 +115,15 @@ export function digestDataServiceBuilder(
    * Uses in-memory cache with 3-hour TTL to avoid repeated database queries.
    */
   async function getNewEservicesDigest(
-    priorityProducerIds: TenantId[]
+    priorityProducerIds: TenantId[],
+    selfcareId: string | null
   ): Promise<BaseDigest> {
     logger.info("Building new e-services digest");
 
     const cachedData = newEservicesCache.get();
     if (cachedData !== null) {
       logger.info("Cache hit - using cached new e-services data");
-      return eserviceToBaseDigest(cachedData, readModelService);
+      return eserviceToBaseDigest(cachedData, readModelService, selfcareId);
     }
 
     // Cache miss - fetch from database
@@ -134,7 +134,7 @@ export function digestDataServiceBuilder(
 
     // Store in cache
     newEservicesCache.set(fetchedData);
-    return eserviceToBaseDigest(fetchedData, readModelService);
+    return eserviceToBaseDigest(fetchedData, readModelService, selfcareId);
   }
 
   return {
@@ -148,8 +148,7 @@ export function digestDataServiceBuilder(
         updatedEservices,
         updatedEserviceTemplates,
         popularEserviceTemplates,
-        tenantMap,
-        newEservices,
+        tenantDataMap,
         sentAgreements,
         receivedAgreements,
         sentPurposes,
@@ -165,8 +164,6 @@ export function digestDataServiceBuilder(
         readModelService.getNewEserviceTemplates(tenantId),
         readModelService.getPopularEserviceTemplates(tenantId),
         readModelService.getTenantsByIds([tenantId]),
-        // TODO: ask for priority list of tenants
-        getNewEservicesDigest([]),
         readModelService.getSentAgreements(tenantId), // tenantId as consumerId
         readModelService.getReceivedAgreements(tenantId), // tenantId as producerId
         readModelService.getSentPurposes(tenantId), // tenantId as consumerId
@@ -179,97 +176,123 @@ export function digestDataServiceBuilder(
         readModelService.getCertifiedRevokedAttributes(tenantId),
       ]);
 
-      const tenantName = tenantMap.get(tenantId);
+      const tenantData = tenantDataMap.get(tenantId);
+      const tenantName = tenantData?.name ?? "Tenant Name Placeholder";
+      const selfcareId = tenantData?.selfcareId ?? null;
+
+      // Fetch new e-services with selfcareId (needs to be after we have selfcareId)
+      // TODO: ask for priority list of tenants
+      const newEservices = await getNewEservicesDigest([], selfcareId);
 
       return {
         tenantId,
-        tenantName: tenantName ?? "Tenant Name Placeholder",
+        tenantName,
         timePeriod: "Time Period Placeholder",
-        notificationSettingsLink,
-        viewAllNewEservicesLink,
-        viewAllUpdatedEservicesLink,
-        viewAllSentAgreementsLink,
-        viewAllSentPurposesLink,
-        viewAllReceivedAgreementsLink,
-        viewAllReceivedPurposesLink,
-        viewAllSentDelegationsLink,
-        viewAllReceivedDelegationsLink,
-        viewAllAttributesLink,
-        viewAllUpdatedEserviceTemplatesLink,
-        viewAllPopularEserviceTemplatesLink,
+        notificationSettingsLink: notificationSettingsLink(selfcareId),
+        viewAllNewEservicesLink: viewAllNewUpdatedEservicesLink(selfcareId),
+        viewAllUpdatedEservicesLink: viewAllNewUpdatedEservicesLink(selfcareId),
+        viewAllSentAgreementsLink: viewAllSentAgreementsLink(selfcareId),
+        viewAllSentPurposesLink: viewAllSentPurposesLink(selfcareId),
+        viewAllReceivedAgreementsLink:
+          viewAllReceivedAgreementsLink(selfcareId),
+        viewAllReceivedPurposesLink: viewAllReceivedPurposesLink(selfcareId),
+        viewAllSentDelegationsLink: viewAllSentDelegationsLink(selfcareId),
+        viewAllReceivedDelegationsLink:
+          viewAllReceivedDelegationsLink(selfcareId),
+        viewAllAttributesLink: viewAllAttributesLink(selfcareId),
+        viewAllUpdatedEserviceTemplatesLink:
+          viewAllUpdatedEserviceTemplatesLink(selfcareId),
+        viewAllPopularEserviceTemplatesLink:
+          viewAllPopularEserviceTemplatesLink(selfcareId),
         newEservices,
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         updatedEserviceTemplates: await eserviceTemplateToBaseDigest(
           updatedEserviceTemplates,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         popularEserviceTemplates: await popularEserviceTemplateToBaseDigest(
           popularEserviceTemplates,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         acceptedSentAgreements: await sentAgreementsToBaseDigest(
           sentAgreements,
           agreementState.active,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         rejectedSentAgreements: await sentAgreementsToBaseDigest(
           sentAgreements,
           agreementState.rejected,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         suspendedSentAgreements: await sentAgreementsToBaseDigest(
           sentAgreements,
           agreementState.suspended,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         publishedSentPurposes: sentPurposesToBaseDigest(
           sentPurposes,
-          purposeVersionState.active
+          purposeVersionState.active,
+          selfcareId
         ),
         rejectedSentPurposes: sentPurposesToBaseDigest(
           sentPurposes,
-          purposeVersionState.rejected
+          purposeVersionState.rejected,
+          selfcareId
         ),
         waitingForApprovalSentPurposes: sentPurposesToBaseDigest(
           sentPurposes,
-          purposeVersionState.waitingForApproval
+          purposeVersionState.waitingForApproval,
+          selfcareId
         ),
         waitingForApprovalReceivedAgreements:
           await receivedAgreementsToBaseDigest(
             receivedAgreements,
-            readModelService
+            readModelService,
+            selfcareId
           ),
         publishedReceivedPurposes: receivedPurposesToBaseDigest(
           receivedPurposes,
-          purposeVersionState.active
+          purposeVersionState.active,
+          selfcareId
         ),
         waitingForApprovalReceivedPurposes: receivedPurposesToBaseDigest(
           receivedPurposes,
-          purposeVersionState.waitingForApproval
+          purposeVersionState.waitingForApproval,
+          selfcareId
         ),
         activeSentDelegations: await sentDelegationsToDigest(
           sentDelegations,
           delegationState.active,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         rejectedSentDelegations: await sentDelegationsToDigest(
           sentDelegations,
           delegationState.rejected,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         waitingForApprovalReceivedDelegations:
           await receivedDelegationsToDigest(
             receivedDelegations,
             delegationState.waitingForApproval,
-            readModelService
+            readModelService,
+            selfcareId
           ),
         revokedReceivedDelegations: await receivedDelegationsToDigest(
           receivedDelegations,
           delegationState.revoked,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         receivedAttributes: combineAttributeDigests(
           await verifiedAttributeToDigest(
