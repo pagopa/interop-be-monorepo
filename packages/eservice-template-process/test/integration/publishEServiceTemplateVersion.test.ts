@@ -261,7 +261,7 @@ describe("publishEServiceTemplateVersion", () => {
     );
   });
 
-  it("should throw riskAnalysisValidationFailed if the eservice template mode is receive and doesn't have any risk analysis", async () => {
+  it("should throw missingRiskAnalysis if the eservice template mode is receive and doesn't have any risk analysis", async () => {
     const tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
