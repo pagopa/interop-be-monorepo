@@ -26,23 +26,24 @@ script:pre-request {
   
   const dpopScript = bru.getEnvVar('create-dpop-proof-path');
   const assertionScript = bru.getEnvVar('create-client-assertion-path');
-  const privKey = bru.getEnvVar('priv-key-path');
-  const pubKey = bru.getEnvVar('pub-key-path');
+  const dpopPrivKey = bru.getEnvVar('dpop-proof-priv-key-path');
+  const dpopPubKey = bru.getEnvVar('dpop-proof-pub-key-path');
+  const clientAssertionPrivKey = bru.getEnvVar('client-assertion-priv-key-path');
   
-  const clientId = bru.getEnvVar('clientId');
+  const clientId = bru.getVar('clientId');
   const aud = bru.getEnvVar('auth-server-audience');
-  const kid = bru.getEnvVar('kid');
-  const purposeId = bru.getEnvVar('purposeId');
+  const kid = bru.getVar('kid');
+  const purposeId = bru.getVar('purposeId');
 
   try {
     const dpopProof = execSync(
-      `python3 "${dpopScript}" -e=dev -pr="${privKey}" -pu="${pubKey}"`,
+      `python3 "${dpopScript}" -e=dev -pr="${dpopPrivKey}" -pu="${dpopPubKey}"`,
       { encoding: 'utf-8' }
     ).trim();
     bru.setVar('dpopProof', dpopProof);
 
     const clientAssertion = execSync(
-      `python3 "${assertionScript}" --kid="${kid}" --alg="RS256" --typ="JWT" --issuer="${clientId}" --subject="${clientId}" --audience="${aud}" --purposeId="${purposeId}" --keyPath="${privKey}"`,
+      `python3 "${assertionScript}" --kid="${kid}" --alg="RS256" --typ="JWT" --issuer="${clientId}" --subject="${clientId}" --audience="${aud}" --purposeId="${purposeId}" --keyPath="${clientAssertionPrivKey}"`,
       { encoding: 'utf-8' }
     ).trim();
     bru.setVar('clientAssertion', clientAssertion);
