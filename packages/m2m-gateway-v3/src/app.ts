@@ -2,6 +2,7 @@ import {
   contextMiddleware,
   errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
+  healthRouter,
   loggerMiddleware,
   integrityRest02Middleware,
   multerMiddleware,
@@ -16,6 +17,7 @@ import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
@@ -108,6 +110,7 @@ export async function createApp(
 
   app.use(
     appBasePath,
+    healthRouter(m2mGatewayApiV3.healthApi.api),
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
