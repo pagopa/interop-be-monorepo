@@ -101,7 +101,7 @@ try {
         trackingService,
         emailProducerService,
         correlationId,
-        config.digestFrequencyDays
+        config.digestFrequencyHours
       );
       resultsCollector.add(result);
     }

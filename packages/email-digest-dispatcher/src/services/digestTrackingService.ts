@@ -15,12 +15,12 @@ export type DigestTrackingService = {
   recordDigestSent: (userId: UserId, tenantId: TenantId) => Promise<void>;
 
   /**
-   * Checks if a user has received a digest email within the specified number of days.
+   * Checks if a user has received a digest email within the specified number of hours.
    */
   hasReceivedDigestRecently: (
     userId: UserId,
     tenantId: TenantId,
-    days: number
+    hours: number
   ) => Promise<boolean>;
 };
 
@@ -47,10 +47,10 @@ export function digestTrackingServiceBuilder(
     async hasReceivedDigestRecently(
       userId: UserId,
       tenantId: TenantId,
-      days: number
+      hours: number
     ): Promise<boolean> {
       const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - days);
+      cutoffDate.setHours(cutoffDate.getHours() - hours);
 
       const result = await db
         .select({ sentAt: digestEmailSent.sentAt })

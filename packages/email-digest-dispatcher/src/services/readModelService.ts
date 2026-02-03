@@ -56,7 +56,6 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { config } from "../config/config.js";
 
-const DIGEST_FREQUENCY_DAYS = config.digestFrequencyDays;
 const SECTION_LIST_LIMIT = 5;
 
 export type DigestUser = {
@@ -347,7 +346,9 @@ function groupAndMapReceivedPurposeResults(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
   const dateThreshold = new Date();
-  dateThreshold.setDate(dateThreshold.getDate() - DIGEST_FREQUENCY_DAYS);
+  dateThreshold.setHours(
+    dateThreshold.getHours() - config.digestFrequencyHours
+  );
 
   // Request-scoped caches to avoid duplicate DB lookups for the same IDs
   // These caches live for the lifetime of the service instance (job duration)
@@ -1131,7 +1132,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns verified assigned attributes for a tenant in the last DIGEST_FREQUENCY_DAYS days
+     * Returns verified assigned attributes for a tenant in the last configured frequency hours
      */
     async getVerifiedAssignedAttributes(
       tenantId: TenantId
@@ -1186,7 +1187,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns verified revoked attributes for a tenant in the last DIGEST_FREQUENCY_DAYS days
+     * Returns verified revoked attributes for a tenant in the last configured frequency hours
      */
     async getVerifiedRevokedAttributes(
       tenantId: TenantId
@@ -1241,7 +1242,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns certified assigned attributes for a tenant in the last DIGEST_FREQUENCY_DAYS days.
+     * Returns certified assigned attributes for a tenant in the last configured frequency hours.
      * Assigned: assignment_timestamp >= threshold AND revocation_timestamp IS NULL
      */
     async getCertifiedAssignedAttributes(
@@ -1291,7 +1292,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns certified revoked attributes for a tenant in the last DIGEST_FREQUENCY_DAYS days.
+     * Returns certified revoked attributes for a tenant in the last configured frequency hours.
      * Revoked: revocation_timestamp >= threshold
      */
     async getCertifiedRevokedAttributes(

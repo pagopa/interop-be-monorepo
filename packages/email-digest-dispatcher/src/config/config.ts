@@ -35,10 +35,10 @@ export type DigestTrackingDbConfig = z.infer<typeof DigestTrackingDbConfig>;
 // Config for digest frequency
 export const DigestFrequencyConfig = z
   .object({
-    DIGEST_FREQUENCY_DAYS: z.coerce.number().min(1).default(7),
+    DIGEST_FREQUENCY_HOURS: z.coerce.number().min(1).default(168),
   })
   .transform((c) => ({
-    digestFrequencyDays: c.DIGEST_FREQUENCY_DAYS,
+    digestFrequencyHours: c.DIGEST_FREQUENCY_HOURS,
   }));
 
 export type DigestFrequencyConfig = z.infer<typeof DigestFrequencyConfig>;
