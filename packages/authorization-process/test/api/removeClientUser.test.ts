@@ -30,7 +30,10 @@ describe("API /clients/{clientId}/users/{userId} authorization test", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   authorizationService.removeClientUser = vi.fn().mockResolvedValue({});
 
@@ -51,7 +54,7 @@ describe("API /clients/{clientId}/users/{userId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([
+  const errors = [
     {
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
@@ -64,7 +67,13 @@ describe("API /clients/{clientId}/users/{userId} authorization test", () => {
       error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
-  ])(
+  ];
+
+  const errorScenarios = authorizedRoles.flatMap((role) =>
+    errors.map((params) => ({ role, ...params }))
+  );
+
+  it.each(errorScenarios)(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.removeClientUser = vi.fn().mockRejectedValue(error);
@@ -74,11 +83,17 @@ describe("API /clients/{clientId}/users/{userId} authorization test", () => {
     }
   );
 
-  it.each([
+  const invalidParams = [
     {},
     { clientId: "invalidId", userId: userIdToRemove },
     { clientId: mockClient.id, userId: "invalidId" },
-  ])(
+  ];
+
+  const testScenarios = authorizedRoles.flatMap((role) =>
+    invalidParams.map((params) => ({ role, ...params }))
+  );
+
+  it.each(testScenarios)(
     "Should return 400 if passed invalid params: $s",
     async ({ clientId, userId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
