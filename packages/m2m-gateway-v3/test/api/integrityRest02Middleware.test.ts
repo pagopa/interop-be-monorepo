@@ -50,7 +50,7 @@ describe("integrityRest02Middleware", () => {
     const res = await makeRequest(token);
 
     expect(res.status).toBe(200);
-    const digest = calculateIntegrityRest02DigestFromBody(res.text);
+    const digest = calculateIntegrityRest02DigestFromBody({ body: res.text });
     expect(res.headers).toHaveProperty("digest");
     expect(res.headers.digest).toBe(`SHA-256=${digest}`);
     expect(res.headers).toHaveProperty("agid-jwt-signature");
@@ -69,7 +69,7 @@ describe("integrityRest02Middleware", () => {
     expect(res2.status).toBe(200);
     expect(res2.headers.digest).toBe(res.headers.digest);
     expect(res.text).toBe(res2.text);
-    const digest = calculateIntegrityRest02DigestFromBody(res.text);
+    const digest = calculateIntegrityRest02DigestFromBody({ body: res.text });
     expect(res.headers.digest).toBe(`SHA-256=${digest}`);
     expect(res2.headers.digest).toBe(`SHA-256=${digest}`);
   });
@@ -89,8 +89,8 @@ describe("integrityRest02Middleware", () => {
     expect(res2.status).toBe(200);
     expect(res2.headers.digest).not.toBe(res.headers.digest);
     expect(res.text).not.toBe(res2.text);
-    const digest1 = calculateIntegrityRest02DigestFromBody(res.text);
-    const digest2 = calculateIntegrityRest02DigestFromBody(res2.text);
+    const digest1 = calculateIntegrityRest02DigestFromBody({ body: res.text });
+    const digest2 = calculateIntegrityRest02DigestFromBody({ body: res2.text });
     expect(digest1).not.toBe(digest2);
     expect(res.headers.digest).toBe(`SHA-256=${digest1}`);
     expect(res2.headers.digest).toBe(`SHA-256=${digest2}`);

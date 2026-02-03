@@ -2,12 +2,22 @@ import { Request, Response, NextFunction } from "express";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { TokenGenerationConfig } from "../config/index.js";
 import { InteropTokenGenerator } from "../interop-token/interopTokenService.js";
-import { calculateIntegrityRest02DigestFromBody } from "./digest.js";
+import {
+  calculateIntegrityRest02DigestFromBody,
+  JsonReplacer,
+  JsonSpaces,
+} from "./digest.js";
 import { buildIntegrityRest02SignedHeaders } from "./headers.js";
 
 /**
- * Middleware for Integrity REST 02 responses
- * Calculates Digest and signs Agid-JWT-Signature automatically.
+ * Middleware for Integrity REST 02 responses. Calculates Digest and signs Agid-JWT-Signature automatically
+ * and sets the "digest" and "agid-jwt-signature" headers on the response.
+ * This middleware uses the "json replacer" and "json spaces" options from the response object to ensure
+ * that the body is converted to a canonical JSON representation.
+ *
+ * @param config - The token generation configuration.
+ * @param kmsClient - The KMS client.
+ * @returns The middleware function.
  */
 export function integrityRest02Middleware(
   config: TokenGenerationConfig,
@@ -20,7 +30,14 @@ export function integrityRest02Middleware(
 
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
-      const digest = calculateIntegrityRest02DigestFromBody(body);
+      const replacer =
+        (res.app.get("json replacer") as JsonReplacer) ?? undefined;
+      const spaces = (res.app.get("json spaces") as JsonSpaces) ?? undefined;
+      const digest = calculateIntegrityRest02DigestFromBody({
+        body,
+        replacer,
+        spaces,
+      });
       const signedHeaders = buildIntegrityRest02SignedHeaders({
         res,
         digest,

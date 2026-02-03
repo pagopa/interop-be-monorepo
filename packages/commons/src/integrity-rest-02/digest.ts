@@ -1,26 +1,32 @@
 import crypto from "crypto";
 
-function canonicalStringify(value: unknown): string {
-  if (typeof value !== "object") {
-    return JSON.stringify(value);
-  }
+export type JsonReplacer =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ((this: any, key: string, value: any) => any) | null | undefined;
 
-  if (Array.isArray(value)) {
-    return `[${value.map((v) => canonicalStringify(v)).join(",")}]`;
-  }
+export type JsonSpaces = number | string | undefined;
 
-  const obj = value as Record<string, unknown>;
-  // eslint-disable-next-line functional/immutable-data
-  const keys = Object.keys(obj).sort();
-
-  const entries = keys.map(
-    (key) => `${JSON.stringify(key)}:${canonicalStringify(obj[key])}`
-  );
-
-  return `{${entries.join(",")}}`;
-}
-
-export function calculateIntegrityRest02DigestFromBody(body: unknown): string {
+/**
+ * Calculates the digest of a body using the canonical JSON representation.
+ *
+ * The body can be a string, a buffer, or an object.
+ * The body is converted to a string using the canonical JSON representation.
+ * The string is then hashed using SHA-256.
+ *
+ * @param body - The body to calculate the digest from.
+ * @param replacer - A function that is called for each property of the object. (optional)
+ * @param spaces - A string or number that is used to insert white space into the output JSON string for readability purposes. (optional)
+ * @returns The digest of the body.
+ */
+export function calculateIntegrityRest02DigestFromBody({
+  body,
+  replacer,
+  spaces,
+}: {
+  body: unknown;
+  replacer?: JsonReplacer;
+  spaces?: JsonSpaces;
+}): string {
   // eslint-disable-next-line functional/no-let
   let payloadBytes: Buffer;
   if (body === null || body === undefined) {
@@ -30,7 +36,12 @@ export function calculateIntegrityRest02DigestFromBody(body: unknown): string {
   } else if (typeof body === "string") {
     payloadBytes = Buffer.from(body);
   } else {
-    payloadBytes = Buffer.from(canonicalStringify(body));
+    const json = JSON.stringify(
+      body,
+      replacer ?? undefined,
+      spaces ?? undefined
+    );
+    payloadBytes = Buffer.from(json);
   }
 
   return crypto.createHash("sha256").update(payloadBytes).digest("base64url");
