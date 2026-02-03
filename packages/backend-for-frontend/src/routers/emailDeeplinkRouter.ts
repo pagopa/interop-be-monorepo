@@ -76,8 +76,8 @@ const emailDeeplinkRouters = (
         const path = entityId
           ? `${digestNotificationTypeToUiSection[notificationType]}/${entityId}`
           : digestNotificationTypeToUiSection[notificationType];
-        const url = `${config.frontendBaseUrl}${path}`;
-        return res.redirect(url);
+        const url = new URL(`${config.frontendBaseUrl}${path}`);
+        return res.redirect(url.href);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
