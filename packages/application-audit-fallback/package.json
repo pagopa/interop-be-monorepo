@@ -24,7 +24,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",
-    "eslint": "8.57.1",
+    "eslint": "9.26.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "testcontainers": "10.9.0",

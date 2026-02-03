@@ -22,7 +22,7 @@
     "@types/json-diff": "1.0.3",
     "@types/node": "20.19.9",
     "@types/pg": "8.11.11",
-    "eslint": "8.57.1",
+    "eslint": "9.26.0",
     "lodash.isequal": "4.5.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",

@@ -31,7 +31,7 @@
     "@anatine/zod-mock": "3.13.4",
     "@types/node": "20.19.9",
     "@types/pg": "8.11.11",
-    "eslint": "8.57.1",
+    "eslint": "9.26.0",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
     "prettier": "2.8.8",

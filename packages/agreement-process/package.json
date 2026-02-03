@@ -27,7 +27,7 @@
     "@types/supertest": "6.0.3",
     "cpx2": "7.0.2",
     "date-fns": "3.6.0",
-    "eslint": "8.57.1",
+    "eslint": "9.26.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "puppeteer": "22.11.2",

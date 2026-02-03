@@ -25,7 +25,7 @@
     "@types/node": "20.19.4",
     "adm-zip": "0.5.10",
     "dotenv-flow": "4.1.0",
-    "eslint": "8.57.1",
+    "eslint": "9.26.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",

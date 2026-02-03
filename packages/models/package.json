@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "20.19.9",
-    "eslint": "8.57.1",
+    "eslint": "9.26.0",
     "mkdirp": "3.0.1",
     "prettier": "2.8.8",
     "tsc-esm-fix": "2.20.27",
