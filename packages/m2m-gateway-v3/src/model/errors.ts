@@ -17,6 +17,7 @@ import {
   PurposeTemplateId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -42,6 +43,7 @@ const errorCodes = {
   unexpectedClientKind: "0021",
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
+  missingSelfcareId: "0024",
   requesterIsNotTheDelegateConsumer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
@@ -57,6 +59,7 @@ const errorCodes = {
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
+  userNotFound: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -268,6 +271,14 @@ export function agreementContractNotFound(
   });
 }
 
+export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `SelfcareId in Tenant ${tenantId} not found`,
+    code: "missingSelfcareId",
+    title: "SelfcareId not found",
+  });
+}
+
 export function delegationEServiceMismatch(
   eserviceId: string,
   delegation: delegationApi.Delegation
@@ -435,5 +446,16 @@ export function invalidSeedForPurposeFromTemplate(
     )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",
+  });
+}
+
+export function userNotFound(
+  userId: UserId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for tenant ${tenantId}`,
+    code: "userNotFound",
+    title: "User not found",
   });
 }
