@@ -100,8 +100,8 @@ export const InteropJwtApiM2MPayload = InteropJwtApiCommonPayload.merge(
 export type InteropJwtApiM2MPayload = z.infer<typeof InteropJwtApiM2MPayload>;
 
 // Duplicate of InteropJwtApiM2MPayload with cnf claim for DPoP tokens to remove compleatly later after dismissimg the old M2M tokens
-export const InteropJwtApiM2MDPoPPayload = InteropJwtApiCommonPayload.merge(
-  z.object({ role: z.literal(systemRole.M2M_ROLE), cnf: CNF })
+export const InteropJwtApiM2MDPoPPayload = InteropJwtApiM2MPayload.merge(
+  z.object({ cnf: CNF })
 );
 export type InteropJwtApiM2MDPoPPayload = z.infer<
   typeof InteropJwtApiM2MDPoPPayload
@@ -119,14 +119,7 @@ export type InteropJwtApiM2MAdminPayload = z.infer<
 >;
 
 export const InteropJwtApiM2MAdminDPoPPayload =
-  InteropJwtApiCommonPayload.merge(
-    z.object({
-      role: z.literal(systemRole.M2M_ADMIN_ROLE),
-      adminId: UserId,
-      // ^ ID of the admin user associated with the client
-      cnf: CNF,
-    })
-  );
+  InteropJwtApiM2MAdminPayload.merge(z.object({ cnf: CNF }));
 export type InteropJwtApiM2MAdminDPoPPayload = z.infer<
   typeof InteropJwtApiM2MAdminDPoPPayload
 >;
