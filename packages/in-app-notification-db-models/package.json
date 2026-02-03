@@ -11,8 +11,7 @@
   "scripts": {
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "build": "tsc",
-    "check": "tsc --project tsconfig.check.json"
+    "build": "tsc"
   },
   "keywords": [],
   "dependencies": {
