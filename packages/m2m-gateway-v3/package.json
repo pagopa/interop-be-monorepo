@@ -19,7 +19,7 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "3.840.0",  
+    "@aws-sdk/client-dynamodb": "3.840.0",
     "@anatine/zod-mock": "3.14.0",
     "@pagopa/eslint-config": "3.0.0",
     "@types/express": "4.17.21",
@@ -34,6 +34,7 @@
     "vitest": "4.0.18"
   },
   "dependencies": {
+    "@aws-sdk/client-kms": "3.840.0",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "axios": "1.12.0",
