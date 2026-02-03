@@ -114,9 +114,13 @@ export const mockProducerKeychainService = {} as ProducerKeychainService;
 export const mockEventService = {} as EventService;
 export const mockDynamoDBClient = {} as DynamoDBClient;
 export const mockKmsClient = {
-  send: vi.fn().mockResolvedValue({
-    Signature: new Uint8Array([1, 2, 3]),
-  }),
+  send: vi
+    .fn()
+    .mockResolvedValue(
+      new Promise((resolve) =>
+        resolve({ Signature: new Uint8Array([1, 2, 3]) })
+      )
+    ),
 } as unknown as KMSClient;
 
 export const api = await createApp(

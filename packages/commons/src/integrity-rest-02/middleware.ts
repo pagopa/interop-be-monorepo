@@ -20,10 +20,6 @@ export function integrityRest02Middleware(
 
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
-      if (body === undefined) {
-        return originalSend(body);
-      }
-
       const digest = calculateIntegrityRest02DigestFromBody(body);
       const signedHeaders = buildIntegrityRest02SignedHeaders({
         res,
