@@ -1,9 +1,9 @@
 {
-  "name": "pagopa-interop-check-selfcare-user-notification-diff",
+  "name": "pagopa-interop-check-selfcare-diff",
   "private": true,
   "version": "1.0.0",
   "license": "MPL-2.0",
-  "description": "PagoPA Interoperability check-selfcare-user-notification-diff script",
+  "description": "PagoPA Interoperability check-selfcare-diff script",
   "main": "dist",
   "type": "module",
   "scripts": {
@@ -26,6 +26,7 @@
   "dependencies": {
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
+    "p-limit": "6.2.0",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
