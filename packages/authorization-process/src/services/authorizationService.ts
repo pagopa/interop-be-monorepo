@@ -401,7 +401,11 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         userIdToRemove: UserId;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Removing user ${userIdToRemove} from client ${clientId}`);
 
