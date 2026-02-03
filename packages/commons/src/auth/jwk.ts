@@ -8,6 +8,7 @@ import {
   notAllowedCertificateException,
   notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
+  missingRequiredJWKClaim,
 } from "pagopa-interop-models";
 import { JWTConfig } from "../config/index.js";
 
@@ -45,13 +46,9 @@ export const calculateKid = (jwk: JsonWebKey): string => {
  * 3. Security: It uses a strict whitelist. If a private key (containing 'd')
  * is accidentally passed, the private part is excluded from the hash.
  */
-
 export const calculateThumbprint = (jwk: JsonWebKey): string => {
-  if (jwk.kty !== "RSA") {
-    throw new Error(jwk.kty ?? "undefined");
-  }
-  if (!jwk.n || !jwk.e) {
-    throw new Error("JWK invalid: missing 'n' or 'e' properties for RSA key");
+  if (!jwk.e || !jwk.kty || !jwk.n || jwk.kty !== "RSA") {
+    throw missingRequiredJWKClaim();
   }
   const allowedKeys: Array<keyof JsonWebKey> = ["e", "kty", "n"];
   const canonicalJwk = Object.fromEntries(

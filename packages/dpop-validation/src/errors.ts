@@ -23,6 +23,7 @@ export const errorCodes = {
   expiredDPoPProof: "0020",
   notYetValidDPoPProof: "0021",
   multipleDPoPProofsError: "0022",
+  dpopTokenBindingMismatch: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -221,5 +222,13 @@ export function multipleDPoPProofsError(): ApiError<ErrorCodes> {
     detail: "Multiple DPoP proofs found in the request headers",
     code: "multipleDPoPProofsError",
     title: "Multiple DPoP proofs found",
+  });
+}
+
+export function dpopTokenBindingMismatch(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The DPoP proof public key hash does not match the access token binding (cnf))}`,
+    code: "dpopTokenBindingMismatch",
+    title: "DPoP Token Binding Mismatch",
   });
 }

@@ -62,6 +62,7 @@ const errorCodes = {
   dpopProofSignatureValidationFailed: "0041",
   unexpectedDPoPProofForAPIToken: "0042",
   dpopProofJtiAlreadyUsed: "0043",
+  dpopTokenBindingFailed: "0044",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -440,6 +441,17 @@ export function invalidSeedForPurposeFromTemplate(
     )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",
+  });
+}
+
+export function dpopTokenBindingFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The DPoP proof public key does not match the Access Token binding ('cnf' claim). ClientId: ${clientId} - ${details}`,
+    code: "dpopTokenBindingFailed",
+    title: "DPoP Token Binding Mismatch",
   });
 }
 
