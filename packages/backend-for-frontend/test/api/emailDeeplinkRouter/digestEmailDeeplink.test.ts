@@ -6,109 +6,189 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api } from "../../vitest.api.setup.js";
 import { config } from "../../../src/config/config.js";
 
-describe("API GET /emailDeepLink/:digestNotificationType (with optional entityId query param)", () => {
+describe("API GET /emailDeepLink/:digestNotificationType (with optional entityId and selfcareId query params)", () => {
   const makeRequest = async (
     digestNotificationType: string,
-    entityId?: string
+    options?: { entityId?: string; selfcareId?: string }
   ) => {
     const url = `${appBasePath}/emailDeepLink/${digestNotificationType}`;
     const req = request(api).get(url).set("X-Correlation-Id", generateId());
 
-    if (entityId) {
-      await req.query({ entityId });
+    const query: Record<string, string> = {};
+    if (options?.entityId) {
+      query.entityId = options.entityId;
+    }
+    if (options?.selfcareId) {
+      query.selfcareId = options.selfcareId;
     }
 
-    return req.send();
+    return req.query(query).send();
   };
 
-  describe("Successful redirects", () => {
-    it("Should return 302 and redirect to eservice catalog when digestNotificationType is eserviceCatalog without entityId", async () => {
+  describe("Successful redirects with selfcareId (token-exchange)", () => {
+    const selfcareId = generateId();
+
+    it("Should return 302 and redirect to token-exchange for eservice catalog without entityId", async () => {
+      const res = await makeRequest("eserviceCatalog", { selfcareId });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("institutionId")).toBe(selfcareId);
+      expect(location.searchParams.get("productId")).toBe(
+        config.selfcareProductName
+      );
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        "/catalogo-e-service"
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for eservice catalog with entityId", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("eserviceCatalog", {
+        entityId,
+        selfcareId,
+      });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("institutionId")).toBe(selfcareId);
+      expect(location.searchParams.get("productId")).toBe(
+        config.selfcareProductName
+      );
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/catalogo-e-service/${entityId}`
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for producer agreements", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("agreementToProducer", {
+        entityId,
+        selfcareId,
+      });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/erogazione/richieste/${entityId}`
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for consumer agreements", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("agreementToConsumer", {
+        entityId,
+        selfcareId,
+      });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/fruizione/richieste/${entityId}`
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for producer purposes", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("purposeToProducer", {
+        entityId,
+        selfcareId,
+      });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/erogazione/finalita/${entityId}`
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for consumer purposes", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("purposeToConsumer", {
+        entityId,
+        selfcareId,
+      });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/fruizione/finalita/${entityId}`
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for delegations", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("delegation", { entityId, selfcareId });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/aderente/deleghe/${entityId}`
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for attributes", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("attribute", { entityId, selfcareId });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/aderente/anagrafica/${entityId}`
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for eservice template creator", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("eserviceTemplateToCreator", {
+        entityId,
+        selfcareId,
+      });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/erogazione/template-eservice/${entityId}`
+      );
+    });
+
+    it("Should return 302 and redirect to token-exchange for eservice template instantiator", async () => {
+      const entityId = generateId();
+      const res = await makeRequest("eserviceTemplateToInstantiator", {
+        entityId,
+        selfcareId,
+      });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        `/erogazione/catalogo-template/${entityId}`
+      );
+    });
+  });
+
+  describe("Fallback without selfcareId", () => {
+    it("Should return 302 and redirect to frontend base URL when selfcareId is not provided", async () => {
       const res = await makeRequest("eserviceCatalog");
       expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/catalogo-e-service`
-      );
+      expect(res.headers.location).toBe(config.frontendBaseUrl);
     });
 
-    it("Should return 302 and redirect to eservice catalog with entityId when provided", async () => {
+    it("Should return 302 and redirect to frontend base URL when only entityId is provided", async () => {
       const entityId = generateId();
-      const res = await makeRequest("eserviceCatalog", entityId);
+      const res = await makeRequest("eserviceCatalog", { entityId });
       expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/catalogo-e-service/${entityId}`
-      );
-    });
-
-    it("Should return 302 and redirect to producer agreements when digestNotificationType is agreementToProducer", async () => {
-      const entityId = generateId();
-      const res = await makeRequest("agreementToProducer", entityId);
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/erogazione/richieste/${entityId}`
-      );
-    });
-
-    it("Should return 302 and redirect to consumer agreements when digestNotificationType is agreementToConsumer", async () => {
-      const entityId = generateId();
-      const res = await makeRequest("agreementToConsumer", entityId);
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/fruizione/richieste/${entityId}`
-      );
-    });
-
-    it("Should return 302 and redirect to producer purposes when digestNotificationType is purposeToProducer", async () => {
-      const entityId = generateId();
-      const res = await makeRequest("purposeToProducer", entityId);
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/erogazione/finalita/${entityId}`
-      );
-    });
-
-    it("Should return 302 and redirect to consumer purposes when digestNotificationType is purposeToConsumer", async () => {
-      const entityId = generateId();
-      const res = await makeRequest("purposeToConsumer", entityId);
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/fruizione/finalita/${entityId}`
-      );
-    });
-
-    it("Should return 302 and redirect to delegations when digestNotificationType is delegation", async () => {
-      const entityId = generateId();
-      const res = await makeRequest("delegation", entityId);
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/aderente/deleghe/${entityId}`
-      );
-    });
-
-    it("Should return 302 and redirect to attributes when digestNotificationType is attribute", async () => {
-      const entityId = generateId();
-      const res = await makeRequest("attribute", entityId);
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/aderente/anagrafica/${entityId}`
-      );
-    });
-
-    it("Should return 302 and redirect to eservice template creator when digestNotificationType is eserviceTemplateToCreator", async () => {
-      const entityId = generateId();
-      const res = await makeRequest("eserviceTemplateToCreator", entityId);
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/erogazione/template-eservice/${entityId}`
-      );
-    });
-
-    it("Should return 302 and redirect to eservice template instantiator when digestNotificationType is eserviceTemplateToInstantiator", async () => {
-      const entityId = generateId();
-      const res = await makeRequest("eserviceTemplateToInstantiator", entityId);
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe(
-        `${config.frontendBaseUrl}/erogazione/catalogo-template/${entityId}`
-      );
+      expect(res.headers.location).toBe(config.frontendBaseUrl);
     });
   });
 
@@ -126,20 +206,27 @@ describe("API GET /emailDeepLink/:digestNotificationType (with optional entityId
   });
 
   describe("Edge cases", () => {
-    it("Should handle entityId without trailing slash when not provided", async () => {
-      const res = await makeRequest("eserviceCatalog");
+    it("Should handle redirectUrl without trailing slash when entityId is not provided", async () => {
+      const selfcareId = generateId();
+      const res = await makeRequest("eserviceCatalog", { selfcareId });
       expect(res.status).toBe(302);
-      // Check for double slashes in path (exclude protocol "://")
-      const urlPath = new URL(res.headers.location).pathname;
-      expect(urlPath).not.toContain("//");
-      expect(res.headers.location).not.toMatch(/\/$/);
+
+      const location = new URL(res.headers.location);
+      const redirectUrl = location.searchParams.get("redirectUrl");
+      expect(redirectUrl).not.toMatch(/\/$/);
     });
 
     it("Should handle special characters in entityId correctly", async () => {
       const entityId = generateId();
-      const res = await makeRequest("eserviceCatalog", entityId);
+      const selfcareId = generateId();
+      const res = await makeRequest("eserviceCatalog", {
+        entityId,
+        selfcareId,
+      });
       expect(res.status).toBe(302);
-      expect(res.headers.location).toContain(entityId);
+
+      const location = new URL(res.headers.location);
+      expect(location.searchParams.get("redirectUrl")).toContain(entityId);
     });
   });
 });

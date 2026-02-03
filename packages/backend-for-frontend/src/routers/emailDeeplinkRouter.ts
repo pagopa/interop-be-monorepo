@@ -20,6 +20,26 @@ import {
   notificationTypeToUiSection,
 } from "../model/modelMappingUtils.js";
 
+/**
+ * Builds the token-exchange URL for selfcare authentication.
+ * Returns null if selfcareId is not provided.
+ */
+function buildTokenExchangeUrl(
+  selfcareId: string | undefined,
+  redirectPath: string
+): string | null {
+  if (!selfcareId) {
+    return null;
+  }
+
+  const selfcareUrl = new URL("/token-exchange", config.frontendBaseUrl);
+  selfcareUrl.searchParams.set("institutionId", selfcareId);
+  selfcareUrl.searchParams.set("productId", config.selfcareProductName);
+  selfcareUrl.searchParams.set("redirectUrl", redirectPath);
+
+  return selfcareUrl.href;
+}
+
 const emailDeeplinkRouters = (
   ctx: ZodiosContext
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
@@ -32,21 +52,13 @@ const emailDeeplinkRouters = (
       const notificationType = NotificationType.parse(
         req.params.notificationType
       );
-      const selfcareId = req.query.selfcareId;
-
       const redirectPath = `${notificationTypeToUiSection[notificationType]}/${req.params.entityId}`;
+      const redirectUrl = buildTokenExchangeUrl(
+        req.query.selfcareId,
+        redirectPath
+      );
 
-      // Fallback: if no selfcareId, redirect to generic frontend URL
-      if (!selfcareId) {
-        return res.redirect(config.frontendBaseUrl);
-      }
-
-      const selfcareUrl = new URL("/token-exchange", config.frontendBaseUrl);
-      selfcareUrl.searchParams.set("institutionId", selfcareId);
-      selfcareUrl.searchParams.set("productId", config.selfcareProductName);
-      selfcareUrl.searchParams.set("redirectUrl", redirectPath);
-
-      return res.redirect(selfcareUrl.href);
+      return res.redirect(redirectUrl ?? config.frontendBaseUrl);
     }
   );
 
@@ -60,8 +72,7 @@ const emailDeeplinkRouters = (
     "/emailDeepLink/:digestNotificationType",
     async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
-      // query param and not path param because it is optional
-      const { entityId } = req.query;
+      const { entityId, selfcareId } = req.query;
 
       try {
         const parseResult = DigestNotificationType.safeParse(
@@ -73,11 +84,11 @@ const emailDeeplinkRouters = (
           );
         }
         const notificationType = parseResult.data;
-        const path = entityId
-          ? `${digestNotificationTypeToUiSection[notificationType]}/${entityId}`
-          : digestNotificationTypeToUiSection[notificationType];
-        const url = new URL(`${config.frontendBaseUrl}${path}`);
-        return res.redirect(url.href);
+        const section = digestNotificationTypeToUiSection[notificationType];
+        const redirectPath = entityId ? `${section}/${entityId}` : section;
+        const redirectUrl = buildTokenExchangeUrl(selfcareId, redirectPath);
+
+        return res.redirect(redirectUrl ?? config.frontendBaseUrl);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

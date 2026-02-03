@@ -65,6 +65,11 @@ export type DigestUser = {
   userRoles: UserRole[];
 };
 
+export type TenantData = {
+  name: string;
+  selfcareId: string | null;
+};
+
 export type NewEservice = {
   eserviceId: EServiceId;
   eserviceDescriptorId: DescriptorId;
@@ -346,7 +351,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
   // Request-scoped caches to avoid duplicate DB lookups for the same IDs
   // These caches live for the lifetime of the service instance (job duration)
-  const tenantNameCache = new Map<TenantId, string>();
+  const tenantDataCache = new Map<TenantId, TenantData>();
   const eserviceNameCache = new Map<EServiceId, string>();
 
   return {
@@ -1094,20 +1099,21 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Retrieves tenant names by their IDs in batch.
+     * Retrieves tenant data (name and selfcareId) by their IDs in batch.
      * Uses request-scoped caching to avoid duplicate lookups.
      */
     async getTenantsByIds(
       tenantIds: TenantId[]
-    ): Promise<Map<TenantId, string>> {
+    ): Promise<Map<TenantId, TenantData>> {
       return getCachedEntities(
         tenantIds,
-        tenantNameCache,
+        tenantDataCache,
         async (uncachedIds) => {
           const tenants = await db
             .select({
               id: tenantInReadmodelTenant.id,
               name: tenantInReadmodelTenant.name,
+              selfcareId: tenantInReadmodelTenant.selfcareId,
             })
             .from(tenantInReadmodelTenant)
             .where(inArray(tenantInReadmodelTenant.id, uncachedIds));
@@ -1115,12 +1121,12 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           return new Map(
             tenants.map((tenant) => [
               unsafeBrandId<TenantId>(tenant.id),
-              tenant.name,
+              { name: tenant.name, selfcareId: tenant.selfcareId },
             ])
           );
         },
         logger,
-        "tenants"
+        "tenant data"
       );
     },
 

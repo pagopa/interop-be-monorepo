@@ -2,34 +2,67 @@ import { config } from "../config/config.js";
 
 const { bffUrl } = config;
 
+const DEEPLINK_BASE_PATH = "/emailDeepLink";
+
+/**
+ * Builds a deeplink URL with optional query parameters.
+ */
+function buildDeeplinkUrl(
+  notificationType: string,
+  params?: { entityId?: string; selfcareId?: string | null }
+): string {
+  const url = new URL(`${DEEPLINK_BASE_PATH}/${notificationType}`, bffUrl);
+
+  if (params?.entityId) {
+    url.searchParams.set("entityId", params.entityId);
+  }
+  if (params?.selfcareId) {
+    url.searchParams.set("selfcareId", params.selfcareId);
+  }
+
+  return url.href;
+}
+
 /**
  * Builds a link for an e-service item.
  */
 export function buildEserviceLink(
   eserviceId: string,
-  descriptorId: string
+  descriptorId: string,
+  selfcareId: string | null
 ): string {
-  return `${bffUrl}/emailDeepLink/eserviceCatalog?entityId=${eserviceId}/${descriptorId}`;
+  return buildDeeplinkUrl("eserviceCatalog", {
+    entityId: `${eserviceId}/${descriptorId}`,
+    selfcareId,
+  });
 }
 
 /**
- * Builds a link for an e-service template item.
+ * Builds a link for an e-service template item (for instantiator).
  */
 export function buildEserviceTemplateLinkToInstantiator(
   eserviceTemplateId: string,
-  eserviceTemplateVersionId: string
+  eserviceTemplateVersionId: string,
+  selfcareId: string | null
 ): string {
-  return `${bffUrl}/emailDeepLink/eserviceTemplateToInstantiator?entityId=${eserviceTemplateId}/${eserviceTemplateVersionId}`;
+  return buildDeeplinkUrl("eserviceTemplateToInstantiator", {
+    entityId: `${eserviceTemplateId}/${eserviceTemplateVersionId}`,
+    selfcareId,
+  });
 }
 
 /**
- * Builds a link for an e-service template item.
+ * Builds a link for an e-service template item (for creator).
  */
 export function buildEserviceTemplateLinkToCreator(
   eserviceTemplateId: string,
-  eserviceTemplateVersionId: string
+  eserviceTemplateVersionId: string,
+  selfcareId: string | null
 ): string {
-  return `${bffUrl}/emailDeepLink/eserviceTemplateToCreator?entityId=${eserviceTemplateId}/${eserviceTemplateVersionId}`;
+  return buildDeeplinkUrl("eserviceTemplateToCreator", {
+    entityId: `${eserviceTemplateId}/${eserviceTemplateVersionId}`,
+    selfcareId,
+  });
 }
 
 /**
@@ -39,12 +72,16 @@ export function buildEserviceTemplateLinkToCreator(
  */
 export function buildAgreementLink(
   agreementId: string,
-  isProducerView: boolean
+  isProducerView: boolean,
+  selfcareId: string | null
 ): string {
   const notificationType = isProducerView
     ? "agreementToProducer"
     : "agreementToConsumer";
-  return `${bffUrl}/emailDeepLink/${notificationType}?entityId=${agreementId}`;
+  return buildDeeplinkUrl(notificationType, {
+    entityId: agreementId,
+    selfcareId,
+  });
 }
 
 /**
@@ -54,24 +91,76 @@ export function buildAgreementLink(
  */
 export function buildPurposeLink(
   purposeId: string,
-  isProducerView: boolean
+  isProducerView: boolean,
+  selfcareId: string | null
 ): string {
   const notificationType = isProducerView
     ? "purposeToProducer"
     : "purposeToConsumer";
-  return `${bffUrl}/emailDeepLink/${notificationType}?entityId=${purposeId}`;
+  return buildDeeplinkUrl(notificationType, {
+    entityId: purposeId,
+    selfcareId,
+  });
 }
 
-// "View all" links for digest email sections
-export const viewAllNewEservicesLink = `${bffUrl}/emailDeepLink/eserviceCatalog`;
-export const viewAllUpdatedEservicesLink = `${bffUrl}/emailDeepLink/eserviceCatalog`;
-export const viewAllSentAgreementsLink = `${bffUrl}/emailDeepLink/agreementToConsumer`;
-export const viewAllSentPurposesLink = `${bffUrl}/emailDeepLink/purposeToConsumer`;
-export const viewAllReceivedAgreementsLink = `${bffUrl}/emailDeepLink/agreementToProducer`;
-export const viewAllReceivedPurposesLink = `${bffUrl}/emailDeepLink/purposeToProducer`;
-export const viewAllSentDelegationsLink = `${bffUrl}/emailDeepLink/delegationToDelegator`;
-export const viewAllReceivedDelegationsLink = `${bffUrl}/emailDeepLink/delegationToDelegate`;
-export const viewAllAttributesLink = `${bffUrl}/emailDeepLink/attribute`;
-export const viewAllUpdatedEserviceTemplatesLink = `${bffUrl}/emailDeepLink/eserviceTemplateToCreator`;
-export const viewAllPopularEserviceTemplatesLink = `${bffUrl}/emailDeepLink/eserviceTemplateToInstantiator`;
-export const notificationSettingsLink = `${bffUrl}/emailDeepLink/notificationSettings`;
+/**
+ * Builds a link for a delegation item.
+ */
+export function buildDelegationLink(selfcareId: string | null): string {
+  return buildDeeplinkUrl("delegation", { selfcareId });
+}
+
+// "View all" link builders for digest email sections
+export function viewAllNewUpdatedEservicesLink(
+  selfcareId: string | null
+): string {
+  return buildDeeplinkUrl("eserviceCatalog", { selfcareId });
+}
+
+export function viewAllSentAgreementsLink(selfcareId: string | null): string {
+  return buildDeeplinkUrl("agreementToConsumer", { selfcareId });
+}
+
+export function viewAllSentPurposesLink(selfcareId: string | null): string {
+  return buildDeeplinkUrl("purposeToConsumer", { selfcareId });
+}
+
+export function viewAllReceivedAgreementsLink(
+  selfcareId: string | null
+): string {
+  return buildDeeplinkUrl("agreementToProducer", { selfcareId });
+}
+
+export function viewAllReceivedPurposesLink(selfcareId: string | null): string {
+  return buildDeeplinkUrl("purposeToProducer", { selfcareId });
+}
+
+export function viewAllSentDelegationsLink(selfcareId: string | null): string {
+  return buildDeeplinkUrl("delegationToDelegator", { selfcareId });
+}
+
+export function viewAllReceivedDelegationsLink(
+  selfcareId: string | null
+): string {
+  return buildDeeplinkUrl("delegationToDelegate", { selfcareId });
+}
+
+export function viewAllAttributesLink(selfcareId: string | null): string {
+  return buildDeeplinkUrl("attribute", { selfcareId });
+}
+
+export function viewAllUpdatedEserviceTemplatesLink(
+  selfcareId: string | null
+): string {
+  return buildDeeplinkUrl("eserviceTemplateToCreator", { selfcareId });
+}
+
+export function viewAllPopularEserviceTemplatesLink(
+  selfcareId: string | null
+): string {
+  return buildDeeplinkUrl("eserviceTemplateToInstantiator", { selfcareId });
+}
+
+export function notificationSettingsLink(selfcareId: string | null): string {
+  return buildDeeplinkUrl("notificationSettings", { selfcareId });
+}
