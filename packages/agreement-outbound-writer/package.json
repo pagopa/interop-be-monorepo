@@ -11,7 +11,8 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "devDependencies": {
