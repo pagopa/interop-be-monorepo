@@ -4,9 +4,9 @@ import {
   deleteDynamoDBTables,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { DPoPProof } from "pagopa-interop-models";
+import { algorithm, DPoPProof } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { dateToSeconds } from "pagopa-interop-commons";
+import { calculateThumbprint, dateToSeconds } from "pagopa-interop-commons";
 import {
   checkDPoPCache,
   verifyDPoPProof,
@@ -480,18 +480,21 @@ describe("DPoP validation tests", async () => {
     const validThumbprint = "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs";
 
     it("should succeed if the DPoP proof JWK thumbprint matches the access token binding (jkt)", async () => {
-      const { dpopProofJWT } = await getMockDPoPProof();
-
-      const { errors } = verifyDPoPThumbprintMatch(
-        dpopProofJWT,
-        validThumbprint
+      const { dpopProofJWT } = await getMockDPoPProof(
+        undefined,
+        algorithm.RS256
       );
+      const expectedJkt = calculateThumbprint(dpopProofJWT.header.jwk);
+      const { errors } = verifyDPoPThumbprintMatch(dpopProofJWT, expectedJkt);
 
       expect(errors).toBeUndefined();
     });
 
     it("should add error if the DPoP proof JWK thumbprint does NOT match the access token binding", async () => {
-      const { dpopProofJWT } = await getMockDPoPProof();
+      const { dpopProofJWT } = await getMockDPoPProof(
+        undefined,
+        algorithm.RS256
+      );
       const mismatchThumbprint = "invalid-thumbprint-hash";
 
       const { errors } = verifyDPoPThumbprintMatch(

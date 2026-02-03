@@ -60,13 +60,6 @@ const verifyAccessTokenIsDPoP = (
   return result.data;
 };
 
-/** 
-export const isAccessTokenDPoPBound = (
-  input: JwtPayload | string
-): input is JwtPayload & typeof CNF =>
-  typeof input !== "string" && input.cnf !== undefined && input.cnf !== null;
- */
-
 /**
  * Verifies the cryptographic integrity and standard claims (exp, aud) of a JWT Access Token.
  *

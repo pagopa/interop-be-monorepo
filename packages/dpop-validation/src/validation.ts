@@ -234,11 +234,16 @@ export const verifyDPoPThumbprintMatch = (
 ): ValidationResult<true> => {
   const { errors } = validateJWK(dpopProofJWT.header.jwk);
   if (errors) {
+    return failedValidation([errors]);
+  }
+  try {
+    const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
+    if (proofJkt !== accessTokenJkt) {
+      return failedValidation([dpopTokenBindingMismatch()]);
+    }
+
+    return successfulValidation(true);
+  } catch (error) {
     return failedValidation([dpopJwkNotFound()]);
   }
-  const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
-  if (proofJkt !== accessTokenJkt) {
-    return failedValidation([dpopTokenBindingMismatch()]);
-  }
-  return successfulValidation(true);
 };
