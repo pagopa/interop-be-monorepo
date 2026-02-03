@@ -17,7 +17,7 @@ export const processUserWithTenantData = async (
   trackingService: DigestTrackingService,
   emailProducerService: EmailProducerService,
   correlationId: CorrelationId,
-  digestFrequencyDays: number
+  digestFrequencyHours: number
   // eslint-disable-next-line max-params
 ): Promise<ProcessResult> => {
   try {
@@ -28,12 +28,12 @@ export const processUserWithTenantData = async (
     const hasReceivedRecently = await trackingService.hasReceivedDigestRecently(
       user.userId,
       user.tenantId,
-      digestFrequencyDays
+      digestFrequencyHours
     );
 
     if (hasReceivedRecently) {
       log.info(
-        `User ${user.userId} already received digest in last ${digestFrequencyDays} days, skipping`
+        `User ${user.userId} already received digest in last ${digestFrequencyHours} hours, skipping`
       );
       return "skipped";
     }
