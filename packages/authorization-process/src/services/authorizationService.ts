@@ -618,20 +618,28 @@ export function authorizationServiceBuilder(
       });
 
       const uniqueUserIds = Array.from(new Set(userIds));
+      const updatedClient: Client = {
+        ...client.data,
+      };
 
-      await repository.createEvents(
+      const createdEvents = await repository.createEvents(
         uniqueUserIds.map((userId, index) => {
           // eslint-disable-next-line functional/immutable-data
-          client.data.users.push(userId);
+          updatedClient.users.push(userId);
           return toCreateEventClientUserAdded(
             userId,
-            client.data,
+            updatedClient,
             client.metadata.version + index,
             correlationId
           );
         })
       );
-      return client;
+      return {
+        data: updatedClient,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(updatedClient.id) ?? 0,
+        },
+      };
     },
     async setAdminToClient(
       {
