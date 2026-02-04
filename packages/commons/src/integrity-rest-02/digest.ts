@@ -14,8 +14,12 @@ export type JsonSpaces = number | string | undefined;
  * The string is then hashed using SHA-256.
  *
  * @param body - The body to calculate the digest from.
- * @param replacer - A function that is called for each property of the object. (optional)
- * @param spaces - A string or number that is used to insert white space into the output JSON string for readability purposes. (optional)
+ * @param replacer - A function that is called for each property of the object.
+ * It is the same type as the replacer argument of `JSON.stringify`, and can be found in an Express app object
+ * under the `app.get("json replacer")` property. This parameter is optional.
+ * @param spaces - A string or number that is used to insert white space into the output JSON string for readability purposes.
+ * It is the same type as the spaces argument of `JSON.stringify`, and can be found in an Express app object
+ * under the `app.get("json spaces")` property. This parameter is optional.
  * @returns The digest of the body.
  */
 export function calculateIntegrityRest02DigestFromBody({
