@@ -18,22 +18,12 @@ export type UserService = ReturnType<typeof userServiceBuilder>;
 export async function getSelfcareUserById(
   clients: PagoPAInteropBeClients,
   userId: string,
-  {
-    headers,
-    authData,
-    correlationId,
-  }: WithLogger<M2MGatewayAppContext<M2MAdminAuthData>>
+  selfcareId: string,
+  correlationId: string
 ): Promise<m2mGatewayApiV3.User> {
-  const { data: tenant } = await clients.tenantProcessClient.tenant.getTenant({
-    params: { id: authData.organizationId },
-    headers,
-  });
-
-  assertTenantHasSelfcareId(tenant);
-
   const user = await clients.selfcareProcessClient.user.getUserInfoUsingGET({
     params: { id: userId },
-    queries: { institutionId: tenant.selfcareId },
+    queries: { institutionId: selfcareId },
     headers: {
       "X-Correlation-Id": correlationId,
     },
