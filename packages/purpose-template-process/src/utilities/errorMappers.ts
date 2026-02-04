@@ -71,13 +71,16 @@ export const linkEservicesToPurposeTemplateErrorMapper = (
       "tooManyEServicesForPurposeTemplate",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeTemplateNotFound",
+      "tenantNotAllowed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with(
       "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
       "purposeTemplateNotInExpectedStates",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const unlinkEServicesFromPurposeTemplateErrorMapper = (
