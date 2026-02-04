@@ -32,7 +32,7 @@ export function digestTrackingServiceBuilder(
       const record: DigestEmailSentInsert = {
         userId,
         tenantId,
-        sentAt: new Date(),
+        latestSentAt: new Date(),
       };
 
       await db
@@ -40,7 +40,7 @@ export function digestTrackingServiceBuilder(
         .values(record)
         .onConflictDoUpdate({
           target: [digestEmailSent.userId, digestEmailSent.tenantId],
-          set: { sentAt: new Date() },
+          set: { latestSentAt: new Date() },
         });
     },
 
@@ -53,13 +53,13 @@ export function digestTrackingServiceBuilder(
       cutoffDate.setHours(cutoffDate.getHours() - hours);
 
       const result = await db
-        .select({ sentAt: digestEmailSent.sentAt })
+        .select({ latestSentAt: digestEmailSent.latestSentAt })
         .from(digestEmailSent)
         .where(
           and(
             eq(digestEmailSent.userId, userId),
             eq(digestEmailSent.tenantId, tenantId),
-            gte(digestEmailSent.sentAt, cutoffDate)
+            gte(digestEmailSent.latestSentAt, cutoffDate)
           )
         )
         .limit(1);

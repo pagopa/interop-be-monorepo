@@ -7,7 +7,7 @@ export const digestEmailSent = digestTrackingSchema.table(
   {
     userId: uuid("user_id").notNull(),
     tenantId: uuid("tenant_id").notNull(),
-    sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
+    latestSentAt: timestamp("latest_sent_at", { withTimezone: true }).notNull(),
   },
   (table) => [primaryKey({ columns: [table.userId, table.tenantId] })]
 );
