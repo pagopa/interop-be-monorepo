@@ -73,7 +73,7 @@ describe("rejectProducerDelegation", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mDelegationResponse);
+    expect(result).toStrictEqual(m2mDelegationResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.delegationProcessClient.producer

@@ -227,7 +227,7 @@ export function multipleDPoPProofsError(): ApiError<ErrorCodes> {
 
 export function dpopTokenBindingMismatch(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `The DPoP proof public key hash does not match the access token binding (cnf))}`,
+    detail: `The DPoP proof public key hash does not match the access token binding (cnf)}`,
     code: "dpopTokenBindingMismatch",
     title: "DPoP Token Binding Mismatch",
   });
