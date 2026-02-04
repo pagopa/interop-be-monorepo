@@ -96,7 +96,7 @@ describe("getCertifiedAttributes integration", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAttributesResponse);
+    expect(result).toStrictEqual(m2mAttributesResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.attributeProcessClient.getAttributes,
       queries: {
@@ -133,7 +133,7 @@ describe("getCertifiedAttributes integration", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result1).toEqual(m2mCertifiedAttributesResponse1);
+    expect(result1).toStrictEqual(m2mCertifiedAttributesResponse1);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.attributeProcessClient.getAttributes,
       queries: {
@@ -168,7 +168,7 @@ describe("getCertifiedAttributes integration", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result2).toEqual(m2mCertifiedAttributesResponse2);
+    expect(result2).toStrictEqual(m2mCertifiedAttributesResponse2);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.attributeProcessClient.getAttributes,
       queries: {
@@ -205,7 +205,7 @@ describe("getCertifiedAttributes integration", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEmptyResponse);
+    expect(result).toStrictEqual(m2mEmptyResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.attributeProcessClient.getAttributes,
       queries: {
