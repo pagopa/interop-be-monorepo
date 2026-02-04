@@ -406,7 +406,7 @@ export function authorizationServiceBuilder(
         correlationId,
         authData,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<void> {
+    ): Promise<WithMetadata<Client>> {
       logger.info(`Removing user ${userIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
@@ -421,7 +421,7 @@ export function authorizationServiceBuilder(
         users: client.data.users.filter((userId) => userId !== userIdToRemove),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventClientUserDeleted(
           updatedClient,
           userIdToRemove,
@@ -429,6 +429,12 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: updatedClient,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async deleteClientKeyById(
       {

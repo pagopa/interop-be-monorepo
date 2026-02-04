@@ -77,12 +77,6 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       retrieveClientKeyById(clientId, keyId, headers)
     )({});
 
-  const pollClientUntilDeletion = (
-    clientId: ClientId,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<void> =>
-    pollResourceUntilDeletion(() => retrieveClientById(clientId, headers))({});
-
   return {
     async getClientAdminId(
       clientId: ClientId,
@@ -386,12 +380,15 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
 
-      await clients.authorizationClient.client.removeUser(undefined, {
-        params: { clientId, userId },
-        headers,
-      });
+      const response = await clients.authorizationClient.client.removeUser(
+        undefined,
+        {
+          params: { clientId, userId },
+          headers,
+        }
+      );
 
-      await pollClientUntilDeletion(clientId, headers);
+      await pollClient(response, headers);
     },
   };
 }
