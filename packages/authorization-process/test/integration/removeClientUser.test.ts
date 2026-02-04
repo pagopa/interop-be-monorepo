@@ -62,7 +62,7 @@ describe("remove client user", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedClient = {
+    const expectedClient: Client = {
       ...mockClient,
       users: [userIdToNotRemove],
     };

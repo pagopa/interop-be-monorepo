@@ -9439,14 +9439,16 @@ paths:
           format: uuid
       - name: userId
         in: path
-        description: The identifier of the user between the security user and the consumer
+        description: The ID of the User to unlink from the Client
         required: true
         schema:
           type: string
           format: uuid
     delete:
       summary: Remove a user from a Client
-      description: Removes a user from a Client
+      description: |
+        Dissociates a Client from a User. 
+        The caller must be the legitimate Client consumer to perform this action.
       operationId: removeClientUser
       tags:
         - clients
