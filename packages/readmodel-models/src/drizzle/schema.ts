@@ -1571,6 +1571,7 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
+      dailyCalls: integer("daily_calls"),
     },
     (table) => [
       foreignKey({

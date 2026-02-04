@@ -131,6 +131,7 @@ const templateAttributeToTemplateAttributeSQL = ({
   explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind,
   groupId,
+  dailyCalls: attribute.dailyCalls ?? null,
 });
 
 const templateAttributesNestedArrayToTemplateAttributeSQLarray = (
