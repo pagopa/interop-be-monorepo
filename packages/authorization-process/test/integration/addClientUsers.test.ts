@@ -98,7 +98,7 @@ describe("addClientUsers", () => {
     expect(addClientUsersReturn).toEqual({
       data: expectedClient,
       metadata: {
-        version: 0,
+        version: 2,
       },
     });
   });

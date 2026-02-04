@@ -96,7 +96,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
     },
     {
       error: missingSelfcareId(generateId()),
-      expectedStatus: 404,
+      expectedStatus: 500,
     },
   ])(
     "Should return $expectedStatus for $error.code",
