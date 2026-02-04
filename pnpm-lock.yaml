@@ -1021,8 +1021,8 @@ importers:
         specifier: 4.20.0
         version: 4.20.0
       fast-xml-parser:
-        specifier: 4.4.1
-        version: 4.4.1
+        specifier: 5.3.4
+        version: 5.3.4
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
         version: link:../agreement-lifecycle
@@ -1609,8 +1609,8 @@ importers:
         specifier: 4.20.0
         version: 4.20.0
       fast-xml-parser:
-        specifier: 4.4.1
-        version: 4.4.1
+        specifier: 5.3.4
+        version: 5.3.4
       handlebars:
         specifier: 4.7.8
         version: 4.7.8
@@ -3810,8 +3810,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       qs:
-        specifier: 6.12.3
-        version: 6.12.3
+        specifier: 6.14.1
+        version: 6.14.1
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -9179,6 +9179,10 @@ packages:
     resolution: {integrity: sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==}
     hasBin: true
 
+  fast-xml-parser@5.3.4:
+    resolution: {integrity: sha512-EFd6afGmXlCx8H8WTZHhAoDaWaGyuIBoZJ2mknrNxug+aZKjkp0a0dlars9Izl+jF+7Gu1/5f/2h68cQpe0IiA==}
+    hasBin: true
+
   fastq@1.17.1:
     resolution: {integrity: sha512-sRVD3lWVIXWg6By68ZN7vho9a1pQcN/WBFaAAsDDFzlJjvoGx0P8z7V1t72grFJfJhu3YPZBuu25f7Kaw2jN1w==}
 
@@ -10501,10 +10505,6 @@ packages:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
     engines: {node: '>=0.6'}
 
-  qs@6.12.3:
-    resolution: {integrity: sha512-AWJm14H1vVaO/iNZ4/hO+HyaTehuy9nRqVdkTqlJt0HWvBiBIEXFmb4C0DGeYo3Xes9rrEW+TxHsaigCbN5ICQ==}
-    engines: {node: '>=0.6'}
-
   qs@6.13.0:
     resolution: {integrity: sha512-+38qI9SOr8tfZ4QmJNplMUxqjbe7LKvvZgWdExBOmd+egZTtjLB67Gu0HRX3u/XOq7UU2Nx6nsjvS16Z9uwfpg==}
     engines: {node: '>=0.6'}
@@ -10928,6 +10928,9 @@ packages:
 
   strnum@1.0.5:
     resolution: {integrity: sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==}
+
+  strnum@2.1.2:
+    resolution: {integrity: sha512-l63NF9y/cLROq/yqKXSLtcMeeyOfnSQlfMSlzFt/K73oIaD8DGaQWd7Z34X9GPiKqP5rbSh84Hl4bOlLcjiSrQ==}
 
   subarg@1.0.0:
     resolution: {integrity: sha512-RIrIdRY0X1xojthNcVtgT9sjpOGagEUKpZdgBUi054OEPFo282yg+zE+t1Rj3+RqKq2xStL7uUHhY+AjbC4BXg==}
@@ -17046,6 +17049,10 @@ snapshots:
     dependencies:
       strnum: 1.0.5
 
+  fast-xml-parser@5.3.4:
+    dependencies:
+      strnum: 2.1.2
+
   fastq@1.17.1:
     dependencies:
       reusify: 1.0.4
@@ -18434,10 +18441,6 @@ snapshots:
     dependencies:
       side-channel: 1.1.0
 
-  qs@6.12.3:
-    dependencies:
-      side-channel: 1.1.0
-
   qs@6.13.0:
     dependencies:
       side-channel: 1.1.0
@@ -18983,6 +18986,8 @@ snapshots:
   strip-json-comments@5.0.3: {}
 
   strnum@1.0.5: {}
+
+  strnum@2.1.2: {}
 
   subarg@1.0.0:
     dependencies:

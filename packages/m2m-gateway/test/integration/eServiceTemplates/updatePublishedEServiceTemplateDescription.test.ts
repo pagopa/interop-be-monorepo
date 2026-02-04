@@ -69,7 +69,7 @@ describe("updatePublishedEServiceTemplateDescription", () => {
       personalData: mockEServiceTemplateProcessGetResponse.data.personalData,
     };
 
-    expect(result).toEqual(expectedM2MEServiceTemplate);
+    expect(result).toStrictEqual(expectedM2MEServiceTemplate);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

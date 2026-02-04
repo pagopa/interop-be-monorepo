@@ -78,7 +78,7 @@ describe("createEServiceRiskAnalysis", () => {
         ),
       },
     };
-    expect(result).toEqual(expectedRiskAnalysis);
+    expect(result).toStrictEqual(expectedRiskAnalysis);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.createRiskAnalysis,
       body: mockRiskAnalysisSeed,
