@@ -68,7 +68,7 @@ describe("API /purposeTemplates/{id}", () => {
     },
     {
       error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
+      expectedStatus: 404,
     },
     {
       error: purposeTemplateRiskAnalysisFormNotFound(generateId()),

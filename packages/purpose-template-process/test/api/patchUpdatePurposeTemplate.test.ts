@@ -182,7 +182,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     },
     {
       error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_FORBIDDEN,
+      expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
       error: purposeTemplateNotFound(generateId()),

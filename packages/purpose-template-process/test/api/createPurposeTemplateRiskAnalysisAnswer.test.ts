@@ -216,7 +216,7 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
     },
     {
       error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_FORBIDDEN,
+      expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
       error: hyperlinkDetectionError("Invalid hyperlink in answer"),

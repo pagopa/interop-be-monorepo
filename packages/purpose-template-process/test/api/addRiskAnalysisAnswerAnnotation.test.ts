@@ -181,7 +181,7 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
     },
     {
       error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_FORBIDDEN,
+      expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
       error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId),

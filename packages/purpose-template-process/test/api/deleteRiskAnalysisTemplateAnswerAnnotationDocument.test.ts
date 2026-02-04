@@ -120,7 +120,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     },
     {
       error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
+      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",

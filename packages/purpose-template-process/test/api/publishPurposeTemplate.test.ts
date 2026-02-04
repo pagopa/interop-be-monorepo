@@ -83,7 +83,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       ),
       expectedStatus: 409,
     },
-    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
+    { error: tenantNotAllowed(generateId()), expectedStatus: 404 },
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
