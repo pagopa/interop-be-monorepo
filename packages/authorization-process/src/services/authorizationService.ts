@@ -589,11 +589,10 @@ export function authorizationServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Client> {
+    ): Promise<WithMetadata<Client>> {
       logger.info(`Binding client ${clientId} with user ${userIds.join(",")}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData, client.data);
-
       const selfcareId = isUiAuthData(authData)
         ? authData.selfcareId
         : await getSelfcareIdFromAuthData(authData, readModelService);
@@ -619,24 +618,20 @@ export function authorizationServiceBuilder(
       });
 
       const uniqueUserIds = Array.from(new Set(userIds));
-      const updatedClient: Client = {
-        ...client.data,
-      };
 
       await repository.createEvents(
         uniqueUserIds.map((userId, index) => {
           // eslint-disable-next-line functional/immutable-data
-          updatedClient.users.push(userId);
+          client.data.users.push(userId);
           return toCreateEventClientUserAdded(
             userId,
-            updatedClient,
+            client.data,
             client.metadata.version + index,
             correlationId
           );
         })
       );
-
-      return updatedClient;
+      return client;
     },
     async setAdminToClient(
       {
