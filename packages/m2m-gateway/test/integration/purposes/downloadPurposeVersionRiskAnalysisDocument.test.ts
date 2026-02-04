@@ -79,7 +79,7 @@ On multiple lines.`;
           genericLogger
         )
       ).at(0)
-    ).toEqual(mockPurposeVersionDocument.path);
+    ).toStrictEqual(mockPurposeVersionDocument.path);
 
     const result =
       await purposeService.downloadPurposeVersionRiskAnalysisDocument(
