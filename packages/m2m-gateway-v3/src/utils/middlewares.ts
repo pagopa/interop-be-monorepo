@@ -156,6 +156,7 @@ export const authenticationDPoPMiddleware: (
               "dpopProofValidationFailed",
               "dpopProofSignatureValidationFailed",
               "dpopProofJtiAlreadyUsed",
+              "dpopTokenBindingFailed",
               () => 401
             )
             .with("operationForbidden", () => 403)

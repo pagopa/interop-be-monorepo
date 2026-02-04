@@ -11,15 +11,17 @@ import {
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
   dpopProofJtiAlreadyUsed,
+  dpopTokenBindingFailed,
 } from "../model/errors.js";
 
 /**
  * Orchestrates the complete validation workflow for a DPoP (Demonstration of Proof-of-Possession) request.
  *
  * This function ensures compliance with RFC 9449 by performing the following checks in order:
- * 1. **Syntax & Crypto**: Validates the DPoP Proof structure, signature, and standard claims (htm, htu, iat).
- * 2. **Replay Protection**: Checks against DynamoDB to ensure the JTI (Unique ID) has not been used recently.
+ * 1. **Syntax Validation**: Validates the DPoP Proof structure and standard claims (htm, htu, iat).
+ * 2. **Signature Verification**: Verifies the cryptographic signature of the JWS.
  * 3. **Key Binding**: Verifies that the public key in the DPoP Proof matches the `cnf` claim bound to the Access Token.
+ * 4. **Replay Protection**: Checks against DynamoDB to ensure the JTI (Unique ID) has not been used recently.
  *
  * @param params - The input parameters object.
  * @param params.config - Configuration object containing DPoP settings (cache table name, duration, tolerance).
@@ -33,9 +35,12 @@ import {
  *
  * @returns A Promise that resolves to the parsed and validated `DPoPProof` object.
  *
- * @throws {dpopProofValidationFailed} If the Proof is missing, malformed, expired, has mismatched HTM/HTU, or fails Key Binding (RFC: invalid_dpop_proof).
- * @throws {dpopProofSignatureValidationFailed} If the cryptographic signature verification fails (RFC: invalid_token).
+ * @throws {dpopProofValidationFailed} If the Proof is missing, malformed, expired, or has mismatched HTM/HTU (RFC: invalid_dpop_proof).
+ * @throws {dpopProofSignatureValidationFailed} If the cryptographic signature verification fails (RFC: invalid_dpop_proof).
+ * @throws {dpopTokenBindingFailed} If the DPoP public key hash does not match the Access Token's `cnf` claim (RFC: invalid_token).
  * @throws {dpopProofJtiAlreadyUsed} If the JTI has been used previously within the validity window (Replay Attack) (RFC: invalid_dpop_proof).
+ *
+ * NB: every function is tested separately in dpop-validation package; this function mainly orchestrates the calls and error handling.
  */
 export const verifyDPoPCompliance = async ({
   config,
@@ -57,75 +62,11 @@ export const verifyDPoPCompliance = async ({
   logger: Logger;
 }): Promise<DPoPProof> => {
   // ----------------------------------------------------------------------
-  // Step 1: Parsing & Signature Validation (Static & Crypto)
+  // Step 1: Parsing & Syntax Validation
   // ----------------------------------------------------------------------
-  const { dpopProofJWT } = await validateDPoPProof(
-    config,
-    dpopProofJWS,
-    accessTokenClientId,
-    expectedHtu,
-    expectedHtm,
-    logger
-  );
-
-  if (!dpopProofJWT) {
-    throw dpopProofValidationFailed(
-      accessTokenClientId,
-      "DPoP Proof missing or invalid"
-    );
-  }
-
-  // ----------------------------------------------------------------------
-  // Step 2: Replay Attack Protection (JTI Cache)
-  // ----------------------------------------------------------------------
-  const { errors: dpopCacheErrors } = await checkDPoPCache({
-    dynamoDBClient,
-    dpopProofJti: dpopProofJWT.payload.jti,
-    dpopProofIat: dpopProofJWT.payload.iat,
-    dpopCacheTable: config.dpopCacheTable,
-    dpopProofDurationSeconds: config.dpopDurationSeconds,
-  });
-
-  if (dpopCacheErrors) {
-    throw dpopProofJtiAlreadyUsed(dpopProofJWT.payload.jti);
-  }
-
-  // ----------------------------------------------------------------------
-  // Step 3: Key Binding Verification (Thumbprint Match)
-  // ----------------------------------------------------------------------
-  const { errors: bindingErrors } = verifyDPoPThumbprintMatch(
-    dpopProofJWT,
-    accessTokenThumbprint
-  );
-
-  if (bindingErrors) {
-    const errorDetails = bindingErrors.map((e) => e.detail).join(", ");
-    logger.warn(`DPoP Key Binding failed: ${errorDetails}`);
-    throw dpopProofValidationFailed(accessTokenClientId, errorDetails);
-  }
-
-  return dpopProofJWT;
-};
-
-/**
- * Internal helper to validate DPoP Proof syntax, standard claims, and signature.
- * Note: Logic duplicated from 'tokenService.ts'. Consider centralization.
- */
-const validateDPoPProof = async (
-  config: JWTConfig & DPoPConfig,
-  dpopProofHeader: string | undefined,
-  clientId: string | undefined,
-  expectedHtu: string,
-  expectedHtm: string,
-  logger: Logger
-): Promise<{
-  dpopProofJWS: string | undefined;
-  dpopProofJWT: DPoPProof | undefined;
-  // eslint-disable-next-line max-params
-}> => {
-  const { data, errors: dpopProofErrors } = dpopProofHeader
+  const { data, errors: dpopProofErrors } = dpopProofJWS
     ? verifyDPoPProof({
-        dpopProofJWS: dpopProofHeader,
+        dpopProofJWS,
         expectedDPoPProofHtu: expectedHtu,
         expectedDPoPProofHtm: expectedHtm,
         dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
@@ -135,29 +76,66 @@ const validateDPoPProof = async (
 
   if (dpopProofErrors) {
     throw dpopProofValidationFailed(
-      clientId,
+      accessTokenClientId,
       dpopProofErrors.map((error) => error.detail).join(", ")
     );
   }
 
-  const dpopProofJWT = data?.dpopProofJWT;
-  const dpopProofJWS = data?.dpopProofJWS;
+  const validatedJWT = data?.dpopProofJWT;
+  const validatedJWS = data?.dpopProofJWS;
 
-  if (dpopProofJWT && dpopProofJWS) {
-    const { errors: dpopProofSignatureErrors } = await verifyDPoPProofSignature(
-      dpopProofJWS,
-      dpopProofJWT.header.jwk
+  if (!validatedJWT || !validatedJWS) {
+    throw dpopProofValidationFailed(
+      accessTokenClientId,
+      "DPoP Proof missing or invalid"
     );
-
-    if (dpopProofSignatureErrors) {
-      throw dpopProofSignatureValidationFailed(
-        clientId,
-        dpopProofSignatureErrors.map((error) => error.detail).join(", ")
-      );
-    }
-
-    logger.info(`[JTI=${dpopProofJWT.payload.jti}] - DPoP proof validated`);
   }
 
-  return { dpopProofJWS, dpopProofJWT };
+  // ----------------------------------------------------------------------
+  // Step 2: Signature Validation
+  // ----------------------------------------------------------------------
+  const { errors: dpopProofSignatureErrors } = await verifyDPoPProofSignature(
+    validatedJWS,
+    validatedJWT.header.jwk
+  );
+
+  if (dpopProofSignatureErrors) {
+    throw dpopProofSignatureValidationFailed(
+      accessTokenClientId,
+      dpopProofSignatureErrors.map((error) => error.detail).join(", ")
+    );
+  }
+
+  logger.info(`[JTI=${validatedJWT.payload.jti}] - DPoP proof validated`);
+
+  // ----------------------------------------------------------------------
+  // Step 3: Key Binding Verification (Thumbprint Match)
+  // ----------------------------------------------------------------------
+  const { errors: bindingErrors } = verifyDPoPThumbprintMatch(
+    validatedJWT,
+    accessTokenThumbprint
+  );
+
+  if (bindingErrors) {
+    const errorDetails = bindingErrors.map((e) => e.detail).join(", ");
+    logger.warn(`DPoP Key Binding failed: ${errorDetails}`);
+    throw dpopTokenBindingFailed(accessTokenClientId, errorDetails);
+  }
+
+  // ----------------------------------------------------------------------
+  // Step 4: Replay Attack Protection (JTI Cache)
+  // ----------------------------------------------------------------------
+  const { errors: dpopCacheErrors } = await checkDPoPCache({
+    dynamoDBClient,
+    dpopProofJti: validatedJWT.payload.jti,
+    dpopProofIat: validatedJWT.payload.iat,
+    dpopCacheTable: config.dpopCacheTable,
+    dpopProofDurationSeconds: config.dpopDurationSeconds,
+  });
+
+  if (dpopCacheErrors) {
+    throw dpopProofJtiAlreadyUsed(validatedJWT.payload.jti);
+  }
+
+  return validatedJWT;
 };

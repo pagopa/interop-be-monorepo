@@ -18,8 +18,10 @@ import {
 import { calculateThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
+  dpopJwkNotFound,
   dpopProofInvalidClaims,
   dpopProofSignatureVerificationError,
+  dpopTokenBindingMismatch,
   invalidDPoPJwt,
   invalidDPoPProofFormat,
   invalidDPoPSignature,
@@ -215,33 +217,33 @@ export const checkDPoPCache = async ({
 /**
  * Verifies the cryptographic binding between the DPoP Proof and the Access Token.
  *
- * This function ensures that the public key used to sign the DPoP Proof matches the
- * key bound to the Access Token (via the `cnf` confirmation claim).
- * It calculates the JWK Thumbprint (RFC 7638) of the Proof's key and compares it
- * with the `jkt` hash provided in the token.
+ * This function performs the following checks:
+ * - Calculates the JWK Thumbprint (RFC 7638) of the Proof's key.
+ * - Compares the calculated thumbprint with the `jkt` hash provided in the Access Token's `cnf` claim.
  *
  * @param dpopProofJWT - The parsed DPoP Proof object containing the header with the JWK.
  * @param accessTokenJkt - The expected thumbprint (hash) extracted from the Access Token's `cnf` claim.
- * @returns A `ValidationResult` indicating success (`true`) or failure with specific error details.
+ *
+ * @returns A `ValidationResult` indicating success (`true`) or failure.
+ * @throws `dpopJwkNotFound` (or JWK validation errors): If the JWK is missing, malformed, or invalid.
+ * @throws `dpopTokenBindingMismatch`: If the calculated proof thumbprint does not match the token's bound `jkt`.
  */
 export const verifyDPoPThumbprintMatch = (
   dpopProofJWT: DPoPProof,
   accessTokenJkt: string
 ): ValidationResult<true> => {
-  if (!dpopProofJWT.header.jwk) {
-    return failedValidation([
-      unexpectedDPoPProofError("Missing DPoP Proof JWK"),
-    ]);
+  const { errors } = validateJWK(dpopProofJWT.header.jwk);
+  if (errors) {
+    return failedValidation([errors]);
   }
+  try {
+    const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
+    if (proofJkt !== accessTokenJkt) {
+      return failedValidation([dpopTokenBindingMismatch()]);
+    }
 
-  const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
-
-  if (proofJkt !== accessTokenJkt) {
-    return failedValidation([
-      unexpectedDPoPProofError(
-        "DPoP proof public key hash does not match token binding"
-      ),
-    ]);
+    return successfulValidation(true);
+  } catch (error) {
+    return failedValidation([dpopJwkNotFound()]);
   }
-  return successfulValidation(true);
 };

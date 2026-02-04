@@ -46,7 +46,7 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-dpop-validation": "workspace:*",
-    "qs": "6.12.3",
+    "qs": "6.14.1",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }

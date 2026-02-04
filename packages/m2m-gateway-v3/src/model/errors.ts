@@ -17,6 +17,7 @@ import {
   PurposeTemplateId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -42,6 +43,7 @@ const errorCodes = {
   unexpectedClientKind: "0021",
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
+  missingSelfcareId: "0024",
   requesterIsNotTheDelegateConsumer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
@@ -57,11 +59,12 @@ const errorCodes = {
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
-  // DPoP related errors (duplicated from authorization-server for isolation)
-  dpopProofValidationFailed: "0040",
-  dpopProofSignatureValidationFailed: "0041",
-  unexpectedDPoPProofForAPIToken: "0042",
-  dpopProofJtiAlreadyUsed: "0043",
+  userNotFound: "0040",
+  dpopProofValidationFailed: "0041",
+  dpopProofSignatureValidationFailed: "0042",
+  unexpectedDPoPProofForAPIToken: "0043",
+  dpopProofJtiAlreadyUsed: "0044",
+  dpopTokenBindingFailed: "0045",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -273,6 +276,14 @@ export function agreementContractNotFound(
   });
 }
 
+export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `SelfcareId in Tenant ${tenantId} not found`,
+    code: "missingSelfcareId",
+    title: "SelfcareId not found",
+  });
+}
+
 export function delegationEServiceMismatch(
   eserviceId: string,
   delegation: delegationApi.Delegation
@@ -440,6 +451,28 @@ export function invalidSeedForPurposeFromTemplate(
     )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",
+  });
+}
+
+export function userNotFound(
+  userId: UserId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for tenant ${tenantId}`,
+    code: "userNotFound",
+    title: "User not found",
+  });
+}
+
+export function dpopTokenBindingFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The DPoP proof public key does not match the Access Token binding ('cnf' claim). ClientId: ${clientId} - ${details}`,
+    code: "dpopTokenBindingFailed",
+    title: "DPoP Token Binding Mismatch",
   });
 }
 
