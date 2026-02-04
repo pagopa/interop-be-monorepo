@@ -95,7 +95,12 @@ describe("addClientUsers", () => {
       userId: usersToAdd.at(-1),
       client: toClientV2(expectedClient),
     });
-    expect(addClientUsersReturn).toEqual(expectedClient);
+    expect(addClientUsersReturn).toEqual({
+      data: expectedClient,
+      metadata: {
+        version: 0,
+      },
+    });
   });
   it("should throw clientNotFound if the client doesn't exist", async () => {
     const userIdToAdd: UserId = generateId();
