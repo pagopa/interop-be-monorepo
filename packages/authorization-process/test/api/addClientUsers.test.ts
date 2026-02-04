@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { Client, ClientId, generateId, UserId } from "pagopa-interop-models";
+import { Client, ClientId, generateId, UserId, WithMetadata } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import {
   generateToken,
   getMockClient,
+  getMockWithMetadata,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import { api, authorizationService } from "../vitest.api.setup.js";
@@ -23,10 +24,10 @@ describe("API /clients/{clientId}/users authorization test", () => {
   const userIds: UserId[] = [generateId()];
   const usersToAdd: UserId[] = [generateId(), generateId()];
 
-  const mockClient: Client = getMockClient({
+  const mockClient: WithMetadata<Client> = getMockWithMetadata(getMockClient({
     consumerId: mockTokenOrganizationId,
     users: userIds,
-  });
+  }));
 
   authorizationService.addClientUsers = vi.fn().mockResolvedValue(mockClient);
 
@@ -50,9 +51,9 @@ describe("API /clients/{clientId}/users authorization test", () => {
     "Should return 200 with a full client for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, mockClient.id);
+      const res = await makeRequest(token, mockClient.data.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(testToFullClient(mockClient));
+      expect(res.body).toEqual(testToFullClient(mockClient.data));
     }
   );
 
@@ -60,17 +61,17 @@ describe("API /clients/{clientId}/users authorization test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockClient.id);
+    const res = await makeRequest(token, mockClient.data.id);
     expect(res.status).toBe(403);
   });
 
   const errors = [
     {
-      error: clientNotFound(mockClient.id),
+      error: clientNotFound(mockClient.data.id),
       expectedStatus: 404,
     },
     {
-      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.data.id),
       expectedStatus: 403,
     },
     {
@@ -78,7 +79,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       expectedStatus: 403,
     },
     {
-      error: clientUserAlreadyAssigned(mockClient.id, userIds[0]),
+      error: clientUserAlreadyAssigned(mockClient.data.id, userIds[0]),
       expectedStatus: 400,
     },
     {
@@ -100,7 +101,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
     async ({ error, expectedStatus }) => {
       authorizationService.addClientUsers = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, mockClient.id);
+      const res = await makeRequest(token, mockClient.data.id);
       expect(res.status).toBe(expectedStatus);
     }
   );
@@ -108,7 +109,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
   const invalidParams = [
     {},
     { clientId: "invalidId", userIds: usersToAdd },
-    { clientId: mockClient.id, userIds: ["invalidId"] },
+    { clientId: mockClient.data.id, userIds: ["invalidId"] },
   ];
 
   const testScenarios = authorizedRoles.flatMap((role) =>
