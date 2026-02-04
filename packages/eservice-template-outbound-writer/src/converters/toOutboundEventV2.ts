@@ -25,6 +25,7 @@ function toOuboundEServiceDocumentV2(
 function toOutboundEServiceTemplateVersionV2(
   template: EServiceTemplateVersionV2
 ): Exact<OutboundEServiceTemplateVersionV2, EServiceTemplateVersionV2> {
+  // @ts-ignore () TODO Update @pagopa/interop-outbound-models to support dailyCalls
   return {
     ...template,
     docs: template.docs.map(toOuboundEServiceDocumentV2),
