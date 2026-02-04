@@ -13,40 +13,41 @@ import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
-  mockDeletionPollingResponse,
+  mockPollingResponse,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("removeClientUser", () => {
-  const userId: string = generateId();
   const mockAuthorizationProcessResponse = getMockWithMetadata(
     getMockedApiConsumerFullClient()
   );
 
-  const mockApiClient = getMockWithMetadata(getMockedApiConsumerFullClient());
-
-  const mockremoveClientUser = vi.fn();
+  const mockRemoveClientUser = vi
+    .fn()
+    .mockResolvedValue(mockAuthorizationProcessResponse);
 
   const mockGetClient = vi.fn(
-    mockDeletionPollingResponse(mockAuthorizationProcessResponse, 2)
+    mockPollingResponse(mockAuthorizationProcessResponse, 2)
   );
 
   mockInteropBeClients.authorizationClient = {
     client: {
       getClient: mockGetClient,
-      removeUser: mockremoveClientUser,
+      removeUser: mockRemoveClientUser,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockremoveClientUser.mockClear();
+    mockRemoveClientUser.mockClear();
     mockGetClient.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    const userId = generateId();
     const result = await clientService.removeClientUser(
       unsafeBrandId(mockAuthorizationProcessResponse.data.id),
       userId,
@@ -57,25 +58,53 @@ describe("removeClientUser", () => {
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.authorizationClient.client.removeUser,
       params: {
-        clientId: unsafeBrandId(mockAuthorizationProcessResponse.data.id),
+        clientId: mockAuthorizationProcessResponse.data.id,
         userId,
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
-      params: {
-        clientId: unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-      },
+      params: { clientId: mockAuthorizationProcessResponse.data.id },
     });
     expect(
       mockInteropBeClients.authorizationClient.client.getClient
     ).toHaveBeenCalledTimes(2);
   });
 
+  it("Should throw missingMetadata in case the client returned by the removeClientUser POST call has no metadata", async () => {
+    mockRemoveClientUser.mockResolvedValueOnce({
+      ...mockAuthorizationProcessResponse,
+      metadata: undefined,
+    });
+
+    await expect(
+      clientService.removeClientUser(
+        unsafeBrandId(mockAuthorizationProcessResponse.data.id),
+        generateId(),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the client returned by the polling GET call has no metadata", async () => {
+    mockGetClient.mockResolvedValueOnce({
+      ...mockAuthorizationProcessResponse,
+      metadata: undefined,
+    });
+
+    await expect(
+      clientService.removeClientUser(
+        unsafeBrandId(mockAuthorizationProcessResponse.data.id),
+        generateId(),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetClient.mockImplementation(
-      mockDeletionPollingResponse(
-        mockApiClient,
+      mockPollingResponse(
+        mockAuthorizationProcessResponse,
         config.defaultPollingMaxRetries + 1
       )
     );
@@ -83,7 +112,7 @@ describe("removeClientUser", () => {
     await expect(
       clientService.removeClientUser(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        userId,
+        generateId(),
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { Client, ClientId, generateId, UserId, WithMetadata } from "pagopa-interop-models";
+import {
+  Client,
+  ClientId,
+  generateId,
+  UserId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import {
@@ -24,10 +30,12 @@ describe("API /clients/{clientId}/users authorization test", () => {
   const userIds: UserId[] = [generateId()];
   const usersToAdd: UserId[] = [generateId(), generateId()];
 
-  const mockClient: WithMetadata<Client> = getMockWithMetadata(getMockClient({
-    consumerId: mockTokenOrganizationId,
-    users: userIds,
-  }));
+  const mockClient: WithMetadata<Client> = getMockWithMetadata(
+    getMockClient({
+      consumerId: mockTokenOrganizationId,
+      users: userIds,
+    })
+  );
 
   authorizationService.addClientUsers = vi.fn().mockResolvedValue(mockClient);
 
