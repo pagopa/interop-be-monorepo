@@ -324,6 +324,8 @@ export class InteropTokenGenerator {
    * This takes a set of signed headers and returns a JWT that can be used to sign the response.
    *
    * **Notice**: This method is used for the Integrity REST 02 _response_, not for the request.
+   *
+   * The secondsDuration is set to 100 seconds by default, but can be overridden in the config.
    */
   public async generateAgidIntegrityRest02Token({
     signedHeaders,
@@ -350,7 +352,7 @@ export class InteropTokenGenerator {
       aud: this.config.audience,
       iat: currentTimestamp,
       nbf: currentTimestamp,
-      exp: currentTimestamp + (this.config.secondsDuration ?? 100), // TODO: Check default to set
+      exp: currentTimestamp + (this.config.secondsDuration ?? 100),
       signed_headers: signedHeaders,
     };
     return await this.createAndSignToken({
