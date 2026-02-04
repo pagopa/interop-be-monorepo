@@ -143,7 +143,6 @@ export const createRiskAnalysisAnswerErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "hyperlinkDetectionError",
       "riskAnalysisTemplateValidationFailed",
@@ -154,7 +153,11 @@ export const createRiskAnalysisAnswerErrorMapper = (
       "purposeTemplateNotInExpectedStates",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeTemplateNotFound",
+      "tenantNotAllowed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with(
       "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR
