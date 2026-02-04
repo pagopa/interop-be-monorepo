@@ -99,7 +99,6 @@ export const InteropJwtApiM2MPayload = InteropJwtApiCommonPayload.merge(
 );
 export type InteropJwtApiM2MPayload = z.infer<typeof InteropJwtApiM2MPayload>;
 
-// Duplicate of InteropJwtApiM2MPayload with cnf claim for DPoP tokens to remove compleatly later after dismissimg the old M2M tokens
 export const InteropJwtApiM2MDPoPPayload = InteropJwtApiM2MPayload.merge(
   z.object({ cnf: CNF })
 );
