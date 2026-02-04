@@ -73,7 +73,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  const errors = [
+  it.each([
     {
       error: clientNotFound(mockClient.data.id),
       expectedStatus: 404,
@@ -98,13 +98,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       error: missingSelfcareId(generateId()),
       expectedStatus: 404,
     },
-  ];
-
-  const errorScenarios = authorizedRoles.flatMap((role) =>
-    errors.map((params) => ({ role, ...params }))
-  );
-
-  it.each(errorScenarios)(
+  ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.addClientUsers = vi.fn().mockRejectedValue(error);
@@ -114,17 +108,11 @@ describe("API /clients/{clientId}/users authorization test", () => {
     }
   );
 
-  const invalidParams = [
+  it.each([
     {},
     { clientId: "invalidId", userIds: usersToAdd },
     { clientId: mockClient.data.id, userIds: ["invalidId"] },
-  ];
-
-  const testScenarios = authorizedRoles.flatMap((role) =>
-    invalidParams.map((params) => ({ role, ...params }))
-  );
-
-  it.each(testScenarios)(
+  ])(
     "Should return 400 if passed invalid params: %s",
     async ({ clientId, userIds }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
