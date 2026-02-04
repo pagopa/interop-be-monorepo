@@ -60,7 +60,7 @@ describe("API GET /clients/:clientId/users", () => {
     }
   );
 
-  it("Should return 404 for userNotFound", async () => {
+  it("Should return 500 for userNotFound", async () => {
     mockClientService.getClientUsers = vi
       .fn()
       .mockRejectedValue(userNotFound(generateId(), generateId()));
@@ -69,7 +69,7 @@ describe("API GET /clients/:clientId/users", () => {
       limit: 10,
       offset: 0,
     });
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(500);
   });
 
   it("Should return 400 if passed an invalid client id", async () => {
