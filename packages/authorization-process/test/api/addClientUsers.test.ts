@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { Client, ClientId, generateId, UserId, WithMetadata } from "pagopa-interop-models";
+import {
+  Client,
+  ClientId,
+  generateId,
+  UserId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import {
@@ -24,10 +30,12 @@ describe("API /clients/{clientId}/users authorization test", () => {
   const userIds: UserId[] = [generateId()];
   const usersToAdd: UserId[] = [generateId(), generateId()];
 
-  const mockClient: WithMetadata<Client> = getMockWithMetadata(getMockClient({
-    consumerId: mockTokenOrganizationId,
-    users: userIds,
-  }));
+  const mockClient: WithMetadata<Client> = getMockWithMetadata(
+    getMockClient({
+      consumerId: mockTokenOrganizationId,
+      users: userIds,
+    })
+  );
 
   authorizationService.addClientUsers = vi.fn().mockResolvedValue(mockClient);
 
@@ -65,7 +73,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  const errors = [
+  it.each([
     {
       error: clientNotFound(mockClient.data.id),
       expectedStatus: 404,
@@ -90,13 +98,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       error: missingSelfcareId(generateId()),
       expectedStatus: 404,
     },
-  ];
-
-  const errorScenarios = authorizedRoles.flatMap((role) =>
-    errors.map((params) => ({ role, ...params }))
-  );
-
-  it.each(errorScenarios)(
+  ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.addClientUsers = vi.fn().mockRejectedValue(error);
@@ -106,17 +108,11 @@ describe("API /clients/{clientId}/users authorization test", () => {
     }
   );
 
-  const invalidParams = [
+  it.each([
     {},
     { clientId: "invalidId", userIds: usersToAdd },
     { clientId: mockClient.data.id, userIds: ["invalidId"] },
-  ];
-
-  const testScenarios = authorizedRoles.flatMap((role) =>
-    invalidParams.map((params) => ({ role, ...params }))
-  );
-
-  it.each(testScenarios)(
+  ])(
     "Should return 400 if passed invalid params: %s",
     async ({ clientId, userIds }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
