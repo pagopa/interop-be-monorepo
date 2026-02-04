@@ -21,6 +21,7 @@ import {
   toM2MGatewayApiPurpose,
 } from "../api/purposeApiConverter.js";
 import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
+import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { getSelfcareUserById } from "./userService.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
@@ -313,6 +314,14 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.Users> {
       ctx.logger.info(`Retrieving users for client ${clientId}`);
 
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: ctx.authData.organizationId },
+          headers: ctx.headers,
+        });
+
+      assertTenantHasSelfcareId(tenant);
+
       const clientUsers =
         await clients.authorizationClient.client.getClientUsers({
           params: { clientId },
@@ -321,7 +330,12 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const users = await Promise.all(
         clientUsers.data.map(async (id) =>
-          getSelfcareUserById(clients, id, ctx)
+          getSelfcareUserById(
+            clients,
+            id,
+            tenant.selfcareId,
+            ctx.headers["X-Correlation-Id"]
+          )
         )
       );
 
