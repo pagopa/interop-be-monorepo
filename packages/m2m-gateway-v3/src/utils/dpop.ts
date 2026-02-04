@@ -23,23 +23,6 @@ import {
  * 3. **Key Binding**: Verifies that the public key in the DPoP Proof matches the `cnf` claim bound to the Access Token.
  * 4. **Replay Protection**: Checks against DynamoDB to ensure the JTI (Unique ID) has not been used recently.
  *
- * @param params - The input parameters object.
- * @param params.config - Configuration object containing DPoP settings (cache table name, duration, tolerance).
- * @param params.dpopProofJWS - The raw `DPoP` header string (JWS).
- * @param params.accessTokenClientId - The client ID extracted from the Access Token (used for error contextualization).
- * @param params.accessTokenThumbprint - The expected key thumbprint (`cnf.jkt`) extracted from the Access Token.
- * @param params.expectedHtu - The reconstructed full HTTP URI (HTU) of the incoming request.
- * @param params.expectedHtm - The normalized HTTP Method (HTM) of the incoming request.
- * @param params.dynamoDBClient - The DynamoDB client instance used for JTI cache operations.
- * @param params.logger - Logger instance for tracking validation steps and warnings.
- *
- * @returns A Promise that resolves to the parsed and validated `DPoPProof` object.
- *
- * @throws {dpopProofValidationFailed} If the Proof is missing, malformed, expired, or has mismatched HTM/HTU (RFC: invalid_dpop_proof).
- * @throws {dpopProofSignatureValidationFailed} If the cryptographic signature verification fails (RFC: invalid_dpop_proof).
- * @throws {dpopTokenBindingFailed} If the DPoP public key hash does not match the Access Token's `cnf` claim (RFC: invalid_token).
- * @throws {dpopProofJtiAlreadyUsed} If the JTI has been used previously within the validity window (Replay Attack) (RFC: invalid_dpop_proof).
- *
  * NB: every function is tested separately in dpop-validation package; this function mainly orchestrates the calls and error handling.
  */
 export const verifyDPoPCompliance = async ({
@@ -106,7 +89,7 @@ export const verifyDPoPCompliance = async ({
     );
   }
 
-  logger.info(`[JTI=${validatedJWT.payload.jti}] - DPoP proof validated`);
+  logger.info(`[DPOPJTI=${validatedJWT.payload.jti}] - DPoP proof validated`);
 
   // ----------------------------------------------------------------------
   // Step 3: Key Binding Verification (Thumbprint Match)
@@ -118,7 +101,7 @@ export const verifyDPoPCompliance = async ({
 
   if (bindingErrors) {
     const errorDetails = bindingErrors.map((e) => e.detail).join(", ");
-    logger.warn(`DPoP Key Binding failed: ${errorDetails}`);
+    logger.warn(`DPoP Key Binding verification failed: ${errorDetails}`);
     throw dpopTokenBindingFailed(accessTokenClientId, errorDetails);
   }
 

@@ -240,7 +240,6 @@ export const AuthTokenPayload = z.discriminatedUnion("role", [
 ]);
 export type AuthTokenPayload = z.infer<typeof AuthTokenPayload>;
 
-// TYPE: AuthTokenDPoPPayload (Only DPoP variant) ---
 export const AuthTokenDPoPPayload = z.discriminatedUnion("role", [
   InteropJwtApiM2MDPoPPayload,
   InteropJwtApiM2MAdminDPoPPayload,

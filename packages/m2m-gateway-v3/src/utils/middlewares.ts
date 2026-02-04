@@ -94,10 +94,13 @@ export function m2mAuthDataValidationMiddleware(
 }
 
 export const authenticationDPoPMiddleware: (
-  config: JWTConfig & DPoPConfig,
+  config: JWTConfig & DPoPConfig & { m2mGatewayPublicUrl: string },
   dynamoDBClient: DynamoDBClient
 ) => ZodiosRouterContextRequestHandler<ExpressContext> =
-  (config: JWTConfig & DPoPConfig, dynamoDBClient: DynamoDBClient) =>
+  (
+    config: JWTConfig & DPoPConfig & { m2mGatewayPublicUrl: string },
+    dynamoDBClient: DynamoDBClient
+  ) =>
   async (req, res, next): Promise<unknown> => {
     // We assume that:
     // - contextMiddleware already set ctx.serviceName and ctx.correlationId
@@ -109,7 +112,10 @@ export const authenticationDPoPMiddleware: (
       // Reconstruct the Target URI (HTU) and Method (HTM) from the request
       // to ensure the DPoP proof signature matches the actual call.
       // ----------------------------------------------------------------------
-      const { url, method } = extractRequestDetails(req);
+      const { url, method } = extractRequestDetails(
+        req,
+        config.m2mGatewayPublicUrl
+      );
 
       // ----------------------------------------------------------------------
       // Step 1 – Schema and Presence Verification (Syntax Check)
