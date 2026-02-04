@@ -58,6 +58,7 @@ function toOutboundEServiceTemplateVersionRefV2(
 function toOutboundDescriptorV2(
   descriptor: EServiceDescriptorV2
 ): Exact<OutboundEServiceDescriptorV2, EServiceDescriptorV2> {
+  // @ts-ignore () TODO Update @pagopa/interop-outbound-models to support dailyCalls
   return {
     ...descriptor,
     interface:
