@@ -75,7 +75,7 @@ describe("downloadEServiceDescriptorInterface", () => {
           genericLogger
         )
       ).at(0)
-    ).toEqual(mockInterface.path);
+    ).toStrictEqual(mockInterface.path);
 
     const result = await eserviceService.downloadEServiceDescriptorInterface(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
