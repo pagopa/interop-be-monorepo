@@ -8,7 +8,6 @@ type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 const {
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
-  HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
 } = constants;
@@ -53,9 +52,9 @@ export const getPurposeTemplateEServiceDescriptorErrorMapper = (
     .with(
       "purposeTemplateNotFound",
       "eServiceDescriptorPurposeTemplateNotFound",
+      "tenantNotAllowed",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getRiskAnalysisTemplateAnnotationDocumentsErrorMapper = (
@@ -92,13 +91,16 @@ export const unlinkEServicesFromPurposeTemplateErrorMapper = (
       "tooManyEServicesForPurposeTemplate",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeTemplateNotFound",
+      "tenantNotAllowed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with(
       "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
       "purposeTemplateNotInExpectedStates",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updatePurposeTemplateErrorMapper = (
@@ -111,8 +113,11 @@ export const updatePurposeTemplateErrorMapper = (
       "missingFreeOfChargeReason",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeTemplateNotFound",
+      "tenantNotAllowed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with(
       "purposeTemplateTitleConflict",
       "purposeTemplateNotInExpectedStates",
@@ -130,9 +135,9 @@ export const addPurposeTemplateAnswerAnnotationErrorMapper = (
       "riskAnalysisTemplateAnswerNotFound",
       "riskAnalysisTemplateAnswerAnnotationNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      "tenantNotAllowed",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "conflictDocumentPrettyNameDuplicate",
       "conflictDuplicatedDocument",
@@ -175,9 +180,9 @@ export const getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
       "purposeTemplateNotFound",
       "riskAnalysisTemplateAnswerNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      "tenantNotAllowed",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addRiskAnalysisAnswerAnnotationErrorMapper = (
@@ -192,6 +197,7 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
     .with(
       "purposeTemplateNotFound",
       "riskAnalysisTemplateAnswerNotFound",
+      "tenantNotAllowed",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
@@ -199,7 +205,6 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
       "purposeTemplateStateConflict",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR
@@ -217,8 +222,11 @@ export const activatePurposeTemplateErrorMapper = (
       "invalidAssociatedEServiceForPublicationError",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeTemplateNotFound",
+      "tenantNotAllowed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 const suspendOrArchivePurposeTemplateErrorMapper = (
@@ -230,8 +238,11 @@ const suspendOrArchivePurposeTemplateErrorMapper = (
       "purposeTemplateStateConflict",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeTemplateNotFound",
+      "tenantNotAllowed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const suspendPurposeTemplateErrorMapper = (
@@ -247,8 +258,11 @@ export const deletePurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "purposeTemplateNotFound",
+      "tenantNotAllowed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper = (
@@ -259,9 +273,9 @@ export const deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper = (
     .with(
       "purposeTemplateNotFound",
       "riskAnalysisTemplateAnswerNotFound",
+      "tenantNotAllowed",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
@@ -272,9 +286,9 @@ export const deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
     .with(
       "purposeTemplateNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      "tenantNotAllowed",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
@@ -292,9 +306,9 @@ export const updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
       "riskAnalysisTemplateAnswerNotFound",
       "riskAnalysisTemplateAnswerAnnotationNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      "tenantNotAllowed",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updatePurposeTemplateRiskAnalysisErrorMapper = (
@@ -303,8 +317,11 @@ export const updatePurposeTemplateRiskAnalysisErrorMapper = (
   match(error.code)
     .with("riskAnalysisTemplateValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
     .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "purposeTemplateNotFound",
+      "tenantNotAllowed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addRiskAnalysisTemplateDocumentErrorMapper = (
