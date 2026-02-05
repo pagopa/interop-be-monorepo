@@ -114,7 +114,7 @@ describe("getClientUsers", () => {
       params: { clientId },
     });
 
-    expect(mockGetTenant).toBeCalledTimes(2);
+    expect(mockGetTenant).toBeCalledTimes(1);
 
     expect(mockGetUserInfoUsingGET).toBeCalledTimes(2);
   });
@@ -134,7 +134,7 @@ describe("getClientUsers", () => {
 
     expect(result).toEqual(response);
     expect(mockGetClientUsers).toBeCalledTimes(1);
-    expect(mockGetTenant).toBeCalledTimes(0);
+    expect(mockGetTenant).toBeCalledTimes(1);
     expect(mockGetUserInfoUsingGET).toBeCalledTimes(0);
   });
 
@@ -145,7 +145,7 @@ describe("getClientUsers", () => {
 
     await expect(callService()).rejects.toThrowError();
 
-    expect(mockGetClientUsers).toBeCalledTimes(1);
+    expect(mockGetClientUsers).toBeCalledTimes(0);
     expect(mockGetTenant).toBeCalledTimes(1);
     expect(mockGetUserInfoUsingGET).toBeCalledTimes(0);
   });
