@@ -5,6 +5,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
+  withTotalCountSubquery,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -35,6 +36,15 @@ import {
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   tenantInReadmodelTenant,
+} from "pagopa-interop-readmodel-models";
+import type {
+  EServiceTemplateRiskAnalysisAnswerSQL,
+  EServiceTemplateRiskAnalysisSQL,
+  EServiceTemplateSQL,
+  EServiceTemplateVersionAttributeSQL,
+  EServiceTemplateVersionDocumentSQL,
+  EServiceTemplateVersionInterfaceSQL,
+  EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregateEServiceTemplateArray,
@@ -113,12 +123,13 @@ export function readModelServiceBuilderSQL({
       const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
         filters;
 
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-          })
-        )
+      const baseSelection = {
+        eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+        name: eserviceTemplateInReadmodelEserviceTemplate.name,
+      };
+
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -205,13 +216,31 @@ export function readModelServiceBuilderSQL({
                 )
           )
         )
-        .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
-        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+        .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id);
 
-      const queryResult = await readModelDB
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const subquery = withTotalCountSubquery(readModelDB as any, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        baseQuery: baseQuery as any,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      type EServiceTemplateRow = {
+        eserviceTemplate: EServiceTemplateSQL | null;
+        version: EServiceTemplateVersionSQL | null;
+        interface: EServiceTemplateVersionInterfaceSQL | null;
+        document: EServiceTemplateVersionDocumentSQL | null;
+        attribute: EServiceTemplateVersionAttributeSQL | null;
+        riskAnalysis: EServiceTemplateRiskAnalysisSQL | null;
+        riskAnalysisAnswer: EServiceTemplateRiskAnalysisAnswerSQL | null;
+        totalCount: number;
+      };
+
+      const queryResult: EServiceTemplateRow[] = await readModelDB
         .select({
           eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
           version: eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -226,7 +255,7 @@ export function readModelServiceBuilderSQL({
           totalCount: subquery.totalCount,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .innerJoin(
+        .rightJoin(
           subquery,
           eq(
             subquery.eserviceTemplateId,
@@ -277,8 +306,14 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name));
 
+      const hasTemplate = (
+        row: EServiceTemplateRow
+      ): row is EServiceTemplateRow & {
+        eserviceTemplate: EServiceTemplateSQL;
+      } => row.eserviceTemplate !== null;
+
       const eserviceTemplates = aggregateEServiceTemplateArray(
-        toEServiceTemplateAggregatorArray(queryResult)
+        toEServiceTemplateAggregatorArray(queryResult.filter(hasTemplate))
       );
       return createListResult(
         eserviceTemplates.map((eserviceTemplate) => eserviceTemplate.data),
