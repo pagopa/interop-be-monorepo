@@ -1193,8 +1193,12 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         userIdToRemove: UserId;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Removing user ${userIdToRemove} from producer keychain ${producerKeychainId}`
       );
@@ -1222,7 +1226,7 @@ export function authorizationServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventProducerKeychainUserDeleted(
           updatedProducerKeychain,
           userIdToRemove,
@@ -1230,6 +1234,12 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: updatedProducerKeychain,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async createProducerKeychainKey(
       {
