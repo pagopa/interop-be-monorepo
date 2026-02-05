@@ -87,7 +87,7 @@ describe("addProducerKeychainEService", async () => {
     expect(addEServiceProducerKeychainResponse).toEqual({
       data: expectedProducerKeychain,
       metadata: {
-        version: 2,
+        version: 1,
       },
     });
   });
