@@ -9465,6 +9465,72 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  "/producerKeychains/{producerKeychainId}/users":
+    parameters:
+      - name: producerKeychainId
+        in: path
+        description: ID of Producer Keychain the users belong to
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - producerKeychains
+      summary: List of producerKeychain users
+      description: List of producerKeychain users
+      operationId: getProducerKeychainUsers
+      parameters:
+        - in: query
+          name: limit
+          description: Maximum number of users to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Request succeed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
     LastEventId:
