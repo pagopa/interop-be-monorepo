@@ -193,7 +193,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
     },
     {
       error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_NOT_FOUND,
+      expectedStatus: HTTP_STATUS_FORBIDDEN,
     },
   ])(
     "Should return $expectedStatus for $error.code",
