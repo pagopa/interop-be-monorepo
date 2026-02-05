@@ -1090,7 +1090,10 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainId: ProducerKeychainId;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<UserId[]> {
       logger.info(
         `Retrieving users of producer keychain ${producerKeychainId}`
