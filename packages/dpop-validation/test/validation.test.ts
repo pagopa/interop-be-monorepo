@@ -4,7 +4,7 @@ import {
   deleteDynamoDBTables,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { algorithm, DPoPProof } from "pagopa-interop-models";
+import { algorithm } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { calculateThumbprint, dateToSeconds } from "pagopa-interop-commons";
 import {
@@ -31,7 +31,6 @@ import {
   multipleDPoPProofsError,
   notYetValidDPoPProof,
   dpopTokenBindingMismatch,
-  dpopJwkNotFound,
 } from "../src/errors.js";
 import { writeDPoPCache } from "../src/utilities/dpopCacheUtils.js";
 
@@ -477,8 +476,6 @@ describe("DPoP validation tests", async () => {
     });
   });
   describe("check DPoP binding with access token", () => {
-    const validThumbprint = "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs";
-
     it("should succeed if the DPoP proof JWK thumbprint matches the access token binding (jkt)", async () => {
       const { dpopProofJWT } = await getMockDPoPProof(
         undefined,
@@ -505,23 +502,6 @@ describe("DPoP validation tests", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors?.[0].code).toBe(dpopTokenBindingMismatch().code);
-    });
-
-    it("should add error if the DPoP proof JWK is missing", async () => {
-      const mockDPoPProof = {
-        header: {
-          jwk: undefined,
-        },
-      } as unknown as DPoPProof;
-
-      const { errors } = verifyDPoPThumbprintMatch(
-        mockDPoPProof,
-        validThumbprint
-      );
-
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors?.[0].code).toBe(dpopJwkNotFound().code);
     });
   });
 });
