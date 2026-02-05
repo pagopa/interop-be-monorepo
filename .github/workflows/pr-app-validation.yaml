@@ -192,23 +192,25 @@ jobs:
     needs: [formatting]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.sha }}
       - name: Cache turbo setup
         uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
         with:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-build-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-build-
+            ${{ runner.os }}-turbo-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
       - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
         with:
           run_install: true
-      - name: Build all packages
-        run: pnpm build
+      - name: Build all packages and typecheck
+        run: pnpm turbo run build check
       - name: Upload build artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
