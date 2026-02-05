@@ -20,11 +20,12 @@
       "cache": false
     },
     "build": {
-      "dependsOn": ["generate-model", "generate-protobuf", "^build", "check"],
+      "dependsOn": ["generate-model", "generate-protobuf", "^build"],
       "outputs": ["dist/**"]
     },
     "check": {
-      "dependsOn": ["^check"]
+      "dependsOn": ["generate-model", "generate-protobuf", "^build", "^check"],
+      "outputs": ["dist/**"]
     },
     "generate-model": {
       "dependsOn": ["^generate-model"],
