@@ -5,7 +5,7 @@ import { describe, it, beforeEach, expect, vi } from "vitest";
 import { Message } from "@aws-sdk/client-sqs";
 import { sqsMessageHandler } from "../../src/handlers/sqsMessageHandler.js";
 import * as decodeModule from "../../src/utils/decodeSQSEventMessage.js";
-import * as gzipModule from "../../src/utils/compression.js";
+import * as compressionModule from "../../src/utils/compression.js";
 import * as checksumModule from "../../src/utils/checksum.js";
 import {
   mockDbService,
@@ -49,13 +49,12 @@ describe("Integration test (mocked AWS)", () => {
     mockSafeStorageService.uploadFileContent = vi.fn();
 
     vi.spyOn(decodeModule, "decodeSQSEventMessage").mockReturnValue(mockS3Key);
-    vi.spyOn(gzipModule, "gzipBuffer").mockResolvedValue(
-      Buffer.from("gzipped content")
+    vi.spyOn(compressionModule, "zipBuffer").mockResolvedValue(
+      Buffer.from("zipped content")
     );
     vi.spyOn(checksumModule, "calculateSha256Base64").mockResolvedValue(
       "mock-checksum"
     );
-
     mockLoggerInstance.info = vi.fn();
     mockLoggerInstance.error = vi.fn();
     mockLoggerInstance.warn = vi.fn();

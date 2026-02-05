@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getMockDelegation,
   getMockAgreement,
+  toAgreementV1,
 } from "pagopa-interop-commons-test";
 import {
   toAgreementV2,
@@ -14,6 +15,8 @@ import {
   TenantId,
   delegationState,
   Delegation,
+  AgreementEventEnvelopeV1,
+  AgreementEventV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
@@ -45,7 +48,7 @@ describe("handleAgreementEvent test", async () => {
   });
 
   describe.each(AgreementEventV2.options.map((o) => o.shape.type.value))(
-    "with %s event",
+    "with %s event V2",
     (eventType: AgreementEventV2["type"]) =>
       describe.each(["with Delegations", "without Delegations"] as const)(
         "test case: %s",
@@ -120,7 +123,6 @@ describe("handleAgreementEvent test", async () => {
                     "AgreementArchivedByConsumer",
                     "AgreementArchivedByUpgrade",
                     "AgreementArchivedByRevokedDelegation",
-                    "AgreementContractGenerated",
                     "AgreementSignedContractGenerated"
                   ),
                   async () => m2mEventVisibility.restricted
@@ -149,6 +151,10 @@ describe("handleAgreementEvent test", async () => {
                       )
                       .exhaustive()
                 )
+                /**
+                 * Not handled events
+                 */
+                .with("AgreementContractGenerated", () => undefined)
                 .exhaustive();
 
               await handleAgreementEvent(
@@ -158,6 +164,14 @@ describe("handleAgreementEvent test", async () => {
                 testM2mEventWriterService,
                 testReadModelService
               );
+
+              if (expectedVisibility === undefined) {
+                expect(
+                  testM2mEventWriterService.insertAgreementM2MEvent
+                ).not.toHaveBeenCalled();
+                return;
+              }
+
               expect(
                 testM2mEventWriterService.insertAgreementM2MEvent
               ).toHaveBeenCalledTimes(1);
@@ -179,6 +193,37 @@ describe("handleAgreementEvent test", async () => {
             }
           )
       )
+  );
+
+  it.each(AgreementEventV1.options.map((o) => o.shape.type.value))(
+    "should ignore agreement %s v1 event",
+    async (eventType: AgreementEventV1["type"]) => {
+      const agreement = getMockAgreement();
+
+      const message = {
+        ...getMockEventEnvelopeCommons(),
+        stream_id: agreement.id,
+        type: eventType,
+        event_version: 1,
+        data: {
+          agreement: toAgreementV1(agreement),
+        },
+      } as AgreementEventEnvelopeV1;
+
+      const eventTimestamp = new Date();
+
+      await handleAgreementEvent(
+        message,
+        eventTimestamp,
+        genericLogger,
+        testM2mEventWriterService,
+        testReadModelService
+      );
+
+      expect(
+        testM2mEventWriterService.insertAgreementM2MEvent
+      ).not.toHaveBeenCalled();
+    }
   );
 
   it("should not write the event if the same resource version is already present", async () => {
@@ -226,6 +271,6 @@ describe("handleAgreementEvent test", async () => {
       testM2mEventWriterService.insertAgreementM2MEvent
     ).toHaveBeenCalledTimes(3);
 
-    expect(await retrieveAllAgreementM2MEvents()).toHaveLength(2);
+    expect(await retrieveAllAgreementM2MEvents({ limit: 10 })).toHaveLength(2);
   });
 });

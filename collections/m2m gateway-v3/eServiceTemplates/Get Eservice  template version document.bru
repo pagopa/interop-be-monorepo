@@ -1,0 +1,20 @@
+meta {
+  name: Get eservice template version document
+  type: http
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/:templateId/versions/:versionId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  versionId: {{versionId}}
+  templateId: {{templateId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

@@ -5,6 +5,7 @@ import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import {
   signatureServiceBuilder,
   SignatureReference,
+  genericLogger,
 } from "pagopa-interop-commons";
 import { config } from "../../../src/config/config.js";
 
@@ -24,9 +25,10 @@ describe("signatureServiceBuilder", () => {
       fileKind: "AUDIT_EVENTS",
       fileName: "file.json",
       correlationId: "correlation-1",
+      path: "path/to",
     };
 
-    await signatureService.saveSignatureReference(mockReference);
+    await signatureService.saveSignatureReference(mockReference, genericLogger);
 
     const sentCommand = (dynamoClient.send as unknown as Mock).mock.calls[0][0];
     expect(sentCommand).toBeInstanceOf(PutItemCommand);
@@ -35,6 +37,7 @@ describe("signatureServiceBuilder", () => {
       fileKind: { S: "AUDIT_EVENTS" },
       fileName: { S: "file.json" },
       correlationId: { S: "correlation-1" },
+      path: { S: "path/to" },
       creationTimestamp: { N: expect.any(String) },
     });
   });
@@ -45,13 +48,14 @@ describe("signatureServiceBuilder", () => {
       fileKind: "AUDIT_EVENTS",
       fileName: "file2.json",
       correlationId: "correlation-2",
+      path: "path/to",
     };
 
     const sendError = new Error("Dynamo error");
     (dynamoClient.send as unknown as Mock).mockRejectedValue(sendError);
 
     await expect(
-      signatureService.saveSignatureReference(mockReference)
+      signatureService.saveSignatureReference(mockReference, genericLogger)
     ).rejects.toThrow("Error saving record on table");
   });
 });

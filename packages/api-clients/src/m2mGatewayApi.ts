@@ -10,8 +10,8 @@ type DelegationApi = typeof m2mGatewayApi.delegationsApi.api;
 type EServiceTemplateApi = typeof m2mGatewayApi.eserviceTemplatesApi.api;
 type ClientApi = typeof m2mGatewayApi.clientsApi.api;
 type ProducerKeychainApi = typeof m2mGatewayApi.producerKeychainsApi.api;
-type PurposeTemplateApi = typeof m2mGatewayApi.purposeTemplatesApi.api;
 type EventManagerApi = typeof m2mGatewayApi.eventsApi.api;
+type PurposeTemplateApi = typeof m2mGatewayApi.purposeTemplatesApi.api;
 
 export type GetAgreementsQueryParams = QueryParametersByAlias<
   AgreementApi,
@@ -179,6 +179,19 @@ export type GetEServiceTemplateVersionVerifiedAttributesQueryParams =
     "getEServiceTemplateVersionVerifiedAttributes"
   >;
 
+export type GetEventManagerAttributesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getAttributesEvents"
+>;
+export type GetEventManagerAgreementsQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getAgreementsEvents"
+>;
+export type GetEventManagerEServicesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getEServicesEvents"
+>;
+
 export type GetPurposeTemplatesQueryParams = QueryParametersByAlias<
   PurposeTemplateApi,
   "getPurposeTemplates"
@@ -195,9 +208,39 @@ export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
     "getRiskAnalysisTemplateAnnotationDocuments"
   >;
 
-export type GetEventManagerAttributesQueryParams = QueryParametersByAlias<
+export type GetEventManagerPurposesQueryParams = QueryParametersByAlias<
   EventManagerApi,
-  "getAttributesEvents"
+  "getPurposeEvents"
 >;
+
+export type GetEventManagerTenantEventsQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getTenantEvents"
+>;
+
+export type GetEventManagerConsumerDelegationsQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getConsumerDelegationEvents">;
+
+export type GetEventManagerProducerDelegationsQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getProducerDelegationEvents">;
+
+export type GetEventManagerEServiceTemplatesQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getEServiceTemplateEvents">;
+
+export type GetEventManagerKeysQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getKeyEvents"
+>;
+
+export type GetEventManagerClientQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getClientEvents"
+>;
+
+export type GetEventManagerProducerKeyEventsQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getProducerKeyEvents">;
+
+export type GetEventManagerProducerKeychainEventsQueryParams =
+  QueryParametersByAlias<EventManagerApi, "getProducerKeychainEvents">;
 
 export * from "./generated/m2mGatewayApi.js";

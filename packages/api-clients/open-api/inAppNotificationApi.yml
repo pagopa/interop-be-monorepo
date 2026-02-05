@@ -85,7 +85,6 @@ paths:
           required: false
           schema:
             type: boolean
-            default: false
         - in: query
           name: offset
           required: true
@@ -470,7 +469,6 @@ components:
           description: Content of the notification
         notificationType:
           $ref: "#/components/schemas/NotificationType"
-          description: Type of the notification
         entityId:
           type: string
           description: ID of the related entity
@@ -514,6 +512,8 @@ components:
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
         - producerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
+        - purposeOverQuotaStateToConsumer
     NotificationsByType:
       type: object
       additionalProperties: false
@@ -581,6 +581,12 @@ components:
             producerKeychainKeyAddedDeletedToClientUsers:
               type: integer
               format: int32
+            purposeQuotaAdjustmentRequestToProducer:
+              type: integer
+              format: int32
+            purposeOverQuotaStateToConsumer:
+              type: integer
+              format: int32
         totalCount:
           type: integer
           format: int32
@@ -628,7 +634,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

@@ -13,7 +13,7 @@ import {
   getMockedAgreementM2MEvent,
 } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { testToUpperSnakeCase } from "../utils.js";
+import { toApiAgreementM2MEventType } from "../../src/model/agreementM2MEventApiConverter.js";
 
 describe("API /events/agreements test", () => {
   const mockAgreementM2MEvents = AgreementM2MEventType.options
@@ -35,7 +35,7 @@ describe("API /events/agreements test", () => {
         ({
           id: e.id,
           eventTimestamp: e.eventTimestamp.toJSON(),
-          eventType: testToUpperSnakeCase(e.eventType),
+          eventType: toApiAgreementM2MEventType(e.eventType),
           agreementId: e.agreementId,
           consumerDelegationId: e.consumerDelegationId,
           producerDelegationId: e.producerDelegationId,
@@ -94,7 +94,7 @@ describe("API /events/agreements test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([generateId(), null, undefined])(
+  it.each([generateId(), "null", undefined])(
     "Should accept delegationId query param as %s",
     async (delegationId) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -115,6 +115,7 @@ describe("API /events/agreements test", () => {
     { ...mockQueryParams, lastEventId: -1 },
     { ...mockQueryParams, lastEventId: "invalidLastEventId" },
     { ...mockQueryParams, delegationId: 1 },
+    { ...mockQueryParams, delegationId: "invalidDelegationId" },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(

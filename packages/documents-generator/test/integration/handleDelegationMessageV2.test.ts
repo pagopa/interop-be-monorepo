@@ -12,6 +12,7 @@ import {
   beforeEach,
   afterEach,
   beforeAll,
+  afterAll,
 } from "vitest";
 import {
   DelegationEventEnvelopeV2,
@@ -50,11 +51,13 @@ import {
 import { handleDelegationMessageV2 } from "../../src/handler/handleDelegationMessageV2.js";
 import { config } from "../../src/config/config.js";
 import { tenantNotFound } from "../../src/model/errors.js";
+import { getInteropBeClients } from "../../src/clients/clientProvider.js";
 
 const mockDelegationId = generateId<DelegationId>();
 const mockDelegatorId = generateId<TenantId>();
 const mockDelegateId = generateId<TenantId>();
 const mockEServiceId = generateId<EServiceId>();
+const clients = getInteropBeClients();
 export const mockAddUnsignedDelegationContractMetadataFn = vi.fn();
 vi.mock("pagopa-interop-api-clients", () => ({
   delegationApi: {
@@ -72,12 +75,25 @@ vi.mock("pagopa-interop-api-clients", () => ({
   purposeApi: {
     createPurposeApiClient: vi.fn(),
   },
+  purposeTemplateApi: {
+    createPurposeTemplateApiClient: vi.fn(),
+  },
 }));
 
 describe("handleDelegationMessageV2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   const testToken = "mockToken";
 
   const testHeaders = {
@@ -135,7 +151,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
     await handleDelegationMessageV2(
       mockEvent,
@@ -143,6 +159,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -151,7 +168,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
@@ -197,7 +214,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     testHeaders["X-Correlation-Id"] = unsafeBrandId<CorrelationId>(
@@ -210,6 +227,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -274,7 +292,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     await handleDelegationMessageV2(
@@ -283,6 +301,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -291,7 +310,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
@@ -339,7 +358,7 @@ describe("handleDelegationMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.delegationDocumentsPath}/${mockDelegationId}/mock-file.pdf`
     );
 
     await handleDelegationMessageV2(
@@ -348,6 +367,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -356,7 +376,7 @@ describe("handleDelegationMessageV2", () => {
     expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+        path: `${config.delegationDocumentsPath}/${mockDelegation.id}`,
       }),
       genericLogger
     );
@@ -423,6 +443,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
+      clients,
       genericLogger
     );
 
@@ -442,8 +463,8 @@ describe("handleDelegationMessageV2", () => {
     const expectedPayload = {
       delegationKindText: "all’erogazione",
       delegationActionText: "ad erogare l’",
-      todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+      todayDate: dateAtRomeZone(mockEvent.log_date),
+      todayTime: timeAtRomeZone(mockEvent.log_date),
       delegationId: mockDelegation.id,
       delegatorName: mockDelegator.name,
       delegatorIpaCode: getIpaCode(mockDelegator),
@@ -501,6 +522,7 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
+        clients,
         genericLogger
       )
     ).resolves.toBeUndefined();
@@ -542,6 +564,7 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
+        clients,
         genericLogger
       )
     ).rejects.toThrow(tenantNotFound(mockDelegateId).message);

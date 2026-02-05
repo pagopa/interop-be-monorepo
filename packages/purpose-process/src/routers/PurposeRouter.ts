@@ -11,6 +11,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
+  ClientId,
   DelegationId,
   EServiceId,
   PurposeTemplateId,
@@ -23,6 +24,7 @@ import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
+  purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
@@ -87,6 +89,7 @@ const purposeRouter = (
           eservicesIds,
           consumersIds,
           producersIds,
+          clientId,
           states,
           excludeDraft,
           offset,
@@ -98,6 +101,7 @@ const purposeRouter = (
             eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
             consumersIds: consumersIds?.map(unsafeBrandId<TenantId>),
             producersIds: producersIds?.map(unsafeBrandId<TenantId>),
+            clientId: clientId ? unsafeBrandId<ClientId>(clientId) : undefined,
             states: states?.map(apiPurposeVersionStateToPurposeVersionState),
             excludeDraft,
           },
@@ -842,7 +846,9 @@ const purposeRouter = (
             .status(200)
             .send(
               purposeApi.PurposeVersionSignedDocument.parse(
-                purposeVersionDocumentToApiPurposeVersionDocument(document)
+                purposeVersionSignedDocumentToApiPurposeVersionSignedDocument(
+                  document
+                )
               )
             );
         } catch (error) {

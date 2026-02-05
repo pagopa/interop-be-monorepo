@@ -66,7 +66,3 @@ export function agreementSignedContractRepo(conn: DBConnection) {
     },
   };
 }
-
-export type AgreementSignedContractRepo = ReturnType<
-  typeof agreementSignedContractRepo
->;

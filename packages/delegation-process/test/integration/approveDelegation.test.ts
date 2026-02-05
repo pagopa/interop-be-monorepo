@@ -116,7 +116,7 @@ describe.each([
       contentType: "application/pdf",
       createdAt: currentExecutionTime,
       name: expectedContractName,
-      path: `${config.delegationDocumentPath}/${delegation.id}/${expectedContractId}/${expectedContractName}`,
+      path: `${config.delegationDocumentsPath}/${delegation.id}/${expectedContractId}/${expectedContractName}`,
       prettyName: `Delega_${eservice.name}`,
     };
 

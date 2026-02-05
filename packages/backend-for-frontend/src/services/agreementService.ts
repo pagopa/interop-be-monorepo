@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import {
   FileManager,
   getAllFromPaginated,
+  isFeatureFlagEnabled,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -18,10 +19,7 @@ import {
   delegationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import {
-  AgreementProcessClient,
-  PagoPAInteropBeClients,
-} from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   agreementDescriptorNotFound,
@@ -50,7 +48,7 @@ import { isAgreementUpgradable } from "./validators.js";
 import { getTenantById } from "./delegationService.js";
 
 export async function getAllAgreements(
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   headers: BffAppContext["headers"],
   getAgreementsQueryParams: Partial<agreementApi.GetAgreementsQueryParams>
 ): Promise<agreementApi.Agreement[]> {
@@ -221,12 +219,21 @@ export function agreementServiceBuilder(
         path: storagePath,
       };
 
-      await agreementProcessClient.addAgreementConsumerDocument(seed, {
-        params: { agreementId },
-        headers,
-      });
+      try {
+        await agreementProcessClient.addAgreementConsumerDocument(seed, {
+          params: { agreementId },
+          headers,
+        });
 
-      return documentContent;
+        return documentContent;
+      } catch (error) {
+        await fileManager.delete(
+          config.consumerDocumentsContainer,
+          storagePath,
+          logger
+        );
+        throw error;
+      }
     },
 
     async getAgreementConsumerDocument(
@@ -307,7 +314,7 @@ export function agreementServiceBuilder(
       const path = agreement.signedContract.path;
 
       const documentBytes = await fileManager.get(
-        config.consumerDocumentsContainer,
+        config.consumerSignedDocumentsContainer,
         path,
         logger
       );
@@ -627,8 +634,52 @@ export function agreementServiceBuilder(
   };
 }
 
+export const getLatestAgreementsOnDescriptor = async (
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  consumerId: string,
+  eservice: catalogApi.EService,
+  descriptorId: string,
+  headers: Headers
+): Promise<agreementApi.Agreement[]> => {
+  const allAgreements = await getAllAgreements(
+    agreementProcessClient,
+    headers,
+    {
+      consumersIds: [consumerId],
+      eservicesIds: [eservice.id],
+      descriptorsIds: [descriptorId],
+    }
+  );
+
+  // Even though the previous query is filtered by consumerId, there might be different consumerIds due to delegations
+  const agreementsByConsumer = allAgreements.reduce<
+    Map<string, agreementApi.Agreement[]>
+  >((acc, agreement) => {
+    const agreementsWithSameConsumerId = acc.get(agreement.consumerId) ?? [];
+    agreementsWithSameConsumerId.push(agreement);
+    acc.set(agreement.consumerId, agreementsWithSameConsumerId);
+    return acc;
+  }, new Map());
+
+  // For each consumerId, get the latest agreement by createdAt
+  const latestAgreements: agreementApi.Agreement[] = [];
+  for (const agreements of agreementsByConsumer.values()) {
+    const sorted = agreements.sort(
+      (first, second) =>
+        new Date(second.createdAt).getTime() -
+        new Date(first.createdAt).getTime()
+    );
+    const latest = sorted[0];
+    if (latest) {
+      latestAgreements.push(latest);
+    }
+  }
+
+  return latestAgreements;
+};
+
 export const getLatestAgreement = async (
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
   eservice: catalogApi.EService,
   headers: Headers
@@ -864,7 +915,12 @@ export async function enrichAgreement(
     suspendedAt: agreement.suspendedAt,
     consumerNotes: agreement.consumerNotes,
     rejectionReason: agreement.rejectionReason,
-    isDocumentReady: agreement.signedContract !== undefined,
+    isDocumentReady: isFeatureFlagEnabled(
+      config,
+      "featureFlagUseSignedDocument"
+    )
+      ? agreement.signedContract !== undefined
+      : agreement.contract !== undefined,
   };
 }
 

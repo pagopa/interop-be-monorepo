@@ -18,6 +18,7 @@ import {
   retrieveAttribute,
   TenantHandlerParams,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "certifiedVerifiedAttributeAssignedRevokedToAssignee";
@@ -100,6 +101,8 @@ export async function handleTenantVerifiedAttributeRevoked(
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
         attributeName: attribute.name,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

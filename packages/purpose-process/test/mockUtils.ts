@@ -170,39 +170,38 @@ export const getMockEServiceForPurposeFromTemplate = (
   personalData,
 });
 
-export const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm =
-  {
-    version: validatedRiskAnalysisTemplate3_1_Pa.version,
-    singleAnswers: [
-      {
-        key: "publicInterestTaskText",
-        value: "PublicInterestTaskText1",
-      },
-      {
-        key: "institutionalPurpose",
-        value: "MyPurpose",
-      },
-      {
-        key: "otherPersonalDataTypes",
-        value: "MyDataTypes",
-      },
-      {
-        key: "legalObligationReference",
-        value: "LegalObligation1",
-      },
-      {
-        key: "reasonPolicyNotProvided",
-        value: "Because",
-      },
-      {
-        key: "dataRetentionPeriod",
-        value: "10",
-      },
-    ],
-    multiAnswers: [],
-  };
+const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm = {
+  version: validatedRiskAnalysisTemplate3_1_Pa.version,
+  singleAnswers: [
+    {
+      key: "publicInterestTaskText",
+      value: "PublicInterestTaskText1",
+    },
+    {
+      key: "institutionalPurpose",
+      value: "MyPurpose",
+    },
+    {
+      key: "otherPersonalDataTypes",
+      value: "MyDataTypes",
+    },
+    {
+      key: "legalObligationReference",
+      value: "LegalObligation1",
+    },
+    {
+      key: "reasonPolicyNotProvided",
+      value: "Because",
+    },
+    {
+      key: "dataRetentionPeriod",
+      value: "10",
+    },
+  ],
+  multiAnswers: [],
+};
 
-export const validatedRiskAnalysisFormFromTemplate2_0_Private: RiskAnalysisValidatedForm =
+const validatedRiskAnalysisFormFromTemplate2_0_Private: RiskAnalysisValidatedForm =
   {
     version: validRiskAnalysis2_0_Private.version,
     singleAnswers: [],

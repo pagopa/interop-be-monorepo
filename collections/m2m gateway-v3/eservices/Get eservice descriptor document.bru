@@ -1,0 +1,20 @@
+meta {
+  name: Get eservice descriptor document
+  type: http
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/descriptors/:descriptorId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  descriptorId: {{descriptorId}}
+  eserviceId: {{eserviceId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

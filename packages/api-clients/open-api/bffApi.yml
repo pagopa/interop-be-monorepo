@@ -98,6 +98,26 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: purposeTemplates
+    description: Purpose Template Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: clients
+    description: Client Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: privacyNotices
+    description: Privacy Notices Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: producerKeychain
+    description: Producer Keychain Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
   - name: develop
     description: Development
 paths:
@@ -772,6 +792,7 @@ paths:
       tags:
         - agreements
       summary: Delete an agreement
+      description: Delete an agreement
       operationId: deleteAgreement
       responses:
         "204":
@@ -3085,6 +3106,7 @@ paths:
       tags:
         - eservices
       summary: Create a new EService
+      description: Create a new EService
       operationId: createEService
       requestBody:
         description: An EService seed
@@ -3145,6 +3167,7 @@ paths:
       tags:
         - eservices
       summary: Retrieve Consumers for an EService
+      description: Retrieve Consumers for an EService
       operationId: getEServiceConsumers
       parameters:
         - name: eServiceId
@@ -3230,6 +3253,7 @@ paths:
       tags:
         - eservices
       summary: Deletes a draft descriptor or an eservice if empty
+      description: Deletes a draft descriptor or an eservice if empty
       operationId: deleteDraft
       parameters:
         - name: eServiceId
@@ -3315,6 +3339,7 @@ paths:
       tags:
         - eservices
       summary: Updates a draft descriptor
+      description: Updates a draft descriptor
       operationId: updateDraftDescriptor
       parameters:
         - name: eServiceId
@@ -3412,6 +3437,7 @@ paths:
       tags:
         - eservices
       summary: Updates an eservice template instance draft descriptor
+      description: Updates an eservice template instance draft descriptor
       operationId: updateDraftDescriptorTemplateInstance
       parameters:
         - name: eServiceId
@@ -3532,6 +3558,7 @@ paths:
       tags:
         - eservices
       summary: Adds a descriptor to the specified e-service
+      description: Adds a descriptor to the specified e-service
       operationId: createDescriptor
       parameters:
         - name: eServiceId
@@ -3615,6 +3642,7 @@ paths:
       tags:
         - eservices
       summary: Activate the selected descriptor.
+      description: Activate the selected descriptor
       operationId: activateDescriptor
       parameters:
         - name: eServiceId
@@ -3723,6 +3751,7 @@ paths:
       tags:
         - eservices
       summary: Publish the selected descriptor.
+      description: Publish the selected descriptor
       operationId: updateDescriptor
       parameters:
         - name: eServiceId
@@ -3842,6 +3871,7 @@ paths:
       tags:
         - eservices
       summary: Update the selected template instance descriptor.
+      description: Update the selected template instance descriptor
       operationId: updateTemplateInstanceDescriptor
       parameters:
         - name: eServiceId
@@ -3961,6 +3991,7 @@ paths:
       tags:
         - eservices
       summary: Update agreement approval policy of published descriptor
+      description: Update agreement approval policy of published descriptor
       operationId: updateAgreementApprovalPolicy
       parameters:
         - name: eServiceId
@@ -4098,6 +4129,7 @@ paths:
       tags:
         - eservices
       summary: Publish the selected descriptor.
+      description: Publish the selected descriptor
       operationId: publishDescriptor
       parameters:
         - name: eServiceId
@@ -4207,6 +4239,7 @@ paths:
       tags:
         - eservices
       summary: Suspend the selected descriptor.
+      description: Suspend the selected descriptor
       operationId: suspendDescriptor
       parameters:
         - name: eServiceId
@@ -4294,6 +4327,7 @@ paths:
       tags:
         - eservices
       summary: Add EService template instance interface for REST protocol
+      description: Add EService template instance interface for REST protocol
       operationId: addEServiceTemplateInstanceInterfaceRest
       parameters:
         - name: eServiceId
@@ -4370,6 +4404,7 @@ paths:
       tags:
         - eservices
       summary: Add EService template instance interface for SOAP protocol
+      description: Add EService template instance interface for SOAP protocol
       operationId: addEServiceTemplateInstanceInterfaceSoap
       parameters:
         - name: eServiceId
@@ -4446,6 +4481,7 @@ paths:
       tags:
         - eservices
       summary: Add new e-service document
+      description: Add new e-service document
       operationId: createEServiceDocument
       parameters:
         - name: eServiceId
@@ -4561,6 +4597,7 @@ paths:
       tags:
         - eservices
       summary: Deletes an e-service document
+      description: Deletes an e-service document
       operationId: deleteEServiceDocumentById
       parameters:
         - name: eServiceId
@@ -4653,6 +4690,7 @@ paths:
       tags:
         - eservices
       summary: Get an e-service document
+      description: Get an e-service document
       operationId: getEServiceDocumentById
       parameters:
         - name: eServiceId
@@ -4751,6 +4789,7 @@ paths:
       tags:
         - eservices
       summary: Clones the selected descriptor.
+      description: Clones the selected descriptor
       operationId: cloneEServiceByDescriptor
       parameters:
         - name: eServiceId
@@ -4841,6 +4880,7 @@ paths:
       tags:
         - eservices
       summary: Updates an e-service document
+      description: Updates an e-service document
       operationId: updateEServiceDocumentById
       parameters:
         - name: eServiceId
@@ -4945,6 +4985,7 @@ paths:
       tags:
         - eservices
       summary: Deletes an e-service
+      description: Deletes an e-service
       operationId: deleteEService
       parameters:
         - name: eServiceId
@@ -5023,6 +5064,7 @@ paths:
       tags:
         - eservices
       summary: Updates EService general information
+      description: Updates EService general information
       operationId: updateEServiceById
       parameters:
         - name: eServiceId
@@ -5113,6 +5155,7 @@ paths:
       tags:
         - eservices
       summary: Updates EService template instance general information
+      description: Updates EService template instance general information
       operationId: updateEServiceTemplateInstanceById
       parameters:
         - name: eServiceId
@@ -5247,6 +5290,7 @@ paths:
       tags:
         - eservices
       summary: add a risk analysis to an EService
+      description: Add a risk analysis to an EService
       operationId: addRiskAnalysisToEService
       parameters:
         - name: eServiceId
@@ -5332,6 +5376,7 @@ paths:
       tags:
         - eservices
       summary: get EService risk analysis
+      description: Get EService risk analysis
       operationId: getEServiceRiskAnalysis
       parameters:
         - name: eServiceId
@@ -5421,6 +5466,7 @@ paths:
       tags:
         - eservices
       summary: update EService risk analysis
+      description: Update EService risk analysis
       operationId: updateEServiceRiskAnalysis
       parameters:
         - name: eServiceId
@@ -5512,6 +5558,7 @@ paths:
       tags:
         - eservices
       summary: delete EService risk analysis
+      description: Delete EService risk analysis
       operationId: deleteEServiceRiskAnalysis
       parameters:
         - name: eServiceId
@@ -5598,6 +5645,7 @@ paths:
       tags:
         - eservices
       summary: Update an e-service description
+      description: Update an e-service description
       operationId: updateEServiceDescription
       parameters:
         - name: eServiceId
@@ -5710,6 +5758,7 @@ paths:
       tags:
         - eservices
       summary: Update an e-service delegation flags
+      description: Update an e-service delegation flags
       operationId: updateEServiceDelegationFlags
       parameters:
         - name: eServiceId
@@ -5844,6 +5893,7 @@ paths:
       tags:
         - eservices
       summary: Update an e-service name
+      description: Update an e-service name
       operationId: updateEServiceName
       parameters:
         - name: eServiceId
@@ -5952,6 +6002,7 @@ paths:
       tags:
         - eservices
       summary: Enable/disable SignalHub for an e-service
+      description: Enable or disable SignalHub for an e-service
       operationId: updateEServiceSignalHubFlag
       parameters:
         - name: eServiceId
@@ -6068,7 +6119,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/personalDataFlag:
@@ -6205,6 +6256,7 @@ paths:
       tags:
         - eservices
       summary: Update e-service published descriptor attributes
+      description: Update e-service published descriptor attributes
       operationId: updateDescriptorAttributes
       parameters:
         - name: eServiceId
@@ -6342,6 +6394,7 @@ paths:
       tags:
         - eservices
       summary: approve a delegated new e-service version
+      description: Approve a delegated new e-service version
       operationId: approveDelegatedEServiceDescriptor
       parameters:
         - name: eServiceId
@@ -6450,6 +6503,7 @@ paths:
       tags:
         - eservices
       summary: reject a delegated new e-service version
+      description: Reject a delegated new e-service version
       operationId: rejectDelegatedEServiceDescriptor
       requestBody:
         description: Payload containing the reason of the rejection
@@ -6576,6 +6630,7 @@ paths:
       tags:
         - eservices
       summary: Export EService descriptor
+      description: Export EService descriptor
       operationId: exportEServiceDescriptor
       responses:
         "200":
@@ -6677,6 +6732,7 @@ paths:
       tags:
         - eservices
       summary: Get presigned URL
+      description: Get presigned URL for eservice import
       operationId: getImportEservicePresignedUrl
       responses:
         "200":
@@ -6728,6 +6784,7 @@ paths:
       tags:
         - eservices
       summary: Import EService
+      description: Import EService
       operationId: importEService
       requestBody:
         required: true
@@ -6809,6 +6866,7 @@ paths:
       tags:
         - eservices
       summary: Upgrade an instance of a template
+      description: Upgrade an instance of a template
       operationId: upgradeEServiceInstance
       parameters:
         - name: eServiceId
@@ -7024,6 +7082,7 @@ paths:
       tags:
         - eservices
       summary: Create a new e-service instance from a template
+      description: Create a new e-service instance from a template
       operationId: createEServiceInstanceFromTemplate
       parameters:
         - name: templateId
@@ -9225,6 +9284,7 @@ paths:
       tags:
         - purposes
       summary: Get an Risk Analysis document
+      description: Get a Risk Analysis document
       operationId: getRiskAnalysisDocument
       parameters:
         - name: purposeId
@@ -9345,6 +9405,7 @@ paths:
       tags:
         - purposes
       summary: Get a signed document
+      description: Get a signed document
       operationId: getSignedDocument
       parameters:
         - name: purposeId
@@ -11459,7 +11520,7 @@ paths:
           name: targetTenantKind
           description: filter by target tenant kind
           schema:
-            $ref: "#/components/schemas/TenantKind"
+            $ref: "#/components/schemas/TargetTenantKind"
         - in: query
           name: excludeExpiredRiskAnalysis
           description: exclude purpose templates with expired risk analysis
@@ -11784,7 +11845,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
-          description: Purpose template is not in Draft state
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -11849,6 +11910,216 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The identifier of the Purpose Template
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposeTemplates
+      summary: Downloads the unsigned Risk Analysis Template document
+      description: Returns the unsigned Risk Analysis Template document file for a given purposeTemplateId
+      operationId: getRiskAnalysisTemplateDocument
+      responses:
+        "200":
+          description: Risk Analysis Template unsigned document retrieved
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Resource not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds.
+        "400":
+          description: Invalid ID supplied
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds.
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds.
+  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument/signed:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The identifier of the Purpose Template
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposeTemplates
+      summary: Downloads the signed Risk Analysis Template document
+      description: Returns the signed Risk Analysis Template document file for a given purposeTemplateId
+      operationId: getRiskAnalysisTemplateSignedDocument
+      responses:
+        "200":
+          description: Risk Analysis Template signed document retrieved
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Resource not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds.
+        "400":
+          description: Invalid ID supplied
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds.
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds.
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers:
     parameters:
       - name: purposeTemplateId
@@ -12095,6 +12366,7 @@ paths:
       tags:
         - purposeTemplates
       summary: Retrieve risk analysis form template answer annotation document
+      description: Retrieve risk analysis form template answer annotation document
       operationId: getRiskAnalysisTemplateAnswerAnnotationDocument
       responses:
         "200":
@@ -12282,6 +12554,7 @@ paths:
       tags:
         - purposeTemplates
       summary: Update Answer Annotation Document in Risk Analysis of Purpose Template
+      description: Update Answer Annotation Document in Risk Analysis of Purpose Template
       operationId: updateRiskAnalysisTemplateAnswerAnnotationDocument
       requestBody:
         description: A payload containing the possible document updatable fields
@@ -14375,6 +14648,7 @@ paths:
       tags:
         - tenants
       summary: Add a tenant mail
+      description: Add a tenant mail
       operationId: addTenantMail
       requestBody:
         required: true
@@ -14486,6 +14760,7 @@ paths:
       tags:
         - tenants
       summary: Delete a tenant mail
+      description: Delete a tenant mail
       operationId: deleteTenantMail
       responses:
         "204":
@@ -14650,6 +14925,7 @@ paths:
       tags:
         - tenants
       summary: Update delegated producer and consumer feature to tenant caller
+      description: Update delegated producer and consumer feature to tenant caller
       operationId: updateTenantDelegatedFeatures
       requestBody:
         required: true
@@ -20405,11 +20681,18 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /delegations/{delegationId}/signedContract:
+  /delegations/{delegationId}/signedContract/{contractId}:
     parameters:
       - name: delegationId
         in: path
         description: The identifier of the delegation
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: contractId
+        in: path
+        description: The identifier of the the signedContract
         schema:
           type: string
           format: uuid
@@ -20517,6 +20800,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Create a new e-service template
+      description: Create a new e-service template
       operationId: createEServiceTemplate
       requestBody:
         description: An E-Service template seed
@@ -20605,6 +20889,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Updates a draft e-service template general information
+      description: Updates a draft e-service template general information
       operationId: updateEServiceTemplate
       requestBody:
         description: An E-Service template update seed containing the possible updatable fields
@@ -20680,6 +20965,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Retrieve e-service template
+      description: Retrieve e-service template
       operationId: getEServiceTemplate
       responses:
         "200":
@@ -20733,6 +21019,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Suspend the selected eservice template version.
+      description: Suspend the selected eservice template version
       operationId: suspendEServiceTemplateVersion
       parameters:
         - name: eServiceTemplateId
@@ -20819,6 +21106,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Publish the selected eservice template version.
+      description: Publish the selected eservice template version
       operationId: publishEServiceTemplateVersion
       parameters:
         - name: eServiceTemplateId
@@ -20927,6 +21215,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Activate the selected eservice template version.
+      description: Activate the selected eservice template version
       operationId: activateEServiceTemplateVersion
       parameters:
         - name: eServiceTemplateId
@@ -21013,6 +21302,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update an e-service template name
+      description: Update an e-service template name
       operationId: updateEServiceTemplateName
       parameters:
         - name: eServiceTemplateId
@@ -21121,6 +21411,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update an e-service template intended target description
+      description: Update an e-service template intended target description
       operationId: updateEServiceTemplateIntendedTarget
       parameters:
         - name: eServiceTemplateId
@@ -21229,6 +21520,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update an e-service template e-service description
+      description: Update an e-service template e-service description
       operationId: updateEServiceTemplateDescription
       parameters:
         - name: eServiceTemplateId
@@ -21447,6 +21739,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Updates a draft template version
+      description: Updates a draft template version
       operationId: updateDraftTemplateVersion
       requestBody:
         description: An E-Service template version seed
@@ -21524,6 +21817,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Delete a draft template version
+      description: Delete a draft template version
       operationId: deleteDraftTemplateVersion
       responses:
         "204":
@@ -21616,7 +21910,8 @@ paths:
         - bearerAuth: []
       tags:
         - eserviceTemplates
-      summary: Update the quotas of the selecter template version
+      summary: Update the quotas of the selected template version
+      description: Update the quotas of the selected template version
       operationId: updateTemplateVersionQuotas
       parameters:
         - name: eServiceTemplateId
@@ -21732,6 +22027,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Create an e-service template risk analysis
+      description: Create an e-service template risk analysis
       operationId: createEServiceTemplateRiskAnalysis
       parameters:
         - name: eServiceTemplateId
@@ -21855,6 +22151,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update an e-service template risk analysis
+      description: Update an e-service template risk analysis
       operationId: updateEServiceTemplateRiskAnalysis
       requestBody:
         description: A payload containing the risk analysis to update
@@ -21954,6 +22251,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Delete an e-service template risk analysis
+      description: Delete an e-service template risk analysis
       operationId: deleteEServiceTemplateRiskAnalysis
       responses:
         "204":
@@ -22047,6 +22345,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update e-service template published version attributes
+      description: Update e-service template published version attributes
       operationId: updateEServiceTemplateVersionAttributes
       parameters:
         - name: eServiceTemplateId
@@ -22464,6 +22763,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Adds a new version to the specified e-service template
+      description: Adds a new version to the specified e-service template
       operationId: createEServiceTemplateVersion
       parameters:
         - name: eServiceTemplateId
@@ -22547,6 +22847,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Add new e-service template document
+      description: Add new e-service template document
       operationId: createEServiceTemplateDocument
       parameters:
         - name: eServiceTemplateId
@@ -22654,6 +22955,28 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}:
     parameters:
       - name: eServiceTemplateId
@@ -22683,6 +23006,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Get an e-service template document
+      description: Get an e-service template document
       operationId: getEServiceTemplateDocumentById
       responses:
         "200":
@@ -22758,6 +23082,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Deletes an e-service template document
+      description: Deletes an e-service template document
       operationId: deleteEServiceTemplateDocumentById
       responses:
         "204":
@@ -22829,6 +23154,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Updates an e-service template document
+      description: Updates an e-service template document
       operationId: updateEServiceTemplateDocumentById
       parameters:
         - name: eServiceTemplateId
@@ -22929,6 +23255,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Set personalData flag for published EService templates
+      description: Set personalData flag for published EService templates
       operationId: updateEServiceTemplatePersonalDataFlagAfterPublication
       parameters:
         - name: eServiceTemplateId
@@ -23059,6 +23386,7 @@ paths:
       tags:
         - eservices
       summary: Check if the e-service name is available
+      description: Check if the e-service name is available
       operationId: isEServiceNameAvailable
       parameters:
         - name: name
@@ -23114,7 +23442,8 @@ paths:
                 $ref: "#/components/schemas/Problem"
   "/inAppNotifications":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - inAppNotifications
       summary: Retrieves a list of notifications
@@ -23126,6 +23455,11 @@ paths:
           description: Query to filter notifications
           schema:
             type: string
+        - in: query
+          name: unread
+          required: false
+          schema:
+            type: boolean
         - in: query
           name: category
           description: Category to filter notifications
@@ -24169,6 +24503,7 @@ paths:
       tags:
         - inAppNotifications
       summary: Retrieve the count of notifications grouped by section and subsection
+      description: Retrieve the count of notifications grouped by section and subsection
       operationId: getNotificationsCountBySection
       responses:
         "200":
@@ -24284,10 +24619,12 @@ paths:
 
   "/tenantNotificationConfigs":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Retrieve the tenant's notification configuration
+      description: Retrieve the tenant's notification configuration
       operationId: getTenantNotificationConfig
       responses:
         "200":
@@ -24401,10 +24738,12 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Update the tenant's notification configuration
+      description: Update the tenant's notification configuration
       operationId: updateTenantNotificationConfig
       requestBody:
         description: A notification config seed
@@ -24523,10 +24862,12 @@ paths:
 
   "/userNotificationConfigs":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Retrieve the user's notification configuration
+      description: Retrieve the user's notification configuration
       operationId: getUserNotificationConfig
       responses:
         "200":
@@ -24640,10 +24981,12 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - notificationConfigs
       summary: Update the user's notification configuration
+      description: Update the user's notification configuration
       operationId: updateUserNotificationConfig
       requestBody:
         description: A user notification config seed
@@ -24739,10 +25082,12 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/emailDeepLink/{notificationType}/{entityId}":
     get:
-      security: []
+      security:
+        - bearerAuth: []
       tags:
         - emailDeepLink
       summary: Redirect the user to the correct deepLink based on notification type and entity id
+      description: Redirect the user to the correct deepLink based on notification type and entity id
       operationId: getNotificationDeeplink
       parameters:
         - name: notificationType
@@ -24755,6 +25100,12 @@ paths:
           in: path
           required: true
           description: The id of the entity
+          schema:
+            type: string
+        - name: selfcareId
+          in: query
+          required: false
+          description: The selfcare ID for the institution (optional, falls back to generic URL if not provided)
           schema:
             type: string
       responses:
@@ -25425,6 +25776,7 @@ components:
         - isMine
         - hasCertifiedAttributes
         - isSubscribed
+        - agreements
       properties:
         id:
           type: string
@@ -25447,8 +25799,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
-        agreement:
-          $ref: "#/components/schemas/CompactAgreement"
+        agreements:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactAgreement"
         isMine:
           type: boolean
         hasCertifiedAttributes:
@@ -25579,6 +25933,9 @@ components:
         tenantKind:
           $ref: "#/components/schemas/TenantKind"
         createdAt:
+          type: string
+          format: date-time
+        rulesetExpiration:
           type: string
           format: date-time
     ProducerEServiceDescriptor:
@@ -25969,9 +26326,7 @@ components:
         description:
           type: string
         producer:
-          $ref: "#/components/schemas/CompactOrganization"
-        agreement:
-          $ref: "#/components/schemas/CompactAgreement"
+          $ref: "#/components/schemas/CatalogTenant"
         isMine:
           type: boolean
         activeDescriptor:
@@ -25979,6 +26334,8 @@ components:
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this e-service
+        personalData:
+          type: boolean
     ClientKind:
       type: string
       enum:
@@ -26052,6 +26409,7 @@ components:
         - id
         - state
         - canBeUpgraded
+        - consumerId
       properties:
         id:
           type: string
@@ -26060,6 +26418,9 @@ components:
           $ref: "#/components/schemas/AgreementState"
         canBeUpgraded:
           type: boolean
+        consumerId:
+          type: string
+          format: uuid
     CompactDescriptor:
       type: object
       additionalProperties: false
@@ -26338,6 +26699,27 @@ components:
           $ref: "#/components/schemas/TenantKind"
         contactMail:
           $ref: "#/components/schemas/Mail"
+        hasUnreadNotifications:
+          type: boolean
+          description: Indicates if there are unread notifications for this organization
+    CatalogTenant:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hasUnreadNotifications:
+          type: boolean
+          description: Indicates if there are unread notifications for this organization
+        selfcareId:
+          type: string
+          format: uuid
     TenantKind:
       type: string
       enum:
@@ -26345,6 +26727,11 @@ components:
         - PRIVATE
         - GSP
         - SCP
+    TargetTenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
     CompactOrganizations:
       type: object
       additionalProperties: false
@@ -26648,7 +27035,7 @@ components:
         targetDescription:
           type: string
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         creatorId:
           type: string
           format: uuid
@@ -26707,7 +27094,7 @@ components:
         targetDescription:
           type: string
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         creator:
           $ref: "#/components/schemas/CompactOrganization"
         state:
@@ -26759,7 +27146,7 @@ components:
           minLength: 10
           maxLength: 250
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         purposeTitle:
           type: string
           minLength: 5
@@ -26942,7 +27329,7 @@ components:
           type: string
           format: uuid
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         purposeTitle:
           type: string
         state:
@@ -26974,13 +27361,13 @@ components:
           type: string
           format: uuid
         targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
+          $ref: "#/components/schemas/TargetTenantKind"
         purposeTitle:
           type: string
         purposeDescription:
           type: string
         creator:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTenant"
     CatalogPurposeTemplates:
       type: object
       additionalProperties: false
@@ -27324,6 +27711,8 @@ components:
           $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
           type: string
+        signedContract:
+          $ref: "#/components/schemas/PurposeVersionSignedDocument"
       required:
         - id
         - state
@@ -27370,6 +27759,25 @@ components:
         - REJECTED
         - WAITING_FOR_APPROVAL
         - ARCHIVED
+    PurposeVersionSignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - contentType
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
+          type: string
+          format: date-time
     User:
       type: object
       additionalProperties: false
@@ -27481,6 +27889,31 @@ components:
         contentType:
           type: string
         createdAt:
+          type: string
+          format: date-time
+    SignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
           type: string
           format: date-time
     AgreementsEService:
@@ -28395,6 +28828,10 @@ components:
           $ref: "#/components/schemas/DelegationState"
         kind:
           $ref: "#/components/schemas/DelegationKind"
+        activationSignedContract:
+          $ref: "#/components/schemas/SignedDocument"
+        revocationSignedContract:
+          $ref: "#/components/schemas/SignedDocument"
         isDocumentReady:
           type: boolean
       required:
@@ -28806,7 +29243,7 @@ components:
         description:
           type: string
         creator:
-          $ref: "#/components/schemas/CompactOrganization"
+          $ref: "#/components/schemas/CatalogTenant"
         publishedVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     ProducerEServiceTemplate:
@@ -28899,7 +29336,6 @@ components:
         - type
         - status
         - title
-        - errors
     UpdateEServiceTemplateVersionSeed:
       required:
         - voucherLifespan
@@ -29064,6 +29500,8 @@ components:
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
+        - purposeOverQuotaStateToConsumer
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -29103,6 +29541,10 @@ components:
           type: boolean
         clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
           type: boolean
+        purposeQuotaAdjustmentRequestToProducer:
+          type: boolean
+        purposeOverQuotaStateToConsumer:
+          type: boolean
     TenantNotificationConfig:
       type: object
       additionalProperties: false
@@ -29117,17 +29559,16 @@ components:
       required:
         - inAppNotificationPreference
         - emailNotificationPreference
+        - emailDigestPreference
         - inAppConfig
         - emailConfig
       properties:
         inAppNotificationPreference:
           type: boolean
         emailNotificationPreference:
-          type: string
-          enum:
-            - ENABLED
-            - DISABLED
-            - DIGEST
+          type: boolean
+        emailDigestPreference:
+          type: boolean
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
@@ -29146,17 +29587,16 @@ components:
       required:
         - inAppNotificationPreference
         - emailNotificationPreference
+        - emailDigestPreference
         - inAppConfig
         - emailConfig
       properties:
         inAppNotificationPreference:
           type: boolean
         emailNotificationPreference:
-          type: string
-          enum:
-            - ENABLED
-            - DISABLED
-            - DIGEST
+          type: boolean
+        emailDigestPreference:
+          type: boolean
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:

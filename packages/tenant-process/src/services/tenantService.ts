@@ -140,7 +140,7 @@ const retrieveTenantByExternalId = async ({
   return tenant;
 };
 
-export async function retrieveAttribute(
+async function retrieveAttribute(
   attributeId: AttributeId,
   readModelService: ReadModelServiceSQL
 ): Promise<Attribute> {
@@ -419,10 +419,14 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
-          kind:
-            getTenantKind([], tenantSeed.externalId) === tenantKind.SCP
-              ? tenantKind.SCP
-              : undefined,
+          kind: match(getTenantKind([], tenantSeed.externalId))
+            /**
+             * If the tenant kind is SCP or PRIVATE, set the kind straight away.
+             * If not, the kind will be evaluated when certified attributes are added.
+             */
+            .with(tenantKind.SCP, tenantKind.PRIVATE, (kind) => kind)
+            .with(tenantKind.GSP, tenantKind.PA, () => undefined)
+            .exhaustive(),
         };
         await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
@@ -564,14 +568,11 @@ export function tenantServiceBuilder(
           tenantKindUpdatedEvent,
         ]);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedTenant,
-          metadata: { version: newVersion },
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
         };
       }
       const { newVersion } = await repository.createEvent(
@@ -771,14 +772,11 @@ export function tenantServiceBuilder(
           tenantKindUpdatedEvent,
         ]);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedTenant,
-          metadata: { version: newVersion },
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
         };
       }
 
@@ -1534,11 +1532,10 @@ export function tenantServiceBuilder(
           tenantWithUpdatedKind,
           correlationId
         );
-
-        await repository.createEvents([...events, tenantKindUpdatedEvent]);
-      } else {
-        await repository.createEvents([...events]);
+        // eslint-disable-next-line functional/immutable-data
+        events.push(tenantKindUpdatedEvent);
       }
+      await repository.createEvents(events);
 
       return tenantWithUpdatedKind;
     },
@@ -1640,11 +1637,10 @@ export function tenantServiceBuilder(
           tenantWithUpdatedKind,
           correlationId
         );
-
-        await repository.createEvents([...events, tenantKindUpdatedEvent]);
-      } else {
-        await repository.createEvents([...events]);
+        // eslint-disable-next-line functional/immutable-data
+        events.push(tenantKindUpdatedEvent);
       }
+      await repository.createEvents(events);
 
       return tenantWithUpdatedKind;
     },
@@ -1938,7 +1934,7 @@ export function tenantServiceBuilder(
   };
 }
 
-export function assignTenantDelegatedProducerFeature({
+function assignTenantDelegatedProducerFeature({
   tenant,
   correlationId,
   logger,
@@ -1973,7 +1969,7 @@ export function assignTenantDelegatedProducerFeature({
   return { event, updatedTenant };
 }
 
-export function removeTenantDelegatedProducerFeature({
+function removeTenantDelegatedProducerFeature({
   tenant,
   correlationId,
   logger,
@@ -2007,7 +2003,7 @@ export function removeTenantDelegatedProducerFeature({
   return { event, updatedTenant };
 }
 
-export function assignTenantDelegatedConsumerFeature({
+function assignTenantDelegatedConsumerFeature({
   tenant,
   correlationId,
   logger,
@@ -2042,7 +2038,7 @@ export function assignTenantDelegatedConsumerFeature({
   return { event, updatedTenant };
 }
 
-export function removeTenantDelegatedConsumerFeature({
+function removeTenantDelegatedConsumerFeature({
   tenant,
   correlationId,
   logger,

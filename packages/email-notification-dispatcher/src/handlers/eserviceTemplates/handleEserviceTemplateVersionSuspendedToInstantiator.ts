@@ -11,7 +11,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -19,6 +19,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "eserviceTemplateStatusChangedToInstantiator";
@@ -86,23 +87,31 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
       return [];
     }
 
-    return eservices.map((eservice) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Sospensione del template "${eserviceTemplate.name}"`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: `Sospensione del template "${eserviceTemplate.name}"`,
-          notificationType,
-          entityId: EServiceIdDescriptorId.parse(
-            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
-          ),
-          ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-          creatorName: creator.name,
-          templateName: eserviceTemplate.name,
-        }),
-      },
-      tenantId: t.tenantId,
-      ...mapRecipientToEmailPayload(t),
-    }));
+    return eservices.map((eservice) => {
+      const descriptor =
+        eservice.descriptors.find(
+          (d) => d.templateVersionRef?.id === eserviceTemplateVersionId
+        ) || retrieveLatestDescriptor(eservice);
+      return {
+        correlationId: correlationId ?? generateId(),
+        email: {
+          subject: `Sospensione del template "${eserviceTemplate.name}"`,
+          body: templateService.compileHtml(htmlTemplate, {
+            title: `Sospensione del template "${eserviceTemplate.name}"`,
+            notificationType,
+            entityId: EServiceIdDescriptorId.parse(
+              `${eservice.id}/${descriptor.id}`
+            ),
+            ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
+            creatorName: creator.name,
+            templateName: eserviceTemplate.name,
+            selfcareId: t.selfcareId,
+            bffUrl: config.bffUrl,
+          }),
+        },
+        tenantId: t.tenantId,
+        ...mapRecipientToEmailPayload(t),
+      };
+    });
   });
 }

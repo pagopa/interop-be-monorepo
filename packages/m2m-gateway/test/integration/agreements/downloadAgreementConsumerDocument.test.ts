@@ -63,7 +63,7 @@ describe("downloadAgreementConsumerDocument", () => {
           genericLogger
         )
       ).at(0)
-    ).toEqual(mockDocument.path);
+    ).toStrictEqual(mockDocument.path);
 
     const result = await agreementService.downloadAgreementConsumerDocument(
       mockAgreementId,

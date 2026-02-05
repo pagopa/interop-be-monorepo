@@ -65,7 +65,7 @@ describe("getEServiceTemplateVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MTemplateVersion);
+    expect(result).toStrictEqual(expectedM2MTemplateVersion);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient

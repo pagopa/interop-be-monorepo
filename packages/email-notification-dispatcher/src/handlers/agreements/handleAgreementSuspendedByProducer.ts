@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "agreementSuspendedUnsuspendedToConsumer";
@@ -68,6 +69,8 @@ export async function handleAgreementSuspendedByProducer(
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         producerName: producer.name,
         eserviceName: eservice.name,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,
