@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getMockContext } from "pagopa-interop-commons-test";
 import { getMockAuthData } from "pagopa-interop-commons-test";
-import { generateId, UserId, TenantId } from "pagopa-interop-models";
+import { generateId, UserId, TenantId, userRole } from "pagopa-interop-models";
 import {
   addNotifications,
   inAppNotificationService,
@@ -55,6 +55,39 @@ describe("hasUnreadNotification", () => {
       );
 
     expect(entitiesWithUnread.length).toBe(1);
+    expect(entitiesWithUnread).toEqual([entityId]);
+  });
+
+  it("should return an empty array for SUPPORT_ROLE regardless of existing unread notifications", async () => {
+    await addNotifications([newUnreadNotification()]);
+
+    const entitiesWithUnread =
+      await inAppNotificationService.hasUnreadNotifications(
+        [entityId],
+        getMockContext({
+          authData: getMockAuthData(tenantId, userId, [
+            userRole.SUPPORT_ROLE,
+          ]),
+        })
+      );
+
+    expect(entitiesWithUnread).toEqual([]);
+  });
+
+  it("should return unread notifications when user has SUPPORT_ROLE alongside other roles", async () => {
+    await addNotifications([newUnreadNotification()]);
+
+    const entitiesWithUnread =
+      await inAppNotificationService.hasUnreadNotifications(
+        [entityId],
+        getMockContext({
+          authData: getMockAuthData(tenantId, userId, [
+            userRole.ADMIN_ROLE,
+            userRole.SUPPORT_ROLE,
+          ]),
+        })
+      );
+
     expect(entitiesWithUnread).toEqual([entityId]);
   });
 
