@@ -310,7 +310,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     async getClientUsers(
       clientId: string,
       ctx: WithLogger<M2MGatewayAppContext>,
-      { limit, offset }: m2mGatewayApiV3.GetClientsQueryParams
+      { limit, offset }: m2mGatewayApiV3.GetClientUsersQueryParams
     ): Promise<m2mGatewayApiV3.Users> {
       ctx.logger.info(`Retrieving users for client ${clientId}`);
 
