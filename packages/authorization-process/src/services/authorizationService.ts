@@ -1116,8 +1116,12 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         userIds: UserId[];
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ProducerKeychain> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Binding producer keychain ${producerKeychainId} with users ${userIds.join(
           ", "
@@ -1131,11 +1135,14 @@ export function authorizationServiceBuilder(
         authData,
         producerKeychain.data
       );
+      const selfcareId = isUiAuthData(authData)
+        ? authData.selfcareId
+        : await getSelfcareIdFromAuthData(authData, readModelService);
 
       await Promise.all(
         userIds.map((userId) =>
           assertUserSelfcareSecurityPrivileges({
-            selfcareId: authData.selfcareId,
+            selfcareId,
             requesterUserId: authData.userId,
             consumerId: authData.organizationId,
             userIdToCheck: userId,
@@ -1157,7 +1164,7 @@ export function authorizationServiceBuilder(
         ...producerKeychain.data,
       };
 
-      await repository.createEvents(
+      const createdEvents = await repository.createEvents(
         uniqueUserIds.map((userId, index) => {
           // eslint-disable-next-line functional/immutable-data
           updatedProducerKeychain.users.push(userId);
@@ -1169,8 +1176,14 @@ export function authorizationServiceBuilder(
           );
         })
       );
-
-      return updatedProducerKeychain;
+      return {
+        data: updatedProducerKeychain,
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedProducerKeychain.id) ??
+            0,
+        },
+      };
     },
     async removeProducerKeychainUser(
       {
