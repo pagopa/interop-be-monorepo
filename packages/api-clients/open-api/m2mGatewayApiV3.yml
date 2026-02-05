@@ -9587,6 +9587,41 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  "/producerKeychains/{producerKeychainId}/users/{userId}":
+    parameters:
+      - name: producerKeychainId
+        in: path
+        description: The Producer Keychain id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        description: The ID of the User to unlink from the Producer Keychain
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Remove a user from a Producer Keychain
+      description: Dissociates a Producer Keychain from a User.
+      operationId: removeProducerKeychainUser
+      tags:
+        - producerKeychains
+      responses:
+        "204":
+          description: User removed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
     LastEventId:
