@@ -1,0 +1,19 @@
+meta {
+  name: Remove producerKeychain user
+  type: http
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/producerKeychains/:producerKeychainId/users/:userId
+  body: json
+  auth: none
+}
+
+params:path {
+  producerKeychainId: {{producerKeychainId}}
+  userId: {{userId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

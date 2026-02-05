@@ -368,5 +368,25 @@ export function producerKeychainServiceBuilder(
 
       await pollProducerKeychain(response, headers);
     },
+    async removeProducerKeychainUser(
+      producerKeychainId: ProducerKeychainId,
+      userId: string,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing user ${userId} from producer keychain ${producerKeychainId}`
+      );
+
+      const response =
+        await clients.authorizationClient.producerKeychain.removeProducerKeychainUser(
+          undefined,
+          {
+            params: { producerKeychainId, userId },
+            headers,
+          }
+        );
+
+      await pollProducerKeychain(response, headers);
+    },
   };
 }
