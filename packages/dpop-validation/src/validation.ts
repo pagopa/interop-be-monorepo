@@ -18,7 +18,6 @@ import {
 import { calculateThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
-  dpopJwkNotFound,
   dpopProofInvalidClaims,
   dpopProofSignatureVerificationError,
   dpopTokenBindingMismatch,
@@ -221,29 +220,15 @@ export const checkDPoPCache = async ({
  * - Calculates the JWK Thumbprint (RFC 7638) of the Proof's key.
  * - Compares the calculated thumbprint with the `jkt` hash provided in the Access Token's `cnf` claim.
  *
- * @param dpopProofJWT - The parsed DPoP Proof object containing the header with the JWK.
- * @param accessTokenJkt - The expected thumbprint (hash) extracted from the Access Token's `cnf` claim.
- *
- * @returns A `ValidationResult` indicating success (`true`) or failure.
- * @throws `dpopJwkNotFound` (or JWK validation errors): If the JWK is missing, malformed, or invalid.
- * @throws `dpopTokenBindingMismatch`: If the calculated proof thumbprint does not match the token's bound `jkt`.
  */
 export const verifyDPoPThumbprintMatch = (
   dpopProofJWT: DPoPProof,
   accessTokenJkt: string
 ): ValidationResult<true> => {
-  const { errors } = validateJWK(dpopProofJWT.header.jwk);
-  if (errors) {
-    return failedValidation([errors]);
+  const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
+  if (proofJkt !== accessTokenJkt) {
+    return failedValidation([dpopTokenBindingMismatch()]);
   }
-  try {
-    const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
-    if (proofJkt !== accessTokenJkt) {
-      return failedValidation([dpopTokenBindingMismatch()]);
-    }
 
-    return successfulValidation(true);
-  } catch (error) {
-    return failedValidation([dpopJwkNotFound()]);
-  }
+  return successfulValidation(true);
 };
