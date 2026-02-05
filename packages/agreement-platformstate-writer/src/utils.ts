@@ -495,12 +495,12 @@ export const updateLatestAgreementOnTokenGenStates = async (
     });
   };
 
-  const platformsStatesCatalogEntryPK = makePlatformStatesEServiceDescriptorPK({
+  const platformStatesCatalogEntryPK = makePlatformStatesEServiceDescriptorPK({
     eserviceId: agreement.eserviceId,
     descriptorId: agreement.descriptorId,
   });
   const platformStatesCatalogEntry = await readCatalogEntry(
-    platformsStatesCatalogEntryPK,
+    platformStatesCatalogEntryPK,
     dynamoDBClient
   );
 
@@ -512,7 +512,7 @@ export const updateLatestAgreementOnTokenGenStates = async (
 
   // Second check
   const updatedPlatformStatesCatalogEntry = await readCatalogEntry(
-    platformsStatesCatalogEntryPK,
+    platformStatesCatalogEntryPK,
     dynamoDBClient
   );
 
@@ -529,7 +529,7 @@ export const updateLatestAgreementOnTokenGenStates = async (
     );
   } else {
     logger.info(
-      `Token-generation-states. Second retrieval of catalog entry ${platformsStatesCatalogEntryPK} didn't bring any updates to agreement with GSIPK_consumerId_eserviceId ${makeGSIPKConsumerIdEServiceId(
+      `Token-generation-states. Second retrieval of catalog entry ${platformStatesCatalogEntryPK} didn't bring any updates to agreement with GSIPK_consumerId_eserviceId ${makeGSIPKConsumerIdEServiceId(
         { consumerId: agreement.consumerId, eserviceId: agreement.eserviceId }
       )}`
     );
