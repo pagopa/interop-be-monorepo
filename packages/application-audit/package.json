@@ -15,7 +15,8 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "tsx --watch ./src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
   },
   "dependencies": {
     "express": "4.20.0",
