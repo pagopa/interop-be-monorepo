@@ -37,6 +37,7 @@ import { writeDPoPCache } from "../src/utilities/dpopCacheUtils.js";
 import { dpopConfig, dynamoDBClient, dpopCacheTable } from "./utils.js";
 
 describe("DPoP validation tests", async () => {
+  const EXPECTED_DPOP_PROOF_HTM = "POST";
   describe("verify DPoP proof", () => {
     it("should succeed DPoP claims verification", async () => {
       const { dpopProofJWS } = await getMockDPoPProof();
@@ -44,6 +45,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -60,6 +62,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -80,6 +83,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -102,6 +106,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS: dpopProofWithWrongSignature,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -112,6 +117,7 @@ describe("DPoP validation tests", async () => {
       const { errors: errors1 } = verifyDPoPProof({
         dpopProofJWS: "too.many.substrings.in.dpop.proof",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -122,6 +128,7 @@ describe("DPoP validation tests", async () => {
       const { errors: errors2 } = verifyDPoPProof({
         dpopProofJWS: "not a jwt",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -132,6 +139,7 @@ describe("DPoP validation tests", async () => {
       const { errors: errors3 } = verifyDPoPProof({
         dpopProofJWS: "not.a.jwt",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -144,6 +152,7 @@ describe("DPoP validation tests", async () => {
       const { errors: errors4 } = verifyDPoPProof({
         dpopProofJWS: "signature.missing",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -162,6 +171,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -181,6 +191,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -199,6 +210,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -218,6 +230,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -236,6 +249,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -255,6 +269,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -273,6 +288,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -299,6 +315,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -327,6 +344,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -344,6 +362,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -368,6 +387,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
@@ -380,6 +400,7 @@ describe("DPoP validation tests", async () => {
       const { errors } = verifyDPoPProof({
         dpopProofJWS: "dpopProof1, dpopProof2",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
