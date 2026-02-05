@@ -127,9 +127,9 @@ export const addPurposeTemplateAnswerAnnotationErrorMapper = (
       "riskAnalysisTemplateAnswerNotFound",
       "riskAnalysisTemplateAnswerAnnotationNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
-      "tenantNotAllowed",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "conflictDocumentPrettyNameDuplicate",
       "conflictDuplicatedDocument",
