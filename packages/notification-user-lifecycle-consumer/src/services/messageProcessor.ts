@@ -3,6 +3,7 @@ import {
   genericInternalError,
   generateId,
   CorrelationId,
+  TenantId,
 } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { match } from "ts-pattern";
@@ -37,9 +38,7 @@ export async function processUserEvent(
   const productRole = payload.user.productRole;
 
   // eslint-disable-next-line functional/no-let
-  let tenantId: Awaited<
-    ReturnType<ReadModelServiceSQL["getTenantIdBySelfcareId"]>
-  >;
+  let tenantId: TenantId | undefined;
   // eslint-disable-next-line functional/no-let
   for (let attempt = 0; attempt < config.tenantLookupMaxRetries; attempt++) {
     tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(institutionId);
