@@ -56,7 +56,7 @@ export async function handleClientKeyDeleted(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Client ${client.id}, key ${kid}, no emails to dispatch.`
+      `No users with email notifications enabled for handleClientKeyDeleted - entityId: ${client.id}, eventType: ${notificationType}`
     );
     return [];
   }
