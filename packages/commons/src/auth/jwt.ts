@@ -44,10 +44,6 @@ export const readAuthDataFromJwtToken = (
 
 /**
  * Enforces DPoP schema compliance using Zod, strictly validating the `cnf` claim structure.
- *
- * @param payload - The decoded JWT payload.
- * @returns The strongly-typed payload guaranteed to have a valid `cnf`.
- * @throws {invalidClaim} If the payload is missing required DPoP claims or is malformed.
  */
 const verifyAccessTokenIsDPoP = (
   payload: JwtPayload | string
@@ -62,16 +58,7 @@ const verifyAccessTokenIsDPoP = (
 
 /**
  * Verifies the cryptographic integrity and standard claims (exp, aud) of a JWT Access Token.
- *
  * It retrieves the public key via the configured JWKS providers and validates the signature.
- * On verification failure, it attempts to extract user context (`userId`, `selfcareId`)
- * from the payload to populate the `tokenVerificationFailed` error for auditing purposes.
- *
- * @param jwtToken - The raw JWT string.
- * @param config - JWT configuration containing accepted audiences and JWKS URL(s).
- * @param logger - Logger instance.
- * @returns A Promise that resolves to an object containing the verified `decoded` payload.
- * @throws {tokenVerificationFailed} If the token is invalid, expired, has the wrong audience, or the signing key cannot be found.
  */
 export const verifyJwtToken = async (
   jwtToken: string,
@@ -157,28 +144,20 @@ export const verifyJwtToken = async (
  * Verifies the cryptographic integrity and DPoP compliance of an Access Token.
  *
  * This function performs a two-step validation:
- * 1. **Standard Verification**: Validates signature, expiration, and audience via `verifyJwtToken`.
- * 2. **DPoP Binding Check**: Validates that the payload conforms to the `AuthTokenDPoPPayload` schema (specifically checking for the `cnf` claim).
+ * 1. **Standard Verification**: Validates signature, expiration, and audience.
+ * 2. **DPoP Binding Check**: Validates that the payload conforms to JWT DPoP bound.
  *
  * If the token is cryptographically valid but fails the DPoP schema check (e.g., missing `cnf`),
- * it catches the validation error, attempts to extract user context for auditing, and throws a `tokenVerificationFailed`.
+ * it catches the validation error, attempts to extract user context for auditing, and throws an error
  *
- * @param accessToken - The raw JWT string from the Authorization header.
- * @param config - JWT configuration containing allowed audiences and JWKS providers.
- * @param logger - Logger instance for observability.
- * @returns A Promise resolving to the strongly-typed `AuthTokenDPoPPayload` containing the `cnf` binding.
- * @throws {tokenVerificationFailed} If the token has an invalid signature, is expired, has the wrong audience, or lacks the required DPoP binding.
  */
 export const verifyJwtDPoPToken = async (
   accessToken: string,
   config: JWTConfig,
   logger: Logger
 ): Promise<AuthTokenDPoPPayload> => {
-  // Verify JWT Signature & Expiration
   const { decoded } = await verifyJwtToken(accessToken, config, logger);
-
   try {
-    // Enforce DPoP Structure (check for 'cnf')
     return verifyAccessTokenIsDPoP(decoded);
   } catch (error) {
     logger.warn(

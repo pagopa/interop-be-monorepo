@@ -160,11 +160,13 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
         M2M_GATEWAY_INTERFACE_VERSION: z.string(),
         DEFAULT_POLLING_RETRY_DELAY: z.coerce.number().default(1000),
         DEFAULT_POLLING_MAX_RETRIES: z.coerce.number().default(5),
+        M2M_GATEWAY_PUBLIC_URL: APIEndpoint,
       })
       .transform((c) => ({
         m2mGatewayInterfaceVersion: c.M2M_GATEWAY_INTERFACE_VERSION,
         defaultPollingRetryDelay: c.DEFAULT_POLLING_RETRY_DELAY,
         defaultPollingMaxRetries: c.DEFAULT_POLLING_MAX_RETRIES,
+        m2mGatewayPublicUrl: c.M2M_GATEWAY_PUBLIC_URL,
       }))
   );
 
