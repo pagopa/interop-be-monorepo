@@ -211,8 +211,6 @@ jobs:
           run_install: true
       - name: Build all packages
         run: pnpm build
-      - name: Run pnpm check
-        run: pnpm check
       - name: Upload build artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -220,6 +218,8 @@ jobs:
           path: |
             .turbo/
             packages/*/dist/
+      - name: Run pnpm check
+        run: pnpm check
 
   lint:
     name: Lint sharded [ ${{ matrix.shard.shardIndex }} ]
