@@ -9,7 +9,6 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
