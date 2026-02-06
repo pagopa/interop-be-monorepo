@@ -53,6 +53,24 @@ describe("DPoP validation tests", async () => {
       expect(errors).toBeUndefined();
     });
 
+    it("should succeed DPoP claims verification with a custom HTM", async () => {
+      const { dpopProofJWS } = await getMockDPoPProof({
+        customPayload: {
+          htm: "GET",
+        },
+      });
+
+      const { errors } = verifyDPoPProof({
+        dpopProofJWS,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        expectedDPoPProofHtm: "GET",
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
+      });
+
+      expect(errors).toBeUndefined();
+    });
+
     it("should add error if there are invalid claims in the DPoP proof header", async () => {
       const { dpopProofJWS } = await getMockDPoPProof({
         customHeader: {
