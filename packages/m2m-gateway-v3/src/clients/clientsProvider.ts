@@ -9,8 +9,7 @@ import {
   eserviceTemplateApi,
   m2mEventApi,
   purposeTemplateApi,
-  selfcareV2InstitutionClientBuilder,
-  SelfcareV2InstitutionClient,
+  selfcareV2ClientApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
@@ -63,6 +62,15 @@ export type EServiceTemplateProcessClientWithMetadata =
 type PurposeTemplateProcessClientWithMetadata =
   ZodiosClientWithMetadata<purposeTemplateApi.PurposeTemplateProcessClient>;
 
+type SelfcareProcessClientWithMetadata = {
+  institution: ZodiosClientWithMetadata<
+    ReturnType<typeof selfcareV2ClientApi.createInstitutionApiClient>
+  >;
+  user: ZodiosClientWithMetadata<
+    ReturnType<typeof selfcareV2ClientApi.createUserApiClient>
+  >;
+};
+
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClientWithMetadata;
   attributeProcessClient: AttributeProcessClientWithMetadata;
@@ -74,7 +82,7 @@ export type PagoPAInteropBeClients = {
   eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
   eventManagerClient: m2mEventApi.EventManagerClient;
   purposeTemplateProcessClient: PurposeTemplateProcessClientWithMetadata;
-  selfcareV2Client: SelfcareV2InstitutionClient;
+  selfcareProcessClient: SelfcareProcessClientWithMetadata;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -144,6 +152,15 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       purposeTemplateApi.createPurposeTemplateApiClient,
       config.purposeTemplateProcessUrl
     ),
-    selfcareV2Client: selfcareV2InstitutionClientBuilder(config),
+    selfcareProcessClient: {
+      institution: createZodiosClientEnhancedWithMetadata(
+        selfcareV2ClientApi.createInstitutionApiClient,
+        config.selfcareBaseUrl
+      ),
+      user: createZodiosClientEnhancedWithMetadata(
+        selfcareV2ClientApi.createUserApiClient,
+        config.selfcareBaseUrl
+      ),
+    },
   };
 }

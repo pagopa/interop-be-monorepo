@@ -292,6 +292,7 @@ const authorizationRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
         const users = await authorizationService.getClientUsers(
@@ -300,6 +301,7 @@ const authorizationRouter = (
           },
           ctx
         );
+
         return res.status(200).send(authorizationApi.Users.parse(users));
       } catch (error) {
         const errorRes = makeApiProblem(error, getClientUsersErrorMapper, ctx);
