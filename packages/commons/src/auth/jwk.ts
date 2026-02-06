@@ -83,6 +83,11 @@ export const calculateThumbprint = (jwk: JsonWebKey): string => {
     .digest("base64url");
 };
 
+/* This is to avoid repeating the logic of the "calculateKid", 
+and to have a more meaningful name 
+for the generation of the CNF field inside the DPoP tokens */
+export const calculateDPoPThumbprint = calculateKid;
+
 function assertNotCertificate(key: string): void {
   try {
     new crypto.X509Certificate(key);
