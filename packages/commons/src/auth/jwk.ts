@@ -1,14 +1,19 @@
-import crypto, { JsonWebKey, KeyObject } from "crypto";
+import crypto, { createHash, JsonWebKey, KeyObject } from "crypto";
 import jwksClient, { JwksClient } from "jwks-rsa";
 import {
   notAnRSAKey,
   invalidKeyLength,
   invalidPublicKey,
   jwkDecodingError,
+  invalidJWKClaim,
   notAllowedCertificateException,
   notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
+  keyTypeNotAllowed,
+  JWKKeyRS256,
+  JWKKeyES256,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { JWTConfig } from "../config/index.js";
 
 export const decodeBase64ToPem = (base64String: string): string => {
@@ -35,11 +40,39 @@ export const calculateKid = (jwk: JsonWebKey): string => {
   const jwkString = JSON.stringify(sortedJwk);
   return crypto.createHash("sha256").update(jwkString).digest("base64url");
 };
-
 /* This is to avoid repeating the logic of the "calculateKid", 
 and to have a more meaningful name 
 for the generation of the CNF field inside the DPoP tokens */
 export const calculateDPoPThumbprint = calculateKid;
+
+export const calculateJWKThumbprint = (jwk: JsonWebKey): string => {
+  const parsedJwk = match(jwk.kty)
+    .with("RSA", () => {
+      const result = JWKKeyRS256.safeParse(jwk);
+
+      if (!result.success) {
+        throw invalidJWKClaim();
+      }
+      return result.data;
+    })
+    .with("EC", () => {
+      const result = JWKKeyES256.safeParse(jwk);
+
+      if (!result.success) {
+        throw invalidJWKClaim();
+      }
+      return result.data;
+    })
+    .otherwise(() => {
+      throw keyTypeNotAllowed(jwk.kty);
+    });
+
+  const canonicalJwk = sortJWK(parsedJwk);
+
+  return createHash("sha256")
+    .update(JSON.stringify(canonicalJwk))
+    .digest("base64url");
+};
 
 function assertNotCertificate(key: string): void {
   try {

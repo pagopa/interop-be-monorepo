@@ -19,6 +19,7 @@
   },
   "keywords": [],
   "devDependencies": {
+    "@aws-sdk/client-dynamodb": "3.840.0",  
     "@anatine/zod-mock": "3.14.0",
     "@pagopa/eslint-config": "3.0.0",
     "@types/express": "4.17.21",
@@ -43,6 +44,7 @@
     "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-dpop-validation": "workspace:*",
     "qs": "6.14.1",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8"

@@ -48,7 +48,7 @@ export type InteropJwtCommonPayload = z.infer<typeof InteropJwtCommonPayload>;
 /* ==========================================
     Interop CONSUMER Token
   ========================================== */
-const CNF = z.object({
+export const CNF = z.object({
   // jkt is a hash of the public key, required claim for DPoP tokens.
   jkt: z.string(),
 });
@@ -239,3 +239,9 @@ export const AuthTokenPayload = z.discriminatedUnion("role", [
   InteropJwtMaintenancePayload,
 ]);
 export type AuthTokenPayload = z.infer<typeof AuthTokenPayload>;
+
+export const AuthTokenDPoPPayload = z.discriminatedUnion("role", [
+  InteropJwtApiM2MDPoPPayload,
+  InteropJwtApiM2MAdminDPoPPayload,
+]);
+export type AuthTokenDPoPPayload = z.infer<typeof AuthTokenDPoPPayload>;
