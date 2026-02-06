@@ -29,7 +29,6 @@ import {
 } from "../errors.js";
 
 const EXPECTED_TYP = "dpop+jwt";
-const EXPECTED_HTM = "POST";
 const ALLOWED_ALGORITHMS: string[] = Algorithm.options;
 
 export const validateTyp = (
@@ -72,13 +71,13 @@ export const validateJWK = (
 
 export const validateHtm = (
   htm: unknown | undefined,
-  expectedDPoPProofHtm: string | undefined
+  expectedDPoPProofHtm: string
 ): ValidationResult<string> => {
-  if (typeof htm !== "string" || !htm) {
+  if (!htm) {
     return failedValidation([dpopHtmNotFound()]);
   }
-  const expectedHtm = expectedDPoPProofHtm ?? EXPECTED_HTM;
-  if (htm !== expectedHtm) {
+
+  if (htm !== expectedDPoPProofHtm) {
     return failedValidation([invalidDPoPHtm(htm)]);
   }
 
