@@ -69,6 +69,13 @@ describe("API POST /templates/eservices/:eServiceId", () => {
         isConsumerDelegable: "invalid",
       },
     },
+    {
+      body: {
+        ...mockUpdateEServiceDescriptorTemplateInstanceSeed,
+        isConsumerDelegable: false,
+        isClientAccessDelegable: true,
+      },
+    },
   ])(
     "Should return 400 if passed an invalid parameter: %s",
     async ({ eServiceId, body }) => {

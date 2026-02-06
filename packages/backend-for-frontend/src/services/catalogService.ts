@@ -54,6 +54,7 @@ import { BffProcessConfig, config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
+  invalidDelegationFlags,
   invalidZipStructure,
   missingDescriptorInClonedEservice,
   noDescriptorInEservice,
@@ -678,6 +679,15 @@ export function catalogServiceBuilder(
       updateEServiceSeed: bffApi.UpdateEServiceTemplateInstanceSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
+      if (
+        updateEServiceSeed.isConsumerDelegable === false &&
+        updateEServiceSeed.isClientAccessDelegable === true
+      ) {
+        throw invalidDelegationFlags(
+          updateEServiceSeed.isConsumerDelegable,
+          updateEServiceSeed.isClientAccessDelegable
+        );
+      }
       logger.info(
         `Updating EService ${eServiceId} template instance with seed ${JSON.stringify(
           updateEServiceSeed
