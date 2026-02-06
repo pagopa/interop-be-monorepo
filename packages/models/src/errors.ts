@@ -310,6 +310,7 @@ export const commonErrorCodes = {
   invalidServerUrl: "10026",
   hyperlinkDetectionError: "10027",
   badDPoPToken: "10028",
+  keyTypeNotAllowed: "10029",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -648,6 +649,16 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
     detail: `One or more required JWK claims are missing`,
     code: "missingRequiredJWKClaim",
     title: "Missing required JWK claims",
+  });
+}
+
+export function keyTypeNotAllowed(
+  kyt: string | undefined
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Key type ${kyt} is not allowed`,
+    code: "keyTypeNotAllowed",
+    title: "kty not allowed",
   });
 }
 

@@ -46,7 +46,10 @@ export function jwtFromAuthHeader(req: Request, logger: Logger): string {
   }
 
   const authHeaderParts = authHeader.split(" ");
-  if (authHeaderParts.length !== 2 || authHeaderParts[0] !== "Bearer") {
+  if (
+    authHeaderParts.length !== 2 ||
+    authHeaderParts[0].toLowerCase() !== "bearer"
+  ) {
     logger.warn(
       `Invalid authentication provided for this call ${req.method} ${req.url}`
     );
@@ -85,7 +88,7 @@ export function jwtsFromAuthAndDPoPHeaders(
   }
 
   const [scheme, accessToken] = authHeader.split(" ");
-  if (scheme !== "DPoP" || !accessToken) {
+  if (scheme.toLowerCase() !== "dpop" || !accessToken) {
     logger.warn(
       `Invalid authentication provided for this call ${req.method} ${req.url}`
     );

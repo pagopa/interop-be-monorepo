@@ -74,6 +74,8 @@ import {
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
 
+const EXPECTED_HTM = "POST";
+
 export type GeneratedTokenData =
   | {
       limitReached: true;
@@ -546,6 +548,7 @@ const validateDPoPProof = async (
     ? verifyDPoPProof({
         dpopProofJWS: dpopProofHeader,
         expectedDPoPProofHtu: config.dpopHtu,
+        expectedDPoPProofHtm: EXPECTED_HTM,
         dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: config.dpopDurationSeconds,
       })

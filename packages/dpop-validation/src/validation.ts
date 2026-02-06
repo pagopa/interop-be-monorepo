@@ -51,7 +51,7 @@ export const verifyDPoPProof = ({
 }: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
-  expectedDPoPProofHtm?: string;
+  expectedDPoPProofHtm: string;
   dpopProofIatToleranceSeconds: number;
   dpopProofDurationSeconds: number;
 }): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
