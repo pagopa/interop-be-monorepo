@@ -447,4 +447,129 @@ describe("updateDraftDescriptor", () => {
       templateInstanceNotAllowed(eservice.id, template.id)
     );
   });
+
+  it("should preserve dailyCalls on certified attributes when updating other descriptor fields", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      dailyCallsTotal: 100,
+      audience: ["audience1"],
+      voucherLifespan: 30,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCalls: 500,
+            },
+          ],
+        ],
+        verified: [
+          [
+            {
+              id: verifiedAttribute.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+      },
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+
+    await addOneEService(eservice);
+
+    const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      dailyCallsTotal: 200,
+      audience: ["audience1", "audience2"],
+      voucherLifespan: 60,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCalls: 500,
+            },
+          ],
+        ],
+        verified: [
+          [
+            {
+              id: verifiedAttribute.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+      },
+    };
+
+    const expectedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          dailyCallsTotal: 200,
+          audience: ["audience1", "audience2"],
+          voucherLifespan: 60,
+          attributes: {
+            certified: [
+              [
+                {
+                  id: certifiedAttribute.id,
+                  explicitAttributeVerification: false,
+                  dailyCalls: 500,
+                },
+              ],
+            ],
+            verified: [
+              [
+                {
+                  id: verifiedAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            declared: [],
+          },
+        },
+      ],
+    };
+
+    const updateDescriptorResponse = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      descriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+      descriptorId: descriptor.id,
+    });
+    expect(updateDescriptorResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
+  });
 });
