@@ -2229,8 +2229,7 @@ paths:
         description: The ID of the E-Service to unlink from the Producer Keychain
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     delete:
       tags:
         - producerKeychains
@@ -2575,8 +2574,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     get:
       tags:
         - eservices
@@ -2678,8 +2676,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2725,8 +2722,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2772,8 +2768,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2819,8 +2814,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2866,8 +2860,7 @@ paths:
         description: The E-Service ID of the Descriptors to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     get:
       tags:
         - eservices
@@ -2964,8 +2957,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -3074,8 +3066,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -3128,8 +3119,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -3228,8 +3218,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -3305,8 +3294,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor for which to download the interface
@@ -3422,8 +3410,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to suspend
@@ -3468,8 +3455,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to unsuspend
@@ -3514,8 +3500,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to publish
@@ -3560,8 +3545,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to approve
@@ -3613,8 +3597,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to reject
@@ -3653,8 +3636,7 @@ paths:
         description: The E-Service ID for which to create a risk analysis
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     post:
       tags:
         - eservices
@@ -3746,8 +3728,7 @@ paths:
         description: The E-Service id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: riskAnalysisId
         in: path
         description: The Risk Analysis id
@@ -3818,8 +3799,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -3880,8 +3860,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -3942,8 +3921,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4004,8 +3982,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4062,8 +4039,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4120,8 +4096,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4178,8 +4153,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4237,8 +4211,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4296,8 +4269,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4355,8 +4327,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4407,8 +4378,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -4459,8 +4429,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
@@ -8539,8 +8508,7 @@ paths:
         description: The Eservice ID to unlink
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     delete:
       tags:
         - purposeTemplates
@@ -13053,6 +13021,10 @@ components:
       required:
         - code
         - detail
+    EServiceId:
+      type: string
+      format: uuid
+      description: The unique identifier of the E-Service
   responses:
     TooManyRequests:
       description: Too Many Requests
