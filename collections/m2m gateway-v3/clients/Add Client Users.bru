@@ -1,0 +1,25 @@
+meta {
+  name: Add client users
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/clients/:clientId/users
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "userIds": ["{{userId1}}", "{{userId2}}"]
+  }
+}

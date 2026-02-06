@@ -213,6 +213,28 @@ const clientRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .post("/clients/:clientId/users", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await clientService.addClientUsers(
+          unsafeBrandId(req.params.clientId),
+          req.body.userIds,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding user to client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
   return clientRouter;
 };
