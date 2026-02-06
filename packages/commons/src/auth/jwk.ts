@@ -10,6 +10,8 @@ import {
   notAllowedPrivateKeyException,
   missingRequiredJWKClaim,
   keyTypeNotAllowed,
+  JWKKeyRS256,
+  JWKKeyES256,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { JWTConfig } from "../config/index.js";
@@ -49,26 +51,29 @@ export const calculateKid = (jwk: JsonWebKey): string => {
  * is accidentally passed, the private part is excluded from the hash.
  */
 export const calculateThumbprint = (jwk: JsonWebKey): string => {
-  const requiredKeys = match(jwk.kty)
+  const parsedJwk = match(jwk.kty)
     .with("RSA", () => {
-      if (!jwk.e || !jwk.n) {
+      // .strip() remove extra fields (kid, alg, use) and verify required ones (e, n, kty)
+      const result = JWKKeyRS256.strip().safeParse(jwk);
+
+      if (!result.success) {
         throw missingRequiredJWKClaim();
       }
-      return ["e", "kty", "n"];
+      return result.data;
     })
     .with("EC", () => {
-      if (!jwk.crv || !jwk.x || !jwk.y) {
+      const result = JWKKeyES256.strip().safeParse(jwk);
+
+      if (!result.success) {
         throw missingRequiredJWKClaim();
       }
-      return ["crv", "kty", "x", "y"];
+      return result.data;
     })
     .otherwise(() => {
       throw keyTypeNotAllowed(jwk.kty);
     });
 
-  const canonicalJwk = Object.fromEntries(
-    [...requiredKeys].sort().map((key) => [key, jwk[key]])
-  );
+  const canonicalJwk = sortJWK(parsedJwk);
 
   return createHash("sha256")
     .update(JSON.stringify(canonicalJwk))
