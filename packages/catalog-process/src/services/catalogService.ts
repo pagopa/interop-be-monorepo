@@ -180,6 +180,7 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
+  assertDailyCallsForCertifiedAttributesOnly,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -1320,6 +1321,8 @@ export function catalogServiceBuilder(
         eserviceDescriptorSeed.attributes,
         readModelService
       );
+
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
 
       assertConsistentDailyCalls(eserviceDescriptorSeed);
 
@@ -2861,18 +2864,25 @@ export function catalogServiceBuilder(
         seed
       );
 
-      const hasThresholdsChanged = hasCertifiedAttributeThresholdsChanged(
+      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
         descriptor,
         seed
       );
 
-      if (newAttributes.length === 0 && !hasThresholdsChanged) {
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+
+      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -3913,7 +3923,7 @@ function updateEServiceDescriptorAttributeInAdd(
  * Checks if any of the certified attributes' dailyCalls thresholds have changed
  * between the descriptor and the seed.
  */
-function hasCertifiedAttributeThresholdsChanged(
+function hasCertifiedAttributeDailyCallsChanged(
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
 ): boolean {
@@ -4222,6 +4232,8 @@ async function updateDraftDescriptor(
         readModelService
       )
     : descriptor.attributes;
+
+  assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
 
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
