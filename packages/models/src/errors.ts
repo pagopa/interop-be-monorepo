@@ -311,6 +311,7 @@ export const commonErrorCodes = {
   hyperlinkDetectionError: "10027",
   badDPoPToken: "10028",
   keyTypeNotAllowed: "10029",
+  invalidJWKClaim: "10030",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -649,6 +650,14 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
     detail: `One or more required JWK claims are missing`,
     code: "missingRequiredJWKClaim",
     title: "Missing required JWK claims",
+  });
+}
+
+export function invalidJWKClaim(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `JWK claims are invalid (missing or extra claims)`,
+    code: "invalidJWKClaim",
+    title: "Invalid JWK claims",
   });
 }
 

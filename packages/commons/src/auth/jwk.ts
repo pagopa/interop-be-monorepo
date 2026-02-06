@@ -5,10 +5,10 @@ import {
   invalidKeyLength,
   invalidPublicKey,
   jwkDecodingError,
+  invalidJWKClaim,
   notAllowedCertificateException,
   notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
-  missingRequiredJWKClaim,
   keyTypeNotAllowed,
   JWKKeyRS256,
   JWKKeyES256,
@@ -60,7 +60,7 @@ export const calculateThumbprint = (jwk: JsonWebKey): string => {
       const result = JWKKeyRS256.safeParse(jwk);
 
       if (!result.success) {
-        throw missingRequiredJWKClaim();
+        throw invalidJWKClaim();
       }
       return result.data;
     })
@@ -68,7 +68,7 @@ export const calculateThumbprint = (jwk: JsonWebKey): string => {
       const result = JWKKeyES256.safeParse(jwk);
 
       if (!result.success) {
-        throw missingRequiredJWKClaim();
+        throw invalidJWKClaim();
       }
       return result.data;
     })
