@@ -17,6 +17,8 @@ import { handleClientPurposeAdded } from "./handleClientPurposeAddedEvent.js";
 import { handleClientPurposeRemoved } from "./handleClientPurposeRemovedEvent.js";
 import { handleProducerKeychainEserviceAdded } from "./handleProducerKeychainEserviceAdded.js";
 import { handleProducerKeychainKeyAdded } from "./handleProducerKeychainKeyAdded.js";
+import { handleClientCreated } from "./handleClientCreated.js";
+import { handleClientDeleted } from "./handleClientDeleted.js";
 
 export async function handleAuthorizationEvent(
   params: HandlerParams<typeof AuthorizationEventV2>
@@ -30,7 +32,12 @@ export async function handleAuthorizationEvent(
   } = params;
   return match(decodedMessage)
     .with(
-      { type: "ProducerKeychainEServiceAdded" },
+      {
+        type: P.union(
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
+        ),
+      },
       ({ data: { eserviceId } }) =>
         handleProducerKeychainEserviceAdded({
           eserviceId: unsafeBrandId<EServiceId>(eserviceId),
@@ -124,19 +131,34 @@ export async function handleAuthorizationEvent(
         correlationId,
       })
     )
+    .with({ type: "ClientAdded" }, ({ data: { client } }) =>
+      handleClientCreated({
+        clientV2Msg: client,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with({ type: "ClientDeleted" }, ({ data: { client } }) =>
+      handleClientDeleted({
+        clientV2Msg: client,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
     .with(
       {
         type: P.union(
-          "ClientAdded",
           "ClientAdminSet",
-          "ClientDeleted",
           "ClientUserAdded",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
           "ProducerKeychainUserAdded",
-          "ProducerKeychainEServiceRemoved"
         ),
       },
       () => {

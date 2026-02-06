@@ -10,6 +10,8 @@ import { handleTenantCertifiedAttributeAssigned } from "./handleTenantCertifiedA
 import { handleTenantCertifiedAttributeRevoked } from "./handleTenantCertifiedAttributeRevoked.js";
 import { handleTenantVerifiedAttributeAssigned } from "./handleTenantVerifiedAttributeAssigned.js";
 import { handleTenantVerifiedAttributeRevoked } from "./handleTenantVerifiedAttributeRevoked.js";
+import { handleTenantDeclaredAttributeAssigned } from "./handleTenantDeclaredAttributeAssigned.js";
+import { handleTenantDeclaredAttributeRevoked } from "./handleTenantDeclaredAttributeRevoked.js";
 
 export async function handleTenantEvent(
   params: HandlerParams<typeof TenantEventV2>
@@ -71,12 +73,34 @@ export async function handleTenantEvent(
         })
     )
     .with(
+      { type: "TenantDeclaredAttributeAssigned" },
+      ({ data: { tenant, attributeId } }) =>
+        handleTenantDeclaredAttributeAssigned({
+          tenantV2Msg: tenant,
+          attributeId: unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "TenantDeclaredAttributeRevoked" },
+      ({ data: { tenant, attributeId } }) =>
+        handleTenantDeclaredAttributeRevoked({
+          tenantV2Msg: tenant,
+          attributeId: unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "TenantOnboarded",
           "TenantOnboardDetailsUpdated",
-          "TenantDeclaredAttributeAssigned",
-          "TenantDeclaredAttributeRevoked",
           "TenantVerifiedAttributeExpirationUpdated",
           "TenantVerifiedAttributeExtensionUpdated",
           "MaintenanceTenantDeleted",

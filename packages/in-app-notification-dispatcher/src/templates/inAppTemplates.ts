@@ -316,6 +316,10 @@ export const inAppTemplates = {
     revokerName: string
   ): string =>
     `Ti informiamo che l'ente certificatore  ${revokerName} ha revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione che utilizzano tale attributo subiranno una sospensione. Non potrai più utilizzare questo attributo per le future richieste di fruizione.`,
+  declaredAttributeAssignedToAssignee: (attributeName: string): string =>
+    `Il tuo ente ha auto-dichiarato l'attributo "${attributeName}". Puoi ora utilizzarlo nelle richieste di fruizione.`,
+  declaredAttributeRevokedToAssignee: (attributeName: string): string =>
+    `Ti informiamo che il tuo ente ha revocato l'attributo dichiarato "${attributeName}". Tutte le richieste di fruizione che utilizzano tale attributo subiranno una sospensione. Non potrai più utilizzare questo attributo per le future richieste di fruizione.`,
   producerKeychainEServiceAddedToConsumer: (
     producerName: string,
     eserviceName: string
@@ -327,6 +331,10 @@ export const inAppTemplates = {
     `Ti informiamo che è stata aggiunta una nuova chiave e-service al client ${clientName}.`,
   clientUserDeletedToClientUsers: (clientName: string): string =>
     `Una chiave associata al client ${clientName} non è più considerata sicura, in quanto l'operatore che l'ha caricata non è più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività.`,
+  clientCreatedToTenantUsers: (clientName: string): string =>
+    `Ti informiamo che è stato creato un nuovo client "${clientName}" per il tuo ente.`,
+  clientDeletedToTenantUsers: (clientName: string): string =>
+    `Ti informiamo che il client "${clientName}" del tuo ente è stato eliminato.`,
   producerKeychainKeyDeletedToClientUsers: (
     producerKeychainName: string,
     kid: string
