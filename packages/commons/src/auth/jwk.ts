@@ -45,16 +45,7 @@ and to have a more meaningful name
 for the generation of the CNF field inside the DPoP tokens */
 export const calculateDPoPThumbprint = calculateKid;
 
-/*
- * Difference between `calculateThumbprint` and `calculateKid`
- * `calculateThumbprint`:
- * 1. RFC 7638 Compliance: It follows the standard method for canonicalizing a JWK.
- * 2. Determinism: It ignores optional metadata (like 'alg', 'use', or 'kid').
- * The ID remains consistent as long as the key material is the same.
- * 3. Security: It uses a strict whitelist. If a private key (containing 'd')
- * is accidentally passed, the private part is excluded from the hash.
- */
-export const calculateThumbprint = (jwk: JsonWebKey): string => {
+export const calculateJWKThumbprint = (jwk: JsonWebKey): string => {
   const parsedJwk = match(jwk.kty)
     .with("RSA", () => {
       const result = JWKKeyRS256.safeParse(jwk);
@@ -82,11 +73,6 @@ export const calculateThumbprint = (jwk: JsonWebKey): string => {
     .update(JSON.stringify(canonicalJwk))
     .digest("base64url");
 };
-
-/* This is to avoid repeating the logic of the "calculateKid", 
-and to have a more meaningful name 
-for the generation of the CNF field inside the DPoP tokens */
-export const calculateDPoPThumbprint = calculateKid;
 
 function assertNotCertificate(key: string): void {
   try {

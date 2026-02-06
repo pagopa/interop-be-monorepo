@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { algorithm } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { calculateThumbprint, dateToSeconds } from "pagopa-interop-commons";
+import { calculateJWKThumbprint, dateToSeconds } from "pagopa-interop-commons";
 import {
   checkDPoPCache,
   verifyDPoPProof,
@@ -520,7 +520,7 @@ describe("DPoP validation tests", async () => {
         undefined,
         algorithm.RS256
       );
-      const expectedJkt = calculateThumbprint(dpopProofJWT.header.jwk);
+      const expectedJkt = calculateJWKThumbprint(dpopProofJWT.header.jwk);
       const { errors } = verifyDPoPThumbprintMatch(dpopProofJWT, expectedJkt);
 
       expect(errors).toBeUndefined();
