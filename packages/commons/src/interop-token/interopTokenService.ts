@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import {
   ClientAssertionDigest,
@@ -18,7 +17,7 @@ import { AuthorizationServerTokenGenerationConfig } from "../config/authorizatio
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
 import { dateToSeconds } from "../utils/date.js";
-import { calculateKid } from "../auth/jwk.js";
+import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import {
   InteropApiToken,
   InteropConsumerToken,
@@ -206,12 +205,13 @@ export class InteropTokenGenerator {
     // CORE LOGIC: Strongly-typed payload construction.
     // Uses InteropJwtApiDPoPPayload (req. cnf) if dpopJWK exists, otherwise standard InteropJwtApiPayload.
     // The serializer handles the resulting Union type.
+
     const payload: InteropJwtApiPayload | InteropJwtApiDPoPPayload = dpopJWK
       ? {
           ...userDataPayload,
           ...systemRolePayload,
           cnf: {
-            jkt: calculateKid(dpopJWK),
+            jkt: calculateDPoPThumbprint(dpopJWK),
           },
         }
       : {
@@ -299,7 +299,7 @@ export class InteropTokenGenerator {
       ...(dpopJWK
         ? {
             cnf: {
-              jkt: calculateKid(dpopJWK),
+              jkt: calculateDPoPThumbprint(dpopJWK),
             },
           }
         : {}),
