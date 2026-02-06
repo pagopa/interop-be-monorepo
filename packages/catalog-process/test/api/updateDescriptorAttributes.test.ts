@@ -287,6 +287,87 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       mockEService.id,
       descriptor.id,
     ],
+    // dailyCalls validation tests
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCalls: 0,
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCalls: -5,
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCalls: "notANumber",
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCalls: 1.5,
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCalls: null,
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
   ])(
     "Should return 400 if passed invalid attribute seed params: %s (eserviceId: %s, descriptorId: %s)",
     async (body, eServiceId, descriptorId) => {
