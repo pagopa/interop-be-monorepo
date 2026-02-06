@@ -21,7 +21,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 import { verifyDPoPCompliance } from "./dpop.js";
-import { extractRequestDetails } from "./request.js";
+import { extractRequestDetailsForDPoPCheck } from "./request.js";
 
 async function validateM2MAdminUserId(
   authData: M2MAdminAuthData,
@@ -94,13 +94,10 @@ export function m2mAuthDataValidationMiddleware(
 }
 
 export const authenticationDPoPMiddleware: (
-  config: JWTConfig & DPoPConfig & { m2mGatewayPublicUrl: string },
+  config: JWTConfig & DPoPConfig,
   dynamoDBClient: DynamoDBClient
 ) => ZodiosRouterContextRequestHandler<ExpressContext> =
-  (
-    config: JWTConfig & DPoPConfig & { m2mGatewayPublicUrl: string },
-    dynamoDBClient: DynamoDBClient
-  ) =>
+  (config: JWTConfig & DPoPConfig, dynamoDBClient: DynamoDBClient) =>
   async (req, res, next): Promise<unknown> => {
     // We assume that:
     // - contextMiddleware already set ctx.serviceName and ctx.correlationId
@@ -112,9 +109,9 @@ export const authenticationDPoPMiddleware: (
       // Reconstruct the Target URI (HTU) and Method (HTM) from the request
       // to ensure the DPoP proof signature matches the actual call.
       // ----------------------------------------------------------------------
-      const { url, method } = extractRequestDetails(
+      const { expectedHtu, expectedHtm } = extractRequestDetailsForDPoPCheck(
         req,
-        config.m2mGatewayPublicUrl
+        config.dpopHtu
       );
 
       // ----------------------------------------------------------------------
@@ -143,8 +140,8 @@ export const authenticationDPoPMiddleware: (
         dpopProofJWS,
         accessTokenClientId: accessTokenDPoP.client_id,
         accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
-        expectedHtu: url,
-        expectedHtm: method,
+        expectedHtu,
+        expectedHtm,
         dynamoDBClient,
         logger: ctx.logger,
       });
