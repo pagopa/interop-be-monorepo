@@ -9379,7 +9379,6 @@ paths:
       summary: Binds an user to a Client
       description: |
         Link a Client to a User
-        The User must be active
       operationId: addUsersToClient
       requestBody:
         required: true
