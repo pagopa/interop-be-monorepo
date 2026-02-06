@@ -31,6 +31,7 @@ import {
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
   getEServiceTemplateInstancesErrorMapper,
+  updateEServiceTemplateInstanceErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
@@ -632,7 +633,7 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateEServiceTemplateInstanceErrorMapper,
           ctx,
           `Error updating EService ${req.params.eServiceId} template instance`
         );
