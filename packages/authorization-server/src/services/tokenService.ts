@@ -70,7 +70,6 @@ import {
   platformStateValidationFailed,
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
-  unexpectedDPoPProofForAPIToken,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
@@ -117,7 +116,7 @@ export function tokenServiceBuilder({
       logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
       // DPoP proof validation
-      const { dpopProofJWS, dpopProofJWT } = await validateDPoPProof(
+      const { dpopProofJWT } = await validateDPoPProof(
         headers.DPoP,
         body.client_id,
         logger
@@ -192,10 +191,6 @@ export function tokenServiceBuilder({
         message: "Key retrieved",
         logger,
       });
-
-      if (key.clientKind === clientKindTokenGenStates.api && dpopProofJWS) {
-        throw unexpectedDPoPProofForAPIToken(key.GSIPK_clientId);
-      }
 
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
@@ -306,6 +301,9 @@ export function tokenServiceBuilder({
             sub: clientAssertionJWT.payload.sub,
             consumerId: key.consumerId,
             clientAdminId: key.adminId,
+            // Pass JWK directly (can be undefined).
+            // generateInteropApiToken handles conditional 'cnf' inclusion.
+            dpopJWK: dpopProofJWT?.header.jwk,
           });
 
           logTokenGenerationInfo({

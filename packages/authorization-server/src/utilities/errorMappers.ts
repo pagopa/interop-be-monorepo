@@ -23,7 +23,6 @@ export const authorizationServerErrorMapper = (
       "platformStateValidationFailed",
       "dpopProofValidationFailed",
       "dpopProofSignatureValidationFailed",
-      "unexpectedDPoPProofForAPIToken",
       "dpopProofJtiAlreadyUsed",
       () => HTTP_STATUS_BAD_REQUEST
     )
