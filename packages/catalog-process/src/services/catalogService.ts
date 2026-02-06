@@ -2861,7 +2861,12 @@ export function catalogServiceBuilder(
         seed
       );
 
-      if (newAttributes.length === 0) {
+      const hasThresholdsChanged = hasCertifiedAttributeThresholdsChanged(
+        descriptor,
+        seed
+      );
+
+      if (newAttributes.length === 0 && !hasThresholdsChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
@@ -3902,6 +3907,31 @@ function updateEServiceDescriptorAttributeInAdd(
     ...verifiedAttributes,
     ...declaredAttributes,
   ].map(unsafeBrandId<AttributeId>);
+}
+
+/**
+ * Checks if any of the certified attributes' dailyCalls thresholds have changed
+ * between the descriptor and the seed.
+ */
+function hasCertifiedAttributeThresholdsChanged(
+  descriptor: Descriptor,
+  seed: catalogApi.AttributesSeed
+): boolean {
+  const seedCertifiedAttributes = seed.certified.flat();
+  const descriptorCertifiedAttributes = descriptor.attributes.certified.flat();
+  for (const seedCertifiedAttribute of seedCertifiedAttributes) {
+    const matchingDescriptorAttribute = descriptorCertifiedAttributes.find(
+      (attr) => attr.id === seedCertifiedAttribute.id
+    );
+
+    if (
+      matchingDescriptorAttribute?.dailyCalls !==
+      seedCertifiedAttribute.dailyCalls
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function evaluateTemplateVersionRef(
