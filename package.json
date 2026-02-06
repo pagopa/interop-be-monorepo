@@ -75,12 +75,14 @@
     "infra:stop": "./scripts/infra-stop.sh",
     "infra:destroy": "./scripts/infra-destroy.sh",
     "prune-dist": "find . -name 'dist' -type d -exec rm -rf {} +",
-    "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +"
+    "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +",
+    "madge": "madge --circular --extensions ts,tsx,js,jsx --ts-config ./tsconfig.json packages"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "20.1.3",
     "@tsconfig/strictest": "2.0.5",
     "knip": "5.75.1",
+    "madge": "8.0.0",
     "turbo": "2.2.3"
   },
   "config": {
