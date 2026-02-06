@@ -170,6 +170,102 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     [{ ...descriptorSeed, attributes: undefined }, eservice.id],
     [{ ...descriptorSeed, docs: [{}] }, eservice.id],
     [{}, "invalidId"],
+    // dailyCalls validation tests on attributes
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCalls: 0,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCalls: -10,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCalls: "invalid",
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCalls: 3.14,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCalls: null,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
   ])(
     "Should return 400 if passed invalid descriptor params: %s (eserviceId: %s)",
     async (body, eserviceId) => {
