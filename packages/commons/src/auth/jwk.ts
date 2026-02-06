@@ -40,6 +40,10 @@ export const calculateKid = (jwk: JsonWebKey): string => {
   const jwkString = JSON.stringify(sortedJwk);
   return crypto.createHash("sha256").update(jwkString).digest("base64url");
 };
+/* This is to avoid repeating the logic of the "calculateKid", 
+and to have a more meaningful name 
+for the generation of the CNF field inside the DPoP tokens */
+export const calculateDPoPThumbprint = calculateKid;
 
 /*
  * Difference between `calculateThumbprint` and `calculateKid`
@@ -53,8 +57,7 @@ export const calculateKid = (jwk: JsonWebKey): string => {
 export const calculateThumbprint = (jwk: JsonWebKey): string => {
   const parsedJwk = match(jwk.kty)
     .with("RSA", () => {
-      // .strip() remove extra fields (kid, alg, use) and verify required ones (e, n, kty)
-      const result = JWKKeyRS256.strip().safeParse(jwk);
+      const result = JWKKeyRS256.safeParse(jwk);
 
       if (!result.success) {
         throw missingRequiredJWKClaim();
@@ -62,7 +65,7 @@ export const calculateThumbprint = (jwk: JsonWebKey): string => {
       return result.data;
     })
     .with("EC", () => {
-      const result = JWKKeyES256.strip().safeParse(jwk);
+      const result = JWKKeyES256.safeParse(jwk);
 
       if (!result.success) {
         throw missingRequiredJWKClaim();
