@@ -99,6 +99,13 @@ export const InteropJwtApiM2MPayload = InteropJwtApiCommonPayload.merge(
 );
 export type InteropJwtApiM2MPayload = z.infer<typeof InteropJwtApiM2MPayload>;
 
+export const InteropJwtApiM2MDPoPPayload = InteropJwtApiM2MPayload.merge(
+  z.object({ cnf: CNF })
+);
+export type InteropJwtApiM2MDPoPPayload = z.infer<
+  typeof InteropJwtApiM2MDPoPPayload
+>;
+
 export const InteropJwtApiM2MAdminPayload = InteropJwtApiCommonPayload.merge(
   z.object({
     role: z.literal(systemRole.M2M_ADMIN_ROLE),
@@ -110,13 +117,23 @@ export type InteropJwtApiM2MAdminPayload = z.infer<
   typeof InteropJwtApiM2MAdminPayload
 >;
 
+export const InteropJwtApiM2MAdminDPoPPayload =
+  InteropJwtApiM2MAdminPayload.merge(z.object({ cnf: CNF }));
+export type InteropJwtApiM2MAdminDPoPPayload = z.infer<
+  typeof InteropJwtApiM2MAdminDPoPPayload
+>;
+
 export type InteropJwtApiPayload =
   | InteropJwtApiM2MAdminPayload
   | InteropJwtApiM2MPayload;
 
+export type InteropJwtApiDPoPPayload =
+  | InteropJwtApiM2MAdminDPoPPayload
+  | InteropJwtApiM2MDPoPPayload;
+
 export type InteropApiToken = {
   header: InteropJwtHeader;
-  payload: InteropJwtApiPayload;
+  payload: InteropJwtApiPayload | InteropJwtApiDPoPPayload;
   serialized: string;
 };
 
