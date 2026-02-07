@@ -286,24 +286,7 @@ export async function isOverQuota(
     throw descriptorNotFound(eservice.id, agreement.descriptorId);
   }
 
-  //const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
-  const targetIds: any[] = []; // retrieve attribututes ids from agreement.consumerId retrieving from Tenant model etc
-  const maxDailyCallsPerConsumer = currentDescriptor.attributes.certified.reduce((max, current) => {
-  // 1. Se l'ID corrente non è nel subset, ignoralo e ritorna il massimo trovato finora
-  if (targetIds.indexOf(current.id) === -1) {
-    return max;
-  }
-
-  // 2. Se è il primo oggetto valido che troviamo, diventa lui il massimo
-  if (!max) {
-    return current;
-  }
-
-  // 3. Altrimenti, confronta i limit
-  return (current.limit > max.limit) ? current : max;
-}, null as Oggetto | null) // <-- Importante: tipizziamo il valore iniziale come Oggetto o null
-.limit ?? currentDescriptor.dailyCallsPerConsumer;
-
+  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 
   return !(

@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_attribute (
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
+  daily_calls INTEGER,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

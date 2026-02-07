@@ -26,6 +26,7 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
+  type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -46,6 +47,7 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -404,4 +406,15 @@ export function hasRoleToAccessInactiveDescriptors(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export function assertDailyCallsForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
+  for (const attribute of attributesToCheck) {
+    if (attribute.dailyCalls !== undefined) {
+      throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
 }
