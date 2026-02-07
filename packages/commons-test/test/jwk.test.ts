@@ -1,7 +1,7 @@
 import { JsonWebKey } from "crypto";
 import {
   calculateKid,
-  calculateThumbprint,
+  calculateJWKThumbprint,
   createJWK,
   sortJWK,
 } from "pagopa-interop-commons";
@@ -29,7 +29,7 @@ describe("jwk test", () => {
     expect(kid).toEqual(expetedKid);
   });
 
-  describe("calculateThumbprint", () => {
+  describe("calculateJWKThumbprint", () => {
     // https://datatracker.ietf.org/doc/html/rfc7638#section-3.1 (example from RFC 7638)
     const validRsaKey: JsonWebKey = {
       kty: "RSA",
@@ -44,13 +44,13 @@ describe("jwk test", () => {
     };
 
     it("should return the correct SHA-256 thumbprint (RFC 7638 match)", () => {
-      expect(calculateThumbprint(validRsaKey)).toEqual(
+      expect(calculateJWKThumbprint(validRsaKey)).toEqual(
         "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
       );
     });
 
     it("should return the correct SHA-256 thumbprint for EC", () => {
-      expect(calculateThumbprint(validEcKey)).toEqual(
+      expect(calculateJWKThumbprint(validEcKey)).toEqual(
         "cn-I_WNMClehiVp51i_0VpOENW1upEerA8sEam5hn-s"
       );
     });
@@ -62,7 +62,7 @@ describe("jwk test", () => {
         kid: "ignore-me",
         use: "sig",
       };
-      expect(() => calculateThumbprint(keyWithExtras)).toThrow(
+      expect(() => calculateJWKThumbprint(keyWithExtras)).toThrow(
         invalidJWKClaim()
       );
     });
@@ -73,7 +73,7 @@ describe("jwk test", () => {
         kid: "ignore-me-ec",
         use: "sig",
       };
-      expect(() => calculateThumbprint(keyWithExtras)).toThrow(
+      expect(() => calculateJWKThumbprint(keyWithExtras)).toThrow(
         invalidJWKClaim()
       );
     });
@@ -86,8 +86,8 @@ describe("jwk test", () => {
         use: "sig",
       };
 
-      const hashClean = calculateThumbprint(validRsaKey);
-      const hashExtras = calculateThumbprint(keyWithExtras);
+      const hashClean = calculateJWKThumbprint(validRsaKey);
+      const hashExtras = calculateJWKThumbprint(keyWithExtras);
 
       expect(hashExtras).toEqual(hashClean);
     });
@@ -100,27 +100,27 @@ describe("jwk test", () => {
         use: "sig",
       };
 
-      const hashClean = calculateThumbprint(validEcKey);
-      const hashExtras = calculateThumbprint(keyWithExtras);
+      const hashClean = calculateJWKThumbprint(validEcKey);
+      const hashExtras = calculateJWKThumbprint(keyWithExtras);
 
       expect(hashExtras).toEqual(hashClean);
     });
 
     it("should throw if kty is unsupported (e.g. oct)", () => {
       const octKey: JsonWebKey = { kty: "oct", k: "secret-key" };
-      expect(() => calculateThumbprint(octKey)).toThrow(
+      expect(() => calculateJWKThumbprint(octKey)).toThrow(
         keyTypeNotAllowed("oct")
       );
     });
 
     it("should throw if required RSA properties (n, e) are missing", () => {
       const missingE = { kty: "RSA", n: "foo" } as JsonWebKey;
-      expect(() => calculateThumbprint(missingE)).toThrow(invalidJWKClaim());
+      expect(() => calculateJWKThumbprint(missingE)).toThrow(invalidJWKClaim());
     });
 
     it("should throw if required EC properties (crv, x, y) are missing", () => {
       const missingX = { kty: "EC", crv: "P-256", y: "bar" } as JsonWebKey;
-      expect(() => calculateThumbprint(missingX)).toThrow(invalidJWKClaim());
+      expect(() => calculateJWKThumbprint(missingX)).toThrow(invalidJWKClaim());
     });
   });
 });
