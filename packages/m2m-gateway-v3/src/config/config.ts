@@ -6,6 +6,7 @@ import {
   FileManagerConfig,
   JWTConfig,
   RedisRateLimiterConfig,
+  TokenGenerationConfig,
   SelfCareClientConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -152,6 +153,7 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(FileManagerConfig)
   .and(DPoPConfig)
   .and(JWTConfig)
+  .and(TokenGenerationConfig)
   .and(
     z
       .object({
