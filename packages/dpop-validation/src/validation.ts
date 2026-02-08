@@ -14,10 +14,13 @@ import {
   JWKKeyRS256,
   JWKKeyES256,
 } from "pagopa-interop-models";
+
+import { calculateJWKThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
   dpopProofInvalidClaims,
   dpopProofSignatureVerificationError,
+  dpopTokenBindingMismatch,
   invalidDPoPJwt,
   invalidDPoPProofFormat,
   invalidDPoPSignature,
@@ -42,11 +45,13 @@ import {
 export const verifyDPoPProof = ({
   dpopProofJWS,
   expectedDPoPProofHtu,
+  expectedDPoPProofHtm,
   dpopProofIatToleranceSeconds,
   dpopProofDurationSeconds,
 }: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
+  expectedDPoPProofHtm: string;
   dpopProofIatToleranceSeconds: number;
   dpopProofDurationSeconds: number;
 }): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
@@ -71,7 +76,8 @@ export const verifyDPoPProof = ({
 
     // JWT payload
     const { errors: htmErrors, data: validatedHtm } = validateHtm(
-      decodedPayload.htm
+      decodedPayload.htm,
+      expectedDPoPProofHtm
     );
     const { errors: htuErrors, data: validatedHtu } = validateHtu(
       decodedPayload.htu,
@@ -196,7 +202,6 @@ export const checkDPoPCache = async ({
   if (dpopCache) {
     return failedValidation([dpopJtiAlreadyCached(dpopProofJti)]);
   }
-
   await writeDPoPCache({
     dynamoDBClient,
     dpopCacheTable,
@@ -206,4 +211,24 @@ export const checkDPoPCache = async ({
   });
 
   return successfulValidation(dpopProofJti);
+};
+
+/**
+ * Verifies the cryptographic binding between the DPoP Proof and the Access Token.
+ *
+ * This function performs the following checks:
+ * - Calculates the JWK Thumbprint (RFC 7638) of the Proof's key.
+ * - Compares the calculated thumbprint with the `jkt` hash provided in the Access Token's `cnf` claim.
+ *
+ */
+export const verifyDPoPThumbprintMatch = (
+  dpopProofJWT: DPoPProof,
+  accessTokenJkt: string
+): ValidationResult<true> => {
+  const proofJkt = calculateJWKThumbprint(dpopProofJWT.header.jwk);
+  if (proofJkt !== accessTokenJkt) {
+    return failedValidation([dpopTokenBindingMismatch()]);
+  }
+
+  return successfulValidation(true);
 };

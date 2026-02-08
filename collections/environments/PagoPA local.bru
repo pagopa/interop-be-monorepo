@@ -24,4 +24,10 @@ vars {
   JWT2-M2M-ADMIN: Bearer {{process.env.JWT2-M2M-ADMIN}}
   host-in-app-notification: http://localhost:4200
   host-m2m-event-manager: http://localhost:4400
+  create-dpop-proof-path: {{process.env.DPOP_SCRIPT_PATH}}
+  create-client-assertion-path: {{process.env.CLIENT_ASSERTION_SCRIPT_PATH}}
+  dpop-proof-priv-key-path: {{process.env.DPOP_PROOF_PRIV_KEY}}
+  dpop-proof-pub-key-path: {{process.env.DPOP_PROOF_PUB_KEY}}
+  client-assertion-priv-key-path: {{process.env.CLIENT_ASSERTION_PRIV_KEY}}
+  auth-server-audience: {{process.env.AUTH_SERVER_AUDIENCE}}
 }
