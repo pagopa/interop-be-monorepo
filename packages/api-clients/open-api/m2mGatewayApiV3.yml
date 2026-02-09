@@ -91,8 +91,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/DescriptorId"
             default: []
           explode: false
         - in: query
@@ -101,8 +100,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
         - in: query
@@ -834,8 +832,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
         - in: query
@@ -855,8 +852,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
         - in: query
@@ -1033,8 +1029,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
         - in: query
@@ -1054,8 +1049,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
         - in: query
@@ -1747,8 +1741,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
           required: false
@@ -2432,8 +2425,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
         - in: query
@@ -2936,8 +2928,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3045,8 +3036,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     patch:
       tags:
         - eservices
@@ -3098,8 +3088,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3197,8 +3186,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: documentId
         in: path
         description: The ID of the Document to retrieve or delete
@@ -3778,8 +3766,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3839,8 +3826,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3900,8 +3886,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3961,8 +3946,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4018,8 +4002,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4075,8 +4058,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4132,8 +4114,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4189,8 +4170,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4246,8 +4226,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4303,8 +4282,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4354,8 +4332,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4405,8 +4382,7 @@ paths:
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4462,8 +4438,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceTemplateId"
             default: []
           explode: false
         - in: query
@@ -6344,8 +6319,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
         - in: query
@@ -7764,8 +7738,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceId"
             default: []
           explode: false
         - in: query
@@ -9569,8 +9542,7 @@ components:
           type: string
           format: date-time
         agreementId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         consumerDelegationId:
           type: string
           format: uuid
@@ -9607,8 +9579,7 @@ components:
           type: string
           format: date-time
         attributeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
       required:
         - id
         - eventType
@@ -9659,8 +9630,7 @@ components:
           type: string
           format: date-time
         purposeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
         purposeVersionId:
           type: string
           format: uuid
@@ -9719,8 +9689,7 @@ components:
           type: string
           format: date-time
         tenantId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       required:
         - id
         - eventType
@@ -9793,11 +9762,9 @@ components:
           type: string
           format: date-time
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         producerDelegationId:
           type: string
           format: uuid
@@ -9854,8 +9821,7 @@ components:
           type: string
           format: date-time
         eserviceTemplateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceTemplateId"
         eserviceTemplateVersionId:
           type: string
           format: uuid
@@ -9890,10 +9856,9 @@ components:
           type: string
           format: date-time
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       required:
         - id
         - eventType
@@ -9928,8 +9893,7 @@ components:
           type: string
           format: date-time
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       required:
         - id
         - eventType
@@ -9961,10 +9925,9 @@ components:
           type: string
           format: date-time
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
       required:
         - id
         - eventType
@@ -9999,8 +9962,7 @@ components:
           type: string
           format: date-time
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
       required:
         - id
         - eventType
@@ -10035,8 +9997,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - eventType
@@ -10071,8 +10032,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - eventType
@@ -10096,11 +10056,9 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         producerId:
           type: string
           format: uuid
@@ -10108,8 +10066,7 @@ components:
           type: string
           format: uuid
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
         state:
           $ref: "#/components/schemas/AgreementState"
         suspendedByConsumer:
@@ -10171,14 +10128,11 @@ components:
       description: Contains the information for agreement creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - eserviceId
         - descriptorId
@@ -10676,8 +10630,7 @@ components:
       additionalProperties: false
       properties:
         purposeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       required:
         - purposeId
     ProducerKeychain:
@@ -10744,8 +10697,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
     ProducerDelegation:
@@ -10762,8 +10714,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         createdAt:
           type: string
           format: date-time
@@ -10821,8 +10772,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         createdAt:
           type: string
           format: date-time
@@ -10886,8 +10836,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegateId:
           type: string
           format: uuid
@@ -11604,7 +11553,7 @@ components:
         alg:
           type: string
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         x5u:
           type: string
           minLength: 1
@@ -11711,8 +11660,7 @@ components:
       additionalProperties: false
       properties:
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
         jwk:
           $ref: "#/components/schemas/JWK"
       required:
@@ -11724,8 +11672,7 @@ components:
       additionalProperties: false
       properties:
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
         jwk:
           $ref: "#/components/schemas/JWK"
       required:
@@ -11771,8 +11718,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         consumerId:
           type: string
           format: uuid
@@ -11797,8 +11743,7 @@ components:
         freeOfChargeReason:
           type: string
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
         currentVersion:
           $ref: "#/components/schemas/PurposeVersion"
         waitingForApprovalVersion:
@@ -11806,8 +11751,7 @@ components:
         rejectedVersion:
           $ref: "#/components/schemas/PurposeVersion"
         purposeTemplateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       required:
         - id
         - eserviceId
@@ -11823,8 +11767,7 @@ components:
       description: contains the expected payload for purpose creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -11862,8 +11805,7 @@ components:
       description: contains the expected payload for purpose creation from a purpose template
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -11889,8 +11831,7 @@ components:
       description: contains the expected payload for reverse purpose creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -12124,8 +12065,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
     EServiceRiskAnalysisSeed:
@@ -12318,8 +12258,7 @@ components:
           type: string
           format: uuid
         agreementId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         expirationDate:
           type: string
           format: date-time
@@ -12378,8 +12317,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - assignedAt
@@ -12404,8 +12342,7 @@ components:
           type: string
           format: uuid
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
     TenantVerifiedAttributeVerifier:
@@ -12425,8 +12362,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - verifiedAt
@@ -12463,8 +12399,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - verifiedAt
@@ -12586,8 +12521,7 @@ components:
       description: Set the delegation ID in order to operate as a delegate for an active producer or consumer delegation
       properties:
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     PurposeTemplates:
       type: object
       additionalProperties: false
@@ -12969,6 +12903,14 @@ components:
       type: string
       format: uuid
       description: The unique identifier of the Delegation
+    DescriptorId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Descriptor
+    EServiceTemplateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the E-Service Template
     Kid:
       type: string
       description: The unique identifier of the Key
