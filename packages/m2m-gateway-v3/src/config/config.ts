@@ -7,7 +7,7 @@ import {
   JWTConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
-  IntegrityRest02TokenConfig,
+  IntegrityRest02SignatureConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -153,7 +153,7 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(FileManagerConfig)
   .and(DPoPConfig)
   .and(JWTConfig)
-  .and(IntegrityRest02TokenConfig)
+  .and(IntegrityRest02SignatureConfig)
   .and(
     z
       .object({

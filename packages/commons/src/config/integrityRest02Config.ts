@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const IntegrityRest02TokenConfig = z
+export const IntegrityRest02SignatureConfig = z
   .object({
     INTEGRITY_REST_JWT_KID: z.string(),
     INTEGRITY_REST_JWT_SUBJECT: z.string(),
@@ -9,13 +9,14 @@ export const IntegrityRest02TokenConfig = z
     INTEGRITY_REST_JWT_SECONDS_DURATION: z.coerce.number(),
   })
   .transform((c) => ({
-    integrityRestKid: c.INTEGRITY_REST_JWT_KID,
-    integrityRestSubject: c.INTEGRITY_REST_JWT_SUBJECT,
-    integrityRestIssuer: c.INTEGRITY_REST_JWT_ISSUER,
-    integrityRestAudience: c.INTEGRITY_REST_JWT_AUDIENCE,
-    integrityRestSecondsDuration: c.INTEGRITY_REST_JWT_SECONDS_DURATION,
+    integrityRestSignatureKid: c.INTEGRITY_REST_JWT_KID,
+    integrityRestSignatureSubject: c.INTEGRITY_REST_JWT_SUBJECT,
+    integrityRestSignatureIssuer: c.INTEGRITY_REST_JWT_ISSUER,
+    integrityRestSignatureAudience: c.INTEGRITY_REST_JWT_AUDIENCE,
+    integrityRestSignatureSecondsDuration:
+      c.INTEGRITY_REST_JWT_SECONDS_DURATION,
   }));
 
-export type IntegrityRest02TokenConfig = z.infer<
-  typeof IntegrityRest02TokenConfig
+export type IntegrityRest02SignatureConfig = z.infer<
+  typeof IntegrityRest02SignatureConfig
 >;

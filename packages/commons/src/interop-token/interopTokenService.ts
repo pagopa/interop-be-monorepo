@@ -16,7 +16,7 @@ import { systemRole } from "../auth/roles.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
-import { IntegrityRest02TokenConfig } from "../config/integrityRest02Config.js";
+import { IntegrityRest02SignatureConfig } from "../config/integrityRest02Config.js";
 import { dateToSeconds } from "../utils/date.js";
 import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import {
@@ -54,7 +54,7 @@ export class InteropTokenGenerator {
     private config: Partial<AuthorizationServerTokenGenerationConfig> &
       Partial<TokenGenerationConfig> &
       Partial<SessionTokenGenerationConfig> &
-      Partial<IntegrityRest02TokenConfig>,
+      Partial<IntegrityRest02SignatureConfig>,
     kmsClient?: KMSClient
   ) {
     this.kmsClient = kmsClient || new KMSClient();
@@ -335,9 +335,9 @@ export class InteropTokenGenerator {
     signedHeaders: IntegrityRest02SignedHeader;
   }): Promise<string> {
     if (
-      !this.config.integrityRestKid ||
-      !this.config.integrityRestIssuer ||
-      !this.config.integrityRestAudience
+      !this.config.integrityRestSignatureKid ||
+      !this.config.integrityRestSignatureIssuer ||
+      !this.config.integrityRestSignatureAudience
     ) {
       throw Error("IntegrityRest02TokenConfig not provided or incomplete");
     }
@@ -347,22 +347,24 @@ export class InteropTokenGenerator {
       alg: JWT_HEADER_ALG,
       use: JWT_HEADER_USE,
       typ: JWT_HEADER_TYP,
-      kid: this.config.integrityRestKid,
+      kid: this.config.integrityRestSignatureKid,
     };
 
     const payload: AgidIntegrityRest02TokenPayload = {
       jti: generateId(),
-      iss: this.config.integrityRestIssuer,
-      aud: this.config.integrityRestAudience,
+      iss: this.config.integrityRestSignatureIssuer,
+      aud: this.config.integrityRestSignatureAudience,
       iat: currentTimestamp,
       nbf: currentTimestamp,
-      exp: currentTimestamp + (this.config.integrityRestSecondsDuration ?? 100),
+      exp:
+        currentTimestamp +
+        (this.config.integrityRestSignatureSecondsDuration ?? 100),
       signed_headers: signedHeaders,
     };
     return await this.createAndSignToken({
       header,
       payload,
-      keyId: this.config.integrityRestKid,
+      keyId: this.config.integrityRestSignatureKid,
     });
   }
 

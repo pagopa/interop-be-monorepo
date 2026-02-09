@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { KMSClient } from "@aws-sdk/client-kms";
-import { TokenGenerationConfig } from "../config/index.js";
+import { IntegrityRest02SignatureConfig } from "../config/index.js";
 import { InteropTokenGenerator } from "../interop-token/interopTokenService.js";
 import {
   calculateIntegrityRest02DigestFromBody,
@@ -20,7 +20,7 @@ import { buildIntegrityRest02SignedHeaders } from "./headers.js";
  * @returns The middleware function.
  */
 export function integrityRest02Middleware(
-  config: TokenGenerationConfig,
+  config: IntegrityRest02SignatureConfig,
   kmsClient: KMSClient
 ) {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
