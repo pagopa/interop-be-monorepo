@@ -74,45 +74,6 @@ export const calculateJWKThumbprint = (jwk: JsonWebKey): string => {
     .digest("base64url");
 };
 
-/*
- * Difference between `calculateThumbprint` and `calculateKid`
- * `calculateThumbprint`:
- * 1. RFC 7638 Compliance: It follows the standard method for canonicalizing a JWK.
- * 2. Determinism: It ignores optional metadata (like 'alg', 'use', or 'kid').
- * The ID remains consistent as long as the key material is the same.
- * 3. Security: It uses a strict whitelist. If a private key (containing 'd')
- * is accidentally passed, the private part is excluded from the hash.
- */
-export const calculateThumbprint = (jwk: JsonWebKey): string => {
-  const parsedJwk = match(jwk.kty)
-    .with("RSA", () => {
-      // .strip() remove extra fields (kid, alg, use) and verify required ones (e, n, kty)
-      const result = JWKKeyRS256.strip().safeParse(jwk);
-
-      if (!result.success) {
-        throw missingRequiredJWKClaim();
-      }
-      return result.data;
-    })
-    .with("EC", () => {
-      const result = JWKKeyES256.strip().safeParse(jwk);
-
-      if (!result.success) {
-        throw missingRequiredJWKClaim();
-      }
-      return result.data;
-    })
-    .otherwise(() => {
-      throw keyTypeNotAllowed(jwk.kty);
-    });
-
-  const canonicalJwk = sortJWK(parsedJwk);
-
-  return createHash("sha256")
-    .update(JSON.stringify(canonicalJwk))
-    .digest("base64url");
-};
-
 function assertNotCertificate(key: string): void {
   try {
     new crypto.X509Certificate(key);
