@@ -99,6 +99,12 @@ export const eventMailTemplateType = {
     "tenant-verified-attribute-assigned-mail",
   tenantVerifiedAttributeRevokedMailTemplate:
     "tenant-verified-attribute-revoked-mail",
+  tenantDeclaredAttributeAssignedMailTemplate:
+    "tenant-declared-attribute-assigned-mail",
+  tenantDeclaredAttributeRevokedMailTemplate:
+    "tenant-declared-attribute-revoked-mail",
+  clientCreatedMailTemplate: "client-created-mail",
+  clientDeletedMailTemplate: "client-deleted-mail",
   producerKeychainKeyDeletedMailTemplate: "producer-keychain-key-deleted-mail",
   producerKeychainDeletedMailTemplate: "producer-keychain-deleted-mail",
   clientKeyDeletedMailTemplate: "client-key-deleted-mail",
