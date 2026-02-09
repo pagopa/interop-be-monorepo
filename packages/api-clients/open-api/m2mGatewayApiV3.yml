@@ -9534,10 +9534,12 @@ paths:
     post:
       tags:
         - producerKeychains
-      summary: Binds an user to a Producer Keychain
+      summary: Binds users to a Producer Keychain
       description: |
-        Link a Producer Keychain to a User
-        The User must be active
+        Associates a list of security users with a specific Producer Keychain. 
+        This allows the specified users to manage or use the credentials within the keychain. 
+        The authenticated user's organization must match the Producer Keychain's producer organization. 
+        Additionally, the users being added must not already be associated with the keychain.
       operationId: addUsersToProducerKeychain
       requestBody:
         required: true
