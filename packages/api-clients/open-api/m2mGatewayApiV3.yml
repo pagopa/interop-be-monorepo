@@ -9428,6 +9428,43 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  "/clients/{clientId}/users/{userId}":
+    parameters:
+      - name: clientId
+        in: path
+        description: The Client id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        description: The ID of the User to unlink from the Client
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Remove a user from a Client
+      description: |
+        Dissociates a Client from a User. 
+        The caller must be the legitimate Client consumer to perform this action.
+      operationId: removeClientUser
+      tags:
+        - clients
+      responses:
+        "204":
+          description: User removed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
     LastEventId:
