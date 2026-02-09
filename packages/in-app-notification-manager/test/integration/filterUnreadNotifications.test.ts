@@ -65,9 +65,7 @@ describe("hasUnreadNotification", () => {
       await inAppNotificationService.hasUnreadNotifications(
         [entityId],
         getMockContext({
-          authData: getMockAuthData(tenantId, userId, [
-            userRole.SUPPORT_ROLE,
-          ]),
+          authData: getMockAuthData(tenantId, userId, [userRole.SUPPORT_ROLE]),
         })
       );
 
