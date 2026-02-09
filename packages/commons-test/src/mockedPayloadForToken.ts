@@ -211,6 +211,8 @@ type ExpectedAuthData = {
 type GeneratedDPoPBundle = {
   jti: string;
   accessToken: string;
+  accessTokenWithoutCnf: string;
+  accessTokenWithDifferentCnf: string;
   dpopProof: string;
   dpopPublicJwk: JWK;
   authServerPublicJwk: JWK;
@@ -244,6 +246,23 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
   dpopPublicJwk.use = "sig";
 
   const dpopThumbprint = await calculateJwkThumbprint(dpopPublicJwk);
+
+  // 1b) Create different cnf
+  const { publicKey: dpopPublicKeyForDifferentCnf } = await generateKeyPair(
+    "ES256"
+  );
+
+  const dpopPublicJwkForDifferentCnf = await exportJWK(
+    dpopPublicKeyForDifferentCnf
+  );
+  // eslint-disable-next-line functional/immutable-data
+  dpopPublicJwkForDifferentCnf.alg = "ES256";
+  // eslint-disable-next-line functional/immutable-data
+  dpopPublicJwkForDifferentCnf.use = "sig";
+
+  const dpopThumbprintForDifferentCnf = await calculateJwkThumbprint(
+    dpopPublicJwkForDifferentCnf
+  );
 
   // ===============================
   // 2) Generate Auth Server keypair
@@ -282,6 +301,36 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
     .setExpirationTime("1h")
     .sign(authPrivateKey);
 
+  // 4b) Create access token without cnf payload
+  const accessTokenWithoutCnf = await new SignJWT({
+    ...payload,
+    cnf: undefined,
+  })
+    .setProtectedHeader({
+      alg: "RS256",
+      kid: authServerPublicJwk.kid,
+      typ: "JWT",
+    })
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign(authPrivateKey);
+
+  // 4c) Create access token with different cnf
+  const accessTokenWithDifferentCnf = await new SignJWT({
+    ...payload,
+    cnf: {
+      jkt: dpopThumbprintForDifferentCnf,
+    },
+  })
+    .setProtectedHeader({
+      alg: "RS256",
+      kid: authServerPublicJwk.kid,
+      typ: "JWT",
+    })
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign(authPrivateKey);
+
   // ===============================
   // 5) Create DPoP proof (CLIENT)
   // ===============================
@@ -303,6 +352,8 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
   return {
     jti: definedJti,
     accessToken,
+    accessTokenWithoutCnf,
+    accessTokenWithDifferentCnf,
     dpopProof,
     dpopPublicJwk,
     authServerPublicJwk,

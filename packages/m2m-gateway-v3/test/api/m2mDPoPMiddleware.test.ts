@@ -187,7 +187,7 @@ describe("authenticationDPoPMiddleware", () => {
     expect(res.status).toBe(200);
   });
 
-  it("Should give error if the same token is used more than once", async () => {
+  it("Should return 401 if the same token is used more than once", async () => {
     const app = buildTestApp(jwksServer.url, true);
 
     const res = await request(app)
@@ -205,5 +205,69 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res2.body.title).toEqual("DPoP proof JTI already in cache");
     expect(res2.status).toBe(401);
+  });
+
+  it("Should return 400 if the Authorization token is Bearer", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", "Bearer " + data.accessToken)
+      .set("DPoP", data.dpopProof);
+
+    expect(res.body.title).toEqual("Bad DPoP Token format");
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if DPoP proof is missing", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${data.accessToken}`);
+
+    expect(res.body.title).toEqual("Header has not been passed");
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if DPoP proof is invalid for this token", async () => {
+    const app = buildTestApp(jwksServer.url);
+    const secondDPoPData = await generateM2MAdminAccessTokenWithDPoPProof({
+      htu: `${config.dpopHtuBase}/test`,
+      htm: "GET",
+    });
+    const secondDPoPProof = secondDPoPData.dpopProof;
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${data.accessToken}`)
+      .set("DPoP", secondDPoPProof);
+
+    expect(res.body.title).toEqual("DPoP Token Binding Mismatch");
+    expect(res.status).toBe(401);
+  });
+
+  it("Should return 401 if cnf is missing", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${data.accessTokenWithoutCnf}`)
+      .set("DPoP", `DPoP ${data.dpopProof}`);
+
+    expect(res.body.title).toEqual("Token verification failed");
+    expect(res.status).toBe(401);
+  });
+
+  it("Should return 401 if cnf is different", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${data.accessTokenWithDifferentCnf}`)
+      .set("DPoP", `DPoP ${data.dpopProof}`);
+
+    expect(res.body.title).toEqual("DPoP proof validation failed");
+    expect(res.status).toBe(401);
   });
 });
