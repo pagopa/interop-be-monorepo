@@ -9,8 +9,20 @@ import {
 } from "vitest";
 import express, { Request, Response } from "express";
 import request from "supertest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { APIEndpoint } from "pagopa-interop-commons";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  GetItemCommand,
+  PutItemCommandOutput,
+  GetItemCommandOutput,
+  AttributeValue,
+  ConditionalCheckFailedException,
+} from "@aws-sdk/client-dynamodb";
+import {
+  APIEndpoint,
+  RateLimiter,
+  rateLimiterMiddleware,
+} from "pagopa-interop-commons";
 import {
   generateM2MAdminAccessTokenWithDPoPProof,
   JwksServer,
@@ -19,13 +31,87 @@ import {
 import { config } from "../../src/config/config.js";
 import { authenticationDPoPMiddleware } from "../../src/utils/middlewares.js";
 
+type Item = Record<string, AttributeValue>;
+
+export function createInMemoryDynamoDBClient(): DynamoDBClient {
+  const table = new Map<string, Item>();
+
+  const send = vi.fn(async (command): Promise<unknown> => {
+    // ---------------------------
+    // PUT ITEM
+    // ---------------------------
+    if (command instanceof PutItemCommand) {
+      const input = command.input;
+      const jti = input.Item?.jti?.S;
+
+      if (!jti) {
+        throw new Error("Missing jti");
+      }
+
+      if (table.has(jti)) {
+        throw new ConditionalCheckFailedException({
+          message: "Conditional check failed",
+          $metadata: {},
+        });
+      }
+
+      if (!input.Item) {
+        throw new Error("Missing item");
+      }
+      table.set(jti, input.Item);
+
+      const output: PutItemCommandOutput = {
+        $metadata: {},
+      };
+      return output;
+    }
+
+    // ---------------------------
+    // GET ITEM
+    // ---------------------------
+    if (command instanceof GetItemCommand) {
+      const jti = command.input.Key?.jti?.S;
+
+      if (!jti) {
+        throw new Error("Missing jti");
+      }
+
+      const item = table.get(jti);
+
+      const output: GetItemCommandOutput = {
+        Item: item,
+        $metadata: {},
+      };
+
+      return output;
+    }
+
+    throw new Error(`Unsupported command: ${command.constructor.name}`);
+  });
+
+  return { send } as unknown as DynamoDBClient;
+}
+
 const dynamoClient = {
   send: vi.fn().mockResolvedValue({
     Item: undefined,
   }),
 } as unknown as DynamoDBClient;
 
-function buildTestApp(wellKnownUrl: string) {
+const inMemeryDynamoClient = createInMemoryDynamoDBClient();
+
+export const mockRateLimiter: RateLimiter = {
+  rateLimitByOrganization: vi.fn().mockResolvedValue({
+    limitReached: false,
+    maxRequests: 100,
+    rateInterval: 1000,
+    remainingRequests: 99,
+  }),
+  getCountByOrganization: vi.fn(),
+  getBurstCountByOrganization: vi.fn(),
+};
+
+function buildTestApp(wellKnownUrl: string, useInMemoryDynamoClient = false) {
   const app = express();
 
   // minimal ctx bootstrap middleware
@@ -45,8 +131,9 @@ function buildTestApp(wellKnownUrl: string) {
   app.use(
     authenticationDPoPMiddleware(
       { ...config, wellKnownUrls: [APIEndpoint.parse(wellKnownUrl)] },
-      dynamoClient
-    )
+      useInMemoryDynamoClient ? inMemeryDynamoClient : dynamoClient
+    ),
+    rateLimiterMiddleware(mockRateLimiter)
   );
 
   type RequestWithCtx = Request & {
@@ -88,7 +175,7 @@ describe("authenticationDPoPMiddleware", () => {
     vi.unmock("../../src/utils/middlewares.js");
   });
 
-  it.only("Should return 200 and call next when the token and the DPoP proof are valid", async () => {
+  it("Should return 200 and call next when the token and the DPoP proof are valid", async () => {
     const app = buildTestApp(jwksServer.url);
 
     const res = await request(app)
@@ -98,5 +185,25 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res.body).toEqual({ authData: data.expectedAuthData });
     expect(res.status).toBe(200);
+  });
+
+  it("Should give error if the same token is used more than once", async () => {
+    const app = buildTestApp(jwksServer.url, true);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${data.accessToken}`)
+      .set("DPoP", data.dpopProof);
+
+    expect(res.body).toEqual({ authData: data.expectedAuthData });
+    expect(res.status).toBe(200);
+
+    const res2 = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${data.accessToken}`)
+      .set("DPoP", data.dpopProof);
+
+    expect(res2.body.title).toEqual("DPoP proof JTI already in cache");
+    expect(res2.status).toBe(401);
   });
 });
