@@ -413,7 +413,7 @@ export function assertDailyCallsForCertifiedAttributesOnly(
 ): void {
   const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
   for (const attribute of attributesToCheck) {
-    if (attribute.dailyCalls !== undefined) {
+    if (attribute.dailyCallsPerConsumer !== undefined) {
       throw attributeDailyCallsNotAllowed(attribute.id);
     }
   }

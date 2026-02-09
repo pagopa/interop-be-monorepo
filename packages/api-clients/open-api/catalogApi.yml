@@ -3175,7 +3175,7 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
-        dailyCalls:
+        dailyCallsPerConsumer:
           type: integer
           format: int32
           minimum: 1
@@ -3644,7 +3644,7 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
-        dailyCalls:
+        dailyCallsPerConsumer:
           type: integer
           format: int32
           minimum: 1

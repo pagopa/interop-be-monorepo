@@ -3935,8 +3935,8 @@ function hasCertifiedAttributeDailyCallsChanged(
     );
 
     if (
-      matchingDescriptorAttribute?.dailyCalls !==
-      seedCertifiedAttribute.dailyCalls
+      matchingDescriptorAttribute?.dailyCallsPerConsumer !==
+      seedCertifiedAttribute.dailyCallsPerConsumer
     ) {
       return true;
     }

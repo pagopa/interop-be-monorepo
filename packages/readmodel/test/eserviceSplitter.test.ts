@@ -172,7 +172,7 @@ describe("E-service splitter", () => {
       groupId: 0,
       explicitAttributeVerification:
         certifiedAttribute.explicitAttributeVerification,
-      dailyCalls: certifiedAttribute.dailyCalls ?? null,
+      dailyCallsPerConsumer: certifiedAttribute.dailyCallsPerConsumer ?? null,
     };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {
