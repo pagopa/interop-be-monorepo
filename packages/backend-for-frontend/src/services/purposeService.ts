@@ -821,17 +821,6 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      // const agreement = await getLatestAgreement(
-      //   agreementProcessClient,
-      //   purpose.consumerId,
-      //   eservice,
-      //   headers
-      // );
-
-      // if (!agreement) {
-      //   throw agreementNotFound(unsafeBrandId(purpose.consumerId));
-      // }
-
       const [consumer, producer] = await Promise.all([
         tenantProcessClient.tenant.getTenant({
           params: {
