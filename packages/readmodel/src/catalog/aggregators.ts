@@ -443,7 +443,7 @@ export const attributesSQLtoAttributes = (
     const currentAttribute: EServiceAttribute = {
       id: unsafeBrandId(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
-      dailyCalls: current.dailyCalls ?? undefined,
+      dailyCallsPerConsumer: current.dailyCallsPerConsumer ?? undefined,
     };
     const group = attributesMap.get(current.groupId);
     if (group) {

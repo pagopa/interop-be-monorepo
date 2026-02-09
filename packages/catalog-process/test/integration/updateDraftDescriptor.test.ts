@@ -461,7 +461,7 @@ describe("updateDraftDescriptor", () => {
             {
               id: certifiedAttribute.id,
               explicitAttributeVerification: false,
-              dailyCalls: 500,
+              dailyCallsPerConsumer: 500,
             },
           ],
         ],
@@ -495,7 +495,7 @@ describe("updateDraftDescriptor", () => {
             {
               id: certifiedAttribute.id,
               explicitAttributeVerification: false,
-              dailyCalls: 500,
+              dailyCallsPerConsumer: 500,
             },
           ],
         ],
@@ -525,7 +525,7 @@ describe("updateDraftDescriptor", () => {
                 {
                   id: certifiedAttribute.id,
                   explicitAttributeVerification: false,
-                  dailyCalls: 500,
+                  dailyCallsPerConsumer: 500,
                 },
               ],
             ],

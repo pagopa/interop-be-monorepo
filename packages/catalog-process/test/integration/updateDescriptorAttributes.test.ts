@@ -626,7 +626,7 @@ describe("update descriptor", () => {
           {
             id: mockCertifiedAttribute3.id,
             explicitAttributeVerification: false,
-            dailyCalls: 500,
+            dailyCallsPerConsumer: 500,
           },
         ],
       ],
@@ -646,7 +646,7 @@ describe("update descriptor", () => {
                 {
                   id: mockCertifiedAttribute3.id,
                   explicitAttributeVerification: false,
-                  dailyCalls: 500,
+                  dailyCallsPerConsumer: 500,
                 },
               ],
             ],
@@ -693,7 +693,7 @@ describe("update descriptor", () => {
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCalls: 100,
+              dailyCallsPerConsumer: 100,
             },
           ],
         ],
@@ -715,7 +715,7 @@ describe("update descriptor", () => {
           {
             id: mockCertifiedAttribute1.id,
             explicitAttributeVerification: false,
-            dailyCalls: 200,
+            dailyCallsPerConsumer: 200,
           },
         ],
       ],
@@ -734,7 +734,7 @@ describe("update descriptor", () => {
                 {
                   id: mockCertifiedAttribute1.id,
                   explicitAttributeVerification: false,
-                  dailyCalls: 200,
+                  dailyCallsPerConsumer: 200,
                 },
               ],
             ],
@@ -781,7 +781,7 @@ describe("update descriptor", () => {
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCalls: 500,
+              dailyCallsPerConsumer: 500,
             },
           ],
         ],
@@ -890,7 +890,7 @@ describe("update descriptor", () => {
           {
             id: mockDeclaredAttribute1.id,
             explicitAttributeVerification: false,
-            dailyCalls: 100,
+            dailyCallsPerConsumer: 100,
           },
         ],
       ],
@@ -940,7 +940,7 @@ describe("update descriptor", () => {
           {
             id: mockVerifiedAttribute1.id,
             explicitAttributeVerification: false,
-            dailyCalls: 100,
+            dailyCallsPerConsumer: 100,
           },
         ],
       ],
@@ -969,12 +969,12 @@ describe("update descriptor", () => {
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCalls: 1000,
+              dailyCallsPerConsumer: 1000,
             },
             {
               id: mockCertifiedAttribute2.id,
               explicitAttributeVerification: true,
-              dailyCalls: 2000,
+              dailyCallsPerConsumer: 2000,
             },
           ],
         ],
@@ -996,17 +996,17 @@ describe("update descriptor", () => {
           {
             id: mockCertifiedAttribute1.id,
             explicitAttributeVerification: false,
-            dailyCalls: 1000,
+            dailyCallsPerConsumer: 1000,
           },
           {
             id: mockCertifiedAttribute2.id,
             explicitAttributeVerification: true,
-            dailyCalls: 2000,
+            dailyCallsPerConsumer: 2000,
           },
           {
             id: mockCertifiedAttribute3.id,
             explicitAttributeVerification: false,
-            dailyCalls: 3000,
+            dailyCallsPerConsumer: 3000,
           },
         ],
       ],
@@ -1025,17 +1025,17 @@ describe("update descriptor", () => {
                 {
                   id: mockCertifiedAttribute1.id,
                   explicitAttributeVerification: false,
-                  dailyCalls: 1000,
+                  dailyCallsPerConsumer: 1000,
                 },
                 {
                   id: mockCertifiedAttribute2.id,
                   explicitAttributeVerification: true,
-                  dailyCalls: 2000,
+                  dailyCallsPerConsumer: 2000,
                 },
                 {
                   id: mockCertifiedAttribute3.id,
                   explicitAttributeVerification: false,
-                  dailyCalls: 3000,
+                  dailyCallsPerConsumer: 3000,
                 },
               ],
             ],

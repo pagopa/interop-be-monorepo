@@ -296,7 +296,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCalls: 0,
+              dailyCallsPerConsumer: 0,
             },
           ],
         ],
@@ -312,7 +312,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCalls: -5,
+              dailyCallsPerConsumer: -5,
             },
           ],
         ],
@@ -328,7 +328,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCalls: "notANumber",
+              dailyCallsPerConsumer: "notANumber",
             },
           ],
         ],
@@ -344,7 +344,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCalls: 1.5,
+              dailyCallsPerConsumer: 1.5,
             },
           ],
         ],
@@ -360,7 +360,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCalls: null,
+              dailyCallsPerConsumer: null,
             },
           ],
         ],

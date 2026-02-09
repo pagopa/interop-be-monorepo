@@ -1530,7 +1530,7 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
-      dailyCalls: integer("daily_calls"),
+      dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
     },
     (table) => [
       foreignKey({
@@ -1571,7 +1571,7 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
-      dailyCalls: integer("daily_calls"),
+      dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
     },
     (table) => [
       foreignKey({

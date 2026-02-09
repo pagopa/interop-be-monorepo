@@ -180,7 +180,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
               {
                 id: attribute.id,
                 explicitAttributeVerification: false,
-                dailyCalls: 0,
+                dailyCallsPerConsumer: 0,
               },
             ],
           ],
@@ -199,7 +199,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
               {
                 id: attribute.id,
                 explicitAttributeVerification: false,
-                dailyCalls: -10,
+                dailyCallsPerConsumer: -10,
               },
             ],
           ],
@@ -218,7 +218,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
               {
                 id: attribute.id,
                 explicitAttributeVerification: false,
-                dailyCalls: "invalid",
+                dailyCallsPerConsumer: "invalid",
               },
             ],
           ],
@@ -237,7 +237,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
               {
                 id: attribute.id,
                 explicitAttributeVerification: false,
-                dailyCalls: 3.14,
+                dailyCallsPerConsumer: 3.14,
               },
             ],
           ],
@@ -256,7 +256,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
               {
                 id: attribute.id,
                 explicitAttributeVerification: false,
-                dailyCalls: null,
+                dailyCallsPerConsumer: null,
               },
             ],
           ],
