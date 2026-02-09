@@ -54,6 +54,36 @@ jobs:
       - name: Run OpenAPI lint
         run: bash -O extglob -c "pnpm --filter pagopa-interop-api-clients lint:openapi"
 
+  knip:
+    name: Knip codebase audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        with:
+          run_install: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - name: Run knip on changed packages
+        run: |
+          PACKAGES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- 'packages/*' | cut -d'/' -f2 | sort -u)
+
+          if [ -z "$PACKAGES" ]; then
+            echo "No packages changed, skipping knip"
+            exit 0
+          fi
+
+          for pkg in $PACKAGES; do
+            echo "Running knip for workspace: packages/$pkg"
+            pnpm knip --workspace "packages/$pkg"
+          done
+
   packages_sharding:
     name: Packages sharding
     runs-on: ubuntu-latest
