@@ -29,6 +29,7 @@ import {
   TenantId,
   tenantKind,
   TenantKind,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -51,6 +52,7 @@ import {
   tenantIsNotTheDelegatedProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
+  tenantNotFound,
 } from "../model/domain/errors.js";
 import {
   retrieveActiveAgreement,
@@ -286,7 +288,34 @@ export async function isOverQuota(
     throw descriptorNotFound(eservice.id, agreement.descriptorId);
   }
 
-  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
+  const tenant = await readModelService.getTenantById(purpose.consumerId);
+  if (!tenant) {
+    throw tenantNotFound(purpose.consumerId);
+  }
+
+  const consumerCertifiedAttributesIds = new Set(
+    tenant.attributes
+      .filter(
+        (a) =>
+          a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
+      )
+      .map((a) => a.id)
+  );
+
+  const maxDailyCallsPerConsumer =
+    currentDescriptor.attributes.certified.flat().reduce((max, current) => {
+      if (!consumerCertifiedAttributesIds.has(current.id)) {
+        return max;
+      }
+      if (!current.dailyCallsPerConsumer) {
+        return max;
+      }
+      if (max === undefined) {
+        return current.dailyCallsPerConsumer;
+      }
+      return Math.max(max, current.dailyCallsPerConsumer);
+    }, 0) || currentDescriptor.dailyCallsPerConsumer;
+
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 
   return !(
