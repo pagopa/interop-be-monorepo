@@ -185,8 +185,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -250,8 +249,7 @@ paths:
         description: The ID of the Agreement to retrieve purposes for
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -303,8 +301,7 @@ paths:
   /agreements/{agreementId}/approve:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to approve
         in: path
@@ -349,8 +346,7 @@ paths:
   /agreements/{agreementId}/reject:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to reject
         in: path
@@ -394,8 +390,7 @@ paths:
   /agreements/{agreementId}/submit:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to submit
         in: path
@@ -442,8 +437,7 @@ paths:
   /agreements/{agreementId}/suspend:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to suspend
         in: path
@@ -488,8 +482,7 @@ paths:
   /agreements/{agreementId}/unsuspend:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to unsuspend
         in: path
@@ -538,8 +531,7 @@ paths:
         description: The ID of the Agreement to upgrade
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -579,8 +571,7 @@ paths:
         description: The ID of the Agreement to clone
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -622,8 +613,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -717,8 +707,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
       - name: documentId
         in: path
         description: The ID of the Document to retrieve or delete
@@ -789,8 +778,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -951,8 +939,7 @@ paths:
         description: The ID of the Consumer Delegation to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     get:
       tags:
         - delegations
@@ -988,8 +975,7 @@ paths:
         description: The ID of the Consumer Delegation to accept
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1152,8 +1138,7 @@ paths:
         description: The ID of the Producer Delegation to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     get:
       tags:
         - delegations
@@ -1189,8 +1174,7 @@ paths:
         description: The ID of the Producer Delegation to accept
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1230,8 +1214,7 @@ paths:
         description: The ID of the Producer Delegation to reject
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1361,8 +1344,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1398,8 +1380,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1435,8 +1416,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1700,8 +1680,7 @@ paths:
         description: The ID of the Client to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -1737,8 +1716,7 @@ paths:
         description: The ID of the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -1855,15 +1833,13 @@ paths:
         description: The ID of the Client to unlink the Purpose from
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       - name: purposeId
         in: path
         description: The ID of the Purpose to unlink from the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     delete:
       tags:
         - clients
@@ -1897,8 +1873,7 @@ paths:
         description: The ID of the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -1989,8 +1964,7 @@ paths:
         description: ID of the client to look up
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       - name: keyId
         in: path
         description: the unique identifier of the key (kid) to lookup
@@ -2396,8 +2370,7 @@ paths:
         description: The ID of the Consumer Delegation to reject
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -4174,8 +4147,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -4232,8 +4204,7 @@ paths:
         description: The ID of the Verified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -4290,8 +4261,7 @@ paths:
         description: The ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -5953,8 +5923,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -6012,8 +5981,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -6071,8 +6039,7 @@ paths:
         description: The ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -6270,7 +6237,7 @@ paths:
           description: The unique identifier of the Key (kid)
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/Kid"
       responses:
         "200":
           description: Key retrieved
@@ -6304,7 +6271,7 @@ paths:
           description: The unique identifier of the Producer Key (kid)
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/Kid"
       responses:
         "200":
           description: Producer Key retrieved
@@ -6453,8 +6420,7 @@ paths:
         description: The ID of the Purpose to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -6560,7 +6526,7 @@ paths:
         description: The Purpose ID of the Versions to retrieve
         required: true
         schema:
-          type: string
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -6661,8 +6627,7 @@ paths:
         description: The Purpose ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       - name: versionId
         in: path
         description: The ID of the Version to retrieve
@@ -6735,8 +6700,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6783,8 +6747,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6827,8 +6790,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6871,8 +6833,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6919,8 +6880,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -7004,8 +6964,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     patch:
       tags:
         - purposes
@@ -7053,8 +7012,7 @@ paths:
         description: The ID of the Purpose
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       - name: versionId
         in: path
         description: The ID of the purpose Version to retrieve the document for
@@ -7099,8 +7057,7 @@ paths:
         description: The ID of the Purpose to retrieve the agreement for
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -7203,8 +7160,7 @@ paths:
         description: The ID of the Tenant to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7240,8 +7196,7 @@ paths:
         description: The Tenant ID of the Declared Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7337,15 +7292,13 @@ paths:
         description: The Tenant ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Declared Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -7383,8 +7336,7 @@ paths:
         description: The Tenant ID of the Certified Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7476,15 +7428,13 @@ paths:
         description: The Tenant ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Certified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -7524,8 +7474,7 @@ paths:
         description: The Tenant ID of the Verified Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7617,15 +7566,13 @@ paths:
         description: The Tenant ID of the Verified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -7675,15 +7622,13 @@ paths:
         description: The Tenant ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - tenants
@@ -7737,15 +7682,13 @@ paths:
         description: The Tenant ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - tenants
@@ -7939,8 +7882,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8064,8 +8006,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8150,8 +8091,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8256,8 +8196,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       - name: documentId
         in: path
         description: The Document ID of the Answer Annotation
@@ -8341,8 +8280,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       tags:
         - purposes
@@ -8399,8 +8337,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8501,8 +8438,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       - name: eserviceId
         in: path
         description: The Eservice ID to unlink
@@ -8542,8 +8478,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Publish a Purpose Template in Draft state
       description: Publish a Purpose Template that is in Draft state, transitioning it to Published state
@@ -8594,8 +8529,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Archive a Purpose Template in Published or Suspended state
       description: Archive a Purpose Template that is in Published or Suspended state, transitioning it to Archived state
@@ -8646,8 +8580,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Unsuspend a Purpose Template in Suspended state
       description: Unsuspend a Purpose Template that is in Suspended state, transitioning it to Published state
@@ -8698,8 +8631,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Suspend a Purpose Template in Published state
       description: Suspend a Purpose Template that is in Published state, transitioning it to Suspended state
@@ -9283,8 +9215,7 @@ paths:
         description: ID of Client the users belong to
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -9394,8 +9325,7 @@ paths:
         description: The Client id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       - name: userId
         in: path
         description: The ID of the User to unlink from the Client
@@ -9429,8 +9359,7 @@ paths:
         description: ID of Producer Keychain the users belong to
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
     get:
       tags:
         - producerKeychains
@@ -9540,8 +9469,7 @@ paths:
         description: The Producer Keychain id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
       - name: userId
         in: path
         description: The ID of the User to unlink from the Producer Keychain
@@ -13025,6 +12953,41 @@ components:
       type: string
       format: uuid
       description: The unique identifier of the E-Service
+    AgreementId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Agreement
+    AttributeId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Attribute
+    ClientId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Client
+    DelegationId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Delegation
+    Kid:
+      type: string
+      description: The unique identifier of the Key
+    ProducerKeychainId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Producer Keychain
+    PurposeId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Purpose
+    PurposeTemplateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Purpose Template
+    TenantId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Tenant
   responses:
     TooManyRequests:
       description: Too Many Requests
