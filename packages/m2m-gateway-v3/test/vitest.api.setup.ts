@@ -11,13 +11,13 @@ vi.mock("pagopa-interop-application-audit", async () => ({
   ),
 }));
 
-vi.mock("pagopa-interop-commons", async () => {
-  const actual = await vi.importActual<typeof import("pagopa-interop-commons")>(
-    "pagopa-interop-commons"
-  );
+vi.mock("../src/utils/middlewares.js", async () => {
+  const actual = await vi.importActual<
+    typeof import("../src/utils/middlewares.js")
+  >("../src/utils/middlewares.js");
   return {
     ...actual,
-    authenticationMiddleware: vi.fn(
+    authenticationDPoPMiddleware: vi.fn(
       () =>
         async (
           req: Request & { ctx: AppContext },
@@ -56,6 +56,7 @@ import {
   RateLimiter,
 } from "pagopa-interop-commons";
 import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { createApp } from "../src/app.js";
 import { AgreementService } from "../src/services/agreementService.js";
 import { AttributeService } from "../src/services/attributeService.js";
@@ -111,6 +112,7 @@ export const mockEserviceService = {} as EserviceService;
 export const mockKeyService = {} as KeyService;
 export const mockProducerKeychainService = {} as ProducerKeychainService;
 export const mockEventService = {} as EventService;
+export const mockDynamoDBClient = {} as DynamoDBClient;
 export const mockUserService = {} as UserService;
 
 export const api = await createApp(
@@ -129,5 +131,6 @@ export const api = await createApp(
     eventService: mockEventService,
     userService: mockUserService,
   },
-  rateLimiterMiddleware(mockRateLimiter)
+  rateLimiterMiddleware(mockRateLimiter),
+  mockDynamoDBClient
 );
