@@ -1,4 +1,4 @@
-import { eq, isNotNull } from "drizzle-orm";
+import { isNotNull } from "drizzle-orm";
 import pLimit from "p-limit";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
@@ -162,6 +162,26 @@ export async function checkDifferences(
     tenantNotificationConfigs.map((c) => [c.tenantId, c.enabled])
   );
 
+  // Pre-fetch all user notification configs for O(1) lookup per tenant
+  const allUserNotificationConfigs = await db
+    .select({
+      tenantId: userNotificationConfigInReadmodelNotificationConfig.tenantId,
+      userId: userNotificationConfigInReadmodelNotificationConfig.userId,
+      userRoles: userNotificationConfigInReadmodelNotificationConfig.userRoles,
+    })
+    .from(userNotificationConfigInReadmodelNotificationConfig);
+
+  const userNotificationConfigMap = new Map<
+    string,
+    Array<{ userId: string; userRoles: string[] }>
+  >();
+  for (const c of allUserNotificationConfigs) {
+    const existing = userNotificationConfigMap.get(c.tenantId) ?? [];
+    // eslint-disable-next-line functional/immutable-data
+    existing.push({ userId: c.userId, userRoles: c.userRoles });
+    userNotificationConfigMap.set(c.tenantId, existing);
+  }
+
   const limit = pLimit(config.selfcareApiConcurrency);
 
   const processTenant = async (
@@ -201,19 +221,7 @@ export async function checkDifferences(
       selfcareUsers.map((u) => ({ id: u.id, roles: u.roles }))
     );
 
-    const notificationConfigs = await db
-      .select({
-        userId: userNotificationConfigInReadmodelNotificationConfig.userId,
-        userRoles:
-          userNotificationConfigInReadmodelNotificationConfig.userRoles,
-      })
-      .from(userNotificationConfigInReadmodelNotificationConfig)
-      .where(
-        eq(
-          userNotificationConfigInReadmodelNotificationConfig.tenantId,
-          tenant.id
-        )
-      );
+    const notificationConfigs = userNotificationConfigMap.get(tenant.id) ?? [];
 
     const selfcareUserMap = new Map<string, string[]>(
       mergedSelfcareUsers.map((u) => [u.id, u.roles])
