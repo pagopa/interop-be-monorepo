@@ -155,16 +155,16 @@ function buildTestApp(wellKnownUrl: string, useInMemoryDynamoClient = false) {
 
 describe("authenticationDPoPMiddleware", () => {
   let jwksServer: JwksServer;
-  let data: Awaited<
+  let mockDPoPData: Awaited<
     ReturnType<typeof generateM2MAdminAccessTokenWithDPoPProof>
   >;
 
   beforeAll(async () => {
-    data = await generateM2MAdminAccessTokenWithDPoPProof({
+    mockDPoPData = await generateM2MAdminAccessTokenWithDPoPProof({
       htu: `${config.dpopHtuBase}/test`,
       htm: "GET",
     });
-    jwksServer = await startJwksServer(data.authServerPublicJwk);
+    jwksServer = await startJwksServer(mockDPoPData.authServerPublicJwk);
   });
 
   afterAll(async () => {
@@ -180,10 +180,10 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", `DPoP ${data.accessToken}`)
-      .set("DPoP", data.dpopProof);
+      .set("Authorization", `DPoP ${mockDPoPData.accessToken}`)
+      .set("DPoP", mockDPoPData.dpopProof);
 
-    expect(res.body).toEqual({ authData: data.expectedAuthData });
+    expect(res.body).toEqual({ authData: mockDPoPData.expectedAuthData });
     expect(res.status).toBe(200);
   });
 
@@ -192,16 +192,16 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", `DPoP ${data.accessToken}`)
-      .set("DPoP", data.dpopProof);
+      .set("Authorization", `DPoP ${mockDPoPData.accessToken}`)
+      .set("DPoP", mockDPoPData.dpopProof);
 
-    expect(res.body).toEqual({ authData: data.expectedAuthData });
+    expect(res.body).toEqual({ authData: mockDPoPData.expectedAuthData });
     expect(res.status).toBe(200);
 
     const res2 = await request(app)
       .get("/test")
-      .set("Authorization", `DPoP ${data.accessToken}`)
-      .set("DPoP", data.dpopProof);
+      .set("Authorization", `DPoP ${mockDPoPData.accessToken}`)
+      .set("DPoP", mockDPoPData.dpopProof);
 
     expect(res2.body.title).toEqual("DPoP proof JTI already in cache");
     expect(res2.status).toBe(401);
@@ -212,8 +212,8 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", "Bearer " + data.accessToken)
-      .set("DPoP", data.dpopProof);
+      .set("Authorization", "Bearer " + mockDPoPData.accessToken)
+      .set("DPoP", mockDPoPData.dpopProof);
 
     expect(res.body.title).toEqual("Bad DPoP Token format");
     expect(res.status).toBe(400);
@@ -224,7 +224,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", `DPoP ${data.accessToken}`);
+      .set("Authorization", `DPoP ${mockDPoPData.accessToken}`);
 
     expect(res.body.title).toEqual("Header has not been passed");
     expect(res.status).toBe(400);
@@ -240,7 +240,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", `DPoP ${data.accessToken}`)
+      .set("Authorization", `DPoP ${mockDPoPData.accessToken}`)
       .set("DPoP", secondDPoPProof);
 
     expect(res.body.title).toEqual("DPoP Token Binding Mismatch");
@@ -252,8 +252,8 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", `DPoP ${data.accessTokenWithoutCnf}`)
-      .set("DPoP", `DPoP ${data.dpopProof}`);
+      .set("Authorization", `DPoP ${mockDPoPData.accessTokenWithoutCnf}`)
+      .set("DPoP", `DPoP ${mockDPoPData.dpopProof}`);
 
     expect(res.body.title).toEqual("Token verification failed");
     expect(res.status).toBe(401);
@@ -264,8 +264,8 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", `DPoP ${data.accessTokenWithDifferentCnf}`)
-      .set("DPoP", `DPoP ${data.dpopProof}`);
+      .set("Authorization", `DPoP ${mockDPoPData.accessTokenWithDifferentCnf}`)
+      .set("DPoP", `DPoP ${mockDPoPData.dpopProof}`);
 
     expect(res.body.title).toEqual("DPoP proof validation failed");
     expect(res.status).toBe(401);
