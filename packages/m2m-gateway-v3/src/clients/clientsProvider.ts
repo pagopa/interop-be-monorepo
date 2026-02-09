@@ -9,7 +9,10 @@ import {
   eserviceTemplateApi,
   m2mEventApi,
   purposeTemplateApi,
-  selfcareV2ClientApi,
+  selfcareV2InstitutionClientBuilder,
+  selfcareV2UsersClientBuilder,
+  SelfcareV2UsersClient,
+  SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
@@ -62,13 +65,9 @@ export type EServiceTemplateProcessClientWithMetadata =
 type PurposeTemplateProcessClientWithMetadata =
   ZodiosClientWithMetadata<purposeTemplateApi.PurposeTemplateProcessClient>;
 
-type SelfcareProcessClientWithMetadata = {
-  institution: ZodiosClientWithMetadata<
-    ReturnType<typeof selfcareV2ClientApi.createInstitutionApiClient>
-  >;
-  user: ZodiosClientWithMetadata<
-    ReturnType<typeof selfcareV2ClientApi.createUserApiClient>
-  >;
+type SelfcareClient = {
+  institution: SelfcareV2InstitutionClient;
+  user: SelfcareV2UsersClient;
 };
 
 export type PagoPAInteropBeClients = {
@@ -82,7 +81,7 @@ export type PagoPAInteropBeClients = {
   eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
   eventManagerClient: m2mEventApi.EventManagerClient;
   purposeTemplateProcessClient: PurposeTemplateProcessClientWithMetadata;
-  selfcareProcessClient: SelfcareProcessClientWithMetadata;
+  selfcareClient: SelfcareClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -152,15 +151,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       purposeTemplateApi.createPurposeTemplateApiClient,
       config.purposeTemplateProcessUrl
     ),
-    selfcareProcessClient: {
-      institution: createZodiosClientEnhancedWithMetadata(
-        selfcareV2ClientApi.createInstitutionApiClient,
-        config.selfcareBaseUrl
-      ),
-      user: createZodiosClientEnhancedWithMetadata(
-        selfcareV2ClientApi.createUserApiClient,
-        config.selfcareBaseUrl
-      ),
+    selfcareClient: {
+      institution: selfcareV2InstitutionClientBuilder(config),
+      user: selfcareV2UsersClientBuilder(config),
     },
   };
 }

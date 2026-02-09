@@ -3,7 +3,7 @@ import {
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { TenantId, WithMetadata, generateId } from "pagopa-interop-models";
+import { TenantId, generateId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { GetUsersQueryParams } from "../../../src/services/userService.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
@@ -38,7 +38,7 @@ describe("getUsers", () => {
     selfcareId: undefined,
   });
 
-  const mockUsers: WithMetadata<SelfcareUser[]> = getMockWithMetadata([
+  const mockUsers: SelfcareUser[] = [
     {
       id: generateId(),
       name: "Mario",
@@ -66,9 +66,9 @@ describe("getUsers", () => {
       fiscalCode: "EEEFFF789C",
       role: "MANAGER",
     },
-  ]);
+  ];
 
-  const mockNoUsers: WithMetadata<SelfcareUser[]> = getMockWithMetadata([]);
+  const mockNoUsers: SelfcareUser[] = [];
 
   const mockGetTenant = vi.fn();
   const mockGetInstitutionUsersByProductUsingGET = vi.fn();
@@ -80,12 +80,12 @@ describe("getUsers", () => {
     },
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
 
-  mockInteropBeClients.selfcareProcessClient = {
+  mockInteropBeClients.selfcareClient = {
     institution: {
       getInstitutionUsersByProductUsingGET:
         mockGetInstitutionUsersByProductUsingGET,
     },
-  } as unknown as PagoPAInteropBeClients["selfcareProcessClient"];
+  } as unknown as PagoPAInteropBeClients["selfcareClient"];
 
   const callService = async (queryParams: GetUsersQueryParams) => {
     const context = getMockM2MAdminAppContext({ organizationId: tenantId });
@@ -113,19 +113,19 @@ describe("getUsers", () => {
     expect(result).toEqual({
       results: [
         {
-          userId: mockUsers.data[0].id,
+          userId: mockUsers[0].id,
           name: "Mario",
           familyName: "Rossi",
           roles: ["ADMIN_EA", "MANAGER"],
         },
         {
-          userId: mockUsers.data[1].id,
+          userId: mockUsers[1].id,
           name: "Luigi",
           familyName: "Verdi",
           roles: ["OPERATOR"],
         },
         {
-          userId: mockUsers.data[2].id,
+          userId: mockUsers[2].id,
           name: "Anna",
           familyName: "Bianchi",
           roles: ["MANAGER"],
@@ -147,7 +147,7 @@ describe("getUsers", () => {
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareProcessClient.institution
+        mockInteropBeClients.selfcareClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -177,13 +177,13 @@ describe("getUsers", () => {
     expect(result).toEqual({
       results: [
         {
-          userId: mockUsers.data[1].id,
+          userId: mockUsers[1].id,
           name: "Luigi",
           familyName: "Verdi",
           roles: ["OPERATOR"],
         },
         {
-          userId: mockUsers.data[2].id,
+          userId: mockUsers[2].id,
           name: "Anna",
           familyName: "Bianchi",
           roles: ["MANAGER"],
@@ -223,7 +223,7 @@ describe("getUsers", () => {
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareProcessClient.institution
+        mockInteropBeClients.selfcareClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -267,7 +267,7 @@ describe("getUsers", () => {
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareProcessClient.institution
+        mockInteropBeClients.selfcareClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,

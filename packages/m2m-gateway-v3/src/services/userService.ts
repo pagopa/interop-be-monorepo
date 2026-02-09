@@ -21,7 +21,7 @@ export async function getSelfcareUserById(
   selfcareId: string,
   correlationId: string
 ): Promise<m2mGatewayApiV3.User> {
-  const user = await clients.selfcareProcessClient.user.getUserInfoUsingGET({
+  const user = await clients.selfcareClient.user.getUserInfoUsingGET({
     params: { id: userId },
     queries: { institutionId: selfcareId },
     headers: {
@@ -29,7 +29,7 @@ export async function getSelfcareUserById(
     },
   });
 
-  return toM2MGatewayApiUser(user.data);
+  return toM2MGatewayApiUser(user);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -61,8 +61,8 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       assertTenantHasSelfcareId(tenant);
 
       // Fetch users from SelfCare (API already returns only active users)
-      const { data: users } =
-        await clients.selfcareProcessClient.institution.getInstitutionUsersByProductUsingGET(
+      const users =
+        await clients.selfcareClient.institution.getInstitutionUsersByProductUsingGET(
           {
             params: { institutionId: tenant.selfcareId },
             queries: {
@@ -111,8 +111,8 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const selfcareId = tenant.selfcareId;
 
       // Fetch users from SelfCare (API already returns only active users)
-      const { data: users } =
-        await clients.selfcareProcessClient.institution.getInstitutionUsersByProductUsingGET(
+      const users =
+        await clients.selfcareClient.institution.getInstitutionUsersByProductUsingGET(
           {
             params: { institutionId: selfcareId },
             queries: {
