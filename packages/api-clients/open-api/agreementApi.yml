@@ -590,6 +590,12 @@ paths:
           schema:
             type: boolean
             default: false
+        - in: query
+          name: strictConsumer
+          description: get the agreements that are from the consumer, without considering the ones through delegations
+          schema:
+            type: boolean
+          required: false
   "/producers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

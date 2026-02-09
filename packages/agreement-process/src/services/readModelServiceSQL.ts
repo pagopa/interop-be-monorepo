@@ -66,6 +66,7 @@ export type AgreementQueryFilters = {
   agreementStates?: AgreementState[];
   attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
+  strictConsumer?: boolean;
 };
 
 export type AgreementEServicesQueryFilters = {
@@ -258,12 +259,19 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
       )
     );
 
-const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
+const getVisibilityFilter = (
+  requesterId: TenantId,
+  strictConsumer: boolean
+): SQL | undefined =>
   or(
     eq(agreementInReadmodelAgreement.producerId, requesterId),
     eq(agreementInReadmodelAgreement.consumerId, requesterId),
-    eq(activeProducerDelegations.delegateId, requesterId),
-    eq(activeConsumerDelegations.delegateId, requesterId)
+    strictConsumer
+      ? undefined
+      : eq(activeProducerDelegations.delegateId, requesterId),
+    strictConsumer
+      ? undefined
+      : eq(activeConsumerDelegations.delegateId, requesterId)
   );
 
 const getProducerIdsFilter = (
@@ -347,7 +355,7 @@ const getAgreementsFilters = <
 
   return and(
     withVisibilityAndDelegationFilters
-      ? getVisibilityFilter(requesterId)
+      ? getVisibilityFilter(requesterId, filters.strictConsumer!)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
     getConsumerIdsFilter(consumerIds, withVisibilityAndDelegationFilters),
@@ -681,7 +689,7 @@ export function readModelServiceBuilderSQL(
           .where(
             and(
               getNameFilter(tenantInReadmodelTenant.name, consumerName),
-              getVisibilityFilter(requesterId)
+              getVisibilityFilter(requesterId, false)
             )
           )
           .groupBy(tenantInReadmodelTenant.id)
@@ -721,7 +729,7 @@ export function readModelServiceBuilderSQL(
           .where(
             and(
               getNameFilter(tenantInReadmodelTenant.name, producerName),
-              getVisibilityFilter(requesterId)
+              getVisibilityFilter(requesterId, false)
             )
           )
           .groupBy(tenantInReadmodelTenant.id)
@@ -766,7 +774,7 @@ export function readModelServiceBuilderSQL(
               getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
               getProducerIdsFilter(producerIds, withDelegationFilter),
               getConsumerIdsFilter(consumerIds, withDelegationFilter),
-              getVisibilityFilter(requesterId)
+              getVisibilityFilter(requesterId, false)
             )
           )
           .groupBy(eserviceInReadmodelCatalog.id)

@@ -641,7 +641,8 @@ export const getLatestAgreement = async (
   agreementProcessClient: AgreementProcessClient,
   consumerId: string,
   eservice: catalogApi.EService,
-  headers: Headers
+  headers: Headers,
+  strictConsumer?: boolean
 ): Promise<agreementApi.Agreement | undefined> => {
   const allAgreements = await getAllAgreements(
     agreementProcessClient,
@@ -649,6 +650,7 @@ export const getLatestAgreement = async (
     {
       consumersIds: [consumerId],
       eservicesIds: [eservice.id],
+      strictConsumer,
     }
   );
 
