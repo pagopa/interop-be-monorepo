@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import {
   AuthRole,
   InteropJwtMaintenancePayload,
+  SerializedInteropJwtApiDPoPPayload,
   SerializedInteropJwtApiPayload,
   SerializedInteropJwtInternalPayload,
   SerializedInteropJwtUIPayload,
@@ -162,5 +163,156 @@ function createM2MAdminPayload(): SerializedInteropJwtApiPayload {
     client_id: mockM2MAdminClientId,
     sub: mockM2MAdminClientId,
     adminId: mockM2MAdminUserId,
+  };
+}
+
+function createM2MAdminDPoPPayload({
+  cnf,
+  jti,
+}: {
+  cnf: string;
+  jti: string;
+}): SerializedInteropJwtApiDPoPPayload {
+  return {
+    iss: "dev.interop.pagopa.it",
+    aud: "dev.interop.pagopa.it/m2m",
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    nbf: Math.floor(Date.now() / 1000),
+    iat: Math.floor(Date.now() / 1000),
+    jti,
+    role: systemRole.M2M_ADMIN_ROLE,
+    organizationId: mockTokenOrganizationId,
+    client_id: mockM2MAdminClientId,
+    sub: mockM2MAdminClientId,
+    adminId: mockM2MAdminUserId,
+    cnf: {
+      jkt: cnf,
+    },
+  };
+}
+
+import {
+  generateKeyPair,
+  exportJWK,
+  calculateJwkThumbprint,
+  SignJWT,
+  JWK,
+  exportSPKI,
+} from "jose";
+
+type ExpectedAuthData = {
+  clientId: string;
+  jti: string;
+  organizationId: string;
+  systemRole: "m2m_admin";
+  userId: string;
+};
+
+type GeneratedDPoPBundle = {
+  jti: string;
+  accessToken: string;
+  dpopProof: string;
+  dpopPublicJwk: JWK;
+  authServerPublicJwk: JWK;
+  authServerPublicKeyPem: string;
+  expectedAuthData: ExpectedAuthData;
+};
+
+export async function generateM2MAdminAccessTokenWithDPoPProof({
+  htu,
+  htm,
+  jti,
+}: {
+  htu: string;
+  htm?: string;
+  jti?: string;
+}): Promise<GeneratedDPoPBundle> {
+  // ===============================
+  // 0) Generate JTI (if not passed)
+  // ===============================
+  const definedJti = jti ?? crypto.randomUUID();
+  // ===============================
+  // 1) Generate DPoP client keypair
+  // ===============================
+  const { publicKey: dpopPublicKey, privateKey: dpopPrivateKey } =
+    await generateKeyPair("ES256");
+
+  const dpopPublicJwk = await exportJWK(dpopPublicKey);
+  // eslint-disable-next-line functional/immutable-data
+  dpopPublicJwk.alg = "ES256";
+  // eslint-disable-next-line functional/immutable-data
+  dpopPublicJwk.use = "sig";
+
+  const dpopThumbprint = await calculateJwkThumbprint(dpopPublicJwk);
+
+  // ===============================
+  // 2) Generate Auth Server keypair
+  // ===============================
+  const { publicKey: authPublicKey, privateKey: authPrivateKey } =
+    await generateKeyPair("RS256");
+
+  const authServerPublicJwk = await exportJWK(authPublicKey);
+  // eslint-disable-next-line functional/immutable-data
+  authServerPublicJwk.alg = "RS256";
+  // eslint-disable-next-line functional/immutable-data
+  authServerPublicJwk.use = "sig";
+  // eslint-disable-next-line functional/immutable-data
+  authServerPublicJwk.kid = "test-auth-server-key";
+
+  const authServerPublicKeyPem = await exportSPKI(authPublicKey);
+
+  // ===============================
+  // 3) Create access token payload
+  // ===============================
+  const payload = createM2MAdminDPoPPayload({
+    cnf: dpopThumbprint,
+    jti: definedJti,
+  });
+
+  // ===============================
+  // 4) Sign access token (AUTH SERVER)
+  // ===============================
+  const accessToken = await new SignJWT(payload)
+    .setProtectedHeader({
+      alg: "RS256",
+      kid: authServerPublicJwk.kid,
+      typ: "JWT",
+    })
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign(authPrivateKey);
+
+  // ===============================
+  // 5) Create DPoP proof (CLIENT)
+  // ===============================
+  const { kty, crv, x, y } = dpopPublicJwk;
+  const minimalJwkForDpopHeader = { kty, crv, x, y };
+  const dpopProof = await new SignJWT({
+    htm: htm ?? "GET",
+    htu,
+  })
+    .setProtectedHeader({
+      alg: "ES256",
+      typ: "dpop+jwt",
+      jwk: minimalJwkForDpopHeader,
+    })
+    .setJti(crypto.randomUUID())
+    .setIssuedAt()
+    .sign(dpopPrivateKey);
+
+  return {
+    jti: definedJti,
+    accessToken,
+    dpopProof,
+    dpopPublicJwk,
+    authServerPublicJwk,
+    authServerPublicKeyPem,
+    expectedAuthData: {
+      clientId: payload.client_id,
+      jti: payload.jti,
+      organizationId: payload.organizationId,
+      systemRole: payload.role as "m2m_admin",
+      userId: (payload as { adminId: string }).adminId,
+    },
   };
 }
