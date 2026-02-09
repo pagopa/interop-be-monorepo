@@ -111,7 +111,7 @@ export const authenticationDPoPMiddleware: (
       // ----------------------------------------------------------------------
       const { expectedHtu, expectedHtm } = extractRequestDetailsForDPoPCheck(
         req,
-        config.dpopHtu
+        config.dpopHtuBase
       );
 
       // ----------------------------------------------------------------------

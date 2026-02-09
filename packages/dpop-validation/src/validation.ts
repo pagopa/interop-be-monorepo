@@ -15,7 +15,7 @@ import {
   JWKKeyES256,
 } from "pagopa-interop-models";
 
-import { calculateThumbprint } from "pagopa-interop-commons";
+import { calculateJWKThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
   dpopProofInvalidClaims,
@@ -225,7 +225,7 @@ export const verifyDPoPThumbprintMatch = (
   dpopProofJWT: DPoPProof,
   accessTokenJkt: string
 ): ValidationResult<true> => {
-  const proofJkt = calculateThumbprint(dpopProofJWT.header.jwk);
+  const proofJkt = calculateJWKThumbprint(dpopProofJWT.header.jwk);
   if (proofJkt !== accessTokenJkt) {
     return failedValidation([dpopTokenBindingMismatch()]);
   }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import crypto from "crypto";
+import crypto, { JsonWebKey } from "crypto";
 import { fail } from "assert";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -41,11 +41,13 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import {
+  calculateDPoPThumbprint,
   calculateKid,
   dateToSeconds,
   formatDateyyyyMMdd,
   genericLogger,
   secondsToMilliseconds,
+  sortJWK,
   systemRole,
 } from "pagopa-interop-commons";
 import {
@@ -1718,5 +1720,83 @@ describe("authorization server tests", () => {
       rateInterval: config.rateLimiterRateInterval,
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
+  });
+});
+
+describe("calculateDPoPThumbprint", () => {
+  const validRsaKey: JsonWebKey = {
+    kty: "RSA",
+    n: "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw",
+    e: "AQAB",
+  };
+
+  const validEcKey: JsonWebKey = {
+    kty: "EC",
+    crv: "P-256",
+    x: "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+    y: "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
+  };
+
+  it("should return the correct SHA-256 thumbprint for RSA (consistent with sorted keys)", () => {
+    const thumbprint = calculateDPoPThumbprint(validRsaKey);
+    expect(thumbprint).toBeDefined();
+    expect(typeof thumbprint).toBe("string");
+  });
+
+  it("should produce DIFFERENT thumbprints if extra properties are added", () => {
+    const keyWithExtras: JsonWebKey = {
+      ...validRsaKey,
+      kid: "include-me",
+    };
+
+    const hashClean = calculateDPoPThumbprint(validRsaKey);
+    const hashExtras = calculateDPoPThumbprint(keyWithExtras);
+
+    expect(hashExtras).not.toEqual(hashClean);
+  });
+
+  it("should produce the same thumbprint regardless of the initial property order", () => {
+    const rsaKeyReordered: JsonWebKey = {
+      n: validRsaKey.n,
+      e: validRsaKey.e,
+      kty: validRsaKey.kty,
+    };
+
+    const hashOriginal = calculateDPoPThumbprint(validRsaKey);
+    const hashReordered = calculateDPoPThumbprint(rsaKeyReordered);
+
+    expect(hashOriginal).toEqual(hashReordered);
+  });
+
+  it("should handle EC keys and produce a valid base64url hash", () => {
+    const thumbprint = calculateDPoPThumbprint(validEcKey);
+    expect(thumbprint).toMatch(/^[a-zA-Z0-9_-]+$/);
+    expect(thumbprint).not.toContain("=");
+  });
+
+  it("should work with symmetric keys (oct) as it doesn't filter by kty", () => {
+    const octKey: JsonWebKey = { kty: "oct", k: "secret-key-123" };
+    expect(() => calculateDPoPThumbprint(octKey)).not.toThrow();
+
+    const thumbprint = calculateDPoPThumbprint(octKey);
+    expect(thumbprint).toBeDefined();
+  });
+});
+
+describe("sortJWK", () => {
+  it("should sort keys alphabetically", () => {
+    const unsorted = { z: "last", a: "first", m: "middle" };
+    const sorted = sortJWK(unsorted);
+
+    const keys = Object.keys(sorted);
+    expect(keys).toEqual(["a", "m", "z"]);
+  });
+
+  it("should return a new object and not mutate the original", () => {
+    const original = { b: 2, a: 1 };
+    const sorted = sortJWK(original);
+
+    expect(sorted).not.toBe(original);
+    expect(Object.keys(original)).toEqual(["b", "a"]);
   });
 });

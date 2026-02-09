@@ -1,10 +1,11 @@
 import { JsonWebKey } from "crypto";
 import {
   calculateKid,
-  calculateThumbprint,
+  calculateJWKThumbprint,
   createJWK,
   sortJWK,
 } from "pagopa-interop-commons";
+import { keyTypeNotAllowed, invalidJWKClaim } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 describe("jwk test", () => {
@@ -28,7 +29,7 @@ describe("jwk test", () => {
     expect(kid).toEqual(expetedKid);
   });
 
-  describe("calculateThumbprint", () => {
+  describe("calculateJWKThumbprint", () => {
     // https://datatracker.ietf.org/doc/html/rfc7638#section-3.1 (example from RFC 7638)
     const validRsaKey: JsonWebKey = {
       kty: "RSA",
@@ -43,18 +44,41 @@ describe("jwk test", () => {
     };
 
     it("should return the correct SHA-256 thumbprint (RFC 7638 match)", () => {
-      expect(calculateThumbprint(validRsaKey)).toEqual(
+      expect(calculateJWKThumbprint(validRsaKey)).toEqual(
         "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
       );
     });
 
     it("should return the correct SHA-256 thumbprint for EC", () => {
-      expect(calculateThumbprint(validEcKey)).toEqual(
+      expect(calculateJWKThumbprint(validEcKey)).toEqual(
         "cn-I_WNMClehiVp51i_0VpOENW1upEerA8sEam5hn-s"
       );
     });
 
-    it("should produce the same thumbprint ignoring extra properties (RSA)", () => {
+    it("should throw if there are extra properties (RSA)", () => {
+      const keyWithExtras: JsonWebKey = {
+        ...validRsaKey,
+        alg: "RS256",
+        kid: "ignore-me",
+        use: "sig",
+      };
+      expect(() => calculateJWKThumbprint(keyWithExtras)).toThrow(
+        invalidJWKClaim()
+      );
+    });
+    it("should throw if there are extra properties (EC)", () => {
+      const keyWithExtras: JsonWebKey = {
+        ...validEcKey,
+        alg: "ES256",
+        kid: "ignore-me-ec",
+        use: "sig",
+      };
+      expect(() => calculateJWKThumbprint(keyWithExtras)).toThrow(
+        invalidJWKClaim()
+      );
+    });
+
+    it.skip("should produce the same thumbprint ignoring extra properties (RSA)", () => {
       const keyWithExtras: JsonWebKey = {
         ...validRsaKey,
         alg: "RS256",
@@ -62,13 +86,13 @@ describe("jwk test", () => {
         use: "sig",
       };
 
-      const hashClean = calculateThumbprint(validRsaKey);
-      const hashExtras = calculateThumbprint(keyWithExtras);
+      const hashClean = calculateJWKThumbprint(validRsaKey);
+      const hashExtras = calculateJWKThumbprint(keyWithExtras);
 
       expect(hashExtras).toEqual(hashClean);
     });
 
-    it("should produce the same thumbprint ignoring extra properties (EC)", () => {
+    it.skip("should produce the same thumbprint ignoring extra properties (EC)", () => {
       const keyWithExtras: JsonWebKey = {
         ...validEcKey,
         alg: "ES256",
@@ -76,27 +100,27 @@ describe("jwk test", () => {
         use: "sig",
       };
 
-      const hashClean = calculateThumbprint(validEcKey);
-      const hashExtras = calculateThumbprint(keyWithExtras);
+      const hashClean = calculateJWKThumbprint(validEcKey);
+      const hashExtras = calculateJWKThumbprint(keyWithExtras);
 
       expect(hashExtras).toEqual(hashClean);
     });
 
     it("should throw if kty is unsupported (e.g. oct)", () => {
       const octKey: JsonWebKey = { kty: "oct", k: "secret-key" };
-      expect(() => calculateThumbprint(octKey)).toThrow();
+      expect(() => calculateJWKThumbprint(octKey)).toThrow(
+        keyTypeNotAllowed("oct")
+      );
     });
 
     it("should throw if required RSA properties (n, e) are missing", () => {
       const missingE = { kty: "RSA", n: "foo" } as JsonWebKey;
-      expect(() => calculateThumbprint(missingE)).toThrow();
+      expect(() => calculateJWKThumbprint(missingE)).toThrow(invalidJWKClaim());
     });
 
     it("should throw if required EC properties (crv, x, y) are missing", () => {
       const missingX = { kty: "EC", crv: "P-256", y: "bar" } as JsonWebKey;
-      expect(() => calculateThumbprint(missingX)).toThrow(
-        "One or more required JWK claims are missing"
-      );
+      expect(() => calculateJWKThumbprint(missingX)).toThrow(invalidJWKClaim());
     });
   });
 });
