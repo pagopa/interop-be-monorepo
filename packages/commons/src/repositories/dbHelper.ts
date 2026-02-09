@@ -104,7 +104,7 @@ export const withTotalCountSubquery = <TSelection extends SelectionRecord>(
   }: {
     baseQuery: { as: (alias: string) => SubqueryWithSelection<TSelection> };
     selection: TSelection;
-    orderBy:
+    orderBy?:
       | OrderByInput
       | ((subquery: SubqueryWithSelection<TSelection>) => OrderByInput);
     limit: number;
@@ -127,9 +127,13 @@ export const withTotalCountSubquery = <TSelection extends SelectionRecord>(
   const orderByValue =
     typeof orderBy === "function" ? orderBy(filtered) : orderBy;
 
-  const pagedQueryWithOrder = Array.isArray(orderByValue)
-    ? pagedQuery.orderBy(...orderByValue)
-    : pagedQuery.orderBy(orderByValue);
+  const pagedQueryWithOrder =
+    orderByValue === undefined ||
+    (Array.isArray(orderByValue) && orderByValue.length === 0)
+      ? pagedQuery
+      : Array.isArray(orderByValue)
+        ? pagedQuery.orderBy(...orderByValue)
+        : pagedQuery.orderBy(orderByValue);
 
   const paged = pagedQueryWithOrder.limit(limit).offset(offset).as(pagedAlias);
   const totalCountSubquery = db

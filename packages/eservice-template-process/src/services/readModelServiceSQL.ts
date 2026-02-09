@@ -6,7 +6,6 @@ import {
   M2MAuthData,
   UIAuthData,
   withTotalCountSubquery,
-  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -218,10 +217,8 @@ export function readModelServiceBuilderSQL({
         )
         .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const subquery = withTotalCountSubquery(readModelDB as any, {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        baseQuery: baseQuery as any,
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
         selection: baseSelection,
         orderBy: (subqueryFields) => ascLower(subqueryFields.name),
         limit,
@@ -362,13 +359,12 @@ export function readModelServiceBuilderSQL({
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-          })
-        )
+      const baseSelection = {
+        id: tenantInReadmodelTenant.id,
+        name: tenantInReadmodelTenant.name,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(tenantInReadmodelTenant)
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
@@ -398,14 +394,27 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(ascLower(tenantInReadmodelTenant.name))
-        .limit(limit)
-        .offset(offset);
+        .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-      const data: CompactOrganization[] = queryResult.map((d) => ({
-        id: unsafeBrandId(d.id),
-        name: d.name,
-      }));
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+
+      const hasCreator = (row: { id: string | null }): row is { id: string } =>
+        row.id !== null;
+      const data: CompactOrganization[] = queryResult
+        .filter(hasCreator)
+        .map((d) => ({
+          id: unsafeBrandId(d.id),
+          name: d.name,
+        }));
 
       const result = z.array(CompactOrganization).safeParse(data);
 

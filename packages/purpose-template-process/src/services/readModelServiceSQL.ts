@@ -20,6 +20,7 @@ import {
   M2MAuthData,
   UIAuthData,
   withTotalCount,
+  withTotalCountSubquery,
 } from "pagopa-interop-commons";
 import {
   DescriptorState,
@@ -217,12 +218,12 @@ export function readModelServiceBuilderSQL({
       { limit, offset }: { limit: number; offset: number },
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<PurposeTemplate>> {
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            purposeTemplateId: purposeTemplateInReadmodelPurposeTemplate.id,
-          })
-        )
+      const baseSelection = {
+        purposeTemplateId: purposeTemplateInReadmodelPurposeTemplate.id,
+        purposeTitle: purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(purposeTemplateInReadmodelPurposeTemplate)
         .leftJoin(
           purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
@@ -239,13 +240,22 @@ export function readModelServiceBuilderSQL({
           )
         )
         .where(getPurposeTemplatesFilters(filters, authData))
-        .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
+        .groupBy(
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateInReadmodelPurposeTemplate.purposeTitle
+        )
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
-        )
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+        );
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.purposeTitle),
+        limit,
+        offset,
+        alias: "subquery",
+      });
 
       const queryResult = await readModelDB
         .select({
@@ -265,7 +275,7 @@ export function readModelServiceBuilderSQL({
           totalCount: subquery.totalCount,
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
-        .innerJoin(
+        .rightJoin(
           subquery,
           eq(
             purposeTemplateInReadmodelPurposeTemplate.id,
@@ -318,12 +328,19 @@ export function readModelServiceBuilderSQL({
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
         );
 
+      type PurposeTemplateRow = (typeof queryResult)[number];
+      const hasPurposeTemplate = (
+        row: PurposeTemplateRow
+      ): row is PurposeTemplateRow & {
+        purposeTemplate: NonNullable<PurposeTemplateRow["purposeTemplate"]>;
+      } => row.purposeTemplate !== null;
+
       const purposeTemplates = aggregatePurposeTemplateArray(
-        toPurposeTemplateAggregatorArray(queryResult)
+        toPurposeTemplateAggregatorArray(queryResult.filter(hasPurposeTemplate))
       );
       return createListResult(
         purposeTemplates.map((purposeTemplate) => purposeTemplate.data),
-        queryResult[0]?.totalCount
+        queryResult[0]?.totalCount ?? 0
       );
     },
     async getPurposeTemplateById(
@@ -403,16 +420,15 @@ export function readModelServiceBuilderSQL({
         document: RiskAnalysisTemplateAnswerAnnotationDocument;
       }>
     > {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            answerId:
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
-            ...getTableColumns(
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
-            ),
-          })
-        )
+      const baseSelection = {
+        answerId:
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+        ...getTableColumns(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        ),
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
         )
@@ -437,14 +453,25 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.createdAt
-        )
-        .limit(limit)
-        .offset(offset);
+        );
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => subqueryFields.createdAt,
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+      const hasDocument = (row: { id: string | null }): row is { id: string } =>
+        row.id !== null;
 
       const results: Array<{
         answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
         document: RiskAnalysisTemplateAnswerAnnotationDocument;
-      }> = queryResult.map((r) => {
+      }> = queryResult.filter(hasDocument).map((r) => {
         const { answerId, ...document } = r;
         return {
           answerId: unsafeBrandId<
@@ -454,7 +481,7 @@ export function readModelServiceBuilderSQL({
         };
       });
 
-      return createListResult(results, queryResult[0]?.totalCount);
+      return createListResult(results, queryResult[0]?.totalCount ?? 0);
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,
@@ -496,14 +523,11 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
       const { purposeTemplateId, producerIds, eserviceName } = filters;
 
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount(
-            getTableColumns(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
-            )
-          )
-        )
+      const baseSelection = getTableColumns(
+        purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+      );
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
         .innerJoin(
           eserviceInReadmodelCatalog,
@@ -531,18 +555,32 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(
           purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.createdAt
-        )
-        .limit(limit)
-        .offset(offset);
+        );
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => subqueryFields.createdAt,
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+      const hasDescriptor = (
+        row: { purposeTemplateId: string | null }
+      ): row is { purposeTemplateId: string } => row.purposeTemplateId !== null;
 
       const purposeTemplateEServiceDescriptors =
-        aggregatePurposeTemplateEServiceDescriptorArray(queryResult);
+        aggregatePurposeTemplateEServiceDescriptorArray(
+          queryResult.filter(hasDescriptor)
+        );
 
       return createListResult(
         purposeTemplateEServiceDescriptors.map(
           (eserviceDescriptor) => eserviceDescriptor.data
         ),
-        queryResult[0]?.totalCount
+        queryResult[0]?.totalCount ?? 0
       );
     },
     async getPurposeTemplateEServiceWithDescriptorState(
@@ -597,13 +635,12 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<purposeTemplateApi.CompactOrganization>> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-          })
-        )
+      const baseSelection = {
+        id: tenantInReadmodelTenant.id,
+        name: tenantInReadmodelTenant.name,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(tenantInReadmodelTenant)
         .innerJoin(
           purposeTemplateInReadmodelPurposeTemplate,
@@ -629,16 +666,27 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(ascLower(tenantInReadmodelTenant.name))
-        .limit(limit)
-        .offset(offset);
+        .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-      const data: purposeTemplateApi.CompactOrganization[] = queryResult.map(
-        (d) => ({
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+      const hasCreator = (row: { id: string | null }): row is { id: string } =>
+        row.id !== null;
+
+      const data: purposeTemplateApi.CompactOrganization[] = queryResult
+        .filter(hasCreator)
+        .map((d) => ({
           id: d.id,
           name: d.name,
-        })
-      );
+        }));
 
       const result = z
         .array(purposeTemplateApi.CompactOrganization)

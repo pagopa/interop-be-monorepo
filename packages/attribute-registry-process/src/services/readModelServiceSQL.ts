@@ -2,7 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  withTotalCount,
+  withTotalCountSubquery,
 } from "pagopa-interop-commons";
 import {
   AttributeKind,
@@ -44,19 +44,33 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const queryResult = await readModelDB
-        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
+      const baseSelection = getTableColumns(attributeInReadmodelAttribute);
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(attributeInReadmodelAttribute)
         .where(inArray(attributeInReadmodelAttribute.id, ids))
-        .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .limit(limit)
-        .offset(offset);
+        .orderBy(ascLower(attributeInReadmodelAttribute.name));
 
-      const attributes = aggregateAttributeArray(queryResult);
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+
+      const hasAttribute = (
+        row: { id: string | null }
+      ): row is { id: string } => row.id !== null;
+
+      const attributes = aggregateAttributeArray(queryResult.filter(hasAttribute));
 
       return createListResult(
         attributes.map((attr) => attr.data),
-        queryResult[0]?.totalCount
+        queryResult[0]?.totalCount ?? 0
       );
     },
     async getAttributesByKindsNameOrigin({
@@ -72,8 +86,9 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const queryResult = await readModelDB
-        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
+      const baseSelection = getTableColumns(attributeInReadmodelAttribute);
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(attributeInReadmodelAttribute)
         .where(
           and(
@@ -91,15 +106,28 @@ export function readModelServiceBuilderSQL({
               : undefined
           )
         )
-        .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .limit(limit)
-        .offset(offset);
+        .orderBy(ascLower(attributeInReadmodelAttribute.name));
 
-      const attributes = aggregateAttributeArray(queryResult);
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+
+      const hasAttribute = (
+        row: { id: string | null }
+      ): row is { id: string } => row.id !== null;
+
+      const attributes = aggregateAttributeArray(queryResult.filter(hasAttribute));
 
       return createListResult(
         attributes.map((attr) => attr.data),
-        queryResult[0]?.totalCount
+        queryResult[0]?.totalCount ?? 0
       );
     },
     async getAttributeById(
