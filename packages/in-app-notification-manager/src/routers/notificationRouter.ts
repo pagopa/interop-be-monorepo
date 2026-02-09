@@ -40,7 +40,12 @@ export const notificationRouter = (
       const ctx = fromAppContext(req.ctx);
       const { entityIds } = req.query;
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE, SUPPORT_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
 
         const filterUnreadNotifications: string[] =
           await service.hasUnreadNotifications(entityIds, ctx);
