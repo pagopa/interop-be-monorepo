@@ -1,7 +1,5 @@
 import { sql, asc, SQL, Column, Table } from "drizzle-orm";
 import type { Subquery } from "drizzle-orm/subquery";
-import type { PgTable } from "drizzle-orm/pg-core/table";
-import type { PgViewBase } from "drizzle-orm/pg-core/view-base";
 import { ListResult } from "pagopa-interop-models";
 
 export const createListResult = <T>(
@@ -62,35 +60,13 @@ const mapSelectionFromSubquery = <TSelection extends SelectionRecord>(
 
 type OrderByValue = Column | SQL | SQL.Aliased;
 type OrderByInput = OrderByValue | OrderByValue[];
-type SelectSource =
-  | Subquery<string, Record<string, unknown>>
-  | SQL
-  | PgTable
-  | PgViewBase;
-
-type SelectFrom<TSelection extends SelectionRecord> = {
-  orderBy: (...args: OrderByValue[]) => SelectFrom<TSelection>;
-  limit: (value: number) => SelectFrom<TSelection>;
-  offset: (value: number) => SelectFrom<TSelection>;
-  leftJoin: (table: SelectSource, on: SQL) => SelectFrom<TSelection>;
-  as: (alias: string) => SubqueryWithSelection<TSelection>;
-};
-
-type SelectBuilder<TSelection extends SelectionRecord> = {
-  from: <TFrom extends SelectSource>(source: TFrom) => SelectFrom<TSelection>;
-};
-
-type DbSelectLike = {
-  select: <TSelection extends SelectionRecord>(
-    fields: TSelection
-  ) => SelectBuilder<TSelection>;
-};
 
 type WithTotalCountSelection<TSelection extends SelectionRecord> =
   SubquerySelection<TSelection> & { totalCount: SQL.Aliased<number> };
 
 export const withTotalCountSubquery = <TSelection extends SelectionRecord>(
-  db: DbSelectLike,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
   {
     baseQuery,
     selection,
@@ -102,7 +78,8 @@ export const withTotalCountSubquery = <TSelection extends SelectionRecord>(
     pagedAlias = "paged",
     countAlias = "total_count",
   }: {
-    baseQuery: { as: (alias: string) => SubqueryWithSelection<TSelection> };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    baseQuery: any;
     selection: TSelection;
     orderBy?:
       | OrderByInput
@@ -125,15 +102,17 @@ export const withTotalCountSubquery = <TSelection extends SelectionRecord>(
     .from(filtered);
 
   const orderByValue =
-    typeof orderBy === "function" ? orderBy(filtered) : orderBy;
+    typeof orderBy === "function"
+      ? orderBy(filtered as SubqueryWithSelection<TSelection>)
+      : orderBy;
 
   const pagedQueryWithOrder =
     orderByValue === undefined ||
     (Array.isArray(orderByValue) && orderByValue.length === 0)
       ? pagedQuery
       : Array.isArray(orderByValue)
-        ? pagedQuery.orderBy(...orderByValue)
-        : pagedQuery.orderBy(orderByValue);
+      ? pagedQuery.orderBy(...orderByValue)
+      : pagedQuery.orderBy(orderByValue);
 
   const paged = pagedQueryWithOrder.limit(limit).offset(offset).as(pagedAlias);
   const totalCountSubquery = db
