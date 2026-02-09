@@ -9376,9 +9376,11 @@ paths:
     post:
       tags:
         - clients
-      summary: Binds an user to a Client
+      summary: Assigns users to a Client.
       description: |
-        Link a Client to a User
+        Associates a list of security users with a specific Client. 
+        This allows them to access the Client and its related resources. 
+        Users must belong to the same organization as the Client and must not already be associated with it.
       operationId: addUsersToClient
       requestBody:
         required: true
