@@ -75,7 +75,7 @@ export async function createApp(
   rateLimiterMiddleware: RateLimiterMiddleware,
   dynamoDBClient: DynamoDBClient
 ) {
-  const serviceName = modelsServiceName.M2M_GATEWAY;
+  const serviceName = modelsServiceName.M2M_GATEWAY_V3;
   const {
     agreementService,
     attributeService,
