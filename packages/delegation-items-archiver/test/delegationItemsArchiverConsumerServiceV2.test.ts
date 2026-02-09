@@ -21,21 +21,18 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
 import { handleMessageV2 } from "../src/delegationItemsArchiverConsumerServiceV2.js";
-import {
-  AgreementProcessClient,
-  PurposeProcessClient,
-} from "../src/clients/clientsProvider.js";
 import { addOneAgreement, addOnePurpose, readModelService } from "./utils.js";
 
 const agreementProcessClient = {
   internalDeleteAgreementAfterDelegationRevocation: vi.fn(),
   internalArchiveAgreementAfterDelegationRevocation: vi.fn(),
-} as unknown as AgreementProcessClient;
+} as unknown as agreementApi.AgreementProcessClient;
 const purposeProcessClient = {
   internalDeletePurposeAfterDelegationRevocation: vi.fn(),
   internalArchivePurposeVersionAfterDelegationRevocation: vi.fn(),
-} as unknown as PurposeProcessClient;
+} as unknown as purposeApi.PurposeProcessClient;
 
 describe("delegationItemsArchiverConsumerServiceV2", () => {
   describe("ConsumerDelegationRevoked", () => {

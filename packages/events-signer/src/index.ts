@@ -47,6 +47,7 @@ try {
       config.purposeTopic,
       config.delegationTopic,
       config.catalogTopic,
+      config.purposeTemplateTopic,
     ],
     processBatch,
     "events-signer"

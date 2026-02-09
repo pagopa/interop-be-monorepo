@@ -1,7 +1,7 @@
 import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
+import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
 import { getSelfcareCompactUserById } from "../services/selfcareService.js";
-import { SelfcareV2UserClient } from "../clients/clientsProvider.js";
 import {
   assertClientVisibilityIsFull,
   assertProducerKeychainVisibilityIsFull,
@@ -19,7 +19,7 @@ export const toBffApiCompactProducerKeychain = (
 };
 
 export const toBffApiCompactClient = async (
-  selfcareClient: SelfcareV2UserClient,
+  selfcareClient: SelfcareV2UsersClient,
   { client, keys }: authorizationApi.ClientWithKeys,
   selfcareId: string,
   correlationId: CorrelationId,

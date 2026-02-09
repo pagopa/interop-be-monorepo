@@ -70,10 +70,11 @@ import {
   platformStateValidationFailed,
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
-  unexpectedDPoPProofForAPIToken,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
+
+const EXPECTED_HTM = "POST";
 
 export type GeneratedTokenData =
   | {
@@ -117,7 +118,7 @@ export function tokenServiceBuilder({
       logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
       // DPoP proof validation
-      const { dpopProofJWS, dpopProofJWT } = await validateDPoPProof(
+      const { dpopProofJWT } = await validateDPoPProof(
         headers.DPoP,
         body.client_id,
         logger
@@ -192,10 +193,6 @@ export function tokenServiceBuilder({
         message: "Key retrieved",
         logger,
       });
-
-      if (key.clientKind === clientKindTokenGenStates.api && dpopProofJWS) {
-        throw unexpectedDPoPProofForAPIToken(key.GSIPK_clientId);
-      }
 
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
@@ -306,6 +303,9 @@ export function tokenServiceBuilder({
             sub: clientAssertionJWT.payload.sub,
             consumerId: key.consumerId,
             clientAdminId: key.adminId,
+            // Pass JWK directly (can be undefined).
+            // generateInteropApiToken handles conditional 'cnf' inclusion.
+            dpopJWK: dpopProofJWT?.header.jwk,
           });
 
           logTokenGenerationInfo({
@@ -375,7 +375,7 @@ export const retrieveKey = async (
   }
 };
 
-export const publishAudit = async ({
+const publishAudit = async ({
   producer,
   generatedToken,
   key,
@@ -515,7 +515,7 @@ const deconstructGSIPK_eserviceId_descriptorId = (
   };
 };
 
-export const logTokenGenerationInfo = ({
+const logTokenGenerationInfo = ({
   validatedJwt,
   clientKind,
   tokenJti,
@@ -547,7 +547,8 @@ const validateDPoPProof = async (
   const { data, errors: dpopProofErrors } = dpopProofHeader
     ? verifyDPoPProof({
         dpopProofJWS: dpopProofHeader,
-        expectedDPoPProofHtu: config.dpopHtu,
+        expectedDPoPProofHtu: config.dpopHtuBase,
+        expectedDPoPProofHtm: EXPECTED_HTM,
         dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: config.dpopDurationSeconds,
       })

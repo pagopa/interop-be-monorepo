@@ -44,7 +44,7 @@ export const delegationToApiDelegation = (
     : undefined,
 });
 
-export const delegationStateToApiDelegationState = (
+const delegationStateToApiDelegationState = (
   state: DelegationState
 ): delegationApi.DelegationState =>
   match<DelegationState, delegationApi.DelegationState>(state)
@@ -66,7 +66,7 @@ export const delegationStateToApiDelegationState = (
     )
     .exhaustive();
 
-export const delegationKindToApiDelegationKind = (
+const delegationKindToApiDelegationKind = (
   kind: DelegationKind
 ): delegationApi.DelegationKind =>
   match<DelegationKind, delegationApi.DelegationKind>(kind)
@@ -105,7 +105,7 @@ export const delegationContractToApiDelegationContract = (
   createdAt: contract.createdAt.toJSON(),
 });
 
-export const delegationSignedContractToApiDelegationSignedContract = (
+const delegationSignedContractToApiDelegationSignedContract = (
   contract: DelegationSignedContractDocument
 ): delegationApi.DelegationSignedContractDocument => ({
   id: contract.id,
@@ -117,7 +117,7 @@ export const delegationSignedContractToApiDelegationSignedContract = (
   signedAt: contract.signedAt?.toJSON(),
 });
 
-export const delegationStampsToApiDelegationStamps = (
+const delegationStampsToApiDelegationStamps = (
   stamps: DelegationStamps
 ): delegationApi.DelegationStamps => ({
   submission: delegationStampToApiDelegationStamp(stamps.submission),
@@ -132,7 +132,7 @@ export const delegationStampsToApiDelegationStamps = (
     : undefined,
 });
 
-export const delegationStampToApiDelegationStamp = (
+const delegationStampToApiDelegationStamp = (
   stamp: DelegationStamp
 ): delegationApi.DelegationStamp => ({
   who: stamp.who,

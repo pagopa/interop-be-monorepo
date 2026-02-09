@@ -294,7 +294,7 @@ describe("makeApiProblem", () => {
       correlationId: expect.any(String),
       detail: testProblemResponse.response!.data.detail,
       errors: [
-        ...testProblemResponse.response!.data.errors.map((error) => ({
+        ...testProblemResponse.response!.data.errors!.map((error) => ({
           code: error.code,
           detail: error.detail,
         })),
@@ -317,10 +317,9 @@ describe("makeApiProblem - problemErrorsPassthrough = false", () => {
       emptyErrorMapper,
       context
     );
-
     expect(context.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(
-        /.*title: Unexpected error.*detail: Unexpected error.*original error: Test Problem, code 000-0001, This is a test problem.*/
+        /.*title: Unexpected error.*detail: Unexpected error.*original error: Test Problem - status 400*/
       )
     );
     expect(problemPassthrough).toEqual({

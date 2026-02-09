@@ -1,8 +1,18 @@
 import { describe, it, expect } from "vitest";
+import AdmZip from "adm-zip";
 import { genericLogger } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { prepareNdjsonEventData } from "../src/utils/ndjsonStore.js";
-import { DelegationEventData } from "../src/models/eventTypes.js";
+import {
+  AuthorizationEventData,
+  DelegationEventData,
+} from "../src/models/eventTypes.js";
+
+const getFirstFileContent = (buffer: Buffer): string => {
+  const zip = new AdmZip(buffer);
+  const zipEntries = zip.getEntries();
+  return zipEntries[0].getData().toString("utf8");
+};
 
 describe("prepareNdjsonEventData", () => {
   it("should prepare NDJSON data and return file details", async () => {
@@ -54,6 +64,74 @@ describe("prepareNdjsonEventData", () => {
       expect(file).toHaveProperty("filePath");
     }
   });
+
+  it("should verify correct JSON content for 'ClientDeleted' event", async () => {
+    const timestamp = new Date("2024-08-01T10:00:00Z");
+    const clientId = generateId();
+    const correlationId = generateId();
+
+    const clientDeletedEvent: AuthorizationEventData = {
+      id: clientId,
+      event_name: "ClientDeleted",
+      eventTimestamp: timestamp,
+      correlationId,
+    } as AuthorizationEventData;
+
+    const preparedFiles = await prepareNdjsonEventData(
+      [clientDeletedEvent],
+      genericLogger
+    );
+
+    expect(preparedFiles).toHaveLength(1);
+
+    const ndjsonContent = getFirstFileContent(
+      preparedFiles[0].fileContentBuffer
+    );
+    const eventJsonString = ndjsonContent.trim().split("\n")[0];
+    const eventJson = JSON.parse(eventJsonString);
+
+    expect(eventJson).toStrictEqual({
+      id: clientId,
+      event_name: "ClientDeleted",
+      timestamp: timestamp.toISOString(),
+    });
+  });
+
+  it("should verify correct JSON content for 'ClientKeyDeleted' event", async () => {
+    const timestamp = new Date("2024-08-01T10:00:00Z");
+    const clientId = generateId();
+    const correlationId = generateId();
+    const kid = generateId();
+
+    const clientKeyDeletedEvent: AuthorizationEventData = {
+      id: clientId,
+      event_name: "ClientKeyDeleted",
+      kid,
+      eventTimestamp: timestamp,
+      correlationId,
+    } as AuthorizationEventData;
+
+    const preparedFiles = await prepareNdjsonEventData(
+      [clientKeyDeletedEvent],
+      genericLogger
+    );
+
+    expect(preparedFiles).toHaveLength(1);
+
+    const ndjsonContent = getFirstFileContent(
+      preparedFiles[0].fileContentBuffer
+    );
+    const eventJsonString = ndjsonContent.trim().split("\n")[0];
+    const eventJson = JSON.parse(eventJsonString);
+
+    expect(eventJson).toStrictEqual({
+      id: clientId,
+      event_name: "ClientKeyDeleted",
+      kid,
+      timestamp: timestamp.toISOString(),
+    });
+  });
+
   it("should return an empty array if no events are provided", async () => {
     const mockEvents: DelegationEventData[] = [];
 

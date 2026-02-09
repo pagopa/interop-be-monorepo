@@ -16,8 +16,8 @@ import {
 } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { decodeSQSEventMessage } from "../utils/decodeSQSEventMessage.js";
-import { gzipBuffer } from "../utils/compression.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
+import { zipBuffer } from "../utils/compression.js";
 
 // eslint-disable-next-line max-params
 async function processMessage(
@@ -29,6 +29,7 @@ async function processMessage(
   correlationId: CorrelationId
 ): Promise<void> {
   try {
+    logger.info(`Processing and signing file ${s3Key}`);
     const file: Uint8Array = await fileManager.get(
       config.s3Bucket,
       s3Key,
@@ -36,11 +37,11 @@ async function processMessage(
     );
 
     const fileName = path.basename(s3Key);
-    const zipped = await gzipBuffer(file);
+    const zipped = await zipBuffer(file, fileName);
     const checksum = await calculateSha256Base64(zipped);
 
     const safeStorageRequest: FileCreationRequest = {
-      contentType: "application/gzip",
+      contentType: "application/zip",
       documentType: config.safeStorageDocType,
       status: config.safeStorageDocStatus,
       checksumValue: checksum,
@@ -50,11 +51,12 @@ async function processMessage(
       safeStorageRequest,
       logger
     );
+    logger.info(`Created file on safe storage with key: ${key}`);
 
     await safeStorageService.uploadFileContent(
       uploadUrl,
       zipped,
-      "application/gzip",
+      "application/zip",
       secret,
       checksum,
       logger
@@ -66,8 +68,12 @@ async function processMessage(
         fileKind: "VOUCHER_AUDIT",
         fileName,
         correlationId,
+        path: path.dirname(s3Key),
       },
       logger
+    );
+    logger.info(
+      `Processed voucher audit with key: ${key} and file: ${fileName}`
     );
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);

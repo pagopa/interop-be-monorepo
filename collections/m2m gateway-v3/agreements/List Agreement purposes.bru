@@ -1,0 +1,24 @@
+meta {
+  name: List agreement purposes
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/agreements/:agreementId/purposes?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

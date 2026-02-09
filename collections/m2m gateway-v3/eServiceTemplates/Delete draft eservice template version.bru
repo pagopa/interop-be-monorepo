@@ -1,0 +1,21 @@
+meta {
+  name: Delete draft eservice template version
+  type: http
+  seq: 17
+}
+
+
+delete {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/:templateId/versions/:versionId
+  body: json
+  auth: none
+}
+
+params:path {
+  versionId: {{eserviceTemplateVersionId}}
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

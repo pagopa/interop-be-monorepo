@@ -14,17 +14,6 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
-  agreementReadModelServiceBuilder,
-  attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  clientJWKKeyReadModelServiceBuilder,
-  clientReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  producerKeychainReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-  producerJWKKeyReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
   splitAgreementIntoObjectsSQL,
   splitAttributeIntoObjectsSQL,
   splitClientIntoObjectsSQL,
@@ -85,36 +74,13 @@ afterEach(cleanup);
 
 const connection = await analyticsPostgresDB.connect();
 
-export const dbContext: DBContext = {
+const dbContext: DBContext = {
   conn: connection,
   pgp: analyticsPostgresDB.$config.pgp,
 };
 
 export const readModelServiceKPI = readModelServiceBuilderKPI(dbContext);
 export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-
-export const eserviceReadModelServiceSQL =
-  catalogReadModelServiceBuilder(readModelDB);
-export const eserviceTemplateReadModelServiceSQL =
-  eserviceTemplateReadModelServiceBuilder(readModelDB);
-export const attributeReadModelServiceSQL =
-  attributeReadModelServiceBuilder(readModelDB);
-export const tenantReadModelServiceSQL =
-  tenantReadModelServiceBuilder(readModelDB);
-export const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
-export const purposeReadModelServiceSQL =
-  purposeReadModelServiceBuilder(readModelDB);
-export const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
-export const clientReadModelServiceSQL =
-  clientReadModelServiceBuilder(readModelDB);
-export const producerKeychainReadModelServiceSQL =
-  producerKeychainReadModelServiceBuilder(readModelDB);
-export const clientKeysReadModelServiceSQL =
-  clientJWKKeyReadModelServiceBuilder(readModelDB);
-export const producerKeychainKeyReadModelServiceSQL =
-  producerJWKKeyReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>

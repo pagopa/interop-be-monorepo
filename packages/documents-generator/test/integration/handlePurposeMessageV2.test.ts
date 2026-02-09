@@ -83,6 +83,9 @@ vi.mock("pagopa-interop-api-clients", () => ({
       },
     }),
   },
+  purposeTemplateApi: {
+    createPurposeTemplateApiClient: vi.fn(),
+  },
 }));
 describe("handleDelegationMessageV2", () => {
   beforeEach(() => {
@@ -203,7 +206,7 @@ describe("handleDelegationMessageV2", () => {
       consumerIpaCode: getIpaCode(mockConsumer),
       freeOfCharge: expect.any(String),
       freeOfChargeReason: expect.any(String),
-      date: dateAtRomeZone(new Date()),
+      date: dateAtRomeZone(mockEvent.log_date),
       eServiceMode: "Eroga",
       producerDelegationId: undefined,
       producerDelegateName: undefined,
