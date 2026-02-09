@@ -537,7 +537,10 @@ export function authorizationServiceBuilder(
       }: {
         clientId: ClientId;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<UserId[]> {
       logger.info(`Retrieving users of client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
