@@ -295,8 +295,9 @@ describe("upgrade Agreement", () => {
 
       const contractDocumentId = actualAgreementUpgraded.contract!.id;
       const contractCreatedAt = actualAgreementUpgraded.contract!.createdAt;
-      const contractDocumentName = `${producerAndConsumer.id}_${producerAndConsumer.id
-        }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
+      const contractDocumentName = `${producerAndConsumer.id}_${
+        producerAndConsumer.id
+      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
       const expectedContract = {
         id: contractDocumentId,
@@ -517,8 +518,9 @@ describe("upgrade Agreement", () => {
 
       const contractDocumentId = actualAgreementUpgraded.contract!.id;
       const contractCreatedAt = actualAgreementUpgraded.contract!.createdAt;
-      const contractDocumentName = `${producerAndConsumer.id}_${producerAndConsumer.id
-        }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
+      const contractDocumentName = `${producerAndConsumer.id}_${
+        producerAndConsumer.id
+      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
       const expectedContract = {
         id: contractDocumentId,
@@ -655,12 +657,12 @@ describe("upgrade Agreement", () => {
             : undefined;
           const producerDelegation = delegateProducer
             ? getMockDelegation({
-              kind: delegationKind.delegatedProducer,
-              delegatorId: agreement.producerId,
-              delegateId: delegateProducer.id,
-              state: delegationState.active,
-              eserviceId: agreement.eserviceId,
-            })
+                kind: delegationKind.delegatedProducer,
+                delegatorId: agreement.producerId,
+                delegateId: delegateProducer.id,
+                state: delegationState.active,
+                eserviceId: agreement.eserviceId,
+              })
             : undefined;
 
           await addSomeRandomDelegations(agreement, addOneDelegation);
@@ -773,10 +775,11 @@ describe("upgrade Agreement", () => {
 
           const contractDocumentId = actualAgreementUpgraded.contract!.id;
           const contractCreatedAt = actualAgreementUpgraded.contract!.createdAt;
-          const contractDocumentName = `${consumer.id}_${producer.id
-            }_${formatDateyyyyMMddHHmmss(
-              contractCreatedAt
-            )}_agreement_contract.pdf`;
+          const contractDocumentName = `${consumer.id}_${
+            producer.id
+          }_${formatDateyyyyMMddHHmmss(
+            contractCreatedAt
+          )}_agreement_contract.pdf`;
 
           const expectedContract = {
             id: contractDocumentId,
@@ -830,80 +833,80 @@ describe("upgrade Agreement", () => {
           }
 
           const expectedAgreementContractPDFPayload: AgreementContractPDFPayload =
-          {
-            todayDate: dateAtRomeZone(currentExecutionTime),
-            todayTime: timeAtRomeZone(currentExecutionTime),
-            agreementId: newAgreementId,
-            submitterId: actualAgreementUpgraded.stamps.submission!.who,
-            submissionDate: dateAtRomeZone(
-              expectedUpgradedAgreement.stamps.submission!.when
-            ),
-            submissionTime: timeAtRomeZone(
-              expectedUpgradedAgreement.stamps.submission!.when
-            ),
-            activatorId: actualAgreementUpgraded.stamps.activation!.who,
-            activationDate: dateAtRomeZone(
-              expectedUpgradedAgreement.stamps.activation!.when
-            ),
-            activationTime: timeAtRomeZone(
-              expectedUpgradedAgreement.stamps.activation!.when
-            ),
-            eserviceName: eservice.name,
-            eserviceId: eservice.id,
-            descriptorId: eservice.descriptors[0].id,
-            descriptorVersion: eservice.descriptors[0].version,
-            producerName: producer.name,
-            producerIpaCode: producer.externalId.value,
-            consumerName: consumer.name,
-            consumerIpaCode: consumer.externalId.value,
-            certifiedAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validCertifiedTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validCertifiedTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: certifiedAttribute.name,
-                attributeId: certifiedAttribute.id,
-              },
-            ],
-            declaredAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validDeclaredTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validDeclaredTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: declaredAttribute.name,
-                attributeId: declaredAttribute.id,
-                delegationId: consumerDelegation?.id,
-              },
-            ],
-            verifiedAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validVerifiedTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validVerifiedTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: verifiedAttribute.name,
-                attributeId: verifiedAttribute.id,
-                expirationDate: dateAtRomeZone(
-                  validVerifiedTenantAttribute.verifiedBy[0].expirationDate
-                ),
-                delegationId: producerDelegation?.id,
-              },
-            ],
-            consumerDelegateIpaCode: delegateConsumer?.externalId.value,
-            consumerDelegateName: delegateConsumer?.name,
-            consumerDelegationId: consumerDelegation?.id,
-            producerDelegationId: producerDelegation?.id,
-            producerDelegateName: delegateProducer?.name,
-            producerDelegateIpaCode: delegateProducer?.externalId.value,
-          };
+            {
+              todayDate: dateAtRomeZone(currentExecutionTime),
+              todayTime: timeAtRomeZone(currentExecutionTime),
+              agreementId: newAgreementId,
+              submitterId: actualAgreementUpgraded.stamps.submission!.who,
+              submissionDate: dateAtRomeZone(
+                expectedUpgradedAgreement.stamps.submission!.when
+              ),
+              submissionTime: timeAtRomeZone(
+                expectedUpgradedAgreement.stamps.submission!.when
+              ),
+              activatorId: actualAgreementUpgraded.stamps.activation!.who,
+              activationDate: dateAtRomeZone(
+                expectedUpgradedAgreement.stamps.activation!.when
+              ),
+              activationTime: timeAtRomeZone(
+                expectedUpgradedAgreement.stamps.activation!.when
+              ),
+              eserviceName: eservice.name,
+              eserviceId: eservice.id,
+              descriptorId: eservice.descriptors[0].id,
+              descriptorVersion: eservice.descriptors[0].version,
+              producerName: producer.name,
+              producerIpaCode: producer.externalId.value,
+              consumerName: consumer.name,
+              consumerIpaCode: consumer.externalId.value,
+              certifiedAttributes: [
+                {
+                  assignmentDate: dateAtRomeZone(
+                    validCertifiedTenantAttribute.assignmentTimestamp
+                  ),
+                  assignmentTime: timeAtRomeZone(
+                    validCertifiedTenantAttribute.assignmentTimestamp
+                  ),
+                  attributeName: certifiedAttribute.name,
+                  attributeId: certifiedAttribute.id,
+                },
+              ],
+              declaredAttributes: [
+                {
+                  assignmentDate: dateAtRomeZone(
+                    validDeclaredTenantAttribute.assignmentTimestamp
+                  ),
+                  assignmentTime: timeAtRomeZone(
+                    validDeclaredTenantAttribute.assignmentTimestamp
+                  ),
+                  attributeName: declaredAttribute.name,
+                  attributeId: declaredAttribute.id,
+                  delegationId: consumerDelegation?.id,
+                },
+              ],
+              verifiedAttributes: [
+                {
+                  assignmentDate: dateAtRomeZone(
+                    validVerifiedTenantAttribute.assignmentTimestamp
+                  ),
+                  assignmentTime: timeAtRomeZone(
+                    validVerifiedTenantAttribute.assignmentTimestamp
+                  ),
+                  attributeName: verifiedAttribute.name,
+                  attributeId: verifiedAttribute.id,
+                  expirationDate: dateAtRomeZone(
+                    validVerifiedTenantAttribute.verifiedBy[0].expirationDate
+                  ),
+                  delegationId: producerDelegation?.id,
+                },
+              ],
+              consumerDelegateIpaCode: delegateConsumer?.externalId.value,
+              consumerDelegateName: delegateConsumer?.name,
+              consumerDelegationId: consumerDelegation?.id,
+              producerDelegationId: producerDelegation?.id,
+              producerDelegateName: delegateProducer?.name,
+              producerDelegateIpaCode: delegateProducer?.externalId.value,
+            };
 
           expect(pdfGenerator.generate).toHaveBeenCalledWith(
             expect.any(String),
