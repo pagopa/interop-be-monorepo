@@ -129,11 +129,11 @@ function buildTestApp(wellKnownUrl: string, useInMemoryDynamoClient = false) {
   });
 
   app.use(
+    rateLimiterMiddleware(mockRateLimiter),
     authenticationDPoPMiddleware(
       { ...config, wellKnownUrls: [APIEndpoint.parse(wellKnownUrl)] },
       useInMemoryDynamoClient ? inMemeryDynamoClient : dynamoClient
-    ),
-    rateLimiterMiddleware(mockRateLimiter)
+    )
   );
 
   type RequestWithCtx = Request & {
