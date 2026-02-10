@@ -348,18 +348,16 @@ export function producerKeychainServiceBuilder(
     },
     async addProducerKeychainUsers(
       producerKeychainId: ProducerKeychainId,
-      userIds: string[],
+      userId: string,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Adding users ${userIds.join(
-          ", "
-        )} to producer keychain with id ${producerKeychainId}`
+        `Adding user ${userId} to producer keychain with id ${producerKeychainId}`
       );
 
       const response =
         await clients.authorizationClient.producerKeychain.addProducerKeychainUsers(
-          { userIds },
+          { userIds: [userId] },
           {
             params: { producerKeychainId },
             headers,

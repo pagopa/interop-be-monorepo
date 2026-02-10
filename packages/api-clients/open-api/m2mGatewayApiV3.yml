@@ -9308,7 +9308,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  "/clients/{clientId}/users":
+  /clients/{clientId}/users:
     parameters:
       - name: clientId
         in: path
@@ -9320,8 +9320,8 @@ paths:
     get:
       tags:
         - clients
-      summary: List client users
-      description: List client users
+      summary: List of client users
+      description: Retrieve a list of Users associated with a Client.
       operationId: getClientUsers
       parameters:
         - in: query
@@ -9379,15 +9379,16 @@ paths:
         - clients
       summary: Assigns users to a Client.
       description: |
-        Associates a list of security users with a specific Client. 
-        This allows them to access the Client and its related resources. 
-        Users must belong to the same organization as the Client and must not already be associated with it.
+        Links a security User to a Client. 
+        This allows the specified User to access the Client and its related resources. 
+        The requester organization must be the designated consumer of the Client. 
+        Additionally, the User being added must not already be associated with the Client.
       operationId: addUsersToClient
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserBindingSeed"
+              $ref: "#/components/schemas/LinkUser"
         required: true
       responses:
         "204":
@@ -9418,7 +9419,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  "/clients/{clientId}/users/{userId}":
+  /clients/{clientId}/users/{userId}:
     parameters:
       - name: clientId
         in: path
@@ -9526,16 +9527,16 @@ paths:
         - producerKeychains
       summary: Link a User to a Producer Keychain
       description: |
-        Associates a list of security users with a specific Producer Keychain. 
-        This allows the specified users to manage or use the credentials within the keychain. 
-        The authenticated user's organization must match the Producer Keychain's producer organization. 
-        Additionally, the users being added must not already be associated with the keychain.
+        Link a security User to a Producer Keychain. 
+        This allows the specified User to manage or use credentials stored in the Keychain. 
+        The requester organization must be the owner of the Producer Keychain. 
+        Additionally, the User being added must not already be associated with the Keychain.
       operationId: addProducerKeychainUser
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserBindingSeed"
+              $ref: "#/components/schemas/LinkUser"
         required: true
       responses:
         "204":
@@ -12952,20 +12953,15 @@ components:
       required:
         - results
         - pagination
-    UserBindingSeed:
+    LinkUser:
       type: object
-      description: List of users ids to bind
       additionalProperties: false
       properties:
-        userIds:
-          type: array
-          description: The unique identifiers of the users
-          minItems: 1
-          items:
-            type: string
-            format: uuid
+        userId:
+          type: string
+          format: uuid
       required:
-        - userIds
+        - userId
     Problem:
       properties:
         type:

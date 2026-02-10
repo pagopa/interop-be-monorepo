@@ -3,23 +3,26 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
 describe("POST /producerKeychains/:producerKeychainId/users router test", () => {
-  const userIds = [generateId(), generateId()];
+  const linkUser: m2mGatewayApiV3.LinkUser = {
+    userId: generateId(),
+  };
 
   const makeRequest = async (
     token: string,
     producerKeychainId: string,
-    userIds: string[]
+    body: m2mGatewayApiV3.LinkUser
   ) =>
     request(api)
       .post(`${appBasePath}/producerKeychains/${producerKeychainId}/users`)
       .set("Authorization", `Bearer ${token}`)
-      .send({ userIds });
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -29,7 +32,7 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
       mockProducerKeychainService.addProducerKeychainUsers = vi.fn();
 
       const token = generateToken(role);
-      const res = await makeRequest(token, producerKeychainId, userIds);
+      const res = await makeRequest(token, producerKeychainId, linkUser);
 
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
@@ -37,7 +40,7 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
         mockProducerKeychainService.addProducerKeychainUsers
       ).toHaveBeenCalledWith(
         producerKeychainId,
-        userIds,
+        linkUser.userId,
         expect.any(Object) // Context
       );
     }
@@ -47,7 +50,7 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, generateId(), userIds);
+    const res = await makeRequest(token, generateId(), linkUser);
     expect(res.status).toBe(403);
   });
 
@@ -56,22 +59,25 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
     const res = await makeRequest(
       token,
       "invalid-producerKeychain-id",
-      userIds
+      linkUser
     );
 
     expect(res.status).toBe(400);
   });
 
-  it.each([
-    {},
-    { ...userIds, user: undefined },
-    { ...userIds, user: "invalid-user-id" },
-  ])("Should return 400 if passed an invalid seed", async (body) => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, generateId(), body as string[]);
+  it.each([{}, { user: undefined }, { user: "invalid-user-id" }])(
+    "Should return 400 if passed an invalid seed",
+    async (body) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        generateId(),
+        body as m2mGatewayApiV3.LinkUser
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([
     missingMetadata(),
@@ -84,7 +90,7 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, generateId(), userIds);
+    const res = await makeRequest(token, generateId(), linkUser);
 
     expect(res.status).toBe(500);
   });

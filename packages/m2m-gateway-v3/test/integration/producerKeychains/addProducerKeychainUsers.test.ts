@@ -3,12 +3,12 @@ import {
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
-  UserId,
 } from "pagopa-interop-models";
 import {
   getMockedApiFullProducerKeychain,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   producerKeychainService,
   mockPollingResponse,
@@ -22,11 +22,13 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
 describe("addProducerKeychainUsers", () => {
-  const userIds: UserId[] = [generateId()];
+  const linkUser: m2mGatewayApiV3.LinkUser = {
+    userId: generateId(),
+  };
 
   const mockAuthorizationProcessResponse = getMockWithMetadata({
     ...getMockedApiFullProducerKeychain(),
-    users: userIds,
+    users: [linkUser.userId],
   });
 
   const mockAddProducerKeychainUsers = vi
@@ -53,7 +55,7 @@ describe("addProducerKeychainUsers", () => {
   it("Should succeed and perform API producerKeychains calls", async () => {
     const result = await producerKeychainService.addProducerKeychainUsers(
       unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-      userIds,
+      linkUser.userId,
       getMockM2MAdminAppContext()
     );
 
@@ -65,7 +67,7 @@ describe("addProducerKeychainUsers", () => {
       params: {
         producerKeychainId: mockAuthorizationProcessResponse.data.id,
       },
-      body: { userIds },
+      body: { userIds: [linkUser.userId] },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
@@ -88,7 +90,7 @@ describe("addProducerKeychainUsers", () => {
     await expect(
       producerKeychainService.addProducerKeychainUsers(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        userIds,
+        linkUser.userId,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -103,7 +105,7 @@ describe("addProducerKeychainUsers", () => {
     await expect(
       producerKeychainService.addProducerKeychainUsers(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        userIds,
+        linkUser.userId,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -120,7 +122,7 @@ describe("addProducerKeychainUsers", () => {
     await expect(
       producerKeychainService.addProducerKeychainUsers(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        userIds,
+        linkUser.userId,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
