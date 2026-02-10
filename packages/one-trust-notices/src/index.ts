@@ -4,7 +4,7 @@ import {
   withExecutionTime,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { html2json } from "./services/html2json.js";
+import { parseAndSanitizeHtml } from "./services/html2json.js";
 import { OneTrustNoticeDBSchema } from "./models/index.js";
 
 import { config } from "./config/config.js";
@@ -99,7 +99,7 @@ async function main(): Promise<void> {
       );
 
       const jsonHtmlNodes = localizedNoticeContents.map(({ content }) =>
-        html2json(content)
+        parseAndSanitizeHtml(content)
       );
 
       await Promise.all([

@@ -4,7 +4,7 @@
 import h2j from "html2json";
 import isEmpty from "lodash.isempty";
 
-export function html2json(html: string): h2j.Node {
+export function parseAndSanitizeHtml(html: string): h2j.Node {
   const jsonHtlmNodes = h2j.html2json(html);
   removeUselessAttributesFromHtmlNodes(jsonHtlmNodes);
   removeDangerousAttributesFromHtmlNodes(jsonHtlmNodes);

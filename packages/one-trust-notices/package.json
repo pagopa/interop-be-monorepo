@@ -8,7 +8,7 @@
   "description": "PagoPA Interoperability one trust notices job",
   "keywords": [],
   "scripts": {
-    "test": "echo \"Error: no test specified\"",
+    "test": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -25,7 +25,8 @@
     "@types/node": "20.19.9",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "vitest": "4.0.18"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.840.0",
