@@ -12,7 +12,8 @@ servers:
   - url: "https://api.uat.interop.pagopa.it/v3"
     description: UAT environment
 security:
-  - bearerAuth: []
+  - DPoPAuth: []
+    DPoPProofHeader: []
 tags:
   - name: clients
     description: Clients routes
@@ -9342,7 +9343,7 @@ paths:
             minimum: 0
       responses:
         "200":
-          description: Request succeed
+          description: Client Users retrieved
           content:
             application/json:
               schema:
@@ -9465,7 +9466,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  "/producerKeychains/{producerKeychainId}/users":
+  /producerKeychains/{producerKeychainId}/users:
     parameters:
       - name: producerKeychainId
         in: path
@@ -9477,8 +9478,8 @@ paths:
     get:
       tags:
         - producerKeychains
-      summary: List of producerKeychain users
-      description: List of producerKeychain users
+      summary: List Producer Keychains Users
+      description: Retrieve a list of Users associated with a Producer Keychain
       operationId: getProducerKeychainUsers
       parameters:
         - in: query
@@ -9500,7 +9501,7 @@ paths:
             minimum: 0
       responses:
         "200":
-          description: Request succeed
+          description: Producer Keychain Users retrieved
           content:
             application/json:
               schema:
@@ -13130,7 +13131,19 @@ components:
         minimum: 0
       description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   securitySchemes:
-    bearerAuth:
+    DPoPAuth:
       type: http
-      scheme: bearer
-      bearerFormat: JWT
+      scheme: DPoP
+      description: |
+        This Authorization header must be used alongside the DPoP Proof JWT.
+        Use:
+        Authorization: DPoP <access_token>
+
+        The access token generated must also have a cnf field.
+    DPoPProofHeader:
+      type: apiKey
+      in: header
+      name: DPoP
+      description: |
+        DPoP proof JWT for sender-constrained access. Must accompany the DPoP Authorization header.
+
