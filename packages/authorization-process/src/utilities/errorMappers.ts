@@ -245,13 +245,13 @@ export const addProducerKeychainUserErrorMapper = (
       "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with(
-      "producerKeychainNotFound",
-      "tenantNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("producerKeychainUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
-    .with("missingSelfcareId", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with(
+      "missingSelfcareId",
+      "tenantNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeProducerKeychainUserErrorMapper = (
