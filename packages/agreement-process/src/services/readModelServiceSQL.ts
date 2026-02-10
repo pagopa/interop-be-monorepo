@@ -66,7 +66,7 @@ export type AgreementQueryFilters = {
   agreementStates?: AgreementState[];
   attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
-  strictConsumer?: boolean;
+  excludeDelegations?: boolean;
 };
 
 export type AgreementEServicesQueryFilters = {
@@ -261,15 +261,15 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
 
 const getVisibilityFilter = (
   requesterId: TenantId,
-  strictConsumer: boolean
+  excludeDelegations: boolean
 ): SQL | undefined =>
   or(
     eq(agreementInReadmodelAgreement.producerId, requesterId),
     eq(agreementInReadmodelAgreement.consumerId, requesterId),
-    strictConsumer
+    excludeDelegations
       ? undefined
       : eq(activeProducerDelegations.delegateId, requesterId),
-    strictConsumer
+    excludeDelegations
       ? undefined
       : eq(activeConsumerDelegations.delegateId, requesterId)
   );
@@ -355,7 +355,7 @@ const getAgreementsFilters = <
 
   return and(
     withVisibilityAndDelegationFilters
-      ? getVisibilityFilter(requesterId, filters.strictConsumer!)
+      ? getVisibilityFilter(requesterId, filters.excludeDelegations!)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
     getConsumerIdsFilter(consumerIds, withVisibilityAndDelegationFilters),

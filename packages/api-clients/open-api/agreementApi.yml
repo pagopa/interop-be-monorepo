@@ -591,7 +591,7 @@ paths:
             type: boolean
             default: false
         - in: query
-          name: strictConsumer
+          name: excludeDelegations
           description: get the agreements that are from the consumer, without considering the ones through delegations
           schema:
             type: boolean
