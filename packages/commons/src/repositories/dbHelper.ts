@@ -145,11 +145,12 @@ export const dynamicSelect = (db: any, selection: SelectionRecord): any =>
 export const omitFromRow = <T extends Record<string, unknown>>(
   row: T,
   ...keys: string[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): any => {
+): // eslint-disable-next-line @typescript-eslint/no-explicit-any
+any => {
   const result: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(row as Record<string, unknown>)) {
     if (!keys.includes(k)) {
+      // eslint-disable-next-line functional/immutable-data
       result[k] = v;
     }
   }

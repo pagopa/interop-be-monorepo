@@ -379,6 +379,7 @@ export function readModelServiceBuilderSQL(
         id: agreementInReadmodelAgreement.id,
         eserviceName: eserviceInReadmodelCatalog.name,
       };
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const buildAgreementsBaseQuery = (selection: SelectionRecord) =>
         addDelegationJoins(
           dynamicSelect(readmodelDB, selection)
