@@ -415,7 +415,7 @@ export function readModelServiceBuilderSQL(
           .where(
             getAgreementsFilters({
               filters,
-              strictConsumer: false,
+              strictConsumer: filters.strictConsumer,
               requesterId,
               withVisibilityAndDelegationFilters: true,
             })
