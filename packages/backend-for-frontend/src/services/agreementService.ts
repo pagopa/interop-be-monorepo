@@ -649,6 +649,7 @@ export const getLatestAgreementsOnDescriptor = async (
     headers,
     {
       consumersIds: [consumerId],
+      strictConsumer: false,
       eservicesIds: [eservice.id],
       descriptorsIds: [descriptorId],
     }
