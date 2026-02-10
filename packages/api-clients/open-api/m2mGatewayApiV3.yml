@@ -9566,7 +9566,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  "/producerKeychains/{producerKeychainId}/users/{userId}":
+  /producerKeychains/{producerKeychainId}/users/{userId}:
     parameters:
       - name: producerKeychainId
         in: path
@@ -9583,14 +9583,14 @@ paths:
           type: string
           format: uuid
     delete:
-      summary: Remove a user from a Producer Keychain
-      description: Dissociates a Producer Keychain from a User.
+      summary: Unlink a User from a Producer Keychain
+      description: Unlink a User from a Producer Keychain.
       operationId: removeProducerKeychainUser
       tags:
         - producerKeychains
       responses:
         "204":
-          description: User removed
+          description: User unlinked from Producer Keychain
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
