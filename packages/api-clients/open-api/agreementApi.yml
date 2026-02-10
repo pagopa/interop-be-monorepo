@@ -595,7 +595,7 @@ paths:
           description: get the agreements that are from the consumer, without considering the ones through delegations
           schema:
             type: boolean
-          required: false
+          required: true
   "/producers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
