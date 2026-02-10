@@ -465,21 +465,22 @@ export function readModelServiceBuilderSQL({
       });
 
       const queryResult = await readModelDB.select().from(subquery);
-      const hasDocument = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       const results: Array<{
         answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
         document: RiskAnalysisTemplateAnswerAnnotationDocument;
-      }> = queryResult.filter(hasDocument).map((r) => {
-        const { answerId, ...document } = r;
-        return {
-          answerId: unsafeBrandId<
-            RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
-          >(answerId),
-          document: toRiskAnalysisTemplateAnswerAnnotationDocument(document),
-        };
-      });
+      }> = queryResult
+        .filter((r) => r.id !== null)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((r: any) => {
+          const { answerId, totalCount, ...document } = r;
+          return {
+            answerId: unsafeBrandId<
+              RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+            >(answerId),
+            document: toRiskAnalysisTemplateAnswerAnnotationDocument(document),
+          };
+        });
 
       return createListResult(results, queryResult[0]?.totalCount ?? 0);
     },
@@ -567,13 +568,11 @@ export function readModelServiceBuilderSQL({
       });
 
       const queryResult = await readModelDB.select().from(subquery);
-      const hasDescriptor = (
-        row: { purposeTemplateId: string | null }
-      ): row is { purposeTemplateId: string } => row.purposeTemplateId !== null;
 
       const purposeTemplateEServiceDescriptors =
         aggregatePurposeTemplateEServiceDescriptorArray(
-          queryResult.filter(hasDescriptor)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          queryResult.filter((r) => r.purposeTemplateId !== null) as any[]
         );
 
       return createListResult(
@@ -678,11 +677,9 @@ export function readModelServiceBuilderSQL({
       });
 
       const queryResult = await readModelDB.select().from(subquery);
-      const hasCreator = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       const data: purposeTemplateApi.CompactOrganization[] = queryResult
-        .filter(hasCreator)
+        .filter((row) => row.id !== null)
         .map((d) => ({
           id: d.id,
           name: d.name,

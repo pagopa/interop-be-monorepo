@@ -62,11 +62,10 @@ export function readModelServiceBuilderSQL({
 
       const queryResult = await readModelDB.select().from(subquery);
 
-      const hasAttribute = (
-        row: { id: string | null }
-      ): row is { id: string } => row.id !== null;
-
-      const attributes = aggregateAttributeArray(queryResult.filter(hasAttribute));
+      const attributes = aggregateAttributeArray(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryResult.filter((row) => row.id !== null) as any[]
+      );
 
       return createListResult(
         attributes.map((attr) => attr.data),
@@ -119,11 +118,10 @@ export function readModelServiceBuilderSQL({
 
       const queryResult = await readModelDB.select().from(subquery);
 
-      const hasAttribute = (
-        row: { id: string | null }
-      ): row is { id: string } => row.id !== null;
-
-      const attributes = aggregateAttributeArray(queryResult.filter(hasAttribute));
+      const attributes = aggregateAttributeArray(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryResult.filter((row) => row.id !== null) as any[]
+      );
 
       return createListResult(
         attributes.map((attr) => attr.data),

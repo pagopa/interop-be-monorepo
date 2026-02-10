@@ -407,10 +407,8 @@ export function readModelServiceBuilderSQL({
 
       const queryResult = await readModelDB.select().from(subquery);
 
-      const hasCreator = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
       const data: CompactOrganization[] = queryResult
-        .filter(hasCreator)
+        .filter((row) => row.id !== null)
         .map((d) => ({
           id: unsafeBrandId(d.id),
           name: d.name,

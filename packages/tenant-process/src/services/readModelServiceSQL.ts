@@ -123,12 +123,9 @@ export function readModelServiceBuilderSQL(
         });
 
         const queryResult = await tx.select().from(subquery);
-        const hasTenant = (
-          row: { tenantId: string | null }
-        ): row is { tenantId: string } => row.tenantId !== null;
 
         const tenantIds = queryResult
-          .filter(hasTenant)
+          .filter((row) => row.tenantId !== null)
           .map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
@@ -278,12 +275,9 @@ export function readModelServiceBuilderSQL(
         });
 
         const queryResult = await tx.select().from(subquery);
-        const hasTenant = (
-          row: { tenantId: string | null }
-        ): row is { tenantId: string } => row.tenantId !== null;
 
         const tenantIds = queryResult
-          .filter(hasTenant)
+          .filter((row) => row.tenantId !== null)
           .map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
@@ -346,12 +340,9 @@ export function readModelServiceBuilderSQL(
         });
 
         const queryResult = await tx.select().from(subquery);
-        const hasTenant = (
-          row: { tenantId: string | null }
-        ): row is { tenantId: string } => row.tenantId !== null;
 
         const tenantIds = queryResult
-          .filter(hasTenant)
+          .filter((row) => row.tenantId !== null)
           .map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
@@ -476,12 +467,10 @@ export function readModelServiceBuilderSQL(
       });
 
       const res = await readModelDB.select().from(subquery);
-      const hasTenant = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       return createListResult(
         res
-          .filter(hasTenant)
+          .filter((row) => row.id !== null)
           .map((row) => ({
             id: row.id,
             name: row.name,
@@ -590,13 +579,10 @@ export function readModelServiceBuilderSQL(
       });
 
       const queryResult = await readModelDB.select().from(subquery);
-      const hasVerifier = (
-        row: { verifierId: string | null }
-      ): row is { verifierId: string } => row.verifierId !== null;
 
       return createListResult(
         queryResult
-          .filter(hasVerifier)
+          .filter((row) => row.verifierId !== null)
           .map((result) => ({
             id: unsafeBrandId<TenantId>(result.verifierId),
             verificationDate: new Date(result.verificationDate),
@@ -660,13 +646,10 @@ export function readModelServiceBuilderSQL(
       });
 
       const queryResult = await readModelDB.select().from(subquery);
-      const hasRevoker = (
-        row: { revokerId: string | null }
-      ): row is { revokerId: string } => row.revokerId !== null;
 
       return createListResult(
         queryResult
-          .filter(hasRevoker)
+          .filter((row) => row.revokerId !== null)
           .map((result) => ({
             id: unsafeBrandId<TenantId>(result.revokerId),
             verificationDate: new Date(result.verificationDate),

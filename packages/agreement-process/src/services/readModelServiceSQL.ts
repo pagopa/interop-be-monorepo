@@ -377,9 +377,8 @@ export function readModelServiceBuilderSQL(
         id: agreementInReadmodelAgreement.id,
         eserviceName: eserviceInReadmodelCatalog.name,
       };
-      const buildAgreementsBaseQuery = <TSelection,>(
-        selection: TSelection
-      ) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const buildAgreementsBaseQuery = (selection: any) =>
         addDelegationJoins(
           readmodelDB
             .select(selection)
@@ -717,12 +716,10 @@ export function readModelServiceBuilderSQL(
       });
 
       const resultSet = await readmodelDB.select().from(subquery);
-      const hasTenant = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       return createListResult(
         resultSet
-          .filter(hasTenant)
+          .filter((row) => row.id !== null)
           .map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
         resultSet[0]?.totalCount ?? 0
       );
@@ -770,12 +767,10 @@ export function readModelServiceBuilderSQL(
       });
 
       const resultSet = await readmodelDB.select().from(subquery);
-      const hasTenant = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       return createListResult(
         resultSet
-          .filter(hasTenant)
+          .filter((row) => row.id !== null)
           .map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
         resultSet[0]?.totalCount ?? 0
       );
@@ -828,11 +823,11 @@ export function readModelServiceBuilderSQL(
       });
 
       const resultSet = await readmodelDB.select().from(subquery);
-      const hasEService = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       return createListResult(
-        resultSet.filter(hasEService).map(({ id, name }) => ({ id, name })),
+        resultSet
+          .filter((row) => row.id !== null)
+          .map(({ id, name }) => ({ id, name })),
         resultSet[0]?.totalCount ?? 0
       );
     },
@@ -930,12 +925,10 @@ export function readModelServiceBuilderSQL(
       });
 
       const resultsSet = await readmodelDB.select().from(subquery);
-      const hasDocument = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       return createListResult(
         resultsSet
-          .filter(hasDocument)
+          .filter((doc) => doc.id !== null)
           .map(
             (doc) =>
               ({

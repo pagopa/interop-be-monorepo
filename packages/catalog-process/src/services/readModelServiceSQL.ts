@@ -581,9 +581,12 @@ export function readModelServiceBuilderSQL(
       limit: number
     ): Promise<ListResult<Consumer>> {
       const baseSelection = {
-        tenant: tenantInReadmodelTenant,
-        agreement: agreementInReadmodelAgreement,
-        descriptor: eserviceDescriptorInReadmodelCatalog,
+        tenantId: tenantInReadmodelTenant.id,
+        tenantName: tenantInReadmodelTenant.name,
+        tenantExternalIdValue: tenantInReadmodelTenant.externalIdValue,
+        descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+        descriptorState: eserviceDescriptorInReadmodelCatalog.state,
+        agreementState: agreementInReadmodelAgreement.state,
       };
       const baseQuery = readmodelDB
         .selectDistinctOn([tenantInReadmodelTenant.id], baseSelection)
@@ -626,25 +629,16 @@ export function readModelServiceBuilderSQL(
       });
 
       const res = await readmodelDB.select().from(subquery);
-      type ConsumerRow = (typeof res)[number];
-      const hasConsumerRow = (
-        row: ConsumerRow
-      ): row is ConsumerRow & {
-        tenant: NonNullable<ConsumerRow["tenant"]>;
-        descriptor: NonNullable<ConsumerRow["descriptor"]>;
-        agreement: NonNullable<ConsumerRow["agreement"]>;
-      } =>
-        row.tenant !== null &&
-        row.descriptor !== null &&
-        row.agreement !== null;
 
-      const consumers: Consumer[] = res.filter(hasConsumerRow).map((row) => ({
-        descriptorVersion: row.descriptor.version,
-        descriptorState: DescriptorState.parse(row.descriptor.state),
-        agreementState: AgreementState.parse(row.agreement.state),
-        consumerName: row.tenant.name,
-        consumerExternalId: row.tenant.externalIdValue,
-      }));
+      const consumers: Consumer[] = res
+        .filter((row) => row.tenantId !== null)
+        .map((row) => ({
+          descriptorVersion: row.descriptorVersion,
+          descriptorState: DescriptorState.parse(row.descriptorState),
+          agreementState: AgreementState.parse(row.agreementState),
+          consumerName: row.tenantName,
+          consumerExternalId: row.tenantExternalIdValue,
+        }));
 
       return createListResult(consumers, res[0]?.totalCount ?? 0);
     },
@@ -871,12 +865,10 @@ export function readModelServiceBuilderSQL(
       });
 
       const resultsSet = await readmodelDB.select().from(subquery);
-      const hasDocument = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       return createListResult(
         resultsSet
-          .filter(hasDocument)
+          .filter((doc) => doc.id !== null)
           .map(
             (doc) =>
               ({

@@ -282,11 +282,9 @@ export function readModelServiceBuilderSQL({
       });
 
       const queryResult = await readModelDB.select().from(subquery);
-      const hasTenant = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       const data: delegationApi.CompactTenant[] = queryResult
-        .filter(hasTenant)
+        .filter((row) => row.id !== null)
         .map((d) => ({
           id: d.id,
           name: d.name,
@@ -379,11 +377,9 @@ export function readModelServiceBuilderSQL({
       });
 
       const queryResult = await readModelDB.select().from(subquery);
-      const hasTenant = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       const data: delegationApi.CompactTenant[] = queryResult
-        .filter(hasTenant)
+        .filter((row) => row.id !== null)
         .map((d) => ({
           id: d.id,
           name: d.name,
@@ -475,11 +471,9 @@ export function readModelServiceBuilderSQL({
       });
 
       const queryResult = await readModelDB.select().from(subquery);
-      const hasEservice = (row: { id: string | null }): row is { id: string } =>
-        row.id !== null;
 
       const data: delegationApi.CompactEService[] = queryResult
-        .filter(hasEservice)
+        .filter((row) => row.id !== null)
         .map((e) => ({
           id: e.id,
           name: e.name,
