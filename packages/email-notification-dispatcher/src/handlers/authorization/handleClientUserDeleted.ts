@@ -6,6 +6,7 @@ import {
   fromClientV2,
   clientKind,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -35,10 +36,13 @@ export async function handleClientUserDeleted(
   }
 
   const client = fromClientV2(clientV2Msg);
-  const notificationType: NotificationType =
-    client.kind === clientKind.consumer
-      ? "clientKeyConsumerAddedDeletedToClientUsers"
-      : "clientKeyAddedDeletedToClientUsers";
+  const notificationType: NotificationType = match(client.kind)
+    .with(
+      clientKind.consumer,
+      () => "clientKeyConsumerAddedDeletedToClientUsers" as const
+    )
+    .with(clientKind.api, () => "clientKeyAddedDeletedToClientUsers" as const)
+    .exhaustive();
 
   const [htmlTemplate, consumer] = await Promise.all([
     retrieveHTMLTemplate(eventMailTemplateType.clientUserDeletedMailTemplate),

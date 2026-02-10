@@ -36,10 +36,13 @@ export async function handleClientKeyAddedDeletedToClientUsers(
   );
 
   const client = fromClientV2(decodedMessage.data.client);
-  const notificationType: NotificationType =
-    client.kind === clientKind.consumer
-      ? "clientKeyConsumerAddedDeletedToClientUsers"
-      : "clientKeyAddedDeletedToClientUsers";
+  const notificationType: NotificationType = match(client.kind)
+    .with(
+      clientKind.consumer,
+      () => "clientKeyConsumerAddedDeletedToClientUsers" as const
+    )
+    .with(clientKind.api, () => "clientKeyAddedDeletedToClientUsers" as const)
+    .exhaustive();
 
   const usersWithNotifications = await getNotificationRecipients(
     [client.consumerId],
