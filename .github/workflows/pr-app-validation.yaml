@@ -193,7 +193,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.ref }}
       - name: Cache turbo setup
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
@@ -226,7 +226,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.ref }}
       - name: Cache turbo setup
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
