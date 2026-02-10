@@ -21,6 +21,7 @@ import {
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
+  Tenant,
   TenantId,
   UserId,
 } from "pagopa-interop-models";
@@ -37,6 +38,7 @@ import {
   clientKindNotAllowed,
   clientAdminIdNotFound,
   tenantNotAllowedOnClient,
+  missingSelfcareId,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -205,5 +207,13 @@ export function assertJwkKtyIsDefined(
 ): asserts jwk is JsonWebKey & { kty: NonNullable<JsonWebKey["kty"]> } {
   if (jwk.kty === undefined) {
     throw genericError("JWK must have a 'kty' property");
+  }
+}
+
+export function assertTenantHasSelfcareId(
+  tenant: Tenant
+): asserts tenant is Tenant & { selfcareId: string } {
+  if (!tenant.selfcareId) {
+    throw missingSelfcareId(tenant.id);
   }
 }
