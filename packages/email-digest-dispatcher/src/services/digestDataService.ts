@@ -2,7 +2,6 @@ import { Logger } from "pagopa-interop-commons";
 import {
   agreementState,
   TenantId,
-  unsafeBrandId,
   purposeVersionState,
   delegationState,
 } from "pagopa-interop-models";
@@ -35,17 +34,6 @@ import {
 } from "./deeplinkBuilder.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
-
-const PRIORITY_PRODUCER_IDS: TenantId[] = [
-  "bce8d16d-d26f-4c35-a835-35cca48ff8a5", // Agenzia delle Entrate
-  "2a9ad360-90ef-4499-ab2c-112b0fbcecc7", // Ministero dell'Interno
-  "53b40136-65f2-424b-acfb-7fae17e35c60", // Istituto Nazionale Previdenza Sociale - INPS
-  "27aaf0d7-850b-4aca-92b8-f4df70217448", // MINISTERO DELL'UNIVERSITA' E DELLA RICERCA
-  "86a2adeb-bf90-4248-b471-58ba3539f423", // Ministero dell'istruzione e del merito
-  "6c07e769-b418-4210-bc0f-7d56470a06e9", // Ministero delle infrastrutture e dei trasporti
-  "2e1c950b-26d6-471a-b5ec-bd233d5b1f07", // Ministero del Lavoro e delle Politiche Sociali
-  "87ac321d-f13f-49f3-8aa8-2aaae9dc2115", // Dipartimento della Funzione Pubblica
-].map(unsafeBrandId<TenantId>);
 
 export type BaseDigest = {
   items: Array<{
@@ -115,7 +103,8 @@ export type TenantDigestData = {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function digestDataServiceBuilder(
   readModelService: ReadModelService,
-  logger: Logger
+  logger: Logger,
+  priorityProducerIds: TenantId[]
 ) {
   const newEservicesCache = new SimpleCache<NewEservice>(
     logger,
@@ -194,7 +183,7 @@ export function digestDataServiceBuilder(
 
       // Fetch new e-services with selfcareId (needs to be after we have selfcareId)
       const newEservices = await getNewEservicesDigest(
-        PRIORITY_PRODUCER_IDS,
+        priorityProducerIds,
         selfcareId
       );
 

@@ -1,7 +1,12 @@
 import { initProducer } from "kafka-iam-auth";
 import { buildHTMLTemplateService, logger } from "pagopa-interop-commons";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
-import { CorrelationId, generateId, TenantId } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  generateId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import {
   readModelServiceBuilder,
@@ -29,7 +34,14 @@ log.info("Email Notification Digest job started");
 
 const readModelDB = makeDrizzleConnection(config);
 const readModelService = readModelServiceBuilder(readModelDB, log);
-const digestDataService = digestDataServiceBuilder(readModelService, log);
+const priorityProducerIds = config.priorityProducerIds.map(
+  unsafeBrandId<TenantId>
+);
+const digestDataService = digestDataServiceBuilder(
+  readModelService,
+  log,
+  priorityProducerIds
+);
 const htmlTemplateService = buildHTMLTemplateService();
 const templateService = digestTemplateServiceBuilder(htmlTemplateService);
 const producer = await initProducer(config, config.emailDispatchTopic);
@@ -55,8 +67,6 @@ try {
     },
     new Map()
   );
-
-  log.info(`Grouped into ${usersByTenant.size} tenants`);
 
   const resultsCollector = createResultsCollector();
 

@@ -54,6 +54,20 @@ export const BffUrlConfig = z
 
 export type BffUrlConfig = z.infer<typeof BffUrlConfig>;
 
+// Config for priority producer IDs (comma-separated list of tenant UUIDs)
+export const PriorityProducerIdsConfig = z
+  .object({
+    PRIORITY_PRODUCER_IDS: z.string().optional(),
+  })
+  .transform((c) => ({
+    priorityProducerIds:
+      c.PRIORITY_PRODUCER_IDS?.split(",").map((id) => id.trim()) ?? [],
+  }));
+
+export type PriorityProducerIdsConfig = z.infer<
+  typeof PriorityProducerIdsConfig
+>;
+
 export const EmailNotificationDigestConfig = LoggerConfig.and(
   ReadModelSQLDbConfig
 )
@@ -61,7 +75,8 @@ export const EmailNotificationDigestConfig = LoggerConfig.and(
   .and(EmailDispatchTopicConfig)
   .and(DigestTrackingDbConfig)
   .and(DigestFrequencyConfig)
-  .and(BffUrlConfig);
+  .and(BffUrlConfig)
+  .and(PriorityProducerIdsConfig);
 
 export type EmailNotificationDigestConfig = z.infer<
   typeof EmailNotificationDigestConfig

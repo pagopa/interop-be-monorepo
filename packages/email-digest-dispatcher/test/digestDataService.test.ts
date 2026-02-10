@@ -17,7 +17,6 @@ import {
   createRecentPublishedEService,
 } from "./integrationUtils.js";
 
-// One of the hardcoded PRIORITY_PRODUCER_IDS from digestDataService
 const KNOWN_PRIORITY_PRODUCER_ID = unsafeBrandId<TenantId>(
   "bce8d16d-d26f-4c35-a835-35cca48ff8a5"
 );
@@ -28,7 +27,9 @@ describe("digestDataService - priority producers", () => {
       serviceName: "email-notification-digest-test",
       correlationId: generateId<CorrelationId>(),
     });
-    const digestDataService = digestDataServiceBuilder(readModelService, log);
+    const digestDataService = digestDataServiceBuilder(readModelService, log, [
+      KNOWN_PRIORITY_PRODUCER_ID,
+    ]);
 
     // Create the consumer tenant (the one receiving the digest)
     const consumer = createMockTenant({ selfcareId: "test-selfcare-id" });
