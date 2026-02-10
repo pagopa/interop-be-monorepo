@@ -35,6 +35,7 @@ export function toAgreementProcessGetAgreementsQueryParams(
   return {
     producersIds: producerId ? [producerId] : [],
     consumersIds: consumerId ? [consumerId] : [],
+    excludeDelegations: false,
     eservicesIds: eserviceId ? [eserviceId] : [],
     descriptorsIds: descriptorId ? [descriptorId] : [],
     showOnlyUpgradeable: false,
