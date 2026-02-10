@@ -373,5 +373,22 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       await pollClient(response, headers);
     },
+    async removeClientUser(
+      clientId: ClientId,
+      userId: string,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Removing user ${userId} from client ${clientId}`);
+
+      const response = await clients.authorizationClient.client.removeUser(
+        undefined,
+        {
+          params: { clientId, userId },
+          headers,
+        }
+      );
+
+      await pollClient(response, headers);
+    },
   };
 }
