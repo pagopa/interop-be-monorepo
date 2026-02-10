@@ -67,7 +67,7 @@ export async function handleTenantCertifiedAttributeRevoked(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Tenant ${tenant.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleTenantCertifiedAttributeRevoked - entityId: ${tenant.id}, eventType: ${notificationType}`
     );
     return [];
   }

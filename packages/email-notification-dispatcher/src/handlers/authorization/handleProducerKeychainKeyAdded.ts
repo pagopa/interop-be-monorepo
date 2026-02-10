@@ -66,7 +66,7 @@ export async function handleProducerKeychainKeyAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. ProducerKeychain ${producerKeychain.id}, key ${kid}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerKeychainKeyAdded - entityId: ${producerKeychain.id}, eventType: ${notificationType}`
     );
     return [];
   }

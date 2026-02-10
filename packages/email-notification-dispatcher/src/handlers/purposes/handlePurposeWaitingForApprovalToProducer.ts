@@ -57,7 +57,7 @@ export async function handlePurposeWaitingForApprovalToProducer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeWaitingForApprovalToProducer - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }

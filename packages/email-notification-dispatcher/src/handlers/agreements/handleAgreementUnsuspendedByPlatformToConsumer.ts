@@ -60,7 +60,7 @@ export async function handleAgreementUnsuspendedByPlatformToConsumer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleAgreementUnsuspendedByPlatformToConsumer - entityId: ${agreement.id}, eventType: ${notificationType}`
     );
     return [];
   }

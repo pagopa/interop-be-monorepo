@@ -28,7 +28,7 @@ export async function handlePurposeQuotaAdjustmentRequestToProducer(
     throw missingKafkaMessageDataError("purpose", type);
   }
   logger.info(
-    `Sending in-app notification for handlePurposeQuotaAdjustmentRequestToProducer ${purposeV2Msg.id}`
+    `Sending in-app notification for handlePurposeQuotaAdjustmentRequestToProducer - entityId: ${purposeV2Msg.id}, eventType: ${type}`
   );
   const purpose = fromPurposeV2(purposeV2Msg);
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
@@ -41,7 +41,7 @@ export async function handlePurposeQuotaAdjustmentRequestToProducer(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${type} purpose ${purpose.id}`
+      `No users with notifications enabled for handlePurposeQuotaAdjustmentRequestToProducer - entityId: ${purpose.id}, eventType: ${type}`
     );
     return [];
   }
