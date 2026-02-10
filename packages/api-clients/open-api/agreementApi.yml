@@ -592,7 +592,7 @@ paths:
             default: false
         - in: query
           name: strictConsumer
-          description: get the agreements that are from the consumer, without considering the ones through delegations
+          description: use consumerIds to retrieve agreements with those specific consumersIds, regardless the delegations
           schema:
             type: boolean
           required: true
