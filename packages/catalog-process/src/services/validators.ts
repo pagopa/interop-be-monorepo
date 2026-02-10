@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   Descriptor,
-  DescriptorState,
   EService,
   EServiceId,
   Tenant,
@@ -47,7 +46,7 @@ import {
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
 } from "../model/domain/errors.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -75,13 +74,6 @@ export function descriptorStatesNotAllowingInterfaceOperations(
     .with(descriptorState.draft, () => false)
     .otherwise(() => true);
 }
-
-export const activeDescriptorStates: DescriptorState[] = [
-  descriptorState.published,
-  descriptorState.suspended,
-  descriptorState.deprecated,
-  descriptorState.archived,
-];
 
 function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
