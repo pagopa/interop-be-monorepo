@@ -251,7 +251,6 @@ export const archiveRelatedToAgreements = async (
   const existingAgreements = await readModelService.getAllAgreements({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
-    strictConsumer: true,
   });
 
   const archivables = existingAgreements.filter(

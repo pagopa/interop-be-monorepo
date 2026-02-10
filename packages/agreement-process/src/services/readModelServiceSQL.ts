@@ -66,7 +66,6 @@ export type AgreementQueryFilters = {
   agreementStates?: AgreementState[];
   attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
-  strictConsumer: boolean;
 };
 
 export type AgreementEServicesQueryFilters = {
@@ -259,19 +258,12 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
       )
     );
 
-const getVisibilityFilter = (
-  requesterId: TenantId,
-  strictConsumer: boolean
-): SQL | undefined =>
+const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
   or(
     eq(agreementInReadmodelAgreement.producerId, requesterId),
     eq(agreementInReadmodelAgreement.consumerId, requesterId),
-    strictConsumer
-      ? undefined
-      : eq(activeProducerDelegations.delegateId, requesterId),
-    strictConsumer
-      ? undefined
-      : eq(activeConsumerDelegations.delegateId, requesterId)
+    eq(activeProducerDelegations.delegateId, requesterId),
+    eq(activeConsumerDelegations.delegateId, requesterId)
   );
 
 const getProducerIdsFilter = (
@@ -340,10 +332,12 @@ const getAgreementsFilters = <
       }
 >({
   filters,
+  strictConsumer,
   requesterId,
   withVisibilityAndDelegationFilters,
 }: {
   filters: AgreementQueryFilters;
+  strictConsumer: boolean;
 } & T): SQL | undefined => {
   const {
     producerIds,
@@ -356,13 +350,13 @@ const getAgreementsFilters = <
 
   return and(
     withVisibilityAndDelegationFilters
-      ? getVisibilityFilter(requesterId, filters.strictConsumer)
+      ? getVisibilityFilter(requesterId)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
     getConsumerIdsFilter(
       consumerIds,
       withVisibilityAndDelegationFilters,
-      filters.strictConsumer
+      strictConsumer
     ),
     getEServiceIdsFilter(eserviceIds),
     getDescriptorIdsFilter(descriptorIds),
@@ -420,6 +414,7 @@ export function readModelServiceBuilderSQL(
           .where(
             getAgreementsFilters({
               filters,
+              strictConsumer: false,
               requesterId,
               withVisibilityAndDelegationFilters: true,
             })
@@ -580,6 +575,7 @@ export function readModelServiceBuilderSQL(
         .where(
           getAgreementsFilters({
             filters,
+            strictConsumer: false,
           })
         )
         .groupBy(
@@ -694,7 +690,7 @@ export function readModelServiceBuilderSQL(
           .where(
             and(
               getNameFilter(tenantInReadmodelTenant.name, consumerName),
-              getVisibilityFilter(requesterId, false)
+              getVisibilityFilter(requesterId)
             )
           )
           .groupBy(tenantInReadmodelTenant.id)
@@ -734,7 +730,7 @@ export function readModelServiceBuilderSQL(
           .where(
             and(
               getNameFilter(tenantInReadmodelTenant.name, producerName),
-              getVisibilityFilter(requesterId, false)
+              getVisibilityFilter(requesterId)
             )
           )
           .groupBy(tenantInReadmodelTenant.id)
@@ -779,7 +775,7 @@ export function readModelServiceBuilderSQL(
               getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
               getProducerIdsFilter(producerIds, withDelegationFilter),
               getConsumerIdsFilter(consumerIds, withDelegationFilter, false),
-              getVisibilityFilter(requesterId, false)
+              getVisibilityFilter(requesterId)
             )
           )
           .groupBy(eserviceInReadmodelCatalog.id)

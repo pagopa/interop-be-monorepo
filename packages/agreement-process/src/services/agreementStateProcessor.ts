@@ -323,7 +323,6 @@ export async function computeAgreementsStateByAttribute(
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreements = await readModelService.getAllAgreements({
     consumerId: consumer.id,
-    strictConsumer: true,
     agreementStates: updatableStates,
   });
 

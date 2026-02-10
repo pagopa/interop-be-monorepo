@@ -157,6 +157,7 @@ export function purposeServiceBuilder(
     const latestAgreement = await getLatestAgreement(
       agreementProcessClient,
       purpose.consumerId,
+      true,
       eservice,
       headers
     );

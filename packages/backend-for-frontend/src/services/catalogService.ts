@@ -142,6 +142,7 @@ export const enhanceCatalogEservices = async (
       const latestAgreement = await getLatestAgreement(
         agreementProcessClient,
         requesterId,
+        false,
         eservice,
         headers
       );
@@ -979,6 +980,7 @@ export function catalogServiceBuilder(
       const agreement = await getLatestAgreement(
         agreementProcessClient,
         requesterId,
+        false,
         eservice,
         headers
       );

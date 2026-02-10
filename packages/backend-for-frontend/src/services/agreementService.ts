@@ -61,7 +61,7 @@ export async function getAllAgreements(
         headers,
         queries: {
           ...getAgreementsQueryParams,
-          strictConsumer: false,
+          strictConsumer: true,
           offset,
           limit,
         },
@@ -643,9 +643,9 @@ export function agreementServiceBuilder(
 export const getLatestAgreement = async (
   agreementProcessClient: AgreementProcessClient,
   consumerId: string,
+  strictConsumer: boolean,
   eservice: catalogApi.EService,
-  headers: Headers,
-  strictConsumer?: boolean
+  headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
   const allAgreements = await getAllAgreements(
     agreementProcessClient,
