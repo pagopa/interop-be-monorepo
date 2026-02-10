@@ -427,7 +427,9 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: aggregateProducerKeychainArray(
-          toProducerKeychainAggregatorArray(queryResult.filter(hasProducerKeychain))
+          toProducerKeychainAggregatorArray(
+            queryResult.filter(hasProducerKeychain)
+          )
         ).map((p) => p.data),
         totalCount: queryResult[0]?.totalCount ?? 0,
       };
