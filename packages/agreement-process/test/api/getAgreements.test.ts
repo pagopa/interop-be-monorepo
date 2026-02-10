@@ -21,6 +21,7 @@ describe("API GET /agreements test", () => {
     consumersIds: `${generateId()},${generateId()}`,
     producersIds: `${generateId()},${generateId()}`,
     descriptorsIds: `${generateId()},${generateId()}`,
+    strictConsumer: false,
   };
 
   const agreements: ListResult<Agreement> = {
