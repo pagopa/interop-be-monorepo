@@ -121,6 +121,7 @@ describe("getAgreements", () => {
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreements,
       queries: {
         consumersIds: mockQueryParams.consumerIds,
+        strictConsumer: false,
         eservicesIds: mockQueryParams.eserviceIds,
         producersIds: mockQueryParams.producerIds,
         descriptorsIds: mockQueryParams.descriptorIds,
