@@ -237,7 +237,7 @@ const producerKeychainRouter = (
 
         await producerKeychainService.addProducerKeychainUsers(
           unsafeBrandId(req.params.producerKeychainId),
-          req.body.userIds,
+          req.body.userId,
           ctx
         );
         return res.status(204).send();
