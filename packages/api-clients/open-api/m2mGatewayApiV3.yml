@@ -9342,7 +9342,7 @@ paths:
             minimum: 0
       responses:
         "200":
-          description: Request succeed
+          description: List of Client Users
           content:
             application/json:
               schema:
@@ -9500,7 +9500,7 @@ paths:
             minimum: 0
       responses:
         "200":
-          description: Request succeed
+          description: List of Producer Keychain Users
           content:
             application/json:
               schema:
