@@ -57,17 +57,10 @@ import {
   CompactEService,
   CompactOrganization,
 } from "../model/domain/models.js";
-import { AgreementQueryFiltersWithStrictConsumer } from "./readModelService.js";
-
-export type AgreementQueryFilters = {
-  producerId?: TenantId | TenantId[];
-  consumerId?: TenantId | TenantId[];
-  eserviceId?: EServiceId | EServiceId[];
-  descriptorId?: DescriptorId | DescriptorId[];
-  agreementStates?: AgreementState[];
-  attributeId?: AttributeId | AttributeId[];
-  showOnlyUpgradeable?: boolean;
-};
+import {
+  AgreementQueryFilters,
+  AgreementQueryFiltersWithStrictConsumer,
+} from "./readModelService.js";
 
 export type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
