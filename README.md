@@ -6,9 +6,9 @@
 
 To get started, you will need:
 
-- Node.js (https://nodejs.org/en/download/package-manager)
-- pnpm (https://pnpm.io/installation)
-- Docker (for local development, https://www.docker.com/get-started/)
+- Node.js (<https://nodejs.org/en/download/package-manager>)
+- pnpm (<https://pnpm.io/installation>)
+- Docker (for local development, <https://www.docker.com/get-started/>)
 
 Then install the dependencies with
 
@@ -59,7 +59,7 @@ curl -X POST http://localhost:3000/eservices \
 
 You should see the event being processed by the consumer and the read model being updated.
 
-You can verify this by using PgAdmin, which is being started alongside the consumer and is available at http://localhost:8082. That can be used to inspect the event store.
+You can verify this by using PgAdmin, which is being started alongside the consumer and is available at <http://localhost:8082>. That can be used to inspect the event store.
 
 ## Licensing
 
@@ -71,3 +71,7 @@ Please see the [AUTHORS](AUTHORS) file for the copyright notice.
 
 Since this is a monorepo, some packages may have different licensing terms.
 For detailed info regarding each package of the monorepo, please refer to their respective license files.
+
+## Test change
+
+This is a test change to verify caching behavior
