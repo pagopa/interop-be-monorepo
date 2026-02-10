@@ -18,11 +18,7 @@ import {
   AttributeValue,
   ConditionalCheckFailedException,
 } from "@aws-sdk/client-dynamodb";
-import {
-  APIEndpoint,
-  RateLimiter,
-  rateLimiterMiddleware,
-} from "pagopa-interop-commons";
+import { APIEndpoint } from "pagopa-interop-commons";
 import {
   generateM2MAdminAccessTokenWithDPoPProof,
   JwksServer,
@@ -100,17 +96,6 @@ const dynamoClient = {
 
 const inMemeryDynamoClient = createInMemoryDynamoDBClient();
 
-export const mockRateLimiter: RateLimiter = {
-  rateLimitByOrganization: vi.fn().mockResolvedValue({
-    limitReached: false,
-    maxRequests: 100,
-    rateInterval: 1000,
-    remainingRequests: 99,
-  }),
-  getCountByOrganization: vi.fn(),
-  getBurstCountByOrganization: vi.fn(),
-};
-
 function buildTestApp(wellKnownUrl: string, useInMemoryDynamoClient = false) {
   const app = express();
 
@@ -128,8 +113,9 @@ function buildTestApp(wellKnownUrl: string, useInMemoryDynamoClient = false) {
     next();
   });
 
+  // codeql[js/missing-rate-limiting]: test-only fake API, not exposed in production
   app.use(
-    rateLimiterMiddleware(mockRateLimiter),
+    // codeql[js/missing-rate-limiting]: test-only fake API, not exposed in production
     authenticationDPoPMiddleware(
       { ...config, wellKnownUrls: [APIEndpoint.parse(wellKnownUrl)] },
       useInMemoryDynamoClient ? inMemeryDynamoClient : dynamoClient
@@ -142,6 +128,7 @@ function buildTestApp(wellKnownUrl: string, useInMemoryDynamoClient = false) {
     };
   };
 
+  // codeql[js/missing-rate-limiting]: test-only fake API, not exposed in production
   app.get("/test", (req: RequestWithCtx, res: Response) => {
     try {
       res.status(200).json({ authData: req.ctx?.authData });
