@@ -55,11 +55,11 @@ describe("getProducerKeychainUsers", () => {
     },
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
 
-  mockInteropBeClients.selfcareProcessClient = {
+  mockInteropBeClients.selfcareClient = {
     user: {
       getUserInfoUsingGET: mockGetUserInfoUsingGET,
     },
-  } as unknown as PagoPAInteropBeClients["selfcareProcessClient"];
+  } as unknown as PagoPAInteropBeClients["selfcareClient"];
 
   const callService = async () => {
     const context = getMockM2MAdminAppContext({ organizationId: tenantId });
@@ -77,7 +77,7 @@ describe("getProducerKeychainUsers", () => {
     vi.clearAllMocks();
   });
 
-  it("Should succeed and return a list of users", async () => {
+  it.only("Should succeed and return a list of users", async () => {
     mockGetProducerKeychainUsers.mockResolvedValue(
       getMockWithMetadata([userId1, userId2])
     );
@@ -85,8 +85,8 @@ describe("getProducerKeychainUsers", () => {
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
 
     mockGetUserInfoUsingGET
-      .mockResolvedValueOnce(getMockWithMetadata(mockSelfcareUser1))
-      .mockResolvedValueOnce(getMockWithMetadata(mockSelfcareUser2));
+      .mockResolvedValueOnce(mockSelfcareUser1)
+      .mockResolvedValueOnce(mockSelfcareUser2);
 
     const result = await callService();
     const response = {
