@@ -12,7 +12,8 @@ servers:
   - url: "https://api.uat.interop.pagopa.it/v3"
     description: UAT environment
 security:
-  - bearerAuth: []
+  - DPoPAuth: []
+    DPoPProofHeader: []
 tags:
   - name: clients
     description: Clients routes
@@ -13888,7 +13889,19 @@ components:
         Inside the JWT there is a `signed_header` field containting the `digest` header value,
         the `content-type` header and, optionally, the `content-encoding` header.
   securitySchemes:
-    bearerAuth:
+    DPoPAuth:
       type: http
-      scheme: bearer
-      bearerFormat: JWT
+      scheme: DPoP
+      description: |
+        This Authorization header must be used alongside the DPoP Proof JWT.
+        Use:
+        Authorization: DPoP <access_token>
+
+        The access token generated must also have a cnf field.
+    DPoPProofHeader:
+      type: apiKey
+      in: header
+      name: DPoP
+      description: |
+        DPoP proof JWT for sender-constrained access. Must accompany the DPoP Authorization header.
+
