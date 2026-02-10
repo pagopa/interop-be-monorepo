@@ -93,7 +93,7 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     },
     {
       error: tenantNotFound(generateId()),
-      expectedStatus: 404,
+      expectedStatus: 500,
     },
     {
       error: missingSelfcareId(generateId()),

@@ -9384,22 +9384,11 @@ paths:
         Users must belong to the same organization as the Client and must not already be associated with it.
       operationId: addUsersToClient
       requestBody:
-        required: true
-        description: List of users ids to bind
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              required:
-                - userIds
-              properties:
-                userIds:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: string
-                    format: uuid
+              $ref: "#/components/schemas/UserBindingSeed"
+        required: true
       responses:
         "204":
           description: Users added
@@ -9535,33 +9524,22 @@ paths:
     post:
       tags:
         - producerKeychains
-      summary: Binds users to a Producer Keychain
+      summary: Link a User to a Producer Keychain
       description: |
         Associates a list of security users with a specific Producer Keychain. 
         This allows the specified users to manage or use the credentials within the keychain. 
         The authenticated user's organization must match the Producer Keychain's producer organization. 
         Additionally, the users being added must not already be associated with the keychain.
-      operationId: addUsersToProducerKeychain
+      operationId: addProducerKeychainUser
       requestBody:
-        required: true
-        description: List of users ids to bind
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              required:
-                - userIds
-              properties:
-                userIds:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: string
-                    format: uuid
+              $ref: "#/components/schemas/UserBindingSeed"
+        required: true
       responses:
         "204":
-          description: Users added
+          description: User linked to the Producer Keychain
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12974,6 +12952,20 @@ components:
       required:
         - results
         - pagination
+    UserBindingSeed:
+      type: object
+      description: List of users ids to bind
+      additionalProperties: false
+      properties:
+        userIds:
+          type: array
+          description: The unique identifiers of the users
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+      required:
+        - userIds
     Problem:
       properties:
         type:
@@ -13146,4 +13138,3 @@ components:
       name: DPoP
       description: |
         DPoP proof JWT for sender-constrained access. Must accompany the DPoP Authorization header.
-
