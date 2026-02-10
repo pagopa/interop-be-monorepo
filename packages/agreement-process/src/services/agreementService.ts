@@ -151,7 +151,7 @@ import {
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
-  AgreementQueryFilters,
+  AgreementQueryFiltersWithStrictConsumer,
 } from "./readModelService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -241,7 +241,7 @@ export function agreementServiceBuilder(
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
     async getAgreements(
-      filters: AgreementQueryFilters,
+      filters: AgreementQueryFiltersWithStrictConsumer,
       limit: number,
       offset: number,
       {

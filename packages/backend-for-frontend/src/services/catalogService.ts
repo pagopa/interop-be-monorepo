@@ -963,6 +963,7 @@ export function catalogServiceBuilder(
       const agreements = await getLatestAgreementsOnDescriptor(
         agreementProcessClient,
         requesterId,
+        false,
         eservice,
         descriptorId,
         headers
