@@ -61,6 +61,7 @@ export async function getAllAgreements(
         headers,
         queries: {
           ...getAgreementsQueryParams,
+          excludeDelegations: false,
           offset,
           limit,
         },
@@ -116,6 +117,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds: [ctx.authData.organizationId],
+            excludeDelegations: false,
             producersIds,
             states,
           },
@@ -162,6 +164,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds,
+            excludeDelegations: false,
             states,
           },
           headers: ctx.headers,
