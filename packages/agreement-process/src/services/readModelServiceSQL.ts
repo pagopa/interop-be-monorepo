@@ -57,6 +57,7 @@ import {
   CompactEService,
   CompactOrganization,
 } from "../model/domain/models.js";
+import { AgreementQueryFiltersWithStrictConsumer } from "./readModelService.js";
 
 export type AgreementQueryFilters = {
   producerId?: TenantId | TenantId[];
@@ -377,7 +378,7 @@ export function readModelServiceBuilderSQL(
   return {
     async getAgreements(
       requesterId: TenantId,
-      filters: AgreementQueryFilters,
+      filters: AgreementQueryFiltersWithStrictConsumer,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {

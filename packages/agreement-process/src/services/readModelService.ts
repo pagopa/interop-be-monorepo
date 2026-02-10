@@ -17,6 +17,10 @@ export type AgreementQueryFilters = {
   strictConsumer: boolean;
 };
 
+export type AgreementQueryFiltersWithStrictConsumer = AgreementQueryFilters & {
+  strictConsumer: boolean;
+};
+
 export type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
