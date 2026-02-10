@@ -292,6 +292,7 @@ const authorizationRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
         const users = await authorizationService.getClientUsers(
@@ -300,6 +301,7 @@ const authorizationRouter = (
           },
           ctx
         );
+
         return res.status(200).send(authorizationApi.Users.parse(users));
       } catch (error) {
         const errorRes = makeApiProblem(error, getClientUsersErrorMapper, ctx);
@@ -310,16 +312,24 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await authorizationService.removeClientUser(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-            userIdToRemove: unsafeBrandId(req.params.userId),
-          },
-          ctx
-        );
-        return res.status(204).send();
+        const { data: client, metadata } =
+          await authorizationService.removeClientUser(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              userIdToRemove: unsafeBrandId(req.params.userId),
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -333,15 +343,17 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const client = await authorizationService.addClientUsers(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-            userIds: req.body.userIds.map(unsafeBrandId<UserId>),
-          },
-          ctx
-        );
+        const { data: client, metadata } =
+          await authorizationService.addClientUsers(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              userIds: req.body.userIds.map(unsafeBrandId<UserId>),
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
