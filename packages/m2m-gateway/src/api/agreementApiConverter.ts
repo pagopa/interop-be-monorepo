@@ -33,7 +33,7 @@ export function toGetAgreementsApiQueryParams(
 ): agreementApi.GetAgreementsQueryParams {
   return {
     consumersIds: params.consumerIds,
-    excludeDelegations: false,
+    strictConsumer: false,
     producersIds: params.producerIds,
     eservicesIds: params.eserviceIds,
     descriptorsIds: params.descriptorIds,

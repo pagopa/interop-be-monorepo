@@ -14,7 +14,7 @@ export type AgreementQueryFilters = {
   agreementStates?: AgreementState[];
   attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
-  excludeDelegations?: boolean;
+  strictConsumer: boolean;
 };
 
 export type AgreementEServicesQueryFilters = {

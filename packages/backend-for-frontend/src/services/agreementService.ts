@@ -61,7 +61,7 @@ export async function getAllAgreements(
         headers,
         queries: {
           ...getAgreementsQueryParams,
-          excludeDelegations: false,
+          strictConsumer: false,
           offset,
           limit,
         },
@@ -117,7 +117,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds: [ctx.authData.organizationId],
-            excludeDelegations: false,
+            strictConsumer: false,
             producersIds,
             states,
           },
@@ -164,7 +164,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds,
-            excludeDelegations: false,
+            strictConsumer: false,
             states,
           },
           headers: ctx.headers,
@@ -645,7 +645,7 @@ export const getLatestAgreement = async (
   consumerId: string,
   eservice: catalogApi.EService,
   headers: Headers,
-  excludeDelegations?: boolean
+  strictConsumer?: boolean
 ): Promise<agreementApi.Agreement | undefined> => {
   const allAgreements = await getAllAgreements(
     agreementProcessClient,
@@ -653,7 +653,7 @@ export const getLatestAgreement = async (
     {
       consumersIds: [consumerId],
       eservicesIds: [eservice.id],
-      excludeDelegations,
+      strictConsumer,
     }
   );
 

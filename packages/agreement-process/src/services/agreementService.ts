@@ -599,6 +599,7 @@ export function agreementServiceBuilder(
       const agreements = (
         await readModelService.getAllAgreements({
           consumerId: agreement.data.consumerId,
+          strictConsumer: true,
           eserviceId: agreement.data.eserviceId,
           agreementStates: [agreementState.active, agreementState.suspended],
         })
@@ -844,6 +845,7 @@ export function agreementServiceBuilder(
 
       const activeAgreement = await readModelService.getAllAgreements({
         consumerId: authData.organizationId,
+        strictConsumer: true,
         eserviceId: agreementToBeCloned.data.eserviceId,
         agreementStates: agreementCloningConflictingStates,
       });

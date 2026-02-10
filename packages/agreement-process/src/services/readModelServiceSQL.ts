@@ -66,7 +66,7 @@ export type AgreementQueryFilters = {
   agreementStates?: AgreementState[];
   attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
-  excludeDelegations?: boolean;
+  strictConsumer: boolean;
 };
 
 export type AgreementEServicesQueryFilters = {
@@ -261,15 +261,15 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
 
 const getVisibilityFilter = (
   requesterId: TenantId,
-  excludeDelegations: boolean
+  strictConsumer: boolean
 ): SQL | undefined =>
   or(
     eq(agreementInReadmodelAgreement.producerId, requesterId),
     eq(agreementInReadmodelAgreement.consumerId, requesterId),
-    excludeDelegations
+    strictConsumer
       ? undefined
       : eq(activeProducerDelegations.delegateId, requesterId),
-    excludeDelegations
+    strictConsumer
       ? undefined
       : eq(activeConsumerDelegations.delegateId, requesterId)
   );
@@ -289,12 +289,13 @@ const getProducerIdsFilter = (
 
 const getConsumerIdsFilter = (
   consumerIds: TenantId[],
-  withDelegationFilter: boolean | undefined
+  withDelegationFilter: boolean | undefined,
+  strictConsumer: boolean
 ): SQL | undefined =>
   consumerIds.length > 0
     ? or(
         inArray(agreementInReadmodelAgreement.consumerId, consumerIds),
-        withDelegationFilter
+        !strictConsumer && withDelegationFilter
           ? inArray(activeConsumerDelegations.delegateId, consumerIds)
           : undefined
       )
@@ -355,10 +356,14 @@ const getAgreementsFilters = <
 
   return and(
     withVisibilityAndDelegationFilters
-      ? getVisibilityFilter(requesterId, filters.excludeDelegations!)
+      ? getVisibilityFilter(requesterId, filters.strictConsumer)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
-    getConsumerIdsFilter(consumerIds, withVisibilityAndDelegationFilters),
+    getConsumerIdsFilter(
+      consumerIds,
+      withVisibilityAndDelegationFilters,
+      filters.strictConsumer
+    ),
     getEServiceIdsFilter(eserviceIds),
     getDescriptorIdsFilter(descriptorIds),
     getAttributeIdsFilter(attributeIds),
@@ -773,7 +778,7 @@ export function readModelServiceBuilderSQL(
             and(
               getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
               getProducerIdsFilter(producerIds, withDelegationFilter),
-              getConsumerIdsFilter(consumerIds, withDelegationFilter),
+              getConsumerIdsFilter(consumerIds, withDelegationFilter, false),
               getVisibilityFilter(requesterId, false)
             )
           )

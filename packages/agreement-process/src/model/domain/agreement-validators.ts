@@ -481,6 +481,7 @@ export const verifyConflictingAgreements = async (
     consumerId,
     eserviceId,
     agreementStates: conflictingStates,
+    strictConsumer: true,
   });
 
   if (agreements.length > 0) {
