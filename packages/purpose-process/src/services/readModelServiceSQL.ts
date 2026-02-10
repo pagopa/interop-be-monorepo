@@ -289,7 +289,10 @@ export function readModelServiceBuilderSQL({
               ...getPurposesFilters(readModelDB, otherFilters)
             )
           )
-          .groupBy(purposeInReadmodelPurpose.id, purposeInReadmodelPurpose.title)
+          .groupBy(
+            purposeInReadmodelPurpose.id,
+            purposeInReadmodelPurpose.title
+          )
           .orderBy(ascLower(purposeInReadmodelPurpose.title))
           .$dynamic()
       );
