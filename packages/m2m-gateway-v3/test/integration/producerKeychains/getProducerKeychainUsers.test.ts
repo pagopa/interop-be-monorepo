@@ -77,7 +77,7 @@ describe("getProducerKeychainUsers", () => {
     vi.clearAllMocks();
   });
 
-  it.only("Should succeed and return a list of users", async () => {
+  it("Should succeed and return a list of users", async () => {
     mockGetProducerKeychainUsers.mockResolvedValue(
       getMockWithMetadata([userId1, userId2])
     );
