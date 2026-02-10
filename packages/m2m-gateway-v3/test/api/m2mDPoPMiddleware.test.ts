@@ -206,6 +206,38 @@ describe("authenticationDPoPMiddleware", () => {
     expect(res.status).toBe(400);
   });
 
+  it("Should return 200 if the Authorization token is dpop (lowercase)", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", "dpop " + mockDPoPData.accessToken)
+      .set("DPoP", mockDPoPData.dpopProof);
+
+    expect(res.body).toEqual({ authData: mockDPoPData.expectedAuthData });
+    expect(res.status).toBe(200);
+  });
+
+  it("Should return 400 if the Authorization token is Bearer and no DPoP proof is passed", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", "Bearer " + mockDPoPData.accessToken);
+
+    expect(res.body.title).toEqual("Bad DPoP Token format");
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if no authorization header or DPoP proof is passed", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app).get("/test");
+
+    expect(res.body.title).toEqual("Header has not been passed");
+    expect(res.status).toBe(400);
+  });
+
   it("Should return 400 if DPoP proof is missing", async () => {
     const app = buildTestApp(jwksServer.url);
 
