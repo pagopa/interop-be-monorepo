@@ -313,6 +313,13 @@ export function producerKeychainServiceBuilder(
 
       assertTenantHasSelfcareId(tenant);
 
+      console.log(
+        "Getting producer keychain users for producerKeychainId",
+        producerKeychainId,
+        "with tenant selfcareId",
+        tenant.selfcareId
+      );
+
       const producerKeychainUsers =
         await clients.authorizationClient.producerKeychain.getProducerKeychainUsers(
           {
@@ -320,6 +327,14 @@ export function producerKeychainServiceBuilder(
             headers: ctx.headers,
           }
         );
+      console.log(
+        "Retrieved producer keychain users for producerKeychainId",
+        producerKeychainId,
+        "with tenant selfcareId",
+        tenant.selfcareId,
+        "users",
+        producerKeychainUsers.data
+      );
 
       const users = await Promise.all(
         producerKeychainUsers.data.map(async (id) =>
@@ -331,10 +346,27 @@ export function producerKeychainServiceBuilder(
           )
         )
       );
+      console.log(
+        "Retrieved selfcare users for producerKeychainId",
+        producerKeychainId,
+        "with tenant selfcareId",
+        tenant.selfcareId,
+        "users",
+        users
+      );
 
       const results: m2mGatewayApiV3.User[] = users.slice(
         offset,
         offset + limit
+      );
+
+      console.log(
+        "Returning paginated users for producerKeychainId",
+        producerKeychainId,
+        "with tenant selfcareId",
+        tenant.selfcareId,
+        "results",
+        results
       );
 
       return {
