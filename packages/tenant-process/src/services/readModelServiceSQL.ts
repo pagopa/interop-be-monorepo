@@ -615,7 +615,8 @@ export function readModelServiceBuilderSQL(
           tenantVerifiedAttributeRevokerInReadmodelTenant.extensionDate,
         revocationDate:
           tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
-        delegationId: tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
+        delegationId:
+          tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
       };
       const baseQuery = readModelDB
         .select(baseSelection)
