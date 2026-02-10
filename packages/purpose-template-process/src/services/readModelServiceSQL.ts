@@ -15,9 +15,11 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  filterNonNullAndCast,
   getValidFormRulesVersions,
   M2MAdminAuthData,
   M2MAuthData,
+  omitFromRow,
   UIAuthData,
   withTotalCount,
   withTotalCountSubquery,
@@ -471,16 +473,14 @@ export function readModelServiceBuilderSQL({
         document: RiskAnalysisTemplateAnswerAnnotationDocument;
       }> = queryResult
         .filter((r) => r.id !== null)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((r: any) => {
-          const { answerId, totalCount, ...document } = r;
-          return {
-            answerId: unsafeBrandId<
-              RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
-            >(answerId),
-            document: toRiskAnalysisTemplateAnswerAnnotationDocument(document),
-          };
-        });
+        .map((r) => ({
+          answerId: unsafeBrandId<
+            RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+          >(r.answerId as string),
+          document: toRiskAnalysisTemplateAnswerAnnotationDocument(
+            omitFromRow(r, "answerId", "totalCount")
+          ),
+        }));
 
       return createListResult(results, queryResult[0]?.totalCount ?? 0);
     },
@@ -571,8 +571,7 @@ export function readModelServiceBuilderSQL({
 
       const purposeTemplateEServiceDescriptors =
         aggregatePurposeTemplateEServiceDescriptorArray(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          queryResult.filter((r) => r.purposeTemplateId !== null) as any[]
+          filterNonNullAndCast(queryResult, "purposeTemplateId")
         );
 
       return createListResult(

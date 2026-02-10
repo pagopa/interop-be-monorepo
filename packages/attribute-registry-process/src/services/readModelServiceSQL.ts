@@ -2,6 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  filterNonNullAndCast,
   withTotalCountSubquery,
 } from "pagopa-interop-commons";
 import {
@@ -63,8 +64,7 @@ export function readModelServiceBuilderSQL({
       const queryResult = await readModelDB.select().from(subquery);
 
       const attributes = aggregateAttributeArray(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        queryResult.filter((row) => row.id !== null) as any[]
+        filterNonNullAndCast(queryResult, "id")
       );
 
       return createListResult(
@@ -119,8 +119,7 @@ export function readModelServiceBuilderSQL({
       const queryResult = await readModelDB.select().from(subquery);
 
       const attributes = aggregateAttributeArray(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        queryResult.filter((row) => row.id !== null) as any[]
+        filterNonNullAndCast(queryResult, "id")
       );
 
       return createListResult(

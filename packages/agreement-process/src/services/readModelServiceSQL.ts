@@ -52,6 +52,8 @@ import {
   ascLower,
   withTotalCount,
   withTotalCountSubquery,
+  dynamicSelect,
+  SelectionRecord,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
@@ -377,11 +379,9 @@ export function readModelServiceBuilderSQL(
         id: agreementInReadmodelAgreement.id,
         eserviceName: eserviceInReadmodelCatalog.name,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const buildAgreementsBaseQuery = (selection: any) =>
+      const buildAgreementsBaseQuery = (selection: SelectionRecord) =>
         addDelegationJoins(
-          readmodelDB
-            .select(selection)
+          dynamicSelect(readmodelDB, selection)
             .from(agreementInReadmodelAgreement)
             .leftJoin(
               eserviceInReadmodelCatalog,

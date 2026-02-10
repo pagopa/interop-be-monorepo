@@ -26,8 +26,8 @@ export const withTotalCount = <
   totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
 });
 
-type SelectionValue = Table | Column | SQL | SQL.Aliased;
-type SelectionRecord = Record<string, SelectionValue>;
+export type SelectionValue = Table | Column | SQL | SQL.Aliased;
+export type SelectionRecord = Record<string, SelectionValue>;
 
 type SubquerySelection<TSelection extends SelectionRecord> = {
   [K in keyof TSelection]: TSelection[K];
@@ -130,4 +130,28 @@ export const withTotalCountSubquery = <TSelection extends SelectionRecord>(
     .from(totalCountSubquery)
     .leftJoin(paged, sql`true`)
     .as(alias);
+};
+
+export const filterNonNullAndCast = <T extends Record<string, unknown>>(
+  arr: T[],
+  key: keyof T
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any[] => arr.filter((row) => row[key] !== null) as any[];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const dynamicSelect = (db: any, selection: SelectionRecord): any =>
+  db.select(selection);
+
+export const omitFromRow = <T extends Record<string, unknown>>(
+  row: T,
+  ...keys: string[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any => {
+  const result: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(row as Record<string, unknown>)) {
+    if (!keys.includes(k)) {
+      result[k] = v;
+    }
+  }
+  return result;
 };
