@@ -122,6 +122,12 @@ export const notificationAdmittedRoles = {
     [SECURITY_ROLE]: true,
     [SUPPORT_ROLE]: false,
   },
+  clientKeyConsumerAddedDeletedToClientUsers: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+  },
   producerKeychainKeyAddedDeletedToClientUsers: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
