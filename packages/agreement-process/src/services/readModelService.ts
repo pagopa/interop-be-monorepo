@@ -17,7 +17,7 @@ export type AgreementQueryFilters = {
 };
 
 export type AgreementQueryFiltersWithStrictConsumer = AgreementQueryFilters & {
-  strictConsumer: boolean;
+  strictConsumer?: boolean;
 };
 
 export type AgreementEServicesQueryFilters = {
