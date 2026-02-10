@@ -4,7 +4,7 @@ import {
   withExecutionTime,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { parseAndSanitizeHtml } from "./services/html2json.js";
+import { parseAndSanitizeHtml } from "./services/htmlParser.js";
 import { OneTrustNoticeDBSchema } from "./models/index.js";
 
 import { config } from "./config/config.js";

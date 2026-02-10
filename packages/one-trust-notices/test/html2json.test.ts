@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseAndSanitizeHtml } from "../src/services/html2json.js";
+import { parseAndSanitizeHtml } from "../src/services/htmlParser.js";
 
 describe("parseAndSanitizeHtml", () => {
   it("should parse a simple element into the expected JSON shape", () => {
@@ -258,7 +258,6 @@ describe("parseAndSanitizeHtml", () => {
           {
             node: "element",
             tag: "a",
-            attr: {},
             child: [{ node: "text", text: "click me" }],
           },
         ],
@@ -330,7 +329,6 @@ describe("parseAndSanitizeHtml", () => {
                   {
                     node: "element",
                     tag: "a",
-                    attr: {},
                     child: [{ node: "text", text: "click" }],
                   },
                 ],
@@ -348,9 +346,6 @@ describe("parseAndSanitizeHtml", () => {
         '<div class="container" style="padding:10px"><a class="link" href="javascript:alert(1)">xss</a><p class="text">safe</p></div>'
       );
 
-      // Note: removeDangerousAttributesFromHtmlNodes removes href but does NOT
-      // clean up the resulting empty attr object (unlike removeUselessAttributes).
-      // This is the current behavior we preserve.
       expect(result).toEqual({
         node: "root",
         child: [
@@ -361,7 +356,6 @@ describe("parseAndSanitizeHtml", () => {
               {
                 node: "element",
                 tag: "a",
-                attr: {},
                 child: [{ node: "text", text: "xss" }],
               },
               {
