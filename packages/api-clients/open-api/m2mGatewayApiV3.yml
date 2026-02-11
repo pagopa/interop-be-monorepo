@@ -9320,7 +9320,7 @@ paths:
     get:
       tags:
         - clients
-      summary: List of client users
+      summary: List Client Users
       description: Retrieve a list of Users associated with a Client
       operationId: getClientUsers
       parameters:
@@ -9436,16 +9436,14 @@ paths:
           type: string
           format: uuid
     delete:
-      summary: Remove a user from a Client
-      description: |
-        Dissociates a Client from a User. 
-        The caller must be the legitimate Client consumer to perform this action.
+      summary: Unlink a User from a Client
+      description: Unlink a User from a Client.
       operationId: removeClientUser
       tags:
         - clients
       responses:
         "204":
-          description: User removed
+          description: User unlinked from Client
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9468,7 +9466,7 @@ paths:
     get:
       tags:
         - producerKeychains
-      summary: List of Producer Keychains Users
+      summary: List Producer Keychains Users
       description: Retrieve a list of Users associated with a Producer Keychain
       operationId: getProducerKeychainUsers
       parameters:
@@ -9557,6 +9555,41 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producerKeychains/{producerKeychainId}/users/{userId}:
+    parameters:
+      - name: producerKeychainId
+        in: path
+        description: The Producer Keychain id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        description: The ID of the User to unlink from the Producer Keychain
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Unlink a User from a Producer Keychain
+      description: Unlink a User from a Producer Keychain.
+      operationId: removeProducerKeychainUser
+      tags:
+        - producerKeychains
+      responses:
+        "204":
+          description: User unlinked from Producer Keychain
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
