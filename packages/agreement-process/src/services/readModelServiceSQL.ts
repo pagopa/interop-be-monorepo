@@ -567,7 +567,7 @@ export function readModelServiceBuilderSQL(
         .where(
           getAgreementsFilters({
             filters,
-            strictConsumer: false,
+            strictConsumer: true,
           })
         )
         .groupBy(
