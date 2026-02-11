@@ -31,6 +31,10 @@
       "dependsOn": ["^generate-model"],
       "outputs": ["src/generated/**"]
     },
+    "generate-openapi": {
+      "dependsOn": ["build"],
+      "outputs": ["open-api/**"]
+    },
     "generate-protobuf": {
       "dependsOn": ["^generate-protobuf"],
       "outputs": ["src/gen/**"]
