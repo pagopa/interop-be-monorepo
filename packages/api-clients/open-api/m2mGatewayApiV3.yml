@@ -9321,7 +9321,7 @@ paths:
       tags:
         - clients
       summary: List of client users
-      description: Retrieve a list of Users associated with a Client.
+      description: Retrieve a list of Users associated with a Client
       operationId: getClientUsers
       parameters:
         - in: query
@@ -9377,13 +9377,13 @@ paths:
     post:
       tags:
         - clients
-      summary: Link users to a Client.
+      summary: Link a User to a Client
       description: |
-        Links a security User to a Client. 
-        This allows the specified User to access the Client and its related resources. 
-        The requester organization must be the designated consumer of the Client. 
+        Link a security User to a Client. 
+        This allows the specified User to manage or use credentials stored in the Client. 
+        The requester organization must be the owner of the Client. 
         Additionally, the User being added must not already be associated with the Client.
-      operationId: addUsersToClient
+      operationId: addClientUser
       requestBody:
         content:
           application/json:
@@ -9468,7 +9468,7 @@ paths:
     get:
       tags:
         - producerKeychains
-      summary: List Producer Keychains Users
+      summary: List of Producer Keychains Users
       description: Retrieve a list of Users associated with a Producer Keychain
       operationId: getProducerKeychainUsers
       parameters:
