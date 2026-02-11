@@ -4,4 +4,3 @@ export * from "./errorHandlers.js";
 export * from "./healthRouter.js";
 export * from "./typedRouter.js";
 export * from "./typedClient.js";
-export * from "./makeApi.js";

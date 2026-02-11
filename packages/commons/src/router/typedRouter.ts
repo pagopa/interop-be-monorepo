@@ -3,22 +3,47 @@ import { z, ZodType } from "zod";
 
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete" | "head";
 
-export type EndpointParameter = {
-  name: string;
-  type: "Query" | "Body" | "Header" | "Path";
-  schema: ZodType;
-  description?: string;
-};
+type DeepMutable<T> = T extends ZodType
+  ? T
+  : T extends object
+  ? { -readonly [K in keyof T]: DeepMutable<T[K]> }
+  : T;
 
-export type EndpointDefinition = {
+export function defineEndpoints<const T extends ReadonlyArray<RouteDefinition>>(
+  endpoints: T
+): DeepMutable<T> {
+  return endpoints as DeepMutable<T>;
+}
+
+export type RouteDefinition = {
   method: HttpMethod;
   path: string;
-  alias?: string;
+  operationId: string;
   description?: string;
-  requestFormat?: string;
-  parameters?: EndpointParameter[];
-  response?: ZodType;
-  errors?: Array<{ status: number | "default"; schema: ZodType }>;
+  summary?: string;
+  tags?: string[];
+  security?: Array<Record<string, string[]>>;
+  request?: {
+    params?: z.AnyZodObject;
+    body?: {
+      content: {
+        "application/json": {
+          schema: z.ZodType;
+        };
+      };
+      required?: boolean;
+      description?: string;
+    };
+    headers?: z.AnyZodObject;
+    query?: z.AnyZodObject;
+  };
+  responses: Record<
+    number | string,
+    {
+      description: string;
+      content?: Record<string, { schema: z.ZodType }>;
+    }
+  >;
 };
 
 type ValidationErrorHandler = (
@@ -32,191 +57,145 @@ type TypedRouterOptions = {
   validationErrorHandler?: ValidationErrorHandler;
 };
 
-// Type-level extraction of parameter schemas
-export type ExtractParam<
-  P extends ReadonlyArray<EndpointParameter>,
-  T extends string
-> = P extends ReadonlyArray<infer E>
-  ? E extends { type: T; name: infer N; schema: infer S }
-    ? N extends string
-      ? S extends ZodType
-        ? { [K in N]: z.output<S> }
-        : never
-      : never
-    : never
-  : never;
+// Type-level extraction from RouteDefinition
+type ExtractParams<R> = R extends {
+  request: { params: infer P extends z.AnyZodObject };
+}
+  ? z.output<P>
+  : Record<string, string>;
 
-export type UnionToIntersection<U> = (
-  U extends unknown ? (k: U) => void : never
-) extends (k: infer I) => void
-  ? I
-  : never;
+type ExtractBody<R> = R extends {
+  request: {
+    body: {
+      content: { "application/json": { schema: infer S extends ZodType } };
+    };
+  };
+}
+  ? z.output<S>
+  : unknown;
 
-export type ExtractQueryParams<P extends ReadonlyArray<EndpointParameter>> =
-  UnionToIntersection<ExtractParam<P, "Query">>;
+type ExtractQuery<R> = R extends {
+  request: { query: infer Q extends z.AnyZodObject };
+}
+  ? z.output<Q>
+  : unknown;
 
-export type ExtractPathParams<P extends ReadonlyArray<EndpointParameter>> =
-  UnionToIntersection<ExtractParam<P, "Path">>;
-
-export type ExtractBody<P extends ReadonlyArray<EndpointParameter>> =
-  P extends ReadonlyArray<infer E>
-    ? E extends { type: "Body"; schema: infer S }
-      ? S extends ZodType
-        ? z.output<S>
-        : never
-      : never
-    : never;
-
-type FindEndpoint<
-  Endpoints extends ReadonlyArray<EndpointDefinition>,
+type FindRoute<
+  Routes extends ReadonlyArray<RouteDefinition>,
   M extends HttpMethod,
   P extends string
-> = Endpoints extends ReadonlyArray<infer E>
-  ? E extends EndpointDefinition
-    ? E extends { method: M; path: P }
-      ? E
+> = Routes extends ReadonlyArray<infer R>
+  ? R extends RouteDefinition
+    ? R extends { method: M; path: P }
+      ? R
       : never
     : never
   : never;
 
-type TypedRequest<E extends EndpointDefinition> = Request<
-  E["parameters"] extends ReadonlyArray<EndpointParameter>
-    ? ExtractPathParams<E["parameters"]>
-    : Record<string, string>,
+type TypedRequest<R extends RouteDefinition> = Request<
+  ExtractParams<R>,
   unknown,
-  E["parameters"] extends ReadonlyArray<EndpointParameter>
-    ? ExtractBody<E["parameters"]>
-    : unknown,
-  E["parameters"] extends ReadonlyArray<EndpointParameter>
-    ? ExtractQueryParams<E["parameters"]>
-    : unknown
+  ExtractBody<R>,
+  ExtractQuery<R>
 >;
 
-type TypedHandler<E extends EndpointDefinition> = (
-  req: TypedRequest<E> & { ctx: import("../context/context.js").AppContext },
+type TypedHandler<R extends RouteDefinition> = (
+  req: TypedRequest<R> & { ctx: import("../context/context.js").AppContext },
   res: Response,
   next: NextFunction
 ) => Promise<unknown> | unknown;
 
-type TypedRouterMethods<Endpoints extends ReadonlyArray<EndpointDefinition>> = {
-  [M in HttpMethod]: <
-    P extends Extract<Endpoints[number], { method: M }>["path"]
-  >(
+type TypedRouterMethods<Routes extends ReadonlyArray<RouteDefinition>> = {
+  [M in HttpMethod]: <P extends Extract<Routes[number], { method: M }>["path"]>(
     path: P,
-    ...handlers: Array<TypedHandler<FindEndpoint<Endpoints, M, P>>>
-  ) => TypedRouterMethods<Endpoints>;
+    ...handlers: Array<TypedHandler<FindRoute<Routes, M, P>>>
+  ) => TypedRouterMethods<Routes>;
 };
 
-type TypedRouter<Endpoints extends ReadonlyArray<EndpointDefinition>> =
-  TypedRouterMethods<Endpoints> & {
+type TypedRouter<Routes extends ReadonlyArray<RouteDefinition>> =
+  TypedRouterMethods<Routes> & {
     expressRouter: Router;
   };
 
+function toExpressPath(path: string): string {
+  return path.replace(/\{(\w+)\}/g, ":$1");
+}
+
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function buildValidationMiddleware(
-  endpoint: EndpointDefinition,
+  route: RouteDefinition,
   options: TypedRouterOptions
 ): ((req: Request, res: Response, next: NextFunction) => void) | undefined {
-  const params = endpoint.parameters;
-  if (!params || params.length === 0) {
+  const request = route.request;
+  if (!request) {
     return undefined;
   }
 
-  const queryParams = params.filter((p) => p.type === "Query");
-  const pathParams = params.filter((p) => p.type === "Path");
-  const bodyParam = params.find((p) => p.type === "Body");
+  const paramsSchema = request.params;
+  const querySchema = request.query;
+  const bodySchema = request.body?.content?.["application/json"]?.schema;
 
-  const querySchema =
-    queryParams.length > 0
-      ? z.object(Object.fromEntries(queryParams.map((p) => [p.name, p.schema])))
-      : undefined;
-
-  const pathSchema =
-    pathParams.length > 0
-      ? z.object(Object.fromEntries(pathParams.map((p) => [p.name, p.schema])))
-      : undefined;
-
-  const bodySchema = bodyParam?.schema;
+  if (!paramsSchema && !querySchema && !bodySchema) {
+    return undefined;
+  }
 
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (querySchema) {
-      const result = querySchema.safeParse(req.query);
+    const validateField = (
+      schema: ZodType | undefined,
+      data: unknown,
+      context: string
+    ): { valid: false } | { valid: true; data: unknown } => {
+      if (!schema) {
+        return { valid: true, data };
+      }
+      const result = schema.safeParse(data);
       if (!result.success) {
         if (options.validationErrorHandler) {
           options.validationErrorHandler(
-            { context: "query", error: result.error.issues },
+            { context, error: result.error.issues },
             req,
             res,
             next
           );
-          return;
+        } else {
+          res.status(400).json({ error: `Invalid ${context}` });
         }
-        res.status(400).json({ error: "Invalid query parameters" });
-        return;
+        return { valid: false };
       }
-      // eslint-disable-next-line functional/immutable-data
-      req.query = result.data;
-    }
+      return { valid: true, data: result.data };
+    };
 
-    if (pathSchema) {
-      const result = pathSchema.safeParse(req.params);
-      if (!result.success) {
-        if (options.validationErrorHandler) {
-          options.validationErrorHandler(
-            { context: "params", error: result.error.issues },
-            req,
-            res,
-            next
-          );
-          return;
-        }
-        res.status(400).json({ error: "Invalid path parameters" });
-        return;
-      }
-      // eslint-disable-next-line functional/immutable-data
-      req.params = result.data;
+    const query = validateField(querySchema, req.query, "query");
+    if (!query.valid) {
+      return;
     }
+    // eslint-disable-next-line functional/immutable-data
+    req.query = query.data as Request["query"];
 
-    if (bodySchema) {
-      const result = bodySchema.safeParse(req.body);
-      if (!result.success) {
-        if (options.validationErrorHandler) {
-          options.validationErrorHandler(
-            { context: "body", error: result.error.issues },
-            req,
-            res,
-            next
-          );
-          return;
-        }
-        res.status(400).json({ error: "Invalid request body" });
-        return;
-      }
-      // eslint-disable-next-line functional/immutable-data
-      req.body = result.data;
+    const params = validateField(paramsSchema, req.params, "params");
+    if (!params.valid) {
+      return;
     }
+    // eslint-disable-next-line functional/immutable-data
+    req.params = params.data as Request["params"];
+
+    const body = validateField(bodySchema, req.body, "body");
+    if (!body.valid) {
+      return;
+    }
+    // eslint-disable-next-line functional/immutable-data
+    req.body = body.data;
 
     next();
   };
 }
 
-// Convert Zodios-style `:param` paths — they already match Express format
-function toExpressPath(path: string): string {
-  return path;
-}
-
 export function createTypedRouter<
-  const Endpoints extends ReadonlyArray<EndpointDefinition>
->(
-  endpoints: Endpoints,
-  options: TypedRouterOptions = {}
-): TypedRouter<Endpoints> {
+  const Routes extends ReadonlyArray<RouteDefinition>
+>(routes: Routes, options: TypedRouterOptions = {}): TypedRouter<Routes> {
   const router = Router({ mergeParams: true });
 
-  // Express needs JSON body parsing — but it's typically set up at app level
-  // We don't add it here to avoid double-parsing
-
-  const methods = {} as TypedRouterMethods<Endpoints>;
+  const methods = {} as TypedRouterMethods<Routes>;
 
   const httpMethods: HttpMethod[] = [
     "get",
@@ -234,14 +213,14 @@ export function createTypedRouter<
       ...handlers: Array<
         (req: Request, res: Response, next: NextFunction) => unknown
       >
-    ): TypedRouterMethods<Endpoints> => {
-      const endpoint = (endpoints as ReadonlyArray<EndpointDefinition>).find(
-        (e) => e.method === method && e.path === path
+    ): TypedRouterMethods<Routes> => {
+      const route = (routes as ReadonlyArray<RouteDefinition>).find(
+        (r) => r.method === method && r.path === path
       );
 
       const expressPath = toExpressPath(path);
-      const validationMiddleware = endpoint
-        ? buildValidationMiddleware(endpoint, options)
+      const validationMiddleware = route
+        ? buildValidationMiddleware(route, options)
         : undefined;
 
       if (validationMiddleware) {
@@ -257,5 +236,5 @@ export function createTypedRouter<
   return {
     ...methods,
     expressRouter: router,
-  } as TypedRouter<Endpoints>;
+  } as TypedRouter<Routes>;
 }

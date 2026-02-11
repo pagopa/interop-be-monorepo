@@ -362,6 +362,9 @@ importers:
 
   packages/api-clients:
     dependencies:
+      '@asteasolutions/zod-to-openapi':
+        specifier: 7.3.4
+        version: 7.3.4(zod@3.23.8)
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.12.0)(zod@3.23.8)
@@ -384,9 +387,6 @@ importers:
       '@apidevtools/swagger-parser':
         specifier: 10.1.1
         version: 10.1.1(openapi-types@12.1.3)
-      '@asteasolutions/zod-to-openapi':
-        specifier: 7.3.4
-        version: 7.3.4(zod@3.23.8)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)

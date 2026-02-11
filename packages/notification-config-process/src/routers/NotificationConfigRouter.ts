@@ -190,7 +190,7 @@ const notificationConfigRouter = (
       }
     )
     .delete(
-      "/internal/tenantNotificationConfigs/tenantId/:tenantId",
+      "/internal/tenantNotificationConfigs/tenantId/{tenantId}",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -212,7 +212,7 @@ const notificationConfigRouter = (
       }
     )
     .delete(
-      "/internal/userNotificationConfigs/tenantId/:tenantId/userId/:userId/userRole/:userRole",
+      "/internal/userNotificationConfigs/tenantId/{tenantId}/userId/{userId}/userRole/{userRole}",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

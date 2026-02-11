@@ -1,53 +1,80 @@
 import axios, { AxiosInstance } from "axios";
 import { z, ZodType } from "zod";
-import type {
-  EndpointDefinition,
-  EndpointParameter,
-  ExtractPathParams,
-  ExtractQueryParams,
-  ExtractBody,
-} from "./typedRouter.js";
+import type { RouteDefinition } from "./typedRouter.js";
 
-// Detects whether any parameter of a given type exists in the parameter list.
-// Uses Extract on the union directly — avoids the UnionToIntersection<never> = unknown pitfall.
-type HasParamOfType<
-  P extends ReadonlyArray<EndpointParameter>,
-  T extends string
-> = [Extract<P[number], { type: T }>] extends [never] ? false : true;
+type ExtractResponseSchema<R> = R extends {
+  responses: {
+    200: {
+      content: { "application/json": { schema: infer S extends ZodType } };
+    };
+  };
+}
+  ? z.output<S>
+  : void;
 
-type ClientCallOptions<E extends EndpointDefinition> = {
+type ExtractBodySchema<R> = R extends {
+  request: {
+    body: {
+      content: { "application/json": { schema: infer S extends ZodType } };
+    };
+  };
+}
+  ? z.output<S>
+  : never;
+
+type ExtractParamsSchema<R> = R extends {
+  request: { params: infer P extends z.AnyZodObject };
+}
+  ? z.output<P>
+  : never;
+
+type ExtractQuerySchema<R> = R extends {
+  request: { query: infer Q extends z.AnyZodObject };
+}
+  ? z.output<Q>
+  : never;
+
+type HasField<R, Field extends string> = R extends {
+  request: Record<Field, unknown>;
+}
+  ? true
+  : false;
+
+type HasBody<R> = R extends {
+  request: { body: { content: { "application/json": { schema: ZodType } } } };
+}
+  ? true
+  : false;
+
+type ClientCallOptions<R> = {
   headers?: Record<string, unknown>;
-} & (E["parameters"] extends ReadonlyArray<EndpointParameter>
-  ? (HasParamOfType<E["parameters"], "Path"> extends true
-      ? { params: ExtractPathParams<E["parameters"]> }
-      : { params?: never }) &
-      (HasParamOfType<E["parameters"], "Query"> extends true
-        ? { queries: Partial<ExtractQueryParams<E["parameters"]>> }
-        : { queries?: never }) &
-      (HasParamOfType<E["parameters"], "Body"> extends true
-        ? { body: ExtractBody<E["parameters"]> }
-        : NonNullable<unknown>)
-  : NonNullable<unknown>);
+} & (HasField<R, "params"> extends true
+  ? { params: ExtractParamsSchema<R> }
+  : { params?: never }) &
+  (HasField<R, "query"> extends true
+    ? { queries: Partial<ExtractQuerySchema<R>> }
+    : { queries?: never }) &
+  (HasBody<R> extends true
+    ? { body: ExtractBodySchema<R> }
+    : NonNullable<unknown>);
 
-type TypedClient<Endpoints extends ReadonlyArray<EndpointDefinition>> = {
-  [E in Endpoints[number] as E extends { alias: infer A extends string }
-    ? A
+type TypedClient<Routes extends ReadonlyArray<RouteDefinition>> = {
+  [R in Routes[number] as R extends { operationId: infer O extends string }
+    ? O
     : never]: (
-    options: ClientCallOptions<E>
-  ) => Promise<
-    E["response"] extends ZodType ? z.output<E["response"]> : unknown
-  >;
+    options: ClientCallOptions<R>
+  ) => Promise<ExtractResponseSchema<R>>;
 } & { axios: AxiosInstance };
 
 export function createTypedClient<
-  const Endpoints extends ReadonlyArray<EndpointDefinition>
+  const Routes extends ReadonlyArray<RouteDefinition>
 >(
   baseUrl: string,
-  endpoints: Endpoints,
+  routes: Routes,
   options?: {
     paramsSerializer?: (params: Record<string, unknown>) => string;
   }
-): TypedClient<Endpoints> {
+): TypedClient<Routes> {
   const instance = axios.create({
     baseURL: baseUrl,
     ...(options?.paramsSerializer && {
@@ -57,12 +84,9 @@ export function createTypedClient<
 
   const client = {} as Record<string, unknown>;
 
-  for (const endpoint of endpoints) {
-    if (!endpoint.alias) {
-      continue;
-    }
+  for (const route of routes) {
     // eslint-disable-next-line functional/immutable-data
-    client[endpoint.alias] = async (callOpts: {
+    client[route.operationId] = async (callOpts: {
       params?: Record<string, string>;
       queries?: Record<string, unknown>;
       body?: unknown;
@@ -74,12 +98,12 @@ export function createTypedClient<
       const url = callOpts.params
         ? Object.entries(callOpts.params).reduce(
             (acc, [key, value]) =>
-              acc.replace(`:${key}`, encodeURIComponent(String(value))),
-            endpoint.path
+              acc.replace(`{${key}}`, encodeURIComponent(String(value))),
+            route.path
           )
-        : endpoint.path;
+        : route.path;
       const { data } = await instance.request({
-        method: endpoint.method,
+        method: route.method,
         url,
         params: callOpts.queries,
         data: callOpts.body,
@@ -89,5 +113,5 @@ export function createTypedClient<
     };
   }
 
-  return { ...client, axios: instance } as TypedClient<Endpoints>;
+  return { ...client, axios: instance } as TypedClient<Routes>;
 }

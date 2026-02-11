@@ -19,13 +19,12 @@
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "generate-model": "tsx ./generate.ts",
-    "generate-openapi": "tsx ./src/definitions/generateNotificationConfigOpenApi.ts",
+    "generate-openapi": "tsx ./src/generateOpenApi.ts",
     "clean-generated": "pnpm exec rm ./src/generated/*.ts"
   },
   "keywords": [],
   "devDependencies": {
     "@apidevtools/swagger-parser": "10.1.1",
-    "@asteasolutions/zod-to-openapi": "7.3.4",
     "@pagopa/eslint-config": "3.0.0",
     "@stoplight/spectral-cli": "6.15.0",
     "@types/node": "20.19.9",
@@ -43,6 +42,7 @@
   },
   "dependencies": {
     "@zodios/core": "10.9.6",
+    "@asteasolutions/zod-to-openapi": "7.3.4",
     "axios": "1.12.0",
     "axios-logger": "2.8.1",
     "pagopa-interop-commons": "workspace:*",
