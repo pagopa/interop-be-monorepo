@@ -1,4 +1,5 @@
 import { constants } from "http2";
+import express, { Request, Response, NextFunction } from "express";
 import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
@@ -25,6 +26,16 @@ export type AppContext<A extends AuthData = AuthData> = {
   spanId: SpanId;
   requestTimestamp: number;
 };
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    interface Request {
+      ctx: any;
+    }
+  }
+}
 
 export type AuthServerAppContext = AppContext & {
   clientId?: ClientId;
@@ -85,3 +96,13 @@ export const contextMiddleware =
 
     return next();
   };
+
+export function createExpressApp(): express.Application {
+  return express();
+}
+
+export type ContextRequestHandler = (
+  req: Request & { ctx: AppContext },
+  res: Response,
+  next: NextFunction
+) => Promise<unknown> | unknown;

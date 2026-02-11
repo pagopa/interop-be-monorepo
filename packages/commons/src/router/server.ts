@@ -1,11 +1,12 @@
 import { Server } from "http";
+import { Application } from "express";
 import { ZodiosApp } from "@zodios/express";
 import { ExpressContext } from "../context/context.js";
 import { genericLogger } from "../logging/index.js";
 
 export function startServer(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  app: ZodiosApp<any, ExpressContext>,
+  app: ZodiosApp<any, ExpressContext> | Application,
   config: {
     host: string;
     port: number;

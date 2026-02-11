@@ -18,7 +18,7 @@ export function zodiosValidationErrorToApiProblem(
     context: string;
     error: z.ZodIssue[];
   },
-  req: WithZodiosContext<express.Request, ExpressContext>,
+  req: WithZodiosContext<express.Request, ExpressContext> | express.Request,
   res: Response,
   _next: NextFunction
 ): Response {
@@ -39,7 +39,7 @@ export function zodiosValidationErrorToApiProblem(
 
 export function errorsToApiProblemsMiddleware(
   error: unknown,
-  req: WithZodiosContext<express.Request, ExpressContext>,
+  req: WithZodiosContext<express.Request, ExpressContext> | express.Request,
   res: Response,
   next: NextFunction
 ): Response | void {
