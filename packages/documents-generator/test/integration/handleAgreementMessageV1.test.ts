@@ -107,6 +107,9 @@ vi.mock("pagopa-interop-api-clients", () => ({
   purposeApi: {
     createPurposeApiClient: vi.fn(),
   },
+  purposeTemplateApi: {
+    createPurposeTemplateApiClient: vi.fn(),
+  },
 }));
 
 describe("handleAgreementMessageV1", () => {
@@ -122,7 +125,6 @@ describe("handleAgreementMessageV1", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-  const currentExecutionTime = new Date();
 
   const testToken = "mockToken";
 
@@ -383,8 +385,8 @@ describe("handleAgreementMessageV1", () => {
       genericLogger
     );
     const expectedPayload = {
-      todayDate: dateAtRomeZone(currentExecutionTime),
-      todayTime: timeAtRomeZone(currentExecutionTime),
+      todayDate: dateAtRomeZone(mockEvent.log_date),
+      todayTime: timeAtRomeZone(mockEvent.log_date),
       agreementId: mockAgreement.id,
       submitterId: mockAgreement.stamps.submission!.who,
       submissionDate: dateAtRomeZone(mockAgreement.stamps.submission!.when),

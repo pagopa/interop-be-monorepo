@@ -94,7 +94,7 @@ const enrichPurposeDelegation = async (
   };
 };
 
-export const getCurrentVersion = (
+const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
 ): purposeApi.PurposeVersion | undefined => {
   const statesToExclude: purposeApi.PurposeVersionState[] = [
@@ -279,6 +279,7 @@ export function purposeServiceBuilder(
         id: latestAgreement.id,
         state: latestAgreement.state,
         canBeUpgraded: isAgreementUpgradable(eservice, latestAgreement),
+        consumerId: latestAgreement.consumerId,
       },
       currentVersion: currentVersion && toBffApiPurposeVersion(currentVersion),
       versions: purpose.versions.map(toBffApiPurposeVersion),

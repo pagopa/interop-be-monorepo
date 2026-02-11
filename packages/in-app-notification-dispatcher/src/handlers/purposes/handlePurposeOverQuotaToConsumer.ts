@@ -13,7 +13,7 @@ import {
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
-export type PurposeOverQuotaToConsumerType =
+type PurposeOverQuotaToConsumerType =
   | "NewPurposeVersionWaitingForApproval"
   | "PurposeWaitingForApproval";
 

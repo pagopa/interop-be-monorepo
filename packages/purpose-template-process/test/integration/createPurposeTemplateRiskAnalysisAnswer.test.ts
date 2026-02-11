@@ -12,7 +12,7 @@ import {
 import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
-  tenantKind,
+  targetTenantKind,
   generateId,
   TenantId,
 } from "pagopa-interop-models";
@@ -38,7 +38,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
   const mockPurposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-      tenantKind.PA
+      targetTenantKind.PA
     ),
   };
 

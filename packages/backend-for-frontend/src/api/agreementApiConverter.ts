@@ -34,6 +34,7 @@ export function toBffCompactAgreement(
     id: agreement.id,
     state: agreement.state,
     canBeUpgraded: isAgreementUpgradable(eservice, agreement),
+    consumerId: agreement.consumerId,
   };
 }
 

@@ -79,6 +79,7 @@ export const contractBuilder = {
     delegator,
     delegate,
     eservice,
+    messageTimestamp,
     pdfGenerator,
     fileManager,
     config,
@@ -88,6 +89,7 @@ export const contractBuilder = {
     delegator: Tenant;
     delegate: Tenant;
     eservice: EService;
+    messageTimestamp: Date;
     pdfGenerator: PDFGenerator;
     fileManager: FileManager;
     config: DocumentsGeneratorConfig;
@@ -100,7 +102,7 @@ export const contractBuilder = {
       "delegationApprovedTemplate.html"
     );
 
-    const documentCreatedAt = new Date();
+    const documentCreatedAt = messageTimestamp;
     const todayDate = dateAtRomeZone(documentCreatedAt);
     const todayTime = timeAtRomeZone(documentCreatedAt);
 
@@ -159,7 +161,7 @@ export const contractBuilder = {
       ),
       contentType: CONTENT_TYPE_PDF,
       path: documentPath,
-      createdAt: documentCreatedAt,
+      createdAt: new Date(),
     };
   },
   createRevocationContract: async ({
@@ -167,6 +169,7 @@ export const contractBuilder = {
     delegator,
     delegate,
     eservice,
+    messageTimestamp,
     pdfGenerator,
     fileManager,
     config,
@@ -176,6 +179,7 @@ export const contractBuilder = {
     delegator: Tenant;
     delegate: Tenant;
     eservice: EService;
+    messageTimestamp: Date;
     pdfGenerator: PDFGenerator;
     fileManager: FileManager;
     config: DocumentsGeneratorConfig;
@@ -187,7 +191,7 @@ export const contractBuilder = {
       "resources/delegation",
       "delegationRevokedTemplate.html"
     );
-    const documentCreatedAt = new Date();
+    const documentCreatedAt = messageTimestamp;
     const todayDate = dateAtRomeZone(documentCreatedAt);
     const todayTime = timeAtRomeZone(documentCreatedAt);
 
@@ -248,7 +252,7 @@ export const contractBuilder = {
   },
 };
 
-export function assertStampExists<S extends keyof Delegation["stamps"]>(
+function assertStampExists<S extends keyof Delegation["stamps"]>(
   stamps: Delegation["stamps"],
   stamp: S
 ): asserts stamps is Delegation["stamps"] & {

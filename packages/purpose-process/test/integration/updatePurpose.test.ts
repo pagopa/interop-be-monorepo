@@ -37,6 +37,7 @@ import {
   delegationState,
   Agreement,
   DelegationId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
@@ -53,6 +54,7 @@ import {
   duplicatedPurposeTitle,
   tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
+  purposeFromTemplateCannotBeModified,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -688,6 +690,30 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     ).rejects.toThrowError(
       duplicatedPurposeTitle(purposeWithDuplicatedTitle.title)
+    );
+  });
+  it("Should throw purposeFromTemplateCannotBeModified if the purpose was created from a purpose template", async () => {
+    const purposeTemplateId = generateId<PurposeTemplateId>();
+    const purposeFromTemplate: Purpose = {
+      ...purposeForDeliver,
+      purposeTemplateId,
+    };
+    await addOnePurpose(purposeFromTemplate);
+
+    expect(
+      purposeService.updatePurpose(
+        purposeFromTemplate.id,
+        {
+          ...purposeUpdateContent,
+          title: purposeFromTemplate.title,
+        },
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toThrowError(
+      purposeFromTemplateCannotBeModified(
+        purposeFromTemplate.id,
+        purposeTemplateId
+      )
     );
   });
   it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {

@@ -18,13 +18,13 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "dependencies": {
-    "@aws-sdk/client-sso-oidc": "3.840.0",
-    "@aws-sdk/client-sts": "3.840.0",
     "aws-msk-iam-sasl-signer-js": "1.0.1",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "5.2.0"
+    "ts-pattern": "5.2.0",
+    "eslint": "8.57.1",
+    "prettier": "2.8.8"
   },
   "devDependencies": {
     "typescript": "5.4.5"

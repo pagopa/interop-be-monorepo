@@ -153,7 +153,7 @@ describe("getEserviceDescriptorVerifiedAttributes", () => {
         { limit: 10, offset: 0 },
         getMockM2MAdminAppContext()
       );
-    expect(attributes.results).toEqual(response);
+    expect(attributes.results).toStrictEqual(response);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetEServiceById,
       params: { eServiceId: eservice.id },
@@ -184,7 +184,7 @@ describe("getEserviceDescriptorVerifiedAttributes", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(response1);
+    expect(result).toStrictEqual(response1);
 
     const response2: m2mGatewayApi.EServiceDescriptorVerifiedAttributes = {
       pagination: {
@@ -203,7 +203,7 @@ describe("getEserviceDescriptorVerifiedAttributes", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result2).toEqual(response2);
+    expect(result2).toStrictEqual(response2);
   });
 
   it("Should throw eserviceDescriptorNotFound in case the returned eservice has no descriptor with the given id", async () => {

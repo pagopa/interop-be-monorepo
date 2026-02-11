@@ -1,0 +1,38 @@
+meta {
+  name: Create producer keychain key
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/producerKeychains/{{producerKeychainId}}/keys
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+      "key": "{{keyEncodedPem}}",
+      "use": "ENC",
+      "alg": "RS256",
+      "name": "{{randomName}}"
+  }
+}
+
+vars:post-response {
+  producerKeychainsKeyKid: res.body.jwk.kid
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+
+  bru.setVar("randomName",`test producerkeychain key name ${random}`)
+}
+
+docs {
+  Creates a new key for a specific producer keychain.
+}

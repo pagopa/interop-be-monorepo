@@ -11,6 +11,7 @@ import {
   ReadModelSQLDbConfig,
   TokenGenerationConfig,
   APIEndpoint,
+  PurposeTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -20,6 +21,7 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
   .and(DelegationTopicConfig)
+  .and(PurposeTemplateTopicConfig)
   .and(ReadModelSQLDbConfig.optional())
   .and(FileManagerConfig)
   .and(S3Config)
@@ -31,17 +33,22 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
         DELEGATION_DOCUMENTS_PATH: z.string(),
         AGREEMENT_DOCUMENTS_PATH: z.string(),
         RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+        RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH: z.string(),
         DELEGATION_PROCESS_URL: APIEndpoint,
         PURPOSE_PROCESS_URL: APIEndpoint,
         AGREEMENT_PROCESS_URL: APIEndpoint,
+        PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
         delegationDocumentsPath: c.DELEGATION_DOCUMENTS_PATH,
         agreementContractsPath: c.AGREEMENT_DOCUMENTS_PATH,
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+        riskAnalysisTemplateDocumentsPath:
+          c.RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH,
         delegationProcessUrl: c.DELEGATION_PROCESS_URL,
         purposeProcessUrl: c.PURPOSE_PROCESS_URL,
         agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
+        purposeTemplateProcessUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
       }))
   );
 

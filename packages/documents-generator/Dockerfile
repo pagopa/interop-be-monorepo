@@ -1,7 +1,7 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5949015883fb3b016b34aca6d0e5b8cc AS build 
+FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:fa43945ad45c5f8c50dbea0633d888ddeb739f7d4e06c7696a9d68b54054238a AS build 
 
 RUN corepack enable
 
@@ -51,7 +51,7 @@ RUN pnpm build && \
     packages/documents-generator/dist && \
     find /out -exec touch -h --date=@0 {} \;  
 
-FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5949015883fb3b016b34aca6d0e5b8cc AS final
+FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:fa43945ad45c5f8c50dbea0633d888ddeb739f7d4e06c7696a9d68b54054238a AS final
 
 # Install dependencies for Puppeteer
 RUN apt-get update && \

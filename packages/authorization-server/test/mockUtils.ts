@@ -33,7 +33,7 @@ export const mockKMSClient = {
   send: vi.fn(),
 };
 
-export const getMockAccessTokenRequest =
+const getMockAccessTokenRequest =
   async (): Promise<authorizationServerApi.AccessTokenRequest> => {
     const { jws } = await getMockClientAssertion();
     return {
