@@ -1,12 +1,10 @@
-import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { ZodiosRouter } from "@zodios/express";
+import { Router } from "express";
 import {
-  ExpressContext,
-  ZodiosContext,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   authRole,
   validateAuthorization,
+  createTypedRouter,
 } from "pagopa-interop-commons";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
@@ -28,15 +26,15 @@ import {
 } from "../utilities/errorMappers.js";
 
 const notificationConfigRouter = (
-  ctx: ZodiosContext,
   notificationConfigService: NotificationConfigService
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+): Router => {
   const { ADMIN_ROLE, API_ROLE, INTERNAL_ROLE, SECURITY_ROLE } = authRole;
 
-  return ctx
-    .router(notificationConfigApi.processApi.api, {
-      validationErrorHandler: zodiosValidationErrorToApiProblem,
-    })
+  const router = createTypedRouter(notificationConfigApi.processEndpoints, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+
+  router
     .get("/tenantNotificationConfigs", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
@@ -237,5 +235,7 @@ const notificationConfigRouter = (
         }
       }
     );
+
+  return router.expressRouter;
 };
 export default notificationConfigRouter;

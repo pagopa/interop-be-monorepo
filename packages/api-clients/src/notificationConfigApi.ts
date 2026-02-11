@@ -1,7 +1,2 @@
-import * as notificationConfigApi from "./generated/notificationConfigApi.js";
-
-export type NotificationConfigProcessClient = ReturnType<
-  typeof notificationConfigApi.createProcessApiClient
->;
-
-export * from "./generated/notificationConfigApi.js";
+export type { NotificationConfigProcessClient } from "./definitions/notificationConfigApi.js";
+export * from "./definitions/notificationConfigApi.js";

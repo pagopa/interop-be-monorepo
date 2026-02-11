@@ -56,9 +56,12 @@ const main = async () => {
     fs.mkdirSync(dir);
   }
 
+  const manualDefinitions = new Set(["notificationConfigApi"]);
+
   const apiDocs = fs
     .readdirSync("./open-api", { withFileTypes: true })
     .filter((item) => !item.isDirectory())
+    .filter((item) => !manualDefinitions.has(item.name.split(".")[0]))
     .map((item) => item.name);
 
   for (const doc of apiDocs) {

@@ -33,8 +33,8 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
     logger.info(`Creating default notification config for tenant ${tenantId}`);
     try {
       await notificationConfigProcess.client.createTenantDefaultNotificationConfig(
-        { tenantId },
         {
+          body: { tenantId },
           headers,
         }
       );
@@ -60,13 +60,10 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
     const headers = getInteropHeaders({ token, correlationId });
     logger.info(`Deleting notification config for tenant ${tenantId}`);
     try {
-      await notificationConfigProcess.client.deleteTenantNotificationConfig(
-        undefined,
-        {
-          params: { tenantId },
-          headers,
-        }
-      );
+      await notificationConfigProcess.client.deleteTenantNotificationConfig({
+        params: { tenantId },
+        headers,
+      });
     } catch (error) {
       throw genericInternalError(
         `Error deleting default notification config for tenant ${tenantId}. Reason: ${error}`

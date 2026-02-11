@@ -40,7 +40,8 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Updating notification configuration for tenant ${organizationId}`
       );
-      await notificationConfigClient.updateTenantNotificationConfig(seed, {
+      await notificationConfigClient.updateTenantNotificationConfig({
+        body: seed,
         headers,
       });
     },
@@ -84,8 +85,8 @@ export function notificationConfigServiceBuilder(
         },
         ...restSeed
       } = seed;
-      await notificationConfigClient.updateUserNotificationConfig(
-        {
+      await notificationConfigClient.updateUserNotificationConfig({
+        body: {
           ...restSeed,
           inAppConfig: {
             ...restInAppConfig,
@@ -102,10 +103,8 @@ export function notificationConfigServiceBuilder(
               emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
           },
         },
-        {
-          headers,
-        }
-      );
+        headers,
+      });
     },
   };
 }

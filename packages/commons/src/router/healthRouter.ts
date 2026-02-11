@@ -1,4 +1,5 @@
 import { constants } from "http2";
+import { Router } from "express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter, zodiosRouter } from "@zodios/express";
 import {
@@ -34,3 +35,19 @@ export const healthRouter = (
 
   return healthRouter;
 };
+
+export function healthRouterSimple(): Router {
+  const router = Router();
+  router.get("/status", async (_req, res) => {
+    const healthProblem: Problem = {
+      type: "about:blank",
+      correlationId: generateId<CorrelationId>(),
+      status: constants.HTTP_STATUS_OK,
+      title: "Service status OK",
+    };
+
+    res.type("application/problem+json").status(200).send(healthProblem);
+  });
+
+  return router;
+}

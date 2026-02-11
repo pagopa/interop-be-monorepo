@@ -55,11 +55,11 @@ export async function processUserEvent(
         const { serialized } = await refreshableToken.get();
         await notificationConfigProcessClient.ensureUserNotificationConfigExistsWithRoles(
           {
-            userId,
-            tenantId,
-            userRoles: [userRoleToApiUserRole(productRole)],
-          },
-          {
+            body: {
+              userId,
+              tenantId,
+              userRoles: [userRoleToApiUserRole(productRole)],
+            },
             headers: {
               "X-Correlation-Id": correlationId,
               Authorization: `Bearer ${serialized}`,
@@ -78,20 +78,17 @@ export async function processUserEvent(
       );
       try {
         const { serialized } = await refreshableToken.get();
-        await notificationConfigProcessClient.removeUserNotificationConfigRole(
-          undefined,
-          {
-            params: {
-              userId,
-              tenantId,
-              userRole: userRoleToApiUserRole(productRole),
-            },
-            headers: {
-              "X-Correlation-Id": correlationId,
-              Authorization: `Bearer ${serialized}`,
-            },
-          }
-        );
+        await notificationConfigProcessClient.removeUserNotificationConfigRole({
+          params: {
+            userId,
+            tenantId,
+            userRole: userRoleToApiUserRole(productRole),
+          },
+          headers: {
+            "X-Correlation-Id": correlationId,
+            Authorization: `Bearer ${serialized}`,
+          },
+        });
       } catch (err) {
         if (isAxiosError(err) && err.response?.status === 404) {
           loggerInstance.info(

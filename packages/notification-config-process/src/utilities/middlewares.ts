@@ -1,7 +1,7 @@
 import { constants } from "http2";
-import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { RequestHandler } from "express";
 import {
-  ExpressContext,
+  AppContext,
   fromAppContext,
   isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
@@ -9,9 +9,9 @@ import { featureFlagNotEnabled } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
-export function notificationConfigFeatureFlagMiddleware(): ZodiosRouterContextRequestHandler<ExpressContext> {
+export function notificationConfigFeatureFlagMiddleware(): RequestHandler {
   return async (req, res, next) => {
-    const ctx = fromAppContext(req.ctx);
+    const ctx = fromAppContext((req as unknown as { ctx: AppContext }).ctx);
 
     if (!isFeatureFlagEnabled(config, "featureFlagNotificationConfig")) {
       const errorRes = makeApiProblem(
