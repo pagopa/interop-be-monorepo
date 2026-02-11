@@ -247,6 +247,11 @@ export const addProducerKeychainUserErrorMapper = (
     )
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("producerKeychainUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "missingSelfcareId",
+      "tenantNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeProducerKeychainUserErrorMapper = (

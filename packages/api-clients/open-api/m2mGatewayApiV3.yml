@@ -9308,7 +9308,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  "/clients/{clientId}/users":
+  /clients/{clientId}/users:
     parameters:
       - name: clientId
         in: path
@@ -9320,8 +9320,8 @@ paths:
     get:
       tags:
         - clients
-      summary: List client users
-      description: List client users
+      summary: List of client users
+      description: Retrieve a list of Users associated with a Client
       operationId: getClientUsers
       parameters:
         - in: query
@@ -9377,32 +9377,22 @@ paths:
     post:
       tags:
         - clients
-      summary: Assigns users to a Client.
+      summary: Link a User to a Client
       description: |
-        Associates a list of security users with a specific Client. 
-        This allows them to access the Client and its related resources. 
-        Users must belong to the same organization as the Client and must not already be associated with it.
-      operationId: addUsersToClient
+        Link a security User to a Client. 
+        This allows the specified User to manage or use credentials stored in the Client. 
+        The requester organization must be the owner of the Client. 
+        Additionally, the User being added must not already be associated with the Client.
+      operationId: addClientUser
       requestBody:
-        required: true
-        description: List of users ids to bind
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              required:
-                - userIds
-              properties:
-                userIds:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: string
-                    format: uuid
+              $ref: "#/components/schemas/LinkUser"
+        required: true
       responses:
         "204":
-          description: Users added
+          description: User linked to the Client
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -9429,7 +9419,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  "/clients/{clientId}/users/{userId}":
+  /clients/{clientId}/users/{userId}:
     parameters:
       - name: clientId
         in: path
@@ -9478,7 +9468,7 @@ paths:
     get:
       tags:
         - producerKeychains
-      summary: List Producer Keychains Users
+      summary: List of Producer Keychains Users
       description: Retrieve a list of Users associated with a Producer Keychain
       operationId: getProducerKeychainUsers
       parameters:
@@ -9506,6 +9496,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Users"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - producerKeychains
+      summary: Link a User to a Producer Keychain
+      description: |
+        Link a security User to a Producer Keychain. 
+        This allows the specified User to manage or use credentials stored in the Keychain. 
+        The requester organization must be the owner of the Producer Keychain. 
+        Additionally, the User being added must not already be associated with the Keychain.
+      operationId: addProducerKeychainUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkUser"
+        required: true
+      responses:
+        "204":
+          description: User linked to the Producer Keychain
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12918,6 +12953,15 @@ components:
       required:
         - results
         - pagination
+    LinkUser:
+      type: object
+      additionalProperties: false
+      properties:
+        userId:
+          type: string
+          format: uuid
+      required:
+        - userId
     Problem:
       properties:
         type:
@@ -13090,4 +13134,3 @@ components:
       name: DPoP
       description: |
         DPoP proof JWT for sender-constrained access. Must accompany the DPoP Authorization header.
-

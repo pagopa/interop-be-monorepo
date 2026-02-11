@@ -356,15 +356,13 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
     async addClientUsers(
       clientId: ClientId,
-      userIds: string[],
+      userId: string,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
-      logger.info(
-        `Adding users ${userIds.join(", ")} to client with id ${clientId}`
-      );
+      logger.info(`Adding user ${userId} to client with id ${clientId}`);
 
       const response = await clients.authorizationClient.client.addUsers(
-        { userIds },
+        { userIds: [userId] },
         {
           params: { clientId },
           headers,
