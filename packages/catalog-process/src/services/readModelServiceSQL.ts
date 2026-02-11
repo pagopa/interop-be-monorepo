@@ -87,6 +87,7 @@ import {
   isNull,
   notExists,
   or,
+  sql,
   SQL,
 } from "drizzle-orm";
 import { match } from "ts-pattern";
@@ -585,8 +586,13 @@ export function readModelServiceBuilderSQL(
         tenantName: tenantInReadmodelTenant.name,
         tenantExternalIdValue: tenantInReadmodelTenant.externalIdValue,
         descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
-        descriptorState: eserviceDescriptorInReadmodelCatalog.state,
-        agreementState: agreementInReadmodelAgreement.state,
+        descriptorState:
+          sql<string>`${eserviceDescriptorInReadmodelCatalog.state}`.as(
+            "descriptorState"
+          ),
+        agreementState: sql<string>`${agreementInReadmodelAgreement.state}`.as(
+          "agreementState"
+        ),
       };
       const baseQuery = readmodelDB
         .selectDistinctOn([tenantInReadmodelTenant.id], baseSelection)
