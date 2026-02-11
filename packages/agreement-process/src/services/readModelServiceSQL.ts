@@ -273,13 +273,12 @@ const getProducerIdsFilter = (
 
 const getConsumerIdsFilter = (
   consumerIds: TenantId[],
-  withDelegationFilter: boolean | undefined,
   strictConsumer: boolean
 ): SQL | undefined =>
   consumerIds.length > 0
     ? or(
         inArray(agreementInReadmodelAgreement.consumerId, consumerIds),
-        !strictConsumer && withDelegationFilter
+        !strictConsumer
           ? inArray(activeConsumerDelegations.delegateId, consumerIds)
           : undefined
       )
@@ -345,11 +344,7 @@ const getAgreementsFilters = <
       ? getVisibilityFilter(requesterId)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
-    getConsumerIdsFilter(
-      consumerIds,
-      withVisibilityAndDelegationFilters,
-      strictConsumer
-    ),
+    getConsumerIdsFilter(consumerIds, strictConsumer),
     getEServiceIdsFilter(eserviceIds),
     getDescriptorIdsFilter(descriptorIds),
     getAttributeIdsFilter(attributeIds),
@@ -766,7 +761,7 @@ export function readModelServiceBuilderSQL(
             and(
               getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
               getProducerIdsFilter(producerIds, withDelegationFilter),
-              getConsumerIdsFilter(consumerIds, withDelegationFilter, false),
+              getConsumerIdsFilter(consumerIds, false),
               getVisibilityFilter(requesterId)
             )
           )
