@@ -64,7 +64,8 @@ jobs:
       lint_matrix: ${{ steps.sharded_packages.outputs.lint_matrix }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Load dedicated test packages
         id: get_dedicated_packages
         run: |
@@ -193,7 +194,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
@@ -226,7 +227,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
