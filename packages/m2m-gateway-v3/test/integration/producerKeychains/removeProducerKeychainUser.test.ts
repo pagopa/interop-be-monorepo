@@ -5,109 +5,109 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  getMockedApiConsumerFullClient,
+  getMockedApiFullProducerKeychain,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
-  clientService,
-  expectApiClientGetToHaveBeenCalledWith,
-  expectApiClientPostToHaveBeenCalledWith,
-  mockInteropBeClients,
+  producerKeychainService,
   mockPollingResponse,
+  mockInteropBeClients,
+  expectApiClientPostToHaveBeenCalledWith,
+  expectApiClientGetToHaveBeenCalledWith,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
-describe("addClientUsers", () => {
-  const linkUser: m2mGatewayApiV3.LinkUser = {
-    userId: generateId(),
-  };
+describe("removeProducerKeychainUser", () => {
+  const mockAuthorizationProcessResponse = getMockWithMetadata(
+    getMockedApiFullProducerKeychain()
+  );
 
-  const mockAuthorizationProcessResponse = getMockWithMetadata({
-    ...getMockedApiConsumerFullClient(),
-    users: [linkUser.userId],
-  });
-
-  const mockAddClientUsers = vi
+  const mockRemoveProducerKeychainUser = vi
     .fn()
     .mockResolvedValue(mockAuthorizationProcessResponse);
 
-  const mockGetClient = vi.fn(
+  const mockGetProducerKeychain = vi.fn(
     mockPollingResponse(mockAuthorizationProcessResponse, 2)
   );
 
   mockInteropBeClients.authorizationClient = {
-    client: {
-      getClient: mockGetClient,
-      addUsers: mockAddClientUsers,
+    producerKeychain: {
+      getProducerKeychain: mockGetProducerKeychain,
+      removeProducerKeychainUser: mockRemoveProducerKeychainUser,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockAddClientUsers.mockClear();
-    mockGetClient.mockClear();
+    mockRemoveProducerKeychainUser.mockClear();
+    mockGetProducerKeychain.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const result = await clientService.addClientUsers(
+  it("Should succeed and perform API producerKeychains calls", async () => {
+    const userId = generateId();
+    const result = await producerKeychainService.removeProducerKeychainUser(
       unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-      linkUser.userId,
+      userId,
       getMockM2MAdminAppContext()
     );
 
     expect(result).toEqual(undefined);
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.authorizationClient.client.addUsers,
+      mockPost:
+        mockInteropBeClients.authorizationClient.producerKeychain
+          .removeProducerKeychainUser,
       params: {
-        clientId: mockAuthorizationProcessResponse.data.id,
+        producerKeychainId: mockAuthorizationProcessResponse.data.id,
+        userId,
       },
-      body: { userIds: [linkUser.userId] },
     });
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.authorizationClient.client.getClient,
-      params: { clientId: mockAuthorizationProcessResponse.data.id },
+      mockGet:
+        mockInteropBeClients.authorizationClient.producerKeychain
+          .getProducerKeychain,
+      params: { producerKeychainId: mockAuthorizationProcessResponse.data.id },
     });
     expect(
-      mockInteropBeClients.authorizationClient.client.getClient
+      mockInteropBeClients.authorizationClient.producerKeychain
+        .getProducerKeychain
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("Should throw missingMetadata in case the client returned by the addClientUsers POST call has no metadata", async () => {
-    mockAddClientUsers.mockResolvedValueOnce({
+  it("Should throw missingMetadata in case the producerKeychain returned by the removeProducerKeychainUser POST call has no metadata", async () => {
+    mockRemoveProducerKeychainUser.mockResolvedValueOnce({
       ...mockAuthorizationProcessResponse,
       metadata: undefined,
     });
 
     await expect(
-      clientService.addClientUsers(
+      producerKeychainService.removeProducerKeychainUser(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        linkUser.userId,
+        generateId(),
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw missingMetadata in case the client returned by the polling GET call has no metadata", async () => {
-    mockGetClient.mockResolvedValueOnce({
+  it("Should throw missingMetadata in case the producerKeychain returned by the polling GET call has no metadata", async () => {
+    mockGetProducerKeychain.mockResolvedValueOnce({
       ...mockAuthorizationProcessResponse,
       metadata: undefined,
     });
 
     await expect(
-      clientService.addClientUsers(
+      producerKeychainService.removeProducerKeychainUser(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        linkUser.userId,
+        generateId(),
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetClient.mockImplementation(
+    mockGetProducerKeychain.mockImplementation(
       mockPollingResponse(
         mockAuthorizationProcessResponse,
         config.defaultPollingMaxRetries + 1
@@ -115,9 +115,9 @@ describe("addClientUsers", () => {
     );
 
     await expect(
-      clientService.addClientUsers(
+      producerKeychainService.removeProducerKeychainUser(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        linkUser.userId,
+        generateId(),
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -126,7 +126,7 @@ describe("addClientUsers", () => {
         config.defaultPollingRetryDelay
       )
     );
-    expect(mockGetClient).toHaveBeenCalledTimes(
+    expect(mockGetProducerKeychain).toHaveBeenCalledTimes(
       config.defaultPollingMaxRetries
     );
   });

@@ -346,5 +346,45 @@ export function producerKeychainServiceBuilder(
         },
       };
     },
+    async addProducerKeychainUsers(
+      producerKeychainId: ProducerKeychainId,
+      userId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Adding user ${userId} to producer keychain with id ${producerKeychainId}`
+      );
+
+      const response =
+        await clients.authorizationClient.producerKeychain.addProducerKeychainUsers(
+          { userIds: [userId] },
+          {
+            params: { producerKeychainId },
+            headers,
+          }
+        );
+
+      await pollProducerKeychain(response, headers);
+    },
+    async removeProducerKeychainUser(
+      producerKeychainId: ProducerKeychainId,
+      userId: string,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing user ${userId} from producer keychain ${producerKeychainId}`
+      );
+
+      const response =
+        await clients.authorizationClient.producerKeychain.removeProducerKeychainUser(
+          undefined,
+          {
+            params: { producerKeychainId, userId },
+            headers,
+          }
+        );
+
+      await pollProducerKeychain(response, headers);
+    },
   };
 }

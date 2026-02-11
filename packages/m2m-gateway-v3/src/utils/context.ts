@@ -36,9 +36,14 @@ export function getInteropHeaders(
   ctx: AppContext,
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): Headers {
+  const rawAuthorization = headers.authorization;
+  const dpopPrefix = "dpop";
+  const authorization = rawAuthorization?.toLowerCase().startsWith(dpopPrefix)
+    ? "Bearer" + rawAuthorization.slice(dpopPrefix.length)
+    : rawAuthorization;
   return {
     "X-Correlation-Id": ctx.correlationId,
-    Authorization: headers.authorization,
+    Authorization: authorization,
     "X-Forwarded-For": headers["x-forwarded-for"],
   };
 }
