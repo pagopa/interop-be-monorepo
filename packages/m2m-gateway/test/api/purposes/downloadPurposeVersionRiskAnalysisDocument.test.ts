@@ -7,6 +7,7 @@ import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   purposeVersionDocumentNotFound,
+  purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
 import { getMockDownloadedDocument } from "../../mockUtils.js";
@@ -76,6 +77,7 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
   it.each([
     purposeVersionNotFound(generateId(), generateId()),
     purposeVersionDocumentNotFound(generateId(), generateId()),
+    purposeVersionDocumentNotReady(generateId(), generateId()),
   ])("Should return 404 in case of $code error", async (error) => {
     mockPurposeService.downloadPurposeVersionRiskAnalysisDocument = vi
       .fn()

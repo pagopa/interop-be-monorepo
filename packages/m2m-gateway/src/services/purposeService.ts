@@ -30,6 +30,7 @@ import {
 import {
   purposeAgreementNotFound,
   purposeVersionDocumentNotFound,
+  purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../model/errors.js";
 import {
@@ -557,6 +558,12 @@ export function purposeServiceBuilder(
       }
 
       if (!version.riskAnalysis) {
+        if (
+          version.state === purposeApi.PurposeVersionState.Values.ACTIVE ||
+          version.state === purposeApi.PurposeVersionState.Values.SUSPENDED
+        ) {
+          throw purposeVersionDocumentNotReady(purposeId, versionId);
+        }
         throw purposeVersionDocumentNotFound(purposeId, versionId);
       }
 

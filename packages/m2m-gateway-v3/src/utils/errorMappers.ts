@@ -119,6 +119,7 @@ export const downloadPurposeVersionRiskAnalysisDocumentErrorMapper = (
     .with(
       "purposeVersionNotFound",
       "purposeVersionDocumentNotFound",
+      "purposeVersionDocumentNotReady",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
