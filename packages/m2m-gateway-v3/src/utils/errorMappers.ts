@@ -310,3 +310,8 @@ export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("missingSelfcareId", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const toolsErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

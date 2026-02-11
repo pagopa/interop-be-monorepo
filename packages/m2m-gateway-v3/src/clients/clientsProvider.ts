@@ -50,7 +50,7 @@ export type DelegationProcessClientWithMetadata = {
 
 type AuthorizationProcessClient = Pick<
   authorizationApi.AuthorizationProcessClient,
-  "client" | "producerKeychain" | "key"
+  "client" | "producerKeychain" | "key" | "token"
 >;
 
 type AuthorizationProcessClientWithMetadata = {
@@ -123,6 +123,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       ),
       key: createZodiosClientEnhancedWithMetadata(
         authorizationApi.createKeyApiClient,
+        config.authorizationUrl
+      ),
+      token: createZodiosClientEnhancedWithMetadata(
+        authorizationApi.createTokenGenerationApiClient,
         config.authorizationUrl
       ),
     },

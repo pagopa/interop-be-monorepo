@@ -9567,6 +9567,34 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /tools/validateM2MTokenGeneration:
+    post:
+      tags:
+        - tools
+      summary: Validate M2M token generation request
+      description: |
+        Analyzes and validates a token request for the Machine-to-Machine (M2M) flow. 
+        It verifies the Client Assertion structure, client existence, and JWT signature.
+      operationId: validateM2MTokenGeneration
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/M2MTokenRequest"
+      responses:
+        "200":
+          description: Validation result (may contain failures within individual steps)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/M2MTokenValidationResult"
+        "400":
+          description: Invalid request format
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   parameters:
     LastEventId:
@@ -12962,6 +12990,111 @@ components:
           format: uuid
       required:
         - userId
+    M2MTokenRequest:
+      type: object
+      required:
+        - client_assertion
+        - client_assertion_type
+        - grant_type
+        - dpop_proof
+      properties:
+        client_id:
+          type: string
+          description: The Client UUID (optional if provided in the 'sub' claim of the client_assertion)
+        client_assertion:
+          type: string
+          format: jws
+          description: The JWT signed with the organization's private key
+        client_assertion_type:
+          type: string
+          enum: ["urn:ietf:params:oauth:client-assertion-type:jwt-bearer"]
+          description: The type of the assertion being used
+        grant_type:
+          type: string
+          enum: ["client_credentials"]
+          description: The OAuth2 grant type
+        dpop_proof:
+          type: string
+          description: "The DPoP JWT proof"
+    M2MTokenValidationResult:
+      type: object
+      required:
+        - steps
+      properties:
+        clientInfo:
+          $ref: "#/components/schemas/M2MClientInfo"
+          description: Details of the identified client
+        steps:
+          $ref: "#/components/schemas/M2MTokenValidationSteps"
+          description: Detailed results for each validation phase
+    M2MTokenValidationSteps:
+      type: object
+      required:
+        - clientAssertionStructure
+        - clientExistenceVerification
+        - publicKeyRetrieve
+        - signatureVerification
+        - dpopProofValidation
+      properties:
+        clientAssertionStructure:
+          $ref: "#/components/schemas/ValidationStep"
+          description: Checks for mandatory claims (iss, sub, aud, jti, exp, iat)
+        clientExistenceVerification:
+          $ref: "#/components/schemas/ValidationStep"
+          description: Verifies that the client_id exists on the PDND platform
+        publicKeyRetrieve:
+          $ref: "#/components/schemas/ValidationStep"
+          description: Verifies that the 'kid' in the header exists among the client's public keys
+        signatureVerification:
+          $ref: "#/components/schemas/ValidationStep"
+          description: Verifies the cryptographic signature of the JWT
+        dpopProofValidation:
+          $ref: "#/components/schemas/ValidationStep"
+          description: Verifies the DPoP proof
+    M2MClientInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the Client
+        name:
+          type: string
+          description: Name of the Client
+        organizationId:
+          type: string
+          format: uuid
+          description: Unique identifier of the associated Organization
+    ValidationStep:
+      type: object
+      required:
+        - result
+        - failures
+      properties:
+        result:
+          type: string
+          description: Token Generation Validation Step RESULT
+          enum:
+            - PASSED
+            - SKIPPED
+            - FAILED
+        failures:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationFailure"
+          description: List of errors encountered during this step
+    ValidationFailure:
+      type: object
+      required:
+        - code
+        - reason
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+        reason:
+          type: string
+          description: Human-readable explanation of the failure
     Problem:
       properties:
         type:

@@ -3867,6 +3867,9 @@ importers:
       pagopa-interop-application-audit:
         specifier: workspace:*
         version: link:../application-audit
+      pagopa-interop-client-assertion-validation:
+        specifier: workspace:*
+        version: link:../client-assertion-validation
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons

@@ -65,6 +65,9 @@ const errorCodes = {
   unexpectedDPoPProofForAPIToken: "0043",
   dpopProofJtiAlreadyUsed: "0044",
   dpopTokenBindingFailed: "0045",
+  tenantNotAllowed: "0046",
+  cannotGetKeyWithClient: "0047",
+  clientAssertionPublicKeyNotFound: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -513,5 +516,35 @@ export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
     detail: `DPoP proof JTI ${jti} already in cache`,
     code: "dpopProofJtiAlreadyUsed",
     title: "DPoP proof JTI already in cache",
+  });
+}
+
+export function tenantNotAllowed(clientId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant not allowed for client ${clientId}`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
+  });
+}
+
+export function cannotGetKeyWithClient(
+  clientId: string,
+  keyId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot get key with client ${clientId} and key ${keyId}`,
+    code: "cannotGetKeyWithClient",
+    title: "Cannot get key with client",
+  });
+}
+
+export function clientAssertionPublicKeyNotFound(
+  kid: string,
+  clientId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Public key with kid ${kid} not found for client ${clientId}`,
+    code: "clientAssertionPublicKeyNotFound",
+    title: "Client assertion public key not found",
   });
 }

@@ -1,8 +1,10 @@
+import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
   DPoPConfig,
+  FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FileManagerConfig,
   JWTConfig,
   RedisRateLimiterConfig,
@@ -150,6 +152,8 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(SelfCareClientConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
+  .and(ClientAssertionValidationConfig)
+  .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
   .and(DPoPConfig)
   .and(JWTConfig)
   .and(

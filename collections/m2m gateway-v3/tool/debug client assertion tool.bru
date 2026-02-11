@@ -1,0 +1,23 @@
+meta {
+  name: Validate M2M Token Generation
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/tools/validateM2MTokenGeneration
+  body: formUrlEncoded
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{sessionToken}}
+}
+
+body:form-urlencoded {
+  grant_type: client_credentials
+  client_assertion_type: urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+  client_id: {{clientId}}
+  client_assertion: {{clientAssertion}}
+  dpop_proof: {{dpopProof}}
+}
