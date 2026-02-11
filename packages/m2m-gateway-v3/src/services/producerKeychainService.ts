@@ -20,6 +20,8 @@ import {
   pollResourceWithMetadata,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
+import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
+import { getSelfcareUserById } from "./userService.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder
@@ -293,6 +295,56 @@ export function producerKeychainServiceBuilder(
       );
 
       await pollProducerKeychainKeyUntilDeletion(keychainId, keyId, headers);
+    },
+    async getProducerKeychainUsers(
+      producerKeychainId: string,
+      ctx: WithLogger<M2MGatewayAppContext>,
+      { limit, offset }: m2mGatewayApiV3.GetProducerKeychainUsersQueryParams
+    ): Promise<m2mGatewayApiV3.Users> {
+      ctx.logger.info(
+        `Retrieving users for producer keychain ${producerKeychainId}`
+      );
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: ctx.authData.organizationId },
+          headers: ctx.headers,
+        });
+
+      assertTenantHasSelfcareId(tenant);
+
+      const producerKeychainUsers =
+        await clients.authorizationClient.producerKeychain.getProducerKeychainUsers(
+          {
+            params: { producerKeychainId },
+            headers: ctx.headers,
+          }
+        );
+
+      const users = await Promise.all(
+        producerKeychainUsers.data.map(async (id) =>
+          getSelfcareUserById(
+            clients,
+            id,
+            tenant.selfcareId,
+            ctx.headers["X-Correlation-Id"]
+          )
+        )
+      );
+
+      const results: m2mGatewayApiV3.User[] = users.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results,
+        pagination: {
+          limit,
+          offset,
+          totalCount: users.length,
+        },
+      };
     },
   };
 }
