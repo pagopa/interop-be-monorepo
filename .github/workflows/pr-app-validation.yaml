@@ -201,9 +201,9 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-build-check-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-build-check-
+            ${{ runner.os }}-turbo-build-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
@@ -234,9 +234,10 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-build-check-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-type-check-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-build-check-
+            ${{ runner.os }}-turbo-type-check-
+            ${{ runner.os }}-turbo-build-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
