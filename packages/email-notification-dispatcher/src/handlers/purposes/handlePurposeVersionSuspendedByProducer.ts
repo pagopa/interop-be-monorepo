@@ -12,6 +12,7 @@ import {
   mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 import {
   eventMailTemplateType,
   retrieveEService,
@@ -79,6 +80,8 @@ export async function handlePurposeVersionSuspendedByProducer(
         producerName: producer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

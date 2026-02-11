@@ -4,6 +4,8 @@ import {
   removeDuplicates,
   UIAuthData,
   assertFeatureFlagEnabled,
+  isFeatureFlagEnabled,
+  getRulesetExpiration,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -92,7 +94,7 @@ const enrichPurposeDelegation = async (
   };
 };
 
-export const getCurrentVersion = (
+const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
 ): purposeApi.PurposeVersion | undefined => {
   const statesToExclude: purposeApi.PurposeVersionState[] = [
@@ -123,6 +125,7 @@ export function purposeServiceBuilder(
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
+  // eslint-disable-next-line complexity
   const enhancePurpose = async (
     authData: UIAuthData,
     purpose: purposeApi.Purpose,
@@ -130,10 +133,11 @@ export function purposeServiceBuilder(
     producers: tenantApi.Tenant[],
     consumers: tenantApi.Tenant[],
     purposeTemplate: purposeTemplateApi.PurposeTemplate | undefined,
+    skipRulesetRetrieval: boolean,
     headers: Headers,
     correlationId: CorrelationId,
     notifications: string[]
-    // eslint-disable-next-line max-params
+    // eslint-disable-next-line max-params, sonarjs/cognitive-complexity
   ): Promise<bffApi.Purpose> => {
     const eservice = eservices.find((e) => e.id === purpose.eserviceId);
     if (!eservice) {
@@ -205,6 +209,47 @@ export function purposeServiceBuilder(
 
     const hasNotifications = notifications.includes(purpose.id);
 
+    const isDocumentReady = isFeatureFlagEnabled(
+      config,
+      "featureFlagUseSignedDocument"
+    )
+      ? currentVersion?.signedContract !== undefined
+      : currentVersion?.riskAnalysis !== undefined;
+
+    // retrieve risk analysis ruleset only if the requester is:
+    // - the consumer (no delegation): in this case the tenant kind is the consumer's kind
+    // - delegated consumer: in this case the tenant kind is the delegator's kind
+
+    // eslint-disable-next-line functional/no-let
+    let rulesetExpiration: Date | undefined;
+
+    // for purpose towards eservice in RECEIVE mode, the ruleset is based on the producer kind
+    const isReversePurpose =
+      eservice.mode === catalogApi.EServiceMode.Values.RECEIVE;
+    if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
+      if (
+        // no delegation, requester is the consumer
+        delegation === undefined &&
+        authData.organizationId === purpose.consumerId
+      ) {
+        rulesetExpiration = getRulesetExpiration(
+          isReversePurpose ? producer.kind : consumer.kind,
+          purpose.riskAnalysisForm.version
+        );
+      } else if (
+        // delegated consumer
+        delegation !== undefined &&
+        authData.organizationId === delegation?.delegate.id
+      ) {
+        rulesetExpiration = getRulesetExpiration(
+          isReversePurpose ? producer.kind : delegation.delegator.kind,
+          purpose.riskAnalysisForm.version
+        );
+      } else {
+        rulesetExpiration = undefined;
+      }
+    }
+
     return {
       id: purpose.id,
       title: purpose.title,
@@ -234,6 +279,7 @@ export function purposeServiceBuilder(
         id: latestAgreement.id,
         state: latestAgreement.state,
         canBeUpgraded: isAgreementUpgradable(eservice, latestAgreement),
+        consumerId: latestAgreement.consumerId,
       },
       currentVersion: currentVersion && toBffApiPurposeVersion(currentVersion),
       versions: purpose.versions.map(toBffApiPurposeVersion),
@@ -262,6 +308,8 @@ export function purposeServiceBuilder(
       purposeTemplate: purposeTemplate
         ? toCompactPurposeTemplate(purposeTemplate)
         : undefined,
+      isDocumentReady,
+      rulesetExpiration: rulesetExpiration?.toJSON(),
     };
   };
 
@@ -357,6 +405,7 @@ export function purposeServiceBuilder(
           producers,
           consumers,
           purposeTemplate,
+          true, // NOTE: if we need the rulesetExpiration when retrieving the purposes list, we have to fetch it here
           headers,
           correlationId,
           notifications
@@ -817,6 +866,7 @@ export function purposeServiceBuilder(
         [producer],
         [consumer],
         purposeTemplate,
+        false,
         headers,
         correlationId,
         notification
@@ -879,7 +929,7 @@ export function purposeServiceBuilder(
         });
 
       return await fileManager.get(
-        config.riskAnalysisDocumentsContainer,
+        config.riskAnalysisSignedDocumentsContainer,
         signedDocument.path,
         logger
       );

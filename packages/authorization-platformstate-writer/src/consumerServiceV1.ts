@@ -402,7 +402,7 @@ export async function handleMessageV1(
     .exhaustive();
 }
 
-export const parseKey = (keyV1: KeyV1 | undefined, eventType: string): Key => {
+const parseKey = (keyV1: KeyV1 | undefined, eventType: string): Key => {
   if (!keyV1) {
     throw missingKafkaMessageDataError("key", eventType);
   }

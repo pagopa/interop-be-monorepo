@@ -20,14 +20,18 @@ export async function handleEServiceTemplateEvent(
       {
         type: "EServiceTemplateVersionSuspended",
       },
-      async ({ data: { eserviceTemplate } }) => [
+      async ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) => [
+        // Producer == creator of the template
         ...(await handleTemplateStatusChangedToProducer(
           eserviceTemplate,
+          eserviceTemplateVersionId,
           logger,
           readModelService
         )),
+        // Instantiators == tenants that have instantiated an e-service from the template
         ...(await handleEserviceTemplateStatusChangedToInstantiator(
           eserviceTemplate,
+          eserviceTemplateVersionId,
           logger,
           readModelService
         )),

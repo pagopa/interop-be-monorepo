@@ -1,0 +1,18 @@
+meta {
+  name: Get producerKeychain users
+  type: http
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/producerKeychains/:producerKeychainId/users
+  body: none
+  auth: none
+}
+
+params:path {
+  producerKeychainId: {{producerKeychainId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

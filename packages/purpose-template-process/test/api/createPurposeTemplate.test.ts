@@ -7,9 +7,9 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   PurposeTemplate,
-  TenantKind,
+  TargetTenantKind,
   generateId,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,7 +26,7 @@ describe("API POST /purposeTemplates", () => {
   const mockPurposeTemplate: PurposeTemplate = getMockPurposeTemplate();
   const validPurposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed = {
     targetDescription: "Target description",
-    targetTenantKind: tenantKind.PA,
+    targetTenantKind: targetTenantKind.PA,
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,
@@ -73,7 +73,7 @@ describe("API POST /purposeTemplates", () => {
     const res = await makeRequest(token, validPurposeTemplateSeed);
     expect(res.status).toBe(403);
   });
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
 
   it.each([
     {},
@@ -132,7 +132,7 @@ describe("API POST /purposeTemplates", () => {
     {
       ...validPurposeTemplateSeed,
       riskAnalysisForm: undefined,
-      targetTenantKind: "INVALID" as TenantKind,
+      targetTenantKind: "INVALID" as TargetTenantKind,
     },
   ])("Should return 400 if passed invalid data: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);

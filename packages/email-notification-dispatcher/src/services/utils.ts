@@ -3,7 +3,6 @@ import fs from "fs/promises";
 import path from "path";
 import { z } from "zod";
 import {
-  Agreement,
   Delegation,
   Descriptor,
   descriptorState,
@@ -12,15 +11,12 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
-  agreementStampDateNotFound,
-  descriptorNotFound,
-  descriptorPublishedNotFound,
   eServiceNotFound,
+  eserviceWithoutDescriptors,
   htmlTemplateNotFound,
   tenantNotFound,
 } from "../models/errors.js";
@@ -111,6 +107,13 @@ export const eventMailTemplateType = {
     "producer-keychain-user-deleted-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
+  newPurposeVersionQuotaAdjustmentRequestMailTemplate:
+    "new-purpose-version-quota-adjustment-request-mail",
+  purposeQuotaAdjustmentRequestMailTemplate:
+    "purpose-quota-adjustment-request-mail",
+  purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
+  purposeQuotaAdjustmentResponseMailTemplate:
+    "purpose-quota-adjustment-response-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -118,7 +121,7 @@ const EventMailTemplateType = z.enum([
   ...Object.values(eventMailTemplateType).slice(1),
 ]);
 
-export type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
+type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
 
 export async function retrieveTenant(
   tenantId: TenantId,
@@ -129,20 +132,6 @@ export async function retrieveTenant(
     throw tenantNotFound(tenantId);
   }
   return tenant;
-}
-
-export function retrieveAgreementDescriptor(
-  eservice: EService,
-  agreement: Agreement
-): Descriptor {
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-
-  if (!descriptor) {
-    throw descriptorNotFound(agreement.eserviceId, agreement.descriptorId);
-  }
-  return descriptor;
 }
 
 export const retrieveEService = async (
@@ -187,29 +176,28 @@ export async function retrieveHTMLTemplate(
   }
 }
 
-export function getFormattedAgreementStampDate(
-  agreement: Agreement,
-  stamp: keyof Agreement["stamps"]
-): string {
-  const stampDate = agreement.stamps[stamp]?.when;
-
-  if (stampDate === undefined) {
-    throw agreementStampDateNotFound(stamp, agreement.id);
+export function retrieveLatestDescriptor(eservice: EService): Descriptor {
+  if (eservice.descriptors.length === 0) {
+    throw eserviceWithoutDescriptors(eservice.id);
   }
-  return dateAtRomeZone(new Date(Number(stampDate)));
-}
 
-export function retrieveLatestPublishedDescriptor(
-  eservice: EService
-): Descriptor {
-  const latestDescriptor = eservice.descriptors
-    .filter((d) => d.state === descriptorState.published)
+  const publishedDescriptor = eservice.descriptors.find(
+    (d) => d.state === descriptorState.published
+  );
+
+  if (publishedDescriptor) {
+    return publishedDescriptor;
+  }
+
+  const latestNotDraftDescriptor = eservice.descriptors
+    .filter((d) => d.state !== descriptorState.draft)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
-  if (!latestDescriptor) {
-    throw descriptorPublishedNotFound(eservice.id);
+  if (latestNotDraftDescriptor) {
+    return latestNotDraftDescriptor;
   }
-  return latestDescriptor;
+
+  return eservice.descriptors[0];
 }
 
 export function encodeEmailEvent(

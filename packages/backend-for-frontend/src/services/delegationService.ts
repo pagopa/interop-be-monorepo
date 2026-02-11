@@ -3,6 +3,7 @@ import {
   bffApi,
   catalogApi,
   delegationApi,
+  inAppNotificationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -14,16 +15,14 @@ import { DelegationContractId, DelegationId } from "pagopa-interop-models";
 import { isAxiosError } from "axios";
 import { match } from "ts-pattern";
 import {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
+import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
 } from "../api/delegationApiConverter.js";
-import {
-  CatalogProcessClient,
-  DelegationProcessClient,
-  InAppNotificationManagerClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
 import {
   delegationContractNotFound,
   delegationNotFound,
@@ -38,7 +37,7 @@ async function enhanceDelegation<
   T extends bffApi.Delegation | bffApi.CompactDelegation
 >(
   tenantClient: TenantProcessClient,
-  catalogClient: CatalogProcessClient,
+  catalogClient: catalogApi.CatalogProcessClient,
   delegation: delegationApi.Delegation,
   headers: Headers,
   toApiConverter: (
@@ -125,7 +124,7 @@ async function enhanceDelegation<
     .exhaustive();
 }
 
-export async function getDelegation(
+async function getDelegation(
   delegationClient: DelegationProcessClient,
   headers: BffAppContext["headers"],
   delegationId: DelegationId
@@ -204,8 +203,8 @@ export async function getAllDelegations(
 export function delegationServiceBuilder(
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
-  catalogClient: CatalogProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  catalogClient: catalogApi.CatalogProcessClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
@@ -331,10 +330,11 @@ export function delegationServiceBuilder(
 
     async getDelegationSignedContract(
       delegationId: DelegationId,
+      contractId: DelegationContractId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
       logger.info(
-        `Retrieving delegation signed contract  from delegation ${delegationId}`
+        `Retrieving delegation signed contract from delegation ${delegationId}`
       );
 
       const delegation: delegationApi.Delegation =
@@ -343,15 +343,12 @@ export function delegationServiceBuilder(
           headers,
         });
 
-      const { signedActivationContract, signedRevocationContract } = delegation;
+      const { activationSignedContract, revocationSignedContract } = delegation;
 
-      const signedContracts = [
-        signedActivationContract,
-        signedRevocationContract,
-      ];
+      const contracts = [activationSignedContract, revocationSignedContract];
 
-      const foundSignedContract = signedContracts.find(
-        (contract) => contract != null
+      const foundSignedContract = contracts.find(
+        (contract) => contract?.id === contractId
       );
 
       if (!foundSignedContract) {
@@ -361,7 +358,7 @@ export function delegationServiceBuilder(
       const path = foundSignedContract.path;
 
       const contractBytes = await fileManager.get(
-        config.delegationContractsContainer,
+        config.delegationSignedContractsContainer,
         path,
         logger
       );

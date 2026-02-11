@@ -17,6 +17,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -27,7 +28,6 @@ import { ConfigurationRiskAnalysis } from "../model/types.js";
 import {
   hasCertifiedAttributes,
   isAgreementSubscribed,
-  isAgreementUpgradable,
   isInvalidDescriptor,
   isRequesterEserviceProducer,
   isValidDescriptor,
@@ -45,13 +45,24 @@ export function toEserviceCatalogProcessQueryParams(
   };
 }
 
+export function toBffCatalogTenant(
+  organization: tenantApi.Tenant,
+  hasNotifications?: boolean
+): bffApi.CatalogTenant {
+  return {
+    id: organization.id,
+    name: organization.name,
+    hasUnreadNotifications: hasNotifications || false,
+    selfcareId: organization.selfcareId,
+  };
+}
+
 export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
   hasNotifications: boolean,
-  activeDescriptor?: catalogApi.EServiceDescriptor,
-  agreement?: agreementApi.Agreement
+  activeDescriptor?: catalogApi.EServiceDescriptor
 ): bffApi.CatalogEService {
   const partialEnhancedEservice = {
     id: eservice.id,
@@ -60,6 +71,7 @@ export function toBffCatalogApiEService(
     producer: {
       id: eservice.producerId,
       name: producerTenant.name,
+      selfcareId: producerTenant.selfcareId,
     },
     isMine: isRequesterEqProducer,
   };
@@ -76,27 +88,19 @@ export function toBffCatalogApiEService(
           },
         }
       : {}),
-    ...(agreement
-      ? {
-          agreement: {
-            id: agreement.id,
-            state: agreement.state,
-            canBeUpgraded: isAgreementUpgradable(eservice, agreement),
-          },
-        }
-      : {}),
     hasUnreadNotifications: hasNotifications,
+    personalData: eservice.personalData,
   };
 }
 
-export function toBffCatalogDescriptorEService(
+export async function toBffCatalogDescriptorEService(
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor,
   producerTenant: tenantApi.Tenant,
-  agreement: agreementApi.Agreement | undefined,
+  agreements: agreementApi.Agreement[],
   requesterTenant: tenantApi.Tenant,
   consumerDelegators: tenantApi.Tenant[]
-): bffApi.CatalogDescriptorEService {
+): Promise<bffApi.CatalogDescriptorEService> {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
     id: eservice.id,
@@ -109,7 +113,9 @@ export function toBffCatalogDescriptorEService(
     description: eservice.description,
     technology: eservice.technology,
     descriptors: getValidDescriptor(eservice).map(toCompactDescriptor),
-    agreement: agreement && toBffCompactAgreement(agreement, eservice),
+    agreements: agreements.map((agreement) =>
+      toBffCompactAgreement(agreement, eservice)
+    ),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
     hasCertifiedAttributes: [requesterTenant, ...consumerDelegators].some(
       (t) => hasCertifiedAttributes(descriptor, t)
@@ -118,14 +124,16 @@ export function toBffCatalogDescriptorEService(
       - the requester is the delegated consumer for the eservice and
         the delegator has the certified attributes required to consume the eservice */
     ),
-    isSubscribed: isAgreementSubscribed(agreement),
+    isSubscribed: agreements.some((agreement) =>
+      isAgreementSubscribed(agreement)
+    ),
     activeDescriptor: activeDescriptor
       ? toCompactDescriptor(activeDescriptor)
       : undefined,
     mail: getLatestTenantContactEmail(producerTenant),
     mode: eservice.mode,
-    riskAnalysis: eservice.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+    riskAnalysis: eservice.riskAnalysis.map((ra) =>
+      toBffCatalogApiEserviceRiskAnalysis(ra, undefined)
     ),
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
@@ -164,7 +172,8 @@ export function toBffCatalogApiDescriptorDoc(
 }
 
 export function toBffCatalogApiEserviceRiskAnalysis(
-  riskAnalysis: catalogApi.EServiceRiskAnalysis
+  riskAnalysis: catalogApi.EServiceRiskAnalysis,
+  rulesetExpiration: string | undefined
 ): bffApi.EServiceRiskAnalysis {
   const answers: bffApi.RiskAnalysisForm["answers"] =
     riskAnalysis.riskAnalysisForm.singleAnswers
@@ -203,6 +212,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
     name: riskAnalysis.name,
     createdAt: riskAnalysis.createdAt,
     riskAnalysisForm,
+    rulesetExpiration,
   };
 }
 
@@ -246,10 +256,10 @@ export function toBffCatalogApiEserviceRiskAnalysisSeed(
   };
 }
 
-export function toBffCatalogApiProducerDescriptorEService(
+export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
-): bffApi.ProducerDescriptorEService {
+): Promise<bffApi.ProducerDescriptorEService> {
   const producerMail = getLatestTenantContactEmail(producer);
 
   const notDraftDecriptors = eservice.descriptors
@@ -275,8 +285,9 @@ export function toBffCatalogApiProducerDescriptorEService(
     draftDescriptor: draftDescriptor
       ? toCompactDescriptor(draftDescriptor)
       : undefined,
-    riskAnalysis: eservice.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+    riskAnalysis: await enhanceEServiceRiskAnalysisArray(
+      eservice.riskAnalysis,
+      producer.kind
     ),
     descriptors: notDraftDecriptors,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
@@ -284,6 +295,21 @@ export function toBffCatalogApiProducerDescriptorEService(
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
   };
+}
+
+export async function enhanceEServiceRiskAnalysisArray(
+  riskAnalysisArray: catalogApi.EServiceRiskAnalysis[],
+  producerTenantKind: tenantApi.TenantKind | undefined
+): Promise<bffApi.EServiceRiskAnalysis[]> {
+  return riskAnalysisArray.map((riskAnalysis) =>
+    toBffCatalogApiEserviceRiskAnalysis(
+      riskAnalysis,
+      getRulesetExpiration(
+        producerTenantKind,
+        riskAnalysis.riskAnalysisForm.version
+      )?.toJSON()
+    )
+  );
 }
 
 export function toEserviceAttribute(

@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   RiskAnalysisFormTemplate,
-  tenantKind,
+  targetTenantKind,
   PurposeTemplate,
   toPurposeTemplateV2,
   purposeTemplateState,
@@ -51,7 +51,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
   };
 
   const incompleteRiskAnalysisFormTemplate =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
   const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
     ...incompleteRiskAnalysisFormTemplate,
     singleAnswers: [
@@ -198,7 +198,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
     ).rejects.toThrowError(tenantNotAllowed(requesterId));
   });
 
-  it("should throw riskAnalysisTemplateNotFound if the purpose template doesn't have a risk analysis template", async () => {
+  it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template doesn't have a risk analysis template", async () => {
     const purposeTemplateWithoutRiskAnalysisTemplate = getMockPurposeTemplate();
 
     await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysisTemplate);

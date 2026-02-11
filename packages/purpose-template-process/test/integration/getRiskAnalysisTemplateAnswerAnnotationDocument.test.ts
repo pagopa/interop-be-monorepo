@@ -22,7 +22,6 @@ import {
   purposeTemplateNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
@@ -70,13 +69,13 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
         purposeTemplate.id,
-        singleAnswer.id,
-        notExistingDocumentId
+        notExistingDocumentId,
+        singleAnswer.id
       )
     );
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator and the purpose template is in draft state", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template is in draft state", async () => {
     const requesterId = generateId<TenantId>();
     await expect(
       purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
@@ -89,7 +88,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
           authData: getMockAuthData(requesterId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template is in draft state", async () => {

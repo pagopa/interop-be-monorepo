@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
+
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   DelegationEventEnvelopeV2,
@@ -17,6 +18,7 @@ import {
   createSafeStorageApiClient,
   SignatureServiceBuilder,
   signatureServiceBuilder,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -42,6 +44,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     uploadPreparedFileToS3: vi.fn(() => ({
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
+      path: "path/to",
     })),
   }));
 
@@ -99,7 +102,8 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -108,6 +112,7 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
       creationTimestamp: expect.any(Number),
+      path: "path/to",
     });
   });
 
@@ -155,7 +160,8 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

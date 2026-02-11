@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { producerKeychainKeyNotFound } from "../../models/errors.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";
@@ -80,6 +81,8 @@ export async function handleProducerKeychainKeyAdded(
         entityId: producerKeychain.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         producerKeychainName: producerKeychain.name,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

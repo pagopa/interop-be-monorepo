@@ -11,7 +11,10 @@ import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiAgreement,
+} from "../../mockUtils.js";
 import { purposeAgreementNotFound } from "../../../src/model/errors.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
@@ -42,20 +45,8 @@ describe("getPurposeAgreement", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mAgreementResponse: m2mGatewayApi.Agreement = {
-      id: mockApiAgreement.id,
-      eserviceId: mockApiAgreement.eserviceId,
-      descriptorId: mockApiAgreement.descriptorId,
-      producerId: mockApiAgreement.producerId,
-      consumerId: mockApiAgreement.consumerId,
-      state: mockApiAgreement.state,
-      suspendedByConsumer: mockApiAgreement.suspendedByConsumer,
-      suspendedByProducer: mockApiAgreement.suspendedByProducer,
-      suspendedByPlatform: mockApiAgreement.suspendedByPlatform,
-      consumerNotes: mockApiAgreement.consumerNotes,
-      rejectionReason: mockApiAgreement.rejectionReason,
-      createdAt: mockApiAgreement.createdAt,
-      updatedAt: mockApiAgreement.updatedAt,
-      suspendedAt: mockApiAgreement.suspendedAt,
+      ...testToM2mGatewayApiAgreement(mockApiAgreement),
+      delegationId: mockPurpose.data.delegationId,
     };
 
     const result = await purposeService.getPurposeAgreement(
@@ -63,7 +54,7 @@ describe("getPurposeAgreement", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementResponse);
+    expect(result).toStrictEqual(m2mAgreementResponse);
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
@@ -100,6 +91,6 @@ describe("getPurposeAgreement", () => {
         mockPurposeId,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toEqual(purposeAgreementNotFound(mockPurposeId));
+    ).rejects.toStrictEqual(purposeAgreementNotFound(mockPurposeId));
   });
 });

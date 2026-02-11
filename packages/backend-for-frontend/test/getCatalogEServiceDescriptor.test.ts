@@ -6,19 +6,21 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { bffApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  attributeRegistryApi,
+  bffApi,
+  catalogApi,
+  eserviceTemplateApi,
+  inAppNotificationApi,
+} from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
-import { catalogServiceBuilder } from "../src/services/catalogService.js";
-import {
-  AgreementProcessClient,
-  AttributeProcessClient,
-  CatalogProcessClient,
+import type {
   DelegationProcessClient,
-  EServiceTemplateProcessClient,
-  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
+import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { config } from "../src/config/config.js";
 import { eserviceDescriptorNotFound } from "../src/model/errors.js";
 import * as attributeService from "../src/services/attributeService.js";
@@ -110,7 +112,7 @@ describe("getCatalogEServiceDescriptor", () => {
     description: eService.description,
     technology: eService.technology,
     descriptors: [],
-    agreement: undefined,
+    agreements: [],
     isMine: false,
     hasCertifiedAttributes: false,
     isSubscribed: false,
@@ -176,7 +178,7 @@ describe("getCatalogEServiceDescriptor", () => {
 
   const mockCatalogProcessClient = {
     getEServiceById: vi.fn().mockResolvedValue(eService),
-  } as unknown as CatalogProcessClient;
+  } as unknown as catalogApi.CatalogProcessClient;
 
   const mockTenantProcessClient = {
     tenant: {
@@ -190,27 +192,28 @@ describe("getCatalogEServiceDescriptor", () => {
 
   const mockAgreementProcessClient = {
     getAgreement: vi.fn(),
-    getAgreements: vi.fn(),
-  } as unknown as AgreementProcessClient;
+  } as unknown as agreementApi.AgreementProcessClient;
 
   const mockAttributeProcessClient = {
     getBulkedAttributes: vi.fn().mockResolvedValue({
       results: [],
       totalCount: 0,
     }),
-  } as unknown as AttributeProcessClient;
+  } as unknown as attributeRegistryApi.AttributeProcessClient;
 
   const mockDelegationProcessClient = {
+    producer: {},
+    consumer: {},
     delegation: {
       getDelegations: vi.fn().mockResolvedValue([]),
     },
   } as unknown as DelegationProcessClient;
 
   const mockEServiceTemplateProcessClient =
-    {} as unknown as EServiceTemplateProcessClient;
+    {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient;
 
   const mockInAppNotificationManagerClient =
-    {} as unknown as InAppNotificationManagerClient;
+    {} as unknown as inAppNotificationApi.InAppNotificationManagerClient;
   vi.spyOn(attributeService, "getAllBulkAttributes").mockResolvedValue([
     {
       id: certifiedAttributeId,
@@ -237,30 +240,35 @@ describe("getCatalogEServiceDescriptor", () => {
 
   vi.spyOn(delegationService, "getAllDelegations").mockResolvedValue([]);
 
-  vi.spyOn(agreementService, "getLatestAgreement").mockResolvedValue({
-    id: generateId(),
-    eserviceId: eServiceId,
-    descriptorId: mockDescriptorId,
-    producerId: generateId(),
-    consumerId: authData.organizationId,
-    state: "ACTIVE",
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    consumerDocuments: [],
-    createdAt: "2023-01-01T00:00:00.000Z",
-    stamps: {
-      activation: {
-        who: generateId(),
-        when: "2023-02-02T00:00:00.000Z",
+  vi.spyOn(
+    agreementService,
+    "getLatestAgreementsOnDescriptor"
+  ).mockResolvedValue([
+    {
+      id: generateId(),
+      eserviceId: eServiceId,
+      descriptorId: mockDescriptorId,
+      producerId: generateId(),
+      consumerId: authData.organizationId,
+      state: "ACTIVE",
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      consumerDocuments: [],
+      createdAt: "2023-01-01T00:00:00.000Z",
+      stamps: {
+        activation: {
+          who: generateId(),
+          when: "2023-02-02T00:00:00.000Z",
+        },
       },
     },
-  });
+  ]);
 
   vi.spyOn(
     catalogApiConverter,
     "toBffCatalogDescriptorEService"
-  ).mockReturnValue(catalogDescriptorEService);
+  ).mockReturnValue(Promise.resolve(catalogDescriptorEService));
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,

@@ -4,11 +4,15 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { genericError } from "pagopa-interop-models";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors.js";
-import { toBffCatalogApiEserviceRiskAnalysis } from "./catalogApiConverter.js";
+import {
+  toBffCatalogApiEserviceRiskAnalysis,
+  toBffCatalogTenant,
+} from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
-export function toBffCompactEServiceTemplateVersion(
+function toBffCompactEServiceTemplateVersion(
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
 ): bffApi.CompactEServiceTemplateVersion {
   return {
@@ -67,7 +71,7 @@ export function toBffCatalogEServiceTemplate(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     description: eserviceTemplate.intendedTarget,
-    creator: toBffCompactOrganization(creator),
+    creator: toBffCatalogTenant(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
 }
@@ -129,11 +133,19 @@ export function toCatalogCreateEServiceTemplateSeed(
   };
 }
 
-export function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
+function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
   riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
 ): bffApi.EServiceTemplateRiskAnalysis {
+  const tenantKind = riskAnalysis.tenantKind;
+  const rulesetExpiration = getRulesetExpiration(
+    tenantKind,
+    riskAnalysis.riskAnalysisForm.version
+  );
   return {
-    ...toBffCatalogApiEserviceRiskAnalysis(riskAnalysis),
-    tenantKind: riskAnalysis.tenantKind,
+    ...toBffCatalogApiEserviceRiskAnalysis(
+      riskAnalysis,
+      rulesetExpiration?.toJSON()
+    ),
+    tenantKind,
   };
 }

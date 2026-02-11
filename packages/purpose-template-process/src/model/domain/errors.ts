@@ -10,13 +10,13 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
-  TenantKind,
+  TargetTenantKind,
 } from "pagopa-interop-models";
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
-export const errorCodes = {
+const errorCodes = {
   missingFreeOfChargeReason: "0001",
-  purposeTemplateNameConflict: "0002",
+  purposeTemplateTitleConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
   ruleSetNotFoundError: "0005",
@@ -38,6 +38,11 @@ export const errorCodes = {
   hyperlinkDetectionError: "0021",
   purposeTemplateNotInValidState: "0022",
   invalidAssociatedEServiceForPublicationError: "0023",
+  purposeTemplateRiskAnalysisTemplateDocumentNotFound: "0024",
+  purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound: "0025",
+  missingRiskAnalysisFormTemplate: "0026",
+  eServiceDescriptorPurposeTemplateNotFound: "0027",
+  invalidFreeOfChargeReason: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -52,14 +57,16 @@ export function missingFreeOfChargeReason(): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeTemplateNameConflict(
-  purposeTemplateId: PurposeTemplateId,
-  name: string
+export function purposeTemplateTitleConflict(
+  purposeTemplateIds: PurposeTemplateId[],
+  title: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose Template name conflict for ID ${purposeTemplateId} and name ${name}`,
-    code: "purposeTemplateNameConflict",
-    title: "Purpose Template name conflict",
+    detail: `Purpose Template title conflict for title ${title} and IDs ${purposeTemplateIds.join(
+      ", "
+    )}`,
+    code: "purposeTemplateTitleConflict",
+    title: "Purpose Template title conflict",
   });
 }
 
@@ -94,10 +101,10 @@ export function riskAnalysisTemplateValidationFailed(
 }
 
 export function ruleSetNotFoundError(
-  tenantKind: TenantKind
+  targetTenantKind: TargetTenantKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
+    detail: `No risk analysis rule set found for target tenant kind ${targetTenantKind}`,
     code: "ruleSetNotFoundError",
     title: "No risk analysis rule set found for target tenant kind",
   });
@@ -178,11 +185,13 @@ export function riskAnalysisTemplateAnswerAnnotationNotFound(
 
 export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   purposeTemplateId: PurposeTemplateId,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  answerId?: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
+    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId}${
+      answerId ? ` and answer ${answerId}` : ""
+    }`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
   });
@@ -278,21 +287,62 @@ export function conflictDuplicatedDocument(
     title: "Conflict: annotation document with checksum already exists",
   });
 }
-export function purposeTemplateNotInValidState(
-  state: PurposeTemplateState,
-  validStates: PurposeTemplateState[]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
-    code: "purposeTemplateNotInValidState",
-    title: "Purpose template not in valid state",
-  });
-}
 
 export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function missingRiskAnalysisFormTemplate(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Form Template provided for purpose template ${purposeTemplateId}`,
+    code: "missingRiskAnalysisFormTemplate",
+    title: "Missing Risk Analysis Form Template",
+  });
+}
+
+export function eServiceDescriptorPurposeTemplateNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  eServiceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No e-service descriptor found for purpose template ${purposeTemplateId} and e-service id ${eServiceId}`,
+    code: "eServiceDescriptorPurposeTemplateNotFound",
+    title: "E-Service Descriptor Purpose Template not found",
+  });
+}
+
+export function invalidFreeOfChargeReason(
+  purposeIsFreeOfCharge: boolean,
+  purposeFreeOfChargeReason: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid purposeFreeOfChargeReason: "${purposeFreeOfChargeReason}" for purposeIsFreeOfCharge: "${purposeIsFreeOfCharge}"`,
+    code: "invalidFreeOfChargeReason",
+    title: "Invalid free of charge reason",
+  });
+}
+
+export function purposeTemplateRiskAnalysisTemplateDocumentNotFound(
+  purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No document found for Risk Analysis Template Form ${purposeTemplateRiskAnalysisForm}`,
+    code: "purposeTemplateRiskAnalysisTemplateDocumentNotFound",
+    title: "Risk Analysis Template Document Not Found",
+  });
+}
+export function purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
+  purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No signed document found for Risk Analysis Template Form ${purposeTemplateRiskAnalysisForm}`,
+    code: "purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound",
+    title: "Risk Analysis Template Signed Document Not Found",
   });
 }

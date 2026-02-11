@@ -1,8 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EServiceId, generateId, RiskAnalysisId } from "pagopa-interop-models";
+import {
+  EServiceId,
+  generateId,
+  RiskAnalysisId,
+  tenantKind,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
+import {
+  generateToken,
+  getMockTenant,
+} from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, clients, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -17,13 +25,19 @@ import {
 describe("API GET /eservices/:eServiceId/riskAnalysis/:riskAnalysisId", () => {
   const mockEService = getMockCatalogApiEService();
   const mockRiskAnalysis = mockEService.riskAnalysis[0];
-  const mockApiRiskAnalysis =
-    toBffCatalogApiEserviceRiskAnalysis(mockRiskAnalysis);
+  mockRiskAnalysis.riskAnalysisForm.version = "3.0";
+  const mockApiRiskAnalysis = toBffCatalogApiEserviceRiskAnalysis(
+    mockRiskAnalysis,
+    new Date("2026-02-15T23:59:59").toJSON()
+  );
 
   beforeEach(() => {
     clients.catalogProcessClient.getEServiceById = vi
       .fn()
       .mockResolvedValue(mockEService);
+    clients.tenantProcessClient.tenant.getTenant = vi
+      .fn()
+      .mockResolvedValue({ ...getMockTenant(), kind: tenantKind.PA });
   });
 
   const makeRequest = async (

@@ -10,7 +10,7 @@ import {
   descriptorState,
   generateId,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
   EServiceId,
@@ -44,12 +44,14 @@ import { config } from "../../src/config/config.js";
 import {
   eserviceNotAssociatedError,
   eserviceNotFound,
+  invalidDescriptorStateError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION } from "../../src/services/validators.js";
 
 describe("unlinkEservicesFromPurposeTemplate", () => {
   const tenant: Tenant = {
     ...getMockTenant(),
-    kind: tenantKind.PA,
+    kind: targetTenantKind.PA,
   };
 
   const descriptor1: Descriptor = {
@@ -330,6 +332,52 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
           ),
         ],
         [eService1.id, nonAssociatedEServiceId],
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("should throw invalidDescriptorStateError when trying to unlink eservice with descriptor in invalid state (not Published, Archived, Suspended or Deprecated)", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+      version: "1",
+    };
+
+    const eService: EService = {
+      ...getMockEService(),
+      producerId: tenant.id,
+      descriptors: [descriptor],
+      personalData: true,
+    };
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eService);
+
+    await addOnePurposeTemplateEServiceDescriptor({
+      purposeTemplateId: purposeTemplate.id,
+      eserviceId: eService.id,
+      descriptorId: descriptor.id,
+      createdAt: new Date(),
+    });
+
+    await expect(
+      purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+        purposeTemplate.id,
+        [eService.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      disassociationEServicesFromPurposeTemplateFailed(
+        [
+          invalidDescriptorStateError(
+            eService.id,
+            ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION
+          ),
+        ],
+        [eService.id],
         purposeTemplate.id
       )
     );

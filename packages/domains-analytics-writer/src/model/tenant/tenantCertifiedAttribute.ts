@@ -10,13 +10,3 @@ export const TenantCertifiedAttributeSchema = createSelectSchema(
 export type TenantCertifiedAttributeSchema = z.infer<
   typeof TenantCertifiedAttributeSchema
 >;
-
-export const TenantCertifiedAttributeDeletingSchema =
-  TenantCertifiedAttributeSchema.pick({
-    attributeId: true,
-    tenantId: true,
-    deleted: true,
-  });
-export type TenantCertifiedAttributeDeletingSchema = z.infer<
-  typeof TenantCertifiedAttributeDeletingSchema
->;

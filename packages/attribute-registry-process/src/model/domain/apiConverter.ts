@@ -2,7 +2,7 @@ import { AttributeKind, Attribute, attributeKind } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
-export const toApiAttributeKind = (
+const toApiAttributeKind = (
   input: AttributeKind
 ): attributeRegistryApi.AttributeKind =>
   match<AttributeKind, attributeRegistryApi.AttributeKind>(input)

@@ -105,6 +105,13 @@ export const unsuspendPurposeErrorMapper = (
     .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateDraftPurposeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("invalidSeedForPurposeFromTemplate", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const downloadPurposeVersionRiskAnalysisDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -280,6 +287,16 @@ export const assignEServiceTemplateVersionAttributesErrorMapper = (
       "eserviceTemplateVersionNotFound",
       "eserviceTemplateVersionAttributeGroupNotFound",
       "eserviceTemplateVersionAttributeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeTemplateRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

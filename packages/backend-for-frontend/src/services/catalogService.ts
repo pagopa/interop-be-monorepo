@@ -4,18 +4,22 @@
 import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
 import {
+  agreementApi,
+  attributeRegistryApi,
   bffApi,
   catalogApi,
   delegationApi,
   eserviceTemplateApi,
+  inAppNotificationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   FileManager,
   WithLogger,
   createPollingByCondition,
-  formatDateyyyyMMddThhmmss,
+  formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
+  getRulesetExpiration,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
@@ -29,27 +33,23 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
+import {
   apiTechnologyToTechnology,
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
   toBffCatalogApiEService,
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogApiEserviceRiskAnalysisSeed,
-  toBffCatalogApiProducerDescriptorEService,
   toBffCatalogDescriptorEService,
   toBffEServiceTemplateInstance,
   toCatalogCreateEServiceSeed,
   toCompactProducerDescriptor,
+  enhanceEServiceToBffCatalogApiProducerDescriptorEService,
+  enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
-import {
-  AgreementProcessClient,
-  AttributeProcessClient,
-  CatalogProcessClient,
-  DelegationProcessClient,
-  EServiceTemplateProcessClient,
-  InAppNotificationManagerClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
@@ -70,7 +70,10 @@ import {
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
+import {
+  getAllAgreements,
+  getLatestAgreementsOnDescriptor,
+} from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
   getAllDelegations,
@@ -85,11 +88,10 @@ import {
 } from "./validators.js";
 import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
-export const enhanceCatalogEservices = async (
+const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
-  agreementProcessClient: AgreementProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   ctx: WithLogger<BffAppContext>,
   requesterId: TenantId
 ): Promise<bffApi.CatalogEService[]> => {
@@ -127,8 +129,6 @@ export const enhanceCatalogEservices = async (
   };
   const enhanceEService =
     (
-      agreementProcessClient: AgreementProcessClient,
-      headers: Headers,
       requesterId: TenantId,
       notifications: string[]
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
@@ -137,12 +137,6 @@ export const enhanceCatalogEservices = async (
 
       const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
-      const latestAgreement = await getLatestAgreement(
-        agreementProcessClient,
-        requesterId,
-        eservice,
-        headers
-      );
       const hasNotifications = notifications.includes(eservice.id);
       const isRequesterEqProducer = requesterId === eservice.producerId;
 
@@ -151,22 +145,14 @@ export const enhanceCatalogEservices = async (
         producerTenant,
         isRequesterEqProducer,
         hasNotifications,
-        latestActiveDescriptor,
-        latestAgreement
+        latestActiveDescriptor
       );
     };
 
   const notifications = await notificationsPromise;
 
   return await Promise.all(
-    eservices.map(
-      enhanceEService(
-        agreementProcessClient,
-        ctx.headers,
-        requesterId,
-        notifications
-      )
-    )
+    eservices.map(enhanceEService(requesterId, notifications))
   );
 };
 
@@ -302,8 +288,8 @@ const getAttributeIds = (
   ),
 ];
 
-export const getAllEserviceConsumers = async (
-  catalogProcessClient: CatalogProcessClient,
+const getAllEserviceConsumers = async (
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   headers: Headers,
   eServiceId: EServiceId
 ): Promise<catalogApi.EServiceConsumer[]> =>
@@ -318,13 +304,13 @@ export const getAllEserviceConsumers = async (
   );
 
 export function catalogServiceBuilder(
-  catalogProcessClient: CatalogProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
-  agreementProcessClient: AgreementProcessClient,
-  attributeProcessClient: AttributeProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   delegationProcessClient: DelegationProcessClient,
-  eserviceTemplateProcessClient: EServiceTemplateProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
@@ -358,7 +344,6 @@ export function catalogServiceBuilder(
       const results = await enhanceCatalogEservices(
         eservicesResponse.results,
         tenantProcessClient,
-        agreementProcessClient,
         inAppNotificationManagerClient,
         ctx,
         requesterId
@@ -472,10 +457,11 @@ export function catalogServiceBuilder(
         dailyCallsTotal: descriptor.dailyCallsTotal,
         agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
         attributes: descriptorAttributes,
-        eservice: toBffCatalogApiProducerDescriptorEService(
-          eservice,
-          producerTenant
-        ),
+        eservice:
+          await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
+            eservice,
+            producerTenant
+          ),
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
         archivedAt: descriptor.archivedAt,
@@ -531,6 +517,13 @@ export function catalogServiceBuilder(
           headers,
         });
 
+      const producer = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+
       await assertRequesterCanActAsProducer(
         delegationProcessClient,
         headers,
@@ -544,8 +537,9 @@ export function catalogServiceBuilder(
         description: eservice.description,
         technology: eservice.technology,
         mode: eservice.mode,
-        riskAnalysis: eservice.riskAnalysis.map(
-          toBffCatalogApiEserviceRiskAnalysis
+        riskAnalysis: await enhanceEServiceRiskAnalysisArray(
+          eservice.riskAnalysis,
+          producer.kind
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
@@ -965,10 +959,12 @@ export function catalogServiceBuilder(
           id: eservice.producerId,
         },
       });
-      const agreement = await getLatestAgreement(
+
+      const agreements = await getLatestAgreementsOnDescriptor(
         agreementProcessClient,
         requesterId,
         eservice,
+        descriptorId,
         headers
       );
 
@@ -991,11 +987,11 @@ export function catalogServiceBuilder(
           descriptor.interface &&
           toBffCatalogApiDescriptorDoc(descriptor.interface),
         docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
-        eservice: toBffCatalogDescriptorEService(
+        eservice: await toBffCatalogDescriptorEService(
           eservice,
           descriptor,
           producerTenant,
-          agreement,
+          agreements,
           requesterTenant,
           consumerDelegators
         ),
@@ -1022,7 +1018,7 @@ export function catalogServiceBuilder(
         eserviceId
       );
 
-      const currentDate = formatDateyyyyMMddThhmmss(new Date());
+      const currentDate = formatDateyyyyMMddTHHmmss(new Date());
       const filename = `${currentDate}-lista-fruitori-${eservice.name}.csv`;
 
       const buildCsv = (consumers: catalogApi.EServiceConsumer[]): string =>
@@ -1112,9 +1108,22 @@ export function catalogServiceBuilder(
           headers,
         });
 
+      const producer = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eservice.producerId,
+        },
+      });
+
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
-      return toBffCatalogApiEserviceRiskAnalysis(riskAnalysis);
+      return toBffCatalogApiEserviceRiskAnalysis(
+        riskAnalysis,
+        getRulesetExpiration(
+          producer.kind,
+          riskAnalysis.riskAnalysisForm.version
+        )?.toJSON()
+      );
     },
     getEServiceDocumentById: async (
       eServiceId: EServiceId,

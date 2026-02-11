@@ -71,19 +71,19 @@ export const notificationAdmittedRoles = {
   newEserviceTemplateVersionToInstantiator: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
-    [SECURITY_ROLE]: true,
+    [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
   },
   eserviceTemplateNameChangedToInstantiator: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
-    [SECURITY_ROLE]: true,
+    [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
   },
   eserviceTemplateStatusChangedToInstantiator: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
-    [SECURITY_ROLE]: true,
+    [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
   },
   delegationApprovedRejectedToDelegator: {
@@ -100,7 +100,7 @@ export const notificationAdmittedRoles = {
   },
   eserviceNewVersionApprovedRejectedToDelegate: {
     [ADMIN_ROLE]: true,
-    [API_ROLE]: true,
+    [API_ROLE]: false,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
   },
@@ -123,6 +123,18 @@ export const notificationAdmittedRoles = {
     [SUPPORT_ROLE]: false,
   },
   producerKeychainKeyAddedDeletedToClientUsers: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+  },
+  purposeQuotaAdjustmentRequestToProducer: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+  },
+  purposeOverQuotaStateToConsumer: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
     [SECURITY_ROLE]: true,

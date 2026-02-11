@@ -80,6 +80,7 @@ describe("Notification config splitters", () => {
           userNotificationConfig.inAppNotificationPreference,
         emailNotificationPreference:
           userNotificationConfig.emailNotificationPreference,
+        emailDigestPreference: userNotificationConfig.emailDigestPreference,
       };
 
       const expectedEnabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] =
@@ -105,6 +106,8 @@ describe("Notification config splitters", () => {
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
             "clientKeyAddedDeletedToClientUsers",
             "producerKeychainKeyAddedDeletedToClientUsers",
+            "purposeQuotaAdjustmentRequestToProducer",
+            "purposeOverQuotaStateToConsumer",
           ] as const
         )
           .filter(
@@ -139,6 +142,8 @@ describe("Notification config splitters", () => {
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
             "clientKeyAddedDeletedToClientUsers",
             "producerKeychainKeyAddedDeletedToClientUsers",
+            "purposeQuotaAdjustmentRequestToProducer",
+            "purposeOverQuotaStateToConsumer",
           ] as const
         )
           .filter(

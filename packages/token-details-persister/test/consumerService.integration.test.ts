@@ -8,7 +8,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   formatDateyyyyMMdd,
-  formatTimehhmmss,
+  formatTimeHHmmss,
   genericLogger,
 } from "pagopa-interop-commons";
 import { KafkaMessage } from "kafkajs";
@@ -48,7 +48,7 @@ describe("consumerService", () => {
 
     const date = new Date();
     const ymdDate = formatDateyyyyMMdd(date);
-    const hmsTime = formatTimehhmmss(date);
+    const hmsTime = formatTimeHHmmss(date);
     const expectedFileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
     const expectedFilePathWithFileName = `token-details/${ymdDate}/${expectedFileName}`;
 
@@ -68,7 +68,7 @@ describe("consumerService", () => {
     );
 
     const decodedFileContent = Buffer.from(fileContent).toString();
-    expect(decodedFileContent).toMatchObject(expectedFileContent);
+    expect(decodedFileContent).toBe(expectedFileContent);
   });
 
   it("should write three entries on the bucket", async () => {
@@ -96,7 +96,7 @@ describe("consumerService", () => {
 
     const date = new Date();
     const ymdDate = formatDateyyyyMMdd(date);
-    const hmsTime = formatTimehhmmss(date);
+    const hmsTime = formatTimeHHmmss(date);
     const expectedFileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
     const expectedFilePathWithFileName = `token-details/${ymdDate}/${expectedFileName}`;
 
@@ -119,7 +119,7 @@ describe("consumerService", () => {
     );
 
     const decodedFileContent = Buffer.from(fileContent).toString();
-    expect(decodedFileContent).toMatchObject(expectedFileContent);
+    expect(decodedFileContent).toBe(expectedFileContent);
   });
 
   it("should throw error if write operation fails", async () => {

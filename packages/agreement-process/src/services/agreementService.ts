@@ -39,6 +39,7 @@ import {
   descriptorState,
   generateId,
   CompactTenant,
+  CompactOrganization,
   CorrelationId,
   DelegationId,
   AgreementSignedContract,
@@ -70,7 +71,6 @@ import {
 import {
   ActiveDelegations,
   CompactEService,
-  CompactOrganization,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -166,7 +166,7 @@ export const retrieveEService = async (
   return eservice;
 };
 
-export const retrieveAgreement = async (
+const retrieveAgreement = async (
   agreementId: AgreementId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Agreement>> => {
@@ -216,7 +216,7 @@ function retrieveAgreementDocument(
   return document;
 }
 
-export const getActiveConsumerAndProducerDelegations = async (
+const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
   readModelService: ReadModelServiceSQL,
   cachedActiveDelegations?: ActiveDelegations
@@ -629,7 +629,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreement,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const agreementEvent =
@@ -671,15 +672,11 @@ export function agreementServiceBuilder(
         ...archivedAgreementsUpdates,
       ]);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: submittedAgreement,
         metadata: {
-          version: newVersion,
+          version:
+            createdEvents.latestNewVersions.get(submittedAgreement.id) ?? 0,
         },
       };
     },
@@ -807,17 +804,10 @@ export function agreementServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents
-          .filter((e) => e.streamId === agreement.id)
-          .map((event) => event.newVersion)
-      );
-
       return {
         data: agreement,
         metadata: {
-          version: newVersion,
+          version: createdEvents.latestNewVersions.get(agreement.id) ?? 0,
         },
       };
     },
@@ -1392,7 +1382,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreementWithoutContract,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const suspendedByPlatformChanged =
@@ -1422,14 +1413,12 @@ export function agreementServiceBuilder(
         ...archiveEvents,
       ]);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: updatedAgreement,
-        metadata: { version: newVersion },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedAgreement.id) ?? 0,
+        },
       };
     },
     async archiveAgreement(
@@ -1573,15 +1562,17 @@ export function agreementServiceBuilder(
       agreementDocument: AgreementDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Adding agreement contract to agreement ${agreementId}`);
+      logger.info(
+        `Adding agreement contract to agreement ${agreementId} - document id ${agreementDocument.id}`
+      );
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
       );
 
-      const agreementWithDocument = {
+      const agreementWithDocument: Agreement = {
         ...agreement,
-        agreementDocument,
+        contract: agreementDocument,
       };
       const event = await repository.createEvent(
         toCreateEventAgreementDocumentGenerated(
@@ -1605,12 +1596,6 @@ export function agreementServiceBuilder(
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
-      );
-
-      assertExpectedState(
-        agreementId,
-        agreement.state,
-        agreementUpdatableStates
       );
 
       const agreementWithDocument: Agreement = {
@@ -1777,12 +1762,16 @@ async function addContractOnFirstActivation(
   consumer: Tenant,
   producer: Tenant,
   agreement: Agreement,
-  activeDelegations: ActiveDelegations
+  activeDelegations: ActiveDelegations,
+  logger: Logger
 ): Promise<Agreement> {
   if (
     isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
     isFirstActivation
   ) {
+    logger.info(
+      `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
+    );
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
@@ -1796,7 +1785,9 @@ async function addContractOnFirstActivation(
       contract,
     };
   }
-
+  logger.info(
+    `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: skipping document generation`
+  );
   return agreement;
 }
 

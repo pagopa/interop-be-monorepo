@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
-import { CorrelationId } from "pagopa-interop-models";
 import {
-  AuthorizationProcessClient,
-  PagoPAInteropBeClients,
-  SelfcareV2UserClient,
-} from "../clients/clientsProvider.js";
+  authorizationApi,
+  bffApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
+import { CorrelationId } from "pagopa-interop-models";
+import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
   toAuthorizationKeySeed,
@@ -141,7 +142,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
 
-      return authorizationClient.client.removeUser(undefined, {
+      await authorizationClient.client.removeUser(undefined, {
         params: { clientId, userId },
         headers,
       });
@@ -451,7 +452,7 @@ async function enhancePurpose(
 }
 
 export async function decorateKey(
-  selfcareClient: SelfcareV2UserClient,
+  selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
   selfcareId: string,
   members: string[],

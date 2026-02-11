@@ -6,6 +6,7 @@ import {
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagNotificationConfig,
   FeatureFlagPurposeTemplateConfig,
+  FeatureFlagUseSignedDocumentConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -15,33 +16,33 @@ import {
 import { z } from "zod";
 import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 
-export const TenantProcessServerConfig = z
+const TenantProcessServerConfig = z
   .object({
     TENANT_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     tenantProcessUrl: c.TENANT_PROCESS_URL,
   }));
-export type TenantProcessServerConfig = z.infer<
-  typeof TenantProcessServerConfig
->;
+type TenantProcessServerConfig = z.infer<typeof TenantProcessServerConfig>;
 
-export const AgreementProcessServerConfig = z
+const AgreementProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
     CONSUMER_DOCUMENTS_PATH: z.string(),
     CONSUMER_DOCUMENTS_CONTAINER: z.string(),
+    CONSUMER_SIGNED_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
     consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
     consumerDocumentsContainer: c.CONSUMER_DOCUMENTS_CONTAINER,
+    consumerSignedDocumentsContainer: c.CONSUMER_SIGNED_DOCUMENTS_CONTAINER,
   }));
-export type AgreementProcessServerConfig = z.infer<
+type AgreementProcessServerConfig = z.infer<
   typeof AgreementProcessServerConfig
 >;
 
-export const CatalogProcessServerConfig = z
+const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
     ESERVICE_DOCUMENTS_CONTAINER: z.string(),
@@ -52,52 +53,59 @@ export const CatalogProcessServerConfig = z
     eserviceDocumentsContainer: c.ESERVICE_DOCUMENTS_CONTAINER,
     eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
-export type CatalogProcessServerConfig = z.infer<
-  typeof CatalogProcessServerConfig
->;
+type CatalogProcessServerConfig = z.infer<typeof CatalogProcessServerConfig>;
 
-export const AttributeRegistryProcessServerConfig = z
+const AttributeRegistryProcessServerConfig = z
   .object({
     ATTRIBUTE_REGISTRY_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     attributeRegistryUrl: c.ATTRIBUTE_REGISTRY_PROCESS_URL,
   }));
-export type AttributeRegistryProcessServerConfig = z.infer<
+type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
-export const PurposeProcessServerConfig = z
+const PurposeProcessServerConfig = z
   .object({
     PURPOSE_PROCESS_URL: APIEndpoint,
     RISK_ANALYSIS_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_SIGNED_DOCUMENTS_CONTAINER: z.string(),
     RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     purposeUrl: c.PURPOSE_PROCESS_URL,
     riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCUMENTS_CONTAINER,
     riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+    riskAnalysisSignedDocumentsContainer:
+      c.RISK_ANALYSIS_SIGNED_DOCUMENTS_CONTAINER,
   }));
-export type PurposeProcessServerConfig = z.infer<
-  typeof PurposeProcessServerConfig
->;
+type PurposeProcessServerConfig = z.infer<typeof PurposeProcessServerConfig>;
 
-export const PurposeTemplateProcessServerConfig = z
+const PurposeTemplateProcessServerConfig = z
   .object({
     PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
     PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
     PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+    RISK_ANALYSIS_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     purposeTemplateUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
     purposeTemplateDocumentsContainer: c.PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER,
     purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
+    riskAnalysisTemplateDocumentsContainer:
+      c.RISK_ANALYSIS_TEMPLATE_DOCUMENTS_CONTAINER,
+    riskAnalysisTemplateDocumentsPath: c.RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH,
+    riskAnalysisTemplateSignedDocumentsContainer:
+      c.RISK_ANALYSIS_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER,
   }));
-export type PurposeTemplateProcessServerConfig = z.infer<
+type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
 >;
 
-export const AuthorizationProcessServerConfig = z
+const AuthorizationProcessServerConfig = z
   .object({
     AUTHORIZATION_PROCESS_URL: APIEndpoint,
     TENANT_ALLOWED_ORIGINS: z.string(),
@@ -120,35 +128,37 @@ export const AuthorizationProcessServerConfig = z
     supportJwtDuration: c.SUPPORT_TOKEN_DURATION_SECONDS,
     samlPublicKey: c.SAML_PUBLIC_KEY,
   }));
-export type AuthorizationProcessServerConfig = z.infer<
+type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
-export const DelegationProcessServerConfig = z
+const DelegationProcessServerConfig = z
   .object({
     DELEGATION_PROCESS_URL: APIEndpoint,
     DELEGATION_CONTRACTS_CONTAINER: z.string(),
+    DELEGATION_SIGNED_CONTRACTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     delegationProcessUrl: c.DELEGATION_PROCESS_URL,
     delegationContractsContainer: c.DELEGATION_CONTRACTS_CONTAINER,
+    delegationSignedContractsContainer: c.DELEGATION_SIGNED_CONTRACTS_CONTAINER,
   }));
-export type DelegationProcessServerConfig = z.infer<
+type DelegationProcessServerConfig = z.infer<
   typeof DelegationProcessServerConfig
 >;
 
-export const EServiceTemplateProcessServerConfig = z
+const EServiceTemplateProcessServerConfig = z
   .object({
     ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
   }));
-export type EServiceTemplateProcessServerConfig = z.infer<
+type EServiceTemplateProcessServerConfig = z.infer<
   typeof EServiceTemplateProcessServerConfig
 >;
 
-export const EServiceTemplateS3Config = z
+const EServiceTemplateS3Config = z
   .object({
     ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
     ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
@@ -157,9 +167,9 @@ export const EServiceTemplateS3Config = z
     eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
     eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
   }));
-export type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
+type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
 
-export const S3PrivacyNoticeConfig = z
+const S3PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_CONTAINER: z.string(),
     PRIVACY_NOTICES_PATH: z.string(),
@@ -172,9 +182,9 @@ export const S3PrivacyNoticeConfig = z
     privacyNoticesTOSFileName: c.PRIVACY_NOTICES_TOS_FILE_NAME,
     privacyNoticesPPFileName: c.PRIVACY_NOTICES_PP_FILE_NAME,
   }));
-export type S3PrivacyNoticeConfig = z.infer<typeof S3PrivacyNoticeConfig>;
+type S3PrivacyNoticeConfig = z.infer<typeof S3PrivacyNoticeConfig>;
 
-export const PrivacyNoticeConfig = z
+const PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_TOS_UUID: z.string(),
     PRIVACY_NOTICES_PP_UUID: z.string(),
@@ -188,9 +198,9 @@ export const PrivacyNoticeConfig = z
     privacyNoticesUsersDynamoTableName:
       c.PRIVACY_NOTICES_USERS_DYNAMO_TABLE_NAME,
   }));
-export type PrivacyNoticeConfig = z.infer<typeof PrivacyNoticeConfig>;
+type PrivacyNoticeConfig = z.infer<typeof PrivacyNoticeConfig>;
 
-export const AllowListConfig = z
+const AllowListConfig = z
   .object({
     ALLOW_LIST_CONTAINER: z.string(),
     ALLOW_LIST_PATH: z.string(),
@@ -201,9 +211,9 @@ export const AllowListConfig = z
     allowListPath: c.ALLOW_LIST_PATH,
     allowListFileName: c.ALLOW_LIST_FILE_NAME,
   }));
-export type AllowListConfig = z.infer<typeof AllowListConfig>;
+type AllowListConfig = z.infer<typeof AllowListConfig>;
 
-export const ExportFileConfig = z
+const ExportFileConfig = z
   .object({
     EXPORT_ESERVICE_CONTAINER: z.string(),
     EXPORT_ESERVICE_PATH: z.string(),
@@ -214,9 +224,9 @@ export const ExportFileConfig = z
     exportEservicePath: c.EXPORT_ESERVICE_PATH,
     presignedUrlGetDurationMinutes: c.PRESIGNED_URL_GET_DURATION_MINUTES,
   }));
-export type ExportFileConfig = z.infer<typeof ExportFileConfig>;
+type ExportFileConfig = z.infer<typeof ExportFileConfig>;
 
-export const ImportFileConfig = z
+const ImportFileConfig = z
   .object({
     IMPORT_ESERVICE_CONTAINER: z.string(),
     IMPORT_ESERVICE_PATH: z.string(),
@@ -227,9 +237,9 @@ export const ImportFileConfig = z
     importEservicePath: c.IMPORT_ESERVICE_PATH,
     presignedUrlPutDurationMinutes: c.PRESIGNED_URL_PUT_DURATION_MINUTES,
   }));
-export type ImportFileConfig = z.infer<typeof ImportFileConfig>;
+type ImportFileConfig = z.infer<typeof ImportFileConfig>;
 
-export const InterfaceVersion = z
+const InterfaceVersion = z
   .object({
     BACKEND_FOR_FRONTEND_INTERFACE_VERSION: z.string(),
   })
@@ -238,54 +248,54 @@ export const InterfaceVersion = z
       c.BACKEND_FOR_FRONTEND_INTERFACE_VERSION,
   }));
 
-export const SelfcareProcessConfig = z
+const SelfcareProcessConfig = z
   .object({
     INTEROP_SELFCARE_PRODUCT_NAME: z.string(),
   })
   .transform((c) => ({
     selfcareProductName: c.INTEROP_SELFCARE_PRODUCT_NAME,
   }));
-export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
+type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
 
-export const NotificationConfigProcessServerConfig = z
+const NotificationConfigProcessServerConfig = z
   .object({
     NOTIFICATION_CONFIG_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     notificationConfigProcessUrl: c.NOTIFICATION_CONFIG_PROCESS_URL,
   }));
-export type NotificationConfigProcessServerConfig = z.infer<
+type NotificationConfigProcessServerConfig = z.infer<
   typeof NotificationConfigProcessServerConfig
 >;
 
-export const InAppNotificationManagerServerConfig = z
+const InAppNotificationManagerServerConfig = z
   .object({
     IN_APP_NOTIFICATION_MANAGER_URL: APIEndpoint,
   })
   .transform((c) => ({
     inAppNotificationManagerUrl: c.IN_APP_NOTIFICATION_MANAGER_URL,
   }));
-export type InAppNotificationManagerServerConfig = z.infer<
+type InAppNotificationManagerServerConfig = z.infer<
   typeof InAppNotificationManagerServerConfig
 >;
 
-export const FrontendBaseURLConfig = z
+const FrontendBaseURLConfig = z
   .object({
     FRONTEND_BASE_URL: z.string().url(),
   })
   .transform((c) => ({
     frontendBaseUrl: c.FRONTEND_BASE_URL,
   }));
-export type FrontendBaseURLConfig = z.infer<typeof FrontendBaseURLConfig>;
+type FrontendBaseURLConfig = z.infer<typeof FrontendBaseURLConfig>;
 
-export const SwaggerConfig = z
+const SwaggerConfig = z
   .object({
     BFF_SWAGGER_UI_ENABLED: z.coerce.boolean().default(false),
   })
   .transform((c) => ({
     bffSwaggerUiEnabled: c.BFF_SWAGGER_UI_ENABLED,
   }));
-export type SwaggerConfig = z.infer<typeof SwaggerConfig>;
+type SwaggerConfig = z.infer<typeof SwaggerConfig>;
 
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
@@ -318,7 +328,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
   .and(FeatureFlagNotificationConfig)
   .and(FrontendBaseURLConfig)
-  .and(FeatureFlagPurposeTemplateConfig);
+  .and(FeatureFlagPurposeTemplateConfig)
+  .and(FeatureFlagUseSignedDocumentConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

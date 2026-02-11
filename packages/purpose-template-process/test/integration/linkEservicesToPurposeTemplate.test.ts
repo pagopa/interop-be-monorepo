@@ -1,38 +1,47 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  getMockDescriptor,
+  getMockEService,
+  getMockPurposeTemplate,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
+import {
   Descriptor,
   EService,
+  EServiceId,
   PurposeTemplate,
   PurposeTemplateEServiceLinkedV2,
+  PurposeTemplateId,
   Tenant,
   descriptorState,
   generateId,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
-  EServiceId,
-  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { config } from "../../src/config/config.js";
 import {
-  decodeProtobufPayload,
-  getMockEService,
-  getMockTenant,
-  getMockPurposeTemplate,
-  getMockDescriptor,
-  getMockAuthData,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+  eserviceAlreadyAssociatedError,
+  eserviceNotFound,
+  invalidDescriptorStateError,
+  missingDescriptorError,
+  purposeTemplateEServicePersonalDataFlagMismatch,
+} from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
-  associationEServicesForPurposeTemplateFailed,
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+  associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
-  tooManyEServicesForPurposeTemplate,
   purposeTemplateNotInExpectedStates,
   tenantNotAllowed,
+  tooManyEServicesForPurposeTemplate,
 } from "../../src/model/domain/errors.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION } from "../../src/services/validators.js";
 import {
   addOneEService,
   addOnePurposeTemplate,
@@ -41,19 +50,11 @@ import {
   purposeTemplateService,
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
-import {
-  eserviceNotFound,
-  invalidDescriptorStateError,
-  missingDescriptorError,
-  eserviceAlreadyAssociatedError,
-  purposeTemplateEServicePersonalDataFlagMismatch,
-} from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("linkEservicesToPurposeTemplate", () => {
   const tenant: Tenant = {
     ...getMockTenant(),
-    kind: tenantKind.PA,
+    kind: targetTenantKind.PA,
   };
 
   const descriptor1: Descriptor = {
@@ -292,22 +293,27 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw associationEServicesForPurposeTemplateFailed if eservice has no valid descriptors (descriptors with state different from published or draft)", async () => {
-    const eserviceWithDeprecatedDescriptor: EService = {
+  it("should throw invalidDescriptorStateError when trying to link eservice that has no valid descriptors (descriptors with state different from published)", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.suspended),
+      version: "1",
+    };
+
+    const eService: EService = {
       ...getMockEService(),
       producerId: tenant.id,
-      descriptors: [getMockDescriptor(descriptorState.deprecated)],
+      descriptors: [descriptor],
       personalData: true,
     };
 
     await addOneTenant(tenant);
-    await addOneEService(eserviceWithDeprecatedDescriptor);
     await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eService);
 
     await expect(
       purposeTemplateService.linkEservicesToPurposeTemplate(
         purposeTemplate.id,
-        [eserviceWithDeprecatedDescriptor.id],
+        [eService.id],
         getMockContext({
           authData: getMockAuthData(tenant.id),
         })
@@ -315,12 +321,12 @@ describe("linkEservicesToPurposeTemplate", () => {
     ).rejects.toThrowError(
       associationEServicesForPurposeTemplateFailed(
         [
-          invalidDescriptorStateError(eserviceWithDeprecatedDescriptor.id, [
-            descriptorState.published,
-            descriptorState.draft,
-          ]),
+          invalidDescriptorStateError(
+            eService.id,
+            ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION
+          ),
         ],
-        [eserviceWithDeprecatedDescriptor.id],
+        [eService.id],
         purposeTemplate.id
       )
     );
@@ -441,7 +447,7 @@ describe("linkEservicesToPurposeTemplate", () => {
   it("should throw tenantNotAllowed when user is not the creator of the purpose template", async () => {
     const differentTenant: Tenant = {
       ...getMockTenant(),
-      kind: tenantKind.PA,
+      kind: targetTenantKind.PA,
     };
 
     await addOneTenant(tenant);
