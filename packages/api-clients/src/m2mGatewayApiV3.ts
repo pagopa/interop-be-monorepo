@@ -248,4 +248,9 @@ export type GetClientUsersQueryParams = QueryParametersByAlias<
   "getClientUsers"
 >;
 
+export type GetProducerKeychainUsersQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainUsers"
+>;
+
 export * from "./generated/m2mGatewayApiV3.js";
