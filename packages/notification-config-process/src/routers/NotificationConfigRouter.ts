@@ -1,15 +1,12 @@
-import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { ZodiosRouter } from "@zodios/express";
+import { FastifyInstance, FastifyPluginAsync } from "fastify";
 import {
-  ExpressContext,
-  ZodiosContext,
-  zodiosValidationErrorToApiProblem,
   fromAppContext,
   authRole,
   validateAuthorization,
 } from "pagopa-interop-commons";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import { z } from "zod";
 import { NotificationConfigService } from "../services/notificationConfigService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -27,27 +24,22 @@ import {
   updateUserNotificationConfigErrorMapper,
 } from "../utilities/errorMappers.js";
 
-const notificationConfigRouter = (
-  ctx: ZodiosContext,
-  notificationConfigService: NotificationConfigService
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { ADMIN_ROLE, API_ROLE, INTERNAL_ROLE, SECURITY_ROLE } = authRole;
+const notificationConfigRouter =
+  (notificationConfigService: NotificationConfigService): FastifyPluginAsync =>
+  async (app: FastifyInstance) => {
+    const { ADMIN_ROLE, API_ROLE, INTERNAL_ROLE, SECURITY_ROLE } = authRole;
 
-  return ctx
-    .router(notificationConfigApi.processApi.api, {
-      validationErrorHandler: zodiosValidationErrorToApiProblem,
-    })
-    .get("/tenantNotificationConfigs", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    app.get("/tenantNotificationConfigs", async (request, reply) => {
+      const ctx = fromAppContext(request.ctx);
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
         const tenantNotificationConfig =
           await notificationConfigService.getTenantNotificationConfig(ctx);
-        return res
+        return reply
           .status(200)
           .send(
-            notificationConfigApi.TenantNotificationConfig.parse(
+            notificationConfigApi.zTenantNotificationConfig.parse(
               tenantNotificationConfigToApiTenantNotificationConfig(
                 tenantNotificationConfig
               )
@@ -59,20 +51,21 @@ const notificationConfigRouter = (
           getTenantNotificationConfigErrorMapper,
           ctx
         );
-        return res.status(errorRes.status).send(errorRes);
+        return reply.status(errorRes.status).send(errorRes);
       }
-    })
-    .get("/userNotificationConfigs", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    });
+
+    app.get("/userNotificationConfigs", async (request, reply) => {
+      const ctx = fromAppContext(request.ctx);
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
         const userNotificationConfig =
           await notificationConfigService.getUserNotificationConfig(ctx);
-        return res
+        return reply
           .status(200)
           .send(
-            notificationConfigApi.UserNotificationConfig.parse(
+            notificationConfigApi.zUserNotificationConfig.parse(
               userNotificationConfigToApiUserNotificationConfig(
                 userNotificationConfig
               )
@@ -84,158 +77,226 @@ const notificationConfigRouter = (
           getUserNotificationConfigErrorMapper,
           ctx
         );
-        return res.status(errorRes.status).send(errorRes);
+        return reply.status(errorRes.status).send(errorRes);
       }
-    })
-    .post("/tenantNotificationConfigs", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    });
 
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
-        const tenantNotificationConfig =
-          await notificationConfigService.updateTenantNotificationConfig(
-            req.body,
+    app.post<{
+      Body: z.infer<
+        typeof notificationConfigApi.zTenantNotificationConfigUpdateSeed
+      >;
+    }>(
+      "/tenantNotificationConfigs",
+      {
+        schema: {
+          body: notificationConfigApi.zTenantNotificationConfigUpdateSeed.strict(),
+        },
+      },
+      async (request, reply) => {
+        const ctx = fromAppContext(request.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+          const tenantNotificationConfig =
+            await notificationConfigService.updateTenantNotificationConfig(
+              request.body,
+              ctx
+            );
+          return reply
+            .status(200)
+            .send(
+              notificationConfigApi.zTenantNotificationConfig.parse(
+                tenantNotificationConfigToApiTenantNotificationConfig(
+                  tenantNotificationConfig
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTenantNotificationConfigErrorMapper,
             ctx
           );
-        return res
-          .status(200)
-          .send(
-            notificationConfigApi.TenantNotificationConfig.parse(
-              tenantNotificationConfigToApiTenantNotificationConfig(
-                tenantNotificationConfig
-              )
-            )
-          );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          updateTenantNotificationConfigErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
+          return reply.status(errorRes.status).send(errorRes);
+        }
       }
-    })
-    .post("/userNotificationConfigs", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    );
 
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
-        const userNotificationConfig =
-          await notificationConfigService.updateUserNotificationConfig(
-            req.body,
+    app.post<{
+      Body: z.infer<
+        typeof notificationConfigApi.zUserNotificationConfigUpdateSeed
+      >;
+    }>(
+      "/userNotificationConfigs",
+      {
+        schema: {
+          body: notificationConfigApi.zUserNotificationConfigUpdateSeed.strict(),
+        },
+      },
+      async (request, reply) => {
+        const ctx = fromAppContext(request.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+          const userNotificationConfig =
+            await notificationConfigService.updateUserNotificationConfig(
+              request.body,
+              ctx
+            );
+          return reply
+            .status(200)
+            .send(
+              notificationConfigApi.zUserNotificationConfig.parse(
+                userNotificationConfigToApiUserNotificationConfig(
+                  userNotificationConfig
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateUserNotificationConfigErrorMapper,
             ctx
           );
-        return res
-          .status(200)
-          .send(
-            notificationConfigApi.UserNotificationConfig.parse(
-              userNotificationConfigToApiUserNotificationConfig(
-                userNotificationConfig
-              )
-            )
-          );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          updateUserNotificationConfigErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
+          return reply.status(errorRes.status).send(errorRes);
+        }
       }
-    })
-    .post("/internal/tenantNotificationConfigs", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    );
 
-      try {
-        validateAuthorization(ctx, [INTERNAL_ROLE]);
-        const tenantNotificationConfig =
-          await notificationConfigService.createTenantDefaultNotificationConfig(
-            unsafeBrandId(req.body.tenantId),
+    app.post<{
+      Body: z.infer<typeof notificationConfigApi.zTenantNotificationConfigSeed>;
+    }>(
+      "/internal/tenantNotificationConfigs",
+      {
+        schema: {
+          body: notificationConfigApi.zTenantNotificationConfigSeed.strict(),
+        },
+      },
+      async (request, reply) => {
+        const ctx = fromAppContext(request.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const tenantNotificationConfig =
+            await notificationConfigService.createTenantDefaultNotificationConfig(
+              unsafeBrandId(request.body.tenantId),
+              ctx
+            );
+          return reply
+            .status(200)
+            .send(
+              notificationConfigApi.zTenantNotificationConfig.parse(
+                tenantNotificationConfigToApiTenantNotificationConfig(
+                  tenantNotificationConfig
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createTenantDefaultNotificationConfigErrorMapper,
             ctx
           );
-        return res
-          .status(200)
-          .send(
-            notificationConfigApi.TenantNotificationConfig.parse(
-              tenantNotificationConfigToApiTenantNotificationConfig(
-                tenantNotificationConfig
-              )
-            )
-          );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          createTenantDefaultNotificationConfigErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
+          return reply.status(errorRes.status).send(errorRes);
+        }
       }
-    })
-    .post(
+    );
+
+    app.post<{
+      Body: z.infer<typeof notificationConfigApi.zUserNotificationConfigSeed>;
+    }>(
       "/internal/ensureUserNotificationConfigExistsWithRoles",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+      {
+        schema: {
+          body: notificationConfigApi.zUserNotificationConfigSeed.strict(),
+        },
+      },
+      async (request, reply) => {
+        const ctx = fromAppContext(request.ctx);
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
           await notificationConfigService.ensureUserNotificationConfigExistsWithRoles(
-            unsafeBrandId(req.body.userId),
-            unsafeBrandId(req.body.tenantId),
-            req.body.userRoles.map(apiUserRoleToUserRole),
+            unsafeBrandId(request.body.userId),
+            unsafeBrandId(request.body.tenantId),
+            request.body.userRoles.map(apiUserRoleToUserRole),
             ctx
           );
-          return res.status(204).send();
+          return reply.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
+          return reply.status(errorRes.status).send(errorRes);
         }
       }
-    )
-    .delete(
+    );
+
+    app.delete<{ Params: { tenantId: string } }>(
       "/internal/tenantNotificationConfigs/tenantId/:tenantId",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+      {
+        schema: {
+          params:
+            notificationConfigApi.zDeleteTenantNotificationConfigData.shape
+              .path,
+        },
+      },
+      async (request, reply) => {
+        const ctx = fromAppContext(request.ctx);
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
           await notificationConfigService.deleteTenantNotificationConfig(
-            unsafeBrandId(req.params.tenantId),
+            unsafeBrandId(request.params.tenantId),
             ctx
           );
-          return res.status(204).send();
+          return reply.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             deleteTenantNotificationConfigErrorMapper,
             ctx
           );
-          return res.status(errorRes.status).send(errorRes);
+          return reply.status(errorRes.status).send(errorRes);
         }
       }
-    )
-    .delete(
+    );
+
+    app.delete<{
+      Params: {
+        tenantId: string;
+        userId: string;
+        userRole: notificationConfigApi.UserRole;
+      };
+    }>(
       "/internal/userNotificationConfigs/tenantId/:tenantId/userId/:userId/userRole/:userRole",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+      {
+        schema: {
+          params:
+            notificationConfigApi.zRemoveUserNotificationConfigRoleData.shape
+              .path,
+        },
+      },
+      async (request, reply) => {
+        const ctx = fromAppContext(request.ctx);
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
           await notificationConfigService.removeUserNotificationConfigRole(
-            unsafeBrandId(req.params.userId),
-            unsafeBrandId(req.params.tenantId),
-            apiUserRoleToUserRole(req.params.userRole),
+            unsafeBrandId(request.params.userId),
+            unsafeBrandId(request.params.tenantId),
+            apiUserRoleToUserRole(request.params.userRole),
             ctx
           );
-          return res.status(204).send();
+          return reply.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             removeUserNotificationConfigRoleErrorMapper,
             ctx
           );
-          return res.status(errorRes.status).send(errorRes);
+          return reply.status(errorRes.status).send(errorRes);
         }
       }
     );
-};
+  };
+
 export default notificationConfigRouter;

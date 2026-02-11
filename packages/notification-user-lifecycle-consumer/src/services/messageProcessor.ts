@@ -8,7 +8,6 @@ import {
 import { EachMessagePayload } from "kafkajs";
 import { match } from "ts-pattern";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { isAxiosError } from "axios";
 import { UsersEventPayload } from "../model/UsersEventPayload.js";
 import { userRoleToApiUserRole } from "../model/apiConverter.js";
 import { config } from "../config/config.js";
@@ -26,9 +25,7 @@ function jsonSafeParse(json: string): unknown {
 export async function processUserEvent(
   payload: UsersEventPayload,
   readModelServiceSQL: ReadModelServiceSQL,
-  notificationConfigProcessClient: ReturnType<
-    typeof notificationConfigApi.createProcessApiClient
-  >,
+  notificationConfigProcessClient: notificationConfigApi.NotificationConfigProcessClient,
   refreshableToken: RefreshableInteropToken,
   loggerInstance: ReturnType<typeof logger>,
   correlationId: CorrelationId
@@ -65,24 +62,29 @@ export async function processUserEvent(
         `Received ${payload.eventType} for user id ${userId} in tenant ${tenantId} with role ${productRole}`
       );
 
-      try {
-        const { serialized } = await refreshableToken.get();
-        await notificationConfigProcessClient.ensureUserNotificationConfigExistsWithRoles(
+      const { error } =
+        await notificationConfigApi.ensureUserNotificationConfigExistsWithRoles(
           {
-            userId,
-            tenantId,
-            userRoles: [userRoleToApiUserRole(productRole)],
-          },
-          {
+            body: {
+              userId,
+              tenantId,
+              userRoles: [userRoleToApiUserRole(productRole)],
+            },
             headers: {
               "X-Correlation-Id": correlationId,
-              Authorization: `Bearer ${serialized}`,
+              Authorization: `Bearer ${
+                (
+                  await refreshableToken.get()
+                ).serialized
+              }`,
             },
+            client: notificationConfigProcessClient,
           }
         );
-      } catch (err) {
+
+      if (error) {
         throw genericInternalError(
-          `Error in request to ensure a notification config exists for user ${userId} in tenant ${tenantId} with role ${productRole}. Reason: ${err}`
+          `Error in request to ensure a notification config exists for user ${userId} in tenant ${tenantId} with role ${productRole}. Reason: ${error.status} - ${error.title}`
         );
       }
     })
@@ -90,30 +92,33 @@ export async function processUserEvent(
       loggerInstance.info(
         `Removing role ${productRole} from notification config for user ${userId} in tenant ${tenantId}`
       );
-      try {
-        const { serialized } = await refreshableToken.get();
-        await notificationConfigProcessClient.removeUserNotificationConfigRole(
-          undefined,
-          {
-            params: {
-              userId,
-              tenantId,
-              userRole: userRoleToApiUserRole(productRole),
-            },
-            headers: {
-              "X-Correlation-Id": correlationId,
-              Authorization: `Bearer ${serialized}`,
-            },
-          }
-        );
-      } catch (err) {
-        if (isAxiosError(err) && err.response?.status === 404) {
+
+      const { error } =
+        await notificationConfigApi.removeUserNotificationConfigRole({
+          path: {
+            userId,
+            tenantId,
+            userRole: userRoleToApiUserRole(productRole),
+          },
+          headers: {
+            "X-Correlation-Id": correlationId,
+            Authorization: `Bearer ${
+              (
+                await refreshableToken.get()
+              ).serialized
+            }`,
+          },
+          client: notificationConfigProcessClient,
+        });
+
+      if (error) {
+        if (error.status === 404) {
           loggerInstance.info(
             `Notification config for user ${userId} and tenant ${tenantId} not found or role ${productRole} already missing, nothing to be done`
           );
         } else {
           throw genericInternalError(
-            `Error removing role ${productRole} from notification config for user ${userId} in tenant ${tenantId}. Reason: ${err}`
+            `Error removing role ${productRole} from notification config for user ${userId} in tenant ${tenantId}. Reason: ${error.status} - ${error.title}`
           );
         }
       }
@@ -123,9 +128,7 @@ export async function processUserEvent(
 
 export function messageProcessorBuilder(
   readModelServiceSQL: ReadModelServiceSQL,
-  notificationConfigProcessClient: ReturnType<
-    typeof notificationConfigApi.createProcessApiClient
-  >,
+  notificationConfigProcessClient: notificationConfigApi.NotificationConfigProcessClient,
   refreshableToken: RefreshableInteropToken
 ): { processMessage: (payload: EachMessagePayload) => Promise<void> } {
   return {

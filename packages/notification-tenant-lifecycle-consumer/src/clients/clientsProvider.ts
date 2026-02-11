@@ -12,7 +12,7 @@ export type PagoPAInteropBeClients = {
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
     notificationConfigProcess: {
-      client: notificationConfigApi.createProcessApiClient(
+      client: notificationConfigApi.createNotificationConfigClient(
         config.notificationConfigProcessUrl
       ),
     },

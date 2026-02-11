@@ -11,7 +11,6 @@ import {
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { RefreshableInteropToken } from "pagopa-interop-commons";
-import { AxiosError } from "axios";
 import { processUserEvent } from "../src/services/messageProcessor.js";
 import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
@@ -33,15 +32,30 @@ vi.mock("../src/config/config.js", async (importOriginal) => {
   };
 });
 
+// Mock the API clients module at the top level
+vi.mock("pagopa-interop-api-clients", async () => {
+  const actual = await vi.importActual("pagopa-interop-api-clients");
+  return {
+    ...actual,
+    notificationConfigApi: {
+      ...((actual as Record<string, unknown>).notificationConfigApi as Record<
+        string,
+        unknown
+      >),
+      ensureUserNotificationConfigExistsWithRoles: vi.fn(),
+      removeUserNotificationConfigRole: vi.fn(),
+    },
+  };
+});
+
 describe("processUserEvent", () => {
   const mockReadModelServiceSQL: ReadModelServiceSQL = {
     getTenantIdBySelfcareId: vi.fn(),
   };
 
-  const mockNotificationConfigProcessClient = {
-    ensureUserNotificationConfigExistsWithRoles: vi.fn(),
-    removeUserNotificationConfigRole: vi.fn(),
-  } as unknown as notificationConfigApi.NotificationConfigProcessClient;
+  // The client is now just a simple object passed to SDK functions
+  const mockNotificationConfigProcessClient =
+    {} as notificationConfigApi.NotificationConfigProcessClient;
 
   const mockInteropTokenGenerator: RefreshableInteropToken = {
     get: vi.fn(),
@@ -82,15 +96,24 @@ describe("processUserEvent", () => {
       },
     });
 
-    vi.spyOn(
-      mockNotificationConfigProcessClient,
-      "ensureUserNotificationConfigExistsWithRoles"
-    ).mockResolvedValue(undefined);
+    // Mock SDK functions to return success by default
+    vi.mocked(
+      notificationConfigApi.ensureUserNotificationConfigExistsWithRoles
+    ).mockResolvedValue({
+      data: undefined,
+      error: undefined,
+      request: new Request("http://test"),
+      response: new Response(),
+    });
 
-    vi.spyOn(
-      mockNotificationConfigProcessClient,
-      "removeUserNotificationConfigRole"
-    ).mockResolvedValue(undefined);
+    vi.mocked(
+      notificationConfigApi.removeUserNotificationConfigRole
+    ).mockResolvedValue({
+      data: undefined,
+      error: undefined,
+      request: new Request("http://test"),
+      response: new Response(),
+    });
   });
 
   const baseEvent = {
@@ -158,7 +181,7 @@ describe("processUserEvent", () => {
       mockReadModelServiceSQL.getTenantIdBySelfcareId
     ).toHaveBeenCalledTimes(2);
     expect(
-      mockNotificationConfigProcessClient.ensureUserNotificationConfigExistsWithRoles
+      notificationConfigApi.ensureUserNotificationConfigExistsWithRoles
     ).toHaveBeenCalled();
   });
 
@@ -180,19 +203,20 @@ describe("processUserEvent", () => {
       );
 
       expect(
-        mockNotificationConfigProcessClient.ensureUserNotificationConfigExistsWithRoles
+        notificationConfigApi.ensureUserNotificationConfigExistsWithRoles
       ).toHaveBeenCalledWith(
-        {
-          userId,
-          tenantId: unsafeBrandId<TenantId>(tenantId),
-          userRoles: [apiProductRole],
-        },
-        {
+        expect.objectContaining({
+          body: {
+            userId,
+            tenantId: unsafeBrandId<TenantId>(tenantId),
+            userRoles: [apiProductRole],
+          },
           headers: {
             "X-Correlation-Id": correlationId,
             Authorization: `Bearer mock-token`,
           },
-        }
+          client: mockNotificationConfigProcessClient,
+        })
       );
     }
   );
@@ -205,11 +229,19 @@ describe("processUserEvent", () => {
         eventType,
       };
 
-      const apiError = new Error("API Error");
-      vi.spyOn(
-        mockNotificationConfigProcessClient,
-        "ensureUserNotificationConfigExistsWithRoles"
-      ).mockRejectedValueOnce(apiError);
+      // Mock SDK function to return an error response
+      vi.mocked(
+        notificationConfigApi.ensureUserNotificationConfigExistsWithRoles
+      ).mockResolvedValueOnce({
+        data: undefined,
+        error: {
+          status: 500,
+          title: "Internal Server Error",
+          type: "about:blank",
+        },
+        request: new Request("http://test"),
+        response: new Response(),
+      });
 
       await expect(
         processUserEvent(
@@ -222,7 +254,7 @@ describe("processUserEvent", () => {
         )
       ).rejects.toThrow(
         genericInternalError(
-          `Error in request to ensure a notification config exists for user ${userId} in tenant ${tenantId} with role ${productRole}. Reason: ${apiError}`
+          `Error in request to ensure a notification config exists for user ${userId} in tenant ${tenantId} with role ${productRole}. Reason: 500 - Internal Server Error`
         )
       );
     }
@@ -244,18 +276,21 @@ describe("processUserEvent", () => {
     );
 
     expect(
-      mockNotificationConfigProcessClient.removeUserNotificationConfigRole
-    ).toHaveBeenCalledWith(undefined, {
-      params: {
-        userId,
-        tenantId: unsafeBrandId<TenantId>(tenantId),
-        userRole: apiProductRole,
-      },
-      headers: {
-        "X-Correlation-Id": correlationId,
-        Authorization: `Bearer mock-token`,
-      },
-    });
+      notificationConfigApi.removeUserNotificationConfigRole
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: {
+          userId,
+          tenantId: unsafeBrandId<TenantId>(tenantId),
+          userRole: apiProductRole,
+        },
+        headers: {
+          "X-Correlation-Id": correlationId,
+          Authorization: `Bearer mock-token`,
+        },
+        client: mockNotificationConfigProcessClient,
+      })
+    );
   });
 
   it("should throw an error if the client request for 'delete' events responds with a non-404 error", async () => {
@@ -264,11 +299,19 @@ describe("processUserEvent", () => {
       eventType: "delete",
     };
 
-    const apiError = new Error("API Error");
-    vi.spyOn(
-      mockNotificationConfigProcessClient,
-      "removeUserNotificationConfigRole"
-    ).mockRejectedValueOnce(apiError);
+    // Mock SDK function to return a non-404 error response
+    vi.mocked(
+      notificationConfigApi.removeUserNotificationConfigRole
+    ).mockResolvedValueOnce({
+      data: undefined,
+      error: {
+        status: 500,
+        title: "Internal Server Error",
+        type: "about:blank",
+      },
+      request: new Request("http://test"),
+      response: new Response(),
+    });
 
     await expect(
       processUserEvent(
@@ -281,7 +324,7 @@ describe("processUserEvent", () => {
       )
     ).rejects.toThrow(
       genericInternalError(
-        `Error removing role ${productRole} from notification config for user ${userId} in tenant ${tenantId}. Reason: ${apiError}`
+        `Error removing role ${productRole} from notification config for user ${userId} in tenant ${tenantId}. Reason: 500 - Internal Server Error`
       )
     );
   });
@@ -292,12 +335,19 @@ describe("processUserEvent", () => {
       eventType: "delete",
     };
 
-    vi.spyOn(
-      mockNotificationConfigProcessClient,
-      "removeUserNotificationConfigRole"
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-    ).mockRejectedValueOnce(new AxiosError("", "", {}, {}, { status: 404 }));
+    // Mock SDK function to return a 404 error response
+    vi.mocked(
+      notificationConfigApi.removeUserNotificationConfigRole
+    ).mockResolvedValueOnce({
+      data: undefined,
+      error: {
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      },
+      request: new Request("http://test"),
+      response: new Response(),
+    });
 
     await processUserEvent(
       deleteEvent,
@@ -306,6 +356,11 @@ describe("processUserEvent", () => {
       mockInteropTokenGenerator,
       mockLogger,
       correlationId
+    );
+
+    // Should not throw, verify logger was called
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      `Notification config for user ${userId} and tenant ${tenantId} not found or role ${productRole} already missing, nothing to be done`
     );
   });
 });

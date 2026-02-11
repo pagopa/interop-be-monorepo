@@ -13,7 +13,7 @@ import { config } from "./config/config.js";
 const readModelDB = makeDrizzleConnection(config);
 
 const notificationConfigProcessClient =
-  notificationConfigApi.createProcessApiClient(
+  notificationConfigApi.createNotificationConfigClient(
     config.notificationConfigProcessUrl
   );
 

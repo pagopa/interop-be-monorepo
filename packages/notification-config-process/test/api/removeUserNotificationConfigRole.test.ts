@@ -2,8 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TenantId, UserId, generateId, userRole } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { app, notificationConfigService } from "../vitest.api.setup.js";
 import {
   userNotificationConfigNotFound,
   userRoleNotInUserNotificationConfig,
@@ -20,12 +19,14 @@ describe("API DELETE /internal/userNotificationConfigs/tenantId/{tenantId}/userI
     userId: UserId = defaultUserId,
     role: string = "ADMIN"
   ) =>
-    request(api)
-      .delete(
-        `/internal/userNotificationConfigs/tenantId/${tenantId}/userId/${userId}/userRole/${role}`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+    app.inject({
+      method: "DELETE",
+      url: `/internal/userNotificationConfigs/tenantId/${tenantId}/userId/${userId}/userRole/${role}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Correlation-Id": generateId(),
+      },
+    });
 
   beforeEach(() => {
     notificationConfigService.removeUserNotificationConfigRole = vi
@@ -40,7 +41,7 @@ describe("API DELETE /internal/userNotificationConfigs/tenantId/{tenantId}/userI
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.statusCode).toBe(204);
       expect(
         notificationConfigService.removeUserNotificationConfigRole
       ).toHaveBeenCalledWith(
@@ -57,7 +58,7 @@ describe("API DELETE /internal/userNotificationConfigs/tenantId/{tenantId}/userI
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
-    expect(res.status).toBe(403);
+    expect(res.statusCode).toBe(403);
     expect(
       notificationConfigService.removeUserNotificationConfigRole
     ).not.toHaveBeenCalled();
@@ -86,7 +87,7 @@ describe("API DELETE /internal/userNotificationConfigs/tenantId/{tenantId}/userI
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token);
 
-      expect(res.status).toBe(expectedStatus);
+      expect(res.statusCode).toBe(expectedStatus);
     }
   );
 
@@ -99,7 +100,7 @@ describe("API DELETE /internal/userNotificationConfigs/tenantId/{tenantId}/userI
     async ({ tenantId, userId, role }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, tenantId, userId, role);
-      expect(res.status).toBe(400);
+      expect(res.statusCode).toBe(400);
       expect(
         notificationConfigService.removeUserNotificationConfigRole
       ).not.toHaveBeenCalledWith();

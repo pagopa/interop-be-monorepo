@@ -9,22 +9,28 @@ import {
 import { authRole } from "pagopa-interop-commons";
 import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
 import request from "supertest";
-import { api, clients, services } from "../../vitest.api.setup.js";
+import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { expectedOrganizationId } from "../../utils.js";
 
 describe("API GET /tenantNotificationConfigs", () => {
   const tenantId = mockTokenOrganizationId;
   const clientResponse: notificationConfigApi.TenantNotificationConfig =
-    generateMock(notificationConfigApi.TenantNotificationConfig);
+    generateMock(notificationConfigApi.zTenantNotificationConfig);
   const apiResponse: bffApi.TenantNotificationConfig = {
     enabled: clientResponse.enabled,
   };
 
   beforeEach(() => {
-    clients.notificationConfigProcessClient.getTenantNotificationConfig = vi
-      .fn()
-      .mockResolvedValue(clientResponse);
+    vi.clearAllMocks();
+    vi.mocked(
+      notificationConfigApi.getTenantNotificationConfig
+    ).mockResolvedValue({
+      data: clientResponse,
+      error: undefined,
+      request: new Request("http://test"),
+      response: new Response(),
+    });
   });
 
   const makeRequest = async (token: string) =>
@@ -44,7 +50,7 @@ describe("API GET /tenantNotificationConfigs", () => {
     expect(res.body).toEqual(apiResponse);
     expect(serviceSpy).toHaveBeenCalledWith(expectedOrganizationId(tenantId));
     expect(
-      clients.notificationConfigProcessClient.getTenantNotificationConfig
+      notificationConfigApi.getTenantNotificationConfig
     ).toHaveBeenCalled();
   });
 });

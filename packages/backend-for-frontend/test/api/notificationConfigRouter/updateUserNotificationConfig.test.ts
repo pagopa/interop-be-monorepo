@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import {
@@ -8,9 +9,9 @@ import {
   mockTokenUserId,
   getMockNotificationConfig,
 } from "pagopa-interop-commons-test";
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
-import { api, clients, services } from "../../vitest.api.setup.js";
+import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { expectedUserIdAndOrganizationId } from "../../utils.js";
 
@@ -44,9 +45,15 @@ describe("API POST /userNotificationConfigs", () => {
   };
 
   beforeEach(() => {
-    clients.notificationConfigProcessClient.updateUserNotificationConfig = vi
-      .fn()
-      .mockResolvedValue(undefined);
+    vi.clearAllMocks();
+    vi.mocked(
+      notificationConfigApi.updateUserNotificationConfig
+    ).mockResolvedValue({
+      data: generateMock(notificationConfigApi.zUserNotificationConfig),
+      error: undefined,
+      request: new Request("http://test"),
+      response: new Response(),
+    });
   });
 
   const makeRequest = async (
@@ -73,34 +80,35 @@ describe("API POST /userNotificationConfigs", () => {
       expectedUserIdAndOrganizationId(userId, tenantId)
     );
     expect(
-      clients.notificationConfigProcessClient.updateUserNotificationConfig
+      notificationConfigApi.updateUserNotificationConfig
     ).toHaveBeenCalledWith(
-      {
-        inAppNotificationPreference:
-          notificationConfigSeed.inAppNotificationPreference,
-        emailNotificationPreference:
-          notificationConfigSeed.emailNotificationPreference,
-        emailDigestPreference: notificationConfigSeed.emailDigestPreference,
-        inAppConfig: {
-          ...restConfigMock,
-          clientKeyAddedDeletedToClientUsers:
-            mockClientKeyAddedDeletedToClientUsers,
-          clientKeyConsumerAddedDeletedToClientUsers:
-            mockClientKeyAddedDeletedToClientUsers,
-          producerKeychainKeyAddedDeletedToClientUsers:
-            mockClientKeyAddedDeletedToClientUsers,
+      expect.objectContaining({
+        body: {
+          inAppNotificationPreference:
+            notificationConfigSeed.inAppNotificationPreference,
+          emailNotificationPreference:
+            notificationConfigSeed.emailNotificationPreference,
+          emailDigestPreference: notificationConfigSeed.emailDigestPreference,
+          inAppConfig: {
+            ...restConfigMock,
+            clientKeyAddedDeletedToClientUsers:
+              mockClientKeyAddedDeletedToClientUsers,
+            clientKeyConsumerAddedDeletedToClientUsers:
+              mockClientKeyAddedDeletedToClientUsers,
+            producerKeychainKeyAddedDeletedToClientUsers:
+              mockClientKeyAddedDeletedToClientUsers,
+          },
+          emailConfig: {
+            ...restConfigMock,
+            clientKeyAddedDeletedToClientUsers:
+              mockClientKeyAddedDeletedToClientUsers,
+            clientKeyConsumerAddedDeletedToClientUsers:
+              mockClientKeyAddedDeletedToClientUsers,
+            producerKeychainKeyAddedDeletedToClientUsers:
+              mockClientKeyAddedDeletedToClientUsers,
+          },
         },
-        emailConfig: {
-          ...restConfigMock,
-          clientKeyAddedDeletedToClientUsers:
-            mockClientKeyAddedDeletedToClientUsers,
-          clientKeyConsumerAddedDeletedToClientUsers:
-            mockClientKeyAddedDeletedToClientUsers,
-          producerKeychainKeyAddedDeletedToClientUsers:
-            mockClientKeyAddedDeletedToClientUsers,
-        },
-      },
-      expect.any(Object)
+      })
     );
   });
 
@@ -135,7 +143,7 @@ describe("API POST /userNotificationConfigs", () => {
     );
     expect(res.status).toBe(400);
     expect(
-      clients.notificationConfigProcessClient.updateUserNotificationConfig
-    ).not.toHaveBeenCalledWith();
+      notificationConfigApi.updateUserNotificationConfig
+    ).not.toHaveBeenCalled();
   });
 });

@@ -44,7 +44,7 @@ export type PagoPAInteropBeClients = {
   selfcareV2UserClient: SelfcareV2UsersClient;
   delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient;
-  notificationConfigProcessClient: notificationConfigApi.NotificationConfigProcessClient;
+  notificationConfigProcessClient: notificationConfigApi.NotificationConfigHeyApiClient;
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient;
 };
 
@@ -97,7 +97,7 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       config.eserviceTemplateProcessUrl
     ),
     notificationConfigProcessClient:
-      notificationConfigApi.createProcessApiClient(
+      notificationConfigApi.createNotificationConfigClient(
         config.notificationConfigProcessUrl
       ),
     inAppNotificationManagerClient:

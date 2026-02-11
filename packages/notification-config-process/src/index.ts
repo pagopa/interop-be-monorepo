@@ -1,4 +1,4 @@
-import { startServer } from "pagopa-interop-commons";
+import { startFastifyServer } from "pagopa-interop-commons";
 import { initDB } from "pagopa-interop-commons";
 import {
   makeDrizzleConnection,
@@ -27,4 +27,4 @@ const service = notificationConfigServiceBuilder(
   notificationConfigReadModelService,
   tenantReadModelService
 );
-startServer(await createApp(service), config);
+await startFastifyServer(await createApp(service), config);

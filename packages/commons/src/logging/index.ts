@@ -129,6 +129,7 @@ export type Logger = ReturnType<typeof logger>;
 export const genericLogger = logger({});
 
 export * from "./loggerMiddleware.js";
+export * from "./fastifyLoggerHook.js";
 
 if (!parsedLoggerConfig.success) {
   // eslint-disable-next-line no-console

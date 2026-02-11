@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import {
   generateToken,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
-import { api, clients, services } from "../../vitest.api.setup.js";
+import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { expectedOrganizationId } from "../../utils.js";
 
@@ -19,9 +20,15 @@ describe("API POST /tenantNotificationConfigs", () => {
   };
 
   beforeEach(() => {
-    clients.notificationConfigProcessClient.updateTenantNotificationConfig = vi
-      .fn()
-      .mockResolvedValue(undefined);
+    vi.clearAllMocks();
+    vi.mocked(
+      notificationConfigApi.updateTenantNotificationConfig
+    ).mockResolvedValue({
+      data: generateMock(notificationConfigApi.zTenantNotificationConfig),
+      error: undefined,
+      request: new Request("http://test"),
+      response: new Response(),
+    });
   });
 
   const makeRequest = async (
@@ -47,8 +54,12 @@ describe("API POST /tenantNotificationConfigs", () => {
       expectedOrganizationId(tenantId)
     );
     expect(
-      clients.notificationConfigProcessClient.updateTenantNotificationConfig
-    ).toHaveBeenCalledWith(notificationConfigSeed, expect.any(Object));
+      notificationConfigApi.updateTenantNotificationConfig
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: notificationConfigSeed,
+      })
+    );
   });
 
   it.each([
@@ -63,7 +74,7 @@ describe("API POST /tenantNotificationConfigs", () => {
     );
     expect(res.status).toBe(400);
     expect(
-      clients.notificationConfigProcessClient.updateTenantNotificationConfig
-    ).not.toHaveBeenCalledWith();
+      notificationConfigApi.updateTenantNotificationConfig
+    ).not.toHaveBeenCalled();
   });
 });

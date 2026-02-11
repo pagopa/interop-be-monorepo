@@ -14,6 +14,23 @@ vi.mock("pagopa-interop-application-audit", async () => ({
   ),
 }));
 
+vi.mock("pagopa-interop-api-clients", async () => {
+  const actual = await vi.importActual("pagopa-interop-api-clients");
+  return {
+    ...actual,
+    notificationConfigApi: {
+      ...((actual as Record<string, unknown>).notificationConfigApi as Record<
+        string,
+        unknown
+      >),
+      getTenantNotificationConfig: vi.fn(),
+      updateTenantNotificationConfig: vi.fn(),
+      getUserNotificationConfig: vi.fn(),
+      updateUserNotificationConfig: vi.fn(),
+    },
+  };
+});
+
 vi.mock("pagopa-interop-commons", async () => {
   const actual = await vi.importActual<typeof import("pagopa-interop-commons")>(
     "pagopa-interop-commons"
