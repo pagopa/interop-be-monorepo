@@ -1,17 +1,16 @@
+import express from "express";
 import {
   authenticationMiddleware,
   contextMiddleware,
   errorsToApiProblemsMiddleware,
-  healthRouter,
+  healthRouterSimple,
   loggerMiddleware,
-  zodiosCtx,
 } from "pagopa-interop-commons";
 import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import notificationConfigRouter from "./routers/NotificationConfigRouter.js";
 import { config } from "./config/config.js";
 import { NotificationConfigService } from "./services/notificationConfigService.js";
@@ -21,16 +20,17 @@ import { notificationConfigFeatureFlagMiddleware } from "./utilities/middlewares
 export async function createApp(service: NotificationConfigService) {
   const serviceName = modelsServiceName.NOTIFICATION_CONFIG_PROCESS;
 
-  const router = notificationConfigRouter(zodiosCtx, service);
+  const router = notificationConfigRouter(service);
 
-  const app = zodiosCtx.app();
+  const app = express();
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter(notificationConfigApi.healthApi.api));
+  app.use(healthRouterSimple());
   app.use(notificationConfigFeatureFlagMiddleware());
+  app.use(express.json());
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));
