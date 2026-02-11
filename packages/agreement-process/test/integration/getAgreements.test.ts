@@ -666,7 +666,7 @@ describe("get agreements", () => {
     expectSinglePageListResult(agreements, [agreement5]);
   });
 
-  describe("strictConsumer", () => {
+  describe("custom tests for the strictConsumer parameter", () => {
     const tenantA = getMockTenant();
     const tenantB = getMockTenant();
 
