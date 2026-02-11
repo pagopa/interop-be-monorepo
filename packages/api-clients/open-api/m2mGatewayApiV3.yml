@@ -9320,7 +9320,7 @@ paths:
     get:
       tags:
         - clients
-      summary: List of client users
+      summary: List Client Users
       description: Retrieve a list of Users associated with a Client
       operationId: getClientUsers
       parameters:
@@ -9466,7 +9466,7 @@ paths:
     get:
       tags:
         - producerKeychains
-      summary: List of Producer Keychains Users
+      summary: List Producer Keychains Users
       description: Retrieve a list of Users associated with a Producer Keychain
       operationId: getProducerKeychainUsers
       parameters:
