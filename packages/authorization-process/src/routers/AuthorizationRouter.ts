@@ -814,9 +814,9 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const producerKeychain =
+        const { data: producerKeychain, metadata } =
           await authorizationService.addProducerKeychainUsers(
             {
               producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
@@ -824,7 +824,7 @@ const authorizationRouter = (
             },
             ctx
           );
-
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
