@@ -9377,7 +9377,7 @@ paths:
     post:
       tags:
         - clients
-      summary: Assigns users to a Client.
+      summary: Link users to a Client.
       description: |
         Links a security User to a Client. 
         This allows the specified User to access the Client and its related resources. 
@@ -9392,7 +9392,7 @@ paths:
         required: true
       responses:
         "204":
-          description: Users added
+          description: User linked to the Client
           headers:
             "X-Rate-Limit-Limit":
               schema:
