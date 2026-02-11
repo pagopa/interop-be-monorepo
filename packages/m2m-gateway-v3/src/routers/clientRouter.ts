@@ -222,7 +222,7 @@ const clientRouter = (
 
         await clientService.addClientUsers(
           unsafeBrandId(req.params.clientId),
-          req.body.userIds,
+          req.body.userId,
           ctx
         );
         return res.status(204).send();
@@ -232,6 +232,27 @@ const clientRouter = (
           emptyErrorMapper,
           ctx,
           `Error adding user to client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/clients/:clientId/users/:userId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        await clientService.removeClientUser(
+          unsafeBrandId(req.params.clientId),
+          req.params.userId,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error removing user ${req.params.userId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

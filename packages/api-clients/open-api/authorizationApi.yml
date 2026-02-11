@@ -548,8 +548,15 @@ paths:
       summary: Remove a user from a Client
       operationId: removeUser
       responses:
-        "204":
-          description: User removed
+        "200":
+          description: User removed from Client
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullClient"
         "400":
           description: Bad Request
           content:
@@ -1370,6 +1377,9 @@ paths:
       responses:
         "200":
           description: Users added
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1423,8 +1433,15 @@ paths:
       summary: Remove a user from a Producer Keychain
       operationId: removeProducerKeychainUser
       responses:
-        "204":
-          description: User removed
+        "200":
+          description: User removed from Producer Keychain
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullProducerKeychain"
         "400":
           description: Bad Request
           content:

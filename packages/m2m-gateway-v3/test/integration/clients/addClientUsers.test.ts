@@ -3,12 +3,12 @@ import {
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
-  UserId,
 } from "pagopa-interop-models";
 import {
   getMockedApiConsumerFullClient,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -22,11 +22,13 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("addClientUsers", () => {
-  const userIds: UserId[] = [generateId()];
+  const linkUser: m2mGatewayApiV3.LinkUser = {
+    userId: generateId(),
+  };
 
   const mockAuthorizationProcessResponse = getMockWithMetadata({
     ...getMockedApiConsumerFullClient(),
-    users: userIds,
+    users: [linkUser.userId],
   });
 
   const mockAddClientUsers = vi
@@ -53,7 +55,7 @@ describe("addClientUsers", () => {
   it("Should succeed and perform API clients calls", async () => {
     const result = await clientService.addClientUsers(
       unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-      userIds,
+      linkUser.userId,
       getMockM2MAdminAppContext()
     );
 
@@ -63,7 +65,7 @@ describe("addClientUsers", () => {
       params: {
         clientId: mockAuthorizationProcessResponse.data.id,
       },
-      body: { userIds },
+      body: { userIds: [linkUser.userId] },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
@@ -83,7 +85,7 @@ describe("addClientUsers", () => {
     await expect(
       clientService.addClientUsers(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        userIds,
+        linkUser.userId,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -98,7 +100,7 @@ describe("addClientUsers", () => {
     await expect(
       clientService.addClientUsers(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        userIds,
+        linkUser.userId,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -115,7 +117,7 @@ describe("addClientUsers", () => {
     await expect(
       clientService.addClientUsers(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        userIds,
+        linkUser.userId,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
