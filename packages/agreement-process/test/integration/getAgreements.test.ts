@@ -22,7 +22,7 @@ import {
   delegationState,
   TenantId,
 } from "pagopa-interop-models";
-import { describe, beforeEach, it, expect, beforeAll } from "vitest";
+import { describe, beforeEach, it, expect } from "vitest";
 import {
   addOneTenant,
   addOneEService,
@@ -654,7 +654,7 @@ describe("get agreements", () => {
     expectSinglePageListResult(agreements, [agreement1, agreement2]);
   });
 
-  it.only("should get agreements for a delegated eservice with filters: consumerId and requester is consumer delegate", async () => {
+  it("should get agreements for a delegated eservice with filters: consumerId and requester is consumer delegate", async () => {
     const agreements = await agreementService.getAgreements(
       {
         consumerId: tenant1.id,
@@ -666,69 +666,154 @@ describe("get agreements", () => {
     expectSinglePageListResult(agreements, [agreement5]);
   });
 
-  // describe("strictConsumer", () => {
-  //   const tenantA = getMockTenant();
-  //   const tenantB = getMockTenant();
+  describe("strictConsumer", () => {
+    const tenantA = getMockTenant();
+    const tenantB = getMockTenant();
 
-  //   const eserviceA: EService = {
-  //     ...getMockEService(),
-  //     descriptors: [getMockDescriptorPublished()],
-  //   };
+    const eserviceA: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+    };
 
-  //   const agreement11: Agreement = {
-  //     ...getMockAgreement(),
-  //     eserviceId: eserviceA.id,
-  //     descriptorId: eserviceA.descriptors[0].id,
-  //     producerId: eserviceA.producerId,
-  //     consumerId: tenantA.id,
-  //   };
+    const agreement11: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: eserviceA.id,
+      descriptorId: eserviceA.descriptors[0].id,
+      producerId: eserviceA.producerId,
+      consumerId: tenantA.id,
+    };
 
-  //   const agreement12: Agreement = {
-  //     ...getMockAgreement(),
-  //     eserviceId: eserviceA.id,
-  //     descriptorId: eserviceA.descriptors[0].id,
-  //     producerId: eserviceA.producerId,
-  //     consumerId: tenantB.id,
-  //   };
+    const agreement12: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: eserviceA.id,
+      descriptorId: eserviceA.descriptors[0].id,
+      producerId: eserviceA.producerId,
+      consumerId: tenantB.id,
+    };
 
-  //   const consumerDelegation = getMockDelegation({
-  //     kind: delegationKind.delegatedConsumer,
-  //     delegateId: tenantA.id,
-  //     delegatorId: tenantB.id,
-  //     eserviceId: eserviceA.id,
-  //     state: delegationState.active,
-  //   });
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      delegateId: tenantA.id,
+      delegatorId: tenantB.id,
+      eserviceId: eserviceA.id,
+      state: delegationState.active,
+    });
 
-  //   beforeAll(async () => {
-  //     await addOneTenant(tenantA);
-  //     await addOneTenant(tenantB);
-  //     await addOneEService(eserviceA);
-  //     await addOneAgreement(agreement11);
-  //     await addOneAgreement(agreement12);
-  //     await addOneDelegation(consumerDelegation);
-  //   });
+    beforeEach(async () => {
+      await addOneTenant(tenantA);
+      await addOneTenant(tenantB);
+      await addOneEService(eserviceA);
+      await addOneAgreement(agreement11);
+      await addOneAgreement(agreement12);
+      await addOneDelegation(consumerDelegation);
+    });
 
-  //   it.only("should return agreements for tenantA with strictConsumer true", async () => {
-  //     const agreements = await agreementService.getAgreements(
-  //       {
-  //         consumerId: [tenantA.id],
-  //         strictConsumer: true,
-  //       },
-  //       10,
-  //       0,
-  //       getMockContext({ authData: getMockAuthData(tenantA.id) })
-  //     );
-  //     expectSinglePageListResult(agreements, [agreement11]);
-  //   });
+    describe("the requester is tenantA", () => {
+      it("should return agreements for which tenantA is the exact consumer (strictConsumer: true)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantA.id],
+            strictConsumer: true,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantA.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement11]);
+      });
 
-  //   it("should return agreements for tenantA with strictConsumer false", async () => {
-  //     const agreements = await agreementService.getAgreements(
-  //       { consumerId: [tenantA.id], strictConsumer: false },
-  //       10,
-  //       0,
-  //       getMockContext({ authData: getMockAuthData(tenantA.id) })
-  //     );
-  //     expectSinglePageListResult(agreements, [agreement11, agreement12]);
-  //   });
-  // });
+      it("should return agreements for which tenantA is the exact consumer or delegated consumer (strictConsumer: false)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantA.id],
+            strictConsumer: false,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantA.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement11, agreement12]);
+      });
+
+      it("should return agreements for which tenantB is the exact consumer (strictConsumer: true)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantB.id],
+            strictConsumer: true,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantA.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+
+      it("should return agreements for which tenantB is the exact consumer or delegated consumer (strictConsumer: false)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantB.id],
+            strictConsumer: false,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantA.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+    });
+
+    describe("the requester is tenantB", () => {
+      it("should return agreements for which tenantA is the exact consumer (strictConsumer: true)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantA.id],
+            strictConsumer: true,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantB.id) })
+        );
+        expectSinglePageListResult(agreements, []);
+      });
+
+      it("should return agreements for which tenantA is the exact consumer or delegated consumer (strictConsumer: false)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantA.id],
+            strictConsumer: false,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantB.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+
+      it("should return agreements for which tenantB is the exact consumer (strictConsumer: true)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantB.id],
+            strictConsumer: true,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantB.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+
+      it("should return agreements for which tenantB is the exact consumer or delegated consumer (strictConsumer: false)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantB.id],
+            strictConsumer: false,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantB.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+    });
+  });
 });
