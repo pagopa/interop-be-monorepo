@@ -4,23 +4,23 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockClientService } from "../../vitest.api.setup.js";
+import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
-describe("POST /clients/:clientId/users router test", () => {
+describe("POST /producerKeychains/:producerKeychainId/users router test", () => {
   const linkUser: m2mGatewayApiV3.LinkUser = {
     userId: generateId(),
   };
 
   const makeRequest = async (
     token: string,
-    clientId: string,
+    producerKeychainId: string,
     body: m2mGatewayApiV3.LinkUser
   ) =>
     request(api)
-      .post(`${appBasePath}/clients/${clientId}/users`)
+      .post(`${appBasePath}/producerKeychains/${producerKeychainId}/users`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 
@@ -28,16 +28,18 @@ describe("POST /clients/:clientId/users router test", () => {
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      const clientId = generateId();
-      mockClientService.addClientUsers = vi.fn();
+      const producerKeychainId = generateId();
+      mockProducerKeychainService.addProducerKeychainUsers = vi.fn();
 
       const token = generateToken(role);
-      const res = await makeRequest(token, clientId, linkUser);
+      const res = await makeRequest(token, producerKeychainId, linkUser);
 
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
-      expect(mockClientService.addClientUsers).toHaveBeenCalledWith(
-        clientId,
+      expect(
+        mockProducerKeychainService.addProducerKeychainUsers
+      ).toHaveBeenCalledWith(
+        producerKeychainId,
         linkUser.userId,
         expect.any(Object) // Context
       );
@@ -52,14 +54,18 @@ describe("POST /clients/:clientId/users router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid client id", async () => {
+  it("Should return 400 if passed an invalid producerKeychain id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid-client-id", linkUser);
+    const res = await makeRequest(
+      token,
+      "invalid-producerKeychain-id",
+      linkUser
+    );
 
     expect(res.status).toBe(400);
   });
 
-  it.each([{}, { userIds: undefined }, { userIds: ["invalid-user-id"] }])(
+  it.each([{}, { user: undefined }, { user: "invalid-user-id" }])(
     "Should return 400 if passed an invalid seed",
     async (body) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -80,7 +86,9 @@ describe("POST /clients/:clientId/users router test", () => {
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockClientService.addClientUsers = vi.fn().mockRejectedValue(error);
+    mockProducerKeychainService.addProducerKeychainUsers = vi
+      .fn()
+      .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, generateId(), linkUser);
 
