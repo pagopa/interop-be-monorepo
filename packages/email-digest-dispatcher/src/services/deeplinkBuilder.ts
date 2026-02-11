@@ -1,3 +1,4 @@
+import { DigestNotificationType } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 
 const { bffUrl } = config;
@@ -8,7 +9,7 @@ const DEEPLINK_BASE_PATH = "/emailDeepLink";
  * Builds a deeplink URL with optional query parameters.
  */
 function buildDeeplinkUrl(
-  notificationType: string,
+  notificationType: DigestNotificationType,
   params?: { entityId?: string; selfcareId?: string | null }
 ): string {
   const url = new URL(`${DEEPLINK_BASE_PATH}/${notificationType}`, bffUrl);
@@ -136,13 +137,19 @@ export function viewAllReceivedPurposesLink(selfcareId: string | null): string {
 }
 
 export function viewAllSentDelegationsLink(selfcareId: string | null): string {
-  return buildDeeplinkUrl("delegationToDelegator", { selfcareId });
+  const url = buildDeeplinkUrl("delegation", { selfcareId });
+  const parsed = new URL(url);
+  parsed.searchParams.set("tab", "delegationsGranted");
+  return parsed.href;
 }
 
 export function viewAllReceivedDelegationsLink(
   selfcareId: string | null
 ): string {
-  return buildDeeplinkUrl("delegationToDelegate", { selfcareId });
+  const url = buildDeeplinkUrl("delegation", { selfcareId });
+  const parsed = new URL(url);
+  parsed.searchParams.set("tab", "delegationsReceived");
+  return parsed.href;
 }
 
 export function viewAllAttributesLink(selfcareId: string | null): string {
