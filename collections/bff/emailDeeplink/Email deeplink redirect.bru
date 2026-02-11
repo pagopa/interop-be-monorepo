@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: {{host-bff}}/emailDeeplink/:notificationType/:entityId
+  url: {{host-bff}}/emailDeepLink/:notificationType/:entityId?selfcareId=12345678-1234-1234-1234-123456789012
   body: none
   auth: inherit
+}
+
+params:query {
+  selfcareId: 12345678-1234-1234-1234-123456789012
 }
 
 params:path {
