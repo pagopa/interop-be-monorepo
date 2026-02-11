@@ -48,5 +48,5 @@ export function calculateIntegrityRest02DigestFromBody({
     payloadBytes = Buffer.from(json);
   }
 
-  return crypto.createHash("sha256").update(payloadBytes).digest("base64url");
+  return crypto.createHash("sha256").update(payloadBytes).digest("base64");
 }

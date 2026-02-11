@@ -155,11 +155,13 @@ describe("integrityRest02Middleware", () => {
     const undefinedBodyDigest = calculateIntegrityRest02DigestFromBody({
       body: undefined,
     });
+    const expectedDigest = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=";
 
     expect(res.status).toBe(204);
     expect(res.headers).toHaveProperty("digest");
     expect(res.headers.digest).toBe(`SHA-256=${emptyStringDigest}`);
     expect(res.headers.digest).toBe(`SHA-256=${nullBodyDigest}`);
     expect(res.headers.digest).toBe(`SHA-256=${undefinedBodyDigest}`);
+    expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
   });
 });
