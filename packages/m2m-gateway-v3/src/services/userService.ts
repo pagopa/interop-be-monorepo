@@ -15,6 +15,23 @@ export type GetUsersQueryParams = {
 
 export type UserService = ReturnType<typeof userServiceBuilder>;
 
+export async function getSelfcareUserById(
+  clients: PagoPAInteropBeClients,
+  userId: string,
+  selfcareId: string,
+  correlationId: string
+): Promise<m2mGatewayApiV3.User> {
+  const user = await clients.selfcareClient.user.getUserInfoUsingGET({
+    params: { id: userId },
+    queries: { institutionId: selfcareId },
+    headers: {
+      "X-Correlation-Id": correlationId,
+    },
+  });
+
+  return toM2MGatewayApiUser(user);
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function userServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
@@ -45,13 +62,15 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
 
       // Fetch users from SelfCare (API already returns only active users)
       const users =
-        await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
-          params: { institutionId: tenant.selfcareId },
-          queries: {
-            productRoles: roles.length > 0 ? roles.join(",") : undefined,
-          },
-          headers,
-        });
+        await clients.selfcareClient.institution.getInstitutionUsersByProductUsingGET(
+          {
+            params: { institutionId: tenant.selfcareId },
+            queries: {
+              productRoles: roles.length > 0 ? roles.join(",") : undefined,
+            },
+            headers,
+          }
+        );
 
       // Apply pagination (in-memory since SelfCare doesn't support pagination)
       const paginatedUsers = users.slice(offset, offset + limit);
@@ -93,13 +112,15 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
 
       // Fetch users from SelfCare (API already returns only active users)
       const users =
-        await clients.selfcareV2Client.getInstitutionUsersByProductUsingGET({
-          params: { institutionId: selfcareId },
-          queries: {
-            userId,
-          },
-          headers,
-        });
+        await clients.selfcareClient.institution.getInstitutionUsersByProductUsingGET(
+          {
+            params: { institutionId: selfcareId },
+            queries: {
+              userId,
+            },
+            headers,
+          }
+        );
 
       const user = users[0];
       if (users.length !== 1 || !user || user.id !== userId) {

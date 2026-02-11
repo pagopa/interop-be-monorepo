@@ -31,6 +31,7 @@ import {
   genericInternalError,
   ClientJWKKey,
   ProducerJWKKey,
+  Tenant,
 } from "pagopa-interop-models";
 import {
   aggregateClientArray,
@@ -43,6 +44,7 @@ import {
   ProducerJWKKeyReadModelService,
   ProducerKeychainReadModelService,
   PurposeReadModelService,
+  TenantReadModelService,
   toClientAggregatorArray,
   toProducerKeychainAggregatorArray,
 } from "pagopa-interop-readmodel";
@@ -88,6 +90,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
+  tenantReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   clientReadModelServiceSQL: ClientReadModelService;
@@ -98,6 +101,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: DelegationReadModelService;
   clientJWKKeyReadModelServiceSQL: ClientJWKKeyReadModelService;
   producerJWKKeyReadModelServiceSQL: ProducerJWKKeyReadModelService;
+  tenantReadModelServiceSQL: TenantReadModelService;
 }) {
   return {
     async getClientById(
@@ -523,6 +527,9 @@ export function readModelServiceBuilderSQL({
       }
 
       return parseResult.data;
+    },
+    async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
+      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
     },
   };
 }

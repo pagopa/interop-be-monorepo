@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import {
   ClientAssertionDigest,
@@ -18,7 +17,7 @@ import { AuthorizationServerTokenGenerationConfig } from "../config/authorizatio
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
 import { dateToSeconds } from "../utils/date.js";
-import { calculateKid } from "../auth/jwk.js";
+import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import {
   InteropApiToken,
   InteropConsumerToken,
@@ -31,6 +30,7 @@ import {
   InteropUIToken,
   UIClaims,
   InteropJwtInternalPayload,
+  InteropJwtApiDPoPPayload,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
@@ -151,10 +151,12 @@ export class InteropTokenGenerator {
     sub,
     consumerId,
     clientAdminId,
+    dpopJWK,
   }: {
     sub: ClientId;
     consumerId: TenantId;
     clientAdminId: UserId | undefined;
+    dpopJWK?: JWKKeyRS256 | JWKKeyES256;
   }): Promise<InteropApiToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -198,10 +200,22 @@ export class InteropTokenGenerator {
           role: systemRole.M2M_ROLE,
         };
 
-    const payload: InteropJwtApiPayload = {
-      ...userDataPayload,
-      ...systemRolePayload,
-    };
+    // CORE LOGIC: Strongly-typed payload construction.
+    // Uses InteropJwtApiDPoPPayload (req. cnf) if dpopJWK exists, otherwise standard InteropJwtApiPayload.
+    // The serializer handles the resulting Union type.
+
+    const payload: InteropJwtApiPayload | InteropJwtApiDPoPPayload = dpopJWK
+      ? {
+          ...userDataPayload,
+          ...systemRolePayload,
+          cnf: {
+            jkt: calculateDPoPThumbprint(dpopJWK),
+          },
+        }
+      : {
+          ...userDataPayload,
+          ...systemRolePayload,
+        };
 
     const serializedToken = await this.createAndSignToken({
       header,
@@ -283,7 +297,7 @@ export class InteropTokenGenerator {
       ...(dpopJWK
         ? {
             cnf: {
-              jkt: calculateKid(dpopJWK),
+              jkt: calculateDPoPThumbprint(dpopJWK),
             },
           }
         : {}),
