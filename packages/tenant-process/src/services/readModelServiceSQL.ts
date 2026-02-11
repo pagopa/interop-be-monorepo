@@ -48,6 +48,7 @@ import {
   isNotNull,
   isNull,
   or,
+  sql,
 } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
@@ -80,7 +81,9 @@ export function readModelServiceBuilderSQL(
       return await readModelDB.transaction(async (tx) => {
         const baseSelection = {
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name).as(
+            "nameLowerCase"
+          ),
         };
         const baseQuery = tx
           .selectDistinct(baseSelection)
@@ -421,9 +424,11 @@ export function readModelServiceBuilderSQL(
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const baseSelection = {
         id: tenantInReadmodelTenant.id,
-        name: tenantInReadmodelTenant.name,
+        name: sql<string>`${tenantInReadmodelTenant.name}`.as("tenantName"),
         attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
-        attributeName: attributeInReadmodelAttribute.name,
+        attributeName: sql<string>`${attributeInReadmodelAttribute.name}`.as(
+          "attributeName"
+        ),
       };
       const baseQuery = readModelDB
         .selectDistinct(baseSelection)
@@ -448,10 +453,6 @@ export function readModelServiceBuilderSQL(
             tenantCertifiedAttributeInReadmodelTenant.tenantId,
             tenantInReadmodelTenant.id
           )
-        )
-        .orderBy(
-          ascLower(tenantInReadmodelTenant.name),
-          attributeInReadmodelAttribute.name
         );
 
       const subquery = withTotalCountSubquery(readModelDB, {
