@@ -48,6 +48,7 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "yaml": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "prettier": "catalog:"
   }
 }

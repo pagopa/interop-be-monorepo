@@ -1,11 +1,13 @@
 packages:
   - packages/*
+
 allowBuilds:
   scarf/scarf@1.4.0: true
   cpu-features@0.0.10: true
   esbuild: true
   puppeteer@22.11.2: true
   ssh2@1.15.0: true
+
 catalog:
   "@anatine/zod-mock": 3.14.0
   "@apidevtools/swagger-parser": 10.1.1
