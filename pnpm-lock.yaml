@@ -39,9 +39,6 @@ catalogs:
     '@pagopa/eslint-config':
       specifier: 3.0.0
       version: 3.0.0
-    '@pagopa/interop-outbound-models':
-      specifier: 1.8.5
-      version: 1.8.5
     '@protobuf-ts/plugin':
       specifier: 2.9.4
       version: 2.9.4
@@ -355,8 +352,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
-        version: 1.8.5
+        specifier: 1.7.0
+        version: 1.7.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1415,8 +1412,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
-        version: 1.8.5
+        specifier: 1.7.0
+        version: 1.7.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2344,8 +2341,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
-        version: 1.8.5
+        specifier: 1.7.0
+        version: 1.7.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3119,8 +3116,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
-        version: 1.8.5
+        specifier: 1.7.0
+        version: 1.7.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4980,8 +4977,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
-        version: 1.8.5
+        specifier: 1.8.1
+        version: 1.8.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5218,7 +5215,7 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
+        specifier: 1.8.5
         version: 1.8.5
       dotenv-flow:
         specifier: 'catalog:'
@@ -5637,8 +5634,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
-        version: 1.8.5
+        specifier: 1.7.0
+        version: 1.7.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7278,6 +7275,12 @@ packages:
 
   '@pagopa/eslint-config@3.0.0':
     resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
+
+  '@pagopa/interop-outbound-models@1.7.0':
+    resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
+
+  '@pagopa/interop-outbound-models@1.8.1':
+    resolution: {integrity: sha512-WOxbvxvc03fKYn/I1cxucbhvak+h5NFGFAu3ESV/3Y15mDWDEO4ZZz+Ybm+v4dxb54OuOQME8JSVot9tExr+pQ==}
 
   '@pagopa/interop-outbound-models@1.8.5':
     resolution: {integrity: sha512-rhd9NZtOkux27uZw19OvBkuyp15tMzrO1lWQVncZ9d10h6mft06eaVfCMuFZmEIuyy3l+MCCZZ5qTRUjm7EKzQ==}
@@ -13660,6 +13663,18 @@ snapshots:
       - supports-color
       - tsutils
       - typescript
+
+  '@pagopa/interop-outbound-models@1.7.0':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
+
+  '@pagopa/interop-outbound-models@1.8.1':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
 
   '@pagopa/interop-outbound-models@1.8.5':
     dependencies:

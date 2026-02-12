@@ -2,11 +2,13 @@ packages:
   - packages/*
 
 allowBuilds:
-  scarf/scarf@1.4.0: true
-  cpu-features@0.0.10: true
   esbuild: true
-  puppeteer@22.11.2: true
-  ssh2@1.15.0: true
+  scarf/scarf: true
+  cpu-features: true
+  puppeteer: true
+  ssh2: true
+  "@bufbuild/buf": true
+  "@confluentinc/kafka-javascript": true
 
 catalog:
   "@anatine/zod-mock": 3.14.0
@@ -20,7 +22,6 @@ catalog:
   "@aws-sdk/util-dynamodb": 3.840.0
   "@faker-js/faker": 8.4.1
   "@pagopa/eslint-config": 3.0.0
-  "@pagopa/interop-outbound-models": 1.8.5
   "@protobuf-ts/plugin": 2.9.4
   "@protobuf-ts/protoc": 2.9.4
   "@protobuf-ts/runtime": 2.9.4
