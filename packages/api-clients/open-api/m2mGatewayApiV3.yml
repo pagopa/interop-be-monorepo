@@ -94,15 +94,7 @@ paths:
               $ref: "#/components/schemas/DescriptorId"
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Agreements by E-Service IDs. If not specified, return Agreements for any E-Service
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/EServiceId"
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -832,7 +824,8 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/EServiceId"
+              type: string
+              format: uuid
             default: []
           explode: false
         - in: query
@@ -846,15 +839,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Consumer Delegations by E-Service IDs. If not specified, return Consumer Delegations for any E-Service
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/EServiceId"
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -1029,7 +1014,8 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/EServiceId"
+              type: string
+              format: uuid
             default: []
           explode: false
         - in: query
@@ -1043,15 +1029,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Producer Delegations by E-Service IDs. If not specified, return Producer Delegations for any E-Service
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/EServiceId"
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -1735,16 +1713,7 @@ paths:
             format: int32
             minimum: 1
             maximum: 50
-        - in: query
-          name: eserviceIds
-          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/EServiceId"
-            default: []
-          explode: false
-          required: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: states
           description: >
@@ -2419,15 +2388,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: templateIds
-          description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/EServiceId"
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/TemplateIdsParam"
         - in: query
           name: name
           description: Filter E-Services by name
@@ -6313,15 +6274,7 @@ paths:
       description: Retrieve a list of Purposes based on filters
       operationId: getPurposes
       parameters:
-        - in: query
-          name: eserviceIds
-          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/EServiceId"
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: title
           description: Filter Purposes by title. If not specified, return Purposes for any title
@@ -7732,15 +7685,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Purpose Templates by E-Service IDs. If not specified, return Purpose Templates for any E-Service.
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/EServiceId"
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: states
           description: >
@@ -9471,6 +9416,30 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
+    TemplateIdsParam:
+      in: query
+      name: templateIds
+      description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
+    EserviceIdsParam:
+      in: query
+      name: eserviceIds
+      description: Filter by E-Service IDs. If not specified, return results for any E-Service
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
     LastEventId:
       in: query
       name: lastEventId
