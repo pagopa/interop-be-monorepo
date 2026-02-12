@@ -3889,6 +3889,9 @@ importers:
 
   packages/m2m-gateway-v3:
     dependencies:
+      '@aws-sdk/client-kms':
+        specifier: 3.840.0
+        version: 3.840.0
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.12.0)(zod@3.23.8)
