@@ -77,7 +77,6 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
   it.each([
     purposeVersionNotFound(generateId(), generateId()),
     purposeVersionDocumentNotFound(generateId(), generateId()),
-    purposeVersionDocumentNotReady(generateId(), generateId()),
   ])("Should return 404 in case of $code error", async (error) => {
     mockPurposeService.downloadPurposeVersionRiskAnalysisDocument = vi
       .fn()
@@ -86,5 +85,17 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
     const res = await makeRequest(token, generateId(), generateId());
 
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 409 in case of purposeVersionDocumentNotReady error", async () => {
+    mockPurposeService.downloadPurposeVersionRiskAnalysisDocument = vi
+      .fn()
+      .mockRejectedValue(
+        purposeVersionDocumentNotReady(generateId(), generateId())
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId(), generateId());
+
+    expect(res.status).toBe(409);
   });
 });
