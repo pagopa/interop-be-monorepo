@@ -324,7 +324,7 @@ export const inAppTemplates = {
   clientKeyDeletedToClientUsers: (clientName: string, kid: string): string =>
     `La chiave ${kid} è stata rimossa dal client ${clientName}. Assicurati che l'operatività non sia compromessa.`,
   clientKeyAddedToClientUsers: (clientName: string): string =>
-    `Ti informiamo che è stata aggiunta una nuova chiave e-service al client ${clientName}.`,
+    `Ti informiamo che è stata aggiunta una nuova chiave al client ${clientName}.`,
   clientUserDeletedToClientUsers: (clientName: string): string =>
     `Una chiave associata al client ${clientName} non è più considerata sicura, in quanto l'operatore che l'ha caricata non è più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività.`,
   producerKeychainKeyDeletedToClientUsers: (
