@@ -8,7 +8,7 @@ import {
   afterAll,
 } from "vitest";
 import express, { Request, Response } from "express";
-import request from "supertest";
+import request, { Response as SupertestResponse } from "supertest";
 import {
   DynamoDBClient,
   PutItemCommand,
@@ -140,6 +140,44 @@ function buildTestApp(wellKnownUrl: string, useInMemoryDynamoClient = false) {
   return app;
 }
 
+export function expectResponseToContainErrorCodeMatching(
+  response: SupertestResponse,
+  regex: RegExp
+): void {
+  // Ensure body exists
+  expect(response).toBeDefined();
+  expect(response.body).toBeDefined();
+
+  const body: unknown = response.body;
+
+  expect(typeof body).toBe("object");
+  expect(body).not.toBeNull();
+
+  const errors: unknown = (body as { errors?: unknown }).errors;
+
+  expect(Array.isArray(errors)).toBe(true);
+
+  const errorArray: unknown[] = errors as unknown[];
+
+  const hasMatchingCode: boolean = errorArray.some(
+    (error: unknown): boolean => {
+      if (
+        typeof error !== "object" ||
+        error === null ||
+        typeof (error as { code?: unknown }).code !== "string"
+      ) {
+        return false;
+      }
+
+      const code = (error as { code: string }).code;
+
+      return regex.test(code);
+    }
+  );
+
+  expect(hasMatchingCode).toBe(true);
+}
+
 describe("authenticationDPoPMiddleware", () => {
   let jwksServer: JwksServer;
   let mockDPoPData: Awaited<
@@ -192,6 +230,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res2.body.title).toEqual("DPoP proof JTI already in cache");
     expect(res2.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res2, /-0044$/g);
   });
 
   it("Should return 400 if the Authorization token is Bearer", async () => {
@@ -204,6 +243,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res.body.title).toEqual("Bad DPoP Token format");
     expect(res.status).toBe(400);
+    expectResponseToContainErrorCodeMatching(res, /-10028$/g);
   });
 
   it("Should return 200 if the Authorization token is dpop (lowercase)", async () => {
@@ -227,6 +267,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res.body.title).toEqual("Bad DPoP Token format");
     expect(res.status).toBe(400);
+    expectResponseToContainErrorCodeMatching(res, /-10028$/g);
   });
 
   it("Should return 400 if no authorization header or DPoP proof is passed", async () => {
@@ -236,6 +277,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res.body.title).toEqual("Header has not been passed");
     expect(res.status).toBe(400);
+    expectResponseToContainErrorCodeMatching(res, /-9994$/g);
   });
 
   it("Should return 400 if DPoP proof is missing", async () => {
@@ -247,6 +289,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res.body.title).toEqual("Header has not been passed");
     expect(res.status).toBe(400);
+    expectResponseToContainErrorCodeMatching(res, /-9994$/g);
   });
 
   it("Should return 400 if DPoP proof is invalid for this token", async () => {
@@ -264,6 +307,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res.body.title).toEqual("DPoP Token Binding Mismatch");
     expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-0045$/g);
   });
 
   it("Should return 401 if cnf is missing", async () => {
@@ -276,6 +320,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res.body.title).toEqual("Token verification failed");
     expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-10014$/g);
   });
 
   it("Should return 401 if cnf is different", async () => {
@@ -288,5 +333,70 @@ describe("authenticationDPoPMiddleware", () => {
 
     expect(res.body.title).toEqual("DPoP proof validation failed");
     expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-0041$/g);
+  });
+
+  it("Should return 401 if the token is expired", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${mockDPoPData.expiredDpopProof}`)
+      .set("DPoP", `DPoP ${mockDPoPData.dpopProof}`);
+
+    expect(res.body.title).toEqual("Token verification failed");
+    expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-10014$/g);
+  });
+
+  it("Should return 401 if the DPoP proof is expired", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${mockDPoPData.expiredAccessToken}`)
+      .set("DPoP", `DPoP ${mockDPoPData.expiredDpopProof}`);
+
+    expect(res.body.title).toEqual("Token verification failed");
+    expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-10014$/g);
+  });
+
+  it("Should return 401 if the htu is wrong", async () => {
+    const wrongHtuData = await generateM2MAdminAccessTokenWithDPoPProof({
+      htu: `${config.dpopHtuBase}/wrong`,
+      htm: "GET",
+    });
+    const wrongHtuDpopProof = wrongHtuData.dpopProof;
+
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${wrongHtuData.accessToken}`)
+      .set("DPoP", wrongHtuDpopProof);
+
+    expect(res.body.title).toEqual("Token verification failed");
+    expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-10014$/g);
+  });
+
+  it("Should return 401 if the htm is wrong", async () => {
+    const wrongHtmData = await generateM2MAdminAccessTokenWithDPoPProof({
+      htu: `${config.dpopHtuBase}/test`,
+      htm: "POST",
+    });
+    const wrongHtmDpopProof = wrongHtmData.dpopProof;
+
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${wrongHtmData.accessToken}`)
+      .set("DPoP", wrongHtmDpopProof);
+
+    expect(res.body.title).toEqual("Token verification failed");
+    expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-10014$/g);
   });
 });

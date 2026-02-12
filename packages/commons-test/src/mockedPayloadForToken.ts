@@ -213,7 +213,9 @@ type GeneratedDPoPBundle = {
   accessToken: string;
   accessTokenWithoutCnf: string;
   accessTokenWithDifferentCnf: string;
+  expiredAccessToken: string;
   dpopProof: string;
+  expiredDpopProof: string;
   dpopPublicJwk: JWK;
   authServerPublicJwk: JWK;
   authServerPublicKeyPem: string;
@@ -331,6 +333,19 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
     .setExpirationTime("1h")
     .sign(authPrivateKey);
 
+  // 4d) Create an expired access token
+  const nowInSeconds: number = Math.floor(Date.now() / 1000);
+
+  const expiredAccessToken: string = await new SignJWT(payload)
+    .setProtectedHeader({
+      alg: "RS256",
+      kid: authServerPublicJwk.kid,
+      typ: "JWT",
+    })
+    .setIssuedAt(nowInSeconds - 7200) // issued 2h ago
+    .setExpirationTime(nowInSeconds - 3600) // expired 1h ago
+    .sign(authPrivateKey);
+
   // ===============================
   // 5) Create DPoP proof (CLIENT)
   // ===============================
@@ -349,12 +364,29 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
     .setIssuedAt()
     .sign(dpopPrivateKey);
 
+  // 5b) Create expired DPoP Proof
+  const expiredDpopProof: string = await new SignJWT({
+    htm: htm ?? "GET",
+    htu,
+  })
+    .setProtectedHeader({
+      alg: "ES256",
+      typ: "dpop+jwt",
+      jwk: minimalJwkForDpopHeader,
+    })
+    .setJti(crypto.randomUUID())
+    .setIssuedAt(nowInSeconds - 7200) // 2h ago
+    .setExpirationTime(nowInSeconds - 3600) // expired 1h ago
+    .sign(dpopPrivateKey);
+
   return {
     jti: definedJti,
     accessToken,
     accessTokenWithoutCnf,
     accessTokenWithDifferentCnf,
+    expiredAccessToken,
     dpopProof,
+    expiredDpopProof,
     dpopPublicJwk,
     authServerPublicJwk,
     authServerPublicKeyPem,
