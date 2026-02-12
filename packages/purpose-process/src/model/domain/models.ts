@@ -45,3 +45,11 @@ export type RiskAnalysisDocumentPDFPayload = {
   userId: UserId | undefined;
   consumerId: TenantId;
 };
+
+export const UpdatedQuotas = z.object({
+  currentConsumerCalls: z.number(),
+  currentTotalCalls: z.number(),
+  maxDailyCallsPerConsumer: z.number(),
+  maxDailyCallsTotal: z.number(),
+});
+export type UpdatedQuotas = z.infer<typeof UpdatedQuotas>;

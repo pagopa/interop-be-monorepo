@@ -54,6 +54,7 @@ import {
   tenantNotAllowed,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
@@ -250,6 +251,24 @@ export async function isOverQuota(
   dailyCalls: number,
   readModelService: ReadModelServiceSQL
 ): Promise<boolean> {
+  const quotas = await getUpdatedQuotas(
+    eservice,
+    purpose.consumerId,
+    readModelService
+  );
+
+  return !(
+    quotas.currentConsumerCalls + dailyCalls <=
+      quotas.maxDailyCallsPerConsumer &&
+    quotas.currentTotalCalls + dailyCalls <= quotas.maxDailyCallsTotal
+  );
+}
+
+export async function getUpdatedQuotas(
+  eservice: EService,
+  consumerId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<UpdatedQuotas> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
     states: [purposeVersionState.active],
@@ -257,12 +276,12 @@ export async function isOverQuota(
   });
 
   const consumerPurposes = allPurposes.filter(
-    (p) => p.consumerId === purpose.consumerId
+    (p) => p.consumerId === consumerId
   );
 
   const agreement = await retrieveActiveAgreement(
     eservice.id,
-    purpose.consumerId,
+    consumerId,
     readModelService
   );
 
@@ -288,9 +307,9 @@ export async function isOverQuota(
     throw descriptorNotFound(eservice.id, agreement.descriptorId);
   }
 
-  const tenant = await readModelService.getTenantById(purpose.consumerId);
+  const tenant = await readModelService.getTenantById(consumerId);
   if (!tenant) {
-    throw tenantNotFound(purpose.consumerId);
+    throw tenantNotFound(consumerId);
   }
 
   const consumerCertifiedAttributesIds = new Set(
@@ -318,10 +337,12 @@ export async function isOverQuota(
 
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 
-  return !(
-    consumerLoadRequestsSum + dailyCalls <= maxDailyCallsPerConsumer &&
-    allPurposesRequestsSum + dailyCalls <= maxDailyCallsTotal
-  );
+  return {
+    currentConsumerCalls: consumerLoadRequestsSum,
+    currentTotalCalls: allPurposesRequestsSum,
+    maxDailyCallsPerConsumer,
+    maxDailyCallsTotal,
+  };
 }
 
 export const assertRequesterCanRetrievePurpose = async (
