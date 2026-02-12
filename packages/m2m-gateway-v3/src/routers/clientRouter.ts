@@ -222,7 +222,7 @@ const clientRouter = (
 
         await clientService.addClientUsers(
           unsafeBrandId(req.params.clientId),
-          req.body.userIds,
+          req.body.userId,
           ctx
         );
         return res.status(204).send();

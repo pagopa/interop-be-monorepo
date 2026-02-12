@@ -245,3 +245,23 @@ export const AuthTokenDPoPPayload = z.discriminatedUnion("role", [
   InteropJwtApiM2MAdminDPoPPayload,
 ]);
 export type AuthTokenDPoPPayload = z.infer<typeof AuthTokenDPoPPayload>;
+
+// ==========================================
+//    Agid Integrity Rest 02 Token
+// ==========================================
+export const IntegrityRest02SignedHeader = z.object({
+  digest: z.string(),
+  "content-type": z.string(),
+  "content-encoding": z.string().optional(),
+});
+export type IntegrityRest02SignedHeader = z.infer<
+  typeof IntegrityRest02SignedHeader
+>;
+export const AgidIntegrityRest02TokenPayload = InteropJwtCommonPayload.merge(
+  z.object({
+    signed_headers: IntegrityRest02SignedHeader,
+  })
+);
+export type AgidIntegrityRest02TokenPayload = z.infer<
+  typeof AgidIntegrityRest02TokenPayload
+>;
