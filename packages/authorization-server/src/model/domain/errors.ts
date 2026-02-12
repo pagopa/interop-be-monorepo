@@ -17,7 +17,6 @@ const errorCodes = {
   platformStateValidationFailed: "0008",
   dpopProofValidationFailed: "0009",
   dpopProofSignatureValidationFailed: "0010",
-  unexpectedDPoPProofForAPIToken: "0011",
   dpopProofJtiAlreadyUsed: "0012",
 };
 
@@ -123,16 +122,6 @@ export function dpopProofSignatureValidationFailed(
     detail: `DPoP proof signature validation failed for client ${clientId} - ${details}`,
     code: "dpopProofSignatureValidationFailed",
     title: "DPoP proof signature validation failed",
-  });
-}
-
-export function unexpectedDPoPProofForAPIToken(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected DPoP proof for API token with client ${clientId}`,
-    code: "unexpectedDPoPProofForAPIToken",
-    title: "Unexpected DPoP proof for API token",
   });
 }
 

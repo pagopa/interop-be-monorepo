@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import crypto from "crypto";
+import crypto, { JsonWebKey } from "crypto";
 import { fail } from "assert";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -41,10 +41,13 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import {
+  calculateDPoPThumbprint,
+  calculateKid,
   dateToSeconds,
   formatDateyyyyMMdd,
   genericLogger,
   secondsToMilliseconds,
+  sortJWK,
   systemRole,
 } from "pagopa-interop-commons";
 import {
@@ -57,19 +60,20 @@ import {
   invalidDPoPTyp,
   expiredDPoPProof,
   invalidDPoPSignature,
+  writeDPoPCache,
 } from "pagopa-interop-dpop-validation";
 import { config } from "../../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
+  dpopProofJtiAlreadyUsed,
   dpopProofSignatureValidationFailed,
   dpopProofValidationFailed,
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
-  unexpectedDPoPProofForAPIToken,
 } from "../../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
@@ -785,6 +789,65 @@ describe("authorization server tests", () => {
     );
   });
 
+  it("should throw dpopProofJtiAlreadyUsed when the JTI is already in cache", async () => {
+    const clientId = generateId<ClientId>();
+
+    // 1. Setup Client Assertion
+    const {
+      jws: clientAssertionJws,
+      clientAssertion,
+      publicKeyEncodedPem,
+    } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+    });
+
+    // 2. Setup DPoP Proof
+    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
+    const jti = dpopProofJWT.payload.jti;
+
+    // 3. TokenGenerationStates Api Client entry
+    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid: clientAssertion.header.kid!,
+    });
+    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
+      ...getMockTokenGenStatesApiClient(tokenClientKidK),
+      publicKey: publicKeyEncodedPem,
+    };
+    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
+
+    // Simulate that the JTI is already in the DPoP cache
+
+    await writeDPoPCache({
+      dynamoDBClient,
+      dpopCacheTable: config.dpopCacheTable,
+      jti,
+      iat: dpopProofJWT.payload.iat,
+      durationSeconds: Math.floor(Date.now() / 1000) + 600,
+    });
+
+    const mockRequest = await getMockTokenRequest();
+    const request = {
+      headers: { ...mockRequest.headers, DPoP: dpopProofJWS },
+      body: {
+        ...mockRequest.body,
+        client_assertion: clientAssertionJws,
+        client_id: clientId,
+      },
+    };
+
+    await expect(
+      tokenService.generateToken(
+        request.headers,
+        request.body,
+        getMockContext({}),
+        () => {},
+        () => {},
+        () => {}
+      )
+    ).rejects.toThrowError(dpopProofJtiAlreadyUsed(jti));
+  });
+
   it("should succeed - consumer key - kafka audit failed and fallback audit succeeded", async () => {
     mockProducer.send.mockImplementation(async () => Promise.reject());
 
@@ -1413,6 +1476,93 @@ describe("authorization server tests", () => {
     });
   });
 
+  it("should succeed - api key with DPoP - no audit - M2M role", async () => {
+    vi.spyOn(fileManager, "storeBytes");
+
+    const clientId = generateId<ClientId>();
+
+    const {
+      jws: clientAssertionJWS,
+      clientAssertion,
+      publicKeyEncodedPem,
+    } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+    });
+
+    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
+
+    const mockRequestWithDPoP = await getMockTokenRequest();
+    const request: typeof mockRequestWithDPoP = {
+      headers: {
+        ...mockRequestWithDPoP.headers,
+        DPoP: dpopProofJWS,
+      },
+      body: {
+        ...mockRequestWithDPoP.body,
+        client_assertion: clientAssertionJWS,
+        client_id: clientId,
+      },
+    };
+
+    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid: clientAssertion.header.kid!,
+    });
+
+    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
+      ...getMockTokenGenStatesApiClient(tokenClientKidK),
+      publicKey: publicKeyEncodedPem,
+    };
+
+    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
+
+    const fileListBefore = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListBefore).toHaveLength(0);
+
+    const response = await tokenService.generateToken(
+      request.headers,
+      request.body,
+      getMockContext({}),
+      () => {},
+      () => {},
+      () => {}
+    );
+
+    const fileListAfter = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListAfter).toHaveLength(0);
+    expect(fileManager.storeBytes).not.toHaveBeenCalled();
+
+    expect(response.limitReached).toBe(false);
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ROLE,
+    });
+    expect(response.token?.header).toMatchObject({
+      typ: "at+jwt",
+      alg: "RS256",
+    });
+
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ROLE,
+      cnf: {
+        jkt: calculateKid(dpopProofJWT.header.jwk),
+      },
+    });
+    expect(response.token?.payload).not.toMatchObject({
+      adminId: expect.any(String),
+    });
+    expect(response.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
+  });
+
   it("should succeed - api key - no audit - M2M_ADMIN role", async () => {
     vi.spyOn(fileManager, "storeBytes");
 
@@ -1483,20 +1633,31 @@ describe("authorization server tests", () => {
     });
   });
 
-  it("should throw unexpectedDPoPProofForAPIToken when requesting an API token with a DPoP proof", async () => {
-    const clientId = generateId<ClientId>();
+  it("should succeed - api key with DPoP - no audit - M2M_ADMIN role", async () => {
+    vi.spyOn(fileManager, "storeBytes");
 
-    const { jws, clientAssertion, publicKeyEncodedPem } =
-      await getMockClientAssertion({
-        standardClaimsOverride: { sub: clientId },
-      });
+    const clientId = generateId<ClientId>();
+    const clientAdminId = generateId<UserId>();
+
+    const {
+      jws: clientAssertionJWS,
+      clientAssertion,
+      publicKeyEncodedPem,
+    } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+    });
+
+    const { dpopProofJWS } = await getMockDPoPProof();
 
     const mockRequestWithDPoP = await getMockTokenRequest(true);
     const request: typeof mockRequestWithDPoP = {
-      headers: mockRequestWithDPoP.headers,
+      headers: {
+        ...mockRequestWithDPoP.headers,
+        DPoP: dpopProofJWS,
+      },
       body: {
         ...mockRequestWithDPoP.body,
-        client_assertion: jws,
+        client_assertion: clientAssertionJWS,
         client_id: clientId,
       },
     };
@@ -1510,19 +1671,132 @@ describe("authorization server tests", () => {
       ...getMockTokenGenStatesApiClient(tokenClientKidK),
       clientKind: clientKindTokenGenStates.api,
       publicKey: publicKeyEncodedPem,
+      adminId: clientAdminId,
     };
 
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
-    await expect(
-      tokenService.generateToken(
-        request.headers,
-        request.body,
-        getMockContext({}),
-        () => {},
-        () => {},
-        () => {}
-      )
-    ).rejects.toThrowError(unexpectedDPoPProofForAPIToken(clientId));
+    const fileListBefore = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListBefore).toHaveLength(0);
+
+    const response = await tokenService.generateToken(
+      request.headers,
+      request.body,
+      getMockContext({}),
+      () => {},
+      () => {},
+      () => {}
+    );
+
+    const fileListAfter = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListAfter).toHaveLength(0);
+    expect(fileManager.storeBytes).not.toHaveBeenCalled();
+
+    expect(response.limitReached).toBe(false);
+    expect(response.token).toBeDefined();
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ADMIN_ROLE,
+      adminId: tokenClientKidEntry.adminId,
+    });
+    expect(response.token?.header).toMatchObject({
+      typ: "at+jwt",
+      alg: "RS256",
+    });
+
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ADMIN_ROLE,
+      cnf: {
+        jkt: expect.any(String),
+      },
+    });
+    expect(response.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
+  });
+});
+
+describe("calculateDPoPThumbprint", () => {
+  const validRsaKey: JsonWebKey = {
+    kty: "RSA",
+    n: "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw",
+    e: "AQAB",
+  };
+
+  const validEcKey: JsonWebKey = {
+    kty: "EC",
+    crv: "P-256",
+    x: "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+    y: "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
+  };
+
+  it("should return the correct SHA-256 thumbprint for RSA (consistent with sorted keys)", () => {
+    const thumbprint = calculateDPoPThumbprint(validRsaKey);
+    expect(thumbprint).toBeDefined();
+    expect(typeof thumbprint).toBe("string");
+  });
+
+  it("should produce DIFFERENT thumbprints if extra properties are added", () => {
+    const keyWithExtras: JsonWebKey = {
+      ...validRsaKey,
+      kid: "include-me",
+    };
+
+    const hashClean = calculateDPoPThumbprint(validRsaKey);
+    const hashExtras = calculateDPoPThumbprint(keyWithExtras);
+
+    expect(hashExtras).not.toEqual(hashClean);
+  });
+
+  it("should produce the same thumbprint regardless of the initial property order", () => {
+    const rsaKeyReordered: JsonWebKey = {
+      n: validRsaKey.n,
+      e: validRsaKey.e,
+      kty: validRsaKey.kty,
+    };
+
+    const hashOriginal = calculateDPoPThumbprint(validRsaKey);
+    const hashReordered = calculateDPoPThumbprint(rsaKeyReordered);
+
+    expect(hashOriginal).toEqual(hashReordered);
+  });
+
+  it("should handle EC keys and produce a valid base64url hash", () => {
+    const thumbprint = calculateDPoPThumbprint(validEcKey);
+    expect(thumbprint).toMatch(/^[a-zA-Z0-9_-]+$/);
+    expect(thumbprint).not.toContain("=");
+  });
+
+  it("should work with symmetric keys (oct) as it doesn't filter by kty", () => {
+    const octKey: JsonWebKey = { kty: "oct", k: "secret-key-123" };
+    expect(() => calculateDPoPThumbprint(octKey)).not.toThrow();
+
+    const thumbprint = calculateDPoPThumbprint(octKey);
+    expect(thumbprint).toBeDefined();
+  });
+});
+
+describe("sortJWK", () => {
+  it("should sort keys alphabetically", () => {
+    const unsorted = { z: "last", a: "first", m: "middle" };
+    const sorted = sortJWK(unsorted);
+
+    const keys = Object.keys(sorted);
+    expect(keys).toEqual(["a", "m", "z"]);
+  });
+
+  it("should return a new object and not mutate the original", () => {
+    const original = { b: 2, a: 1 };
+    const sorted = sortJWK(original);
+
+    expect(sorted).not.toBe(original);
+    expect(Object.keys(original)).toEqual(["b", "a"]);
   });
 });

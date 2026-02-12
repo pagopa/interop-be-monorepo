@@ -115,7 +115,7 @@ describe("assignTenantDeclaredAttribute", () => {
       getMockM2MAdminAppContext({ organizationId: mockTenantId })
     );
 
-    expect(result).toEqual(m2mTenantAttributeResponse);
+    expect(result).toStrictEqual(m2mTenantAttributeResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute
@@ -160,7 +160,7 @@ describe("assignTenantDeclaredAttribute", () => {
       })
     );
 
-    expect(result).toEqual(m2mTenantAttributeResponse);
+    expect(result).toStrictEqual(m2mTenantAttributeResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute

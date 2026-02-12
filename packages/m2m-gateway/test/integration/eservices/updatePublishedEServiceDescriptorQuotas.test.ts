@@ -82,7 +82,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       templateVersionId: mockDescriptor.templateVersionRef?.id,
     };
 
-    expect(result).toEqual(expectedM2MDescriptor);
+    expect(result).toStrictEqual(expectedM2MDescriptor);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.updateDescriptor,
       params: {
@@ -154,7 +154,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       templateVersionId: mockDescriptor.templateVersionRef?.id,
     };
 
-    expect(result).toEqual(expectedM2MDescriptor);
+    expect(result).toStrictEqual(expectedM2MDescriptor);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.updateDescriptor,
       params: {

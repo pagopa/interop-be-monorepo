@@ -12,7 +12,8 @@ servers:
   - url: "https://api.uat.interop.pagopa.it/v3"
     description: UAT environment
 security:
-  - bearerAuth: []
+  - DPoPAuth: []
+    DPoPProofHeader: []
 tags:
   - name: clients
     description: Clients routes
@@ -40,6 +41,8 @@ tags:
     description: Verify service status
   - name: events
     description: Events routes
+  - name: users
+    description: Users routes
 paths:
   /agreements:
     get:
@@ -88,20 +91,10 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/DescriptorId"
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Agreements by E-Service IDs. If not specified, return Agreements for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -133,6 +126,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -165,6 +162,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -182,8 +183,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -204,6 +204,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -230,6 +234,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -247,8 +255,7 @@ paths:
         description: The ID of the Agreement to retrieve purposes for
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -287,6 +294,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -300,8 +311,7 @@ paths:
   /agreements/{agreementId}/approve:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to approve
         in: path
@@ -331,6 +341,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -346,8 +360,7 @@ paths:
   /agreements/{agreementId}/reject:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to reject
         in: path
@@ -378,6 +391,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -391,8 +408,7 @@ paths:
   /agreements/{agreementId}/submit:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to submit
         in: path
@@ -424,6 +440,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -439,8 +459,7 @@ paths:
   /agreements/{agreementId}/suspend:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to suspend
         in: path
@@ -472,6 +491,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -485,8 +508,7 @@ paths:
   /agreements/{agreementId}/unsuspend:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to unsuspend
         in: path
@@ -518,6 +540,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -535,8 +561,7 @@ paths:
         description: The ID of the Agreement to upgrade
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -559,6 +584,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -576,8 +605,7 @@ paths:
         description: The ID of the Agreement to clone
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -600,6 +628,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -619,8 +651,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -647,6 +678,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -697,6 +732,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -714,8 +753,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
       - name: documentId
         in: path
         description: The ID of the Document to retrieve or delete
@@ -743,6 +781,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -769,6 +811,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -786,8 +832,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -808,6 +853,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -858,16 +907,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Consumer Delegations by E-Service IDs. If not specified, return Consumer Delegations for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -899,6 +939,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -931,6 +975,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -948,8 +996,7 @@ paths:
         description: The ID of the Consumer Delegation to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     get:
       tags:
         - delegations
@@ -970,6 +1017,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -985,8 +1036,7 @@ paths:
         description: The ID of the Consumer Delegation to accept
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1007,6 +1057,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1059,16 +1113,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Producer Delegations by E-Service IDs. If not specified, return Producer Delegations for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -1100,6 +1145,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1132,6 +1181,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1149,8 +1202,7 @@ paths:
         description: The ID of the Producer Delegation to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     get:
       tags:
         - delegations
@@ -1171,6 +1223,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1186,8 +1242,7 @@ paths:
         description: The ID of the Producer Delegation to accept
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1208,6 +1263,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1227,8 +1286,7 @@ paths:
         description: The ID of the Producer Delegation to reject
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1256,6 +1314,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1305,6 +1367,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1341,6 +1407,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1358,8 +1428,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1380,6 +1449,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1395,8 +1468,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1417,6 +1489,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1432,8 +1508,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1454,6 +1529,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1501,6 +1580,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1535,6 +1618,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1584,6 +1671,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1618,6 +1709,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1684,6 +1779,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1697,8 +1796,7 @@ paths:
         description: The ID of the Client to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -1719,6 +1817,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1734,8 +1836,7 @@ paths:
         description: The ID of the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -1760,6 +1861,21 @@ paths:
             format: int32
             minimum: 1
             maximum: 50
+        - $ref: "#/components/parameters/EserviceIdsParam"
+        - in: query
+          name: states
+          description: >
+            Filter Purposes by states. If not specified, return Purposes for any state.
+            If "ARCHIVED" is included in the filter, only Purposes where all
+            their versions are in the "ARCHIVED" state will be returned,
+            excluding those that have versions in other states.
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PurposeVersionState"
+            default: []
+          explode: false
+          required: false
       responses:
         "200":
           description: List of Purposes linked to the Client
@@ -1774,6 +1890,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1808,6 +1928,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1827,15 +1951,13 @@ paths:
         description: The ID of the Client to unlink the Purpose from
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       - name: purposeId
         in: path
         description: The ID of the Purpose to unlink from the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     delete:
       tags:
         - clients
@@ -1852,6 +1974,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1869,8 +1995,7 @@ paths:
         description: The ID of the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -1909,6 +2034,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1946,6 +2075,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1961,8 +2094,7 @@ paths:
         description: ID of the client to look up
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       - name: keyId
         in: path
         description: the unique identifier of the key (kid) to lookup
@@ -1985,6 +2117,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2051,6 +2187,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2086,6 +2226,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2141,6 +2285,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2175,6 +2323,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2201,8 +2353,7 @@ paths:
         description: The ID of the E-Service to unlink from the Producer Keychain
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     delete:
       tags:
         - producerKeychains
@@ -2219,6 +2370,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2276,6 +2431,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2313,6 +2472,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2352,6 +2515,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2369,8 +2536,7 @@ paths:
         description: The ID of the Consumer Delegation to reject
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -2398,6 +2564,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2426,16 +2596,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: templateIds
-          description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/TemplateIdsParam"
         - in: query
           name: name
           description: Filter E-Services by name
@@ -2497,6 +2658,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2530,6 +2695,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2547,8 +2716,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     get:
       tags:
         - eservices
@@ -2569,6 +2737,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2605,6 +2777,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2633,6 +2809,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2650,8 +2830,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2678,6 +2857,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2697,8 +2880,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2725,6 +2907,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2744,8 +2930,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2772,6 +2957,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2791,8 +2980,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2819,6 +3007,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2838,8 +3030,7 @@ paths:
         description: The E-Service ID of the Descriptors to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     get:
       tags:
         - eservices
@@ -2883,6 +3074,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2919,6 +3114,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2936,15 +3135,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -2965,6 +3162,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2999,6 +3200,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3027,6 +3232,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3046,15 +3255,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     patch:
       tags:
         - eservices
@@ -3081,6 +3288,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3100,15 +3311,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3147,6 +3356,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3181,6 +3394,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3200,15 +3417,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: documentId
         in: path
         description: The ID of the Document to retrieve or delete
@@ -3236,6 +3451,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3260,6 +3479,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3277,8 +3500,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor for which to download the interface
@@ -3306,6 +3528,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3343,6 +3569,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3371,6 +3601,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3394,8 +3628,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to suspend
@@ -3417,6 +3650,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3440,8 +3677,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to unsuspend
@@ -3463,6 +3699,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3486,8 +3726,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to publish
@@ -3509,6 +3748,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3532,8 +3775,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to approve
@@ -3555,6 +3797,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3585,8 +3831,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to reject
@@ -3608,6 +3853,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3625,8 +3874,7 @@ paths:
         description: The E-Service ID for which to create a risk analysis
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     post:
       tags:
         - eservices
@@ -3655,6 +3903,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3705,6 +3957,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3718,8 +3974,7 @@ paths:
         description: The E-Service id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: riskAnalysisId
         in: path
         description: The Risk Analysis id
@@ -3747,6 +4002,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3773,6 +4032,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3790,15 +4053,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3837,6 +4098,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3852,15 +4117,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3899,6 +4162,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3914,15 +4181,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3961,6 +4226,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3976,15 +4245,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4015,6 +4282,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4034,15 +4305,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4073,6 +4342,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4092,15 +4365,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4131,6 +4402,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4150,15 +4425,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4172,8 +4445,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -4192,6 +4464,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4209,15 +4485,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4231,8 +4505,7 @@ paths:
         description: The ID of the Verified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -4251,6 +4524,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4268,15 +4545,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4290,8 +4565,7 @@ paths:
         description: The ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -4310,6 +4584,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4327,15 +4605,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4362,6 +4638,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4379,15 +4659,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4414,6 +4692,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4431,15 +4713,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4466,6 +4746,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4495,8 +4779,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceTemplateId"
             default: []
           explode: false
         - in: query
@@ -4540,6 +4823,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4575,6 +4862,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4614,6 +4905,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4650,6 +4945,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4678,6 +4977,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4723,6 +5026,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4768,6 +5075,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4813,6 +5124,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4877,6 +5192,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4913,6 +5232,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4959,6 +5282,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -4993,6 +5320,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5021,6 +5352,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5069,6 +5404,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5115,6 +5454,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5161,6 +5504,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5225,6 +5572,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5259,6 +5610,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5314,6 +5669,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5338,6 +5697,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5385,6 +5748,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5435,6 +5802,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5477,6 +5848,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5503,6 +5878,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5555,6 +5934,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5621,6 +6004,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5683,6 +6070,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5745,6 +6136,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5799,6 +6194,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5857,6 +6256,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5915,6 +6318,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -5956,8 +6363,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -5976,6 +6382,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6015,8 +6425,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -6035,6 +6444,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6074,8 +6487,7 @@ paths:
         description: The ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -6094,6 +6506,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6146,6 +6562,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6198,6 +6618,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6250,6 +6674,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6273,7 +6701,7 @@ paths:
           description: The unique identifier of the Key (kid)
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/Kid"
       responses:
         "200":
           description: Key retrieved
@@ -6288,6 +6716,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -6307,7 +6739,7 @@ paths:
           description: The unique identifier of the Producer Key (kid)
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/Kid"
       responses:
         "200":
           description: Producer Key retrieved
@@ -6322,6 +6754,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -6355,6 +6791,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6374,16 +6814,7 @@ paths:
       description: Retrieve a list of Purposes based on filters
       operationId: getPurposes
       parameters:
-        - in: query
-          name: eserviceIds
-          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: title
           description: Filter Purposes by title. If not specified, return Purposes for any title
@@ -6443,6 +6874,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6456,8 +6891,7 @@ paths:
         description: The ID of the Purpose to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -6478,6 +6912,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6504,6 +6942,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6544,6 +6986,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6563,7 +7009,7 @@ paths:
         description: The Purpose ID of the Versions to retrieve
         required: true
         schema:
-          type: string
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -6607,6 +7053,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6645,6 +7095,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6664,8 +7118,7 @@ paths:
         description: The Purpose ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       - name: versionId
         in: path
         description: The ID of the Version to retrieve
@@ -6693,6 +7146,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6719,6 +7176,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6738,8 +7199,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6767,6 +7227,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6786,8 +7250,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6811,6 +7274,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6830,8 +7297,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6857,6 +7323,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6874,8 +7344,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6903,6 +7372,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6922,8 +7395,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -6951,6 +7423,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -6990,6 +7466,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7007,8 +7487,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     patch:
       tags:
         - purposes
@@ -7037,6 +7516,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7056,8 +7539,7 @@ paths:
         description: The ID of the Purpose
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       - name: versionId
         in: path
         description: The ID of the purpose Version to retrieve the document for
@@ -7085,6 +7567,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7102,8 +7588,7 @@ paths:
         description: The ID of the Purpose to retrieve the agreement for
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -7124,6 +7609,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7193,6 +7682,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7206,8 +7699,7 @@ paths:
         description: The ID of the Tenant to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7228,6 +7720,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7243,8 +7739,7 @@ paths:
         description: The Tenant ID of the Declared Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7289,6 +7784,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7323,6 +7822,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7340,15 +7843,13 @@ paths:
         description: The Tenant ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Declared Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -7369,6 +7870,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7386,8 +7891,7 @@ paths:
         description: The Tenant ID of the Certified Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7426,6 +7930,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7460,6 +7968,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7479,15 +7991,13 @@ paths:
         description: The Tenant ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Certified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -7508,6 +8018,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7527,8 +8041,7 @@ paths:
         description: The Tenant ID of the Verified Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7567,6 +8080,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7603,6 +8120,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7620,15 +8141,13 @@ paths:
         description: The Tenant ID of the Verified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -7659,6 +8178,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7678,15 +8201,13 @@ paths:
         description: The Tenant ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - tenants
@@ -7725,6 +8246,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7740,15 +8265,13 @@ paths:
         description: The Tenant ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - tenants
@@ -7787,6 +8310,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7818,16 +8345,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Purpose Templates by E-Service IDs. If not specified, return Purpose Templates for any E-Service.
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: states
           description: >
@@ -7880,6 +8398,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7914,6 +8436,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7933,6 +8459,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}:
@@ -7942,8 +8472,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -7964,6 +8493,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -7998,6 +8531,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8019,6 +8556,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     delete:
@@ -8037,6 +8578,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8058,6 +8603,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis:
@@ -8067,8 +8616,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8089,6 +8637,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8123,6 +8675,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8144,6 +8700,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments:
@@ -8153,8 +8713,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8189,6 +8748,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
           content:
             application/json:
               schema:
@@ -8229,6 +8792,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8250,6 +8817,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/annotationDocuments/{documentId}:
@@ -8259,8 +8830,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       - name: documentId
         in: path
         description: The Document ID of the Answer Annotation
@@ -8288,6 +8858,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8314,6 +8888,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8335,6 +8913,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/purposes:
@@ -8344,8 +8926,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       tags:
         - purposes
@@ -8372,6 +8953,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8393,6 +8978,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/eservices:
@@ -8402,8 +8991,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8457,6 +9045,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8487,6 +9079,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8504,15 +9100,13 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       - name: eserviceId
         in: path
         description: The Eservice ID to unlink
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     delete:
       tags:
         - purposeTemplates
@@ -8529,6 +9123,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8546,8 +9144,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Publish a Purpose Template in Draft state
       description: Publish a Purpose Template that is in Draft state, transitioning it to Published state
@@ -8568,6 +9165,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8589,6 +9190,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/archive:
@@ -8598,8 +9203,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Archive a Purpose Template in Published or Suspended state
       description: Archive a Purpose Template that is in Published or Suspended state, transitioning it to Archived state
@@ -8620,6 +9224,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8641,6 +9249,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/unsuspend:
@@ -8650,8 +9262,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Unsuspend a Purpose Template in Suspended state
       description: Unsuspend a Purpose Template that is in Suspended state, transitioning it to Published state
@@ -8672,6 +9283,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8693,6 +9308,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/suspend:
@@ -8702,8 +9321,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Suspend a Purpose Template in Published state
       description: Suspend a Purpose Template that is in Published state, transitioning it to Suspended state
@@ -8724,6 +9342,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8745,6 +9367,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /status:
@@ -8768,6 +9394,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eserviceEvents:
@@ -8797,6 +9427,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8832,6 +9466,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8866,6 +9504,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8901,6 +9543,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8935,6 +9581,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -8969,6 +9619,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9003,6 +9657,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9037,6 +9695,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9071,6 +9733,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9105,6 +9771,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9139,6 +9809,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9173,6 +9847,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9181,8 +9859,427 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /users:
+    get:
+      tags:
+        - users
+      summary: List Users
+      description: |
+        Retrieve active users belonging to the requester's organization.
+        Users are fetched in real-time and not persisted.
+        Access is restricted to m2m-admin role only.
+      operationId: getUsers
+      parameters:
+        - in: query
+          name: roles
+          description: Filter users by role
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            default: []
+          explode: false
+        - in: query
+          name: limit
+          description: Maximum number of users to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /users/{userId}:
+    get:
+      tags:
+        - users
+      summary: Retrieve a User
+      description: |
+        Retrieve an active user belonging to the requester's organization
+        and with a specific user id.
+      operationId: getUser
+      parameters:
+        - in: path
+          name: userId
+          description: The user id of the user to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /clients/{clientId}/users:
+    parameters:
+      - name: clientId
+        in: path
+        description: ID of Client the users belong to
+        required: true
+        schema:
+          $ref: "#/components/schemas/ClientId"
+    get:
+      tags:
+        - clients
+      summary: List Client Users
+      description: Retrieve a list of Users associated with a Client
+      operationId: getClientUsers
+      parameters:
+        - in: query
+          name: limit
+          description: Maximum number of users to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Client Users retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - clients
+      summary: Link a User to a Client
+      description: |
+        Link a security User to a Client. 
+        This allows the specified User to manage or use credentials stored in the Client. 
+        The requester organization must be the owner of the Client. 
+        Additionally, the User being added must not already be associated with the Client.
+      operationId: addClientUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkUser"
+        required: true
+      responses:
+        "204":
+          description: User linked to the Client
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /clients/{clientId}/users/{userId}:
+    parameters:
+      - name: clientId
+        in: path
+        description: The Client id
+        required: true
+        schema:
+          $ref: "#/components/schemas/ClientId"
+      - name: userId
+        in: path
+        description: The ID of the User to unlink from the Client
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Unlink a User from a Client
+      description: Unlink a User from a Client.
+      operationId: removeClientUser
+      tags:
+        - clients
+      responses:
+        "204":
+          description: User unlinked from Client
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producerKeychains/{producerKeychainId}/users:
+    parameters:
+      - name: producerKeychainId
+        in: path
+        description: ID of Producer Keychain the users belong to
+        required: true
+        schema:
+          $ref: "#/components/schemas/ProducerKeychainId"
+    get:
+      tags:
+        - producerKeychains
+      summary: List Producer Keychains Users
+      description: Retrieve a list of Users associated with a Producer Keychain
+      operationId: getProducerKeychainUsers
+      parameters:
+        - in: query
+          name: limit
+          description: Maximum number of users to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Producer Keychain Users retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - producerKeychains
+      summary: Link a User to a Producer Keychain
+      description: |
+        Link a security User to a Producer Keychain. 
+        This allows the specified User to manage or use credentials stored in the Keychain. 
+        The requester organization must be the owner of the Producer Keychain. 
+        Additionally, the User being added must not already be associated with the Keychain.
+      operationId: addProducerKeychainUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkUser"
+        required: true
+      responses:
+        "204":
+          description: User linked to the Producer Keychain
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producerKeychains/{producerKeychainId}/users/{userId}:
+    parameters:
+      - name: producerKeychainId
+        in: path
+        description: The Producer Keychain id
+        required: true
+        schema:
+          $ref: "#/components/schemas/ProducerKeychainId"
+      - name: userId
+        in: path
+        description: The ID of the User to unlink from the Producer Keychain
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Unlink a User from a Producer Keychain
+      description: Unlink a User from a Producer Keychain.
+      operationId: removeProducerKeychainUser
+      tags:
+        - producerKeychains
+      responses:
+        "204":
+          description: User unlinked from Producer Keychain
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
+    TemplateIdsParam:
+      in: query
+      name: templateIds
+      description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
+    EserviceIdsParam:
+      in: query
+      name: eserviceIds
+      description: Filter by E-Service IDs. If not specified, return results for any E-Service
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
     LastEventId:
       in: query
       name: lastEventId
@@ -9254,8 +10351,7 @@ components:
           type: string
           format: date-time
         agreementId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         consumerDelegationId:
           type: string
           format: uuid
@@ -9292,8 +10388,7 @@ components:
           type: string
           format: date-time
         attributeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
       required:
         - id
         - eventType
@@ -9344,8 +10439,7 @@ components:
           type: string
           format: date-time
         purposeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
         purposeVersionId:
           type: string
           format: uuid
@@ -9404,8 +10498,7 @@ components:
           type: string
           format: date-time
         tenantId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       required:
         - id
         - eventType
@@ -9478,11 +10571,9 @@ components:
           type: string
           format: date-time
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         producerDelegationId:
           type: string
           format: uuid
@@ -9539,8 +10630,7 @@ components:
           type: string
           format: date-time
         eserviceTemplateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceTemplateId"
         eserviceTemplateVersionId:
           type: string
           format: uuid
@@ -9575,10 +10665,9 @@ components:
           type: string
           format: date-time
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       required:
         - id
         - eventType
@@ -9613,8 +10702,7 @@ components:
           type: string
           format: date-time
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       required:
         - id
         - eventType
@@ -9646,10 +10734,9 @@ components:
           type: string
           format: date-time
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
       required:
         - id
         - eventType
@@ -9684,8 +10771,7 @@ components:
           type: string
           format: date-time
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
       required:
         - id
         - eventType
@@ -9720,8 +10806,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - eventType
@@ -9756,8 +10841,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - eventType
@@ -9781,11 +10865,9 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         producerId:
           type: string
           format: uuid
@@ -9793,8 +10875,7 @@ components:
           type: string
           format: uuid
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
         state:
           $ref: "#/components/schemas/AgreementState"
         suspendedByConsumer:
@@ -9856,14 +10937,11 @@ components:
       description: Contains the information for agreement creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - eserviceId
         - descriptorId
@@ -10361,8 +11439,7 @@ components:
       additionalProperties: false
       properties:
         purposeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       required:
         - purposeId
     ProducerKeychain:
@@ -10429,8 +11506,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
     ProducerDelegation:
@@ -10447,8 +11523,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         createdAt:
           type: string
           format: date-time
@@ -10506,8 +11581,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         createdAt:
           type: string
           format: date-time
@@ -10571,8 +11645,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegateId:
           type: string
           format: uuid
@@ -11289,7 +12362,7 @@ components:
         alg:
           type: string
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         x5u:
           type: string
           minLength: 1
@@ -11396,8 +12469,7 @@ components:
       additionalProperties: false
       properties:
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
         jwk:
           $ref: "#/components/schemas/JWK"
       required:
@@ -11409,8 +12481,7 @@ components:
       additionalProperties: false
       properties:
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
         jwk:
           $ref: "#/components/schemas/JWK"
       required:
@@ -11456,8 +12527,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         consumerId:
           type: string
           format: uuid
@@ -11482,8 +12552,7 @@ components:
         freeOfChargeReason:
           type: string
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
         currentVersion:
           $ref: "#/components/schemas/PurposeVersion"
         waitingForApprovalVersion:
@@ -11491,8 +12560,7 @@ components:
         rejectedVersion:
           $ref: "#/components/schemas/PurposeVersion"
         purposeTemplateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       required:
         - id
         - eserviceId
@@ -11508,8 +12576,7 @@ components:
       description: contains the expected payload for purpose creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -11547,8 +12614,7 @@ components:
       description: contains the expected payload for purpose creation from a purpose template
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -11574,8 +12640,7 @@ components:
       description: contains the expected payload for reverse purpose creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -11809,8 +12874,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
     EServiceRiskAnalysisSeed:
@@ -12003,8 +13067,7 @@ components:
           type: string
           format: uuid
         agreementId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         expirationDate:
           type: string
           format: date-time
@@ -12063,8 +13126,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - assignedAt
@@ -12089,8 +13151,7 @@ components:
           type: string
           format: uuid
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
     TenantVerifiedAttributeVerifier:
@@ -12110,8 +13171,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - verifiedAt
@@ -12148,8 +13208,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - verifiedAt
@@ -12271,8 +13330,7 @@ components:
       description: Set the delegation ID in order to operate as a delegate for an active producer or consumer delegation
       properties:
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     PurposeTemplates:
       type: object
       additionalProperties: false
@@ -12528,6 +13586,54 @@ components:
       required:
         - document
         - answerId
+    User:
+      type: object
+      additionalProperties: false
+      description: User information
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: User identifier
+        name:
+          type: string
+          description: User first name
+        familyName:
+          type: string
+          description: User last name
+        roles:
+          type: array
+          items:
+            type: string
+          description: User roles
+      required:
+        - userId
+        - name
+        - familyName
+        - roles
+    Users:
+      type: object
+      additionalProperties: false
+      description: Paginated list of users
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    LinkUser:
+      type: object
+      additionalProperties: false
+      properties:
+        userId:
+          type: string
+          format: uuid
+      required:
+        - userId
     Problem:
       properties:
         type:
@@ -12586,6 +13692,53 @@ components:
       required:
         - code
         - detail
+    EServiceId:
+      type: string
+      format: uuid
+      description: The unique identifier of the E-Service
+    AgreementId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Agreement
+    AttributeId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Attribute
+    ClientId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Client
+    DelegationId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Delegation
+    DescriptorId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Descriptor
+    EServiceTemplateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the E-Service Template
+    Kid:
+      type: string
+      description: The unique identifier of the Key
+    ProducerKeychainId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Producer Keychain
+    PurposeId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Purpose
+    PurposeTemplateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Purpose Template
+    TenantId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Tenant
   responses:
     TooManyRequests:
       description: Too Many Requests
@@ -12600,6 +13753,10 @@ components:
           $ref: "#/components/headers/RateLimitRemainingHeader"
         X-Rate-Limit-Interval:
           $ref: "#/components/headers/RateLimitIntervalHeader"
+        Digest:
+          $ref: "#/components/headers/IntegrityRest02DigestHeader"
+        Agid-JWT-Signature:
+          $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
     BadRequest:
       description: Bad Request
       content:
@@ -12613,6 +13770,10 @@ components:
           $ref: "#/components/headers/RateLimitRemainingHeader"
         X-Rate-Limit-Interval:
           $ref: "#/components/headers/RateLimitIntervalHeader"
+        Digest:
+          $ref: "#/components/headers/IntegrityRest02DigestHeader"
+        Agid-JWT-Signature:
+          $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
     Unauthorized:
       description: Unauthorized
       content:
@@ -12626,6 +13787,10 @@ components:
           $ref: "#/components/headers/RateLimitRemainingHeader"
         X-Rate-Limit-Interval:
           $ref: "#/components/headers/RateLimitIntervalHeader"
+        Digest:
+          $ref: "#/components/headers/IntegrityRest02DigestHeader"
+        Agid-JWT-Signature:
+          $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
     Forbidden:
       description: Forbidden
       content:
@@ -12639,6 +13804,10 @@ components:
           $ref: "#/components/headers/RateLimitRemainingHeader"
         X-Rate-Limit-Interval:
           $ref: "#/components/headers/RateLimitIntervalHeader"
+        Digest:
+          $ref: "#/components/headers/IntegrityRest02DigestHeader"
+        Agid-JWT-Signature:
+          $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
     NotFound:
       description: Not Found
       content:
@@ -12652,6 +13821,10 @@ components:
           $ref: "#/components/headers/RateLimitRemainingHeader"
         X-Rate-Limit-Interval:
           $ref: "#/components/headers/RateLimitIntervalHeader"
+        Digest:
+          $ref: "#/components/headers/IntegrityRest02DigestHeader"
+        Agid-JWT-Signature:
+          $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
     Conflict:
       description: Conflict
       content:
@@ -12665,6 +13838,10 @@ components:
           $ref: "#/components/headers/RateLimitRemainingHeader"
         X-Rate-Limit-Interval:
           $ref: "#/components/headers/RateLimitIntervalHeader"
+        Digest:
+          $ref: "#/components/headers/IntegrityRest02DigestHeader"
+        Agid-JWT-Signature:
+          $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
   headers:
     RateLimitLimitHeader:
       schema:
@@ -12684,8 +13861,35 @@ components:
         format: int32
         minimum: 0
       description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+    IntegrityRest02DigestHeader:
+      schema:
+        type: string
+        pattern: ^SHA-256=[a-zA-Z0-9]{64}$
+      description: |
+        Digest of the body using the canonical JSON representation of the response body.
+        The digest is calculated using the SHA-256 algorithm on the response body
+        exactly as it is sent to the client.
+    IntegrityRest02AgidJwtSignatureHeader:
+      schema:
+        type: string
+        pattern: ^[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+$
+      description: |
+        Agid-JWT-Signature header signed with the M2M gateway private key.
+        Inside the JWT there is a `signed_header` field containting the `digest` header value,
+        the `content-type` header and, optionally, the `content-encoding` header.
   securitySchemes:
-    bearerAuth:
+    DPoPAuth:
       type: http
-      scheme: bearer
-      bearerFormat: JWT
+      scheme: DPoP
+      description: |
+        This Authorization header must be used alongside the DPoP Proof JWT.
+        Use:
+        Authorization: DPoP <access_token>
+
+        The access token generated must also have a cnf field.
+    DPoPProofHeader:
+      type: apiKey
+      in: header
+      name: DPoP
+      description: |
+        DPoP proof JWT for sender-constrained access. Must accompany the DPoP Authorization header.
