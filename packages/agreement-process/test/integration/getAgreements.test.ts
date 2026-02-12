@@ -666,7 +666,7 @@ describe("get agreements", () => {
     expectSinglePageListResult(agreements, [agreement5]);
   });
 
-  describe("custom tests for the strictConsumer parameter", () => {
+  describe("custom tests for the exactConsumerIdMatch parameter", () => {
     const tenantA = getMockTenant();
     const tenantB = getMockTenant();
 
@@ -709,11 +709,11 @@ describe("get agreements", () => {
     });
 
     describe("the requester is tenantA", () => {
-      it("should return agreements for which tenantA is the exact consumer (strictConsumer: true)", async () => {
+      it("should return agreements for which tenantA is the exact consumer (exactConsumerIdMatch: true)", async () => {
         const agreements = await agreementService.getAgreements(
           {
             consumerId: [tenantA.id],
-            strictConsumer: true,
+            exactConsumerIdMatch: true,
           },
           10,
           0,
@@ -722,11 +722,11 @@ describe("get agreements", () => {
         expectSinglePageListResult(agreements, [agreement11]);
       });
 
-      it("should return agreements for which tenantA is the exact consumer or delegated consumer (strictConsumer: false)", async () => {
+      it("should return agreements for which tenantA is the exact consumer or delegated consumer (exactConsumerIdMatch: false)", async () => {
         const agreements = await agreementService.getAgreements(
           {
             consumerId: [tenantA.id],
-            strictConsumer: false,
+            exactConsumerIdMatch: false,
           },
           10,
           0,
@@ -735,11 +735,11 @@ describe("get agreements", () => {
         expectSinglePageListResult(agreements, [agreement11, agreement12]);
       });
 
-      it("should return agreements for which tenantB is the exact consumer (strictConsumer: true)", async () => {
+      it("should return agreements for which tenantB is the exact consumer (exactConsumerIdMatch: true)", async () => {
         const agreements = await agreementService.getAgreements(
           {
             consumerId: [tenantB.id],
-            strictConsumer: true,
+            exactConsumerIdMatch: true,
           },
           10,
           0,
@@ -748,11 +748,11 @@ describe("get agreements", () => {
         expectSinglePageListResult(agreements, [agreement12]);
       });
 
-      it("should return agreements for which tenantB is the exact consumer or delegated consumer (strictConsumer: false)", async () => {
+      it("should return agreements for which tenantB is the exact consumer or delegated consumer (exactConsumerIdMatch: false)", async () => {
         const agreements = await agreementService.getAgreements(
           {
             consumerId: [tenantB.id],
-            strictConsumer: false,
+            exactConsumerIdMatch: false,
           },
           10,
           0,
@@ -763,11 +763,11 @@ describe("get agreements", () => {
     });
 
     describe("the requester is tenantB", () => {
-      it("should return agreements for which tenantA is the exact consumer (strictConsumer: true)", async () => {
+      it("should return agreements for which tenantA is the exact consumer (exactConsumerIdMatch: true)", async () => {
         const agreements = await agreementService.getAgreements(
           {
             consumerId: [tenantA.id],
-            strictConsumer: true,
+            exactConsumerIdMatch: true,
           },
           10,
           0,
@@ -776,11 +776,11 @@ describe("get agreements", () => {
         expectSinglePageListResult(agreements, []);
       });
 
-      it("should return agreements for which tenantA is the exact consumer or delegated consumer (strictConsumer: false)", async () => {
+      it("should return agreements for which tenantA is the exact consumer or delegated consumer (exactConsumerIdMatch: false)", async () => {
         const agreements = await agreementService.getAgreements(
           {
             consumerId: [tenantA.id],
-            strictConsumer: false,
+            exactConsumerIdMatch: false,
           },
           10,
           0,
@@ -789,11 +789,11 @@ describe("get agreements", () => {
         expectSinglePageListResult(agreements, [agreement12]);
       });
 
-      it("should return agreements for which tenantB is the exact consumer (strictConsumer: true)", async () => {
+      it("should return agreements for which tenantB is the exact consumer (exactConsumerIdMatch: true)", async () => {
         const agreements = await agreementService.getAgreements(
           {
             consumerId: [tenantB.id],
-            strictConsumer: true,
+            exactConsumerIdMatch: true,
           },
           10,
           0,
@@ -802,11 +802,11 @@ describe("get agreements", () => {
         expectSinglePageListResult(agreements, [agreement12]);
       });
 
-      it("should return agreements for which tenantB is the exact consumer or delegated consumer (strictConsumer: false)", async () => {
+      it("should return agreements for which tenantB is the exact consumer or delegated consumer (exactConsumerIdMatch: false)", async () => {
         const agreements = await agreementService.getAgreements(
           {
             consumerId: [tenantB.id],
-            strictConsumer: false,
+            exactConsumerIdMatch: false,
           },
           10,
           0,

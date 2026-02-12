@@ -65,7 +65,7 @@ describe("getPurposeAgreement", () => {
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreements,
       queries: {
         consumersIds: [mockPurpose.data.consumerId],
-        strictConsumer: true,
+        exactConsumerIdMatch: true,
         eservicesIds: [mockPurpose.data.eserviceId],
         states: [
           m2mGatewayApi.AgreementState.Values.ACTIVE,

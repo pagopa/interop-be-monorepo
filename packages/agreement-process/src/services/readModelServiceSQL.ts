@@ -57,7 +57,7 @@ import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
 import { CompactEService } from "../model/domain/models.js";
 import {
   AgreementQueryFilters,
-  AgreementQueryFiltersWithStrictConsumer,
+  AgreementQueryFiltersWithExactConsumerIdMatch,
 } from "./readModelService.js";
 
 type AgreementEServicesQueryFilters = {
@@ -273,12 +273,12 @@ const getProducerIdsFilter = (
 
 const getConsumerIdsFilter = (
   consumerIds: TenantId[],
-  strictConsumer: boolean
+  exactConsumerIdMatch: boolean
 ): SQL | undefined =>
   consumerIds.length > 0
     ? or(
         inArray(agreementInReadmodelAgreement.consumerId, consumerIds),
-        !strictConsumer
+        !exactConsumerIdMatch
           ? inArray(activeConsumerDelegations.delegateId, consumerIds)
           : undefined
       )
@@ -323,12 +323,12 @@ const getAgreementsFilters = <
       }
 >({
   filters,
-  strictConsumer,
+  exactConsumerIdMatch,
   requesterId,
   withVisibilityAndDelegationFilters,
 }: {
   filters: AgreementQueryFilters;
-  strictConsumer: boolean;
+  exactConsumerIdMatch: boolean;
 } & T): SQL | undefined => {
   const {
     producerIds,
@@ -344,7 +344,7 @@ const getAgreementsFilters = <
       ? getVisibilityFilter(requesterId)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
-    getConsumerIdsFilter(consumerIds, strictConsumer),
+    getConsumerIdsFilter(consumerIds, exactConsumerIdMatch),
     getEServiceIdsFilter(eserviceIds),
     getDescriptorIdsFilter(descriptorIds),
     getAttributeIdsFilter(attributeIds),
@@ -364,7 +364,7 @@ export function readModelServiceBuilderSQL(
   return {
     async getAgreements(
       requesterId: TenantId,
-      filters: AgreementQueryFiltersWithStrictConsumer,
+      filters: AgreementQueryFiltersWithExactConsumerIdMatch,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
@@ -401,7 +401,7 @@ export function readModelServiceBuilderSQL(
           .where(
             getAgreementsFilters({
               filters,
-              strictConsumer: filters.strictConsumer || false,
+              exactConsumerIdMatch: filters.exactConsumerIdMatch || false,
               requesterId,
               withVisibilityAndDelegationFilters: true,
             })
@@ -562,7 +562,7 @@ export function readModelServiceBuilderSQL(
         .where(
           getAgreementsFilters({
             filters,
-            strictConsumer: true,
+            exactConsumerIdMatch: true,
           })
         )
         .groupBy(

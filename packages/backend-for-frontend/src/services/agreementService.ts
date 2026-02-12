@@ -58,7 +58,7 @@ export async function getAllAgreements(
         headers,
         queries: {
           ...getAgreementsQueryParams,
-          strictConsumer: true,
+          exactConsumerIdMatch: true,
           offset,
           limit,
         },
@@ -114,7 +114,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds: [ctx.authData.organizationId],
-            strictConsumer: false,
+            exactConsumerIdMatch: false,
             producersIds,
             states,
           },
@@ -161,7 +161,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds,
-            strictConsumer: false,
+            exactConsumerIdMatch: false,
             states,
           },
           headers: ctx.headers,
@@ -649,7 +649,7 @@ export const getLatestAgreementsOnDescriptor = async (
     headers,
     {
       consumersIds: [consumerId],
-      strictConsumer: false,
+      exactConsumerIdMatch: false,
       eservicesIds: [eservice.id],
       descriptorsIds: [descriptorId],
     }
@@ -685,7 +685,7 @@ export const getLatestAgreementsOnDescriptor = async (
 export const getLatestAgreement = async (
   agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
-  strictConsumer: boolean,
+  exactConsumerIdMatch: boolean,
   eservice: catalogApi.EService,
   headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
@@ -695,7 +695,7 @@ export const getLatestAgreement = async (
     {
       consumersIds: [consumerId],
       eservicesIds: [eservice.id],
-      strictConsumer,
+      exactConsumerIdMatch,
     }
   );
 

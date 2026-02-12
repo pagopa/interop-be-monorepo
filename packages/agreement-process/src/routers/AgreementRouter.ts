@@ -392,7 +392,7 @@ const agreementRouter = (
               apiAgreementStateToAgreementState
             ),
             showOnlyUpgradeable: req.query.showOnlyUpgradeable || false,
-            strictConsumer: req.query.strictConsumer,
+            exactConsumerIdMatch: req.query.exactConsumerIdMatch,
           },
           req.query.limit,
           req.query.offset,

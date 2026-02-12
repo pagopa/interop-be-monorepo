@@ -376,7 +376,7 @@ async function retrieveAgreement(
 ): Promise<agreementApi.Agreement> {
   const agreements = await getAllAgreements(agreementClient, ctx.headers, {
     consumersIds: [consumerId],
-    strictConsumer: true,
+    exactConsumerIdMatch: true,
     eservicesIds: [eserviceId],
     states: [
       agreementApi.AgreementState.Values.ACTIVE,
