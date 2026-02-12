@@ -22,25 +22,25 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
+    "@pagopa/eslint-config": "catalog:",
     "@types/node": "20.19.9",
-    "eslint": "8.57.1",
-    "kafkajs": "2.2.4",
+    "eslint": "catalog:",
+    "kafkajs": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "2.8.8",
-    "testcontainers": "10.9.0",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
+    "prettier": "catalog:",
+    "testcontainers": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
     "vitest": "4.0.18"
   },
   "dependencies": {
-    "@aws-sdk/client-sqs": "3.840.0",
-    "@protobuf-ts/plugin": "2.9.4",
-    "dotenv-flow": "4.1.0",
+    "@aws-sdk/client-sqs": "catalog:",
+    "@protobuf-ts/plugin": "catalog:",
+    "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   }
 }

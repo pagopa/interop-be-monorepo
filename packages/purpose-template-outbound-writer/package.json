@@ -16,20 +16,20 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
+    "@pagopa/eslint-config": "catalog:",
     "@types/node": "20.19.9",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5"
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   },
   "dependencies": {
     "@pagopa/interop-outbound-models": "1.8.5",
-    "dotenv-flow": "4.1.0",
+    "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "2.2.4",
+    "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   }
 }
