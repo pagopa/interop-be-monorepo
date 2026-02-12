@@ -29726,11 +29726,15 @@ components:
             "api-e-service":
               type: integer
               format: int32
+            "api-interop":
+              type: integer
+              format: int32
             totalCount:
               type: integer
               format: int32
           required:
             - "api-e-service"
+            - "api-interop"
             - totalCount
         notifiche:
           type: object
