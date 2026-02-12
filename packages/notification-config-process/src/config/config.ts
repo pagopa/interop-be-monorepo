@@ -14,7 +14,7 @@ const NotificationConfigProcessConfig = CommonHTTPServiceConfig.and(
   .and(ReadModelSQLDbConfig)
   .and(FeatureFlagNotificationConfig);
 
-export type NotificationConfigProcessConfig = z.infer<
+type NotificationConfigProcessConfig = z.infer<
   typeof NotificationConfigProcessConfig
 >;
 

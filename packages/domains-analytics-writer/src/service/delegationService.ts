@@ -106,5 +106,3 @@ export function delegationServiceBuilder(dbContext: DBContext) {
     },
   };
 }
-
-export type DelegationService = ReturnType<typeof delegationServiceBuilder>;

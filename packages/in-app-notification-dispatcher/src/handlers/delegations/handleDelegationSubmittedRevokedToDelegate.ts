@@ -14,7 +14,7 @@ import {
   retrieveTenant,
 } from "../handlerCommons.js";
 
-export type DelegationSubmittedRevokedToDelegateEventType =
+type DelegationSubmittedRevokedToDelegateEventType =
   | "ProducerDelegationSubmitted"
   | "ConsumerDelegationSubmitted"
   | "ProducerDelegationRevoked"

@@ -9,8 +9,6 @@ import { afterEach, inject } from "vitest";
 import { eq } from "drizzle-orm";
 import { AgreementId, Agreement } from "pagopa-interop-models";
 import {
-  AgreementSQL,
-  agreementInReadmodelAgreement,
   AgreementStampSQL,
   agreementStampInReadmodelAgreement,
   AgreementAttributeSQL,
@@ -38,16 +36,6 @@ export const agreementReadModelService =
 
 export const agreementWriterService =
   agreementWriterServiceBuilder(readModelDB);
-
-export const retrieveAgreementSQL = async (
-  agreementId: AgreementId
-): Promise<AgreementSQL | undefined> => {
-  const result = await readModelDB
-    .select()
-    .from(agreementInReadmodelAgreement)
-    .where(eq(agreementInReadmodelAgreement.id, agreementId));
-  return result[0];
-};
 
 export const retrieveAgreementStampsSQLByAgreementId = async (
   agreementId: AgreementId

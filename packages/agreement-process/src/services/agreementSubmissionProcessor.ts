@@ -1,12 +1,7 @@
 /* eslint-disable max-params */
-import {
-  UIAuthData,
-  CreateEvent,
-  M2MAdminAuthData,
-} from "pagopa-interop-commons";
+import { UIAuthData, M2MAdminAuthData } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementEvent,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
@@ -30,12 +25,6 @@ import {
 } from "../model/domain/errors.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { createStamp } from "./agreementStampUtils.js";
-
-export type AgremeentSubmissionResults = {
-  events: Array<CreateEvent<AgreementEvent>>;
-  initAgreement: Agreement;
-  version: number;
-};
 
 export const validateConsumerEmail = async (
   consumer: Tenant,
@@ -111,7 +100,7 @@ export const createSubmissionUpdateAgreementSeed = (
 export const isActiveOrSuspended = (state: AgreementState): boolean =>
   state === agreementState.active || state === agreementState.suspended;
 
-export const calculateStamps = (
+const calculateStamps = (
   agreement: Agreement,
   state: AgreementState,
   stamp: AgreementStamp

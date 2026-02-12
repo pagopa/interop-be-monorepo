@@ -31,7 +31,7 @@ afterEach(async () => {
   await cleanup();
 });
 
-export interface MockNotification {
+interface MockNotification {
   id: NotificationId;
   userId: UserId;
   tenantId: TenantId;

@@ -11,6 +11,7 @@ import {
   fromFilesToBodyMiddleware,
   multerMiddleware,
   errorsToApiProblemsMiddleware,
+  healthRouter,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -22,7 +23,6 @@ import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
-import healthRouter from "./routers/HealthRouter.js";
 import swaggerRouter from "./routers/swaggerRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
@@ -109,7 +109,7 @@ import {
 } from "./services/inAppNotificationService.js";
 import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 
-export type BFFServices = {
+type BFFServices = {
   agreementService: AgreementService;
   attributeService: AttributeService;
   authorizationService: AuthorizationService;
@@ -129,9 +129,7 @@ export type BFFServices = {
   toolsService: ToolsService;
 };
 
-export type RateLimiterMiddleware = ReturnType<
-  typeof rateLimiterMiddlewareBuilder
->;
+type RateLimiterMiddleware = ReturnType<typeof rateLimiterMiddlewareBuilder>;
 
 export const serviceName = modelsServiceName.BACKEND_FOR_FRONTEND;
 
@@ -248,7 +246,7 @@ export async function createApp(
 
   app.use(
     appBasePath,
-    healthRouter,
+    healthRouter(bffApi.healthApi.api),
     swaggerRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
@@ -276,7 +274,6 @@ export async function createApp(
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),
-    purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     selfcareRouter(zodiosCtx, services.selfcareService),
     supportRouter(zodiosCtx, services.authorizationServiceForSupport),

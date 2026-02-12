@@ -107,14 +107,14 @@ export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
   eserviceId: EServiceId;
 };
 
-export type TenantEmailNotificationRecipient = {
+type TenantEmailNotificationRecipient = {
   type: "Tenant";
   tenantId: TenantId;
   selfcareId: string | undefined;
   address: string;
 };
 
-export type UserEmailNotificationRecipient = {
+type UserEmailNotificationRecipient = {
   type: "User";
   userId: UserId;
   tenantId: TenantId;
