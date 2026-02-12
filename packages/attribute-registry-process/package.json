@@ -21,7 +21,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
     "@types/express": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "@types/supertest": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
@@ -29,7 +29,7 @@
     "supertest": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@zodios/core": "catalog:",

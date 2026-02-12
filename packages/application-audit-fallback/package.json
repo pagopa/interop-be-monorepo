@@ -23,14 +23,14 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "testcontainers": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "catalog:",

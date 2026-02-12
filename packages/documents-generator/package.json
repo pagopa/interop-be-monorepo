@@ -24,15 +24,15 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/node": "20.19.3",
-    "cpx2": "7.0.2",
-    "date-fns": "3.6.0",
+    "@types/node": "catalog:",
+    "cpx2": "catalog:",
+    "date-fns": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "puppeteer": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
     "dotenv-flow": "catalog:",

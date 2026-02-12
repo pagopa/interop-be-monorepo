@@ -18,19 +18,19 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "devDependencies": {
-    "@anatine/zod-mock": "3.14.0",
+    "@anatine/zod-mock": "catalog:",
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/client-kms": "catalog:",
-    "@aws-sdk/client-sesv2": "3.840.0",
+    "@aws-sdk/client-sesv2": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "@faker-js/faker": "catalog:",
     "@pagopa/eslint-config": "catalog:",
     "@protobuf-ts/runtime": "catalog:",
     "@types/adm-zip": "catalog:",
     "@types/jsonwebtoken": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "@types/pg": "catalog:",
-    "adm-zip": "0.5.16",
+    "adm-zip": "catalog:",
     "aws-sdk-client-mock": "catalog:",
     "axios": "catalog:",
     "dotenv-flow": "catalog:",
@@ -46,7 +46,7 @@
     "testcontainers": "catalog:",
     "ts-pattern": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18",
+    "vitest": "catalog:",
     "yaml": "catalog:",
     "zod": "catalog:"
   }

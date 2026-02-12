@@ -19,10 +19,10 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@anatine/zod-mock": "3.14.0",
+    "@anatine/zod-mock": "catalog:",
     "@pagopa/eslint-config": "catalog:",
     "@types/express": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "@types/qs": "catalog:",
     "@types/supertest": "catalog:",
     "eslint": "catalog:",
@@ -31,7 +31,7 @@
     "supertest": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@zodios/core": "catalog:",

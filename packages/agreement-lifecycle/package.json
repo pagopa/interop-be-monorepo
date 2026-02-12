@@ -22,7 +22,7 @@
     "pagopa-interop-models": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"

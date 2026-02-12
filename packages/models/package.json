@@ -29,7 +29,7 @@
     "zod-validation-error": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "mkdirp": "catalog:",
     "prettier": "catalog:",

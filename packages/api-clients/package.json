@@ -27,7 +27,7 @@
     "@pagopa/eslint-config": "catalog:",
     "eslint": "catalog:",
     "@stoplight/spectral-cli": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "@types/qs": "catalog:",
     "dotenv-flow": "catalog:",
     "openapi-types": "catalog:",

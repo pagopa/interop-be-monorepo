@@ -18,15 +18,15 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "date-fns": "3.6.0",
+    "date-fns": "catalog:",
     "dotenv-flow": "catalog:",
     "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",

@@ -28,11 +28,11 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "jsonwebtoken": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   }
 }

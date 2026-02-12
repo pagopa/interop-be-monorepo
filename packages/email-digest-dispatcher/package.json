@@ -20,13 +20,13 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/node": "20.19.9",
-    "cpx2": "7.0.1",
+    "@types/node": "catalog:",
+    "cpx2": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "1.6.1",
+    "vitest": "catalog:",
     "@types/pg": "catalog:"
   },
   "dependencies": {

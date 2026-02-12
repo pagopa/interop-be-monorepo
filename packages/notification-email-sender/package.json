@@ -22,16 +22,16 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "@types/nodemailer": "catalog:",
     "axios": "catalog:",
-    "cpx2": "7.0.2",
+    "cpx2": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
     "dotenv-flow": "catalog:",

@@ -22,7 +22,7 @@
     "eslint": "catalog:",
     "@types/html2json": "catalog:",
     "@types/lodash.isempty": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

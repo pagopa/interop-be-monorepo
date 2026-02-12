@@ -18,13 +18,13 @@
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
     "eslint": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "@pagopa/interop-outbound-models": "1.7.0",
+    "@pagopa/interop-outbound-models": "catalog:",
     "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "catalog:",

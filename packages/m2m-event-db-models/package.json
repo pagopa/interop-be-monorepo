@@ -25,7 +25,7 @@
     "pg": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "drizzle-kit": "catalog:",
     "eslint": "catalog:",

@@ -25,14 +25,14 @@
     "@pagopa/eslint-config": "catalog:",
     "@types/adm-zip": "catalog:",
     "@types/archiver": "catalog:",
-    "@types/node": "20.19.3",
-    "adm-zip": "0.5.16",
-    "date-fns": "4.1.0",
+    "@types/node": "catalog:",
+    "adm-zip": "catalog:",
+    "date-fns": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:",

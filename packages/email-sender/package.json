@@ -22,16 +22,16 @@
   "keywords": [],
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/node": "20.14.6",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "@aws-sdk/client-sesv2": "3.693.0",
+    "@aws-sdk/client-sesv2": "catalog:",
     "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "catalog:",

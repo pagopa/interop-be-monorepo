@@ -19,11 +19,11 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@anatine/zod-mock": "3.14.0",
+    "@anatine/zod-mock": "catalog:",
     "@pagopa/eslint-config": "catalog:",
     "@types/adm-zip": "catalog:",
     "@types/express": "catalog:",
-    "@types/node": "20.19.9",
+    "@types/node": "catalog:",
     "@types/supertest": "catalog:",
     "@types/swagger-ui-express": "catalog:",
     "eslint": "catalog:",
@@ -32,7 +32,7 @@
     "supertest": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.0.18"
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:",
@@ -40,7 +40,7 @@
     "@xmldom/xmldom": "catalog:",
     "@zodios/core": "catalog:",
     "@zodios/express": "catalog:",
-    "adm-zip": "0.5.16",
+    "adm-zip": "catalog:",
     "axios": "catalog:",
     "dotenv-flow": "catalog:",
     "express": "catalog:",
