@@ -228,7 +228,53 @@ const producerKeychainRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post("/producerKeychains/:producerKeychainId/users", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await producerKeychainService.addProducerKeychainUsers(
+          unsafeBrandId(req.params.producerKeychainId),
+          req.body.userId,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding user to producer keychain with id ${req.params.producerKeychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete(
+      "/producerKeychains/:producerKeychainId/users/:userId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await producerKeychainService.removeProducerKeychainUser(
+            unsafeBrandId(req.params.producerKeychainId),
+            req.params.userId,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error removing user ${req.params.userId} from producer keychain ${req.params.producerKeychainId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return producerKeychainRouter;
 };
