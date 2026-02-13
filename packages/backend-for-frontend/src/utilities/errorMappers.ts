@@ -276,9 +276,3 @@ export const addPurposeTemplateAnnotationDocumentErrorMapper = (
   match(error.code)
     .with("invalidContentTypeDetected", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const dpopToolsErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("missingHeader", () => HTTP_STATUS_BAD_REQUEST)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

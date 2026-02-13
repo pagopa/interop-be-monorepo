@@ -6,12 +6,10 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { ToolsService } from "../services/toolService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import {
-  dpopToolsErrorMapper,
-  toolsErrorMapper,
-} from "../utilities/errorMappers.js";
+import { toolsErrorMapper } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/errors.js";
 
 const toolRouter = (
@@ -60,7 +58,7 @@ const toolRouter = (
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
-        dpopToolsErrorMapper,
+        emptyErrorMapper,
         ctx,
         "Error validating token generation request"
       );

@@ -1,11 +1,7 @@
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { describe, beforeEach, vi, it, expect } from "vitest";
-import {
-  generateId,
-  operationForbidden,
-  missingHeader,
-} from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -50,23 +46,13 @@ describe("API POST /tools/validateDPoPTokenGeneration", () => {
     expect(res.body).toEqual(mockResult);
   });
 
-  it("Should return 403 if operationForbidden error occurs", async () => {
+  it.each([
+    { body: {} },
+    { body: { ...mockRequest, htu: 123 } },
+    { body: { ...mockRequest, dpop_proof: 123 } },
+  ])("Should return 400 for invalid input: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    services.toolsService.validateDPoPTokenGeneration = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if missingHeader error occurs", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    services.toolsService.validateDPoPTokenGeneration = vi
-      .fn()
-      .mockRejectedValue(missingHeader("X-Some-Header"));
-
-    const res = await makeRequest(token);
+    const res = await makeRequest(token, body as bffApi.AccessDPoPTokenRequest);
     expect(res.status).toBe(400);
   });
 });
