@@ -1,12 +1,18 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { JWTConfig, DPoPConfig, Logger } from "pagopa-interop-commons";
+import {
+  JWTConfig,
+  DPoPConfig,
+  Logger,
+  calculateAth,
+} from "pagopa-interop-commons";
 import {
   verifyDPoPProof,
   verifyDPoPProofSignature,
   checkDPoPCache,
   verifyDPoPThumbprintMatch,
+  verifyDPoPProofAth,
 } from "pagopa-interop-dpop-validation";
-import { DPoPProof } from "pagopa-interop-models";
+import { DPoPProof, DPoPProofResource } from "pagopa-interop-models";
 import {
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
@@ -28,8 +34,9 @@ import {
 export const verifyDPoPCompliance = async ({
   config,
   dpopProofJWS,
-  accessTokenClientId,
-  accessTokenThumbprint,
+  accessToken,
+  clientId,
+  jkt,
   expectedHtu,
   expectedHtm,
   dynamoDBClient,
@@ -37,8 +44,9 @@ export const verifyDPoPCompliance = async ({
 }: {
   config: JWTConfig & DPoPConfig;
   dpopProofJWS: string | undefined;
-  accessTokenClientId: string;
-  accessTokenThumbprint: string;
+  accessToken: string;
+  clientId: string;
+  jkt: string;
   expectedHtu: string;
   expectedHtm: string;
   dynamoDBClient: DynamoDBClient;
@@ -57,21 +65,52 @@ export const verifyDPoPCompliance = async ({
       })
     : { data: undefined, errors: undefined };
 
+  // const dPoPProofResourceValidated: DPoPProofResource =
+  //   DPoPProofResource.safeParse(data?.dpopProofJWT.payload);
+
   if (dpopProofErrors) {
     throw dpopProofValidationFailed(
-      accessTokenClientId,
+      clientId,
       dpopProofErrors.map((error) => error.detail).join(", ")
     );
   }
 
-  const validatedJWT = data?.dpopProofJWT;
-  const validatedJWS = data?.dpopProofJWS;
+  if (!data || !dpopProofJWS) {
+    throw dpopProofValidationFailed(clientId, "DPoP Proof missing or invalid");
+  }
+
+  // 2. Verifica Specifica per Resource Access
+  // Usiamo il modello DPoPProofResource che richiede obbligatoriamente 'ath'
+  const resourceValidation = DPoPProofResource.safeParse({
+    header: data.dpopProofJWT.header,
+    payload: data.dpopProofJWT.payload, // payload contiene già 'ath' se presente
+  });
+
+  if (!resourceValidation.success) {
+    throw dpopProofValidationFailed(
+      clientId,
+      "Invalid DPoP Resource Proof: missing or invalid 'ath' claim"
+    );
+  }
+
+  const { errors: athErrors } = verifyDPoPProofAth(
+    resourceValidation.data.payload.ath,
+    calculateAth(accessToken)
+  );
+
+  if (athErrors) {
+    // Gestione dell'errore (puoi unire gli errori o lanciarne uno specifico)
+    throw dpopProofValidationFailed(
+      clientId,
+      athErrors.map((e) => e.detail).join(", ")
+    );
+  }
+
+  const validatedJWT = resourceValidation.data; // type DPoPProofResource
+  const validatedJWS = data.dpopProofJWS;
 
   if (!validatedJWT || !validatedJWS) {
-    throw dpopProofValidationFailed(
-      accessTokenClientId,
-      "DPoP Proof missing or invalid"
-    );
+    throw dpopProofValidationFailed(clientId, "DPoP Proof missing or invalid");
   }
 
   // ----------------------------------------------------------------------
@@ -84,7 +123,7 @@ export const verifyDPoPCompliance = async ({
 
   if (dpopProofSignatureErrors) {
     throw dpopProofSignatureValidationFailed(
-      accessTokenClientId,
+      clientId,
       dpopProofSignatureErrors.map((error) => error.detail).join(", ")
     );
   }
@@ -96,13 +135,13 @@ export const verifyDPoPCompliance = async ({
   // ----------------------------------------------------------------------
   const { errors: bindingErrors } = verifyDPoPThumbprintMatch(
     validatedJWT,
-    accessTokenThumbprint
+    jkt
   );
 
   if (bindingErrors) {
     const errorDetails = bindingErrors.map((e) => e.detail).join(", ");
     logger.warn(`DPoP Key Binding verification failed: ${errorDetails}`);
-    throw dpopTokenBindingFailed(accessTokenClientId, errorDetails);
+    throw dpopTokenBindingFailed(clientId, errorDetails);
   }
 
   // ----------------------------------------------------------------------

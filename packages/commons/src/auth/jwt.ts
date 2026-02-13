@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import jwt, { GetPublicKeyOrSecret, JwtPayload } from "jsonwebtoken";
 import {
   invalidClaim,
@@ -151,7 +152,7 @@ export const verifyJwtToken = async (
  * it catches the validation error, attempts to extract user context for auditing, and throws an error
  *
  */
-export const verifyJwtDPoPToken = async (
+export const verifyJwtDPoPAccessToken = async (
   accessToken: string,
   config: JWTConfig,
   logger: Logger
@@ -176,3 +177,6 @@ export const verifyJwtDPoPToken = async (
     throw tokenVerificationFailed(userId, selfcareId);
   }
 };
+
+export const calculateAth = (accessToken: string): string =>
+  createHash("sha256").update(accessToken).digest("base64url");

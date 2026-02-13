@@ -9,7 +9,7 @@ import {
   systemRole,
   JWTConfig,
   DPoPConfig,
-  verifyJwtDPoPToken,
+  verifyJwtDPoPAccessToken,
 } from "pagopa-interop-commons";
 import { unauthorizedError } from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
@@ -128,7 +128,7 @@ export const authenticationDPoPMiddleware: (
       // verify JWT Access Token
       // verify all claims (cnf included) are all present in JWT Token (Binding DPoP)
       // ----------------------------------------------------------------------
-      const accessTokenDPoP = await verifyJwtDPoPToken(
+      const accessTokenDPoP = await verifyJwtDPoPAccessToken(
         accessToken,
         config,
         ctx.logger
@@ -138,8 +138,9 @@ export const authenticationDPoPMiddleware: (
       await verifyDPoPCompliance({
         config,
         dpopProofJWS,
-        accessTokenClientId: accessTokenDPoP.client_id,
-        accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
+        accessToken,
+        clientId: accessTokenDPoP.client_id,
+        jkt: accessTokenDPoP.cnf.jkt,
         expectedHtu,
         expectedHtm,
         dynamoDBClient,

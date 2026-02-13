@@ -27,6 +27,8 @@ import {
   multipleDPoPProofsError,
   unexpectedDPoPProofError,
   unexpectedDPoPProofSignatureVerificationError,
+  dpopAthNotFound,
+  invalidDPoPAth,
 } from "./errors.js";
 import { ValidationResult } from "./types.js";
 import { readDPoPCache, writeDPoPCache } from "./utilities/dpopCacheUtils.js";
@@ -149,6 +151,19 @@ export const verifyDPoPProof = ({
     const message = error instanceof Error ? error.message : "generic error";
     return failedValidation([unexpectedDPoPProofError(message)]);
   }
+};
+
+export const verifyDPoPProofAth = (
+  receivedAth: string | undefined,
+  expectedAth: string
+): ValidationResult<string> => {
+  if (!receivedAth) {
+    return failedValidation([dpopAthNotFound()]);
+  }
+  if (receivedAth !== expectedAth) {
+    return failedValidation([invalidDPoPAth(receivedAth)]);
+  }
+  return successfulValidation(receivedAth);
 };
 
 export const verifyDPoPProofSignature = async (
