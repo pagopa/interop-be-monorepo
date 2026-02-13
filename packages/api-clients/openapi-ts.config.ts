@@ -10,5 +10,6 @@ export default defineConfig({
       name: "@hey-api/sdk",
     },
     "@hey-api/client-fetch",
+    "fastify",
   ],
 });

@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
 import { WithLogger, assertFeatureFlagEnabled } from "pagopa-interop-commons";
-import { genericInternalError } from "pagopa-interop-models";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import {
@@ -29,9 +28,7 @@ export function notificationConfigServiceBuilder(
           client: notificationConfigClient,
         });
       if (error) {
-        throw genericInternalError(
-          `Error getting tenant notification config: ${error.status} - ${error.title}`
-        );
+        throw error;
       }
       return toBffApiTenantNotificationConfig(data);
     },
@@ -54,9 +51,7 @@ export function notificationConfigServiceBuilder(
           client: notificationConfigClient,
         });
       if (error) {
-        throw genericInternalError(
-          `Error updating tenant notification config: ${error.status} - ${error.title}`
-        );
+        throw error;
       }
     },
     getUserNotificationConfig: async ({
@@ -74,9 +69,7 @@ export function notificationConfigServiceBuilder(
           client: notificationConfigClient,
         });
       if (error) {
-        throw genericInternalError(
-          `Error getting user notification config: ${error.status} - ${error.title}`
-        );
+        throw error;
       }
       return toBffApiUserNotificationConfig(data);
     },
@@ -132,9 +125,7 @@ export function notificationConfigServiceBuilder(
           client: notificationConfigClient,
         });
       if (error) {
-        throw genericInternalError(
-          `Error updating user notification config: ${error.status} - ${error.title}`
-        );
+        throw error;
       }
     },
   };

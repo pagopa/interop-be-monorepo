@@ -250,6 +250,42 @@ export function makeApiProblemBuilder<T extends string>(
           }
         }
       )
+      .with(
+        /* this case handles plain Problem objects thrown by hey-api clients,
+           which return errors as deserialized JSON (not wrapped in AxiosError) */
+        {
+          type: "about:blank",
+          title: P.string,
+          status: P.number,
+        },
+        (receivedProblem) => {
+          const problem = ProblemSchema.safeParse(receivedProblem);
+          if (problem.success && problemErrorsPassthrough) {
+            const problemLogString = makeProblemLogString(problem.data, error);
+
+            if (
+              forceGenericProblemOn500 &&
+              problem.data.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
+            ) {
+              logger.warn(
+                `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
+              );
+              return genericProblem;
+            }
+
+            logger.warn(problemLogString);
+            return problem.data;
+          }
+
+          logger.warn(
+            makeProblemLogString(
+              genericProblem,
+              `${receivedProblem.title} - status ${receivedProblem.status}`
+            )
+          );
+          return genericProblem;
+        }
+      )
       .with(P.instanceOf(ZodError), (error) => {
         // Zod errors shall always be caught and handled throwing
         // an ApiError. If a ZodError arrives here we log it and

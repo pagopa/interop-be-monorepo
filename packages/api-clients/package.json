@@ -19,7 +19,7 @@
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "generate-model": "tsx ./generate.ts && pnpm run generate-hey-api",
-    "generate-hey-api": "openapi-ts",
+    "generate-hey-api": "openapi-ts && tsx ./scripts/generateRoutes.ts",
     "clean-generated": "pnpm exec rm ./src/generated/*.ts"
   },
   "keywords": [],
@@ -36,6 +36,7 @@
     "@hey-api/openapi-ts": "0.92.3",
     "openapi-zod-client": "1.18.3",
     "openapi3-ts": "3.1.0",
+    "fastify": "5.7.4",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5"

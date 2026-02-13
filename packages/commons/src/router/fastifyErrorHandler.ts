@@ -5,12 +5,20 @@ import {
   genericError,
   makeApiProblemBuilder,
   parseErrorMessage,
+  Problem,
 } from "pagopa-interop-models";
 import { fromZodIssue } from "zod-validation-error";
 import { z } from "zod";
 import { fromAppContext } from "../context/context.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
+
+export async function sendApiProblemReply(
+  reply: FastifyReply,
+  errorRes: Problem
+): Promise<void> {
+  await reply.status(errorRes.status).send(errorRes);
+}
 
 export async function fastifyErrorHandler(
   error: FastifyError,

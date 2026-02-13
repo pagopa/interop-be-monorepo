@@ -34,6 +34,7 @@ export const fastifyContextPlugin = fp(
 
     // Fastify 5 requires getter/setter for reference-type decorators to avoid
     // sharing object state across requests.
+    // See: https://fastify.dev/docs/latest/Reference/Decorators/#decoraterequestname-value-dependencies
     const ctxStore = new WeakMap<FastifyRequest, AppContext>();
     app.decorateRequest("ctx", {
       getter(this: FastifyRequest) {

@@ -16,6 +16,11 @@ import {
 import { z } from "zod";
 import { fallbackApplicationAudit } from "./middlewares.js";
 
+/**
+ * Parses the AWS `X-Amzn-Trace-Id` header from the request.
+ * This header is set by AWS Application Load Balancers and X-Ray
+ * for distributed tracing across services.
+ */
 function parseFastifyAmznTraceIdHeader(
   request: FastifyRequest
 ): string | undefined {

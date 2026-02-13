@@ -411,6 +411,9 @@ importers:
       eslint:
         specifier: 8.57.1
         version: 8.57.1
+      fastify:
+        specifier: 5.7.4
+        version: 5.7.4
       handlebars:
         specifier: 4.7.8
         version: 4.7.8
