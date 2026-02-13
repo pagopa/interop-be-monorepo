@@ -1,0 +1,37 @@
+meta {
+  name: Validate DPoP token generation request
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/tools/validateDPoPTokenGeneration
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  Content-Type: application/x-www-form-urlencoded
+}
+
+body:form-urlencoded {
+  dpop_proof: {{dpopProof}}
+  htu: {{htu}}
+}
+
+docs {
+# DPoP Debugging Tool
+This endpoint is used to validate the correctness of a DPoP Proof.
+
+# Note on Body
+Unlike the standard protocol, where the DPoP Proof is sent in the HTTP `DPoP` header, in this debugging tool it is passed in the body (`dpop_proof`).
+
+This is because:
+1. The proof is the payload to be analyzed, not the request authentication tool itself.
+2. It facilitates the entry of long strings via the debugging tool's user interface.
+3. It allows additional parameters, such as the destination URL (htu), to be sent simultaneously.
+
+# Parameters:
+- dpop_proof: The proof's JWT string.
+- htu: The full URL of the endpoint to which the proof is directed.
+}

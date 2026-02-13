@@ -36,6 +36,10 @@ import {
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+import {
+  verifyDPoPProof,
+  verifyDPoPProofSignature,
+} from "pagopa-interop-dpop-validation";
 import { BffAppContext } from "../utilities/context.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
@@ -138,6 +142,61 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return handleValidationResults({}, key.clientKind, eservice);
     },
+    async validateDPoPTokenGeneration(
+      dpopProofJWS: string,
+      htu: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.DPoPTokenGenerationValidationResult> {
+      ctx.logger.info(`Validating DPoP for debug tool - HTU: ${htu}`);
+
+      const validationResult = verifyDPoPProof({
+        dpopProofJWS,
+        expectedDPoPProofHtu: htu,
+        expectedDPoPProofHtm: "POST",
+        dpopProofIatToleranceSeconds: 60,
+        dpopProofDurationSeconds: 600,
+      });
+
+      if (validationResult.errors) {
+        const isMatchError = validationResult.errors.some(
+          (e) =>
+            e.code === "dpopProofInvalidClaims" ||
+            e.code === "dpopHtuNotFound" ||
+            e.code === "dpopHtmNotFound"
+        );
+
+        return handleDPoPValidationResults({
+          dpopProofErrors: isMatchError ? [] : validationResult.errors,
+          dpopMatchErrors: isMatchError ? validationResult.errors : [],
+        });
+      }
+
+      const { dpopProofJWT } = validationResult.data;
+
+      if (dpopProofJWT.header.jwk && "kid" in dpopProofJWT.header.jwk) {
+        return handleDPoPValidationResults({
+          dpopProofErrors: [
+            {
+              code: "DPOP_JWK_KID_NOT_ALLOWED",
+              detail: "PDND does not allow 'kid' inside the 'jwk' header",
+            } as ApiError<string>,
+          ],
+        });
+      }
+
+      const signatureResult = await verifyDPoPProofSignature(
+        dpopProofJWS,
+        dpopProofJWT.header.jwk
+      );
+
+      if (signatureResult.errors) {
+        return handleDPoPValidationResults({
+          dpopSignatureErrors: signatureResult.errors,
+        });
+      }
+
+      return handleDPoPValidationResults({});
+    },
   };
 }
 
@@ -188,6 +247,36 @@ function handleValidationResults(
           platformStateErrors
         ),
         failures: apiErrorsToValidationFailures(platformStateErrors),
+      },
+    },
+  };
+}
+
+function handleDPoPValidationResults(errs: {
+  dpopProofErrors?: Array<ApiError<string>>;
+  dpopMatchErrors?: Array<ApiError<string>>;
+  dpopSignatureErrors?: Array<ApiError<string>>;
+}): bffApi.DPoPTokenGenerationValidationResult {
+  const dpopProofErrors = errs.dpopProofErrors ?? [];
+  const dpopMatchErrors = errs.dpopMatchErrors ?? [];
+  const dpopSignatureErrors = errs.dpopSignatureErrors ?? [];
+
+  return {
+    steps: {
+      dpopProofValidation: {
+        result: getStepResult([], dpopProofErrors),
+        failures: apiErrorsToValidationFailures(dpopProofErrors),
+      },
+      dpopMatchValidation: {
+        result: getStepResult(dpopProofErrors, dpopMatchErrors),
+        failures: apiErrorsToValidationFailures(dpopMatchErrors),
+      },
+      dpopSignatureVerification: {
+        result: getStepResult(
+          [...dpopProofErrors, ...dpopMatchErrors],
+          dpopSignatureErrors
+        ),
+        failures: apiErrorsToValidationFailures(dpopSignatureErrors),
       },
     },
   };

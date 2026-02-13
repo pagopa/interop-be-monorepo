@@ -1038,6 +1038,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-dpop-validation:
+        specifier: workspace:*
+        version: link:../dpop-validation
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models

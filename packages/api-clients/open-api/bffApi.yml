@@ -8378,6 +8378,114 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/tools/validateDPoPTokenGeneration":
+    post:
+      tags:
+        - tools
+      summary: Validate DPoP token generation request
+      description: Provides additional details about DPoP token generation request failure
+      operationId: validateDPoPTokenGeneration
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/AccessDPoPTokenRequest"
+      responses:
+        "200":
+          description: Request successfully validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DPoPTokenGenerationValidationResult"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Validation failed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/users/{userId}":
     get:
       tags:
@@ -25329,6 +25437,18 @@ components:
           type: string
         grant_type:
           type: string
+    AccessDPoPTokenRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - dpop_proof
+        - htu
+      properties:
+        dpop_proof:
+          type: string
+          format: jws
+        htu:
+          type: string
     PrivacyNotice:
       type: object
       additionalProperties: false
@@ -28706,6 +28826,14 @@ components:
           $ref: "#/components/schemas/TokenGenerationValidationEService"
       required:
         - steps
+    DPoPTokenGenerationValidationResult:
+      type: object
+      additionalProperties: false
+      properties:
+        steps:
+          $ref: "#/components/schemas/DPoPTokenGenerationValidationSteps"
+      required:
+        - steps
     TokenGenerationValidationSteps:
       type: object
       additionalProperties: false
@@ -28723,6 +28851,21 @@ components:
         - publicKeyRetrieve
         - clientAssertionSignatureVerification
         - platformStatesVerification
+    DPoPTokenGenerationValidationSteps:
+      type: object
+      additionalProperties: false
+      properties:
+        dpopProofValidation:
+          $ref: "#/components/schemas/TokenGenerationValidationEntry"
+        dpopMatchValidation:
+          $ref: "#/components/schemas/TokenGenerationValidationEntry"
+        dpopSignatureVerification:
+          $ref: "#/components/schemas/TokenGenerationValidationEntry"
+      required:
+        - dpopProofValidation
+        - dpopMatchValidation
+        - dpopSignatureVerification
+
     TokenGenerationValidationEntry:
       type: object
       additionalProperties: false

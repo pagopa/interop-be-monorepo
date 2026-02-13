@@ -8,7 +8,10 @@ import {
 import { bffApi } from "pagopa-interop-api-clients";
 import { ToolsService } from "../services/toolService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { toolsErrorMapper } from "../utilities/errorMappers.js";
+import {
+  dpopToolsErrorMapper,
+  toolsErrorMapper,
+} from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/errors.js";
 
 const toolRouter = (
@@ -36,6 +39,28 @@ const toolRouter = (
       const errorRes = makeApiProblem(
         error,
         toolsErrorMapper,
+        ctx,
+        "Error validating token generation request"
+      );
+      return res.status(errorRes.status).send(errorRes);
+    }
+  });
+  toolRouter.post("/tools/validateDPoPTokenGeneration", async (req, res) => {
+    const ctx = fromBffAppContext(req.ctx, req.headers);
+
+    try {
+      const result = await toolsService.validateDPoPTokenGeneration(
+        req.body.dpop_proof,
+        req.body.htu,
+        ctx
+      );
+      return res
+        .status(200)
+        .send(bffApi.DPoPTokenGenerationValidationResult.parse(result));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        dpopToolsErrorMapper,
         ctx,
         "Error validating token generation request"
       );
