@@ -35,7 +35,6 @@ import {
   EServiceSQL,
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
-  EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
@@ -434,9 +433,7 @@ export const aggregateRiskAnalysis = (
 });
 
 export const attributesSQLtoAttributes = (
-  attributesSQL:
-    | EServiceDescriptorAttributeSQL[]
-    | EServiceTemplateVersionAttributeSQL[]
+  attributesSQL: EServiceDescriptorAttributeSQL[]
 ): EServiceAttribute[][] => {
   const attributesMap = new Map<number, EServiceAttribute[]>();
   attributesSQL.forEach((current) => {

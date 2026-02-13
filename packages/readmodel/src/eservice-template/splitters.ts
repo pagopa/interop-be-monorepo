@@ -3,13 +3,13 @@ import {
   attributeKind,
   dateToString,
   Document,
-  EServiceAttribute,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   riskAnalysisAnswerKind,
+  type EServiceTemplateAttribute,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -109,7 +109,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
   };
 };
 
-const attributeToAttributeSQL = ({
+const templateAttributeToTemplateAttributeSQL = ({
   attribute,
   eserviceTemplateVersionId,
   groupId,
@@ -117,7 +117,7 @@ const attributeToAttributeSQL = ({
   eserviceTemplateId,
   metadataVersion,
 }: {
-  attribute: EServiceAttribute;
+  attribute: EServiceTemplateAttribute;
   eserviceTemplateVersionId: EServiceTemplateVersionId;
   groupId: number;
   kind: AttributeKind;
@@ -131,19 +131,18 @@ const attributeToAttributeSQL = ({
   explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind,
   groupId,
-  dailyCallsPerConsumer: attribute.dailyCallsPerConsumer ?? null,
 });
 
-const attributesNestedArrayToAttributeSQLarray = (
+const templateAttributesNestedArrayToTemplateAttributeSQLarray = (
   eserviceTemplateVersionId: EServiceTemplateVersionId,
-  attributes: EServiceAttribute[][],
+  attributes: EServiceTemplateAttribute[][],
   kind: AttributeKind,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
 ): EServiceTemplateVersionAttributeSQL[] =>
   attributes.flatMap((group, index) =>
     group.map((attribute) =>
-      attributeToAttributeSQL({
+      templateAttributeToTemplateAttributeSQL({
         attribute,
         eserviceTemplateVersionId,
         groupId: index,
@@ -171,21 +170,21 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
   );
 
   const attributesSQL: EServiceTemplateVersionAttributeSQL[] = [
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.certified,
       attributeKind.certified,
       eserviceTemplateId,
       metadataVersion
     ),
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.declared,
       attributeKind.declared,
       eserviceTemplateId,
       metadataVersion
     ),
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.verified,
       attributeKind.verified,

@@ -1,6 +1,6 @@
 import {
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
@@ -17,7 +17,7 @@ import { aggregateEServiceTemplate } from "../src/eservice-template/aggregators.
 
 describe("E-service template aggregator", () => {
   it("should convert e-service template SQL items into an eservice template", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
 

@@ -80,6 +80,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  EServiceTemplateAttribute,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
@@ -218,6 +219,13 @@ export const getMockEServiceAttribute = (
   ...generateMock(EServiceAttribute),
   id: attributeId,
   dailyCallsPerConsumer: undefined,
+});
+
+export const getMockEServiceTemplateAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceTemplateAttribute => ({
+  ...generateMock(EServiceTemplateAttribute),
+  id: attributeId,
 });
 
 export const getMockAgreementAttribute = (
