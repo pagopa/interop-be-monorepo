@@ -633,7 +633,6 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version_attribute (
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   group_id INTEGER NOT NULL,
-  daily_calls_per_consumer INTEGER,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, version_id, group_id)
 );

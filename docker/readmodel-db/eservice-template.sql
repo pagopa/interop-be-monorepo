@@ -73,7 +73,6 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
-  daily_calls_per_consumer INTEGER,
   PRIMARY KEY (attribute_id, version_id, group_id),
   FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

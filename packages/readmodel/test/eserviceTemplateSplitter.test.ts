@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockValidEServiceTemplateRiskAnalysis,
@@ -27,7 +27,7 @@ import { generateEServiceTemplateRiskAnalysisAnswersSQL } from "./eserviceTempla
 
 describe("E-service template splitter", () => {
   it("should convert a complete e-service template into e-service template SQL objects", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const riskAnalysisPA = getMockValidEServiceTemplateRiskAnalysis(
@@ -147,7 +147,6 @@ describe("E-service template splitter", () => {
       groupId: 0,
       explicitAttributeVerification:
         certifiedAttribute.explicitAttributeVerification,
-      dailyCallsPerConsumer: certifiedAttribute.dailyCallsPerConsumer ?? null,
     };
 
     const expectedDocumentSQL: EServiceTemplateVersionDocumentSQL = {
