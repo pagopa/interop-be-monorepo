@@ -3919,10 +3919,6 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
-/**
- * Checks if any of the certified attributes' dailyCalls thresholds have changed
- * between the descriptor and the seed.
- */
 function hasCertifiedAttributeDailyCallsChanged(
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
