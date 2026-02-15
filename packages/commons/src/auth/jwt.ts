@@ -1,4 +1,3 @@
-import { createHash } from "crypto";
 import jwt, { GetPublicKeyOrSecret, JwtPayload } from "jsonwebtoken";
 import {
   invalidClaim,
@@ -177,6 +176,3 @@ export const verifyJwtDPoPToken = async (
     throw tokenVerificationFailed(userId, selfcareId);
   }
 };
-
-export const calculateAth = (accessToken: string): string =>
-  createHash("sha256").update(accessToken).digest("base64url");

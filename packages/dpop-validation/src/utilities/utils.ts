@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import {
   Algorithm,
   ApiError,
@@ -171,3 +172,6 @@ export const failedValidation = (
     errors: flattenedArrayWithoutUndefined as Array<ApiError<ErrorCodes>>,
   };
 };
+
+export const calculateAth = (accessToken: string): string =>
+  createHash("sha256").update(accessToken).digest("base64url");

@@ -17,7 +17,7 @@ import {
   DPoPProofResourcePayload,
 } from "pagopa-interop-models";
 
-import { calculateAth, calculateJWKThumbprint } from "pagopa-interop-commons";
+import { calculateJWKThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
   dpopProofInvalidClaims,
@@ -43,6 +43,7 @@ import {
   validateJWK,
   validateTyp,
   validateAth,
+  calculateAth,
 } from "./utilities/utils.js";
 
 export const verifyDPoPProof = ({
