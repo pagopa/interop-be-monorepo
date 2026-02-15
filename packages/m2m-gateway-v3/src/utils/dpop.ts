@@ -28,8 +28,8 @@ export const verifyDPoPCompliance = async ({
   config,
   dpopProofJWS,
   accessToken,
-  clientId,
-  jkt,
+  accessTokenClientId,
+  accessTokenThumbprint,
   expectedHtu,
   expectedHtm,
   dynamoDBClient,
@@ -38,8 +38,8 @@ export const verifyDPoPCompliance = async ({
   config: JWTConfig & DPoPConfig;
   dpopProofJWS: string | undefined;
   accessToken: string;
-  clientId: string;
-  jkt: string;
+  accessTokenClientId: string;
+  accessTokenThumbprint: string;
   expectedHtu: string;
   expectedHtm: string;
   dynamoDBClient: DynamoDBClient;
@@ -61,7 +61,7 @@ export const verifyDPoPCompliance = async ({
 
   if (dpopProofErrors) {
     throw dpopProofValidationFailed(
-      clientId,
+      accessTokenClientId,
       dpopProofErrors.map((error) => error.detail).join(", ")
     );
   }
@@ -70,7 +70,10 @@ export const verifyDPoPCompliance = async ({
   const validatedJWS = data?.dpopProofJWS;
 
   if (!validatedJWT || !validatedJWS) {
-    throw dpopProofValidationFailed(clientId, "DPoP Proof missing or invalid");
+    throw dpopProofValidationFailed(
+      accessTokenClientId,
+      "DPoP Proof missing or invalid"
+    );
   }
 
   // ----------------------------------------------------------------------
@@ -83,7 +86,7 @@ export const verifyDPoPCompliance = async ({
 
   if (dpopProofSignatureErrors) {
     throw dpopProofSignatureValidationFailed(
-      clientId,
+      accessTokenClientId,
       dpopProofSignatureErrors.map((error) => error.detail).join(", ")
     );
   }
@@ -95,13 +98,13 @@ export const verifyDPoPCompliance = async ({
   // ----------------------------------------------------------------------
   const { errors: bindingErrors } = verifyDPoPThumbprintMatch(
     validatedJWT,
-    jkt
+    accessTokenThumbprint
   );
 
   if (bindingErrors) {
     const errorDetails = bindingErrors.map((e) => e.detail).join(", ");
     logger.warn(`DPoP Key Binding verification failed: ${errorDetails}`);
-    throw dpopTokenBindingFailed(clientId, errorDetails);
+    throw dpopTokenBindingFailed(accessTokenClientId, errorDetails);
   }
 
   // ----------------------------------------------------------------------

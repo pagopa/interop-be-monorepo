@@ -152,7 +152,7 @@ export const verifyJwtToken = async (
  * it catches the validation error, attempts to extract user context for auditing, and throws an error
  *
  */
-export const verifyJwtDPoPAccessToken = async (
+export const verifyJwtDPoPToken = async (
   accessToken: string,
   config: JWTConfig,
   logger: Logger
