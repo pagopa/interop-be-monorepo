@@ -13,9 +13,11 @@ import {
   DPoPProofPayload,
   JWKKeyRS256,
   JWKKeyES256,
+  DPoPProofResource,
+  DPoPProofResourcePayload,
 } from "pagopa-interop-models";
 
-import { calculateJWKThumbprint } from "pagopa-interop-commons";
+import { calculateAth, calculateJWKThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
   dpopProofInvalidClaims,
@@ -27,8 +29,6 @@ import {
   multipleDPoPProofsError,
   unexpectedDPoPProofError,
   unexpectedDPoPProofSignatureVerificationError,
-  dpopAthNotFound,
-  invalidDPoPAth,
 } from "./errors.js";
 import { ValidationResult } from "./types.js";
 import { readDPoPCache, writeDPoPCache } from "./utilities/dpopCacheUtils.js";
@@ -42,6 +42,7 @@ import {
   validateJti,
   validateJWK,
   validateTyp,
+  validateAth,
 } from "./utilities/utils.js";
 
 export const verifyDPoPProof = ({
@@ -153,17 +154,63 @@ export const verifyDPoPProof = ({
   }
 };
 
-export const verifyDPoPProofAth = (
-  receivedAth: string | undefined,
-  expectedAth: string
-): ValidationResult<string> => {
-  if (!receivedAth) {
-    return failedValidation([dpopAthNotFound()]);
+export const verifyDPoPProofResource = ({
+  dpopProofJWS,
+  accessToken,
+  expectedDPoPProofHtu,
+  expectedDPoPProofHtm,
+  dpopProofIatToleranceSeconds,
+  dpopProofDurationSeconds,
+}: {
+  dpopProofJWS: string;
+  accessToken: string;
+  expectedDPoPProofHtu: string;
+  expectedDPoPProofHtm: string;
+  dpopProofIatToleranceSeconds: number;
+  dpopProofDurationSeconds: number;
+}): ValidationResult<{
+  dpopProofJWT: DPoPProofResource;
+  dpopProofJWS: string;
+}> => {
+  const { data, errors: dpopProofErrors } = verifyDPoPProof({
+    dpopProofJWS,
+    expectedDPoPProofHtu,
+    expectedDPoPProofHtm,
+    dpopProofIatToleranceSeconds,
+    dpopProofDurationSeconds,
+  });
+
+  if (dpopProofErrors) {
+    return failedValidation(dpopProofErrors);
   }
-  if (receivedAth !== expectedAth) {
-    return failedValidation([invalidDPoPAth(receivedAth)]);
+
+  const decodedPayload = jose.decodeJwt(dpopProofJWS);
+
+  const { errors: athErrors } = validateAth(
+    decodedPayload.ath,
+    calculateAth(accessToken)
+  );
+  if (athErrors) {
+    return failedValidation(athErrors);
   }
-  return successfulValidation(receivedAth);
+
+  const payloadParsed = DPoPProofResourcePayload.safeParse(decodedPayload);
+
+  if (!payloadParsed.success) {
+    return failedValidation([
+      dpopProofInvalidClaims(payloadParsed.error.message, "payload"),
+    ]);
+  }
+
+  const result: DPoPProofResource = {
+    header: data.dpopProofJWT.header,
+    payload: payloadParsed.data,
+  };
+
+  return successfulValidation({
+    dpopProofJWT: result,
+    dpopProofJWS,
+  });
 };
 
 export const verifyDPoPProofSignature = async (

@@ -26,6 +26,8 @@ import {
   invalidDPoPTyp,
   dpopIatNotFound,
   notYetValidDPoPProof,
+  dpopAthNotFound,
+  invalidDPoPAth,
 } from "../errors.js";
 
 const EXPECTED_TYP = "dpop+jwt";
@@ -131,6 +133,19 @@ export const validateJti = (
     return failedValidation([dpopJtiNotFound()]);
   }
   return successfulValidation(jti);
+};
+
+export const validateAth = (
+  ath: unknown | undefined,
+  expectedAth: string
+): ValidationResult<string> => {
+  if (!ath) {
+    return failedValidation([dpopAthNotFound()]);
+  }
+  if (ath !== expectedAth) {
+    return failedValidation([invalidDPoPAth(ath)]);
+  }
+  return successfulValidation(ath);
 };
 
 export const successfulValidation = <T>(

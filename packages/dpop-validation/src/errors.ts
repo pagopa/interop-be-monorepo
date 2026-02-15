@@ -243,7 +243,7 @@ export function dpopAthNotFound(): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidDPoPAth(ath: string): ApiError<ErrorCodes> {
+export function invalidDPoPAth(ath: unknown): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid ATH ${ath} in DPoP proof payload`,
     code: "invalidDPoPAth",
