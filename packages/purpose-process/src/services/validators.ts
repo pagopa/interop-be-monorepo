@@ -29,6 +29,7 @@ import {
   TenantId,
   tenantKind,
   TenantKind,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -51,7 +52,9 @@ import {
   tenantIsNotTheDelegatedProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
+  tenantNotFound,
 } from "../model/domain/errors.js";
+import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
@@ -248,6 +251,24 @@ export async function isOverQuota(
   dailyCalls: number,
   readModelService: ReadModelServiceSQL
 ): Promise<boolean> {
+  const quotas = await getUpdatedQuotas(
+    eservice,
+    purpose.consumerId,
+    readModelService
+  );
+
+  return !(
+    quotas.currentConsumerCalls + dailyCalls <=
+      quotas.maxDailyCallsPerConsumer &&
+    quotas.currentTotalCalls + dailyCalls <= quotas.maxDailyCallsTotal
+  );
+}
+
+export async function getUpdatedQuotas(
+  eservice: EService,
+  consumerId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<UpdatedQuotas> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
     states: [purposeVersionState.active],
@@ -255,12 +276,12 @@ export async function isOverQuota(
   });
 
   const consumerPurposes = allPurposes.filter(
-    (p) => p.consumerId === purpose.consumerId
+    (p) => p.consumerId === consumerId
   );
 
   const agreement = await retrieveActiveAgreement(
     eservice.id,
-    purpose.consumerId,
+    consumerId,
     readModelService
   );
 
@@ -286,13 +307,42 @@ export async function isOverQuota(
     throw descriptorNotFound(eservice.id, agreement.descriptorId);
   }
 
-  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
+  const tenant = await readModelService.getTenantById(consumerId);
+  if (!tenant) {
+    throw tenantNotFound(consumerId);
+  }
+
+  const consumerCertifiedAttributesIds = new Set(
+    tenant.attributes
+      .filter(
+        (a) =>
+          a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
+      )
+      .map((a) => a.id)
+  );
+
+  const maxDailyCallsPerConsumer =
+    currentDescriptor.attributes.certified.flat().reduce((max, current) => {
+      if (!consumerCertifiedAttributesIds.has(current.id)) {
+        return max;
+      }
+      if (!current.dailyCallsPerConsumer) {
+        return max;
+      }
+      if (max === undefined) {
+        return current.dailyCallsPerConsumer;
+      }
+      return Math.max(max, current.dailyCallsPerConsumer);
+    }, 0) || currentDescriptor.dailyCallsPerConsumer;
+
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 
-  return !(
-    consumerLoadRequestsSum + dailyCalls <= maxDailyCallsPerConsumer &&
-    allPurposesRequestsSum + dailyCalls <= maxDailyCallsTotal
-  );
+  return {
+    currentConsumerCalls: consumerLoadRequestsSum,
+    currentTotalCalls: allPurposesRequestsSum,
+    maxDailyCallsPerConsumer,
+    maxDailyCallsTotal,
+  };
 }
 
 export const assertRequesterCanRetrievePurpose = async (
