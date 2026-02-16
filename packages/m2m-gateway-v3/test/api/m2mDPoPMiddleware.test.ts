@@ -109,6 +109,7 @@ function buildTestApp(wellKnownUrl: string, useInMemoryDynamoClient = false) {
         warn: () => undefined,
         error: () => undefined,
       },
+      rateLimiter: undefined,
     };
     next();
   });
