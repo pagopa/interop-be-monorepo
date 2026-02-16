@@ -47,9 +47,9 @@ export type RiskAnalysisDocumentPDFPayload = {
 };
 
 export const UpdatedQuotas = z.object({
-  currentConsumerCalls: z.number(),
-  currentTotalCalls: z.number(),
-  maxDailyCallsPerConsumer: z.number(),
-  maxDailyCallsTotal: z.number(),
+  currentConsumerCalls: z.number().int().nonnegative(),
+  currentTotalCalls: z.number().int().nonnegative(),
+  maxDailyCallsPerConsumer: z.number().int().nonnegative(),
+  maxDailyCallsTotal: z.number().int().nonnegative(),
 });
 export type UpdatedQuotas = z.infer<typeof UpdatedQuotas>;
