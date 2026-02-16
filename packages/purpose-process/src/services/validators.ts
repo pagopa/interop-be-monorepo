@@ -329,9 +329,6 @@ export async function getUpdatedQuotas(
       if (!current.dailyCallsPerConsumer) {
         return max;
       }
-      if (max === undefined) {
-        return current.dailyCallsPerConsumer;
-      }
       return Math.max(max, current.dailyCallsPerConsumer);
     }, 0) || currentDescriptor.dailyCallsPerConsumer;
 
