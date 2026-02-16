@@ -4,7 +4,7 @@ import {
   verifyDPoPProofSignature,
   checkDPoPCache,
   verifyDPoPThumbprintMatch,
-  verifyDPoPProofResource,
+  verifyDPoPProof,
 } from "pagopa-interop-dpop-validation";
 import {
   dpopProofValidationFailed,
@@ -49,13 +49,13 @@ export const verifyDPoPCompliance = async ({
   // Step 1: Parsing & Syntax Validation
   // ----------------------------------------------------------------------
   const { data, errors: dpopProofErrors } = dpopProofJWS
-    ? verifyDPoPProofResource({
+    ? verifyDPoPProof({
         dpopProofJWS,
-        accessToken,
         expectedDPoPProofHtu: expectedHtu,
         expectedDPoPProofHtm: expectedHtm,
         dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: config.dpopDurationSeconds,
+        accessToken,
       })
     : { data: undefined, errors: undefined };
 

@@ -26,7 +26,6 @@ export const DPoPProofPayload = z
     htu: z.string(),
     iat: z.number(),
     jti: z.string(),
-    ath: z.string().optional(),
   })
   .strict();
 export type DPoPProofPayload = z.infer<typeof DPoPProofPayload>;
