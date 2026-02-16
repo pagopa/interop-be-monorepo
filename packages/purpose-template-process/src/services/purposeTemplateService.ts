@@ -350,6 +350,19 @@ const updatePurposeTemplateWithoutAnnotation = async (
     });
   }
 
+  const originalAnswer =
+    purposeTemplateRiskAnalysisForm.singleAnswers.find(
+      (a) => a.id === answerId
+    ) ||
+    purposeTemplateRiskAnalysisForm.multiAnswers.find((a) => a.id === answerId);
+
+  if (!originalAnswer?.annotation) {
+    throw riskAnalysisTemplateAnswerAnnotationNotFound(
+      purposeTemplate.data.id,
+      answerId
+    );
+  }
+
   const annotationDocumentsToRemove = [
     ...annotationDocumentsToRemoveFromSingleAnswer,
     ...annotationDocumentsToRemoveFromMultiAnswer,
