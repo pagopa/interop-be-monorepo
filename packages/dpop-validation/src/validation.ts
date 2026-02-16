@@ -47,7 +47,6 @@ import {
   calculateAth,
 } from "./utilities/utils.js";
 
-// --- FIRMA 1: Resource Access (Con accessToken -> Ritorna DPoPProofResource) ---
 export function verifyDPoPProof(params: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
@@ -57,7 +56,6 @@ export function verifyDPoPProof(params: {
   accessToken: string;
 }): ValidationResult<{ dpopProofJWT: DPoPProofResource; dpopProofJWS: string }>;
 
-// --- FIRMA 2: Token Issuance (Senza accessToken -> Ritorna DPoPProof) ---
 export function verifyDPoPProof(params: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
