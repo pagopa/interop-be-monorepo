@@ -306,9 +306,9 @@ describe("authenticationDPoPMiddleware", () => {
       .set("Authorization", `DPoP ${mockDPoPData.accessToken}`)
       .set("DPoP", secondDPoPProof);
 
-    expect(res.body.title).toEqual("DPoP Token Binding Mismatch");
+    expect(res.body.title).toEqual("DPoP proof validation failed");
     expect(res.status).toBe(401);
-    expectResponseToContainErrorCodeMatching(res, /-0045$/g);
+    expectResponseToContainErrorCodeMatching(res, /-0041$/g);
   });
 
   it("Should return 401 if cnf is missing", async () => {
@@ -395,6 +395,32 @@ describe("authenticationDPoPMiddleware", () => {
       .get("/test")
       .set("Authorization", `DPoP ${wrongHtmData.accessToken}`)
       .set("DPoP", wrongHtmDpopProof);
+
+    expect(res.body.title).toEqual("Token verification failed");
+    expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-10014$/g);
+  });
+
+  it("should return 401 if dpop proof with wrong ath", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${mockDPoPData.expiredAccessToken}`)
+      .set("DPoP", `DPoP ${mockDPoPData.dpopProofWithWrongAth}`);
+
+    expect(res.body.title).toEqual("Token verification failed");
+    expect(res.status).toBe(401);
+    expectResponseToContainErrorCodeMatching(res, /-10014$/g);
+  });
+
+  it("should return 401 if dpop proof is without ath", async () => {
+    const app = buildTestApp(jwksServer.url);
+
+    const res = await request(app)
+      .get("/test")
+      .set("Authorization", `DPoP ${mockDPoPData.expiredAccessToken}`)
+      .set("DPoP", `DPoP ${mockDPoPData.dpopPoroofWithoutAth}`);
 
     expect(res.body.title).toEqual("Token verification failed");
     expect(res.status).toBe(401);

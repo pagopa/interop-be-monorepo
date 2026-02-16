@@ -1,3 +1,12 @@
+import { createHash } from "crypto";
+import {
+  generateKeyPair,
+  exportJWK,
+  calculateJwkThumbprint,
+  SignJWT,
+  JWK,
+  exportSPKI,
+} from "jose";
 import jwt from "jsonwebtoken";
 import {
   AuthRole,
@@ -191,15 +200,6 @@ function createM2MAdminDPoPPayload({
   };
 }
 
-import {
-  generateKeyPair,
-  exportJWK,
-  calculateJwkThumbprint,
-  SignJWT,
-  JWK,
-  exportSPKI,
-} from "jose";
-
 type ExpectedAuthData = {
   clientId: string;
   jti: string;
@@ -216,6 +216,8 @@ type GeneratedDPoPBundle = {
   expiredAccessToken: string;
   dpopProof: string;
   expiredDpopProof: string;
+  dpopProofWithWrongAth: string;
+  dpopPoroofWithoutAth: string;
   dpopPublicJwk: JWK;
   authServerPublicJwk: JWK;
   authServerPublicKeyPem: string;
@@ -354,6 +356,7 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
   const dpopProof = await new SignJWT({
     htm: htm ?? "GET",
     htu,
+    ath: createHash("sha256").update(accessToken).digest("base64url"),
   })
     .setProtectedHeader({
       alg: "ES256",
@@ -379,6 +382,36 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
     .setExpirationTime(nowInSeconds - 3600) // expired 1h ago
     .sign(dpopPrivateKey);
 
+  // 5c) Create DPoP proof with wrong ath
+  const dpopProofWithWrongAth = await new SignJWT({
+    htm: htm ?? "GET",
+    htu,
+    ath: "wrong-ath",
+  })
+    .setProtectedHeader({
+      alg: "ES256",
+      typ: "dpop+jwt",
+      jwk: minimalJwkForDpopHeader,
+    })
+    .setJti(crypto.randomUUID())
+    .setIssuedAt(nowInSeconds - 7200) // 2h ago
+    .setExpirationTime(nowInSeconds - 3600) // expired 1h ago
+    .sign(dpopPrivateKey);
+
+  // 5d) Create DPoP proof without ath
+  const dpopPoroofWithoutAth = await new SignJWT({
+    htm: htm ?? "GET",
+    htu,
+  })
+    .setProtectedHeader({
+      alg: "ES256",
+      typ: "dpop+jwt",
+      jwk: minimalJwkForDpopHeader,
+    })
+    .setJti(crypto.randomUUID())
+    .setIssuedAt(nowInSeconds - 7200) // 2h ago
+    .setExpirationTime(nowInSeconds - 3600) // expired 1h ago
+    .sign(dpopPrivateKey);
   return {
     jti: definedJti,
     accessToken,
@@ -387,6 +420,8 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
     expiredAccessToken,
     dpopProof,
     expiredDpopProof,
+    dpopProofWithWrongAth,
+    dpopPoroofWithoutAth,
     dpopPublicJwk,
     authServerPublicJwk,
     authServerPublicKeyPem,
