@@ -30,34 +30,6 @@ import {
 } from "../src/riskAnalysisTestUtils.js";
 
 describe("Risk Analysis Validation", () => {
-  it("should succeed on correct form 3.0 (when it wasn't expired) on tenant kind PA", () => {
-    const mockDate = new Date("2026-01-01");
-    vi.useFakeTimers();
-    vi.setSystemTime(mockDate);
-
-    const result = validateRiskAnalysis(
-      validRiskAnalysis3_0_Pa,
-      false,
-      "PA",
-      new Date(),
-      undefined
-    );
-    const resultSchemaOnly = validateRiskAnalysis(
-      validRiskAnalysis3_0_Pa,
-      true,
-      "PA",
-      new Date(),
-      undefined
-    );
-    expect(result).toEqual({
-      type: "valid",
-      value: validatedRiskAnalysis3_0_Pa,
-    });
-    expect(result).toEqual(resultSchemaOnly);
-
-    vi.useRealTimers();
-  });
-
   it("should succeed on correct form 2.0 (when it wasn't expired) on tenant kind PA", () => {
     const mockDate = new Date("2023-01-01");
     vi.useFakeTimers();
@@ -609,6 +581,18 @@ describe("Risk Analysis Validation", () => {
           undefined
         )
       ).toEqual({
+        type: "valid",
+        value: validatedRiskAnalysis3_0_Pa,
+      });
+
+      const resultSchemaOnly = validateRiskAnalysis(
+        validRiskAnalysis3_0_Pa,
+        true,
+        "PA",
+        new Date(),
+        undefined
+      );
+      expect(resultSchemaOnly).toEqual({
         type: "valid",
         value: validatedRiskAnalysis3_0_Pa,
       });
