@@ -60,7 +60,7 @@ export function verifyDPoPProof({
   expectedDPoPProofHtm: string;
   dpopProofIatToleranceSeconds: number;
   dpopProofDurationSeconds: number;
-  accessToken?: string;
+  accessToken: string;
 }): ValidationResult<{ dpopProofJWT: DPoPProofResource; dpopProofJWS: string }>;
 
 export function verifyDPoPProof({
