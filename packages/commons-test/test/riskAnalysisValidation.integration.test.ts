@@ -585,6 +585,18 @@ describe("Risk Analysis Validation", () => {
         value: validatedRiskAnalysis3_0_Pa,
       });
 
+      const resultSchemaOnly = validateRiskAnalysis(
+        validRiskAnalysis3_0_Pa,
+        true,
+        "PA",
+        new Date(),
+        undefined
+      );
+      expect(resultSchemaOnly).toEqual({
+        type: "valid",
+        value: validatedRiskAnalysis3_0_Pa,
+      });
+
       vi.useRealTimers();
     }
   );
