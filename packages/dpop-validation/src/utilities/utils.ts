@@ -137,7 +137,7 @@ export const validateJti = (
 };
 
 export const validateAth = (
-  ath: unknown | undefined,
+  ath: string | undefined,
   expectedAth: string
 ): ValidationResult<string> => {
   if (!ath) {
