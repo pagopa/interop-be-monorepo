@@ -190,6 +190,10 @@ describe("integrityRest02Middleware", () => {
   it("should not have a digest if unauthorised", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
-    expect(res.headers).not.toHaveProperty("digest");
+    expect(res.headers).toHaveProperty("digest");
+    const expectedDigest = calculateIntegrityRest02DigestFromBody({
+      body: res.text,
+    });
+    expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
   });
 });
