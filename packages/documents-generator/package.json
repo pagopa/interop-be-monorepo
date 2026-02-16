@@ -28,7 +28,6 @@
     "cpx2": "catalog:",
     "date-fns": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "catalog:",
     "puppeteer": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",

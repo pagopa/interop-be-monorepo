@@ -20,7 +20,6 @@
     "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

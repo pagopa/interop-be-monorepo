@@ -34,7 +34,6 @@
     "handlebars": "catalog:",
     "openapi-zod-client": "catalog:",
     "openapi3-ts": "catalog:",
-    "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
   },

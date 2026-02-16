@@ -25,7 +25,6 @@
     "@types/supertest": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "catalog:",
     "supertest": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",

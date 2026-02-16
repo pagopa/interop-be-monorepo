@@ -33,7 +33,6 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "eslint": "catalog:",
-    "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

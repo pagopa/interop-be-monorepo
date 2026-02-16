@@ -19,7 +19,6 @@
     "@pagopa/eslint-config": "catalog:",
     "eslint": "catalog:",
     "@types/node": "catalog:",
-    "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
   },

@@ -23,7 +23,6 @@
     "@types/node": "catalog:",
     "date-fns": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

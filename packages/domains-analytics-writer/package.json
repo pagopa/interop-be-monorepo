@@ -25,7 +25,6 @@
     "@types/node": "catalog:",
     "camelcase-keys": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

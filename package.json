@@ -81,6 +81,7 @@
     "@tsconfig/node-lts": "catalog:",
     "@tsconfig/strictest": "catalog:",
     "knip": "catalog:",
+    "prettier": "catalog:",
     "turbo": "catalog:"
   },
   "config": {
