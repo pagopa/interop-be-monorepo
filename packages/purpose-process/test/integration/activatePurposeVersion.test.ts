@@ -98,8 +98,10 @@ describe("activatePurposeVersion", () => {
   let mockEServiceDescriptor: Descriptor;
 
   beforeAll(() => {
+    // Set a default global date where v3.0 rules are valid to prevent expiration errors.
+    const VALID_DATE_FOR_V3 = new Date("2026-01-01");
     vi.useFakeTimers();
-    vi.setSystemTime(new Date());
+    vi.setSystemTime(VALID_DATE_FOR_V3);
 
     mockConsumer = {
       ...getMockTenant(),
