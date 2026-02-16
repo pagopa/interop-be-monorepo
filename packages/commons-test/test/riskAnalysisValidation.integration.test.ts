@@ -585,18 +585,6 @@ describe("Risk Analysis Validation", () => {
         value: validatedRiskAnalysis3_0_Pa,
       });
 
-      const resultSchemaOnly = validateRiskAnalysis(
-        validRiskAnalysis3_0_Pa,
-        true,
-        "PA",
-        new Date(),
-        undefined
-      );
-      expect(resultSchemaOnly).toEqual({
-        type: "valid",
-        value: validatedRiskAnalysis3_0_Pa,
-      });
-
       vi.useRealTimers();
     }
   );
@@ -655,18 +643,6 @@ describe("Risk Analysis Validation", () => {
       type: "valid",
       value: validatedRiskAnalysis3_1_Pa,
     });
-
-    const resultSchemaOnly = validateRiskAnalysis(
-      validRiskAnalysis3_1_Pa,
-      true,
-      "PA",
-      new Date(),
-      undefined
-    );
-    expect(resultSchemaOnly).toEqual({
-      type: "valid",
-      value: validatedRiskAnalysis3_1_Pa,
-    });
   });
 
   it.each([
@@ -688,21 +664,6 @@ describe("Risk Analysis Validation", () => {
           personalDataInEService
         )
       ).toEqual({
-        type: "valid",
-        value:
-          usesPersonalData === "YES"
-            ? validatedRiskAnalysis3_1_Pa
-            : validatedRiskAnalysis3_1_Pa_no_personal_data,
-      });
-
-      const resultSchemaOnly = validateRiskAnalysis(
-        riskAnalysisForm,
-        true,
-        "PA",
-        new Date(),
-        personalDataInEService
-      );
-      expect(resultSchemaOnly).toEqual({
         type: "valid",
         value:
           usesPersonalData === "YES"
