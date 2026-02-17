@@ -29,29 +29,7 @@ import {
   validatedRiskAnalysis3_1_Pa_no_personal_data,
 } from "../src/riskAnalysisTestUtils.js";
 
-describe.skip("Risk Analysis Validation", () => {
-  it("should succeed on correct form 3.0 (not expired) on tenant kind PA", () => {
-    const result = validateRiskAnalysis(
-      validRiskAnalysis3_0_Pa,
-      false,
-      "PA",
-      new Date(),
-      undefined
-    );
-    const resultSchemaOnly = validateRiskAnalysis(
-      validRiskAnalysis3_0_Pa,
-      true,
-      "PA",
-      new Date(),
-      undefined
-    );
-    expect(result).toEqual({
-      type: "valid",
-      value: validatedRiskAnalysis3_0_Pa,
-    });
-    expect(result).toEqual(resultSchemaOnly);
-  });
-
+describe("Risk Analysis Validation", () => {
   it("should succeed on correct form 2.0 (when it wasn't expired) on tenant kind PA", () => {
     const mockDate = new Date("2023-01-01");
     vi.useFakeTimers();
@@ -79,7 +57,11 @@ describe.skip("Risk Analysis Validation", () => {
     vi.useRealTimers();
   });
 
-  it("should succeed on correct form 3.0 (not expired) schema only on tenant kind PA", () => {
+  it("should succeed on correct form 3.0 (when it wasn't expired) schema only on tenant kind PA", () => {
+    const mockDate = new Date("2026-01-01");
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+
     const expected: RiskAnalysisValidatedForm = {
       version: validSchemaOnlyRiskAnalysis3_0_Pa.version,
       singleAnswers: [{ key: "purpose", value: "INSTITUTIONAL" }],
@@ -98,6 +80,7 @@ describe.skip("Risk Analysis Validation", () => {
       type: "valid",
       value: expected,
     });
+    vi.useRealTimers();
   });
 
   it("should succeed on correct form 2.0 (not expired) on tenant kind PRIVATE", () => {
@@ -268,11 +251,29 @@ describe.skip("Risk Analysis Validation", () => {
     });
   });
 
+  it("should fail on version 3.0 PA after it expired", () => {
+    const expiredVersionForPA = "3.0";
+    const expiredRiskAnalysis = validRiskAnalysis3_0_Pa;
+
+    expect(
+      validateRiskAnalysis(
+        expiredRiskAnalysis,
+        false,
+        "PA",
+        new Date(),
+        undefined
+      )
+    ).toEqual({
+      type: "invalid",
+      issues: [expiredRulesVersionError(expiredVersionForPA, tenantKind.PA)],
+    });
+  });
+
   it("should fail if a provided answer depends on missing fields", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis3_0_Pa.version,
+      version: validRiskAnalysis3_1_Pa.version,
       answers: {
-        ...validRiskAnalysis3_0_Pa.answers,
+        ...validRiskAnalysis3_1_Pa.answers,
         doneDpia: [],
         confirmedDoneDpia: ["YES"], // confirmedDoneDpia requires doneDpia to be present
         policyProvided: [],
@@ -295,7 +296,7 @@ describe.skip("Risk Analysis Validation", () => {
 
   it("should succeed schema only even if a provided answer depends on a missing field", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis3_0_Pa.version,
+      version: validRiskAnalysis3_1_Pa.version,
       answers: {
         doneDpia: [],
         confirmedDoneDpia: ["YES"],
@@ -309,7 +310,7 @@ describe.skip("Risk Analysis Validation", () => {
     ).toEqual({
       type: "valid",
       value: {
-        version: validRiskAnalysis3_0_Pa.version,
+        version: validRiskAnalysis3_1_Pa.version,
         singleAnswers: [
           { key: "confirmedDoneDpia", value: "YES" },
           { key: "reasonPolicyNotProvided", value: "reason" },
@@ -321,9 +322,9 @@ describe.skip("Risk Analysis Validation", () => {
 
   it("should fail if a provided answer depends on existing fields with unexpected values", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis3_0_Pa.version,
+      version: validRiskAnalysis3_1_Pa.version,
       answers: {
-        ...validRiskAnalysis3_0_Pa.answers,
+        ...validRiskAnalysis3_1_Pa.answers,
         purpose: ["INSTITUTIONAL"],
         otherPurpose: ["otherPurpose"], // otherPurpose requires purpose to be OTHER
         legalBasis: ["LEGAL_OBLIGATION"],
@@ -358,7 +359,7 @@ describe.skip("Risk Analysis Validation", () => {
 
   it("should succeed schema only even if a provided answer depends on an existing field with an unexpected value", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis3_0_Pa.version,
+      version: validRiskAnalysis3_1_Pa.version,
       answers: {
         purpose: ["INSTITUTIONAL"],
         otherPurpose: ["otherPurpose"], // otherPurpose requires purpose to be OTHER
@@ -390,9 +391,9 @@ describe.skip("Risk Analysis Validation", () => {
 
   it("should fail on missing expected answers", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis3_0_Pa.version,
+      version: validRiskAnalysis3_1_Pa.version,
       answers: {
-        ...validRiskAnalysis3_0_Pa.answers,
+        ...validRiskAnalysis3_1_Pa.answers,
         doneDpia: [],
         deliveryMethod: [],
       },
@@ -411,7 +412,7 @@ describe.skip("Risk Analysis Validation", () => {
 
   it("should succeeed schema only even on missing expected answers", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: "3.0",
+      version: "3.1",
       answers: {
         purpose: ["INSTITUTIONAL"],
         institutionalPurpose: ["institutionalPurpose"],
@@ -440,9 +441,9 @@ describe.skip("Risk Analysis Validation", () => {
 
   it("should fail on unexpected field name both schema only and not", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis3_0_Pa.version,
+      version: validRiskAnalysis3_1_Pa.version,
       answers: {
-        ...validRiskAnalysis3_0_Pa.answers,
+        ...validRiskAnalysis3_1_Pa.answers,
         unexpectedFieldA: ["unexpected value A"],
         unexpectedFieldB: ["unexpected value B"],
         unexpectedFieldC: ["unexpected value C"],
@@ -469,9 +470,9 @@ describe.skip("Risk Analysis Validation", () => {
 
   it("should fail on unexpected field value both schema only and not", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis3_0_Pa.version,
+      version: validRiskAnalysis3_1_Pa.version,
       answers: {
-        ...validRiskAnalysis3_0_Pa.answers,
+        ...validRiskAnalysis3_1_Pa.answers,
         institutionalPurpose: [],
         purpose: ["unexpected value"],
         legalBasis: ["unexpected value", "PUBLIC_INTEREST", "LEGAL_OBLIGATION"],
@@ -539,8 +540,12 @@ describe.skip("Risk Analysis Validation", () => {
   });
 
   it.each([true, false])(
-    "should succeed if the risk analysis is PA 3.0 and the eservice has any personalData flag",
+    "should succeed if the risk analysis is PA 3.0 (when it wasn't expired) and the eservice has any personalData flag",
     (personalDataInEService) => {
+      const mockDate = new Date("2026-01-01");
+      vi.useFakeTimers();
+      vi.setSystemTime(mockDate);
+
       expect(
         validateRiskAnalysis(
           validRiskAnalysis3_0_Pa,
@@ -553,6 +558,7 @@ describe.skip("Risk Analysis Validation", () => {
         type: "valid",
         value: validatedRiskAnalysis3_0_Pa,
       });
+      vi.useRealTimers();
     }
   );
 
