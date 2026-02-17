@@ -260,6 +260,7 @@ export type IntegrityRest02SignedHeader = z.infer<
 export const AgidIntegrityRest02TokenPayload = InteropJwtCommonPayload.merge(
   z.object({
     signed_headers: IntegrityRest02SignedHeader,
+    sub: z.string().optional(),
   })
 );
 export type AgidIntegrityRest02TokenPayload = z.infer<

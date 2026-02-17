@@ -1,12 +1,11 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { JWTConfig, DPoPConfig, Logger } from "pagopa-interop-commons";
 import {
-  verifyDPoPProof,
   verifyDPoPProofSignature,
   checkDPoPCache,
   verifyDPoPThumbprintMatch,
+  verifyDPoPProof,
 } from "pagopa-interop-dpop-validation";
-import { DPoPProof } from "pagopa-interop-models";
 import {
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
@@ -28,6 +27,7 @@ import {
 export const verifyDPoPCompliance = async ({
   config,
   dpopProofJWS,
+  accessToken,
   accessTokenClientId,
   accessTokenThumbprint,
   expectedHtu,
@@ -37,13 +37,14 @@ export const verifyDPoPCompliance = async ({
 }: {
   config: JWTConfig & DPoPConfig;
   dpopProofJWS: string | undefined;
+  accessToken: string;
   accessTokenClientId: string;
   accessTokenThumbprint: string;
   expectedHtu: string;
   expectedHtm: string;
   dynamoDBClient: DynamoDBClient;
   logger: Logger;
-}): Promise<DPoPProof> => {
+}): Promise<void> => {
   // ----------------------------------------------------------------------
   // Step 1: Parsing & Syntax Validation
   // ----------------------------------------------------------------------
@@ -54,6 +55,7 @@ export const verifyDPoPCompliance = async ({
         expectedDPoPProofHtm: expectedHtm,
         dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: config.dpopDurationSeconds,
+        accessToken,
       })
     : { data: undefined, errors: undefined };
 
@@ -119,6 +121,4 @@ export const verifyDPoPCompliance = async ({
   if (dpopCacheErrors) {
     throw dpopProofJtiAlreadyUsed(validatedJWT.payload.jti);
   }
-
-  return validatedJWT;
 };
