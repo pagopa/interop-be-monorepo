@@ -98,7 +98,7 @@ describe("handlePurposeTemplateDocument", () => {
         purposeTemplate: {
           id: "template-id",
           purposeRiskAnalysisForm: {
-            document: undefined,
+            document: { path: undefined },
           },
           createdAt: BigInt(120323424),
         },

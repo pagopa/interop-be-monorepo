@@ -21,6 +21,8 @@ describe("API POST /userNotificationConfigs", () => {
   const {
     clientKeyAddedDeletedToClientUsers: mockClientKeyAddedDeletedToClientUsers,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    clientKeyConsumerAddedDeletedToClientUsers: _c,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     producerKeychainKeyAddedDeletedToClientUsers: _,
     ...restConfigMock
   } = getMockNotificationConfig();
@@ -83,12 +85,16 @@ describe("API POST /userNotificationConfigs", () => {
           ...restConfigMock,
           clientKeyAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,
+          clientKeyConsumerAddedDeletedToClientUsers:
+            mockClientKeyAddedDeletedToClientUsers,
           producerKeychainKeyAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,
         },
         emailConfig: {
           ...restConfigMock,
           clientKeyAddedDeletedToClientUsers:
+            mockClientKeyAddedDeletedToClientUsers,
+          clientKeyConsumerAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,
           producerKeychainKeyAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,

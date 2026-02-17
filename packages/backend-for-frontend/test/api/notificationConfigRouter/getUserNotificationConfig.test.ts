@@ -24,6 +24,8 @@ describe("API GET /userNotificationConfigs", () => {
     inAppConfig: {
       clientKeyAddedDeletedToClientUsers:
         inAppClientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        inAppClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         inAppProducerKeychainKeyAddedDeletedToClientUsers,
       ...inAppConfig
@@ -31,6 +33,8 @@ describe("API GET /userNotificationConfigs", () => {
     emailConfig: {
       clientKeyAddedDeletedToClientUsers:
         emailClientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        emailClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         emailProducerKeychainKeyAddedDeletedToClientUsers,
       ...emailConfig
@@ -46,6 +50,8 @@ describe("API GET /userNotificationConfigs", () => {
       ...inAppConfig,
       clientKeyAddedDeletedToClientUsers:
         inAppClientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        inAppClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         inAppProducerKeychainKeyAddedDeletedToClientUsers,
     },
@@ -53,6 +59,8 @@ describe("API GET /userNotificationConfigs", () => {
       ...emailConfig,
       clientKeyAddedDeletedToClientUsers:
         emailClientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        emailClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         emailProducerKeychainKeyAddedDeletedToClientUsers,
     },
@@ -65,12 +73,14 @@ describe("API GET /userNotificationConfigs", () => {
       ...inAppConfig,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
         inAppClientKeyAddedDeletedToClientUsers ||
+        inAppClientKeyConsumerAddedDeletedToClientUsers ||
         inAppProducerKeychainKeyAddedDeletedToClientUsers,
     },
     emailConfig: {
       ...emailConfig,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
         emailClientKeyAddedDeletedToClientUsers ||
+        emailClientKeyConsumerAddedDeletedToClientUsers ||
         emailProducerKeychainKeyAddedDeletedToClientUsers,
     },
   };

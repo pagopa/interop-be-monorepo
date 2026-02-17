@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import {
   Algorithm,
   ApiError,
@@ -26,6 +27,8 @@ import {
   invalidDPoPTyp,
   dpopIatNotFound,
   notYetValidDPoPProof,
+  dpopAthNotFound,
+  invalidDPoPAth,
 } from "../errors.js";
 
 const EXPECTED_TYP = "dpop+jwt";
@@ -133,6 +136,19 @@ export const validateJti = (
   return successfulValidation(jti);
 };
 
+export const validateAth = (
+  ath: string | undefined,
+  expectedAth: string
+): ValidationResult<string> => {
+  if (!ath) {
+    return failedValidation([dpopAthNotFound()]);
+  }
+  if (ath !== expectedAth) {
+    return failedValidation([invalidDPoPAth(ath)]);
+  }
+  return successfulValidation(ath);
+};
+
 export const successfulValidation = <T>(
   result: T
 ): SuccessfulValidation<T> => ({
@@ -156,3 +172,6 @@ export const failedValidation = (
     errors: flattenedArrayWithoutUndefined as Array<ApiError<ErrorCodes>>,
   };
 };
+
+export const calculateAth = (accessToken: string): string =>
+  createHash("sha256").update(accessToken).digest("base64url");

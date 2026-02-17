@@ -34,6 +34,7 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
+  riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -236,6 +237,31 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         purposeTemplateId: purposeTemplate.id,
         answerId,
       })
+    );
+  });
+
+  it("should throw riskAnalysisTemplateAnswerAnnotationNotFound if the answer has no annotation (already deleted)", async () => {
+    const riskAnalysisFormWithoutAnnotation =
+      getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
+    const purposeTemplateWithoutAnnotation: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      purposeRiskAnalysisForm: riskAnalysisFormWithoutAnnotation,
+    };
+
+    await addOnePurposeTemplate(purposeTemplateWithoutAnnotation);
+    expect(
+      purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation({
+        purposeTemplateId: purposeTemplateWithoutAnnotation.id,
+        answerId: riskAnalysisFormWithoutAnnotation.singleAnswers[0].id,
+        ctx: getMockContext({
+          authData: getMockAuthData(purposeTemplateWithoutAnnotation.creatorId),
+        }),
+      })
+    ).rejects.toThrowError(
+      riskAnalysisTemplateAnswerAnnotationNotFound(
+        purposeTemplateWithoutAnnotation.id,
+        riskAnalysisFormWithoutAnnotation.singleAnswers[0].id
+      )
     );
   });
 

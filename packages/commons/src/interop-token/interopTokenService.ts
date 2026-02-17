@@ -16,6 +16,7 @@ import { systemRole } from "../auth/roles.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
+import { IntegrityRest02SignatureConfig } from "../config/integrityRest02Config.js";
 import { dateToSeconds } from "../utils/date.js";
 import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import {
@@ -31,6 +32,8 @@ import {
   UIClaims,
   InteropJwtInternalPayload,
   InteropJwtApiDPoPPayload,
+  AgidIntegrityRest02TokenPayload,
+  IntegrityRest02SignedHeader,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
@@ -50,7 +53,8 @@ export class InteropTokenGenerator {
   constructor(
     private config: Partial<AuthorizationServerTokenGenerationConfig> &
       Partial<TokenGenerationConfig> &
-      Partial<SessionTokenGenerationConfig>,
+      Partial<SessionTokenGenerationConfig> &
+      Partial<IntegrityRest02SignatureConfig>,
     kmsClient?: KMSClient
   ) {
     this.kmsClient = kmsClient || new KMSClient();
@@ -316,13 +320,61 @@ export class InteropTokenGenerator {
     };
   }
 
+  /**
+   * Generates an Agid-JWT-Signature for Integrity REST 02 responses.
+   *
+   * This takes a set of signed headers and returns a JWT that can be used to sign the response.
+   *
+   * **Notice**: This method is used for the Integrity REST 02 _response_, not for the request.
+   *
+   * The secondsDuration is set to 100 seconds by default, but can be overridden in the config.
+   */
+  public async generateAgidIntegrityRest02Token({
+    signedHeaders,
+  }: {
+    signedHeaders: IntegrityRest02SignedHeader;
+  }): Promise<string> {
+    if (
+      !this.config.integrityRestSignatureKid ||
+      !this.config.integrityRestSignatureIssuer ||
+      !this.config.integrityRestSignatureAudience
+    ) {
+      throw Error("IntegrityRest02TokenConfig not provided or incomplete");
+    }
+    const currentTimestamp = dateToSeconds(new Date());
+
+    const header: InteropJwtHeader = {
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
+      kid: this.config.integrityRestSignatureKid,
+    };
+
+    const payload: AgidIntegrityRest02TokenPayload = {
+      jti: generateId(),
+      iss: this.config.integrityRestSignatureIssuer,
+      aud: this.config.integrityRestSignatureAudience,
+      iat: currentTimestamp,
+      nbf: currentTimestamp,
+      exp:
+        currentTimestamp +
+        (this.config.integrityRestSignatureSecondsDuration ?? 100),
+      signed_headers: signedHeaders,
+    };
+    return await this.createAndSignToken({
+      header,
+      payload,
+      keyId: this.config.integrityRestSignatureKid,
+    });
+  }
+
   private async createAndSignToken({
     header,
     payload,
     keyId,
   }: {
     header: InteropJwtHeader;
-    payload: SerializedAuthTokenPayload;
+    payload: SerializedAuthTokenPayload | AgidIntegrityRest02TokenPayload;
     keyId: string;
   }): Promise<string> {
     const serializedToken = `${b64UrlEncode(

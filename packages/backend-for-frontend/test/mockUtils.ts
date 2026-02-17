@@ -1097,8 +1097,44 @@ export const getMockInAppNotificationApiNotificationsByType =
         z.number().int()
       ),
       clientKeyAddedDeletedToClientUsers: generateMock(z.number().int()),
+      clientKeyConsumerAddedDeletedToClientUsers: generateMock(
+        z.number().int()
+      ),
     },
     totalCount: generateMock(z.number().int()),
+  });
+
+export const getMockBffApiNotificationsCountBySection =
+  (): bffApi.NotificationsCountBySection => ({
+    erogazione: {
+      richieste: generateMock(z.number().int()),
+      finalita: generateMock(z.number().int()),
+      "template-eservice": generateMock(z.number().int()),
+      "e-service": generateMock(z.number().int()),
+      portachiavi: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    fruizione: {
+      richieste: generateMock(z.number().int()),
+      finalita: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    "catalogo-e-service": {
+      totalCount: generateMock(z.number().int()),
+    },
+    aderente: {
+      deleghe: generateMock(z.number().int()),
+      anagrafica: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    "gestione-client": {
+      "api-e-service": generateMock(z.number().int()),
+      "api-interop": generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    notifiche: {
+      totalCount: generateMock(z.number().int()),
+    },
   });
 
 export const getMockBffApiCreatorPurposeTemplate =

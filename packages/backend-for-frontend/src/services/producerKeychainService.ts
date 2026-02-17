@@ -323,7 +323,7 @@ export function producerKeychainServiceBuilder(
         `Removing user ${userId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationClient.producerKeychain.removeProducerKeychainUser(
+      await authorizationClient.producerKeychain.removeProducerKeychainUser(
         undefined,
         {
           params: { producerKeychainId, userId },
