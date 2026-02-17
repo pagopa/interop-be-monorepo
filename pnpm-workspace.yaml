@@ -3,7 +3,7 @@ packages:
 
 allowBuilds:
   esbuild: true
-  scarf/scarf: true
+  "@scarf/scarf": true
   cpu-features: true
   puppeteer: true
   ssh2: true
