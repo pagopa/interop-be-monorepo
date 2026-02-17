@@ -19,7 +19,6 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "eslint": "catalog:",
     "@types/html2json": "catalog:",
     "@types/lodash.isempty": "catalog:",
     "@types/node": "catalog:",

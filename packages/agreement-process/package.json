@@ -27,7 +27,6 @@
     "@types/supertest": "catalog:",
     "cpx2": "catalog:",
     "date-fns": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "puppeteer": "catalog:",

@@ -26,7 +26,6 @@
     "@types/nodemailer": "catalog:",
     "axios": "catalog:",
     "cpx2": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",

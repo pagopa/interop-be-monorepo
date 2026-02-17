@@ -23,7 +23,6 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "ts-pattern": "catalog:",
-    "eslint": "catalog:",
     "prettier": "catalog:"
   },
   "devDependencies": {

@@ -24,7 +24,6 @@
     "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",

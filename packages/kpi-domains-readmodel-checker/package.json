@@ -22,7 +22,6 @@
     "@types/json-diff": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
-    "eslint": "catalog:",
     "lodash.isequal": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",

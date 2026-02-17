@@ -323,6 +323,9 @@ importers:
       '@tsconfig/strictest':
         specifier: 'catalog:'
         version: 2.0.5
+      eslint:
+        specifier: 'catalog:'
+        version: 8.57.1
       knip:
         specifier: 'catalog:'
         version: 5.75.1(@types/node@20.19.9)(typescript@5.4.5)
@@ -342,9 +345,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -382,9 +382,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -428,9 +425,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -516,9 +510,6 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -644,9 +635,6 @@ importers:
       '@types/ssh2-sftp-client':
         specifier: 'catalog:'
         version: 9.0.5
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -702,9 +690,6 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       handlebars:
         specifier: 'catalog:'
         version: 4.7.8
@@ -778,9 +763,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -821,9 +803,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       prettier:
         specifier: 'catalog:'
         version: 2.8.8
@@ -858,9 +837,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -937,9 +913,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1053,9 +1026,6 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1178,9 +1148,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1266,9 +1233,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1375,9 +1339,6 @@ importers:
       '@types/swagger-ui-express':
         specifier: 'catalog:'
         version: 4.1.8
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1430,9 +1391,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1476,9 +1434,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1552,9 +1507,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1668,9 +1620,6 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1760,9 +1709,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       jsonwebtoken:
         specifier: 'catalog:'
         version: 9.0.2
@@ -1809,9 +1755,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2006,9 +1949,6 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       prettier:
         specifier: 'catalog:'
         version: 2.8.8
@@ -2689,9 +2629,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -2738,9 +2675,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2863,9 +2797,6 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2921,9 +2852,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2991,9 +2919,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3046,9 +2971,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3095,9 +3017,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       prettier:
         specifier: 'catalog:'
         version: 2.8.8
@@ -3165,9 +3084,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3336,9 +3252,6 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3376,9 +3289,6 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.30.4
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -3431,9 +3341,6 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3510,9 +3417,6 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3571,9 +3475,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3632,9 +3533,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3656,9 +3554,6 @@ importers:
       aws-msk-iam-sasl-signer-js:
         specifier: 'catalog:'
         version: 1.0.1(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.840.0))
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       kafkajs:
         specifier: 'catalog:'
         version: 2.2.4
@@ -3788,9 +3683,6 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       lodash.isequal:
         specifier: 'catalog:'
         version: 4.5.0
@@ -3840,9 +3732,6 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3883,9 +3772,6 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.30.4
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       prettier-plugin-organize-imports:
         specifier: 'catalog:'
         version: 4.2.0(prettier@2.8.8)(typescript@5.4.5)
@@ -3944,9 +3830,6 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4020,9 +3903,6 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4102,9 +3982,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4239,9 +4116,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       mkdirp:
         specifier: 'catalog:'
         version: 3.0.1
@@ -4306,9 +4180,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4367,9 +4238,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4437,9 +4305,6 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4489,9 +4354,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4559,9 +4421,6 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4605,9 +4464,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       kafkajs:
         specifier: 'catalog:'
         version: 2.2.4
@@ -4672,9 +4528,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       prettier:
         specifier: 'catalog:'
         version: 2.8.8
@@ -5039,9 +4892,6 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5219,9 +5069,6 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5323,9 +5170,6 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5363,9 +5207,6 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.30.4
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
       typescript:
         specifier: 'catalog:'
         version: 5.4.5

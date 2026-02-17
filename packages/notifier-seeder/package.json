@@ -24,7 +24,6 @@
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
-    "eslint": "catalog:",
     "kafkajs": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",

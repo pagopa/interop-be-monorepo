@@ -25,7 +25,6 @@
     "@types/node": "catalog:",
     "adm-zip": "catalog:",
     "dotenv-flow": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",

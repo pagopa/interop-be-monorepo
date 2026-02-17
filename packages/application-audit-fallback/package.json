@@ -24,7 +24,6 @@
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "testcontainers": "catalog:",

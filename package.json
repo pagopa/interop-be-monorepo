@@ -82,6 +82,7 @@
     "@tsconfig/strictest": "catalog:",
     "knip": "catalog:",
     "prettier": "catalog:",
+    "eslint": "catalog:",
     "turbo": "catalog:"
   },
   "config": {

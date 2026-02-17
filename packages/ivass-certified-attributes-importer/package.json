@@ -21,7 +21,6 @@
     "@pagopa/eslint-config": "catalog:",
     "@types/adm-zip": "catalog:",
     "@types/node": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",

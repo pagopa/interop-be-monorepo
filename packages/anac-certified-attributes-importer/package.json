@@ -21,7 +21,6 @@
     "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
     "@types/ssh2-sftp-client": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "tsx": "catalog:",

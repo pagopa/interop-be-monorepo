@@ -25,7 +25,6 @@
   "devDependencies": {
     "@apidevtools/swagger-parser": "catalog:",
     "@pagopa/eslint-config": "catalog:",
-    "eslint": "catalog:",
     "@stoplight/spectral-cli": "catalog:",
     "@types/node": "catalog:",
     "@types/qs": "catalog:",

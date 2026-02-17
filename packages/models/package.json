@@ -30,7 +30,6 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "eslint": "catalog:",
     "mkdirp": "catalog:",
     "prettier": "catalog:",
     "tsc-esm-fix": "catalog:",

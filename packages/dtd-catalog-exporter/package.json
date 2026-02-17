@@ -32,7 +32,6 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "eslint": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

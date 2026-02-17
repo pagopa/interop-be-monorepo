@@ -21,7 +21,6 @@
     "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
-    "eslint": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

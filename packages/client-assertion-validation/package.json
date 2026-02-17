@@ -29,7 +29,6 @@
   "devDependencies": {
     "@types/jsonwebtoken": "catalog:",
     "@types/node": "catalog:",
-    "eslint": "catalog:",
     "jsonwebtoken": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:",

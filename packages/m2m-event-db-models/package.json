@@ -28,7 +28,6 @@
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "drizzle-kit": "catalog:",
-    "eslint": "catalog:",
     "prettier-plugin-organize-imports": "catalog:",
     "typescript": "catalog:"
   }

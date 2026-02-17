@@ -28,7 +28,6 @@
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "drizzle-kit": "catalog:",
-    "eslint": "catalog:",
     "typescript": "catalog:"
   }
 }

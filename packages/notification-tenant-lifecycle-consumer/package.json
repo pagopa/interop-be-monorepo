@@ -20,7 +20,6 @@
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",

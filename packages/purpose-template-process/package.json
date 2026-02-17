@@ -24,7 +24,6 @@
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
     "cpx2": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "supertest": "catalog:",
     "tsx": "catalog:",

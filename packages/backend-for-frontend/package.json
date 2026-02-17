@@ -26,7 +26,6 @@
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
     "@types/swagger-ui-express": "catalog:",
-    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "catalog:",
     "supertest": "catalog:",
