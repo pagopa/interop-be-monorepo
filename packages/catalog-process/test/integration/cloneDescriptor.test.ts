@@ -91,6 +91,7 @@ describe("clone descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      personalData: true,
     };
     await addOneEService(eservice);
 

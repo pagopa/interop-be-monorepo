@@ -56,6 +56,10 @@ export function toBffApiNotificationsCountBySection({
         results,
         "/gestione-client/api-e-service"
       ),
+      "api-interop": getNotificationTypesCount(
+        results,
+        "/gestione-client/api-interop"
+      ),
       totalCount: getNotificationTypesCount(results, "/gestione-client"),
     },
     notifiche: {

@@ -4,6 +4,7 @@ import {
   genericLogger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   M2MAdminAuthData,
+  authRole,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -116,3 +117,10 @@ export function testToM2MEServiceRiskAnalysisAnswers(
     ...expectedMultiAnswers,
   };
 }
+
+export const getMockm2mGatewayApiV3User = (): m2mGatewayApiV3.User => ({
+  userId: generateId(),
+  name: generateMock(z.string()),
+  familyName: generateMock(z.string()),
+  roles: [authRole.M2M_ADMIN_ROLE],
+});

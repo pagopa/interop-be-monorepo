@@ -19,20 +19,19 @@
   },
   "keywords": [],
   "dependencies": {
-    "@protobuf-ts/plugin": "2.9.4",
-    "@protobuf-ts/protoc": "2.9.4",
-    "@protobuf-ts/runtime": "2.9.4",
-    "axios": "1.12.0",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8",
-    "zod-validation-error": "3.3.0"
+    "@protobuf-ts/plugin": "catalog:",
+    "@protobuf-ts/protoc": "catalog:",
+    "@protobuf-ts/runtime": "catalog:",
+    "axios": "catalog:",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:",
+    "zod-validation-error": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "20.19.9",
-    "eslint": "8.57.1",
-    "mkdirp": "3.0.1",
-    "prettier": "2.8.8",
-    "tsc-esm-fix": "2.20.27",
-    "typescript": "5.4.5"
+    "@types/node": "catalog:",
+    "mkdirp": "catalog:",
+    "prettier": "catalog:",
+    "tsc-esm-fix": "catalog:",
+    "typescript": "catalog:"
   }
 }
