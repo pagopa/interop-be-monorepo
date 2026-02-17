@@ -48,6 +48,7 @@ import {
   isNotNull,
   isNull,
   or,
+  sql,
 } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
@@ -55,7 +56,7 @@ import {
   createListResult,
   escapeRegExp,
   lowerCase,
-  withTotalCount,
+  withTotalCountSubquery,
 } from "pagopa-interop-commons";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 
@@ -78,13 +79,14 @@ export function readModelServiceBuilderSQL(
       limit,
     }: ApiGetTenantsFilters): Promise<ListResult<Tenant>> {
       return await readModelDB.transaction(async (tx) => {
-        const queryResult = await tx
-          .selectDistinct(
-            withTotalCount({
-              tenantId: tenantInReadmodelTenant.id,
-              nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-            })
-          )
+        const baseSelection = {
+          tenantId: tenantInReadmodelTenant.id,
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name).as(
+            "nameLowerCase"
+          ),
+        };
+        const baseQuery = tx
+          .selectDistinct(baseSelection)
           .from(tenantInReadmodelTenant)
           .leftJoin(
             tenantFeatureInReadmodelTenant,
@@ -112,18 +114,29 @@ export function readModelServiceBuilderSQL(
               isNotNull(tenantInReadmodelTenant.selfcareId)
             )
           )
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .limit(limit)
-          .offset(offset);
+          .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-        const tenantIds = queryResult.map((item) => item.tenantId);
+        const subquery = withTotalCountSubquery(tx, {
+          baseQuery,
+          selection: baseSelection,
+          orderBy: (subqueryFields) => asc(subqueryFields.nameLowerCase),
+          limit,
+          offset,
+          alias: "subquery",
+        });
+
+        const queryResult = await tx.select().from(subquery);
+
+        const tenantIds = queryResult
+          .filter((row) => row.tenantId !== null)
+          .map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
           tx
         );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
-          queryResult[0]?.totalCount
+          queryResult[0]?.totalCount ?? 0
         );
       });
     },
@@ -220,12 +233,12 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       return await readModelDB.transaction(async (tx) => {
-        const queryResult = await tx
-          .select(
-            withTotalCount({
-              tenantId: tenantInReadmodelTenant.id,
-            })
-          )
+        const baseSelection = {
+          tenantId: tenantInReadmodelTenant.id,
+          tenantName: tenantInReadmodelTenant.name,
+        };
+        const baseQuery = tx
+          .select(baseSelection)
           .from(tenantInReadmodelTenant)
           .innerJoin(
             agreementInReadmodelAgreement,
@@ -252,19 +265,30 @@ export function readModelServiceBuilderSQL(
               isNotNull(tenantInReadmodelTenant.selfcareId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .limit(limit)
-          .offset(offset);
+          .groupBy(tenantInReadmodelTenant.id, tenantInReadmodelTenant.name)
+          .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-        const tenantIds = queryResult.map((item) => item.tenantId);
+        const subquery = withTotalCountSubquery(tx, {
+          baseQuery,
+          selection: baseSelection,
+          orderBy: (subqueryFields) => ascLower(subqueryFields.tenantName),
+          limit,
+          offset,
+          alias: "subquery",
+        });
+
+        const queryResult = await tx.select().from(subquery);
+
+        const tenantIds = queryResult
+          .filter((row) => row.tenantId !== null)
+          .map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
           tx
         );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
-          queryResult[0]?.totalCount
+          queryResult[0]?.totalCount ?? 0
         );
       });
     },
@@ -279,12 +303,12 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       return await readModelDB.transaction(async (tx) => {
-        const queryResult = await tx
-          .select(
-            withTotalCount({
-              tenantId: tenantInReadmodelTenant.id,
-            })
-          )
+        const baseSelection = {
+          tenantId: tenantInReadmodelTenant.id,
+          tenantName: tenantInReadmodelTenant.name,
+        };
+        const baseQuery = tx
+          .select(baseSelection)
           .from(tenantInReadmodelTenant)
           .innerJoin(
             eserviceInReadmodelCatalog,
@@ -306,19 +330,30 @@ export function readModelServiceBuilderSQL(
               isNotNull(tenantInReadmodelTenant.selfcareId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .limit(limit)
-          .offset(offset);
+          .groupBy(tenantInReadmodelTenant.id, tenantInReadmodelTenant.name)
+          .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-        const tenantIds = queryResult.map((item) => item.tenantId);
+        const subquery = withTotalCountSubquery(tx, {
+          baseQuery,
+          selection: baseSelection,
+          orderBy: (subqueryFields) => ascLower(subqueryFields.tenantName),
+          limit,
+          offset,
+          alias: "subquery",
+        });
+
+        const queryResult = await tx.select().from(subquery);
+
+        const tenantIds = queryResult
+          .filter((row) => row.tenantId !== null)
+          .map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
           tx
         );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
-          queryResult[0]?.totalCount
+          queryResult[0]?.totalCount ?? 0
         );
       });
     },
@@ -387,16 +422,16 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
-      const res = await readModelDB
-        .selectDistinct(
-          withTotalCount({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-            attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
-            attributeName: attributeInReadmodelAttribute.name,
-          })
-        )
+      const baseSelection = {
+        id: tenantInReadmodelTenant.id,
+        name: sql<string>`${tenantInReadmodelTenant.name}`.as("tenantName"),
+        attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
+        attributeName: sql<string>`${attributeInReadmodelAttribute.name}`.as(
+          "attributeName"
+        ),
+      };
+      const baseQuery = readModelDB
+        .selectDistinct(baseSelection)
         .from(tenantCertifiedAttributeInReadmodelTenant)
         .innerJoin(
           attributeInReadmodelAttribute,
@@ -418,22 +453,32 @@ export function readModelServiceBuilderSQL(
             tenantCertifiedAttributeInReadmodelTenant.tenantId,
             tenantInReadmodelTenant.id
           )
-        )
-        .orderBy(
-          ascLower(tenantInReadmodelTenant.name),
-          attributeInReadmodelAttribute.name
-        )
-        .limit(limit)
-        .offset(offset);
+        );
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => [
+          ascLower(subqueryFields.name),
+          subqueryFields.attributeName,
+        ],
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const res = await readModelDB.select().from(subquery);
 
       return createListResult(
-        res.map((row) => ({
-          id: row.id,
-          name: row.name,
-          attributeId: row.attributeId,
-          attributeName: row.attributeName,
-        })),
-        res[0]?.totalCount
+        res
+          .filter((row) => row.id !== null)
+          .map((row) => ({
+            id: row.id,
+            name: row.name,
+            attributeId: row.attributeId,
+            attributeName: row.attributeName,
+          })),
+        res[0]?.totalCount ?? 0
       );
     },
 
@@ -494,21 +539,20 @@ export function readModelServiceBuilderSQL(
       attributeId: AttributeId,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<TenantVerifier>> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            verifierId:
-              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
-            verificationDate:
-              tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
-            expirationDate:
-              tenantVerifiedAttributeVerifierInReadmodelTenant.expirationDate,
-            extensionDate:
-              tenantVerifiedAttributeVerifierInReadmodelTenant.extensionDate,
-            delegationId:
-              tenantVerifiedAttributeVerifierInReadmodelTenant.delegationId,
-          })
-        )
+      const baseSelection = {
+        verifierId:
+          tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
+        verificationDate:
+          tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
+        expirationDate:
+          tenantVerifiedAttributeVerifierInReadmodelTenant.expirationDate,
+        extensionDate:
+          tenantVerifiedAttributeVerifierInReadmodelTenant.extensionDate,
+        delegationId:
+          tenantVerifiedAttributeVerifierInReadmodelTenant.delegationId,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
         .where(
           and(
@@ -524,25 +568,36 @@ export function readModelServiceBuilderSQL(
         )
         .orderBy(
           asc(tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate)
-        )
-        .offset(offset)
-        .limit(limit);
+        );
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => asc(subqueryFields.verificationDate),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
 
       return createListResult(
-        queryResult.map((result) => ({
-          id: unsafeBrandId<TenantId>(result.verifierId),
-          verificationDate: new Date(result.verificationDate),
-          expirationDate: result.expirationDate
-            ? new Date(result.expirationDate)
-            : undefined,
-          extensionDate: result.extensionDate
-            ? new Date(result.extensionDate)
-            : undefined,
-          delegationId: result.delegationId
-            ? unsafeBrandId<DelegationId>(result.delegationId)
-            : undefined,
-        })),
-        queryResult.length > 0 ? queryResult[0].totalCount : 0
+        queryResult
+          .filter((row) => row.verifierId !== null)
+          .map((result) => ({
+            id: unsafeBrandId<TenantId>(result.verifierId),
+            verificationDate: new Date(result.verificationDate),
+            expirationDate: result.expirationDate
+              ? new Date(result.expirationDate)
+              : undefined,
+            extensionDate: result.extensionDate
+              ? new Date(result.extensionDate)
+              : undefined,
+            delegationId: result.delegationId
+              ? unsafeBrandId<DelegationId>(result.delegationId)
+              : undefined,
+          })),
+        queryResult[0]?.totalCount ?? 0
       );
     },
     async getTenantVerifiedAttributeRevokers(
@@ -550,23 +605,22 @@ export function readModelServiceBuilderSQL(
       attributeId: AttributeId,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<TenantRevoker>> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            revokerId:
-              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
-            verificationDate:
-              tenantVerifiedAttributeRevokerInReadmodelTenant.verificationDate,
-            expirationDate:
-              tenantVerifiedAttributeRevokerInReadmodelTenant.expirationDate,
-            extensionDate:
-              tenantVerifiedAttributeRevokerInReadmodelTenant.extensionDate,
-            revocationDate:
-              tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
-            delegationId:
-              tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
-          })
-        )
+      const baseSelection = {
+        revokerId:
+          tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
+        verificationDate:
+          tenantVerifiedAttributeRevokerInReadmodelTenant.verificationDate,
+        expirationDate:
+          tenantVerifiedAttributeRevokerInReadmodelTenant.expirationDate,
+        extensionDate:
+          tenantVerifiedAttributeRevokerInReadmodelTenant.extensionDate,
+        revocationDate:
+          tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
+        delegationId:
+          tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
         .where(
           and(
@@ -582,26 +636,37 @@ export function readModelServiceBuilderSQL(
         )
         .orderBy(
           asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
-        )
-        .offset(offset)
-        .limit(limit);
+        );
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => asc(subqueryFields.revocationDate),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
 
       return createListResult(
-        queryResult.map((result) => ({
-          id: unsafeBrandId<TenantId>(result.revokerId),
-          verificationDate: new Date(result.verificationDate),
-          expirationDate: result.expirationDate
-            ? new Date(result.expirationDate)
-            : undefined,
-          extensionDate: result.extensionDate
-            ? new Date(result.extensionDate)
-            : undefined,
-          revocationDate: new Date(result.revocationDate),
-          delegationId: result.delegationId
-            ? unsafeBrandId<DelegationId>(result.delegationId)
-            : undefined,
-        })),
-        queryResult.length > 0 ? queryResult[0].totalCount : 0
+        queryResult
+          .filter((row) => row.revokerId !== null)
+          .map((result) => ({
+            id: unsafeBrandId<TenantId>(result.revokerId),
+            verificationDate: new Date(result.verificationDate),
+            expirationDate: result.expirationDate
+              ? new Date(result.expirationDate)
+              : undefined,
+            extensionDate: result.extensionDate
+              ? new Date(result.extensionDate)
+              : undefined,
+            revocationDate: new Date(result.revocationDate),
+            delegationId: result.delegationId
+              ? unsafeBrandId<DelegationId>(result.delegationId)
+              : undefined,
+          })),
+        queryResult[0]?.totalCount ?? 0
       );
     },
   };

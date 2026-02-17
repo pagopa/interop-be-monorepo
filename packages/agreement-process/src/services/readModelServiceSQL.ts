@@ -51,6 +51,8 @@ import {
   createListResult,
   ascLower,
   withTotalCount,
+  withTotalCountSubquery,
+  dynamicSelect,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
@@ -372,60 +374,71 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
-      const queryBaseAgreementIds = addDelegationJoins(
-        readmodelDB
-          .select(
-            withTotalCount({
-              id: agreementInReadmodelAgreement.id,
-              eserviceName: eserviceInReadmodelCatalog.name,
-            })
-          )
-          .from(agreementInReadmodelAgreement)
-          .leftJoin(
-            eserviceInReadmodelCatalog,
-            eq(
-              agreementInReadmodelAgreement.eserviceId,
-              eserviceInReadmodelCatalog.id
+      const baseSelection = {
+        id: agreementInReadmodelAgreement.id,
+        eserviceName: eserviceInReadmodelCatalog.name,
+      };
+      const buildAgreementsBaseQuery = (
+        selection: Record<string, PgColumn | SQL | SQL.Aliased>
+      ): ReturnType<typeof addDelegationJoins> =>
+        addDelegationJoins(
+          dynamicSelect(readmodelDB, selection)
+            .from(agreementInReadmodelAgreement)
+            .leftJoin(
+              eserviceInReadmodelCatalog,
+              eq(
+                agreementInReadmodelAgreement.eserviceId,
+                eserviceInReadmodelCatalog.id
+              )
             )
-          )
-          .leftJoin(
-            eserviceDescriptorInReadmodelCatalog,
-            eq(
-              agreementInReadmodelAgreement.descriptorId,
-              eserviceDescriptorInReadmodelCatalog.id
+            .leftJoin(
+              eserviceDescriptorInReadmodelCatalog,
+              eq(
+                agreementInReadmodelAgreement.descriptorId,
+                eserviceDescriptorInReadmodelCatalog.id
+              )
             )
-          )
-          .leftJoin(
-            agreementAttributeInReadmodelAgreement,
-            eq(
+            .leftJoin(
+              agreementAttributeInReadmodelAgreement,
+              eq(
+                agreementInReadmodelAgreement.id,
+                agreementAttributeInReadmodelAgreement.agreementId
+              )
+            )
+            .where(
+              getAgreementsFilters({
+                filters,
+                requesterId,
+                withVisibilityAndDelegationFilters: true,
+              })
+            )
+            .groupBy(
               agreementInReadmodelAgreement.id,
-              agreementAttributeInReadmodelAgreement.agreementId
+              eserviceInReadmodelCatalog.name
             )
-          )
-          .where(
-            getAgreementsFilters({
-              filters,
-              requesterId,
-              withVisibilityAndDelegationFilters: true,
-            })
-          )
-          .groupBy(
-            agreementInReadmodelAgreement.id,
-            eserviceInReadmodelCatalog.name
-          )
-          .orderBy(
-            ascLower(eserviceInReadmodelCatalog.name),
-            agreementInReadmodelAgreement.id
-          )
-          .$dynamic()
-      );
+            .orderBy(
+              ascLower(eserviceInReadmodelCatalog.name),
+              agreementInReadmodelAgreement.id
+            )
+        );
+
+      const baseQuery = buildAgreementsBaseQuery(baseSelection);
 
       const queryAgreementIds = filters.showOnlyUpgradeable
-        ? queryBaseAgreementIds.as("queryAgreementIds")
-        : queryBaseAgreementIds
-            .limit(limit)
-            .offset(offset)
-            .as("queryAgreementIds");
+        ? buildAgreementsBaseQuery(withTotalCount(baseSelection)).as(
+            "queryAgreementIds"
+          )
+        : withTotalCountSubquery(readmodelDB, {
+            baseQuery,
+            selection: baseSelection,
+            orderBy: (subqueryFields) => [
+              ascLower(subqueryFields.eserviceName),
+              subqueryFields.id,
+            ],
+            limit,
+            offset,
+            alias: "queryAgreementIds",
+          });
 
       const resultSet = await readmodelDB
         .select({
@@ -439,7 +452,7 @@ export function readModelServiceBuilderSQL(
           signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
-        .innerJoin(
+        .rightJoin(
           queryAgreementIds,
           eq(agreementInReadmodelAgreement.id, queryAgreementIds.id)
         )
@@ -483,8 +496,15 @@ export function readModelServiceBuilderSQL(
           agreementInReadmodelAgreement.id
         );
 
+      type AgreementRow = (typeof resultSet)[number];
+      const hasAgreement = (
+        row: AgreementRow
+      ): row is AgreementRow & {
+        agreement: NonNullable<AgreementRow["agreement"]>;
+      } => row.agreement !== null;
+
       const agreements = aggregateAgreementArray(
-        toAgreementAggregatorArray(resultSet)
+        toAgreementAggregatorArray(resultSet.filter(hasAgreement))
       ).map(({ data }) => data);
 
       if (filters.showOnlyUpgradeable) {
@@ -521,7 +541,7 @@ export function readModelServiceBuilderSQL(
           limit
         );
       }
-      return createListResult(agreements, resultSet[0]?.totalCount);
+      return createListResult(agreements, resultSet[0]?.totalCount ?? 0);
     },
 
     async getAgreementById(
@@ -660,14 +680,13 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const resultSet = await addDelegationJoins(
+      const baseSelection = {
+        id: tenantInReadmodelTenant.id,
+        name: tenantInReadmodelTenant.name,
+      };
+      const baseQuery = addDelegationJoins(
         readmodelDB
-          .select(
-            withTotalCount({
-              id: tenantInReadmodelTenant.id,
-              name: tenantInReadmodelTenant.name,
-            })
-          )
+          .select(baseSelection)
           .from(tenantInReadmodelTenant)
           .leftJoin(
             agreementInReadmodelAgreement,
@@ -684,13 +703,25 @@ export function readModelServiceBuilderSQL(
           )
           .groupBy(tenantInReadmodelTenant.id)
           .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .limit(limit)
-          .offset(offset)
           .$dynamic()
       );
+
+      const subquery = withTotalCountSubquery(readmodelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const resultSet = await readmodelDB.select().from(subquery);
+
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
-        resultSet[0]?.totalCount
+        resultSet
+          .filter((row) => row.id !== null)
+          .map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
+        resultSet[0]?.totalCount ?? 0
       );
     },
 
@@ -700,14 +731,13 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const resultSet = await addDelegationJoins(
+      const baseSelection = {
+        id: tenantInReadmodelTenant.id,
+        name: tenantInReadmodelTenant.name,
+      };
+      const baseQuery = addDelegationJoins(
         readmodelDB
-          .select(
-            withTotalCount({
-              id: tenantInReadmodelTenant.id,
-              name: tenantInReadmodelTenant.name,
-            })
-          )
+          .select(baseSelection)
           .from(tenantInReadmodelTenant)
           .leftJoin(
             agreementInReadmodelAgreement,
@@ -724,13 +754,25 @@ export function readModelServiceBuilderSQL(
           )
           .groupBy(tenantInReadmodelTenant.id)
           .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .limit(limit)
-          .offset(offset)
           .$dynamic()
       );
+
+      const subquery = withTotalCountSubquery(readmodelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const resultSet = await readmodelDB.select().from(subquery);
+
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
-        resultSet[0]?.totalCount
+        resultSet
+          .filter((row) => row.id !== null)
+          .map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
+        resultSet[0]?.totalCount ?? 0
       );
     },
 
@@ -743,14 +785,13 @@ export function readModelServiceBuilderSQL(
       const { consumerIds, producerIds, eserviceName } = filters;
       const withDelegationFilter = true;
 
-      const resultSet = await addDelegationJoins(
+      const baseSelection = {
+        id: eserviceInReadmodelCatalog.id,
+        name: eserviceInReadmodelCatalog.name,
+      };
+      const baseQuery = addDelegationJoins(
         readmodelDB
-          .select(
-            withTotalCount({
-              id: eserviceInReadmodelCatalog.id,
-              name: eserviceInReadmodelCatalog.name,
-            })
-          )
+          .select(baseSelection)
           .from(eserviceInReadmodelCatalog)
           .leftJoin(
             agreementInReadmodelAgreement,
@@ -769,13 +810,25 @@ export function readModelServiceBuilderSQL(
           )
           .groupBy(eserviceInReadmodelCatalog.id)
           .orderBy(ascLower(eserviceInReadmodelCatalog.name))
-          .limit(limit)
-          .offset(offset)
           .$dynamic()
       );
+
+      const subquery = withTotalCountSubquery(readmodelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const resultSet = await readmodelDB.select().from(subquery);
+
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
-        resultSet[0]?.totalCount
+        resultSet
+          .filter((row) => row.id !== null)
+          .map(({ id, name }) => ({ id, name })),
+        resultSet[0]?.totalCount ?? 0
       );
     },
 
@@ -842,19 +895,16 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<AgreementDocument>> {
-      const resultsSet = await readmodelDB
-        .select(
-          withTotalCount({
-            id: agreementConsumerDocumentInReadmodelAgreement.id,
-            path: agreementConsumerDocumentInReadmodelAgreement.path,
-            name: agreementConsumerDocumentInReadmodelAgreement.name,
-            prettyName:
-              agreementConsumerDocumentInReadmodelAgreement.prettyName,
-            contentType:
-              agreementConsumerDocumentInReadmodelAgreement.contentType,
-            createdAt: agreementConsumerDocumentInReadmodelAgreement.createdAt,
-          })
-        )
+      const baseSelection = {
+        id: agreementConsumerDocumentInReadmodelAgreement.id,
+        path: agreementConsumerDocumentInReadmodelAgreement.path,
+        name: agreementConsumerDocumentInReadmodelAgreement.name,
+        prettyName: agreementConsumerDocumentInReadmodelAgreement.prettyName,
+        contentType: agreementConsumerDocumentInReadmodelAgreement.contentType,
+        createdAt: agreementConsumerDocumentInReadmodelAgreement.createdAt,
+      };
+      const baseQuery = readmodelDB
+        .select(baseSelection)
         .from(agreementConsumerDocumentInReadmodelAgreement)
         .where(
           eq(
@@ -863,23 +913,34 @@ export function readModelServiceBuilderSQL(
           )
         )
         .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
-        .limit(limit)
-        .offset(offset)
         .$dynamic();
 
+      const subquery = withTotalCountSubquery(readmodelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => asc(subqueryFields.createdAt),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const resultsSet = await readmodelDB.select().from(subquery);
+
       return createListResult(
-        resultsSet.map(
-          (doc) =>
-            ({
-              id: unsafeBrandId<AgreementDocumentId>(doc.id),
-              path: doc.path,
-              name: doc.name,
-              prettyName: doc.prettyName,
-              contentType: doc.contentType,
-              createdAt: stringToDate(doc.createdAt),
-            } satisfies AgreementDocument)
-        ),
-        resultsSet[0]?.totalCount
+        resultsSet
+          .filter((doc) => doc.id !== null)
+          .map(
+            (doc) =>
+              ({
+                id: unsafeBrandId<AgreementDocumentId>(doc.id),
+                path: doc.path,
+                name: doc.name,
+                prettyName: doc.prettyName,
+                contentType: doc.contentType,
+                createdAt: stringToDate(doc.createdAt),
+              } satisfies AgreementDocument)
+          ),
+        resultsSet[0]?.totalCount ?? 0
       );
     },
   };

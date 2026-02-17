@@ -1,7 +1,7 @@
 import {
   createListResult,
   escapeRegExp,
-  withTotalCount,
+  withTotalCountSubquery,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -129,12 +129,12 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Delegation>> {
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            delegationId: delegationInReadmodelDelegation.id,
-          })
-        )
+      const baseSelection = {
+        delegationId: delegationInReadmodelDelegation.id,
+        createdAt: delegationInReadmodelDelegation.createdAt,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(delegationInReadmodelDelegation)
         .where(
           and(
@@ -156,11 +156,20 @@ export function readModelServiceBuilderSQL({
             kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
           )
         )
-        .groupBy(delegationInReadmodelDelegation.id)
-        .orderBy(delegationInReadmodelDelegation.createdAt)
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+        .groupBy(
+          delegationInReadmodelDelegation.id,
+          delegationInReadmodelDelegation.createdAt
+        )
+        .orderBy(delegationInReadmodelDelegation.createdAt);
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => subqueryFields.createdAt,
+        limit,
+        offset,
+        alias: "subquery",
+      });
 
       const queryResult = await readModelDB
         .select({
@@ -173,7 +182,7 @@ export function readModelServiceBuilderSQL({
           totalCount: subquery.totalCount,
         })
         .from(delegationInReadmodelDelegation)
-        .innerJoin(
+        .rightJoin(
           subquery,
           eq(delegationInReadmodelDelegation.id, subquery.delegationId)
         )
@@ -200,12 +209,19 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(delegationInReadmodelDelegation.createdAt);
 
+      type DelegationRow = (typeof queryResult)[number];
+      const hasDelegation = (
+        row: DelegationRow
+      ): row is DelegationRow & {
+        delegation: NonNullable<DelegationRow["delegation"]>;
+      } => row.delegation !== null;
+
       const delegations = aggregateDelegationArray(
-        toDelegationAggregatorArray(queryResult)
+        toDelegationAggregatorArray(queryResult.filter(hasDelegation))
       );
       return createListResult(
         delegations.map((d) => d.data),
-        queryResult[0]?.totalCount
+        queryResult[0]?.totalCount ?? 0
       );
     },
     async getConsumerDelegators(filters: {
@@ -215,13 +231,12 @@ export function readModelServiceBuilderSQL({
       limit: number;
       offset: number;
     }): Promise<delegationApi.CompactTenants> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-          })
-        )
+      const baseSelection = {
+        id: tenantInReadmodelTenant.id,
+        name: tenantInReadmodelTenant.name,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(tenantInReadmodelTenant)
         .innerJoin(
           delegationInReadmodelDelegation,
@@ -255,14 +270,25 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(tenantInReadmodelTenant.name)
-        .limit(filters.limit)
-        .offset(filters.offset);
+        .orderBy(tenantInReadmodelTenant.name);
 
-      const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
-        id: d.id,
-        name: d.name,
-      }));
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => subqueryFields.name,
+        limit: filters.limit,
+        offset: filters.offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+
+      const data: delegationApi.CompactTenant[] = queryResult
+        .filter((row) => row.id !== null)
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+        }));
 
       const result = z.array(delegationApi.CompactTenant).safeParse(data);
 
@@ -274,7 +300,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return createListResult(result.data, queryResult[0]?.totalCount);
+      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
     },
     async getConsumerDelegatorsWithAgreements(filters: {
       delegateId: TenantId;
@@ -282,13 +308,12 @@ export function readModelServiceBuilderSQL({
       limit: number;
       offset: number;
     }): Promise<delegationApi.CompactTenants> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-          })
-        )
+      const baseSelection = {
+        id: tenantInReadmodelTenant.id,
+        name: tenantInReadmodelTenant.name,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(tenantInReadmodelTenant)
         .innerJoin(
           delegationInReadmodelDelegation,
@@ -340,14 +365,25 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(tenantInReadmodelTenant.name)
-        .limit(filters.limit)
-        .offset(filters.offset);
+        .orderBy(tenantInReadmodelTenant.name);
 
-      const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
-        id: d.id,
-        name: d.name,
-      }));
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => subqueryFields.name,
+        limit: filters.limit,
+        offset: filters.offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+
+      const data: delegationApi.CompactTenant[] = queryResult
+        .filter((row) => row.id !== null)
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+        }));
 
       const result = z.array(delegationApi.CompactTenant).safeParse(data);
 
@@ -359,7 +395,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return createListResult(result.data, queryResult[0]?.totalCount);
+      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
     },
     async getConsumerEservices(filters: {
       delegateId: TenantId;
@@ -368,14 +404,13 @@ export function readModelServiceBuilderSQL({
       offset: number;
       eserviceName?: string;
     }): Promise<delegationApi.CompactEServices> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            id: eserviceInReadmodelCatalog.id,
-            name: eserviceInReadmodelCatalog.name,
-            producerId: eserviceInReadmodelCatalog.producerId,
-          })
-        )
+      const baseSelection = {
+        id: eserviceInReadmodelCatalog.id,
+        name: eserviceInReadmodelCatalog.name,
+        producerId: eserviceInReadmodelCatalog.producerId,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
           delegationInReadmodelDelegation,
@@ -424,15 +459,26 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(eserviceInReadmodelCatalog.id)
-        .orderBy(eserviceInReadmodelCatalog.name)
-        .limit(filters.limit)
-        .offset(filters.offset);
+        .orderBy(eserviceInReadmodelCatalog.name);
 
-      const data: delegationApi.CompactEService[] = queryResult.map((e) => ({
-        id: e.id,
-        name: e.name,
-        producerId: e.producerId,
-      }));
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => subqueryFields.name,
+        limit: filters.limit,
+        offset: filters.offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+
+      const data: delegationApi.CompactEService[] = queryResult
+        .filter((row) => row.id !== null)
+        .map((e) => ({
+          id: e.id,
+          name: e.name,
+          producerId: e.producerId,
+        }));
 
       const result = z.array(delegationApi.CompactEService).safeParse(data);
 
@@ -444,7 +490,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return createListResult(result.data, queryResult[0]?.totalCount);
+      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
     },
     async getDelegationRelatedAgreement(
       eserviceId: EServiceId,

@@ -1,0 +1,32 @@
+meta {
+  name: Get List EService Template
+  type: http
+  seq: 22
+}
+
+get {
+  url: {{host-template}}/templates?offset=0&limit=2
+  body: json
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 2
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
+
+vars:post-response {
+  eserviceTemplateId: res.body.id
+  eserviceTemplateVersionId: res.body.versions[0].id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

@@ -5,7 +5,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
-  withTotalCount,
+  withTotalCountSubquery,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -87,6 +87,7 @@ import {
   isNull,
   notExists,
   or,
+  sql,
   SQL,
 } from "drizzle-orm";
 import { match } from "ts-pattern";
@@ -580,15 +581,21 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
-      const res = await readmodelDB
-        .selectDistinctOn(
-          [tenantInReadmodelTenant.id],
-          withTotalCount({
-            tenant: tenantInReadmodelTenant,
-            agreement: agreementInReadmodelAgreement,
-            descriptor: eserviceDescriptorInReadmodelCatalog,
-          })
-        )
+      const baseSelection = {
+        tenantId: tenantInReadmodelTenant.id,
+        tenantName: tenantInReadmodelTenant.name,
+        tenantExternalIdValue: tenantInReadmodelTenant.externalIdValue,
+        descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+        descriptorState:
+          sql<string>`${eserviceDescriptorInReadmodelCatalog.state}`.as(
+            "descriptorState"
+          ),
+        agreementState: sql<string>`${agreementInReadmodelAgreement.state}`.as(
+          "agreementState"
+        ),
+      };
+      const baseQuery = readmodelDB
+        .selectDistinctOn([tenantInReadmodelTenant.id], baseSelection)
         .from(tenantInReadmodelTenant)
         .innerJoin(
           agreementInReadmodelAgreement,
@@ -617,19 +624,29 @@ export function readModelServiceBuilderSQL(
               descriptorState.suspended,
             ])
           )
-        )
-        .limit(limit)
-        .offset(offset);
+        );
 
-      const consumers: Consumer[] = res.map((row) => ({
-        descriptorVersion: row.descriptor.version,
-        descriptorState: DescriptorState.parse(row.descriptor.state),
-        agreementState: AgreementState.parse(row.agreement.state),
-        consumerName: row.tenant.name,
-        consumerExternalId: row.tenant.externalIdValue,
-      }));
+      const subquery = withTotalCountSubquery(readmodelDB, {
+        baseQuery,
+        selection: baseSelection,
+        limit,
+        offset,
+        alias: "subquery",
+      });
 
-      return createListResult(consumers, res[0]?.totalCount);
+      const res = await readmodelDB.select().from(subquery);
+
+      const consumers: Consumer[] = res
+        .filter((row) => row.tenantId !== null)
+        .map((row) => ({
+          descriptorVersion: row.descriptorVersion,
+          descriptorState: DescriptorState.parse(row.descriptorState),
+          agreementState: AgreementState.parse(row.agreementState),
+          consumerName: row.tenantName,
+          consumerExternalId: row.tenantExternalIdValue,
+        }));
+
+      return createListResult(consumers, res[0]?.totalCount ?? 0);
     },
     async listAgreements({
       eservicesIds,
@@ -817,19 +834,17 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Document>> {
-      const resultsSet = await readmodelDB
-        .select(
-          withTotalCount({
-            id: eserviceDescriptorDocumentInReadmodelCatalog.id,
-            path: eserviceDescriptorDocumentInReadmodelCatalog.path,
-            name: eserviceDescriptorDocumentInReadmodelCatalog.name,
-            prettyName: eserviceDescriptorDocumentInReadmodelCatalog.prettyName,
-            contentType:
-              eserviceDescriptorDocumentInReadmodelCatalog.contentType,
-            checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
-            uploadDate: eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
-          })
-        )
+      const baseSelection = {
+        id: eserviceDescriptorDocumentInReadmodelCatalog.id,
+        path: eserviceDescriptorDocumentInReadmodelCatalog.path,
+        name: eserviceDescriptorDocumentInReadmodelCatalog.name,
+        prettyName: eserviceDescriptorDocumentInReadmodelCatalog.prettyName,
+        contentType: eserviceDescriptorDocumentInReadmodelCatalog.contentType,
+        checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
+        uploadDate: eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
+      };
+      const baseQuery = readmodelDB
+        .select(baseSelection)
         .from(eserviceDescriptorDocumentInReadmodelCatalog)
         .where(
           and(
@@ -844,24 +859,35 @@ export function readModelServiceBuilderSQL(
           )
         )
         .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
-        .limit(limit)
-        .offset(offset)
         .$dynamic();
 
+      const subquery = withTotalCountSubquery(readmodelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => asc(subqueryFields.uploadDate),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const resultsSet = await readmodelDB.select().from(subquery);
+
       return createListResult(
-        resultsSet.map(
-          (doc) =>
-            ({
-              id: unsafeBrandId<EServiceDocumentId>(doc.id),
-              path: doc.path,
-              name: doc.name,
-              prettyName: doc.prettyName,
-              contentType: doc.contentType,
-              checksum: doc.checksum,
-              uploadDate: stringToDate(doc.uploadDate),
-            } satisfies Document)
-        ),
-        resultsSet[0]?.totalCount
+        resultsSet
+          .filter((doc) => doc.id !== null)
+          .map(
+            (doc) =>
+              ({
+                id: unsafeBrandId<EServiceDocumentId>(doc.id),
+                path: doc.path,
+                name: doc.name,
+                prettyName: doc.prettyName,
+                contentType: doc.contentType,
+                checksum: doc.checksum,
+                uploadDate: stringToDate(doc.uploadDate),
+              } satisfies Document)
+          ),
+        resultsSet[0]?.totalCount ?? 0
       );
     },
   };

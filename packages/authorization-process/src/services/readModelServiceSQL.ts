@@ -1,5 +1,9 @@
 import { and, eq, ilike, inArray } from "drizzle-orm";
-import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
+import {
+  ascLower,
+  escapeRegExp,
+  withTotalCountSubquery,
+} from "pagopa-interop-commons";
 import {
   Client,
   WithMetadata,
@@ -111,12 +115,12 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Client>> {
       const { name, userIds, consumerId, purposeId, kind } = filters;
 
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            clientId: clientInReadmodelClient.id,
-          })
-        )
+      const baseSelection = {
+        clientId: clientInReadmodelClient.id,
+        name: clientInReadmodelClient.name,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(clientInReadmodelClient)
         .leftJoin(
           clientUserInReadmodelClient,
@@ -151,11 +155,17 @@ export function readModelServiceBuilderSQL({
             kind ? eq(clientInReadmodelClient.kind, kind) : undefined
           )
         )
-        .groupBy(clientInReadmodelClient.id)
-        .orderBy(ascLower(clientInReadmodelClient.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+        .groupBy(clientInReadmodelClient.id, clientInReadmodelClient.name)
+        .orderBy(ascLower(clientInReadmodelClient.name));
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
 
       const queryResult = await readModelDB
         .select({
@@ -166,7 +176,7 @@ export function readModelServiceBuilderSQL({
           totalCount: subquery.totalCount,
         })
         .from(clientInReadmodelClient)
-        .innerJoin(subquery, eq(clientInReadmodelClient.id, subquery.clientId))
+        .rightJoin(subquery, eq(clientInReadmodelClient.id, subquery.clientId))
         .leftJoin(
           clientUserInReadmodelClient,
           eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
@@ -184,10 +194,16 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(ascLower(clientInReadmodelClient.name));
 
+      type ClientRow = (typeof queryResult)[number];
+      const hasClient = (
+        row: ClientRow
+      ): row is ClientRow & { client: NonNullable<ClientRow["client"]> } =>
+        row.client !== null;
+
       return {
-        results: aggregateClientArray(toClientAggregatorArray(queryResult)).map(
-          (c) => c.data
-        ),
+        results: aggregateClientArray(
+          toClientAggregatorArray(queryResult.filter(hasClient))
+        ).map((c) => c.data),
         totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
@@ -298,12 +314,12 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<ProducerKeychain>> {
       const { name, userIds, producerId, eserviceId } = filters;
 
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
-          })
-        )
+      const baseSelection = {
+        producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
+        name: producerKeychainInReadmodelProducerKeychain.name,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(producerKeychainInReadmodelProducerKeychain)
         .leftJoin(
           producerKeychainUserInReadmodelProducerKeychain,
@@ -351,11 +367,20 @@ export function readModelServiceBuilderSQL({
               : undefined
           )
         )
-        .groupBy(producerKeychainInReadmodelProducerKeychain.id)
-        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+        .groupBy(
+          producerKeychainInReadmodelProducerKeychain.id,
+          producerKeychainInReadmodelProducerKeychain.name
+        )
+        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name));
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
 
       const queryResult = await readModelDB
         .select({
@@ -367,7 +392,7 @@ export function readModelServiceBuilderSQL({
           totalCount: subquery.totalCount,
         })
         .from(producerKeychainInReadmodelProducerKeychain)
-        .innerJoin(
+        .rightJoin(
           subquery,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
@@ -397,9 +422,18 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name));
 
+      type ProducerKeychainRow = (typeof queryResult)[number];
+      const hasProducerKeychain = (
+        row: ProducerKeychainRow
+      ): row is ProducerKeychainRow & {
+        producerKeychain: NonNullable<ProducerKeychainRow["producerKeychain"]>;
+      } => row.producerKeychain !== null;
+
       return {
         results: aggregateProducerKeychainArray(
-          toProducerKeychainAggregatorArray(queryResult)
+          toProducerKeychainAggregatorArray(
+            queryResult.filter(hasProducerKeychain)
+          )
         ).map((p) => p.data),
         totalCount: queryResult[0]?.totalCount ?? 0,
       };

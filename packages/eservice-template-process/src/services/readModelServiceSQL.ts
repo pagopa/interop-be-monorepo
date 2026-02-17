@@ -5,7 +5,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
-  withTotalCount,
+  withTotalCountSubquery,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -35,6 +35,15 @@ import {
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   tenantInReadmodelTenant,
+} from "pagopa-interop-readmodel-models";
+import type {
+  EServiceTemplateRiskAnalysisAnswerSQL,
+  EServiceTemplateRiskAnalysisSQL,
+  EServiceTemplateSQL,
+  EServiceTemplateVersionAttributeSQL,
+  EServiceTemplateVersionDocumentSQL,
+  EServiceTemplateVersionInterfaceSQL,
+  EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregateEServiceTemplateArray,
@@ -113,12 +122,13 @@ export function readModelServiceBuilderSQL({
       const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
         filters;
 
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-          })
-        )
+      const baseSelection = {
+        eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+        name: eserviceTemplateInReadmodelEserviceTemplate.name,
+      };
+
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -205,13 +215,29 @@ export function readModelServiceBuilderSQL({
                 )
           )
         )
-        .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
-        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+        .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id);
 
-      const queryResult = await readModelDB
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      type EServiceTemplateRow = {
+        eserviceTemplate: EServiceTemplateSQL | null;
+        version: EServiceTemplateVersionSQL | null;
+        interface: EServiceTemplateVersionInterfaceSQL | null;
+        document: EServiceTemplateVersionDocumentSQL | null;
+        attribute: EServiceTemplateVersionAttributeSQL | null;
+        riskAnalysis: EServiceTemplateRiskAnalysisSQL | null;
+        riskAnalysisAnswer: EServiceTemplateRiskAnalysisAnswerSQL | null;
+        totalCount: number;
+      };
+
+      const queryResult: EServiceTemplateRow[] = await readModelDB
         .select({
           eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
           version: eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -226,7 +252,7 @@ export function readModelServiceBuilderSQL({
           totalCount: subquery.totalCount,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .innerJoin(
+        .rightJoin(
           subquery,
           eq(
             subquery.eserviceTemplateId,
@@ -277,8 +303,14 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name));
 
+      const hasTemplate = (
+        row: EServiceTemplateRow
+      ): row is EServiceTemplateRow & {
+        eserviceTemplate: EServiceTemplateSQL;
+      } => row.eserviceTemplate !== null;
+
       const eserviceTemplates = aggregateEServiceTemplateArray(
-        toEServiceTemplateAggregatorArray(queryResult)
+        toEServiceTemplateAggregatorArray(queryResult.filter(hasTemplate))
       );
       return createListResult(
         eserviceTemplates.map((eserviceTemplate) => eserviceTemplate.data),
@@ -327,13 +359,12 @@ export function readModelServiceBuilderSQL({
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-          })
-        )
+      const baseSelection = {
+        id: tenantInReadmodelTenant.id,
+        name: tenantInReadmodelTenant.name,
+      };
+      const baseQuery = readModelDB
+        .select(baseSelection)
         .from(tenantInReadmodelTenant)
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
@@ -363,14 +394,25 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(ascLower(tenantInReadmodelTenant.name))
-        .limit(limit)
-        .offset(offset);
+        .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-      const data: CompactOrganization[] = queryResult.map((d) => ({
-        id: unsafeBrandId(d.id),
-        name: d.name,
-      }));
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.name),
+        limit,
+        offset,
+        alias: "subquery",
+      });
+
+      const queryResult = await readModelDB.select().from(subquery);
+
+      const data: CompactOrganization[] = queryResult
+        .filter((row) => row.id !== null)
+        .map((d) => ({
+          id: unsafeBrandId(d.id),
+          name: d.name,
+        }));
 
       const result = z.array(CompactOrganization).safeParse(data);
 

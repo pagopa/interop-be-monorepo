@@ -2,7 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  withTotalCount,
+  withTotalCountSubquery,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -258,13 +258,13 @@ export function readModelServiceBuilderSQL({
       const { producersIds, consumersIds, purposesIds, ...otherFilters } =
         filters;
 
-      const subquery = addDelegationJoins(
+      const baseSelection = {
+        purposeId: purposeInReadmodelPurpose.id,
+        title: purposeInReadmodelPurpose.title,
+      };
+      const baseQuery = addDelegationJoins(
         readModelDB
-          .select(
-            withTotalCount({
-              purposeId: purposeInReadmodelPurpose.id,
-            })
-          )
+          .select(baseSelection)
           .from(purposeInReadmodelPurpose)
           .leftJoin(
             purposeVersionInReadmodelPurpose,
@@ -289,12 +289,22 @@ export function readModelServiceBuilderSQL({
               ...getPurposesFilters(readModelDB, otherFilters)
             )
           )
-          .groupBy(purposeInReadmodelPurpose.id)
+          .groupBy(
+            purposeInReadmodelPurpose.id,
+            purposeInReadmodelPurpose.title
+          )
           .orderBy(ascLower(purposeInReadmodelPurpose.title))
-          .limit(limit)
-          .offset(offset)
           .$dynamic()
-      ).as("subquery");
+      );
+
+      const subquery = withTotalCountSubquery(readModelDB, {
+        baseQuery,
+        selection: baseSelection,
+        orderBy: (subqueryFields) => ascLower(subqueryFields.title),
+        limit,
+        offset,
+        alias: "subquery",
+      });
 
       const queryResult = await readModelDB
         .select({
@@ -310,7 +320,7 @@ export function readModelServiceBuilderSQL({
           totalCount: subquery.totalCount,
         })
         .from(purposeInReadmodelPurpose)
-        .innerJoin(
+        .rightJoin(
           subquery,
           eq(purposeInReadmodelPurpose.id, subquery.purposeId)
         )
@@ -378,12 +388,18 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(ascLower(purposeInReadmodelPurpose.title));
 
+      type PurposeRow = (typeof queryResult)[number];
+      const hasPurpose = (
+        row: PurposeRow
+      ): row is PurposeRow & { purpose: NonNullable<PurposeRow["purpose"]> } =>
+        row.purpose !== null;
+
       const purposes = aggregatePurposeArray(
-        toPurposeAggregatorArray(queryResult)
+        toPurposeAggregatorArray(queryResult.filter(hasPurpose))
       );
       return createListResult(
         purposes.map((p) => p.data),
-        queryResult[0]?.totalCount
+        queryResult[0]?.totalCount ?? 0
       );
     },
     async getActiveAgreement(
