@@ -9940,21 +9940,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Users"
           headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -9985,21 +9980,16 @@ paths:
         "204":
           description: User linked to the Client
           headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10034,6 +10024,17 @@ paths:
       responses:
         "204":
           description: User unlinked from Client
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10084,21 +10085,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Users"
           headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10129,21 +10125,16 @@ paths:
         "204":
           description: User linked to the Producer Keychain
           headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10178,6 +10169,17 @@ paths:
       responses:
         "204":
           description: User unlinked from Producer Keychain
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
