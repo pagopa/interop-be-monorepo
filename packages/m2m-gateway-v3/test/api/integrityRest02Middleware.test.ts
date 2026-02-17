@@ -20,7 +20,7 @@ import {
 import { appBasePath } from "../../src/config/appBasePath.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
 
-function decodeJwtPayload(token: string): { [k: string]: unknown } {
+function decodeJwtPayload(token: string): Record<string, unknown> {
   const [, payload] = token.split(".");
 
   if (!payload) {
@@ -76,9 +76,7 @@ describe("integrityRest02Middleware", () => {
     );
 
     // Check order
-    const keys = Object.keys(
-      decoded.signed_headers as { [k: string]: unknown }
-    );
+    const keys = Object.keys(decoded.signed_headers as Record<string, unknown>);
     expect(keys).toStrictEqual(["digest", "content-type"]);
   });
 
@@ -121,11 +119,11 @@ describe("integrityRest02Middleware", () => {
 
     // Check order
     const keys1 = Object.keys(
-      decoded1.signed_headers as { [k: string]: unknown }
+      decoded1.signed_headers as Record<string, unknown>
     );
     expect(keys1).toStrictEqual(["digest", "content-type"]);
     const keys2 = Object.keys(
-      decoded2.signed_headers as { [k: string]: unknown }
+      decoded2.signed_headers as Record<string, unknown>
     );
     expect(keys2).toStrictEqual(["digest", "content-type"]);
   });

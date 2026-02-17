@@ -760,12 +760,12 @@ async function enrichAgreementListEntry(
     const currentDescriptor = getCurrentDescriptor(eservice, agreement);
 
     const delegate = delegation
-      ? cachedTenants.get(delegation.delegateId) ??
+      ? (cachedTenants.get(delegation.delegateId) ??
         (await getTenantById(
           clients.tenantProcessClient,
           ctx.headers,
           delegation.delegateId
-        ))
+        )))
       : undefined;
 
     agreementsResult.push({

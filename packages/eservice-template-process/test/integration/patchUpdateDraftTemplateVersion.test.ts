@@ -238,19 +238,19 @@ describe("patchUpdateDraftTemplateVersion", () => {
             dailyCallsPerConsumer:
               seed.dailyCallsPerConsumer === null
                 ? undefined
-                : seed.dailyCallsPerConsumer ??
-                  templateVersion.dailyCallsPerConsumer,
+                : (seed.dailyCallsPerConsumer ??
+                  templateVersion.dailyCallsPerConsumer),
             dailyCallsTotal:
               seed.dailyCallsTotal === null
                 ? undefined
-                : seed.dailyCallsTotal ?? templateVersion.dailyCallsTotal,
+                : (seed.dailyCallsTotal ?? templateVersion.dailyCallsTotal),
             agreementApprovalPolicy: seed.agreementApprovalPolicy
               ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
                   seed.agreementApprovalPolicy
                 )
               : seed.agreementApprovalPolicy === null
-              ? undefined
-              : templateVersion.agreementApprovalPolicy,
+                ? undefined
+                : templateVersion.agreementApprovalPolicy,
             attributes: (seed.attributes
               ? {
                   certified:

@@ -106,9 +106,8 @@ describe("Tenant Queries", () => {
     it("should *not* get a tenant from a tenantId", async () => {
       await upsertTenant(readModelDB, getMockTenant(), 1);
 
-      const retrievedTenant = await tenantReadModelService.getTenantById(
-        generateId()
-      );
+      const retrievedTenant =
+        await tenantReadModelService.getTenantById(generateId());
 
       expect(retrievedTenant).toBeUndefined();
     });

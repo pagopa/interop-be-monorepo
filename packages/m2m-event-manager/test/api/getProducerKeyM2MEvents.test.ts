@@ -28,7 +28,7 @@ describe("API /events/producerKeys test", () => {
           eventType: testToUpperSnakeCase(e.eventType),
           kid: e.kid,
           producerKeychainId: e.producerKeychainId,
-        } as m2mEventApi.ProducerKeyM2MEvent)
+        }) as m2mEventApi.ProducerKeyM2MEvent
     ),
   };
 

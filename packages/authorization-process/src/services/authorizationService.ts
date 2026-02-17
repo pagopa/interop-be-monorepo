@@ -191,9 +191,8 @@ const retrieveProducerKeychain = async (
   producerKeychainId: ProducerKeychainId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<ProducerKeychain>> => {
-  const producerKeychain = await readModelService.getProducerKeychainById(
-    producerKeychainId
-  );
+  const producerKeychain =
+    await readModelService.getProducerKeychainById(producerKeychainId);
   if (!producerKeychain) {
     throw producerKeychainNotFound(producerKeychainId);
   }
@@ -549,9 +548,8 @@ export function authorizationServiceBuilder(
     ): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
 
-      const clients = await readModelService.getClientsRelatedToPurpose(
-        purposeIdToRemove
-      );
+      const clients =
+        await readModelService.getClientsRelatedToPurpose(purposeIdToRemove);
       for (const client of clients) {
         const updatedClient: Client = {
           ...client.data,
