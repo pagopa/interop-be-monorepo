@@ -33,6 +33,7 @@ COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 COPY ./packages/api-clients /app/packages/api-clients
 
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \

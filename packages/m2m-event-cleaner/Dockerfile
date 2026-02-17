@@ -26,6 +26,7 @@ COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/m2m-event-db-models /app/packages/m2m-event-db-models
 
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \

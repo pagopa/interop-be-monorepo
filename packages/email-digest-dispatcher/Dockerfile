@@ -30,6 +30,7 @@ COPY ./packages/email-digest-dispatcher /app/packages/email-digest-dispatcher
 COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \

@@ -33,6 +33,7 @@ COPY ./packages/client-assertion-validation /app/packages/client-assertion-valid
 COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \

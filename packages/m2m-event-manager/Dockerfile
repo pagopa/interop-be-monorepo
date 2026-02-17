@@ -31,6 +31,7 @@ COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/m2m-event-db-models /app/packages/m2m-event-db-models
 
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \
