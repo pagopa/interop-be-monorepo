@@ -610,9 +610,8 @@ export function tenantServiceBuilder(
         })
         .otherwise(async (seedDelegationId) => {
           const delegationId: DelegationId = unsafeBrandId(seedDelegationId);
-          const delegation = await readModelService.getActiveConsumerDelegation(
-            delegationId
-          );
+          const delegation =
+            await readModelService.getActiveConsumerDelegation(delegationId);
 
           if (!delegation) {
             throw delegationNotFound(delegationId);
@@ -1459,7 +1458,7 @@ export function tenantServiceBuilder(
           ({
             value: externalId.code,
             origin: externalId.origin,
-          } satisfies ExternalId)
+          }) satisfies ExternalId
       );
 
       const existingAttributes =
@@ -1565,7 +1564,7 @@ export function tenantServiceBuilder(
           ({
             value: externalId.code,
             origin: certifierId,
-          } satisfies ExternalId)
+          }) satisfies ExternalId
       );
 
       const existingAttributes =

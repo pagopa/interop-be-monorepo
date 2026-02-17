@@ -34,7 +34,7 @@ import { filterUnreadNotifications } from "../utilities/filterUnreadNotification
 
 // eslint-disable-next-line max-params
 async function enhanceDelegation<
-  T extends bffApi.Delegation | bffApi.CompactDelegation
+  T extends bffApi.Delegation | bffApi.CompactDelegation,
 >(
   tenantClient: TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,

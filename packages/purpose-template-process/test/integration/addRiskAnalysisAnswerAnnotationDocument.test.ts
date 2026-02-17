@@ -184,9 +184,9 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       expect(actualPurposeTemplate.purposeRiskAnalysisForm).toBeDefined();
 
       const actualDocument = actualPurposeTemplate
-        .purposeRiskAnalysisForm![formAnswer].find(
-          (a) => a.id === subjectAnswerId
-        )
+        .purposeRiskAnalysisForm![
+          formAnswer
+        ].find((a) => a.id === subjectAnswerId)
         ?.annotation?.docs.find((d) => d.id === subjectDocumentId);
       expect(actualDocument).toEqual(expectedAnnotationDocument);
 

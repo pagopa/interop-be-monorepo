@@ -284,7 +284,9 @@ const updatePurposeTemplateWithoutAnnotation = async (
     purposeTemplate.data.purposeRiskAnalysisForm;
 
   function removeAnnotation<
-    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+    T extends
+      | RiskAnalysisTemplateSingleAnswer
+      | RiskAnalysisTemplateMultiAnswer,
   >(
     answers: T[],
     answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
@@ -414,7 +416,9 @@ const updatePurposeTemplateWithoutAnnotationDocument = async ({
     purposeTemplate.data.purposeRiskAnalysisForm;
 
   function removeAnnotationDocument<
-    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+    T extends
+      | RiskAnalysisTemplateSingleAnswer
+      | RiskAnalysisTemplateMultiAnswer,
   >(
     answers: T[],
     documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
@@ -765,7 +769,7 @@ async function updateDraftPurposeTemplate(
     purposeDailyCalls:
       purposeDailyCalls === null
         ? undefined
-        : purposeDailyCalls ?? purposeTemplate.data.purposeDailyCalls,
+        : (purposeDailyCalls ?? purposeTemplate.data.purposeDailyCalls),
     updatedAt: new Date(),
   };
 

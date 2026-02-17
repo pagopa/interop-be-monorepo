@@ -361,7 +361,7 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorDocumentSQL
     | EServiceDescriptorAttributeSQL
     | EServiceDescriptorRejectionReasonSQL
-    | EServiceDescriptorTemplateVersionRefSQL
+    | EServiceDescriptorTemplateVersionRefSQL,
 >(
   items: T[]
 ): Map<EServiceId, T[]> =>

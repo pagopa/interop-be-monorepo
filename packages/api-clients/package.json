@@ -10,11 +10,9 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint .",
     "lint:openapi": "spectral lint ./open-api/!\\(selfcareV2ClientApi.yml\\|authorizationManagementApi.yaml\\|notifierApi.yml\\|apiGatewayApi.yml\\) --ruleset ../../.spectral.yaml",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
@@ -24,15 +22,16 @@
   "keywords": [],
   "devDependencies": {
     "@apidevtools/swagger-parser": "catalog:",
-    "@pagopa/eslint-config": "catalog:",
     "@stoplight/spectral-cli": "catalog:",
     "@types/node": "catalog:",
     "@types/qs": "catalog:",
     "dotenv-flow": "catalog:",
-    "openapi-types": "catalog:",
+    "eslint": "catalog:",
     "handlebars": "catalog:",
+    "openapi-types": "catalog:",
     "openapi-zod-client": "catalog:",
     "openapi3-ts": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:"
   },

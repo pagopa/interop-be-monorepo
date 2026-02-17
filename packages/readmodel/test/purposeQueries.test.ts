@@ -25,9 +25,8 @@ describe("Purpose queries", () => {
     });
 
     it("should *not* get a purpose by id if not present", async () => {
-      const retrievedPurpose = await purposeReadModelService.getPurposeById(
-        generateId()
-      );
+      const retrievedPurpose =
+        await purposeReadModelService.getPurposeById(generateId());
 
       expect(retrievedPurpose).toBeUndefined();
     });
