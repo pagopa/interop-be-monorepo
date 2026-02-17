@@ -2,9 +2,6 @@
 import { beforeEach, vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
 
-vi.stubEnv("INTEGRITY_REST_JWT_SUBJECT", "test-subject");
-vi.stubEnv("INTEGRITY_REST_JWT_AUDIENCE", "test-audience");
-
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
     async () => (_req: Request, _res: Response, next: NextFunction) => next()
