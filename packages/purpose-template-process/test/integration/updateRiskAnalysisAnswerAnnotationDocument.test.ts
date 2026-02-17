@@ -37,7 +37,6 @@ import {
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
@@ -474,7 +473,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
     }
   );
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     await addOnePurposeTemplate(existentPurposeTemplate);
 
     const differentCreatorId = generateId<TenantId>();
@@ -489,6 +488,6 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
           authData: getMockAuthData(differentCreatorId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(differentCreatorId));
+    ).rejects.toThrowError(purposeTemplateNotFound(existentPurposeTemplate.id));
   });
 });

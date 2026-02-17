@@ -20,7 +20,6 @@ import {
   tooManyEServicesForPurposeTemplate,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { eserviceNotFound } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -188,10 +187,6 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
         [purposeTemplateState.draft, purposeTemplateState.published]
       ),
       expectedStatus: 409,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

@@ -19,7 +19,6 @@ import {
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposeTemplates/{id}/unsuspend", () => {
@@ -81,7 +80,6 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
       ),
       expectedStatus: 409,
     },
-    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,

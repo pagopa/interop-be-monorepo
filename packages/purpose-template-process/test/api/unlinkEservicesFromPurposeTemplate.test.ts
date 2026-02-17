@@ -20,7 +20,6 @@ import {
   disassociationEServicesFromPurposeTemplateFailed,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { eserviceNotAssociatedError } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -185,10 +184,6 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
         [purposeTemplateState.draft, purposeTemplateState.published]
       ),
       expectedStatus: 409,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

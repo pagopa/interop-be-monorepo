@@ -72,8 +72,8 @@ import {
   purposeTemplateStateConflict,
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateValidationFailed,
-  tenantNotAllowed,
   tooManyEServicesForPurposeTemplate,
+  purposeTemplateNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -278,11 +278,12 @@ export const assertPurposeTemplateIsDraft = (
 };
 
 export const assertRequesterIsCreator = (
+  purposeTemplateId: PurposeTemplateId,
   creatorId: TenantId,
   authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
 ): void => {
   if (!isRequesterCreator(creatorId, authData)) {
-    throw tenantNotAllowed(authData.organizationId);
+    throw purposeTemplateNotFound(purposeTemplateId);
   }
 };
 
