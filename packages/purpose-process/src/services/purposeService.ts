@@ -1146,7 +1146,9 @@ export function purposeServiceBuilder(
             riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
           schemaOnlyValidation: false,
           tenantKind,
-          dateForExpirationValidation: new Date(),
+          // for receive mode we want to skip the expiration validation, so we set a past date that will not cause the risk analysis to be expired
+          dateForExpirationValidation:
+            eservice.mode === eserviceMode.receive ? new Date(0) : new Date(),
           personalDataInEService: eservice.personalData,
         });
       }
@@ -1384,6 +1386,7 @@ export function purposeServiceBuilder(
       const createdAt = new Date();
 
       const eservice = await retrieveEService(eserviceId, readModelService);
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
@@ -1481,6 +1484,8 @@ export function purposeServiceBuilder(
       });
 
       const createdAt = new Date();
+      const nowDateForRiskAnalysisValidation =
+        eservice.mode === eserviceMode.receive ? new Date(0) : createdAt; // for receive mode we want to skip the expiration validation, so we set a past date that will not cause the risk analysis to be expired
 
       validateRiskAnalysisOrThrow({
         riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
@@ -1488,7 +1493,7 @@ export function purposeServiceBuilder(
         ),
         schemaOnlyValidation: false,
         tenantKind: producerKind,
-        dateForExpirationValidation: createdAt,
+        dateForExpirationValidation: nowDateForRiskAnalysisValidation,
         personalDataInEService: eservice.personalData,
       });
 
