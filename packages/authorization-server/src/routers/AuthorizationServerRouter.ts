@@ -64,7 +64,7 @@ const authorizationServerRouter = (
       const tokenResult = await tokenService.generateToken(
         req.headers,
         req.body,
-        getCtx(),
+        getCtx,
         setCtxClientId,
         setCtxClientKind,
         setCtxOrganizationId
