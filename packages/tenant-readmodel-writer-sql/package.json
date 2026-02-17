@@ -8,21 +8,19 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "devDependencies": {
-    "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
+    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

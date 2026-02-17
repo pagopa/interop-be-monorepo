@@ -10,10 +10,8 @@
     "test:unit": "vitest",
     "test:it": "vitest integration",
     "test": "pnpm test:unit && pnpm test:it",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -24,7 +22,6 @@
     "@aws-sdk/client-sesv2": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "@faker-js/faker": "catalog:",
-    "@pagopa/eslint-config": "catalog:",
     "@protobuf-ts/runtime": "catalog:",
     "@types/adm-zip": "catalog:",
     "@types/jsonwebtoken": "catalog:",
@@ -35,10 +32,12 @@
     "axios": "catalog:",
     "dotenv-flow": "catalog:",
     "drizzle-orm": "catalog:",
+    "eslint": "catalog:",
     "jose": "catalog:",
     "jsonwebtoken": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-eslint-config": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
     "pg": "catalog:",
@@ -48,7 +47,6 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "yaml": "catalog:",
-    "zod": "catalog:",
-    "prettier": "catalog:"
+    "zod": "catalog:"
   }
 }

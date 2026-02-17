@@ -9,10 +9,8 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
     "check": "tsc --project tsconfig.check.json",
@@ -23,11 +21,12 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
     "cpx2": "catalog:",
     "date-fns": "catalog:",
+    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-eslint-config": "workspace:*",
     "puppeteer": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
