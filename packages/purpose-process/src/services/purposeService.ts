@@ -1140,17 +1140,17 @@ export function purposeServiceBuilder(
           purpose.data.consumerId,
           readModelService
         );
-
-        validateRiskAnalysisOrThrow({
-          riskAnalysisForm:
-            riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-          schemaOnlyValidation: false,
-          tenantKind,
-          // for receive mode we want to skip the expiration validation, so we set a past date that will not cause the risk analysis to be expired
-          dateForExpirationValidation:
-            eservice.mode === eserviceMode.receive ? new Date(0) : new Date(),
-          personalDataInEService: eservice.personalData,
-        });
+        // the validation for receive mode are redundant because the same ones have been already performed when the risk analysis has been added to the eservice
+        if (eservice.mode !== eserviceMode.receive) {
+          validateRiskAnalysisOrThrow({
+            riskAnalysisForm:
+              riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+            schemaOnlyValidation: false,
+            tenantKind,
+            dateForExpirationValidation: new Date(),
+            personalDataInEService: eservice.personalData,
+          });
+        }
       }
 
       const purposeOwnership = await getOrganizationRole({
@@ -1484,18 +1484,18 @@ export function purposeServiceBuilder(
       });
 
       const createdAt = new Date();
-      const nowDateForRiskAnalysisValidation =
-        eservice.mode === eserviceMode.receive ? new Date(0) : createdAt; // for receive mode we want to skip the expiration validation, so we set a past date that will not cause the risk analysis to be expired
-
-      validateRiskAnalysisOrThrow({
-        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
-          riskAnalysis.riskAnalysisForm
-        ),
-        schemaOnlyValidation: false,
-        tenantKind: producerKind,
-        dateForExpirationValidation: nowDateForRiskAnalysisValidation,
-        personalDataInEService: eservice.personalData,
-      });
+      // the validation for receive mode are redundant because the same ones have been already performed when the risk analysis has been added to the eservice
+      if (eservice.mode !== eserviceMode.receive) {
+        validateRiskAnalysisOrThrow({
+          riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+            riskAnalysis.riskAnalysisForm
+          ),
+          schemaOnlyValidation: false,
+          tenantKind: producerKind,
+          dateForExpirationValidation: createdAt,
+          personalDataInEService: eservice.personalData,
+        });
+      }
 
       const newVersion: PurposeVersion = {
         id: generateId(),
