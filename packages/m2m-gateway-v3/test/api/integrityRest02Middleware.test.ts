@@ -66,6 +66,9 @@ describe("integrityRest02Middleware", () => {
     expect(res.headers.digest).toBe(`SHA-256=${digest}`);
     expect(res.headers).toHaveProperty("agid-jwt-signature");
     const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
+    const correlationId = res.headers["x-correlation-id"];
+    expect(decoded).toHaveProperty("sub");
+    expect(decoded.sub).toBe(correlationId);
     expect(decoded).toHaveProperty("signed_headers");
     expect(decoded.signed_headers).toHaveProperty("digest");
     expect((decoded.signed_headers as { digest: string }).digest).toBe(
@@ -94,20 +97,26 @@ describe("integrityRest02Middleware", () => {
     expect(decoded1).toHaveProperty("signed_headers");
     const decoded2 = decodeJwtPayload(res2.headers["agid-jwt-signature"]);
     expect(decoded2).toHaveProperty("signed_headers");
+    const correlationId1 = res.headers["x-correlation-id"];
+    const correlationId2 = res2.headers["x-correlation-id"];
 
     expect(decoded1.signed_headers).toEqual(decoded2.signed_headers);
+    expect(decoded1.sub).toBe(correlationId1);
+    expect(decoded2.sub).toBe(correlationId2);
     expect({
       ...decoded1,
       jti: undefined,
       exp: undefined,
       nbf: undefined,
       iat: undefined,
+      sub: undefined,
     }).toStrictEqual({
       ...decoded2,
       jti: undefined,
       exp: undefined,
       nbf: undefined,
       iat: undefined,
+      sub: undefined,
     });
 
     // Check order
@@ -162,6 +171,29 @@ describe("integrityRest02Middleware", () => {
     expect(res.headers.digest).toBe(`SHA-256=${emptyStringDigest}`);
     expect(res.headers.digest).toBe(`SHA-256=${nullBodyDigest}`);
     expect(res.headers.digest).toBe(`SHA-256=${undefinedBodyDigest}`);
+    expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+  });
+
+  it("should have a digest if there is a 400 error", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await request(api)
+      .get(`${appBasePath}/certifiedAttributes/notAnUuuid`)
+      .set("Authorization", `Bearer ${token}`)
+      .send();
+    const expectedDigest = calculateIntegrityRest02DigestFromBody({
+      body: res.text,
+    });
+    expect(res.headers).toHaveProperty("digest");
+    expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+  });
+
+  it("should have a digest even if unauthorised", async () => {
+    const token = generateToken(authRole.INTERNAL_ROLE);
+    const res = await makeRequest(token);
+    expect(res.headers).toHaveProperty("digest");
+    const expectedDigest = calculateIntegrityRest02DigestFromBody({
+      body: res.text,
+    });
     expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
   });
 });
