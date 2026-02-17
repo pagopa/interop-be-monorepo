@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiEServiceTemplate,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -14,7 +15,8 @@ describe("GET /eserviceTemplates/:templateId router test", () => {
   const makeRequest = async (token: string, templateId: string) =>
     request(api)
       .get(`${appBasePath}/eserviceTemplates/${templateId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const mockApiTemplate = getMockedApiEServiceTemplate();
