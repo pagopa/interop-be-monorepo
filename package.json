@@ -92,6 +92,12 @@
     {
       "enabled": true,
       "matchDepTypes": [
+        "devDependencies"
+      ]
+    },
+    {
+      "enabled": true,
+      "matchDepTypes": [
         "pnpm.catalog"
       ]
     }
