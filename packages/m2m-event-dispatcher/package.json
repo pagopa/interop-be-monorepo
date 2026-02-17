@@ -21,29 +21,27 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.9",
-    "@types/pg": "8.11.11",
-    "eslint": "8.57.1",
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "4.0.18"
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "dotenv-flow": "4.1.0",
-    "drizzle-orm": "0.39.3",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "2.2.4",
+    "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-m2m-event-db-models": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "pg": "8.13.1",
-    "ts-pattern": "5.2.0",
-    "uuid": "13.0.0",
-    "zod": "3.23.8"
+    "pg": "catalog:",
+    "ts-pattern": "catalog:",
+    "uuid": "catalog:",
+    "zod": "catalog:"
   }
 }
