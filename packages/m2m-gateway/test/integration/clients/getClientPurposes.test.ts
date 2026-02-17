@@ -14,7 +14,10 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("getClientPurposes", () => {
   const mockParams: m2mGatewayApi.GetClientPurposesQueryParams = {
@@ -72,6 +75,7 @@ describe("getClientPurposes", () => {
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
+  const purposeVersion1 = mockApiPurpose1.versions.at(0);
   const expectedM2MPurpose1: m2mGatewayApi.Purpose = {
     consumerId: mockApiPurpose1.consumerId,
     createdAt: mockApiPurpose1.createdAt,
@@ -81,7 +85,9 @@ describe("getClientPurposes", () => {
     isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
     isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
     title: mockApiPurpose1.title,
-    currentVersion: mockApiPurpose1.versions.at(0),
+    currentVersion: purposeVersion1
+      ? testToM2mGatewayApiPurposeVersion(purposeVersion1)
+      : undefined,
     delegationId: mockApiPurpose1.delegationId,
     freeOfChargeReason: mockApiPurpose1.freeOfChargeReason,
     rejectedVersion: undefined,
@@ -92,6 +98,7 @@ describe("getClientPurposes", () => {
     purposeTemplateId: mockApiPurpose1.purposeTemplateId,
   };
 
+  const purposeVersion2 = mockApiPurpose2.versions.at(0);
   const expectedM2MPurpose2: m2mGatewayApi.Purpose = {
     consumerId: mockApiPurpose2.consumerId,
     createdAt: mockApiPurpose2.createdAt,
@@ -101,7 +108,9 @@ describe("getClientPurposes", () => {
     isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
     isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
     title: mockApiPurpose2.title,
-    currentVersion: mockApiPurpose2.versions.at(0),
+    currentVersion: purposeVersion2
+      ? testToM2mGatewayApiPurposeVersion(purposeVersion2)
+      : undefined,
     delegationId: mockApiPurpose2.delegationId,
     freeOfChargeReason: mockApiPurpose2.freeOfChargeReason,
     rejectedVersion: undefined,
@@ -112,6 +121,7 @@ describe("getClientPurposes", () => {
     purposeTemplateId: mockApiPurpose2.purposeTemplateId,
   };
 
+  const purposeVersion3 = mockApiPurpose3.versions.at(0);
   const expectedM2MPurpose3: m2mGatewayApi.Purpose = {
     consumerId: mockApiPurpose3.consumerId,
     createdAt: mockApiPurpose3.createdAt,
@@ -121,7 +131,9 @@ describe("getClientPurposes", () => {
     isFreeOfCharge: mockApiPurpose3.isFreeOfCharge,
     isRiskAnalysisValid: mockApiPurpose3.isRiskAnalysisValid,
     title: mockApiPurpose3.title,
-    currentVersion: mockApiPurpose3.versions.at(0),
+    currentVersion: purposeVersion3
+      ? testToM2mGatewayApiPurposeVersion(purposeVersion3)
+      : undefined,
     delegationId: mockApiPurpose3.delegationId,
     freeOfChargeReason: mockApiPurpose3.freeOfChargeReason,
     rejectedVersion: undefined,
@@ -155,7 +167,7 @@ describe("getClientPurposes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientPurposesResponse);
+    expect(result).toStrictEqual(m2mClientPurposesResponse);
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetClient,
@@ -193,7 +205,7 @@ describe("getClientPurposes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result1).toEqual({
+    expect(result1).toStrictEqual({
       pagination: {
         offset: 0,
         limit: 1,
@@ -216,7 +228,7 @@ describe("getClientPurposes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result2).toEqual({
+    expect(result2).toStrictEqual({
       pagination: {
         offset: 1,
         limit: 1,
@@ -244,7 +256,7 @@ describe("getClientPurposes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result1).toEqual({
+    expect(result1).toStrictEqual({
       pagination: {
         offset: mockParams.offset,
         limit: mockParams.limit,
@@ -271,7 +283,7 @@ describe("getClientPurposes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result2).toEqual({
+    expect(result2).toStrictEqual({
       pagination: {
         offset: mockParams.offset,
         limit: mockParams.limit,
@@ -291,7 +303,7 @@ describe("getClientPurposes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,

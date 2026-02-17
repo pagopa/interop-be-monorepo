@@ -39,9 +39,13 @@ export const prepareNdjsonEventData = async <
         })
         .join("\n") + "\n";
     const time = format(new Date(), "hhmmss");
-    const fileName = `events_${year}${month}${day}_${time}_${generateId()}.ndjson.zip`;
+    const internalFileName = `events_${year}${month}${day}_${time}_${generateId()}.ndjson`;
+    const fileName = `${internalFileName}.zip`;
     const filePath = `year=${year}/month=${month}/day=${day}`;
-    const fileContentBuffer = await compressJson(ndjsonString, fileName);
+    const fileContentBuffer = await compressJson(
+      ndjsonString,
+      internalFileName
+    );
 
     results.push({
       fileContentBuffer,

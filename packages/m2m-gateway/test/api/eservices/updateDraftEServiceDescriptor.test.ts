@@ -45,6 +45,7 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
         `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}`
       )
       .set("Authorization", `Bearer ${token}`)
+      .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

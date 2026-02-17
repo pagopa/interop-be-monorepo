@@ -572,6 +572,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/suspend:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2293,7 +2299,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

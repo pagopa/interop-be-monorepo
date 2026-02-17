@@ -36,6 +36,6 @@
     "pagopa-interop-readmodel-models": "workspace:*",
     "prettier": "2.8.8",
     "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "vitest": "4.0.18"
   }
 }

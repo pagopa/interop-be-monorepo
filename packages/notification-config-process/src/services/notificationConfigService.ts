@@ -1,4 +1,4 @@
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import {
   AppContext,
   DB,
@@ -72,6 +72,7 @@ const defaultNotificationConfigs = {
       delegationSubmittedRevokedToDelegate: false,
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
       clientKeyAddedDeletedToClientUsers: false,
+      clientKeyConsumerAddedDeletedToClientUsers: false,
       producerKeychainKeyAddedDeletedToClientUsers: false,
       purposeQuotaAdjustmentRequestToProducer: false,
       purposeOverQuotaStateToConsumer: false,
@@ -96,6 +97,7 @@ const defaultNotificationConfigs = {
       delegationSubmittedRevokedToDelegate: false,
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
       clientKeyAddedDeletedToClientUsers: false,
+      clientKeyConsumerAddedDeletedToClientUsers: false,
       producerKeychainKeyAddedDeletedToClientUsers: false,
       purposeQuotaAdjustmentRequestToProducer: false,
       purposeOverQuotaStateToConsumer: false,
@@ -287,14 +289,16 @@ export function notificationConfigServiceBuilder(
       return tenantNotificationConfig;
     },
 
-    async ensureUserNotificationConfigExistsWithRole(
+    async ensureUserNotificationConfigExistsWithRoles(
       userId: UserId,
       tenantId: TenantId,
-      userRole: UserRole,
+      userRoles: UserRole[],
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<UserNotificationConfig> {
       logger.info(
-        `Checking to ensure that a user notification configuration for user ${userId} in tenant ${tenantId} exists and includes role ${userRole}`
+        `Checking to ensure that a user notification configuration for user ${userId} in tenant ${tenantId} exists and includes roles ${userRoles.join(
+          ", "
+        )}`
       );
 
       const existingConfig =
@@ -306,13 +310,15 @@ export function notificationConfigServiceBuilder(
       return match(existingConfig)
         .with(undefined, async () => {
           logger.info(
-            `Creating new default user notification configuration for user ${userId} in tenant ${tenantId} with role ${userRole}`
+            `Creating new default user notification configuration for user ${userId} in tenant ${tenantId} with roles ${userRoles.join(
+              ", "
+            )}`
           );
           const userNotificationConfig: UserNotificationConfig = {
             id: generateId<UserNotificationConfigId>(),
             userId,
             tenantId,
-            userRoles: [userRole],
+            userRoles: [userRoles[0], ...userRoles.slice(1)],
             inAppNotificationPreference:
               defaultNotificationConfigs.user.inAppNotificationPreference,
             emailNotificationPreference:
@@ -332,35 +338,55 @@ export function notificationConfigServiceBuilder(
           await repository.createEvent(event);
           return userNotificationConfig;
         })
-        .with(
-          P.when((existingConfig) =>
-            existingConfig.data.userRoles.includes(userRole)
-          ),
-          (existingConfig) => {
+        .otherwise(async (existingConfig) => {
+          const missingRoles = userRoles.filter(
+            (role) => !existingConfig.data.userRoles.includes(role)
+          );
+
+          if (missingRoles.length === 0) {
             logger.info(
-              `User notification configuration for user ${userId} in tenant ${tenantId} already exists and has role ${userRole}, no update needed`
+              `User notification configuration for user ${userId} in tenant ${tenantId} already exists and has all roles ${userRoles.join(
+                ", "
+              )}, no update needed`
             );
             return existingConfig.data;
           }
-        )
-        .otherwise(async (existingConfig) => {
+
           logger.info(
-            `Adding role ${userRole} to existing user notification configuration for user ${userId} in tenant ${tenantId}`
+            `Adding roles ${missingRoles.join(
+              ", "
+            )} to existing user notification configuration for user ${userId} in tenant ${tenantId}`
           );
-          const userNotificationConfig: UserNotificationConfig = {
-            ...existingConfig.data,
-            userRoles: [...existingConfig.data.userRoles, userRole],
-            updatedAt: new Date(),
-          };
-          const event = toCreateEventUserNotificationConfigRoleAdded(
-            existingConfig.data.id,
-            existingConfig.metadata.version,
-            userNotificationConfig,
-            userRole,
-            correlationId
+          // Emit one event per missing role to maintain event granularity
+          // Each event contains the config state after that specific role was added
+          const finalState = await missingRoles.reduce(
+            async (accPromise, missingRole, index) => {
+              const acc = await accPromise;
+              const updatedRoles = [...acc.currentRoles, missingRole];
+              const userNotificationConfig: UserNotificationConfig = {
+                ...existingConfig.data,
+                userRoles: [updatedRoles[0], ...updatedRoles.slice(1)],
+                updatedAt: new Date(),
+              };
+              const event = toCreateEventUserNotificationConfigRoleAdded(
+                existingConfig.data.id,
+                existingConfig.metadata.version + index,
+                userNotificationConfig,
+                missingRole,
+                correlationId
+              );
+              await repository.createEvent(event);
+              return {
+                currentRoles: updatedRoles,
+                userNotificationConfig,
+              };
+            },
+            Promise.resolve({
+              currentRoles: [...existingConfig.data.userRoles],
+              userNotificationConfig: existingConfig.data,
+            })
           );
-          await repository.createEvent(event);
-          return userNotificationConfig;
+          return finalState.userNotificationConfig;
         });
     },
 
