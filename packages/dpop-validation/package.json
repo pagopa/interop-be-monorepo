@@ -22,6 +22,7 @@
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "jose": "catalog:",
+    "ts-pattern": "5.2.0",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*"
