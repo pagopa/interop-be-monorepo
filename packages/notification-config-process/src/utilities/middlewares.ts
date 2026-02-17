@@ -1,27 +1,29 @@
 import { constants } from "http2";
-import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { genericLogger, isFeatureFlagEnabled } from "pagopa-interop-commons";
 import {
-  ExpressContext,
-  fromAppContext,
-  isFeatureFlagEnabled,
-} from "pagopa-interop-commons";
-import { featureFlagNotEnabled } from "pagopa-interop-models";
+  featureFlagNotEnabled,
+  makeApiProblemBuilder,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { config } from "../config/config.js";
-import { makeApiProblem } from "../model/domain/errors.js";
 
-export function notificationConfigFeatureFlagMiddleware(): ZodiosRouterContextRequestHandler<ExpressContext> {
-  return async (req, res, next) => {
-    const ctx = fromAppContext(req.ctx);
+const makeApiProblem = makeApiProblemBuilder({});
 
-    if (!isFeatureFlagEnabled(config, "featureFlagNotificationConfig")) {
-      const errorRes = makeApiProblem(
-        featureFlagNotEnabled("featureFlagNotificationConfig"),
-        () => constants.HTTP_STATUS_FORBIDDEN,
-        ctx
-      );
-      return res.status(errorRes.status).send(errorRes);
-    }
-
-    return next();
-  };
+export async function notificationConfigFeatureFlagHook(
+  _request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  if (!isFeatureFlagEnabled(config, "featureFlagNotificationConfig")) {
+    const errorRes = makeApiProblem(
+      featureFlagNotEnabled("featureFlagNotificationConfig"),
+      () => constants.HTTP_STATUS_FORBIDDEN,
+      {
+        logger: genericLogger,
+        correlationId: unsafeBrandId(""),
+        serviceName: "",
+      }
+    );
+    return reply.status(errorRes.status).send(errorRes);
+  }
 }

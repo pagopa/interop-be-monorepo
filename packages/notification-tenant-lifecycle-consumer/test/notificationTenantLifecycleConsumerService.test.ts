@@ -1,5 +1,11 @@
 /* eslint-disable functional/immutable-data */
-import { AxiosError, AxiosResponse } from "axios";
+vi.mock("pagopa-interop-api-clients", () => ({
+  notificationConfigApi: {
+    createTenantDefaultNotificationConfig: vi.fn(),
+    deleteTenantNotificationConfig: vi.fn(),
+  },
+}));
+
 import { logger } from "pagopa-interop-commons";
 import {
   getMockTenant,
@@ -72,10 +78,22 @@ describe("notificationTenantLifecycleProcessor", async () => {
   refreshableToken.get = vi.fn().mockResolvedValue({ serialized: mockToken });
 
   beforeEach(() => {
-    interopBeClients.notificationConfigProcess.client.createTenantDefaultNotificationConfig =
-      vi.fn().mockResolvedValue(mockTenantNotificationConfig);
-    interopBeClients.notificationConfigProcess.client.deleteTenantNotificationConfig =
-      vi.fn().mockResolvedValue(undefined);
+    vi.mocked(
+      notificationConfigApi.createTenantDefaultNotificationConfig
+    ).mockResolvedValue({
+      data: mockTenantNotificationConfig,
+      error: undefined,
+      request: new Request("http://test"),
+      response: new Response(),
+    });
+    vi.mocked(
+      notificationConfigApi.deleteTenantNotificationConfig
+    ).mockResolvedValue({
+      data: undefined,
+      error: undefined,
+      request: new Request("http://test"),
+      response: new Response(),
+    });
     vi.clearAllMocks();
   });
 
@@ -94,17 +112,16 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledWith(
-        { tenantId: tenant.id },
-        {
+        expect.objectContaining({
+          body: { tenantId: tenant.id },
           headers: expectedHeaders,
-        }
+          client: interopBeClients.notificationConfigProcess.client,
+        })
       );
     });
 
@@ -122,16 +139,17 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
+        notificationConfigApi.deleteTenantNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
-      ).toHaveBeenCalledWith(undefined, {
-        params: { tenantId },
-        headers: expectedHeaders,
-      });
+        notificationConfigApi.deleteTenantNotificationConfig
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { tenantId },
+          headers: expectedHeaders,
+          client: interopBeClients.notificationConfigProcess.client,
+        })
+      );
     });
 
     it("Should throw missingKafkaMessageDataError when the tenant is missing in a TenantCreated event", async () => {
@@ -151,19 +169,23 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).not.toHaveBeenCalled();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).not.toHaveBeenCalled();
     });
 
     it("Should ignore 409 errors when calling the createTenantDefaultNotificationConfig route", async () => {
-      interopBeClients.notificationConfigProcess.client.createTenantDefaultNotificationConfig =
-        vi.fn().mockRejectedValue(
-          new AxiosError("Conflict", "409", undefined, undefined, {
-            status: 409,
-            statusText: "Conflict",
-          } as AxiosResponse)
-        );
+      vi.mocked(
+        notificationConfigApi.createTenantDefaultNotificationConfig
+      ).mockResolvedValue({
+        data: undefined,
+        error: {
+          status: 409,
+          title: "Conflict",
+          type: "about:blank",
+        },
+        request: new Request("http://test"),
+        response: new Response(),
+      });
       const tenant: TenantV1 = toTenantV1(getMockTenant());
       const message = toTenantEventEnvelopeV1({
         type: "TenantCreated",
@@ -177,28 +199,32 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledWith(
-        { tenantId: tenant.id },
-        {
+        expect.objectContaining({
+          body: { tenantId: tenant.id },
           headers: expectedHeaders,
-        }
+          client: interopBeClients.notificationConfigProcess.client,
+        })
       );
     });
 
     it("Should not ignore other errors when calling the createTenantDefaultNotificationConfig route", async () => {
-      interopBeClients.notificationConfigProcess.client.createTenantDefaultNotificationConfig =
-        vi.fn().mockRejectedValue(
-          new AxiosError("Internal Server Error", "500", undefined, undefined, {
-            status: 500,
-            statusText: "Internal Server Error",
-          } as AxiosResponse)
-        );
+      vi.mocked(
+        notificationConfigApi.createTenantDefaultNotificationConfig
+      ).mockResolvedValue({
+        data: undefined,
+        error: {
+          status: 500,
+          title: "Internal Server Error",
+          type: "about:blank",
+        },
+        request: new Request("http://test"),
+        response: new Response(),
+      });
       const tenant: TenantV1 = toTenantV1(getMockTenant());
       const message = toTenantEventEnvelopeV1({
         type: "TenantCreated",
@@ -214,28 +240,32 @@ describe("notificationTenantLifecycleProcessor", async () => {
       ).rejects.toThrow();
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledWith(
-        { tenantId: tenant.id },
-        {
+        expect.objectContaining({
+          body: { tenantId: tenant.id },
           headers: expectedHeaders,
-        }
+          client: interopBeClients.notificationConfigProcess.client,
+        })
       );
     });
 
     it("Should not ignore 404 errors when calling the deleteTenantNotificationConfig route", async () => {
-      interopBeClients.notificationConfigProcess.client.deleteTenantNotificationConfig =
-        vi.fn().mockRejectedValue(
-          new AxiosError("Not Found", "404", undefined, undefined, {
-            status: 404,
-            statusText: "Not Found",
-          } as AxiosResponse)
-        );
+      vi.mocked(
+        notificationConfigApi.deleteTenantNotificationConfig
+      ).mockResolvedValue({
+        data: undefined,
+        error: {
+          status: 404,
+          title: "Not Found",
+          type: "about:blank",
+        },
+        request: new Request("http://test"),
+        response: new Response(),
+      });
       const tenantId = generateId();
       const message = toTenantEventEnvelopeV1({
         type: "TenantDeleted",
@@ -251,26 +281,32 @@ describe("notificationTenantLifecycleProcessor", async () => {
       ).rejects.toThrow();
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
+        notificationConfigApi.deleteTenantNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
-      ).toHaveBeenCalledWith(undefined, {
-        params: { tenantId },
-        headers: expectedHeaders,
-      });
+        notificationConfigApi.deleteTenantNotificationConfig
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { tenantId },
+          headers: expectedHeaders,
+          client: interopBeClients.notificationConfigProcess.client,
+        })
+      );
     });
 
     it("Should not ignore other errors when calling the deleteTenantNotificationConfig route", async () => {
-      interopBeClients.notificationConfigProcess.client.deleteTenantNotificationConfig =
-        vi.fn().mockRejectedValue(
-          new AxiosError("Internal Server Error", "500", undefined, undefined, {
-            status: 500,
-            statusText: "Internal Server Error",
-          } as AxiosResponse)
-        );
+      vi.mocked(
+        notificationConfigApi.deleteTenantNotificationConfig
+      ).mockResolvedValue({
+        data: undefined,
+        error: {
+          status: 500,
+          title: "Internal Server Error",
+          type: "about:blank",
+        },
+        request: new Request("http://test"),
+        response: new Response(),
+      });
       const tenantId = generateId();
       const message = toTenantEventEnvelopeV1({
         type: "TenantDeleted",
@@ -286,16 +322,17 @@ describe("notificationTenantLifecycleProcessor", async () => {
       ).rejects.toThrow();
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
+        notificationConfigApi.deleteTenantNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
-      ).toHaveBeenCalledWith(undefined, {
-        params: { tenantId },
-        headers: expectedHeaders,
-      });
+        notificationConfigApi.deleteTenantNotificationConfig
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { tenantId },
+          headers: expectedHeaders,
+          client: interopBeClients.notificationConfigProcess.client,
+        })
+      );
     });
 
     it.each([
@@ -317,8 +354,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).not.toHaveBeenCalled();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).not.toHaveBeenCalled();
     });
   });
@@ -338,17 +374,16 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledWith(
-        { tenantId: tenant.id },
-        {
+        expect.objectContaining({
+          body: { tenantId: tenant.id },
           headers: expectedHeaders,
-        }
+          client: interopBeClients.notificationConfigProcess.client,
+        })
       );
     });
 
@@ -366,16 +401,17 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
+        notificationConfigApi.deleteTenantNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
-      ).toHaveBeenCalledWith(undefined, {
-        params: { tenantId },
-        headers: expectedHeaders,
-      });
+        notificationConfigApi.deleteTenantNotificationConfig
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { tenantId },
+          headers: expectedHeaders,
+          client: interopBeClients.notificationConfigProcess.client,
+        })
+      );
     });
 
     it("Should throw missingKafkaMessageDataError when the tenant is missing in a TenantOnboarded event", async () => {
@@ -395,19 +431,23 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).not.toHaveBeenCalled();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).not.toHaveBeenCalled();
     });
 
     it("Should ignore 409 errors when calling the createTenantDefaultNotificationConfig route", async () => {
-      interopBeClients.notificationConfigProcess.client.createTenantDefaultNotificationConfig =
-        vi.fn().mockRejectedValue(
-          new AxiosError("Conflict", "409", undefined, undefined, {
-            status: 409,
-            statusText: "Conflict",
-          } as AxiosResponse)
-        );
+      vi.mocked(
+        notificationConfigApi.createTenantDefaultNotificationConfig
+      ).mockResolvedValue({
+        data: undefined,
+        error: {
+          status: 409,
+          title: "Conflict",
+          type: "about:blank",
+        },
+        request: new Request("http://test"),
+        response: new Response(),
+      });
       const tenant: TenantV2 = toTenantV2(getMockTenant());
       const message = toTenantEventEnvelopeV2({
         type: "TenantOnboarded",
@@ -421,28 +461,32 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledWith(
-        { tenantId: tenant.id },
-        {
+        expect.objectContaining({
+          body: { tenantId: tenant.id },
           headers: expectedHeaders,
-        }
+          client: interopBeClients.notificationConfigProcess.client,
+        })
       );
     });
 
     it("Should not ignore other errors when calling the createTenantDefaultNotificationConfig route", async () => {
-      interopBeClients.notificationConfigProcess.client.createTenantDefaultNotificationConfig =
-        vi.fn().mockRejectedValue(
-          new AxiosError("Internal Server Error", "500", undefined, undefined, {
-            status: 500,
-            statusText: "Internal Server Error",
-          } as AxiosResponse)
-        );
+      vi.mocked(
+        notificationConfigApi.createTenantDefaultNotificationConfig
+      ).mockResolvedValue({
+        data: undefined,
+        error: {
+          status: 500,
+          title: "Internal Server Error",
+          type: "about:blank",
+        },
+        request: new Request("http://test"),
+        response: new Response(),
+      });
       const tenant: TenantV2 = toTenantV2(getMockTenant());
       const message = toTenantEventEnvelopeV2({
         type: "TenantOnboarded",
@@ -458,28 +502,32 @@ describe("notificationTenantLifecycleProcessor", async () => {
       ).rejects.toThrow();
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledWith(
-        { tenantId: tenant.id },
-        {
+        expect.objectContaining({
+          body: { tenantId: tenant.id },
           headers: expectedHeaders,
-        }
+          client: interopBeClients.notificationConfigProcess.client,
+        })
       );
     });
 
     it("Should not ignore 404 errors when calling the deleteTenantNotificationConfig route", async () => {
-      interopBeClients.notificationConfigProcess.client.deleteTenantNotificationConfig =
-        vi.fn().mockRejectedValue(
-          new AxiosError("Not Found", "404", undefined, undefined, {
-            status: 404,
-            statusText: "Not Found",
-          } as AxiosResponse)
-        );
+      vi.mocked(
+        notificationConfigApi.deleteTenantNotificationConfig
+      ).mockResolvedValue({
+        data: undefined,
+        error: {
+          status: 404,
+          title: "Not Found",
+          type: "about:blank",
+        },
+        request: new Request("http://test"),
+        response: new Response(),
+      });
       const tenantId = generateId();
       const message = toTenantEventEnvelopeV2({
         type: "MaintenanceTenantDeleted",
@@ -495,16 +543,17 @@ describe("notificationTenantLifecycleProcessor", async () => {
       ).rejects.toThrow();
       expect(refreshableToken.get).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
+        notificationConfigApi.deleteTenantNotificationConfig
       ).toHaveBeenCalledOnce();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .deleteTenantNotificationConfig
-      ).toHaveBeenCalledWith(undefined, {
-        params: { tenantId },
-        headers: expectedHeaders,
-      });
+        notificationConfigApi.deleteTenantNotificationConfig
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { tenantId },
+          headers: expectedHeaders,
+          client: interopBeClients.notificationConfigProcess.client,
+        })
+      );
     });
 
     it.each([
@@ -539,8 +588,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       );
       expect(refreshableToken.get).not.toHaveBeenCalled();
       expect(
-        interopBeClients.notificationConfigProcess.client
-          .createTenantDefaultNotificationConfig
+        notificationConfigApi.createTenantDefaultNotificationConfig
       ).not.toHaveBeenCalled();
     });
   });

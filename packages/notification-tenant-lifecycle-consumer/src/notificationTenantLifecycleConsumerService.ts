@@ -1,4 +1,4 @@
-import { isAxiosError } from "axios";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   Logger,
   RefreshableInteropToken,
@@ -31,21 +31,22 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
     const token = (await refreshableToken.get()).serialized;
     const headers = getInteropHeaders({ token, correlationId });
     logger.info(`Creating default notification config for tenant ${tenantId}`);
-    try {
-      await notificationConfigProcess.client.createTenantDefaultNotificationConfig(
-        { tenantId },
-        {
-          headers,
-        }
-      );
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 409) {
+
+    const { error } =
+      await notificationConfigApi.createTenantDefaultNotificationConfig({
+        body: { tenantId },
+        headers,
+        client: notificationConfigProcess.client,
+      });
+
+    if (error) {
+      if (error.status === 409) {
         logger.info(
           `Notification config for tenant ${tenantId} already exists, skipping creation`
         );
       } else {
         throw genericInternalError(
-          `Error creating default notification config for tenant ${tenantId}. Reason: ${error}`
+          `Error creating default notification config for tenant ${tenantId}. Reason: ${error.status} - ${error.title}`
         );
       }
     }
@@ -59,17 +60,17 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
     const token = (await refreshableToken.get()).serialized;
     const headers = getInteropHeaders({ token, correlationId });
     logger.info(`Deleting notification config for tenant ${tenantId}`);
-    try {
-      await notificationConfigProcess.client.deleteTenantNotificationConfig(
-        undefined,
-        {
-          params: { tenantId },
-          headers,
-        }
-      );
-    } catch (error) {
+
+    const { error } =
+      await notificationConfigApi.deleteTenantNotificationConfig({
+        path: { tenantId },
+        headers,
+        client: notificationConfigProcess.client,
+      });
+
+    if (error) {
       throw genericInternalError(
-        `Error deleting default notification config for tenant ${tenantId}. Reason: ${error}`
+        `Error deleting default notification config for tenant ${tenantId}. Reason: ${error.status} - ${error.title}`
       );
     }
   };

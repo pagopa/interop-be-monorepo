@@ -55,7 +55,10 @@
     "yaml": "2.4.5",
     "zod": "3.23.8",
     "zod-validation-error": "3.3.0",
-    "drizzle-orm": "0.39.3"
+    "drizzle-orm": "0.39.3",
+    "fastify": "5.7.4",
+    "fastify-plugin": "5.1.0",
+    "fastify-type-provider-zod": "4.0.2"
   },
   "devDependencies": {
     "@types/express": "4.17.21",

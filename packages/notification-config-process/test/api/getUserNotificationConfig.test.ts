@@ -7,9 +7,8 @@ import {
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { app, notificationConfigService } from "../vitest.api.setup.js";
 import { userNotificationConfigToApiUserNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 import { expectedUserIdAndOrganizationId } from "../utils.js";
@@ -26,10 +25,14 @@ describe("API GET /userNotificationConfigs test", () => {
     userNotificationConfigToApiUserNotificationConfig(serviceResponse);
 
   const makeRequest = async (token: string) =>
-    request(api)
-      .get("/userNotificationConfigs")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+    app.inject({
+      method: "GET",
+      url: "/userNotificationConfigs",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Correlation-Id": generateId(),
+      },
+    });
 
   beforeEach(() => {
     notificationConfigService.getUserNotificationConfig = vi
@@ -48,8 +51,8 @@ describe("API GET /userNotificationConfigs test", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual(apiResponse);
       expect(
         notificationConfigService.getUserNotificationConfig
       ).toHaveBeenCalledWith(expectedUserIdAndOrganizationId(userId, tenantId));
@@ -61,7 +64,7 @@ describe("API GET /userNotificationConfigs test", () => {
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
-    expect(res.status).toBe(403);
+    expect(res.statusCode).toBe(403);
     expect(
       notificationConfigService.getUserNotificationConfig
     ).not.toHaveBeenCalled();
@@ -73,7 +76,7 @@ describe("API GET /userNotificationConfigs test", () => {
       .mockRejectedValue(userNotificationConfigNotFound(userId, tenantId));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
-    expect(res.status).toBe(404);
+    expect(res.statusCode).toBe(404);
     expect(
       notificationConfigService.getUserNotificationConfig
     ).toHaveBeenCalledWith(expectedUserIdAndOrganizationId(userId, tenantId));

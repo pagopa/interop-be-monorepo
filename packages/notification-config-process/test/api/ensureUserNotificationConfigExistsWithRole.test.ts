@@ -2,9 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TenantId, UserId, generateId, userRole } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { app, notificationConfigService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", () => {
   const defaultTenantId: TenantId = generateId();
@@ -21,11 +20,15 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
     token: string,
     body: notificationConfigApi.UserNotificationConfigSeed = notificationConfigSeed
   ) =>
-    request(api)
-      .post("/internal/ensureUserNotificationConfigExistsWithRoles")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(body);
+    app.inject({
+      method: "POST",
+      url: "/internal/ensureUserNotificationConfigExistsWithRoles",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Correlation-Id": generateId(),
+      },
+      payload: body,
+    });
 
   beforeEach(() => {
     notificationConfigService.ensureUserNotificationConfigExistsWithRoles = vi
@@ -40,7 +43,7 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.statusCode).toBe(204);
       expect(
         notificationConfigService.ensureUserNotificationConfigExistsWithRoles
       ).toHaveBeenCalledWith(
@@ -57,7 +60,7 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
-    expect(res.status).toBe(403);
+    expect(res.statusCode).toBe(403);
     expect(
       notificationConfigService.ensureUserNotificationConfigExistsWithRoles
     ).not.toHaveBeenCalled();
@@ -79,7 +82,7 @@ describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", 
       token,
       body as notificationConfigApi.UserNotificationConfigSeed
     );
-    expect(res.status).toBe(400);
+    expect(res.statusCode).toBe(400);
     expect(
       notificationConfigService.ensureUserNotificationConfigExistsWithRoles
     ).not.toHaveBeenCalledWith();

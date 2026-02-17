@@ -6,9 +6,8 @@ import {
   getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { app, notificationConfigService } from "../vitest.api.setup.js";
 import { tenantNotificationConfigToApiTenantNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 import { expectedOrganizationId } from "../utils.js";
@@ -23,10 +22,14 @@ describe("API GET /tenantNotificationConfigs test", () => {
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);
 
   const makeRequest = async (token: string) =>
-    request(api)
-      .get("/tenantNotificationConfigs")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+    app.inject({
+      method: "GET",
+      url: "/tenantNotificationConfigs",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Correlation-Id": generateId(),
+      },
+    });
 
   beforeEach(() => {
     notificationConfigService.getTenantNotificationConfig = vi
@@ -41,8 +44,8 @@ describe("API GET /tenantNotificationConfigs test", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual(apiResponse);
       expect(
         notificationConfigService.getTenantNotificationConfig
       ).toHaveBeenCalledWith(expectedOrganizationId(tenantId));
@@ -54,7 +57,7 @@ describe("API GET /tenantNotificationConfigs test", () => {
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
-    expect(res.status).toBe(403);
+    expect(res.statusCode).toBe(403);
     expect(
       notificationConfigService.getTenantNotificationConfig
     ).not.toHaveBeenCalled();
@@ -66,7 +69,7 @@ describe("API GET /tenantNotificationConfigs test", () => {
       .mockRejectedValue(tenantNotificationConfigNotFound(tenantId));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
-    expect(res.status).toBe(404);
+    expect(res.statusCode).toBe(404);
     expect(
       notificationConfigService.getTenantNotificationConfig
     ).toHaveBeenCalledWith(expectedOrganizationId(tenantId));

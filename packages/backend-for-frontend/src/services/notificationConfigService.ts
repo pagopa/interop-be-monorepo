@@ -10,7 +10,7 @@ import {
 } from "../api/notificationConfigApiConverter.js";
 
 export function notificationConfigServiceBuilder(
-  notificationConfigClient: notificationConfigApi.NotificationConfigProcessClient
+  notificationConfigClient: notificationConfigApi.NotificationConfigHeyApiClient
 ) {
   return {
     getTenantNotificationConfig: async ({
@@ -22,11 +22,15 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Getting notification configuration for tenant ${organizationId}`
       );
-      return toBffApiTenantNotificationConfig(
-        await notificationConfigClient.getTenantNotificationConfig({
+      const { data, error } =
+        await notificationConfigApi.getTenantNotificationConfig({
           headers,
-        })
-      );
+          client: notificationConfigClient,
+        });
+      if (error) {
+        throw error;
+      }
+      return toBffApiTenantNotificationConfig(data);
     },
     updateTenantNotificationConfig: async (
       seed: notificationConfigApi.TenantNotificationConfigUpdateSeed,
@@ -40,9 +44,15 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Updating notification configuration for tenant ${organizationId}`
       );
-      await notificationConfigClient.updateTenantNotificationConfig(seed, {
-        headers,
-      });
+      const { error } =
+        await notificationConfigApi.updateTenantNotificationConfig({
+          body: seed,
+          headers,
+          client: notificationConfigClient,
+        });
+      if (error) {
+        throw error;
+      }
     },
     getUserNotificationConfig: async ({
       authData: { userId, organizationId },
@@ -53,11 +63,15 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Getting notification configuration for user ${userId} in tenant ${organizationId}`
       );
-      return toBffApiUserNotificationConfig(
-        await notificationConfigClient.getUserNotificationConfig({
+      const { data, error } =
+        await notificationConfigApi.getUserNotificationConfig({
           headers,
-        })
-      );
+          client: notificationConfigClient,
+        });
+      if (error) {
+        throw error;
+      }
+      return toBffApiUserNotificationConfig(data);
     },
     updateUserNotificationConfig: async (
       seed: bffApi.UserNotificationConfigUpdateSeed,
@@ -84,32 +98,35 @@ export function notificationConfigServiceBuilder(
         },
         ...restSeed
       } = seed;
-      await notificationConfigClient.updateUserNotificationConfig(
-        {
-          ...restSeed,
-          inAppConfig: {
-            ...restInAppConfig,
-            clientKeyAddedDeletedToClientUsers:
-              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-            clientKeyConsumerAddedDeletedToClientUsers:
-              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-            producerKeychainKeyAddedDeletedToClientUsers:
-              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+      const { error } =
+        await notificationConfigApi.updateUserNotificationConfig({
+          body: {
+            ...restSeed,
+            inAppConfig: {
+              ...restInAppConfig,
+              clientKeyAddedDeletedToClientUsers:
+                inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+              clientKeyConsumerAddedDeletedToClientUsers:
+                inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+              producerKeychainKeyAddedDeletedToClientUsers:
+                inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+            },
+            emailConfig: {
+              ...restEmailConfig,
+              clientKeyAddedDeletedToClientUsers:
+                emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+              clientKeyConsumerAddedDeletedToClientUsers:
+                emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+              producerKeychainKeyAddedDeletedToClientUsers:
+                emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+            },
           },
-          emailConfig: {
-            ...restEmailConfig,
-            clientKeyAddedDeletedToClientUsers:
-              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-            clientKeyConsumerAddedDeletedToClientUsers:
-              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-            producerKeychainKeyAddedDeletedToClientUsers:
-              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-          },
-        },
-        {
           headers,
-        }
-      );
+          client: notificationConfigClient,
+        });
+      if (error) {
+        throw error;
+      }
     },
   };
 }

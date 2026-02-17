@@ -8,9 +8,8 @@ import {
   mockTokenUserId,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { app, notificationConfigService } from "../vitest.api.setup.js";
 import { userNotificationConfigToApiUserNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { expectedUserIdAndOrganizationId } from "../utils.js";
 import {
@@ -42,11 +41,15 @@ describe("API POST /userNotificationConfigs test", () => {
     token: string,
     body: notificationConfigApi.UserNotificationConfigUpdateSeed = notificationConfigSeed
   ) =>
-    request(api)
-      .post("/userNotificationConfigs")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(body);
+    app.inject({
+      method: "POST",
+      url: "/userNotificationConfigs",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Correlation-Id": generateId(),
+      },
+      payload: body,
+    });
 
   beforeEach(() => {
     notificationConfigService.updateUserNotificationConfig = vi
@@ -65,8 +68,8 @@ describe("API POST /userNotificationConfigs test", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual(apiResponse);
       expect(
         notificationConfigService.updateUserNotificationConfig
       ).toHaveBeenCalledWith(
@@ -93,7 +96,7 @@ describe("API POST /userNotificationConfigs test", () => {
         .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token);
-      expect(res.status).toBe(expectedStatus);
+      expect(res.statusCode).toBe(expectedStatus);
       expect(
         notificationConfigService.updateUserNotificationConfig
       ).toHaveBeenCalledWith(
@@ -108,7 +111,7 @@ describe("API POST /userNotificationConfigs test", () => {
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
-    expect(res.status).toBe(403);
+    expect(res.statusCode).toBe(403);
     expect(
       notificationConfigService.updateUserNotificationConfig
     ).not.toHaveBeenCalled();
@@ -143,7 +146,7 @@ describe("API POST /userNotificationConfigs test", () => {
       token,
       body as notificationConfigApi.UserNotificationConfigUpdateSeed
     );
-    expect(res.status).toBe(400);
+    expect(res.statusCode).toBe(400);
     expect(
       notificationConfigService.updateUserNotificationConfig
     ).not.toHaveBeenCalledWith();

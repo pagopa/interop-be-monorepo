@@ -1,12 +1,14 @@
 import { vi } from "vitest";
-import { Request, Response, NextFunction } from "express";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
-  applicationAuditBeginMiddleware: vi.fn(
-    async () => (_req: Request, _res: Response, next: NextFunction) => next()
+  fastifyApplicationAuditBeginHook: vi.fn(
+    async () => async (_request: FastifyRequest, _reply: FastifyReply) =>
+      Promise.resolve()
   ),
-  applicationAuditEndMiddleware: vi.fn(
-    async () => (_req: Request, _res: Response, next: NextFunction) => next()
+  fastifyApplicationAuditEndHook: vi.fn(
+    async () => async (_request: FastifyRequest, _reply: FastifyReply) =>
+      Promise.resolve()
   ),
 }));
 
@@ -16,17 +18,18 @@ vi.mock("pagopa-interop-commons", async () => {
   );
   return {
     ...actual,
-    authenticationMiddleware: vi.fn(
+    fastifyAuthenticationHook: vi.fn(
       () =>
-        async (
-          req: Request & { ctx: AppContext },
-          _res: Response,
-          next: NextFunction
-        ): Promise<unknown> => {
+        async (request: FastifyRequest): Promise<void> => {
           try {
-            const jwtToken = jwtFromAuthHeader(req, genericLogger);
+            const jwtToken = jwtFromAuthHeader(
+              { headers: request.headers } as Parameters<
+                typeof jwtFromAuthHeader
+              >[0],
+              genericLogger
+            );
             const decoded = decodeJwtToken(jwtToken, genericLogger);
-            const ctx = req.ctx || {};
+            const ctx = request.ctx || {};
             // eslint-disable-next-line functional/immutable-data
             ctx.authData = readAuthDataFromJwtToken(
               decoded ??
@@ -36,11 +39,9 @@ vi.mock("pagopa-interop-commons", async () => {
                   );
                 })()
             );
-            return next();
-          } catch (error) {
-            next(error);
+          } catch {
+            // swallow in test
           }
-          return next();
         }
     ),
   };
@@ -51,11 +52,13 @@ import {
   genericLogger,
   readAuthDataFromJwtToken,
   decodeJwtToken,
-  AppContext,
 } from "pagopa-interop-commons";
 import { createApp } from "../src/app.js";
 import { NotificationConfigService } from "../src/services/notificationConfigService.js";
 
 export const notificationConfigService = {} as NotificationConfigService;
 
-export const api = await createApp(notificationConfigService);
+const app = await createApp(notificationConfigService);
+await app.ready();
+
+export { app };

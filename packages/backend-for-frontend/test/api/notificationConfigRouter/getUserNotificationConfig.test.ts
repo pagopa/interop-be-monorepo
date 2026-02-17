@@ -10,13 +10,15 @@ import {
 import { authRole } from "pagopa-interop-commons";
 import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
 import request from "supertest";
-import { api, clients, services } from "../../vitest.api.setup.js";
+import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { expectedUserIdAndOrganizationId } from "../../utils.js";
 
 describe("API GET /userNotificationConfigs", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
+  const clientResponse: notificationConfigApi.UserNotificationConfig =
+    generateMock(notificationConfigApi.zUserNotificationConfig);
   const {
     inAppNotificationPreference,
     emailNotificationPreference,
@@ -39,32 +41,7 @@ describe("API GET /userNotificationConfigs", () => {
         emailProducerKeychainKeyAddedDeletedToClientUsers,
       ...emailConfig
     },
-  }: notificationConfigApi.UserNotificationConfig = generateMock(
-    notificationConfigApi.UserNotificationConfig
-  );
-  const clientResponse = {
-    inAppNotificationPreference,
-    emailNotificationPreference,
-    emailDigestPreference,
-    inAppConfig: {
-      ...inAppConfig,
-      clientKeyAddedDeletedToClientUsers:
-        inAppClientKeyAddedDeletedToClientUsers,
-      clientKeyConsumerAddedDeletedToClientUsers:
-        inAppClientKeyConsumerAddedDeletedToClientUsers,
-      producerKeychainKeyAddedDeletedToClientUsers:
-        inAppProducerKeychainKeyAddedDeletedToClientUsers,
-    },
-    emailConfig: {
-      ...emailConfig,
-      clientKeyAddedDeletedToClientUsers:
-        emailClientKeyAddedDeletedToClientUsers,
-      clientKeyConsumerAddedDeletedToClientUsers:
-        emailClientKeyConsumerAddedDeletedToClientUsers,
-      producerKeychainKeyAddedDeletedToClientUsers:
-        emailProducerKeychainKeyAddedDeletedToClientUsers,
-    },
-  };
+  } = clientResponse;
   const apiResponse: bffApi.UserNotificationConfig = {
     inAppNotificationPreference,
     emailNotificationPreference,
@@ -86,9 +63,15 @@ describe("API GET /userNotificationConfigs", () => {
   };
 
   beforeEach(() => {
-    clients.notificationConfigProcessClient.getUserNotificationConfig = vi
-      .fn()
-      .mockResolvedValue(clientResponse);
+    vi.clearAllMocks();
+    vi.mocked(
+      notificationConfigApi.getUserNotificationConfig
+    ).mockResolvedValue({
+      data: clientResponse,
+      error: undefined,
+      request: new Request("http://test"),
+      response: new Response(),
+    });
   });
 
   const makeRequest = async (token: string) =>
@@ -109,8 +92,6 @@ describe("API GET /userNotificationConfigs", () => {
     expect(serviceSpy).toHaveBeenCalledWith(
       expectedUserIdAndOrganizationId(userId, tenantId)
     );
-    expect(
-      clients.notificationConfigProcessClient.getUserNotificationConfig
-    ).toHaveBeenCalled();
+    expect(notificationConfigApi.getUserNotificationConfig).toHaveBeenCalled();
   });
 });

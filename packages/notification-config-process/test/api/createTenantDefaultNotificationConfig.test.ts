@@ -9,9 +9,8 @@ import {
   getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { app, notificationConfigService } from "../vitest.api.setup.js";
 import { tenantNotificationConfigToApiTenantNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/errors.js";
 
@@ -33,11 +32,15 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
     token: string,
     body: notificationConfigApi.TenantNotificationConfigSeed = notificationConfigSeed
   ) =>
-    request(api)
-      .post("/internal/tenantNotificationConfigs")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(body);
+    app.inject({
+      method: "POST",
+      url: "/internal/tenantNotificationConfigs",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Correlation-Id": generateId(),
+      },
+      payload: body,
+    });
 
   beforeEach(() => {
     notificationConfigService.createTenantDefaultNotificationConfig = vi
@@ -52,8 +55,8 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual(apiResponse);
       expect(
         notificationConfigService.createTenantDefaultNotificationConfig
       ).toHaveBeenCalledWith(defaultTenantId, expect.any(Object));
@@ -65,7 +68,7 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
-    expect(res.status).toBe(403);
+    expect(res.statusCode).toBe(403);
     expect(
       notificationConfigService.createTenantDefaultNotificationConfig
     ).not.toHaveBeenCalled();
@@ -79,7 +82,7 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
       );
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
-    expect(res.status).toBe(409);
+    expect(res.statusCode).toBe(409);
     expect(
       notificationConfigService.createTenantDefaultNotificationConfig
     ).toHaveBeenCalledWith(defaultTenantId, expect.any(Object));
@@ -95,7 +98,7 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
       token,
       body as notificationConfigApi.TenantNotificationConfigSeed
     );
-    expect(res.status).toBe(400);
+    expect(res.statusCode).toBe(400);
     expect(
       notificationConfigService.createTenantDefaultNotificationConfig
     ).not.toHaveBeenCalledWith();

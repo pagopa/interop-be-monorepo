@@ -1,7 +1,7 @@
-import * as notificationConfigApi from "./generated/notificationConfigApi.js";
+import { createNotificationConfigClient } from "./notificationConfigApi.heyapi.js";
 
 export type NotificationConfigProcessClient = ReturnType<
-  typeof notificationConfigApi.createProcessApiClient
+  typeof createNotificationConfigClient
 >;
 
-export * from "./generated/notificationConfigApi.js";
+export * from "./notificationConfigApi.heyapi.js";

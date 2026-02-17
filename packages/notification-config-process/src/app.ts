@@ -1,43 +1,71 @@
+import Fastify from "fastify";
 import {
-  authenticationMiddleware,
-  contextMiddleware,
-  errorsToApiProblemsMiddleware,
-  healthRouter,
-  loggerMiddleware,
-  zodiosCtx,
+  serializerCompiler,
+  validatorCompiler,
+} from "fastify-type-provider-zod";
+import {
+  fastifyContextPlugin,
+  fastifyAuthenticationHook,
+  fastifyLoggerHook,
+  fastifyHealthRouter,
+  fastifyErrorHandler,
 } from "pagopa-interop-commons";
 import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
+  fastifyApplicationAuditBeginHook,
+  fastifyApplicationAuditEndHook,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import notificationConfigRouter from "./routers/NotificationConfigRouter.js";
 import { config } from "./config/config.js";
 import { NotificationConfigService } from "./services/notificationConfigService.js";
-import { notificationConfigFeatureFlagMiddleware } from "./utilities/middlewares.js";
+import { notificationConfigFeatureFlagHook } from "./utilities/middlewares.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: NotificationConfigService) {
   const serviceName = modelsServiceName.NOTIFICATION_CONFIG_PROCESS;
 
-  const router = notificationConfigRouter(zodiosCtx, service);
+  const app = Fastify();
 
-  const app = zodiosCtx.app();
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
 
-  // Disable the "X-Powered-By: Express" HTTP header for security reasons.
-  // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
-  app.disable("x-powered-by");
+  app.setErrorHandler(fastifyErrorHandler);
 
-  app.use(healthRouter(notificationConfigApi.healthApi.api));
-  app.use(notificationConfigFeatureFlagMiddleware());
-  app.use(contextMiddleware(serviceName));
-  app.use(await applicationAuditBeginMiddleware(serviceName, config));
-  app.use(await applicationAuditEndMiddleware(serviceName, config));
-  app.use(authenticationMiddleware(config));
-  app.use(loggerMiddleware(serviceName));
-  app.use(router);
-  app.use(errorsToApiProblemsMiddleware);
+  // Health router — separate encapsulated scope, no auth/context hooks
+  await app.register(fastifyHealthRouter);
+
+  // Authenticated scope — all hooks and business routes go here
+  // so they don't affect the health route above
+  await app.register(async (scope) => {
+    // Feature flag hook — applies to all authenticated routes
+    scope.addHook("onRequest", notificationConfigFeatureFlagHook);
+
+    // Context plugin — parses X-Correlation-Id, generates spanId
+    await scope.register(fastifyContextPlugin, { serviceName });
+
+    // Audit begin hook — runs after context is set
+    const auditBeginHook = await fastifyApplicationAuditBeginHook(
+      serviceName,
+      config
+    );
+    scope.addHook("onRequest", auditBeginHook);
+
+    // Authentication hook
+    scope.addHook("onRequest", fastifyAuthenticationHook(config));
+
+    // Logger hook — runs on response
+    scope.addHook("onResponse", fastifyLoggerHook(serviceName));
+
+    // Audit end hook — runs on response
+    const auditEndHook = await fastifyApplicationAuditEndHook(
+      serviceName,
+      config
+    );
+    scope.addHook("onResponse", auditEndHook);
+
+    // Business routes
+    await scope.register(notificationConfigRouter(service));
+  });
 
   return app;
 }

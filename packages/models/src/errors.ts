@@ -121,6 +121,43 @@ type ProblemBuilderOptions = {
   forceGenericProblemOn500?: boolean;
 };
 
+function handleHeyApiProblem(
+  receivedProblem: { type: string; title: string; status: number },
+  ctx: {
+    error: unknown;
+    genericProblem: Problem;
+    problemErrorsPassthrough: boolean;
+    forceGenericProblemOn500: boolean;
+    logger: { warn: (message: string) => void };
+  }
+): Problem {
+  const problem = ProblemSchema.safeParse(receivedProblem);
+  if (problem.success && ctx.problemErrorsPassthrough) {
+    const problemLogString = makeProblemLogString(problem.data, ctx.error);
+
+    if (
+      ctx.forceGenericProblemOn500 &&
+      problem.data.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
+    ) {
+      ctx.logger.warn(
+        `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
+      );
+      return ctx.genericProblem;
+    }
+
+    ctx.logger.warn(problemLogString);
+    return problem.data;
+  }
+
+  ctx.logger.warn(
+    makeProblemLogString(
+      ctx.genericProblem,
+      `${receivedProblem.title} - status ${receivedProblem.status}`
+    )
+  );
+  return ctx.genericProblem;
+}
+
 export function makeApiProblemBuilder<T extends string>(
   errors: {
     [K in T]: string;
@@ -249,6 +286,23 @@ export function makeApiProblemBuilder<T extends string>(
             return genericProblem;
           }
         }
+      )
+      .with(
+        /* this case handles plain Problem objects thrown by hey-api clients,
+           which return errors as deserialized JSON (not wrapped in AxiosError) */
+        {
+          type: "about:blank",
+          title: P.string,
+          status: P.number,
+        },
+        (receivedProblem) =>
+          handleHeyApiProblem(receivedProblem, {
+            error,
+            genericProblem,
+            problemErrorsPassthrough,
+            forceGenericProblemOn500,
+            logger,
+          })
       )
       .with(P.instanceOf(ZodError), (error) => {
         // Zod errors shall always be caught and handled throwing
