@@ -101,8 +101,8 @@ const draftAgreementSubmissionSeed = {
   // We set these flags because it's a possible case:
   // suspension flags are preserved in draft agreements that are created
   // during an upgrade operation (see agreementStatesFlows.test.ts)
-  suspendedByConsumer: false,
-  suspendedByProducer: false,
+  suspendedByConsumer: undefined,
+  suspendedByProducer: undefined,
   stamps: {
     suspensionByConsumer: getRandomPastStamp(generateId<UserId>()),
     suspensionByProducer: getRandomPastStamp(generateId<UserId>()),
@@ -1284,6 +1284,9 @@ describe("submit agreement", () => {
             state: agreementState.active,
             consumerNotes: consumerNotesText,
             contract: expectedContract,
+            suspendedByConsumer: undefined,
+            suspendedByProducer: undefined,
+            suspendedAt: undefined,
             suspendedByPlatform: false,
             verifiedAttributes: [
               {
@@ -1738,6 +1741,9 @@ describe("submit agreement", () => {
             state: agreementState.active,
             consumerNotes: consumerNotesText,
             contract: expectedContract,
+            suspendedByConsumer: undefined,
+            suspendedByProducer: undefined,
+            suspendedAt: undefined,
             suspendedByPlatform: false,
             certifiedAttributes: [
               {
@@ -2176,52 +2182,31 @@ describe("submit agreement", () => {
     }
   );
 
-  // ============================================================================
-  // SUSPENDED DRAFT AGREEMENT SUBMISSION TESTS
-  // These tests verify the behavior when submitting a draft agreement that has
-  // suspension flags set (from a previous upgrade operation).
-  //
-  // Key behavior:
-  // - When producer === consumer AND requester is the tenant itself, the requester
-  //   matches BOTH the consumer and producer checks, so both suspension flags
-  //   are computed as FALSE (since target state is ACTIVE). Agreement goes to ACTIVE.
-  //   However, the STORED flags are preserved from the draft agreement.
-  // - When producer !== consumer, the producer's suspension flag is preserved
-  //   (not computed) because the consumer is not the producer.
-  // - Suspension flags in the stored agreement come from the original draft,
-  //   while the state is computed using the computed flags.
-  // ============================================================================
-
   describe("Suspended draft agreement submission - Producer === Consumer", () => {
-    // When producer === consumer AND requester is the tenant itself,
-    // the requester matches both consumer and producer checks, so both
-    // suspension flags are computed based on target state (ACTIVE !== SUSPENDED = FALSE).
-    // This results in state = ACTIVE.
-    // The STORED flags are preserved from the draft agreement.
     describe.each([
       {
         seed: suspendedByConsumerOnlySeed,
         description: "suspendedByConsumer only",
-        expectedSuspendedByConsumer: true,
-        expectedSuspendedByProducer: false,
+        expectedSuspendedByConsumer: undefined,
+        expectedSuspendedByProducer: undefined,
       },
       {
         seed: suspendedByProducerOnlySeed,
         description: "suspendedByProducer only",
-        expectedSuspendedByConsumer: false,
-        expectedSuspendedByProducer: true,
+        expectedSuspendedByConsumer: undefined,
+        expectedSuspendedByProducer: undefined,
       },
       {
         seed: suspendedByBothSeed,
         description: "suspendedByBoth",
-        expectedSuspendedByConsumer: true,
-        expectedSuspendedByProducer: true,
+        expectedSuspendedByConsumer: undefined,
+        expectedSuspendedByProducer: undefined,
       },
     ])(
       "Suspension flags: $description - requester is the tenant itself",
       ({ seed, expectedSuspendedByConsumer, expectedSuspendedByProducer }) => {
         it.each([requesterIs.consumer, requesterIs.producer])(
-          "Requester === %s, should submit as ACTIVE with suspension flags preserved from draft",
+          "Requester === %s, should submit as ACTIVE with suspension flags cleared",
           async (requester) => {
             const producerAndConsumerId = generateId<TenantId>();
             const consumerNotesText = "This is a test";
@@ -2320,7 +2305,7 @@ describe("submit agreement", () => {
 
             // When producer === consumer and requester is the tenant itself,
             // the state is ACTIVE because computed flags are FALSE.
-            // But stored flags are preserved from the draft agreement.
+            // Suspension flags are cleared.
             expect(submitAgreementResponse.data.state).toBe(
               agreementState.active
             );
@@ -2341,18 +2326,12 @@ describe("submit agreement", () => {
       }
     );
 
-    // When producer === consumer AND requester is a delegate consumer,
-    // the delegate consumer's check matches the consumer side but NOT the producer side.
-    // - Consumer flag: computed as FALSE (delegate can act as consumer, target is active)
-    // - Producer flag: PRESERVED from draft (delegate is not the producer)
-    // If preserved producer flag is TRUE → state = SUSPENDED
-    // If preserved producer flag is FALSE → state = ACTIVE
     describe.each([
       {
         seed: suspendedByConsumerOnlySeed,
         description: "suspendedByConsumer only",
-        expectedSuspendedByConsumer: true,
-        expectedSuspendedByProducer: false,
+        expectedSuspendedByConsumer: undefined,
+        expectedSuspendedByProducer: undefined,
         expectedState: agreementState.active,
         expectedEvent: "AgreementActivated",
       },
@@ -2523,8 +2502,8 @@ describe("submit agreement", () => {
       {
         seed: suspendedByConsumerOnlySeed,
         description: "suspendedByConsumer only",
-        expectedSuspendedByConsumer: true,
-        expectedSuspendedByProducer: false,
+        expectedSuspendedByConsumer: undefined,
+        expectedSuspendedByProducer: undefined,
         expectedState: agreementState.active,
         expectedEvent: "AgreementActivated",
       },
@@ -2798,7 +2777,7 @@ describe("submit agreement", () => {
               );
 
             // With manual approval, agreement goes to PENDING
-            // Suspension flags are still preserved
+            // Suspension flags are preserved
             expect(submitAgreementResponse.data.state).toBe(
               agreementState.pending
             );
