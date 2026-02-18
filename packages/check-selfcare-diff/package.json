@@ -17,21 +17,21 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.9",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5"
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   },
   "dependencies": {
-    "dotenv-flow": "4.1.0",
-    "drizzle-orm": "0.39.3",
-    "p-limit": "6.2.0",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "p-limit": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "zod": "3.23.8"
+    "zod": "catalog:"
   }
 }

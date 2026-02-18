@@ -20,22 +20,20 @@
   },
   "keywords": [],
   "dependencies": {
-    "drizzle-orm": "0.39.3",
+    "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pg": "8.13.1",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "pg": "catalog:",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@anatine/zod-mock": "3.13.4",
-    "@types/node": "20.19.9",
-    "@types/pg": "8.11.11",
-    "eslint": "8.57.1",
+    "@anatine/zod-mock": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "prettier": "2.8.8",
-    "typescript": "5.4.5",
-    "vitest": "4.0.18"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
