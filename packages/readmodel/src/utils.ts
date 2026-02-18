@@ -11,7 +11,12 @@ import pg from "pg";
 
 export const makeDrizzleConnection = (
   readModelSQLDbConfig: ReadModelSQLDbConfig
-): DrizzleReturnType => {
+): DrizzleReturnType =>
+  makeDrizzleConnectionWithCleanup(readModelSQLDbConfig).db;
+
+export const makeDrizzleConnectionWithCleanup = (
+  readModelSQLDbConfig: ReadModelSQLDbConfig
+): { db: DrizzleReturnType; cleanup: () => Promise<void> } => {
   const pool = new pg.Pool({
     host: readModelSQLDbConfig.readModelSQLDbHost,
     port: readModelSQLDbConfig.readModelSQLDbPort,
@@ -22,7 +27,13 @@ export const makeDrizzleConnection = (
       ? { rejectUnauthorized: false }
       : undefined,
   });
-  return drizzle({ client: pool });
+
+  return {
+    db: drizzle({ client: pool }),
+    cleanup: async (): Promise<void> => {
+      await pool.end();
+    },
+  };
 };
 
 export const makeUniqueKey = (ids: string[]): string => ids.join("#");

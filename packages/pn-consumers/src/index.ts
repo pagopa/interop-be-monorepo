@@ -4,7 +4,7 @@ import {
   withExecutionTime,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
 import { config } from "./configs/config.js";
 import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
 import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
@@ -20,7 +20,7 @@ async function main(): Promise<void> {
 
   loggerInstance.info("> Connecting to database...");
 
-  const readModelDB = makeDrizzleConnection(config);
+  const { db: readModelDB, cleanup } = makeDrizzleConnectionWithCleanup(config);
 
   const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
@@ -61,11 +61,8 @@ async function main(): Promise<void> {
   );
 
   loggerInstance.info("> Success!\n");
+
+  await cleanup();
 }
 
 await withExecutionTime(main, loggerInstance);
-
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
