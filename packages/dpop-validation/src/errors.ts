@@ -24,6 +24,8 @@ export const errorCodes = {
   notYetValidDPoPProof: "0021",
   multipleDPoPProofsError: "0022",
   dpopTokenBindingMismatch: "0023",
+  dpopAthNotFound: "0024",
+  invalidDPoPAth: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -230,5 +232,21 @@ export function dpopTokenBindingMismatch(): ApiError<ErrorCodes> {
     detail: `The DPoP proof public key hash does not match the access token binding (cnf)}`,
     code: "dpopTokenBindingMismatch",
     title: "DPoP Token Binding Mismatch",
+  });
+}
+
+export function dpopAthNotFound(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `ATH not found in DPoP proof`,
+    code: "dpopAthNotFound",
+    title: "DPoP ATH not found",
+  });
+}
+
+export function invalidDPoPAth(ath: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid ATH ${ath} in DPoP proof payload`,
+    code: "invalidDPoPAth",
+    title: "Invalid ATH in DPoP proof",
   });
 }
