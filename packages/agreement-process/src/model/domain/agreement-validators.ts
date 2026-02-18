@@ -459,11 +459,11 @@ export const validateSubmitOnDescriptor = async (
   return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
-export const validateActiveOrPendingAgreement = (
+export const validateActiveSuspendedOrPendingAgreement = (
   agreementId: AgreementId,
   state: AgreementState
 ): void => {
-  if (agreementState.active !== state && agreementState.pending !== state) {
+  if (agreementState.active !== state && agreementState.pending !== state && agreementState.suspended !== state) {
     throw agreementSubmissionFailed(agreementId);
   }
 };
