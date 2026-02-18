@@ -1,0 +1,26 @@
+meta {
+  name: Get Updated Daily Calls
+  type: http
+  seq: 23
+}
+
+get {
+  url: {{host-purpose}}/purposes/updatedDailyCalls?eserviceId=<string>&descriptorId=<string>
+  body: none
+  auth: inherit
+}
+
+params:query {
+  eserviceId: <string>
+  descriptorId: <string>
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  purposeId: res.body.id
+  purposeVersionId: res.body.versions.at(-1).id
+}
