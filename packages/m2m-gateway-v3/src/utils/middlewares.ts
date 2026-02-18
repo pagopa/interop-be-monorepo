@@ -138,6 +138,7 @@ export const authenticationDPoPMiddleware: (
       await verifyDPoPCompliance({
         config,
         dpopProofJWS,
+        accessToken,
         accessTokenClientId: accessTokenDPoP.client_id,
         accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
         expectedHtu,
