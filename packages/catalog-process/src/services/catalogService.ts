@@ -3323,7 +3323,7 @@ export function catalogServiceBuilder(
         .exhaustive();
 
       await assertEServiceNameAvailableForProducer(
-        template.name,
+        seed.instanceLabel || template.name,
         ctx.authData.organizationId,
         readModelService
       );
@@ -3338,16 +3338,24 @@ export function catalogServiceBuilder(
         );
       }
 
-      const labelsInUse =
-        await readModelService.getEServiceInstanceLabelsByTemplateAndProducer({
-          templateId: template.id,
-          producerId: ctx.authData.organizationId,
-        });
+      const buildDefaultInstanceLabel = async (): Promise<
+        string | undefined
+      > => {
+        const labelsInUse =
+          await readModelService.getEServiceInstanceLabelsByTemplateAndProducer(
+            {
+              templateId: template.id,
+              producerId: ctx.authData.organizationId,
+            }
+          );
 
-      const instanceLabel =
-        labelsInUse.length === 0
+        return labelsInUse.length === 0 || !labelsInUse.includes(undefined)
           ? undefined
           : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
+      };
+
+      const instanceLabel =
+        seed.instanceLabel || (await buildDefaultInstanceLabel());
 
       const { eService: createdEService, events } = await innerCreateEService(
         {
