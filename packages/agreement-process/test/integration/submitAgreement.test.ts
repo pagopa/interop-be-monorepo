@@ -27,6 +27,7 @@ import {
   getMockVerifiedTenantAttribute,
   getMockAuthData,
   randomArrayItem,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -2347,7 +2348,13 @@ describe("submit agreement", () => {
       },
     ])(
       "Suspension flags: $description - requester is delegate",
-      ({ seed, expectedSuspendedByConsumer, expectedSuspendedByProducer, expectedState, expectedEvent }) => {
+      ({
+        seed,
+        expectedSuspendedByConsumer,
+        expectedSuspendedByProducer,
+        expectedState,
+        expectedEvent,
+      }) => {
         it.each([true, false])(
           "Requester === delegateConsumer, with producer delegation: %s",
           async (withProducerDelegation) => {
@@ -2519,7 +2526,13 @@ describe("submit agreement", () => {
       },
     ])(
       "Suspension flags: $description - automatic approval",
-      ({ seed, expectedSuspendedByConsumer, expectedSuspendedByProducer, expectedState, expectedEvent }) => {
+      ({
+        seed,
+        expectedSuspendedByConsumer,
+        expectedSuspendedByProducer,
+        expectedState,
+        expectedEvent,
+      }) => {
         it.each([requesterIs.consumer, requesterIs.delegateConsumer])(
           "Requester === %s, should preserve suspension flags",
           async (requester) => {
