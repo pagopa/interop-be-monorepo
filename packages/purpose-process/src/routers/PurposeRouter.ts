@@ -13,6 +13,7 @@ import {
 import {
   ClientId,
   DelegationId,
+  DescriptorId,
   EServiceId,
   PurposeTemplateId,
   PurposeVersionDocument,
@@ -45,6 +46,7 @@ import {
   getPurposeErrorMapper,
   getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
+  getUpdatedDailyCallsErrorMapper,
   rejectPurposeVersionErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
@@ -232,6 +234,30 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           updateReversePurposeErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposes/updatedDailyCalls", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const result = await purposeService.getUpdatedDailyCalls({
+          eserviceId: unsafeBrandId<EServiceId>(req.query.eserviceId),
+          descriptorId: unsafeBrandId<DescriptorId>(req.query.descriptorId),
+          ctx,
+        });
+
+        return res
+          .status(200)
+          .send(purposeApi.UpdatedDailyCallsResponse.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getUpdatedDailyCallsErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
