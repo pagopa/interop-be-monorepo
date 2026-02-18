@@ -3338,6 +3338,17 @@ export function catalogServiceBuilder(
         );
       }
 
+      const labelsInUse =
+        await readModelService.getEServiceInstanceLabelsByTemplateAndProducer({
+          templateId: template.id,
+          producerId: ctx.authData.organizationId,
+        });
+
+      const instanceLabel =
+        labelsInUse.length === 0
+          ? undefined
+          : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
+
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
@@ -3368,7 +3379,7 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
-            instanceLabel: undefined, // TODO
+            instanceLabel,
           },
         },
         readModelService,
