@@ -614,7 +614,15 @@ export function agreementServiceBuilder(
       const hasRelatedAgreements = agreements.length > 0;
 
       if (hasRelatedAgreements) {
-        logger.warn(`Found ${agreements.length} related active/suspended agreement(s) for agreement ${agreement.data.id}. Related agreement ids: ${agreements.map((a) => a.data.id).join(", ")}`);
+        logger.warn(
+          `Found ${
+            agreements.length
+          } related active/suspended agreement(s) for agreement ${
+            agreement.data.id
+          }. Related agreement ids: ${agreements
+            .map((a) => a.data.id)
+            .join(", ")}`
+        );
       }
       const updatedAgreement = {
         ...agreement.data,
