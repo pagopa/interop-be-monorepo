@@ -11,19 +11,8 @@ import pg from "pg";
 
 export const makeDrizzleConnection = (
   readModelSQLDbConfig: ReadModelSQLDbConfig
-): DrizzleReturnType => {
-  const pool = new pg.Pool({
-    host: readModelSQLDbConfig.readModelSQLDbHost,
-    port: readModelSQLDbConfig.readModelSQLDbPort,
-    database: readModelSQLDbConfig.readModelSQLDbName,
-    user: readModelSQLDbConfig.readModelSQLDbUsername,
-    password: readModelSQLDbConfig.readModelSQLDbPassword,
-    ssl: readModelSQLDbConfig.readModelSQLDbUseSSL
-      ? { rejectUnauthorized: false }
-      : undefined,
-  });
-  return drizzle({ client: pool });
-};
+): DrizzleReturnType =>
+  makeDrizzleConnectionWithCleanup(readModelSQLDbConfig).db;
 
 export const makeDrizzleConnectionWithCleanup = (
   readModelSQLDbConfig: ReadModelSQLDbConfig
