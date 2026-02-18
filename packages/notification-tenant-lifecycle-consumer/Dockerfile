@@ -27,8 +27,8 @@ COPY ./packages/models /app/packages/models
 COPY ./packages/api-clients /app/packages/api-clients
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-RUN pnpm build && \
+ARG NODE_HEAP_SIZE
+RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \

@@ -32,8 +32,8 @@ COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 COPY ./packages/m2m-event-db-models /app/packages/m2m-event-db-models
 
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-RUN pnpm build && \
+ARG NODE_HEAP_SIZE
+RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \
