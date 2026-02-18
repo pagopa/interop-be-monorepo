@@ -658,15 +658,6 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
-        /*
-          This condition can only check if state is ACTIVE
-          at this point the SUSPENDED state is not available
-          after validateActiveOrPendingAgreement validation.
-
-          TODO: this will not be true anymore if https://pagopa.atlassian.net/browse/IMN-626
-          is confirmed and gets fixed - the agreement could also be in SUSPENDED state.
-          Remove the comment at that point.
-        */
         isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
