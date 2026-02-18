@@ -3322,12 +3322,6 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      await assertEServiceNameAvailableForProducer(
-        seed.instanceLabel || template.name,
-        ctx.authData.organizationId,
-        readModelService
-      );
-
       if (
         isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         template.personalData === undefined
@@ -3349,18 +3343,35 @@ export function catalogServiceBuilder(
             }
           );
 
-        return labelsInUse.length === 0 || !labelsInUse.includes(undefined)
+        return labelsInUse.length === 0
           ? undefined
           : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
       };
 
-      const instanceLabel =
-        seed.instanceLabel || (await buildDefaultInstanceLabel());
+      // undefined = not provided → assign default label
+      // null      = explicitly no label → undefined
+      // string    = use the provided label
+      const instanceLabel = await match(seed.instanceLabel)
+        .with(undefined, async () => await buildDefaultInstanceLabel())
+        .with(null, () => undefined)
+        .with(P.string, (label) => label)
+        .exhaustive();
+
+      const instanceName =
+        instanceLabel === undefined
+          ? template.name
+          : `${template.name} - ${instanceLabel}`;
+
+      await assertEServiceNameAvailableForProducer(
+        instanceName,
+        ctx.authData.organizationId,
+        readModelService
+      );
 
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: template.name,
+            name: instanceName,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
