@@ -596,6 +596,13 @@ export function agreementServiceBuilder(
         activeDelegations.consumerDelegation
       );
 
+      /*
+       * We trust that the related agreements (active or suspended) retrieved below cannot
+       * trigger the scenario reported in PIN-5602. Due to the agreement lifecycle structure,
+       * there cannot be multiple related agreements in active or suspended state at the same time.
+       * This is guaranteed by the agreement creation check (verifyCreationConflictingAgreements),
+       * which creates a new draft only if the tuple consumer/eservice has no existing agreements for conflicting states (ie. active, suspended)
+       */
       const agreements = (
         await readModelService.getAllAgreements({
           consumerId: agreement.data.consumerId,
@@ -605,6 +612,10 @@ export function agreementServiceBuilder(
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
       const hasRelatedAgreements = agreements.length > 0;
+
+      if (hasRelatedAgreements) {
+        logger.warn(`Found ${agreements.length} related active/suspended agreement(s) for agreement ${agreement.data.id}. Related agreement ids: ${agreements.map((a) => a.data.id).join(", ")}`);
+      }
       const updatedAgreement = {
         ...agreement.data,
         ...updateSeed,
