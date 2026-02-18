@@ -28,7 +28,7 @@ COPY ./packages/datalake-data-export /app/packages/datalake-data-export
 COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 
-ARG NODE_HEAP_SIZE
+ARG NODE_HEAP_SIZE=4096
 RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \
