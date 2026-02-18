@@ -353,5 +353,40 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
+
+    async addClientUsers(
+      clientId: ClientId,
+      userId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Adding user ${userId} to client with id ${clientId}`);
+
+      const response = await clients.authorizationClient.client.addUsers(
+        { userIds: [userId] },
+        {
+          params: { clientId },
+          headers,
+        }
+      );
+
+      await pollClient(response, headers);
+    },
+    async removeClientUser(
+      clientId: ClientId,
+      userId: string,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Removing user ${userId} from client ${clientId}`);
+
+      const response = await clients.authorizationClient.client.removeUser(
+        undefined,
+        {
+          params: { clientId, userId },
+          headers,
+        }
+      );
+
+      await pollClient(response, headers);
+    },
   };
 }
