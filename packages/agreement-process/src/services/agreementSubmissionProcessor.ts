@@ -117,6 +117,7 @@ const calculateStamps = (
       activation: stamp,
     }))
     .with(agreementState.missingCertifiedAttributes, () => agreement.stamps)
+    .with(agreementState.suspended, () => agreement.stamps)
     .otherwise(() => {
       throw agreementNotInExpectedState(agreement.id, state);
     });

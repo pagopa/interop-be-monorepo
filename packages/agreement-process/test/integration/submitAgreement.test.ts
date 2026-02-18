@@ -27,8 +27,6 @@ import {
   getMockVerifiedTenantAttribute,
   getMockAuthData,
   randomArrayItem,
-  randomBoolean,
-  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -103,13 +101,32 @@ const draftAgreementSubmissionSeed = {
   // We set these flags because it's a possible case:
   // suspension flags are preserved in draft agreements that are created
   // during an upgrade operation (see agreementStatesFlows.test.ts)
-  suspendedByConsumer: randomBoolean(),
-  suspendedByProducer: randomBoolean(),
+  suspendedByConsumer: false,
+  suspendedByProducer: false,
   stamps: {
     suspensionByConsumer: getRandomPastStamp(generateId<UserId>()),
     suspensionByProducer: getRandomPastStamp(generateId<UserId>()),
   },
   suspendedAt: new Date(),
+};
+
+// Seeds for suspended draft agreements with different suspension flag combinations
+const suspendedByConsumerOnlySeed = {
+  ...draftAgreementSubmissionSeed,
+  suspendedByConsumer: true,
+  suspendedByProducer: false,
+};
+
+const suspendedByProducerOnlySeed = {
+  ...draftAgreementSubmissionSeed,
+  suspendedByConsumer: false,
+  suspendedByProducer: true,
+};
+
+const suspendedByBothSeed = {
+  ...draftAgreementSubmissionSeed,
+  suspendedByConsumer: true,
+  suspendedByProducer: true,
 };
 
 describe("submit agreement", () => {
@@ -2158,4 +2175,648 @@ describe("submit agreement", () => {
       });
     }
   );
+
+  // ============================================================================
+  // SUSPENDED DRAFT AGREEMENT SUBMISSION TESTS
+  // These tests verify the behavior when submitting a draft agreement that has
+  // suspension flags set (from a previous upgrade operation).
+  //
+  // Key behavior:
+  // - When producer === consumer AND requester is the tenant itself, the requester
+  //   matches BOTH the consumer and producer checks, so both suspension flags
+  //   are computed as FALSE (since target state is ACTIVE). Agreement goes to ACTIVE.
+  //   However, the STORED flags are preserved from the draft agreement.
+  // - When producer !== consumer, the producer's suspension flag is preserved
+  //   (not computed) because the consumer is not the producer.
+  // - Suspension flags in the stored agreement come from the original draft,
+  //   while the state is computed using the computed flags.
+  // ============================================================================
+
+  describe("Suspended draft agreement submission - Producer === Consumer", () => {
+    // When producer === consumer AND requester is the tenant itself,
+    // the requester matches both consumer and producer checks, so both
+    // suspension flags are computed based on target state (ACTIVE !== SUSPENDED = FALSE).
+    // This results in state = ACTIVE.
+    // The STORED flags are preserved from the draft agreement.
+    describe.each([
+      {
+        seed: suspendedByConsumerOnlySeed,
+        description: "suspendedByConsumer only",
+        expectedSuspendedByConsumer: true,
+        expectedSuspendedByProducer: false,
+      },
+      {
+        seed: suspendedByProducerOnlySeed,
+        description: "suspendedByProducer only",
+        expectedSuspendedByConsumer: false,
+        expectedSuspendedByProducer: true,
+      },
+      {
+        seed: suspendedByBothSeed,
+        description: "suspendedByBoth",
+        expectedSuspendedByConsumer: true,
+        expectedSuspendedByProducer: true,
+      },
+    ])(
+      "Suspension flags: $description - requester is the tenant itself",
+      ({ seed, expectedSuspendedByConsumer, expectedSuspendedByProducer }) => {
+        it.each([requesterIs.consumer, requesterIs.producer])(
+          "Requester === %s, should submit as ACTIVE with suspension flags preserved from draft",
+          async (requester) => {
+            const producerAndConsumerId = generateId<TenantId>();
+            const consumerNotesText = "This is a test";
+
+            const verifiedAttribute = getMockAttribute("Verified");
+            const declaredAttribute = getMockAttribute("Declared");
+            const certifiedAttribute = getMockAttribute("Certified");
+
+            const descriptor = {
+              ...getMockDescriptor(),
+              state: descriptorState.published,
+              attributes: {
+                certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+                declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+                verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
+              },
+            };
+
+            const eservice = getMockEService(
+              generateId<EServiceId>(),
+              producerAndConsumerId,
+              [descriptor]
+            );
+
+            const agreement: Agreement = {
+              ...getMockAgreement(eservice.id, producerAndConsumerId),
+              producerId: producerAndConsumerId,
+              descriptorId: eservice.descriptors[0].id,
+              ...seed,
+            };
+
+            const { authData, consumerDelegation, delegateConsumer } =
+              authDataAndDelegationsFromRequesterIs(requester, agreement);
+
+            const validVerifiedTenantAttribute: TenantAttribute = {
+              ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+              verifiedBy: [
+                {
+                  id: producerAndConsumerId,
+                  verificationDate: subDays(new Date(), 1),
+                  expirationDate: addDays(new Date(), 30),
+                  extensionDate: undefined,
+                  delegationId: undefined,
+                },
+              ],
+              revokedBy: [],
+            };
+
+            const validCertifiedTenantAttribute: TenantAttribute = {
+              ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+              revocationTimestamp: undefined,
+            };
+
+            const validDeclaredTenantAttribute: TenantAttribute = {
+              ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+              revocationTimestamp: undefined,
+              delegationId: consumerDelegation?.id,
+            };
+
+            const producerAndConsumer = {
+              ...getMockTenant(producerAndConsumerId, [
+                validVerifiedTenantAttribute,
+                validCertifiedTenantAttribute,
+                validDeclaredTenantAttribute,
+              ]),
+              mails: [
+                {
+                  id: generateId(),
+                  kind: tenantMailKind.ContactEmail,
+                  address: "test@test.com",
+                  createdAt: new Date(),
+                },
+              ],
+            };
+
+            await addOneEService(eservice);
+            await addOneTenant(producerAndConsumer);
+            await addOneAttribute(verifiedAttribute);
+            await addOneAttribute(declaredAttribute);
+            await addOneAttribute(certifiedAttribute);
+            await addOneAgreement(agreement);
+            await addSomeRandomDelegations(agreement, addOneDelegation);
+            await addDelegationsAndDelegates({
+              producerDelegation: undefined,
+              delegateProducer: undefined,
+              consumerDelegation,
+              delegateConsumer,
+            });
+
+            const submitAgreementResponse =
+              await agreementService.submitAgreement(
+                agreement.id,
+                { consumerNotes: consumerNotesText },
+                getMockContext({ authData })
+              );
+
+            // When producer === consumer and requester is the tenant itself,
+            // the state is ACTIVE because computed flags are FALSE.
+            // But stored flags are preserved from the draft agreement.
+            expect(submitAgreementResponse.data.state).toBe(
+              agreementState.active
+            );
+            expect(submitAgreementResponse.data.suspendedByConsumer).toBe(
+              expectedSuspendedByConsumer
+            );
+            expect(submitAgreementResponse.data.suspendedByProducer).toBe(
+              expectedSuspendedByProducer
+            );
+            expect(submitAgreementResponse.data.contract).toBeDefined();
+
+            const actualAgreementData = await readLastAgreementEvent(
+              agreement.id
+            );
+            expect(actualAgreementData.type).toBe("AgreementActivated");
+          }
+        );
+      }
+    );
+
+    // When producer === consumer AND requester is a delegate consumer,
+    // the delegate consumer's check matches the consumer side but NOT the producer side.
+    // - Consumer flag: computed as FALSE (delegate can act as consumer, target is active)
+    // - Producer flag: PRESERVED from draft (delegate is not the producer)
+    // If preserved producer flag is TRUE → state = SUSPENDED
+    // If preserved producer flag is FALSE → state = ACTIVE
+    describe.each([
+      {
+        seed: suspendedByConsumerOnlySeed,
+        description: "suspendedByConsumer only",
+        expectedSuspendedByConsumer: true,
+        expectedSuspendedByProducer: false,
+        expectedState: agreementState.active,
+        expectedEvent: "AgreementActivated",
+      },
+      {
+        seed: suspendedByProducerOnlySeed,
+        description: "suspendedByProducer only",
+        expectedSuspendedByConsumer: false,
+        expectedSuspendedByProducer: true,
+        expectedState: agreementState.suspended,
+        expectedEvent: "AgreementSubmitted",
+      },
+      {
+        seed: suspendedByBothSeed,
+        description: "suspendedByBoth",
+        expectedSuspendedByConsumer: true,
+        expectedSuspendedByProducer: true,
+        expectedState: agreementState.suspended,
+        expectedEvent: "AgreementSubmitted",
+      },
+    ])(
+      "Suspension flags: $description - requester is delegate",
+      ({ seed, expectedSuspendedByConsumer, expectedSuspendedByProducer, expectedState, expectedEvent }) => {
+        it.each([true, false])(
+          "Requester === delegateConsumer, with producer delegation: %s",
+          async (withProducerDelegation) => {
+            const producerAndConsumerId = generateId<TenantId>();
+            const consumerNotesText = "This is a test";
+
+            const verifiedAttribute = getMockAttribute("Verified");
+            const declaredAttribute = getMockAttribute("Declared");
+            const certifiedAttribute = getMockAttribute("Certified");
+
+            const descriptor = {
+              ...getMockDescriptor(),
+              state: descriptorState.published,
+              attributes: {
+                certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+                declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+                verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
+              },
+            };
+
+            const eservice = getMockEService(
+              generateId<EServiceId>(),
+              producerAndConsumerId,
+              [descriptor]
+            );
+
+            const agreement: Agreement = {
+              ...getMockAgreement(eservice.id, producerAndConsumerId),
+              producerId: producerAndConsumerId,
+              descriptorId: eservice.descriptors[0].id,
+              ...seed,
+            };
+
+            const { authData, consumerDelegation, delegateConsumer } =
+              authDataAndDelegationsFromRequesterIs(
+                requesterIs.delegateConsumer,
+                agreement
+              );
+
+            const delegateProducer = withProducerDelegation
+              ? getMockTenant()
+              : undefined;
+            const producerDelegation = delegateProducer
+              ? getMockDelegation({
+                  kind: delegationKind.delegatedProducer,
+                  delegatorId: agreement.producerId,
+                  delegateId: delegateProducer.id,
+                  state: delegationState.active,
+                  eserviceId: agreement.eserviceId,
+                })
+              : undefined;
+
+            const validVerifiedTenantAttribute: TenantAttribute = {
+              ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+              verifiedBy: [
+                {
+                  id: producerAndConsumerId,
+                  verificationDate: subDays(new Date(), 1),
+                  expirationDate: addDays(new Date(), 30),
+                  extensionDate: undefined,
+                  delegationId: producerDelegation?.id,
+                },
+              ],
+              revokedBy: [],
+            };
+
+            const validCertifiedTenantAttribute: TenantAttribute = {
+              ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+              revocationTimestamp: undefined,
+            };
+
+            const validDeclaredTenantAttribute: TenantAttribute = {
+              ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+              revocationTimestamp: undefined,
+              delegationId: consumerDelegation?.id,
+            };
+
+            const producerAndConsumer = {
+              ...getMockTenant(producerAndConsumerId, [
+                validVerifiedTenantAttribute,
+                validCertifiedTenantAttribute,
+                validDeclaredTenantAttribute,
+              ]),
+              mails: [
+                {
+                  id: generateId(),
+                  kind: tenantMailKind.ContactEmail,
+                  address: "test@test.com",
+                  createdAt: new Date(),
+                },
+              ],
+            };
+
+            await addOneEService(eservice);
+            await addOneTenant(producerAndConsumer);
+            await addOneAttribute(verifiedAttribute);
+            await addOneAttribute(declaredAttribute);
+            await addOneAttribute(certifiedAttribute);
+            await addOneAgreement(agreement);
+            await addSomeRandomDelegations(agreement, addOneDelegation);
+            await addDelegationsAndDelegates({
+              producerDelegation,
+              delegateProducer,
+              consumerDelegation,
+              delegateConsumer,
+            });
+
+            const submitAgreementResponse =
+              await agreementService.submitAgreement(
+                agreement.id,
+                { consumerNotes: consumerNotesText },
+                getMockContext({ authData })
+              );
+
+            // When producer === consumer and delegate submits:
+            // - Consumer flag is computed as FALSE (delegate acts as consumer, target is active)
+            // - Producer flag is PRESERVED from draft (delegate is not producer)
+            // If preserved producer flag is TRUE → state = SUSPENDED
+            // If preserved producer flag is FALSE → state = ACTIVE
+            expect(submitAgreementResponse.data.state).toBe(expectedState);
+            expect(submitAgreementResponse.data.suspendedByConsumer).toBe(
+              expectedSuspendedByConsumer
+            );
+            expect(submitAgreementResponse.data.suspendedByProducer).toBe(
+              expectedSuspendedByProducer
+            );
+
+            const actualAgreementData = await readLastAgreementEvent(
+              agreement.id
+            );
+            expect(actualAgreementData.type).toBe(expectedEvent);
+          }
+        );
+      }
+    );
+  });
+
+  describe("Suspended draft agreement submission - Producer !== Consumer", () => {
+    // When producer !== consumer with automatic approval policy,
+    // the consumer submitting cannot clear the producer's suspension flag.
+    // - Consumer flag: computed as FALSE (requester is consumer, target is active)
+    // - Producer flag: PRESERVED from draft (requester is not producer)
+    // If preserved producer flag is TRUE → state = SUSPENDED
+    // If preserved producer flag is FALSE → state = ACTIVE
+    describe.each([
+      {
+        seed: suspendedByConsumerOnlySeed,
+        description: "suspendedByConsumer only",
+        expectedSuspendedByConsumer: true,
+        expectedSuspendedByProducer: false,
+        expectedState: agreementState.active,
+        expectedEvent: "AgreementActivated",
+      },
+      {
+        seed: suspendedByProducerOnlySeed,
+        description: "suspendedByProducer only",
+        expectedSuspendedByConsumer: false,
+        expectedSuspendedByProducer: true,
+        expectedState: agreementState.suspended,
+        expectedEvent: "AgreementSubmitted",
+      },
+      {
+        seed: suspendedByBothSeed,
+        description: "suspendedByBoth",
+        expectedSuspendedByConsumer: true,
+        expectedSuspendedByProducer: true,
+        expectedState: agreementState.suspended,
+        expectedEvent: "AgreementSubmitted",
+      },
+    ])(
+      "Suspension flags: $description - automatic approval",
+      ({ seed, expectedSuspendedByConsumer, expectedSuspendedByProducer, expectedState, expectedEvent }) => {
+        it.each([requesterIs.consumer, requesterIs.delegateConsumer])(
+          "Requester === %s, should preserve suspension flags",
+          async (requester) => {
+            const consumerId = generateId<TenantId>();
+            const producer = getMockTenant();
+            const consumerNotesText = "This is a test";
+
+            const verifiedAttribute = getMockAttribute("Verified");
+            const declaredAttribute = getMockAttribute("Declared");
+            const certifiedAttribute = getMockAttribute("Certified");
+
+            const descriptor = {
+              ...getMockDescriptor(),
+              state: descriptorState.published,
+              agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+              attributes: {
+                certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+                declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+                verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
+              },
+            };
+
+            const eservice = getMockEService(
+              generateId<EServiceId>(),
+              producer.id,
+              [descriptor]
+            );
+
+            const agreement: Agreement = {
+              ...getMockAgreement(eservice.id, consumerId),
+              producerId: producer.id,
+              descriptorId: eservice.descriptors[0].id,
+              ...seed,
+            };
+
+            const { authData, consumerDelegation, delegateConsumer } =
+              authDataAndDelegationsFromRequesterIs(requester, agreement);
+
+            const validVerifiedTenantAttribute: TenantAttribute = {
+              ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+              verifiedBy: [
+                {
+                  id: producer.id,
+                  verificationDate: subDays(new Date(), 1),
+                  expirationDate: addDays(new Date(), 30),
+                  extensionDate: undefined,
+                  delegationId: undefined,
+                },
+              ],
+              revokedBy: [],
+            };
+
+            const validCertifiedTenantAttribute: TenantAttribute = {
+              ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+              revocationTimestamp: undefined,
+            };
+
+            const validDeclaredTenantAttribute: TenantAttribute = {
+              ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+              revocationTimestamp: undefined,
+              delegationId: consumerDelegation?.id,
+            };
+
+            const consumer = {
+              ...getMockTenant(consumerId, [
+                validVerifiedTenantAttribute,
+                validCertifiedTenantAttribute,
+                validDeclaredTenantAttribute,
+              ]),
+              mails: [
+                {
+                  id: generateId(),
+                  kind: tenantMailKind.ContactEmail,
+                  address: "test@test.com",
+                  createdAt: new Date(),
+                },
+              ],
+            };
+
+            await addOneEService(eservice);
+            await addOneTenant(producer);
+            await addOneTenant(consumer);
+            await addOneAttribute(verifiedAttribute);
+            await addOneAttribute(declaredAttribute);
+            await addOneAttribute(certifiedAttribute);
+            await addOneAgreement(agreement);
+            await addSomeRandomDelegations(agreement, addOneDelegation);
+            await addDelegationsAndDelegates({
+              producerDelegation: undefined,
+              delegateProducer: undefined,
+              consumerDelegation,
+              delegateConsumer,
+            });
+
+            const submitAgreementResponse =
+              await agreementService.submitAgreement(
+                agreement.id,
+                { consumerNotes: consumerNotesText },
+                getMockContext({ authData })
+              );
+
+            // Verify that suspension flags are preserved from the draft
+            expect(submitAgreementResponse.data.suspendedByConsumer).toBe(
+              expectedSuspendedByConsumer
+            );
+            expect(submitAgreementResponse.data.suspendedByProducer).toBe(
+              expectedSuspendedByProducer
+            );
+
+            // When producer !== consumer:
+            // - Consumer flag is computed as FALSE (requester is consumer, target is active)
+            // - Producer flag is PRESERVED from draft
+            // If preserved producer flag is TRUE → state = SUSPENDED
+            // If preserved producer flag is FALSE → state = ACTIVE
+            expect(submitAgreementResponse.data.state).toBe(expectedState);
+
+            const actualAgreementData = await readLastAgreementEvent(
+              agreement.id
+            );
+            expect(actualAgreementData.type).toBe(expectedEvent);
+          }
+        );
+      }
+    );
+
+    // When producer !== consumer with manual approval policy,
+    // agreement goes to PENDING with suspension flags preserved.
+    describe.each([
+      {
+        seed: suspendedByConsumerOnlySeed,
+        description: "suspendedByConsumer only",
+        expectedSuspendedByConsumer: true,
+        expectedSuspendedByProducer: false,
+      },
+      {
+        seed: suspendedByProducerOnlySeed,
+        description: "suspendedByProducer only",
+        expectedSuspendedByConsumer: false,
+        expectedSuspendedByProducer: true,
+      },
+      {
+        seed: suspendedByBothSeed,
+        description: "suspendedByBoth",
+        expectedSuspendedByConsumer: true,
+        expectedSuspendedByProducer: true,
+      },
+    ])(
+      "Suspension flags: $description - manual approval",
+      ({ seed, expectedSuspendedByConsumer, expectedSuspendedByProducer }) => {
+        it.each([requesterIs.consumer, requesterIs.delegateConsumer])(
+          "Requester === %s, should submit as PENDING with flags preserved",
+          async (requester) => {
+            const consumerId = generateId<TenantId>();
+            const producer = getMockTenant();
+            const consumerNotesText = "This is a test";
+
+            const verifiedAttribute = getMockAttribute("Verified");
+            const declaredAttribute = getMockAttribute("Declared");
+            const certifiedAttribute = getMockAttribute("Certified");
+
+            const descriptor = {
+              ...getMockDescriptor(),
+              state: descriptorState.published,
+              agreementApprovalPolicy: agreementApprovalPolicy.manual,
+              attributes: {
+                certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+                declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+                verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
+              },
+            };
+
+            const eservice = getMockEService(
+              generateId<EServiceId>(),
+              producer.id,
+              [descriptor]
+            );
+
+            const agreement: Agreement = {
+              ...getMockAgreement(eservice.id, consumerId),
+              producerId: producer.id,
+              descriptorId: eservice.descriptors[0].id,
+              ...seed,
+            };
+
+            const { authData, consumerDelegation, delegateConsumer } =
+              authDataAndDelegationsFromRequesterIs(requester, agreement);
+
+            const validVerifiedTenantAttribute: TenantAttribute = {
+              ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+              verifiedBy: [
+                {
+                  id: producer.id,
+                  verificationDate: subDays(new Date(), 1),
+                  expirationDate: undefined,
+                  extensionDate: undefined,
+                  delegationId: undefined,
+                },
+              ],
+              revokedBy: [],
+            };
+
+            const validCertifiedTenantAttribute: TenantAttribute = {
+              ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+              revocationTimestamp: undefined,
+            };
+
+            const validDeclaredTenantAttribute: TenantAttribute = {
+              ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+              revocationTimestamp: undefined,
+              delegationId: consumerDelegation?.id,
+            };
+
+            const consumer = {
+              ...getMockTenant(consumerId, [
+                validVerifiedTenantAttribute,
+                validCertifiedTenantAttribute,
+                validDeclaredTenantAttribute,
+              ]),
+              mails: [
+                {
+                  id: generateId(),
+                  kind: tenantMailKind.ContactEmail,
+                  address: "test@test.com",
+                  createdAt: new Date(),
+                },
+              ],
+            };
+
+            await addOneEService(eservice);
+            await addOneTenant(producer);
+            await addOneTenant(consumer);
+            await addOneAttribute(verifiedAttribute);
+            await addOneAttribute(declaredAttribute);
+            await addOneAttribute(certifiedAttribute);
+            await addOneAgreement(agreement);
+            await addSomeRandomDelegations(agreement, addOneDelegation);
+            await addDelegationsAndDelegates({
+              producerDelegation: undefined,
+              delegateProducer: undefined,
+              consumerDelegation,
+              delegateConsumer,
+            });
+
+            const submitAgreementResponse =
+              await agreementService.submitAgreement(
+                agreement.id,
+                { consumerNotes: consumerNotesText },
+                getMockContext({ authData })
+              );
+
+            // With manual approval, agreement goes to PENDING
+            // Suspension flags are still preserved
+            expect(submitAgreementResponse.data.state).toBe(
+              agreementState.pending
+            );
+            expect(submitAgreementResponse.data.suspendedByConsumer).toBe(
+              expectedSuspendedByConsumer
+            );
+            expect(submitAgreementResponse.data.suspendedByProducer).toBe(
+              expectedSuspendedByProducer
+            );
+            expect(submitAgreementResponse.data.contract).toBeUndefined();
+
+            const actualAgreementData = await readLastAgreementEvent(
+              agreement.id
+            );
+            expect(actualAgreementData.type).toBe("AgreementSubmitted");
+          }
+        );
+      }
+    );
+  });
 });
