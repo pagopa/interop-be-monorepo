@@ -565,7 +565,7 @@ export function agreementServiceBuilder(
         authData.organizationId,
         nextStateByAttributes,
         activeDelegations.consumerDelegation?.delegateId
-      )
+      );
 
       const setToMissingCertifiedAttributesByPlatformEvent =
         maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(

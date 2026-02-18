@@ -463,7 +463,11 @@ export const validateActiveSuspendedOrPendingAgreement = (
   agreementId: AgreementId,
   state: AgreementState
 ): void => {
-  if (agreementState.active !== state && agreementState.pending !== state && agreementState.suspended !== state) {
+  if (
+    agreementState.active !== state &&
+    agreementState.pending !== state &&
+    agreementState.suspended !== state
+  ) {
     throw agreementSubmissionFailed(agreementId);
   }
 };
