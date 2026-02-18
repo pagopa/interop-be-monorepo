@@ -1140,7 +1140,7 @@ export function purposeServiceBuilder(
           purpose.data.consumerId,
           readModelService
         );
-        // the validation for receive mode are redundant because the same ones have been already performed when the risk analysis has been added to the eservice
+        // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode !== eserviceMode.receive) {
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
