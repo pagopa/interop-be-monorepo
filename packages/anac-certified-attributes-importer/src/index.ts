@@ -6,7 +6,7 @@ import {
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
-  makeDrizzleConnection,
+  makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
@@ -16,7 +16,7 @@ import { importAttributes } from "./service/processor.js";
 import { readModelQueriesBuilderSQL } from "./service/readmodelQueriesServiceSQL.js";
 
 const sftpClient: SftpClient = new SftpClient(config);
-const db = makeDrizzleConnection(config);
+const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
 const readModelQueriesSQL = readModelQueriesBuilderSQL(
@@ -46,7 +46,4 @@ await importAttributes(
   correlationId
 );
 
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
+await cleanup();
