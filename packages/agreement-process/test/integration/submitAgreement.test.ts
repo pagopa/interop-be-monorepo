@@ -1284,9 +1284,6 @@ describe("submit agreement", () => {
             state: agreementState.active,
             consumerNotes: consumerNotesText,
             contract: expectedContract,
-            suspendedByConsumer: undefined,
-            suspendedByProducer: undefined,
-            suspendedAt: undefined,
             suspendedByPlatform: false,
             verifiedAttributes: [
               {
@@ -1741,9 +1738,6 @@ describe("submit agreement", () => {
             state: agreementState.active,
             consumerNotes: consumerNotesText,
             contract: expectedContract,
-            suspendedByConsumer: undefined,
-            suspendedByProducer: undefined,
-            suspendedAt: undefined,
             suspendedByPlatform: false,
             certifiedAttributes: [
               {
