@@ -115,6 +115,35 @@ describe("IPA metadata polling", () => {
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
+  it("should fail assign when polling reaches max retries", async () => {
+    internalUpsertTenantMock.mockResolvedValue({ metadata: { version: 5 } });
+
+    const pollingError = new Error("pollingMaxRetriesExceeded");
+    const pollingRunner = vi.fn().mockRejectedValue(pollingError);
+
+    createPollingByConditionMock.mockReturnValue(pollingRunner);
+
+    await expect(
+      assignNewAttributes(
+        [
+          {
+            externalId: { origin: "IPA", value: "123" },
+            name: "tenant",
+            certifiedAttributes: [{ origin: "IPA", code: "A1" }],
+          },
+        ],
+        tenantProcessClient as never,
+        readModelServiceSQL as never,
+        headers,
+        logger
+      )
+    ).rejects.toThrowError(pollingError);
+
+    expect(internalUpsertTenantMock).toHaveBeenCalledTimes(1);
+    expect(createPollingByConditionMock).toHaveBeenCalledTimes(1);
+    expect(pollingRunner).toHaveBeenCalledTimes(1);
+  });
+
   it("should poll read model after revoke when metadata version is returned", async () => {
     internalRevokeCertifiedAttributeMock.mockResolvedValue({
       metadata: { version: 5 },

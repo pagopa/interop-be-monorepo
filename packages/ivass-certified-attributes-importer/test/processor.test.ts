@@ -138,6 +138,47 @@ describe("IVASS Certified Attributes Importer", () => {
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
+  it("should fail if polling max retries are reached after assign", async () => {
+    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
+    D0001;2020-12-02;9999-12-31;Org1;0000012345678901`;
+
+    const readModelTenants: Tenant[] = [
+      {
+        ...persistentTenant,
+        externalId: { origin: "IVASS", value: "12345678901" },
+        attributes: [],
+      },
+    ];
+
+    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+
+    vi.spyOn(readModelQueriesMock, "getIVASSTenants").mockImplementation(
+      getTenantsMockGenerator((_) => readModelTenants)
+    );
+
+    internalAssignCertifiedAttributeSpy.mockResolvedValueOnce(5);
+
+    await expect(
+      importAttributes(
+        localDownloadCSVMock,
+        readModelQueriesMock,
+        tenantProcessMock,
+        refreshableTokenMock,
+        10,
+        {
+          defaultPollingMaxRetries: 1,
+          defaultPollingRetryDelay: 1,
+        },
+        "ivass-tenant-id",
+        genericLogger,
+        generateId()
+      )
+    ).rejects.toThrowError();
+
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(getTenantByIdWithMetadataSpy).toBeCalled();
+  });
+
   it("should succeed with fields starting with quotes", async () => {
     const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
     D0001;2020-12-02;9999-12-31;"DE ROTTERDAM" BUILDING, 29TH FLOOR, EAST TOWER, WILHELMINAKADE 149A (3072 AP)  ROTTERDAM PAESI BASSI;0000012345678901
