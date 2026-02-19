@@ -5,7 +5,7 @@ import {
   authRole,
   getLatestVersionFormRules,
 } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import {
   generateId,
   pollingMaxRetriesExceeded,
@@ -44,7 +44,8 @@ describe("PUT /purposeTemplates/:purposeTemplateId/riskAnalysis router test", ()
   ) =>
     request(api)
       .put(`${appBasePath}/purposeTemplates/${templateId}/riskAnalysis`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
