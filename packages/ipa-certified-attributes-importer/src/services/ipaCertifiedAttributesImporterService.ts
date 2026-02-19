@@ -3,6 +3,7 @@ import {
   attributeRegistryApi,
   createZodiosClientEnhancedWithMetadata,
   tenantApi,
+  ZodiosClientWithMetadata,
 } from "pagopa-interop-api-clients";
 import {
   InteropHeaders,
@@ -36,6 +37,17 @@ export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 // Tipologia Società in Conto Economico Consolidato
 export const ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY =
   "Societa' in Conto Economico Consolidato";
+
+export type TenantProcessClient = ZodiosClientWithMetadata<
+  ReturnType<typeof tenantApi.createInternalApiClient>
+>;
+
+export function createTenantProcessClient(): TenantProcessClient {
+  return createZodiosClientEnhancedWithMetadata(
+    tenantApi.createInternalApiClient,
+    config.tenantProcessUrl
+  );
+}
 
 export type TenantSeed = {
   origin: string;
@@ -317,15 +329,11 @@ export async function getAttributesToAssign(
 
 export async function assignNewAttributes(
   attributesToAssign: tenantApi.InternalTenantSeed[],
+  tenantClient: TenantProcessClient,
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger
 ): Promise<void> {
-  const tenantClient = createZodiosClientEnhancedWithMetadata(
-    tenantApi.createInternalApiClient,
-    config.tenantProcessUrl
-  );
-
   for (const attributeToAssign of attributesToAssign) {
     loggerInstance.info(
       `Updating tenant ${
@@ -446,15 +454,11 @@ export async function revokeAttributes(
     aOrigin: string;
     aCode: string;
   }>,
+  tenantClient: TenantProcessClient,
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger
 ): Promise<void> {
-  const tenantClient = createZodiosClientEnhancedWithMetadata(
-    tenantApi.createInternalApiClient,
-    config.tenantProcessUrl
-  );
-
   for (const a of attributesToRevoke) {
     loggerInstance.info(
       `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`

@@ -14,6 +14,7 @@ import { config } from "./config/config.js";
 import { getRegistryData } from "./services/openDataService.js";
 import {
   assignNewAttributes,
+  createTenantProcessClient,
   createNewAttributes,
   getAttributesToAssign,
   getAttributesToRevoke,
@@ -67,6 +68,8 @@ try {
 
   const token = (await refreshableToken.get()).serialized;
   const headers = getInteropHeaders({ token, correlationId });
+  const tenantProcessClient = createTenantProcessClient();
+
   await createNewAttributes(
     newAttributes,
     readModelServiceSQL,
@@ -85,6 +88,7 @@ try {
 
   await assignNewAttributes(
     attributesToAssign,
+    tenantProcessClient,
     readModelServiceSQL,
     headers,
     loggerInstance
@@ -100,6 +104,7 @@ try {
 
   await revokeAttributes(
     attributesToRevoke,
+    tenantProcessClient,
     readModelServiceSQL,
     headers,
     loggerInstance

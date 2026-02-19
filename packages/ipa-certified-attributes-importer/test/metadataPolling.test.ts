@@ -40,6 +40,11 @@ describe("IPA metadata polling", () => {
 
   const headers = {} as InteropHeaders;
 
+  const tenantProcessClient = {
+    internalUpsertTenant: internalUpsertTenantMock,
+    internalRevokeCertifiedAttribute: internalRevokeCertifiedAttributeMock,
+  };
+
   const readModelServiceSQL = {
     getTenantByExternalIdWithMetadata: vi.fn(async () => ({
       metadata: { version: 5 },
@@ -77,6 +82,7 @@ describe("IPA metadata polling", () => {
           certifiedAttributes: [{ origin: "IPA", code: "A1" }],
         },
       ],
+      tenantProcessClient as never,
       readModelServiceSQL as never,
       headers,
       logger
@@ -99,6 +105,7 @@ describe("IPA metadata polling", () => {
           certifiedAttributes: [{ origin: "IPA", code: "A1" }],
         },
       ],
+      tenantProcessClient as never,
       readModelServiceSQL as never,
       headers,
       logger
@@ -126,6 +133,7 @@ describe("IPA metadata polling", () => {
           aCode: "A1",
         },
       ],
+      tenantProcessClient as never,
       readModelServiceSQL as never,
       headers,
       logger
