@@ -28,7 +28,6 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
-  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -113,87 +112,6 @@ const draftAgreementSubmissionSeed = {
 };
 
 describe("submit agreement", () => {
-  async function addRelatedAgreements(agreement: Agreement): Promise<{
-    archivableRelatedAgreement1: Agreement;
-    archivableRelatedAgreement2: Agreement;
-    nonArchivableRelatedAgreement: Agreement;
-  }> {
-    const archivableRelatedAgreement1: Agreement = {
-      ...getMockAgreement(),
-      consumerId: agreement.consumerId,
-      eserviceId: agreement.eserviceId,
-      state: agreementState.active,
-    };
-
-    const archivableRelatedAgreement2: Agreement = {
-      ...getMockAgreement(),
-      consumerId: agreement.consumerId,
-      eserviceId: agreement.eserviceId,
-      state: agreementState.suspended,
-    };
-
-    const nonArchivableRelatedAgreement: Agreement = {
-      ...getMockAgreement(),
-      consumerId: agreement.consumerId,
-      eserviceId: agreement.eserviceId,
-      state: randomArrayItem(
-        Object.values(agreementState).filter(
-          (state) =>
-            !agreementSubmissionConflictingStates.includes(state) &&
-            state !== agreementState.active &&
-            state !== agreementState.suspended
-        )
-      ),
-    };
-
-    await addOneAgreement(archivableRelatedAgreement1);
-    await addOneAgreement(archivableRelatedAgreement2);
-    await addOneAgreement(nonArchivableRelatedAgreement);
-    return {
-      archivableRelatedAgreement1,
-      archivableRelatedAgreement2,
-      nonArchivableRelatedAgreement,
-    };
-  }
-
-  async function testRelatedAgreementsArchiviation(relatedAgreements: {
-    archivableRelatedAgreement1: Agreement;
-    archivableRelatedAgreement2: Agreement;
-    nonArchivableRelatedAgreement: Agreement;
-  }): Promise<void> {
-    // Verifying archiviation relating agreements
-    const archiveEvent1 = await readLastAgreementEvent(
-      relatedAgreements.archivableRelatedAgreement1.id
-    );
-    const archiveEvent2 = await readLastAgreementEvent(
-      relatedAgreements.archivableRelatedAgreement2.id
-    );
-    const nonArchivedAgreementEvent = await readLastAgreementEvent(
-      relatedAgreements.nonArchivableRelatedAgreement.id
-    );
-
-    expect(archiveEvent1).toMatchObject({
-      type: "AgreementArchivedByUpgrade",
-      event_version: 2,
-      version: "1",
-      stream_id: relatedAgreements.archivableRelatedAgreement1.id,
-    });
-
-    expect(archiveEvent2).toMatchObject({
-      type: "AgreementArchivedByUpgrade",
-      event_version: 2,
-      version: "1",
-      stream_id: relatedAgreements.archivableRelatedAgreement2.id,
-    });
-
-    expect(nonArchivedAgreementEvent).toMatchObject({
-      type: "AgreementAdded",
-      event_version: 2,
-      version: "0",
-      stream_id: relatedAgreements.nonArchivableRelatedAgreement.id,
-    });
-  }
-
   it("should throw an agreementNotFound when Agreement not found", async () => {
     await addOneAgreement(getMockAgreement());
 
