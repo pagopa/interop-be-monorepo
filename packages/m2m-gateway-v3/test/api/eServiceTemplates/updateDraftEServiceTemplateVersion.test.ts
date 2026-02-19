@@ -7,6 +7,7 @@ import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   generateToken,
   getMockedApiEserviceTemplateVersion,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
@@ -37,13 +38,14 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
     token: string,
     templateId: string = generateId(),
     versionId: string = generateId(),
-    body: m2mGatewayApiV3.EServiceTemplateVersionDraftUpdateSeed = versionSeed
+    body: m2mGatewayApiV3.EServiceTemplateVersionDraftUpdateSeed = versionSeed,
   ) =>
     request(api)
       .patch(
-        `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}`
+        `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}`,
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
@@ -55,11 +57,11 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MTemplateVersionResponse);
-    }
+    },
   );
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role)),
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -104,7 +106,7 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, generateId(), generateId(), seed);
       expect(res.status).toBe(200);
-    }
+    },
   );
 
   it.each([
@@ -141,11 +143,11 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
         token,
         generateId(),
         generateId(),
-        body as typeof versionSeed
+        body as typeof versionSeed,
       );
 
       expect(res.status).toBe(400);
-    }
+    },
   );
 
   it.each([
@@ -153,7 +155,7 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
     missingMetadata(),
     pollingMaxRetriesExceeded(
       config.defaultPollingMaxRetries,
-      config.defaultPollingRetryDelay
+      config.defaultPollingRetryDelay,
     ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockEServiceTemplateService.updateDraftEServiceTemplateVersion = vi
@@ -179,6 +181,6 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
       const res = await makeRequest(token);
 
       expect(res.status).toBe(500);
-    }
+    },
   );
 });

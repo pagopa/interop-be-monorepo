@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import {
   EServiceId,
   generateId,
@@ -36,7 +36,8 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
   ) =>
     request(api)
       .post(`${appBasePath}/purposeTemplates/${purposeTemplateId}/eservices`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
