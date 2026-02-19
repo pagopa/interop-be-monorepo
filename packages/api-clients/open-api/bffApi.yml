@@ -26194,6 +26194,8 @@ components:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
         isNewTemplateVersionAvailable:
           type: boolean
+        instanceLabel:
+          type: string
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -29315,6 +29317,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
+        instanceLabel:
+          type: string
     EServiceTemplateInstances:
       type: object
       additionalProperties: false
