@@ -25853,6 +25853,8 @@ components:
       properties:
         instanceLabel:
           type: string
+          minLength: 1
+          maxLength: 12
       required:
         - instanceLabel
     EServiceSignalHubUpdateSeed:
