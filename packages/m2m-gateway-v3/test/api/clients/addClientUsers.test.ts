@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
@@ -21,7 +21,8 @@ describe("POST /clients/:clientId/users router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/clients/${clientId}/users`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

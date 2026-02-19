@@ -4,6 +4,7 @@ import {
   generateToken,
   getMockedApiCertifiedTenantAttribute,
   getMockedApiTenant,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import {
   TenantId,
@@ -37,7 +38,8 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/tenants/${tenantId}/certifiedAttributes`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

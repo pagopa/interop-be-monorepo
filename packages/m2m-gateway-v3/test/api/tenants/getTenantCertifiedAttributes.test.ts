@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiCertifiedTenantAttribute,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -43,7 +44,8 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     request(api)
       .get(`${appBasePath}/tenants/${generateId()}/certifiedAttributes`)
       .query(query)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ROLE,

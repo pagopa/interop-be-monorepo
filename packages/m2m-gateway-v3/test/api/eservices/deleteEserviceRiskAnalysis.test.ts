@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiEservice,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -23,7 +24,8 @@ describe("DELETE /eservices/:eserviceId/riskAnalyses/:riskAnalysisId router test
       .delete(
         `${appBasePath}/eservices/${eserviceId}/riskAnalyses/${riskAnalysisId}`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
