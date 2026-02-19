@@ -983,11 +983,13 @@ export function catalogServiceBuilder(
         ? `${template.name} - ${eserviceSeed.instanceLabel}`
         : template.name;
 
-      await assertEServiceNameAvailableForProducer(
-        instanceName,
-        eservice.data.producerId,
-        readModelService
-      );
+      if (instanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          instanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
 
       const updatedEService: EService = {
         ...eservice.data,
