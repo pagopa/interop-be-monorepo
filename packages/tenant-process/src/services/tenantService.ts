@@ -1025,7 +1025,7 @@ export function tenantServiceBuilder(
         attributeExternalId: string;
       },
       { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
-    ): Promise<void> {
+    ): Promise<{ version: number }> {
       logger.info(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
       );
@@ -1078,8 +1078,12 @@ export function tenantServiceBuilder(
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
+        return { version: tenantToModify.metadata.version + 2 };
       } else {
-        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+        const event = await repository.createEvent(
+          tenantCertifiedAttributeAssignedEvent
+        );
+        return { version: event.newVersion };
       }
     },
 
@@ -1096,7 +1100,7 @@ export function tenantServiceBuilder(
         attributeExternalId: string;
       },
       { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
-    ): Promise<void> {
+    ): Promise<{ version: number }> {
       logger.info(
         `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`
       );
@@ -1161,8 +1165,12 @@ export function tenantServiceBuilder(
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
+        return { version: tenantToModify.metadata.version + 2 };
       } else {
-        await repository.createEvent(tenantCertifiedAttributeRevokedEvent);
+        const event = await repository.createEvent(
+          tenantCertifiedAttributeRevokedEvent
+        );
+        return { version: event.newVersion };
       }
     },
 
@@ -1443,7 +1451,7 @@ export function tenantServiceBuilder(
     async internalUpsertTenant(
       internalTenantSeed: tenantApi.InternalTenantSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
-    ): Promise<Tenant> {
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Updating tenant with external id ${internalTenantSeed.externalId.origin}/${internalTenantSeed.externalId.value} via internal request`
       );
@@ -1537,7 +1545,10 @@ export function tenantServiceBuilder(
       }
       await repository.createEvents(events);
 
-      return tenantWithUpdatedKind;
+      return {
+        data: tenantWithUpdatedKind,
+        metadata: { version: existingTenant.metadata.version + events.length },
+      };
     },
     async m2mUpsertTenant(
       m2mTenantSeed: tenantApi.M2MTenantSeed,
