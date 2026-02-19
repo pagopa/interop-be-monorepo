@@ -21,6 +21,8 @@ import {
   toM2MGatewayApiPurpose,
 } from "../api/purposeApiConverter.js";
 import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
+import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
+import { getSelfcareUserById } from "./userService.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -304,6 +306,87 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       await pollClientKeyUntilDeletion(clientId, keyId, headers);
+    },
+    async getClientUsers(
+      clientId: string,
+      ctx: WithLogger<M2MGatewayAppContext>,
+      { limit, offset }: m2mGatewayApiV3.GetClientUsersQueryParams
+    ): Promise<m2mGatewayApiV3.Users> {
+      ctx.logger.info(`Retrieving users for client ${clientId}`);
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: ctx.authData.organizationId },
+          headers: ctx.headers,
+        });
+
+      assertTenantHasSelfcareId(tenant);
+
+      const clientUsers =
+        await clients.authorizationClient.client.getClientUsers({
+          params: { clientId },
+          headers: ctx.headers,
+        });
+
+      const users = await Promise.all(
+        clientUsers.data.map(async (id) =>
+          getSelfcareUserById(
+            clients,
+            id,
+            tenant.selfcareId,
+            ctx.headers["X-Correlation-Id"]
+          )
+        )
+      );
+
+      const results: m2mGatewayApiV3.User[] = users.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results,
+        pagination: {
+          limit,
+          offset,
+          totalCount: users.length,
+        },
+      };
+    },
+
+    async addClientUsers(
+      clientId: ClientId,
+      userId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Adding user ${userId} to client with id ${clientId}`);
+
+      const response = await clients.authorizationClient.client.addUsers(
+        { userIds: [userId] },
+        {
+          params: { clientId },
+          headers,
+        }
+      );
+
+      await pollClient(response, headers);
+    },
+    async removeClientUser(
+      clientId: ClientId,
+      userId: string,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Removing user ${userId} from client ${clientId}`);
+
+      const response = await clients.authorizationClient.client.removeUser(
+        undefined,
+        {
+          params: { clientId, userId },
+          headers,
+        }
+      );
+
+      await pollClient(response, headers);
     },
   };
 }

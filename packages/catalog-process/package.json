@@ -19,32 +19,30 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/express": "4.17.21",
-    "@types/node": "20.19.9",
-    "@types/supertest": "6.0.3",
-    "eslint": "8.57.1",
+    "@pagopa/eslint-config": "catalog:",
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "@types/supertest": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "2.8.8",
-    "supertest": "7.0.0",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "4.0.18"
+    "supertest": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "@zodios/core": "10.9.6",
-    "@zodios/express": "10.6.1",
-    "axios": "1.12.0",
-    "dotenv-flow": "4.1.0",
-    "drizzle-orm": "0.39.3",
-    "express": "4.20.0",
+    "@zodios/core": "catalog:",
+    "@zodios/express": "catalog:",
+    "axios": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "express": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   }
 }

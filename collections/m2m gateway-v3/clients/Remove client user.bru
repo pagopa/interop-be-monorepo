@@ -1,0 +1,19 @@
+meta {
+  name: Remove client user
+  type: http
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/clients/:clientId/users/:userId
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+  userId: {{userId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
