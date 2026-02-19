@@ -108,6 +108,7 @@ export function toGetAgreementsApiQueryParamsForPurpose(
 ): agreementApi.GetAgreementsQueryParams {
   return {
     consumersIds: [purpose.consumerId],
+    exactConsumerIdMatch: true,
     eservicesIds: [purpose.eserviceId],
     states: [
       m2mGatewayApiV3.AgreementState.Values.ACTIVE,

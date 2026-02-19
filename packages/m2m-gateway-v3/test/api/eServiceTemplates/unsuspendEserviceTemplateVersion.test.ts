@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -35,7 +36,8 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/unsuspend rout
       .post(
         `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/unsuspend`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
