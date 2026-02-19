@@ -26194,6 +26194,8 @@ components:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
         isNewTemplateVersionAvailable:
           type: boolean
+        instanceLabel:
+          type: string
     EServiceDoc:
       type: object
       additionalProperties: false
