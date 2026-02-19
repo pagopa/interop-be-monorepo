@@ -24,6 +24,7 @@ import {
   getAttributeByExternalIdMock,
   getIVASSTenantsMock,
   getTenantByIdMock,
+  getTenantByIdWithMetadataMock,
   getTenantByIdMockGenerator,
   getTenantsMockGenerator,
   getTenantsWithAttributesMock,
@@ -55,6 +56,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -102,6 +107,9 @@ describe("IVASS Certified Attributes Importer", () => {
   const getTenantByIdSpy = vi
     .spyOn(readModelQueriesMock, "getTenantById")
     .mockImplementation(getTenantByIdMock);
+  const getTenantByIdWithMetadataSpy = vi
+    .spyOn(readModelQueriesMock, "getTenantByIdWithMetadata")
+    .mockImplementation(getTenantByIdWithMetadataMock);
   const getAttributeByExternalIdSpy = vi
     .spyOn(readModelQueriesMock, "getAttributeByExternalId")
     .mockImplementation(getAttributeByExternalIdMock);
@@ -119,6 +127,7 @@ describe("IVASS Certified Attributes Importer", () => {
 
     expect(downloadCSVMock).toBeCalledTimes(1);
     expect(getTenantByIdSpy).toBeCalledTimes(1);
+    expect(getTenantByIdWithMetadataSpy).toBeCalled();
     expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
 
     expect(getIVASSTenantsSpy).toBeCalledTimes(1);
@@ -157,6 +166,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -221,6 +234,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -300,6 +317,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -355,6 +376,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -402,6 +427,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -466,6 +495,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       1,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -497,6 +530,10 @@ describe("IVASS Certified Attributes Importer", () => {
         tenantProcessMock,
         refreshableTokenMock,
         1,
+        {
+          defaultPollingMaxRetries: 1,
+          defaultPollingRetryDelay: 1,
+        },
         "ivass-tenant-id",
         genericLogger,
         generateId()
@@ -581,6 +618,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -659,6 +700,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -734,6 +779,10 @@ describe("IVASS Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       1,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "ivass-tenant-id",
       genericLogger,
       generateId()
@@ -771,6 +820,10 @@ describe("IVASS Certified Attributes Importer", () => {
         tenantProcessMock,
         refreshableTokenMock,
         10,
+        {
+          defaultPollingMaxRetries: 1,
+          defaultPollingRetryDelay: 1,
+        },
         "ivass-tenant-id",
         genericLogger,
         generateId()

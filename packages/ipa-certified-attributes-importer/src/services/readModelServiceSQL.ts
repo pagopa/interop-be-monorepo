@@ -4,6 +4,7 @@ import {
   attributeKind,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   AttributeReadModelService,
@@ -56,6 +57,31 @@ export function readModelServiceBuilderSQL({
           )
         )
       ).map((a) => a.data),
+
+    getTenantByExternalIdWithMetadata: async (externalId: {
+      origin: string;
+      value: string;
+    }) =>
+      await readModelDB.transaction(async (tx) => {
+        const queryRes = await tx
+          .select({ id: tenantInReadmodelTenant.id })
+          .from(tenantInReadmodelTenant)
+          .where(
+            and(
+              eq(tenantInReadmodelTenant.externalIdOrigin, externalId.origin),
+              eq(tenantInReadmodelTenant.externalIdValue, externalId.value)
+            )
+          );
+
+        if (queryRes.length === 0) {
+          return undefined;
+        }
+
+        return tenantReadModelServiceSQL.getTenantById(
+          unsafeBrandId(queryRes[0].id),
+          tx
+        );
+      }),
   };
 }
 

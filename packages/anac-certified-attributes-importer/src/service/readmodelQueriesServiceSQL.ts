@@ -155,6 +155,12 @@ export function readModelQueriesBuilderSQL(
       return tenantWithMetadata.data;
     },
 
+    async getTenantByIdWithMetadata(tenantId: string) {
+      return tenantReadModelService.getTenantById(unsafeBrandId<TenantId>(
+        tenantId
+      ));
+    },
+
     async getAttributeByExternalId(
       origin: string,
       code: string

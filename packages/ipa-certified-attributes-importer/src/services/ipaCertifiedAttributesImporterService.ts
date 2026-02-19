@@ -1,6 +1,15 @@
 import { createHash } from "crypto";
-import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
-import { InteropHeaders, Logger, delay } from "pagopa-interop-commons";
+import {
+  attributeRegistryApi,
+  createZodiosClientEnhancedWithMetadata,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import {
+  InteropHeaders,
+  Logger,
+  createPollingByCondition,
+  delay,
+} from "pagopa-interop-commons";
 import {
   attributeKind,
   Tenant,
@@ -308,10 +317,12 @@ export async function getAttributesToAssign(
 
 export async function assignNewAttributes(
   attributesToAssign: tenantApi.InternalTenantSeed[],
+  readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger
 ): Promise<void> {
-  const tenantClient = tenantApi.createInternalApiClient(
+  const tenantClient = createZodiosClientEnhancedWithMetadata(
+    tenantApi.createInternalApiClient,
     config.tenantProcessUrl
   );
 
@@ -323,7 +334,16 @@ export async function assignNewAttributes(
         .map((a) => a.code)
         .join(", ")}]`
     );
-    await tenantClient.internalUpsertTenant(attributeToAssign, { headers });
+    const response = await tenantClient.internalUpsertTenant(attributeToAssign, {
+      headers,
+    });
+
+    await waitForTenantReadModelVersion(
+      attributeToAssign.externalId,
+      response.metadata?.version,
+      readModelServiceSQL,
+      loggerInstance
+    );
   }
 }
 
@@ -416,10 +436,12 @@ export async function revokeAttributes(
     aOrigin: string;
     aCode: string;
   }>,
+  readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger
 ): Promise<void> {
-  const tenantClient = tenantApi.createInternalApiClient(
+  const tenantClient = createZodiosClientEnhancedWithMetadata(
+    tenantApi.createInternalApiClient,
     config.tenantProcessUrl
   );
 
@@ -427,14 +449,58 @@ export async function revokeAttributes(
     loggerInstance.info(
       `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
     );
-    await tenantClient.internalRevokeCertifiedAttribute(undefined, {
-      params: {
-        tOrigin: a.tOrigin,
-        tExternalId: a.tExternalId,
-        aOrigin: a.aOrigin,
-        aExternalId: a.aCode,
+    const response = await tenantClient.internalRevokeCertifiedAttribute(
+      undefined,
+      {
+        params: {
+          tOrigin: a.tOrigin,
+          tExternalId: a.tExternalId,
+          aOrigin: a.aOrigin,
+          aExternalId: a.aCode,
+        },
+        headers,
+      }
+    );
+
+    await waitForTenantReadModelVersion(
+      {
+        origin: a.tOrigin,
+        value: a.tExternalId,
       },
-      headers,
-    });
+      response.metadata?.version,
+      readModelServiceSQL,
+      loggerInstance
+    );
   }
+}
+
+async function waitForTenantReadModelVersion(
+  externalId: {
+    origin: string;
+    value: string;
+  },
+  targetVersion: number | undefined,
+  readModelServiceSQL: ReadModelServiceSQL,
+  logger: Logger
+): Promise<void> {
+  if (targetVersion === undefined) {
+    logger.warn(
+      `Missing metadata version for tenant ${externalId.value}. Skipping polling.`
+    );
+    return;
+  }
+
+  const pollTenantByVersion = createPollingByCondition(
+    () => readModelServiceSQL.getTenantByExternalIdWithMetadata(externalId),
+    {
+      defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+      defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+    }
+  );
+
+  await pollTenantByVersion({
+    condition: (tenantWithMetadata) =>
+      tenantWithMetadata !== undefined &&
+      tenantWithMetadata.metadata.version >= targetVersion,
+  });
 }

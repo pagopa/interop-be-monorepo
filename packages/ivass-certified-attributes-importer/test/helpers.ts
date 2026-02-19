@@ -4,6 +4,7 @@ import {
   AttributeId,
   Tenant,
   TenantAttribute,
+  WithMetadata,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { vi } from "vitest";
@@ -31,6 +32,13 @@ export const getTenantByIdMockGenerator =
   (f: (tenantId: string) => Tenant) =>
   (tenantId: string): Promise<Tenant> =>
     Promise.resolve(f(tenantId));
+export const getTenantByIdWithMetadataMockGenerator =
+  (f: (tenantId: string) => Tenant) =>
+  (tenantId: string): Promise<WithMetadata<Tenant>> =>
+    Promise.resolve({
+      data: f(tenantId),
+      metadata: { version: 1 },
+    } as WithMetadata<Tenant>);
 
 export const downloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
@@ -40,14 +48,14 @@ export const internalAssignCertifiedAttributeMock = (
   _attributeOrigin: string,
   _attributeExternalId: string,
   _context: InteropContext
-): Promise<void> => Promise.resolve();
+): Promise<number | undefined> => Promise.resolve(1);
 export const internalRevokeCertifiedAttributeMock = (
   _tenantOrigin: string,
   _tenantExternalId: string,
   _attributeOrigin: string,
   _attributeExternalId: string,
   _context: InteropContext
-): Promise<void> => Promise.resolve();
+): Promise<number | undefined> => Promise.resolve(1);
 
 export const getIVASSTenantsMock = getTenantsMockGenerator((taxCodes) =>
   taxCodes.map((c) => ({
@@ -62,6 +70,12 @@ export const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
   id: unsafeBrandId(tenantId),
   features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
 }));
+export const getTenantByIdWithMetadataMock =
+  getTenantByIdWithMetadataMockGenerator((tenantId) => ({
+    ...persistentTenant,
+    id: unsafeBrandId(tenantId),
+    features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
+  }));
 export const getAttributeByExternalIdMock = (
   origin: string,
   code: string

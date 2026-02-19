@@ -83,7 +83,12 @@ try {
     loggerInstance
   );
 
-  await assignNewAttributes(attributesToAssign, headers, loggerInstance);
+  await assignNewAttributes(
+    attributesToAssign,
+    readModelServiceSQL,
+    headers,
+    loggerInstance
+  );
 
   loggerInstance.info("Revoking attributes");
 
@@ -93,7 +98,12 @@ try {
     attributes
   );
 
-  await revokeAttributes(attributesToRevoke, headers, loggerInstance);
+  await revokeAttributes(
+    attributesToRevoke,
+    readModelServiceSQL,
+    headers,
+    loggerInstance
+  );
 
   loggerInstance.info("IPA certified attributes import completed");
 } catch (error) {

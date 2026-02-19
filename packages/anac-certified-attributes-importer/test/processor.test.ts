@@ -27,6 +27,7 @@ import {
   getNonPATenantsMock,
   getPATenantsMock,
   getTenantByIdMock,
+  getTenantByIdWithMetadataMock,
   getTenantByIdMockGenerator,
   getTenantsMockGenerator,
   getTenantsWithAttributesMock,
@@ -81,6 +82,10 @@ describe("ANAC Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "anac-tenant-id",
       genericLogger,
       generateId()
@@ -106,6 +111,9 @@ describe("ANAC Certified Attributes Importer", () => {
   const getTenantByIdSpy = vi
     .spyOn(readModelQueriesMock, "getTenantById")
     .mockImplementation((id) => getTenantByIdMock(unsafeBrandId(id)));
+  const getTenantByIdWithMetadataSpy = vi
+    .spyOn(readModelQueriesMock, "getTenantByIdWithMetadata")
+    .mockImplementation((id) => getTenantByIdWithMetadataMock(unsafeBrandId(id)));
   const getAttributeByExternalIdSpy = vi
     .spyOn(readModelQueriesMock, "getAttributeByExternalId")
     .mockImplementation(getAttributeByExternalIdMock);
@@ -307,6 +315,10 @@ describe("ANAC Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       1,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "anac-tenant-id",
       genericLogger,
       generateId()
@@ -314,6 +326,7 @@ describe("ANAC Certified Attributes Importer", () => {
 
     expect(downloadCSVSpy).toBeCalledTimes(1);
     expect(getTenantByIdSpy).toBeCalledTimes(1);
+    expect(getTenantByIdWithMetadataSpy).toBeCalled();
     expect(getAttributeByExternalIdSpy).toBeCalledTimes(3);
 
     expect(getPATenantsSpy).toBeCalledTimes(3);
