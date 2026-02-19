@@ -590,6 +590,12 @@ paths:
           schema:
             type: boolean
             default: false
+        - in: query
+          name: exactConsumerIdMatch
+          description: use consumerIds to retrieve agreements with those specific consumersIds, regardless the delegations
+          schema:
+            type: boolean
+          required: true
   "/producers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
