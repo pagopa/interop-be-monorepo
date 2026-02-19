@@ -85,6 +85,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  ne,
   notExists,
   or,
   SQL,
@@ -867,9 +868,11 @@ export function readModelServiceBuilderSQL(
     async getEServiceInstanceLabelsByTemplateAndProducer({
       templateId,
       producerId,
+      eserviceId,
     }: {
       templateId: EServiceTemplateId;
       producerId: TenantId;
+      eserviceId?: EServiceId;
     }): Promise<Array<string | undefined>> {
       const result = await readmodelDB
         .select({ instanceLabel: eserviceInReadmodelCatalog.instanceLabel })
@@ -877,7 +880,10 @@ export function readModelServiceBuilderSQL(
         .where(
           and(
             eq(eserviceInReadmodelCatalog.templateId, templateId),
-            eq(eserviceInReadmodelCatalog.producerId, producerId)
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            eserviceId
+              ? ne(eserviceInReadmodelCatalog.id, eserviceId)
+              : undefined
           )
         );
 
