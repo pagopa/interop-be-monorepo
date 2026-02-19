@@ -26,10 +26,9 @@ vi.mock("pagopa-interop-commons", async () => {
   };
 });
 
-const {
-  assignNewAttributes,
-  revokeAttributes,
-} = await import("../src/services/ipaCertifiedAttributesImporterService.js");
+const { assignNewAttributes, revokeAttributes } = await import(
+  "../src/services/ipaCertifiedAttributesImporterService.js"
+);
 
 describe("IPA metadata polling", () => {
   const logger = {
@@ -48,6 +47,17 @@ describe("IPA metadata polling", () => {
     })),
   };
 
+  type PollingRunnerArgs = {
+    condition: (pollingResult: unknown) => boolean;
+  };
+
+  const buildPollingRunner = (): ReturnType<typeof vi.fn> =>
+    vi.fn(async ({ condition }: PollingRunnerArgs): Promise<void> => {
+      const readModelEntry =
+        await readModelServiceSQL.getTenantByExternalIdWithMetadata();
+      expect(condition(readModelEntry)).toBe(true);
+    });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -55,11 +65,7 @@ describe("IPA metadata polling", () => {
   it("should poll read model after assign when metadata version is returned", async () => {
     internalUpsertTenantMock.mockResolvedValue({ metadata: { version: 5 } });
 
-    const pollingRunner = vi.fn(async ({ condition }) => {
-      const readModelEntry =
-        await readModelServiceSQL.getTenantByExternalIdWithMetadata();
-      expect(condition(readModelEntry)).toBe(true);
-    });
+    const pollingRunner = buildPollingRunner();
 
     createPollingByConditionMock.mockReturnValue(pollingRunner);
 
@@ -107,11 +113,7 @@ describe("IPA metadata polling", () => {
       metadata: { version: 5 },
     });
 
-    const pollingRunner = vi.fn(async ({ condition }) => {
-      const readModelEntry =
-        await readModelServiceSQL.getTenantByExternalIdWithMetadata();
-      expect(condition(readModelEntry)).toBe(true);
-    });
+    const pollingRunner = buildPollingRunner();
 
     createPollingByConditionMock.mockReturnValue(pollingRunner);
 

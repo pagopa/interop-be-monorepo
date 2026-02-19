@@ -113,7 +113,9 @@ describe("ANAC Certified Attributes Importer", () => {
     .mockImplementation((id) => getTenantByIdMock(unsafeBrandId(id)));
   const getTenantByIdWithMetadataSpy = vi
     .spyOn(readModelQueriesMock, "getTenantByIdWithMetadata")
-    .mockImplementation((id) => getTenantByIdWithMetadataMock(unsafeBrandId(id)));
+    .mockImplementation((id) =>
+      getTenantByIdWithMetadataMock(unsafeBrandId(id))
+    );
   const getAttributeByExternalIdSpy = vi
     .spyOn(readModelQueriesMock, "getAttributeByExternalId")
     .mockImplementation(getAttributeByExternalIdMock);

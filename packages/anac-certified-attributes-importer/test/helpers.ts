@@ -84,17 +84,15 @@ export const getNonPATenantsMock = getTenantsMockGenerator((taxCodes) =>
     externalId: { origin: "tenantOrigin", value: c },
   }))
 );
-export const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
+const buildAnacTenantById = (tenantId: string): Tenant => ({
   ...persistentTenant,
   id: tenantId,
   features: [{ type: "PersistentCertifier", certifierId: "ANAC" }],
-}));
+});
+export const getTenantByIdMock =
+  getTenantByIdMockGenerator(buildAnacTenantById);
 export const getTenantByIdWithMetadataMock =
-  getTenantByIdWithMetadataMockGenerator((tenantId) => ({
-    ...persistentTenant,
-    id: tenantId,
-    features: [{ type: "PersistentCertifier", certifierId: "ANAC" }],
-  }));
+  getTenantByIdWithMetadataMockGenerator(buildAnacTenantById);
 export const getAttributeByExternalIdMock = (
   origin: string,
   code: string

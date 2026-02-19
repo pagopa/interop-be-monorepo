@@ -5,6 +5,7 @@ import {
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   unsafeBrandId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   AttributeReadModelService,
@@ -61,7 +62,7 @@ export function readModelServiceBuilderSQL({
     getTenantByExternalIdWithMetadata: async (externalId: {
       origin: string;
       value: string;
-    }) =>
+    }): Promise<WithMetadata<Tenant> | undefined> =>
       await readModelDB.transaction(async (tx) => {
         const queryRes = await tx
           .select({ id: tenantInReadmodelTenant.id })

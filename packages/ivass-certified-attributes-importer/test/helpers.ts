@@ -65,17 +65,15 @@ export const getIVASSTenantsMock = getTenantsMockGenerator((taxCodes) =>
 );
 export const getTenantsWithAttributesMock = (_: string[]) =>
   Promise.resolve([]);
-export const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
+const buildIvassTenantById = (tenantId: string): Tenant => ({
   ...persistentTenant,
   id: unsafeBrandId(tenantId),
   features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
-}));
+});
+export const getTenantByIdMock =
+  getTenantByIdMockGenerator(buildIvassTenantById);
 export const getTenantByIdWithMetadataMock =
-  getTenantByIdWithMetadataMockGenerator((tenantId) => ({
-    ...persistentTenant,
-    id: unsafeBrandId(tenantId),
-    features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
-  }));
+  getTenantByIdWithMetadataMockGenerator(buildIvassTenantById);
 export const getAttributeByExternalIdMock = (
   origin: string,
   code: string
