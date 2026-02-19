@@ -164,7 +164,9 @@ describe("ANAC Certified Attributes Importer", () => {
     ];
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
-    vi.spyOn(sftpClientMock, "downloadCSV").mockImplementation(localDownloadCSVMock);
+    vi.spyOn(sftpClientMock, "downloadCSV").mockImplementation(
+      localDownloadCSVMock
+    );
 
     vi.spyOn(readModelQueriesMock, "getPATenants").mockImplementation(
       getTenantsMockGenerator((_) => readModelTenants)
