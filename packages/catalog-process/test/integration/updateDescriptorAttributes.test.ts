@@ -1071,4 +1071,143 @@ describe("update descriptor", () => {
       toEServiceV2(returnedEService.data)
     );
   });
+
+  it("should detect dailyCallsPerConsumer change for an attribute (same id) appearing in two different groups", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 100,
+            },
+            {
+              id: mockCertifiedAttribute2.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 200,
+            },
+          ],
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 200,
+            },
+            {
+              id: mockCertifiedAttribute2.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 300,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    const seedWithChangedDailyCallsInSecondGroup: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 100,
+          },
+          {
+            id: mockCertifiedAttribute2.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 200,
+          },
+        ],
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 999,
+          },
+          {
+            id: mockCertifiedAttribute2.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 300,
+          },
+        ],
+      ],
+      verified: [],
+      declared: [],
+    };
+
+    const returnedEService = await catalogService.updateDescriptorAttributes(
+      mockEService.id,
+      mockDescriptor.id,
+      seedWithChangedDailyCallsInSecondGroup,
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "EServiceDescriptorAttributesUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAttributesUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEService: EService = {
+      ...mockEService,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          attributes: {
+            certified: [
+              [
+                {
+                  id: mockCertifiedAttribute1.id,
+                  explicitAttributeVerification: false,
+                  dailyCallsPerConsumer: 100,
+                },
+                {
+                  id: mockCertifiedAttribute2.id,
+                  explicitAttributeVerification: false,
+                  dailyCallsPerConsumer: 200,
+                },
+              ],
+              [
+                {
+                  id: mockCertifiedAttribute1.id,
+                  explicitAttributeVerification: false,
+                  dailyCallsPerConsumer: 999,
+                },
+                {
+                  id: mockCertifiedAttribute2.id,
+                  explicitAttributeVerification: false,
+                  dailyCallsPerConsumer: 300,
+                },
+              ],
+            ],
+            verified: [],
+            declared: [],
+          },
+        },
+      ],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload.eservice).toEqual(
+      toEServiceV2(returnedEService.data)
+    );
+  });
 });

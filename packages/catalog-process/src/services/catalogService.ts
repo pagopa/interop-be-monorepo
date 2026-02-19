@@ -60,6 +60,7 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -3923,21 +3924,28 @@ function hasCertifiedAttributeDailyCallsChanged(
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
 ): boolean {
-  const seedCertifiedAttributes = seed.certified.flat();
-  const descriptorCertifiedAttributes = descriptor.attributes.certified.flat();
-  for (const seedCertifiedAttribute of seedCertifiedAttributes) {
-    const matchingDescriptorAttribute = descriptorCertifiedAttributes.find(
-      (attr) => attr.id === seedCertifiedAttribute.id
-    );
+  return descriptor.attributes.certified.some(
+    (descriptorAttributesGroup, attributesGroupIndex) => {
+      const seedAttrGroup = seed.certified[attributesGroupIndex];
 
-    if (
-      matchingDescriptorAttribute?.dailyCallsPerConsumer !==
-      seedCertifiedAttribute.dailyCallsPerConsumer
-    ) {
-      return true;
+      return descriptorAttributesGroup.some((descriptorAttribute) => {
+        const seedAttribute = seedAttrGroup.find(
+          (attribute) => attribute.id === descriptorAttribute.id
+        );
+
+        if (seedAttribute === undefined) {
+          throw genericInternalError(
+            `Attribute ${descriptorAttribute.id} not found in seed group ${attributesGroupIndex}`
+          );
+        }
+
+        return (
+          seedAttribute.dailyCallsPerConsumer !==
+          descriptorAttribute.dailyCallsPerConsumer
+        );
+      });
     }
-  }
-  return false;
+  );
 }
 
 function evaluateTemplateVersionRef(
