@@ -47,7 +47,6 @@ import {
   missingFreeOfChargeReason,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import * as validators from "../../src/services/validators.js";
 import {
@@ -316,7 +315,7 @@ describe("updatePurposeTemplate", () => {
     );
   });
 
-  it("Should throw a tenantNotAllowed error if the creator tenant is not template creator", async () => {
+  it("Should throw a purposeTemplateNotFound error if the creator tenant is not template creator", async () => {
     await addOneTenant(creator);
     await addOnePurposeTemplate({
       ...existingPurposeTemplate,
@@ -331,7 +330,7 @@ describe("updatePurposeTemplate", () => {
           authData: getMockAuthData(creatorId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(creatorId));
+    ).rejects.toThrowError(purposeTemplateNotFound(existingPurposeTemplate.id));
   });
 
   it("Should throw a missingFreeOfChargeReason error if purposeIsFreeOfCharge is false and purposeFreeOfChargeReason is not provided", async () => {
