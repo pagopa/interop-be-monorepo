@@ -56,6 +56,7 @@ const errorCodes = {
   operationForbidden: "0048",
   noVersionInEServiceTemplate: "0049",
   delegationContractNotFound: "0050",
+  invalidDelegationFlags: "0051",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -472,5 +473,16 @@ export function templateInstanceNotAllowed(
     detail: `Operation not allowed on EService ${eserviceId} instance of template ${eServiceTemplateId}`,
     code: "templateInstanceNotAllowed",
     title: "TemplateId must be undefined",
+  });
+}
+
+export function invalidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid delegation flags: isClientAccessDelegable cannot be true when isConsumerDelegable is false (isConsumerDelegable=${isConsumerDelegable}, isClientAccessDelegable=${isClientAccessDelegable})`,
+    code: "invalidDelegationFlags",
+    title: "Invalid delegation flags",
   });
 }
