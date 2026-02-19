@@ -75,7 +75,7 @@ describe("getCatalogEServiceDescriptor", () => {
         [
           {
             id: verifiedAttributeId,
-            explicitAttributeVerification: true,
+            explicitAttributeVerification: false,
           },
         ],
       ],
@@ -140,9 +140,9 @@ describe("getCatalogEServiceDescriptor", () => {
         [
           {
             description: attributeDescription,
-            explicitAttributeVerification: false,
             id: certifiedAttributeId,
             name: certifiedAttributeName,
+            explicitAttributeVerification: false,
           },
         ],
       ],
@@ -150,9 +150,9 @@ describe("getCatalogEServiceDescriptor", () => {
         [
           {
             description: attributeDescription,
-            explicitAttributeVerification: false,
             id: declaredAttributeId,
             name: declaredAttributeName,
+            explicitAttributeVerification: false,
           },
         ],
       ],
@@ -160,9 +160,9 @@ describe("getCatalogEServiceDescriptor", () => {
         [
           {
             description: attributeDescription,
-            explicitAttributeVerification: true,
             id: verifiedAttributeId,
             name: verifiedAttributeName,
+            explicitAttributeVerification: false,
           },
         ],
       ],

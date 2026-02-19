@@ -19,17 +19,14 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttributes router test", () => {
   const attribute1: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute2: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute3: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
   const bulkAttribute1: m2mGatewayApi.CertifiedAttribute = {
     code: "code1",

@@ -47,7 +47,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     ...buildCreateDescriptorSeed(mockDescriptor),
     attributes: {
       certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
+      declared: [[{ id: attribute.id }]],
       verified: [],
     },
   };
@@ -60,7 +60,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     serverUrls: [],
     attributes: {
       certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
+      declared: [[{ id: attribute.id }]],
       verified: [],
     },
   };

@@ -1525,9 +1525,6 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id").notNull(),
-      explicitAttributeVerification: boolean(
-        "explicit_attribute_verification"
-      ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
     },
@@ -1565,9 +1562,6 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
       eserviceTemplateId: uuid("eservice_template_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       versionId: uuid("version_id").notNull(),
-      explicitAttributeVerification: boolean(
-        "explicit_attribute_verification"
-      ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
     },
