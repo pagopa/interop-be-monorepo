@@ -57,7 +57,7 @@ describe("getPurposeEvents integration", () => {
         },
         getMockM2MAdminAppContext()
       );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toStrictEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
         mockGet: mockGetPurposeM2MEvents,
         queries: {

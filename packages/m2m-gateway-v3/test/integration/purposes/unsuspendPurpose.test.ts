@@ -5,7 +5,7 @@ import {
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { m2mGatewayApiV3, purposeApi } from "pagopa-interop-api-clients";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
@@ -24,7 +24,11 @@ import {
   missingPurposeVersionWithState,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("unsuspendPurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
@@ -66,21 +70,14 @@ describe("unsuspendPurposeVersion", () => {
   it("Should succeed and perform API clients calls", async () => {
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
-    const expectedM2MPurpose: m2mGatewayApiV3.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
-      currentVersion: mockApiPurposeVersion2,
-      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
-    };
+    const purposeVersion = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion2
+    );
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
+      currentVersion: purposeVersion,
+      rejectedVersion: undefined,
+      waitingForApprovalVersion: undefined,
+    });
 
     const purpose = await purposeService.unsuspendPurpose(
       unsafeBrandId(mockApiPurpose.data.id),
@@ -88,7 +85,7 @@ describe("unsuspendPurposeVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(purpose).toEqual(expectedM2MPurpose);
+    expect(purpose).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.activatePurposeVersion,

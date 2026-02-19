@@ -108,7 +108,7 @@ describe("getEserviceTemplateRiskAnalyses", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(m2mRiskAnalysesResponse);
+    expect(result).toStrictEqual(m2mRiskAnalysesResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient
@@ -140,7 +140,7 @@ describe("getEserviceTemplateRiskAnalyses", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(response1);
+    expect(result).toStrictEqual(response1);
 
     const response2: m2mGatewayApiV3.EServiceTemplateRiskAnalyses = {
       pagination: {
@@ -164,7 +164,7 @@ describe("getEserviceTemplateRiskAnalyses", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result2).toEqual(response2);
+    expect(result2).toStrictEqual(response2);
 
     const response3: m2mGatewayApiV3.EServiceTemplateRiskAnalyses = {
       pagination: {
@@ -185,6 +185,6 @@ describe("getEserviceTemplateRiskAnalyses", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result3).toEqual(response3);
+    expect(result3).toStrictEqual(response3);
   });
 });

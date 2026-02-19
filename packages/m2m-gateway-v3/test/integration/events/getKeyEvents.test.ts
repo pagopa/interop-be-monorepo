@@ -44,7 +44,7 @@ describe("getKeyEvents integration", () => {
         },
         getMockM2MAdminAppContext()
       );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toStrictEqual(expectedResponse);
     }
   );
 });

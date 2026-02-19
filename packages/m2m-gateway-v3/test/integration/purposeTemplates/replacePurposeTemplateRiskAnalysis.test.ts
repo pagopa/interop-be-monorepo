@@ -22,7 +22,10 @@ import {
   mockPollingResponse,
   purposeTemplateService,
 } from "../../integrationUtils.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2MRiskAnalysisTemplateAnswer,
+} from "../../mockUtils.js";
 
 describe("replacePurposeTemplateRiskAnalysis", () => {
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
@@ -113,23 +116,23 @@ describe("replacePurposeTemplateRiskAnalysis", () => {
 
     const expectedM2MRiskAnalysisFormTemplate: m2mGatewayApiV3.RiskAnalysisFormTemplate =
       {
-        ...mockRiskAnalysisFormTemplate,
+        version: mockRiskAnalysisFormTemplate.version,
         answers: {
           ...Object.fromEntries(
             Object.entries(mockRiskAnalysisFormTemplateSeed.answers).map(
               ([key, value]) => [
                 key,
-                {
+                testToM2MRiskAnalysisTemplateAnswer({
                   ...value,
                   id: result.answers[key].id,
-                },
+                }),
               ]
             )
           ),
         },
       };
 
-    expect(result).toEqual(expectedM2MRiskAnalysisFormTemplate);
+    expect(result).toStrictEqual(expectedM2MRiskAnalysisFormTemplate);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeTemplateProcessClient

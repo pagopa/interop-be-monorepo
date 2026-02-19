@@ -23,7 +23,10 @@ import {
   invalidSeedForPurposeFromTemplate,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("updateDraftPurpose", () => {
   const mockPurposeWithTemplate = getMockedApiPurpose();
@@ -84,6 +87,7 @@ describe("updateDraftPurpose", () => {
       getMockM2MAdminAppContext()
     );
 
+    const purposeVersion = mockPurposeProcessGetResponse.data.versions.at(0);
     const expectedM2MPurpose: m2mGatewayApiV3.Purpose = {
       consumerId: mockPurposeProcessGetResponse.data.consumerId,
       createdAt: mockPurposeProcessGetResponse.data.createdAt,
@@ -94,7 +98,9 @@ describe("updateDraftPurpose", () => {
       isRiskAnalysisValid:
         mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
       title: mockPurposeProcessGetResponse.data.title,
-      currentVersion: mockPurposeProcessGetResponse.data.versions.at(0),
+      currentVersion: purposeVersion
+        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+        : undefined,
       delegationId: mockPurposeProcessGetResponse.data.delegationId,
       freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
       rejectedVersion: undefined,
@@ -105,7 +111,7 @@ describe("updateDraftPurpose", () => {
       purposeTemplateId: mockPurposeProcessGetResponse.data.purposeTemplateId,
     };
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.patchUpdatePurpose,
       params: {
@@ -143,6 +149,8 @@ describe("updateDraftPurpose", () => {
       getMockM2MAdminAppContext()
     );
 
+    const purposeVersion =
+      mockPurposeProcessGetResponseWithTemplate.data.versions.at(0);
     const expectedM2MPurpose: m2mGatewayApiV3.Purpose = {
       consumerId: mockPurposeProcessGetResponseWithTemplate.data.consumerId,
       createdAt: mockPurposeProcessGetResponseWithTemplate.data.createdAt,
@@ -154,8 +162,9 @@ describe("updateDraftPurpose", () => {
       isRiskAnalysisValid:
         mockPurposeProcessGetResponseWithTemplate.data.isRiskAnalysisValid,
       title: mockPurposeProcessGetResponseWithTemplate.data.title,
-      currentVersion:
-        mockPurposeProcessGetResponseWithTemplate.data.versions.at(0),
+      currentVersion: purposeVersion
+        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+        : undefined,
       delegationId: mockPurposeProcessGetResponseWithTemplate.data.delegationId,
       freeOfChargeReason:
         mockPurposeProcessGetResponseWithTemplate.data.freeOfChargeReason,
@@ -168,7 +177,7 @@ describe("updateDraftPurpose", () => {
         mockPurposeProcessGetResponseWithTemplate.data.purposeTemplateId,
     };
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient

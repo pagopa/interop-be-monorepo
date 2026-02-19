@@ -86,7 +86,7 @@ describe("updateDraftPurposeTemplate", () => {
         mockPurposeTemplateProcessGetResponse.data.handlesPersonalData,
     };
 
-    expect(result).toEqual(expectedM2MPurposeTemplate);
+    expect(result).toStrictEqual(expectedM2MPurposeTemplate);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeTemplateProcessClient
