@@ -1607,7 +1607,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .from(userNotificationConfigInReadmodelNotificationConfig)
         .where(
           eq(
-            userNotificationConfigInReadmodelNotificationConfig.emailNotificationPreference,
+            userNotificationConfigInReadmodelNotificationConfig.emailDigestPreference,
             true
           )
         );

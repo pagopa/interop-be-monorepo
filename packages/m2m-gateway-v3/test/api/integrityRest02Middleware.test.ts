@@ -4,6 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockedApiAttribute,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import {
   authRole,
@@ -36,13 +37,15 @@ describe("integrityRest02Middleware", () => {
   const makeRequest = async (token: string) =>
     request(api)
       .get(`${appBasePath}/certifiedAttributes/${generateId()}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
   // ^ using GET /certifiedAttributes/:attributeId as a dummy endpoint to test the middleware
   const makeEmptyRequest = async (token: string) =>
     request(api)
       .delete(`${appBasePath}/clients/${generateId()}/purposes/${generateId()}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   mockAttributeService.getCertifiedAttribute = vi.fn().mockResolvedValue(
@@ -178,7 +181,8 @@ describe("integrityRest02Middleware", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await request(api)
       .get(`${appBasePath}/certifiedAttributes/notAnUuuid`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
     const expectedDigest = calculateIntegrityRest02DigestFromBody({
       body: res.text,

@@ -10045,9 +10045,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /producerKeychains/{producerKeychainId}/users:
+  /producerKeychains/{keychainId}/users:
     parameters:
-      - name: producerKeychainId
+      - name: keychainId
         in: path
         description: ID of Producer Keychain the users belong to
         required: true
@@ -10145,9 +10145,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /producerKeychains/{producerKeychainId}/users/{userId}:
+  /producerKeychains/{keychainId}/users/{userId}:
     parameters:
-      - name: producerKeychainId
+      - name: keychainId
         in: path
         description: The Producer Keychain id
         required: true

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -49,7 +49,8 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       .post(
         `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/interface`
       )
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
 
     return addMultipartFileToSupertestRequest(req, file);
   };

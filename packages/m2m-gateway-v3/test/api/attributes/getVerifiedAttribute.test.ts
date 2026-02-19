@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiAttribute,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
@@ -27,7 +28,8 @@ describe("GET /verifiedAttributes/:attributeId router test", () => {
   const makeRequest = async (token: string, attributeId: string) =>
     request(api)
       .get(`${appBasePath}/verifiedAttributes/${attributeId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const authorizedRoles: AuthRole[] = [
