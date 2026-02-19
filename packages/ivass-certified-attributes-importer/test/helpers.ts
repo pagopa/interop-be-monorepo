@@ -3,6 +3,7 @@ import {
   Attribute,
   AttributeId,
   Tenant,
+  TenantId,
   TenantAttribute,
   WithMetadata,
   unsafeBrandId,
@@ -29,12 +30,12 @@ export const getTenantsMockGenerator =
   (codes: string[]): Promise<Tenant[]> =>
     Promise.resolve(f(codes));
 export const getTenantByIdMockGenerator =
-  (f: (tenantId: string) => Tenant) =>
-  (tenantId: string): Promise<Tenant> =>
+  (f: (tenantId: TenantId) => Tenant) =>
+  (tenantId: TenantId): Promise<Tenant> =>
     Promise.resolve(f(tenantId));
 export const getTenantByIdWithMetadataMockGenerator =
-  (f: (tenantId: string) => Tenant) =>
-  (tenantId: string): Promise<WithMetadata<Tenant>> =>
+  (f: (tenantId: TenantId) => Tenant) =>
+  (tenantId: TenantId): Promise<WithMetadata<Tenant>> =>
     Promise.resolve({
       data: f(tenantId),
       metadata: { version: 1 },
@@ -65,9 +66,9 @@ export const getIVASSTenantsMock = getTenantsMockGenerator((taxCodes) =>
 );
 export const getTenantsWithAttributesMock = (_: string[]) =>
   Promise.resolve([]);
-const buildIvassTenantById = (tenantId: string): Tenant => ({
+const buildIvassTenantById = (tenantId: TenantId): Tenant => ({
   ...persistentTenant,
-  id: unsafeBrandId(tenantId),
+  id: tenantId,
   features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
 });
 export const getTenantByIdMock =

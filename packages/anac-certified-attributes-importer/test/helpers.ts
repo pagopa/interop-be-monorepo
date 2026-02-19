@@ -84,7 +84,7 @@ export const getNonPATenantsMock = getTenantsMockGenerator((taxCodes) =>
     externalId: { origin: "tenantOrigin", value: c },
   }))
 );
-const buildAnacTenantById = (tenantId: string): Tenant => ({
+const buildAnacTenantById = (tenantId: TenantId): Tenant => ({
   ...persistentTenant,
   id: tenantId,
   features: [{ type: "PersistentCertifier", certifierId: "ANAC" }],

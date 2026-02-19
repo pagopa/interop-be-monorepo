@@ -106,10 +106,10 @@ describe("IVASS Certified Attributes Importer", () => {
     .mockImplementation(getTenantsWithAttributesMock);
   const getTenantByIdSpy = vi
     .spyOn(readModelQueriesMock, "getTenantById")
-    .mockImplementation(getTenantByIdMock);
+    .mockImplementation((id) => getTenantByIdMock(unsafeBrandId(id)));
   const getTenantByIdWithMetadataSpy = vi
     .spyOn(readModelQueriesMock, "getTenantByIdWithMetadata")
-    .mockImplementation(getTenantByIdWithMetadataMock);
+    .mockImplementation((id) => getTenantByIdWithMetadataMock(unsafeBrandId(id)));
   const getAttributeByExternalIdSpy = vi
     .spyOn(readModelQueriesMock, "getAttributeByExternalId")
     .mockImplementation(getAttributeByExternalIdMock);
@@ -555,10 +555,12 @@ describe("IVASS Certified Attributes Importer", () => {
   it("should fail if the tenant is not configured as certifier", async () => {
     const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
       ...persistentTenant,
-      id: unsafeBrandId(tenantId),
+      id: tenantId,
       features: [],
     }));
-    getTenantByIdSpy.mockImplementationOnce(getTenantByIdMock);
+    getTenantByIdSpy.mockImplementationOnce((id) =>
+      getTenantByIdMock(unsafeBrandId(id))
+    );
 
     await expect(() => run()).rejects.toThrowError(
       "Tenant with id ivass-tenant-id is not a certifier"
