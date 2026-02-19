@@ -1134,14 +1134,13 @@ export function purposeServiceBuilder(
         if (!riskAnalysisForm) {
           throw missingRiskAnalysis(purposeId);
         }
-
-        const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
-          eservice,
-          purpose.data.consumerId,
-          readModelService
-        );
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode !== eserviceMode.receive) {
+          const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+            eservice,
+            purpose.data.consumerId,
+            readModelService
+          );
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
@@ -1469,11 +1468,6 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const producerKind = await retrieveTenantKind(
-        eservice.producerId,
-        readModelService
-      );
-
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       await assertPurposeTitleIsNotDuplicated({
@@ -1484,18 +1478,6 @@ export function purposeServiceBuilder(
       });
 
       const createdAt = new Date();
-      // the validation for receive mode are redundant because the same ones have been already performed when the risk analysis has been added to the eservice
-      if (eservice.mode !== eserviceMode.receive) {
-        validateRiskAnalysisOrThrow({
-          riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
-            riskAnalysis.riskAnalysisForm
-          ),
-          schemaOnlyValidation: false,
-          tenantKind: producerKind,
-          dateForExpirationValidation: createdAt,
-          personalDataInEService: eservice.personalData,
-        });
-      }
 
       const newVersion: PurposeVersion = {
         id: generateId(),
