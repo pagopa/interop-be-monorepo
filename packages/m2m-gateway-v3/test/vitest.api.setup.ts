@@ -25,7 +25,10 @@ vi.mock("../src/utils/middlewares.js", async () => {
           next: NextFunction
         ): Promise<unknown> => {
           try {
-            const jwtToken = jwtFromAuthHeader(req, genericLogger);
+            const { accessToken: jwtToken } = jwtsFromAuthAndDPoPHeaders(
+              req,
+              genericLogger
+            );
             const decoded = decodeJwtToken(jwtToken, genericLogger);
             const ctx = req.ctx || {};
             ctx.authData = readAuthDataFromJwtToken(
@@ -47,13 +50,13 @@ vi.mock("../src/utils/middlewares.js", async () => {
 });
 
 import {
-  jwtFromAuthHeader,
   genericLogger,
   readAuthDataFromJwtToken,
   decodeJwtToken,
   AppContext,
   rateLimiterMiddleware,
   RateLimiter,
+  jwtsFromAuthAndDPoPHeaders,
 } from "pagopa-interop-commons";
 import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";

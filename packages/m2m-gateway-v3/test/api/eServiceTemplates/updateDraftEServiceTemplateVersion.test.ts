@@ -7,6 +7,7 @@ import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   generateToken,
   getMockedApiEserviceTemplateVersion,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
@@ -43,7 +44,8 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
       .patch(
         `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
