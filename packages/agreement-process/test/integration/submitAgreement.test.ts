@@ -1082,6 +1082,9 @@ describe("submit agreement", () => {
         ...agreement,
         state: agreementState.active,
         consumerNotes: consumerNotesText,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedAt: undefined,
         suspendedByPlatform: false,
         stamps: {
           ...agreement.stamps,
@@ -1285,6 +1288,9 @@ describe("submit agreement", () => {
             state: agreementState.active,
             consumerNotes: consumerNotesText,
             contract: expectedContract,
+            suspendedByConsumer: undefined,
+            suspendedByProducer: undefined,
+            suspendedAt: undefined,
             suspendedByPlatform: false,
             verifiedAttributes: [
               {
@@ -1525,6 +1531,9 @@ describe("submit agreement", () => {
         ...agreement,
         state: agreementState.active,
         consumerNotes: consumerNotesText,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedAt: undefined,
         suspendedByPlatform: false,
         certifiedAttributes: [],
         declaredAttributes: [],
@@ -1739,6 +1748,9 @@ describe("submit agreement", () => {
             state: agreementState.active,
             consumerNotes: consumerNotesText,
             contract: expectedContract,
+            suspendedByConsumer: undefined,
+            suspendedByProducer: undefined,
+            suspendedAt: undefined,
             suspendedByPlatform: false,
             certifiedAttributes: [
               {
