@@ -334,9 +334,12 @@ export async function assignNewAttributes(
         .map((a) => a.code)
         .join(", ")}]`
     );
-    const response = await tenantClient.internalUpsertTenant(attributeToAssign, {
-      headers,
-    });
+    const response = await tenantClient.internalUpsertTenant(
+      attributeToAssign,
+      {
+        headers,
+      }
+    );
 
     await waitForTenantReadModelVersion(
       attributeToAssign.externalId,

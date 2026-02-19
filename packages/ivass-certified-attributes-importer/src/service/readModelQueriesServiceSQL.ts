@@ -151,9 +151,9 @@ export function readModelQueriesBuilderSQL(
     },
 
     async getTenantByIdWithMetadata(tenantId: string) {
-      return tenantReadModelService.getTenantById(unsafeBrandId<TenantId>(
-        tenantId
-      ));
+      return tenantReadModelService.getTenantById(
+        unsafeBrandId<TenantId>(tenantId)
+      );
     },
 
     async getAttributeByExternalId(

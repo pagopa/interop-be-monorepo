@@ -412,14 +412,15 @@ async function assignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    const metadataVersion = await tenantProcess.internalAssignCertifiedAttribute(
-      tenant.externalId.origin,
-      tenant.externalId.value,
-      attribute.externalId.origin,
-      attribute.externalId.value,
-      context,
-      logger
-    );
+    const metadataVersion =
+      await tenantProcess.internalAssignCertifiedAttribute(
+        tenant.externalId.origin,
+        tenant.externalId.value,
+        attribute.externalId.origin,
+        attribute.externalId.value,
+        context,
+        logger
+      );
 
     await waitForTenantReadModelVersion(
       readModel,
@@ -483,7 +484,9 @@ async function waitForTenantReadModelVersion(
   logger: Logger
 ): Promise<void> {
   if (targetVersion === undefined) {
-    logger.warn(`Missing metadata version for tenant ${tenantId}. Skipping polling.`);
+    logger.warn(
+      `Missing metadata version for tenant ${tenantId}. Skipping polling.`
+    );
     return;
   }
 
