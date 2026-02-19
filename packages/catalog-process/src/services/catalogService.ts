@@ -994,6 +994,7 @@ export function catalogServiceBuilder(
       const updatedEService: EService = {
         ...eservice.data,
         name: instanceName,
+        instanceLabel: eserviceSeed.instanceLabel,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
