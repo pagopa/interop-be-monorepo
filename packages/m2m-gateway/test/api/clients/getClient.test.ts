@@ -105,7 +105,7 @@ describe("GET /clients/:clientId route test", () => {
     }
   );
 
-  it("Should return 500 in case of unexpectedClientKind error", async () => {
+  it("Should return 400 in case of unexpectedClientKind error", async () => {
     mockClientService.getClient = vi
       .fn()
       .mockRejectedValue(
@@ -114,6 +114,6 @@ describe("GET /clients/:clientId route test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(400);
   });
 });
