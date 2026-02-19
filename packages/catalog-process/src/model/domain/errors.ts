@@ -61,6 +61,7 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
+  attributeDailyCallsNotAllowed: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -532,5 +533,15 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function attributeDailyCallsNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDailyCallsNotAllowed",
+    title: "Custom daily calls not allowed for non-certified attribute",
   });
 }

@@ -24,7 +24,7 @@
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "@pagopa/interop-outbound-models": "1.7.0",
+    "@pagopa/interop-outbound-models": "1.8.8",
     "dotenv-flow": "4.1.0",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "2.2.4",

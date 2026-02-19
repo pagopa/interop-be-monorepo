@@ -82,6 +82,7 @@ export const toEServiceAttributeV2 = (
   values: input.map((i) => ({
     id: i.id,
     explicitAttributeVerification: i.explicitAttributeVerification,
+    dailyCallsPerConsumer: i.dailyCallsPerConsumer,
   })),
 });
 

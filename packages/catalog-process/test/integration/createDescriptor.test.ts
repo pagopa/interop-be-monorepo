@@ -24,6 +24,7 @@ import {
   delegationKind,
   EServiceTemplateId,
   unsafeBrandId,
+  attributeKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -33,6 +34,7 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
   templateInstanceNotAllowed,
+  attributeDailyCallsNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -545,5 +547,183 @@ describe("create descriptor", async () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
+  });
+
+  it("should write on event-store for the creation of a descriptor with daily calls on certified attribute", async () => {
+    const mockDescriptor = {
+      ...getMockDescriptor(),
+      docs: [],
+    };
+
+    const mockCertifiedAttribute: Attribute = {
+      name: "Certified Attribute name",
+      id: generateId(),
+      kind: attributeKind.certified,
+      description: "Certified Attribute Description",
+      creationTime: new Date(),
+    };
+
+    const mockDeclaredAttribute: Attribute = {
+      name: "Declared Attribute name",
+      id: generateId(),
+      kind: attributeKind.declared,
+      description: "Declared Attribute Description",
+      creationTime: new Date(),
+    };
+
+    await addOneAttribute(mockCertifiedAttribute);
+    await addOneAttribute(mockDeclaredAttribute);
+
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(mockDescriptor),
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+        declared: [
+          [
+            {
+              id: mockDeclaredAttribute.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+      },
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+    };
+
+    await addOneEService(eservice);
+
+    const createDescriptorResponse = await catalogService.createDescriptor(
+      eservice.id,
+      descriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDescriptor = {
+      ...mockDescriptor,
+      version: "1",
+      createdAt: new Date(
+        Number(writtenPayload.eservice!.descriptors[0]!.createdAt)
+      ),
+      id: newDescriptorId,
+      serverUrls: [],
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+        declared: [
+          [
+            {
+              id: mockDeclaredAttribute.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+      },
+    };
+
+    const expectedEservice = {
+      ...eservice,
+      descriptors: [expectedDescriptor],
+    };
+
+    expect(createDescriptorResponse).toEqual({
+      data: {
+        createdDescriptorId: newDescriptorId,
+        eservice: expectedEservice,
+      },
+      metadata: { version: 1 },
+    });
+
+    expect(writtenPayload).toEqual({
+      descriptorId: newDescriptorId,
+      eservice: toEServiceV2(expectedEservice),
+    });
+  });
+
+  it("should throw attributeDailyCallsNotAllowed when dailyCalls is on declared attribute", async () => {
+    const mockDescriptor = {
+      ...getMockDescriptor(),
+      docs: [],
+    };
+
+    const mockDeclaredAttribute: Attribute = {
+      name: "Declared Attribute name",
+      id: generateId(),
+      kind: attributeKind.declared,
+      description: "Declared Attribute Description",
+      creationTime: new Date(),
+    };
+
+    await addOneAttribute(mockDeclaredAttribute);
+
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(mockDescriptor),
+      attributes: {
+        certified: [],
+        declared: [
+          [
+            {
+              id: mockDeclaredAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+        verified: [],
+      },
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      attributeDailyCallsNotAllowed(mockDeclaredAttribute.id)
+    );
   });
 });

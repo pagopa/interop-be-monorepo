@@ -118,6 +118,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   group_id INTEGER NOT NULL,
+  daily_calls_per_consumer INTEGER,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)

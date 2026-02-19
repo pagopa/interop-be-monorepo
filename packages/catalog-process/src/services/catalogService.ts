@@ -60,6 +60,7 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -180,6 +181,7 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
+  assertDailyCallsForCertifiedAttributesOnly,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -1320,6 +1322,8 @@ export function catalogServiceBuilder(
         eserviceDescriptorSeed.attributes,
         readModelService
       );
+
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
 
       assertConsistentDailyCalls(eserviceDescriptorSeed);
 
@@ -2861,13 +2865,25 @@ export function catalogServiceBuilder(
         seed
       );
 
-      if (newAttributes.length === 0) {
+      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+        descriptor,
+        seed
+      );
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+
+      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -3904,6 +3920,34 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
+function hasCertifiedAttributeDailyCallsChanged(
+  descriptor: Descriptor,
+  seed: catalogApi.AttributesSeed
+): boolean {
+  return descriptor.attributes.certified.some(
+    (descriptorAttributesGroup, attributesGroupIndex) => {
+      const seedAttrGroup = seed.certified[attributesGroupIndex];
+
+      return descriptorAttributesGroup.some((descriptorAttribute) => {
+        const seedAttribute = seedAttrGroup.find(
+          (attribute) => attribute.id === descriptorAttribute.id
+        );
+
+        if (seedAttribute === undefined) {
+          throw genericInternalError(
+            `Attribute ${descriptorAttribute.id} not found in seed group ${attributesGroupIndex}`
+          );
+        }
+
+        return (
+          seedAttribute.dailyCallsPerConsumer !==
+          descriptorAttribute.dailyCallsPerConsumer
+        );
+      });
+    }
+  );
+}
+
 function evaluateTemplateVersionRef(
   descriptor: Descriptor,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
@@ -4192,6 +4236,8 @@ async function updateDraftDescriptor(
         readModelService
       )
     : descriptor.attributes;
+
+  assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
 
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(

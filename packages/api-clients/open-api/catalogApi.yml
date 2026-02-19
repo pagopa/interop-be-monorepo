@@ -3175,6 +3175,10 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        dailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
       required:
         - id
         - explicitAttributeVerification
@@ -3640,6 +3644,10 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        dailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
       required:
         - id
         - explicitAttributeVerification
