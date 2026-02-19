@@ -7,7 +7,7 @@ import {
 import {
   InteropHeaders,
   Logger,
-  createPollingByCondition,
+  waitForReadModelMetadataVersion,
   delay,
 } from "pagopa-interop-commons";
 import {
@@ -341,11 +341,18 @@ export async function assignNewAttributes(
       }
     );
 
-    await waitForTenantReadModelVersion(
-      attributeToAssign.externalId,
+    await waitForReadModelMetadataVersion(
+      () =>
+        readModelServiceSQL.getTenantByExternalIdWithMetadata(
+          attributeToAssign.externalId
+        ),
       response.metadata?.version,
-      readModelServiceSQL,
-      loggerInstance
+      `tenant ${attributeToAssign.externalId.value}`,
+      loggerInstance,
+      {
+        defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+        defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+      }
     );
   }
 }
@@ -465,45 +472,19 @@ export async function revokeAttributes(
       }
     );
 
-    await waitForTenantReadModelVersion(
-      {
-        origin: a.tOrigin,
-        value: a.tExternalId,
-      },
+    await waitForReadModelMetadataVersion(
+      () =>
+        readModelServiceSQL.getTenantByExternalIdWithMetadata({
+          origin: a.tOrigin,
+          value: a.tExternalId,
+        }),
       response.metadata?.version,
-      readModelServiceSQL,
-      loggerInstance
+      `tenant ${a.tExternalId}`,
+      loggerInstance,
+      {
+        defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+        defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+      }
     );
   }
-}
-
-async function waitForTenantReadModelVersion(
-  externalId: {
-    origin: string;
-    value: string;
-  },
-  targetVersion: number | undefined,
-  readModelServiceSQL: ReadModelServiceSQL,
-  logger: Logger
-): Promise<void> {
-  if (targetVersion === undefined) {
-    logger.warn(
-      `Missing metadata version for tenant ${externalId.value}. Skipping polling.`
-    );
-    return;
-  }
-
-  const pollTenantByVersion = createPollingByCondition(
-    () => readModelServiceSQL.getTenantByExternalIdWithMetadata(externalId),
-    {
-      defaultPollingMaxRetries: config.defaultPollingMaxRetries,
-      defaultPollingRetryDelay: config.defaultPollingRetryDelay,
-    }
-  );
-
-  await pollTenantByVersion({
-    condition: (tenantWithMetadata) =>
-      tenantWithMetadata !== undefined &&
-      tenantWithMetadata.metadata.version >= targetVersion,
-  });
 }

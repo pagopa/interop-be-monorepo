@@ -2,7 +2,7 @@
 import {
   Logger,
   RefreshableInteropToken,
-  createPollingByCondition,
+  waitForReadModelMetadataVersion,
 } from "pagopa-interop-commons";
 import { CorrelationId, TenantFeatureCertifier } from "pagopa-interop-models";
 import { parse } from "csv/sync";
@@ -241,12 +241,12 @@ async function assignAttribute(
         logger
       );
 
-    await waitForTenantReadModelVersion(
-      readModel,
-      tenant.id,
+    await waitForReadModelMetadataVersion(
+      () => readModel.getTenantByIdWithMetadata(tenant.id),
       metadataVersion,
-      pollingConfig,
-      logger
+      `tenant ${tenant.id}`,
+      logger,
+      pollingConfig
     );
   }
 }
@@ -279,43 +279,14 @@ async function unassignAttribute(
         logger
       );
 
-    await waitForTenantReadModelVersion(
-      readModel,
-      tenant.id,
+    await waitForReadModelMetadataVersion(
+      () => readModel.getTenantByIdWithMetadata(tenant.id),
       metadataVersion,
-      pollingConfig,
-      logger
+      `tenant ${tenant.id}`,
+      logger,
+      pollingConfig
     );
   }
-}
-
-async function waitForTenantReadModelVersion(
-  readModel: ReadModelQueriesSQL,
-  tenantId: string,
-  targetVersion: number | undefined,
-  pollingConfig: PollingConfig,
-  logger: Logger
-): Promise<void> {
-  if (targetVersion === undefined) {
-    logger.warn(
-      `Missing metadata version for tenant ${tenantId}. Skipping polling.`
-    );
-    return;
-  }
-
-  const pollTenantByVersion = createPollingByCondition(
-    () => readModel.getTenantByIdWithMetadata(tenantId),
-    {
-      defaultPollingMaxRetries: pollingConfig.defaultPollingMaxRetries,
-      defaultPollingRetryDelay: pollingConfig.defaultPollingRetryDelay,
-    }
-  );
-
-  await pollTenantByVersion({
-    condition: (tenantWithMetadata) =>
-      tenantWithMetadata !== undefined &&
-      tenantWithMetadata.metadata.version >= targetVersion,
-  });
 }
 
 function tenantContainsAttribute(
