@@ -490,7 +490,7 @@ export function purposeFromTemplateCannotBeModified(
 
 export function invalidFreeOfChargeReason(
   isFreeOfCharge: boolean,
-  freeOfChargeReason: string
+  freeOfChargeReason: string | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid freeOfChargeReason: "${freeOfChargeReason}" for isFreeOfCharge: "${isFreeOfCharge}"`,

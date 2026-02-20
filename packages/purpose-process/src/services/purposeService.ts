@@ -2149,16 +2149,47 @@ const performUpdatePurpose = async (
         )
       : purpose.data.riskAnalysisForm;
 
+  const updatedPurposeIsFreeOfCharge =
+    isFreeOfCharge ?? purpose.data.isFreeOfCharge;
+
+  function updateFreeOfChargeReason(): string | undefined {
+    function normalizeFreeOfChargeReason(
+      freeOfChargeReason: string | null | undefined
+    ): string | null | undefined {
+      if (typeof freeOfChargeReason === "string") {
+        const trimmedReason = freeOfChargeReason.trim();
+        return trimmedReason.length > 0 ? trimmedReason : null;
+      }
+
+      return freeOfChargeReason;
+    }
+    const normalizedSeedFreeOfChargeReason =
+      normalizeFreeOfChargeReason(freeOfChargeReason);
+
+    // Return the seed freeOfChargeReason if defined and not empty
+    if (normalizedSeedFreeOfChargeReason != undefined) {
+      return normalizedSeedFreeOfChargeReason;
+    }
+
+    // Return undefined if the updated isFreeOfCharge is false or the seed freeOfChargeReason is explicitly set to null.
+    // A purpose should only have a freeOfChargeReason when isFreeOfCharge is true.
+    if (
+      !updatedPurposeIsFreeOfCharge ||
+      normalizedSeedFreeOfChargeReason === null
+    ) {
+      return undefined;
+    }
+
+    // Fallback to the existing reason in the purpose
+    return purpose.data.freeOfChargeReason;
+  }
+
   const updatedPurpose: Purpose = {
     ...purpose.data,
     title: title ?? purpose.data.title,
     description: description ?? purpose.data.description,
-    isFreeOfCharge: isFreeOfCharge ?? purpose.data.isFreeOfCharge,
-    freeOfChargeReason:
-      freeOfChargeReason ??
-      (freeOfChargeReason === null
-        ? undefined
-        : purpose.data.freeOfChargeReason),
+    isFreeOfCharge: updatedPurposeIsFreeOfCharge,
+    freeOfChargeReason: updateFreeOfChargeReason(),
     versions: [
       {
         ...purpose.data.versions[0],
