@@ -702,7 +702,7 @@ describe("create eService from template", () => {
       description: "two instances, one without a label",
     },
   ])(
-    "should assign default instanceLabel $expectedLabel when $description",
+    "should assign default instanceLabel $expectedLabel when there are $description",
     async ({ existingLabels, expectedLabel }) => {
       const publishedVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
@@ -725,7 +725,7 @@ describe("create eService from template", () => {
         );
         const instance: EService =
           label === undefined
-            ? { ...mock, name: eServiceTemplate.name }
+            ? { ...mock, name: eServiceTemplate.name, instanceLabel: label }
             : {
                 ...mock,
                 name: `${eServiceTemplate.name} - ${label}`,
