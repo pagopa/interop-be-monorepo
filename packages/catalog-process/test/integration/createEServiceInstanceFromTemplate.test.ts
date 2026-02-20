@@ -714,12 +714,6 @@ describe("create eService from template", () => {
         personalData: false,
       };
 
-      const tenant: Tenant = {
-        ...getMockTenant(mockEService.producerId),
-        kind: tenantKind.PA,
-      };
-
-      await addOneTenant(tenant);
       await addOneEServiceTemplate(eServiceTemplate);
 
       for (const label of existingLabels) {
