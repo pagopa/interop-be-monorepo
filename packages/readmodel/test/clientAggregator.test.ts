@@ -1,8 +1,8 @@
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import { Client, generateId, WithMetadata } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { splitClientIntoObjectsSQL } from "../src/authorization/clientSplitters.js";
-import { aggregateClient } from "../src/authorization/clientAggregators.js";
+import { splitClientIntoObjectsSQL } from "../src/client/splitters.js";
+import { aggregateClient } from "../src/client/aggregators.js";
 
 describe("Client aggregator", () => {
   it("should convert client SQL objects into a business logic client", () => {

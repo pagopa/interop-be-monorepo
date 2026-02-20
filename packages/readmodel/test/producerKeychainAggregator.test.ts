@@ -8,8 +8,8 @@ import {
   ProducerKeychain,
   WithMetadata,
 } from "pagopa-interop-models";
-import { splitProducerKeychainIntoObjectsSQL } from "../src/authorization/producerKeychainSplitters.js";
-import { aggregateProducerKeychain } from "../src/authorization/producerKeychainAggregators.js";
+import { splitProducerKeychainIntoObjectsSQL } from "../src/producer-keychain/splitters.js";
+import { aggregateProducerKeychain } from "../src/producer-keychain/aggregators.js";
 
 describe("Producer keychain aggregator", () => {
   it("should convert a producer keychain SQL object into a business logic producer keychain ", () => {

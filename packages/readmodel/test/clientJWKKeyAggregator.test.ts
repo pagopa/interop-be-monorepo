@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getMockClientJWKKey } from "pagopa-interop-commons-test";
-import { splitClientJWKKeyIntoObjectsSQL } from "../src/authorization/clientJWKKeySplitters.js";
-import { aggregateClientJWKKey } from "../src/authorization/clientJWKKeyAggregators.js";
+import { splitClientJWKKeyIntoObjectsSQL } from "../src/client-jwk-key/splitters.js";
+import { aggregateClientJWKKey } from "../src/client-jwk-key/aggregators.js";
 
 describe("Client JWK key aggregator", () => {
   it("should convert a client JWK key SQL object into a business logic client JWK key", () => {

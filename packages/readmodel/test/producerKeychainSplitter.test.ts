@@ -15,7 +15,7 @@ import {
   ProducerKeychainSQL,
   ProducerKeychainUserSQL,
 } from "pagopa-interop-readmodel-models";
-import { splitProducerKeychainIntoObjectsSQL } from "../src/authorization/producerKeychainSplitters.js";
+import { splitProducerKeychainIntoObjectsSQL } from "../src/producer-keychain/splitters.js";
 
 describe("Producer keychain splitter", () => {
   it("should convert a producer keychain into producer keychain SQL objects", () => {

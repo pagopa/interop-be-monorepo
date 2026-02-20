@@ -7,7 +7,7 @@ import {
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
-import { splitClientIntoObjectsSQL } from "../src/authorization/clientSplitters.js";
+import { splitClientIntoObjectsSQL } from "../src/client/splitters.js";
 
 describe("Client splitter", () => {
   it("should convert a client into client SQL objects", () => {

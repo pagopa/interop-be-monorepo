@@ -9,7 +9,7 @@ import {
   clientJwkKeyInReadmodelClientJwkKey,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
+import { aggregateClientJWKKey } from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
