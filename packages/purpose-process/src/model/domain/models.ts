@@ -53,3 +53,11 @@ export const UpdatedQuotas = z.object({
   maxDailyCallsTotal: z.number().int().nonnegative(),
 });
 export type UpdatedQuotas = z.infer<typeof UpdatedQuotas>;
+
+export const UpdatedDailyCalls = z.object({
+  eserviceId: z.string(),
+  descriptorId: z.string(),
+  updatedDailyCallsPerConsumer: z.number(),
+  updatedDailyCallsTotal: z.number(),
+});
+export type UpdatedDailyCalls = z.infer<typeof UpdatedDailyCalls>;
