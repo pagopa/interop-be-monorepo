@@ -24,7 +24,7 @@ import {
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregator,
   toPurposeTemplateAggregatorArray,
-} from "./purpose-template/aggregators.js";
+} from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {

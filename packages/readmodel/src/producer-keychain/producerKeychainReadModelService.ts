@@ -14,7 +14,7 @@ import {
 import {
   aggregateProducerKeychain,
   toProducerKeychainAggregator,
-} from "./authorization/producerKeychainAggregators.js";
+} from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function producerKeychainReadModelServiceBuilder(db: DrizzleReturnType) {

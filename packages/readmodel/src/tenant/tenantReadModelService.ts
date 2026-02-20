@@ -26,7 +26,7 @@ import {
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
 import { ascLower } from "pagopa-interop-commons";
-import { aggregateTenant, aggregateTenantArray } from "./tenant/aggregators.js";
+import { aggregateTenant, aggregateTenantArray } from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {

@@ -17,7 +17,7 @@ import {
   aggregateDelegationArray,
   toDelegationAggregator,
   toDelegationAggregatorArray,
-} from "./delegation/aggregators.js";
+} from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {

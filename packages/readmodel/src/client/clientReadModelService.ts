@@ -17,7 +17,7 @@ import {
   aggregateClientArray,
   toClientAggregator,
   toClientAggregatorArray,
-} from "./authorization/clientAggregators.js";
+} from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientReadModelServiceBuilder(db: DrizzleReturnType) {

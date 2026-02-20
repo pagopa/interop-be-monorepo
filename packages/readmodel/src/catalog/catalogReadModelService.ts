@@ -22,7 +22,7 @@ import {
   aggregateEserviceArray,
   toEServiceAggregator,
   toEServiceAggregatorArray,
-} from "./catalog/aggregators.js";
+} from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
