@@ -335,7 +335,7 @@ describe("updatePurposeTemplate", () => {
   });
 
   it.each([undefined, ""])(
-    "Should throw a missingFreeOfChargeReason error if purposeIsFreeOfCharge is true but purposeFreeOfChargeReason is missing",
+    "Should throw a missingFreeOfChargeReason error if purposeIsFreeOfCharge is true but purposeFreeOfChargeReason is missing (seed #%#)",
     async (purposeFreeOfChargeReason) => {
       await addOnePurposeTemplate(existingPurposeTemplate);
       expect(
