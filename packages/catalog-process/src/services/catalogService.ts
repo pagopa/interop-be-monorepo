@@ -499,6 +499,7 @@ async function innerCreateEService(
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
           riskAnalysis: RiskAnalysis[] | undefined;
+          instanceLabel: string | undefined;
         }
       | undefined;
   },
@@ -3367,6 +3368,7 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
+            instanceLabel: undefined, // TODO
           },
         },
         readModelService,
