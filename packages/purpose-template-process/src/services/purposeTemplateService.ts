@@ -735,20 +735,34 @@ async function updateDraftPurposeTemplate(
 
   // Context: https://github.com/pagopa/interop-be-monorepo/pull/2954
   function updatePurposeFreeOfChargeReason(): string | undefined {
-    const normalizedSeedFreeOfChargeReason =
-      typeof purposeFreeOfChargeReason === "string" &&
-      purposeFreeOfChargeReason.length > 0
-        ? purposeFreeOfChargeReason
-        : undefined;
+    function normalizePurposeFreeOfChargeReason(
+      purposeFreeOfChargeReason: string | null | undefined
+    ): string | null | undefined {
+      if (typeof purposeFreeOfChargeReason === "string") {
+        const trimmedPurposeFreeOfChargeReason =
+          purposeFreeOfChargeReason.trim();
+        return trimmedPurposeFreeOfChargeReason.length > 0
+          ? trimmedPurposeFreeOfChargeReason
+          : null;
+      }
+
+      return purposeFreeOfChargeReason;
+    }
+    const normalizedSeedFreeOfChargeReason = normalizePurposeFreeOfChargeReason(
+      purposeFreeOfChargeReason
+    );
 
     // Return the seed purposeFreeOfChargeReason if defined and not empty
-    if (normalizedSeedFreeOfChargeReason !== undefined) {
+    if (normalizedSeedFreeOfChargeReason != undefined) {
       return normalizedSeedFreeOfChargeReason;
     }
 
     // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null.
     // A purpose template should only have a purposeFreeOfChargeReason when purposeIsFreeOfCharge is true.
-    if (!updatedPurposeIsFreeOfCharge || purposeFreeOfChargeReason === null) {
+    if (
+      !updatedPurposeIsFreeOfCharge ||
+      normalizedSeedFreeOfChargeReason === null
+    ) {
       return undefined;
     }
 
