@@ -3343,7 +3343,7 @@ export function catalogServiceBuilder(
             }
           );
 
-        return labelsInUse.length === 0
+        return labelsInUse.length === 0 || !labelsInUse.includes(undefined)
           ? undefined
           : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
       };
