@@ -885,28 +885,8 @@ paths:
               $ref: "#/components/schemas/DelegationState"
             default: []
           explode: false
-        - in: query
-          name: delegatorIds
-          description: Filter Consumer Delegations by delegator IDs. If not specified, return Consumer Delegations for any delegator
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: delegateIds
-          description: Filter Consumer Delegations by delegate IDs. If not specified, return Consumer Delegations for any delegate
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/DelegatorIdsParam"
+        - $ref: "#/components/parameters/DelegateIdsParam"
         - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
@@ -1091,28 +1071,8 @@ paths:
               $ref: "#/components/schemas/DelegationState"
             default: []
           explode: false
-        - in: query
-          name: delegatorIds
-          description: Filter Producer Delegations by delegator IDs. If not specified, return Producer Delegations for any delegator
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: delegateIds
-          description: Filter Producer Delegations by delegate IDs. If not specified, return Producer Delegations for any delegate
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/DelegatorIdsParam"
+        - $ref: "#/components/parameters/DelegateIdsParam"
         - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
@@ -4883,8 +4843,7 @@ paths:
         description: The E-Service Template id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     get:
       tags:
         - eserviceTemplates
@@ -4998,8 +4957,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     patch:
       tags:
         - eserviceTemplates
@@ -5047,8 +5005,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     patch:
       tags:
         - eserviceTemplates
@@ -5096,8 +5053,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     patch:
       tags:
         - eserviceTemplates
@@ -5147,8 +5103,7 @@ paths:
         description: The E-Service Template ID of the Versions to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     get:
       tags:
         - eserviceTemplates
@@ -5253,8 +5208,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version to retrieve
@@ -5375,8 +5329,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version to suspend
@@ -5425,8 +5378,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version to unsuspend
@@ -5475,8 +5427,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version to publish
@@ -5525,8 +5476,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -5633,8 +5583,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -5718,8 +5667,7 @@ paths:
         description: The E-Service Template ID for which to create a risk analysis
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     post:
       tags:
         - eserviceTemplates
@@ -5819,8 +5767,7 @@ paths:
         description: The E-Service Template id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: riskAnalysisId
         in: path
         description: The Risk Analysis id
@@ -5899,8 +5846,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -5957,8 +5903,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6023,8 +5968,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6089,8 +6033,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6155,8 +6098,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6217,8 +6159,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6279,8 +6220,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6341,8 +6281,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6403,8 +6342,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6465,8 +6403,7 @@ paths:
         description: The ID of the E-Service Template
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the E-Service Template Version
@@ -6527,8 +6464,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6583,8 +6519,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6639,8 +6574,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -10111,9 +10045,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /producerKeychains/{producerKeychainId}/users:
+  /producerKeychains/{keychainId}/users:
     parameters:
-      - name: producerKeychainId
+      - name: keychainId
         in: path
         description: ID of Producer Keychain the users belong to
         required: true
@@ -10211,9 +10145,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /producerKeychains/{producerKeychainId}/users/{userId}:
+  /producerKeychains/{keychainId}/users/{userId}:
     parameters:
-      - name: producerKeychainId
+      - name: keychainId
         in: path
         description: The Producer Keychain id
         required: true
@@ -10274,6 +10208,30 @@ components:
       in: query
       name: eserviceIds
       description: Filter by E-Service IDs. If not specified, return results for any E-Service
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
+    DelegatorIdsParam:
+      in: query
+      name: delegatorIds
+      description: Filter Delegations by delegator IDs. If not specified, return Delegations for any delegator
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
+    DelegateIdsParam:
+      in: query
+      name: delegateIds
+      description: Filter Delegations by delegate IDs. If not specified, return Delegations for any delegate
       required: false
       explode: false
       schema:
@@ -11519,11 +11477,9 @@ components:
           type: string
           format: uuid
         delegatorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegatorId"
         delegateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegateId"
         eserviceId:
           $ref: "#/components/schemas/EServiceId"
         createdAt:
@@ -11577,11 +11533,9 @@ components:
           type: string
           format: uuid
         delegatorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegatorId"
         delegateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegateId"
         eserviceId:
           $ref: "#/components/schemas/EServiceId"
         createdAt:
@@ -11649,8 +11603,7 @@ components:
         eserviceId:
           $ref: "#/components/schemas/EServiceId"
         delegateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegateId"
       required:
         - eserviceId
         - delegateId
@@ -11679,8 +11632,7 @@ components:
         isClientAccessDelegable:
           type: boolean
         templateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
         personalData:
           type: boolean
       required:
@@ -13741,6 +13693,18 @@ components:
       type: string
       format: uuid
       description: The unique identifier of the Tenant
+    DelegatorId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Delegator
+    DelegateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Delegate
+    TemplateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Template
   responses:
     TooManyRequests:
       description: Too Many Requests
