@@ -15,7 +15,8 @@ import {
   UIAuthData,
   verifyAndCreateDocument,
   WithLogger,
-  formatDateddMMyyyyHHmmss,
+  dateAtRomeZone,
+  timeAtRomeZone,
   assertFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
@@ -1861,9 +1862,20 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const clonedEServiceName = `${
-        eservice.data.name
-      } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
+      const currentDate = new Date();
+      const suffix = ` - clone - ${dateAtRomeZone(
+        currentDate
+      )} ${timeAtRomeZone(currentDate)}`;
+      const dots = "...";
+      const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
+      const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
+      const clonedEServiceName =
+        eservice.data.name.length + suffix.length <= maxNameLength
+          ? `${eservice.data.name}${suffix}`
+          : `${eservice.data.name.slice(
+              0,
+              prefixLengthAllowance
+            )}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
