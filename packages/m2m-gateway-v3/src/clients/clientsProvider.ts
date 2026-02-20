@@ -9,6 +9,10 @@ import {
   eserviceTemplateApi,
   m2mEventApi,
   purposeTemplateApi,
+  selfcareV2InstitutionClientBuilder,
+  selfcareV2UsersClientBuilder,
+  SelfcareV2UsersClient,
+  SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
@@ -61,6 +65,11 @@ export type EServiceTemplateProcessClientWithMetadata =
 type PurposeTemplateProcessClientWithMetadata =
   ZodiosClientWithMetadata<purposeTemplateApi.PurposeTemplateProcessClient>;
 
+type SelfcareClient = {
+  institution: SelfcareV2InstitutionClient;
+  user: SelfcareV2UsersClient;
+};
+
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClientWithMetadata;
   attributeProcessClient: AttributeProcessClientWithMetadata;
@@ -72,6 +81,7 @@ export type PagoPAInteropBeClients = {
   eserviceTemplateProcessClient: EServiceTemplateProcessClientWithMetadata;
   eventManagerClient: m2mEventApi.EventManagerClient;
   purposeTemplateProcessClient: PurposeTemplateProcessClientWithMetadata;
+  selfcareClient: SelfcareClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -141,5 +151,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       purposeTemplateApi.createPurposeTemplateApiClient,
       config.purposeTemplateProcessUrl
     ),
+    selfcareClient: {
+      institution: selfcareV2InstitutionClientBuilder(config),
+      user: selfcareV2UsersClientBuilder(config),
+    },
   };
 }

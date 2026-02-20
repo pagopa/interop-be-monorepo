@@ -10,11 +10,7 @@ import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
-import {
-  AttributeSchema,
-  AttributeDeletingSchema,
-} from "../../model/attribute/attribute.js";
-import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
+import { AttributeSchema } from "../../model/attribute/attribute.js";
 
 export async function handleAttributeMessageV1(
   messages: AttributeEventEnvelope[],
@@ -23,7 +19,6 @@ export async function handleAttributeMessageV1(
   const attributeService = attributeServiceBuilder(dbContext);
 
   const upsertBatch: AttributeSchema[] = [];
-  const deleteBatch: AttributeDeletingSchema[] = [];
 
   for (const message of messages) {
     match(message)
@@ -43,25 +38,10 @@ export async function handleAttributeMessageV1(
           )
         );
       })
-      .with({ type: "MaintenanceAttributeDeleted" }, (msg) => {
-        deleteBatch.push(
-          AttributeDeletingSchema.parse({
-            id: msg.data.id,
-            deleted: true,
-          } satisfies z.input<typeof AttributeDeletingSchema>)
-        );
-      })
       .exhaustive();
   }
 
   if (upsertBatch.length > 0) {
     await attributeService.upsertBatchAttribute(dbContext, upsertBatch);
-  }
-
-  if (deleteBatch.length > 0) {
-    const distinctBatch = distinctByKeys(deleteBatch, AttributeDeletingSchema, [
-      "id",
-    ]);
-    await attributeService.deleteBatchAttribute(dbContext, distinctBatch);
   }
 }

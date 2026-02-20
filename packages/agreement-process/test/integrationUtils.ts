@@ -11,6 +11,7 @@ import {
   sortBy,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
+import type { DeeplyAllowMatchers } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -234,7 +235,9 @@ export function expectGenericSinglePageListResult<T>(
 ): void {
   expect(actual).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(expected),
+    results: expect.arrayContaining(
+      expected as unknown as Array<DeeplyAllowMatchers<T>>
+    ),
   });
   expect(actual.results).toHaveLength(expected.length);
 }
