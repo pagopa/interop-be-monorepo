@@ -36,6 +36,7 @@ import {
   catalogService,
   postgresDB,
   readLastEserviceEvent,
+  addOneEService,
   addOneEServiceTemplate,
   fileManager,
   addOneTenant,
@@ -673,4 +674,87 @@ describe("create eService from template", () => {
       code: "eServiceTemplateWithoutPersonalDataFlag",
     });
   });
+
+  it.each([
+    {
+      existingLabels: [],
+      expectedLabel: undefined,
+      description: "no existing instances",
+    },
+    {
+      existingLabels: ["test"],
+      expectedLabel: undefined,
+      description: "one instance with a label",
+    },
+    {
+      existingLabels: ["abc", "def"],
+      expectedLabel: undefined,
+      description: "two instances both with labels",
+    },
+    {
+      existingLabels: [undefined],
+      expectedLabel: "istanza 0002",
+      description: "one instance without a label",
+    },
+    {
+      existingLabels: [undefined, "abc"],
+      expectedLabel: "istanza 0003",
+      description: "two instances, one without a label",
+    },
+  ])(
+    "should assign default instanceLabel $expectedLabel when $description",
+    async ({ existingLabels, expectedLabel }) => {
+      const publishedVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state: eserviceTemplateVersionState.published,
+      };
+      const eServiceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [publishedVersion],
+        personalData: false,
+      };
+
+      const tenant: Tenant = {
+        ...getMockTenant(mockEService.producerId),
+        kind: tenantKind.PA,
+      };
+
+      await addOneTenant(tenant);
+      await addOneEServiceTemplate(eServiceTemplate);
+
+      for (const label of existingLabels) {
+        const { instanceLabel: _discarded, ...baseMock } = getMockEService(
+          undefined,
+          mockEService.producerId,
+          [],
+          eServiceTemplate.id
+        );
+        const instance: EService =
+          label === undefined
+            ? { ...baseMock, name: eServiceTemplate.name }
+            : {
+                ...baseMock,
+                name: `${eServiceTemplate.name} - ${label}`,
+                instanceLabel: label,
+              };
+
+        await addOneEService(instance);
+      }
+
+      const eService = await catalogService.createEServiceInstanceFromTemplate(
+        eServiceTemplate.id,
+        { instanceLabel: null },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      );
+
+      expect(eService.instanceLabel).toBe(expectedLabel);
+      if (expectedLabel === undefined) {
+        expect(eService.name).toBe(eServiceTemplate.name);
+      } else {
+        expect(eService.name).toBe(
+          `${eServiceTemplate.name} - ${expectedLabel}`
+        );
+      }
+    }
+  );
 });
