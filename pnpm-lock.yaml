@@ -175,8 +175,8 @@ catalogs:
       specifier: 4.20.0
       version: 4.20.0
     fast-xml-parser:
-      specifier: 5.3.4
-      version: 5.3.4
+      specifier: 5.3.6
+      version: 5.3.6
     form-data-encoder:
       specifier: 4.1.0
       version: 4.1.0
@@ -1283,7 +1283,7 @@ importers:
         version: 4.20.0
       fast-xml-parser:
         specifier: 'catalog:'
-        version: 5.3.4
+        version: 5.3.6
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
         version: link:../agreement-lifecycle
@@ -1881,7 +1881,7 @@ importers:
         version: 4.20.0
       fast-xml-parser:
         specifier: 'catalog:'
-        version: 5.3.4
+        version: 5.3.6
       handlebars:
         specifier: 'catalog:'
         version: 4.7.8
@@ -9154,8 +9154,8 @@ packages:
     resolution: {integrity: sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==}
     hasBin: true
 
-  fast-xml-parser@5.3.4:
-    resolution: {integrity: sha512-EFd6afGmXlCx8H8WTZHhAoDaWaGyuIBoZJ2mknrNxug+aZKjkp0a0dlars9Izl+jF+7Gu1/5f/2h68cQpe0IiA==}
+  fast-xml-parser@5.3.6:
+    resolution: {integrity: sha512-QNI3sAvSvaOiaMl8FYU4trnEzCwiRr8XMWgAHzlrWpTSj+QaCSvOf1h82OEP1s4hiAXhnbXSyFWCf4ldZzZRVA==}
     hasBin: true
 
   fastq@1.17.1:
@@ -16206,7 +16206,7 @@ snapshots:
     dependencies:
       strnum: 1.0.5
 
-  fast-xml-parser@5.3.4:
+  fast-xml-parser@5.3.6:
     dependencies:
       strnum: 2.1.2
 
