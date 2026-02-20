@@ -3,7 +3,20 @@ import { InteropHeaders, Logger } from "pagopa-interop-commons";
 
 const internalUpsertTenantMock = vi.fn();
 const internalRevokeCertifiedAttributeMock = vi.fn();
-const createPollingByConditionMock = vi.fn();
+const waitForReadModelMetadataVersionMock = vi.fn(
+  async (
+    _fetchResourceWithMetadata: () => Promise<unknown>,
+    targetVersion: number | undefined,
+    resourceLabel: string,
+    logger: { warn: (message: string) => void }
+  ): Promise<void> => {
+    if (targetVersion === undefined) {
+      logger.warn(
+        `Missing metadata version for ${resourceLabel}. Skipping polling.`
+      );
+    }
+  }
+);
 
 vi.mock("pagopa-interop-api-clients", async () => {
   const actual = await vi.importActual("pagopa-interop-api-clients");
@@ -22,7 +35,7 @@ vi.mock("pagopa-interop-commons", async () => {
 
   return {
     ...actual,
-    createPollingByCondition: createPollingByConditionMock,
+    waitForReadModelMetadataVersion: waitForReadModelMetadataVersionMock,
   };
 });
 
@@ -52,27 +65,12 @@ describe("IPA metadata polling", () => {
     })),
   };
 
-  type PollingRunnerArgs = {
-    condition: (pollingResult: unknown) => boolean;
-  };
-
-  const buildPollingRunner = (): ReturnType<typeof vi.fn> =>
-    vi.fn(async ({ condition }: PollingRunnerArgs): Promise<void> => {
-      const readModelEntry =
-        await readModelServiceSQL.getTenantByExternalIdWithMetadata();
-      expect(condition(readModelEntry)).toBe(true);
-    });
-
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   it("should poll read model after assign when metadata version is returned", async () => {
     internalUpsertTenantMock.mockResolvedValue({ metadata: { version: 5 } });
-
-    const pollingRunner = buildPollingRunner();
-
-    createPollingByConditionMock.mockReturnValue(pollingRunner);
 
     await assignNewAttributes(
       [
@@ -89,8 +87,7 @@ describe("IPA metadata polling", () => {
     );
 
     expect(internalUpsertTenantMock).toHaveBeenCalledTimes(1);
-    expect(createPollingByConditionMock).toHaveBeenCalledTimes(1);
-    expect(pollingRunner).toHaveBeenCalledTimes(1);
+    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
@@ -111,7 +108,7 @@ describe("IPA metadata polling", () => {
       logger
     );
 
-    expect(createPollingByConditionMock).not.toHaveBeenCalled();
+    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
@@ -119,9 +116,7 @@ describe("IPA metadata polling", () => {
     internalUpsertTenantMock.mockResolvedValue({ metadata: { version: 5 } });
 
     const pollingError = new Error("pollingMaxRetriesExceeded");
-    const pollingRunner = vi.fn().mockRejectedValue(pollingError);
-
-    createPollingByConditionMock.mockReturnValue(pollingRunner);
+    waitForReadModelMetadataVersionMock.mockRejectedValueOnce(pollingError);
 
     await expect(
       assignNewAttributes(
@@ -140,18 +135,13 @@ describe("IPA metadata polling", () => {
     ).rejects.toThrowError(pollingError);
 
     expect(internalUpsertTenantMock).toHaveBeenCalledTimes(1);
-    expect(createPollingByConditionMock).toHaveBeenCalledTimes(1);
-    expect(pollingRunner).toHaveBeenCalledTimes(1);
+    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
   });
 
   it("should poll read model after revoke when metadata version is returned", async () => {
     internalRevokeCertifiedAttributeMock.mockResolvedValue({
       metadata: { version: 5 },
     });
-
-    const pollingRunner = buildPollingRunner();
-
-    createPollingByConditionMock.mockReturnValue(pollingRunner);
 
     await revokeAttributes(
       [
@@ -169,8 +159,7 @@ describe("IPA metadata polling", () => {
     );
 
     expect(internalRevokeCertifiedAttributeMock).toHaveBeenCalledTimes(1);
-    expect(createPollingByConditionMock).toHaveBeenCalledTimes(1);
-    expect(pollingRunner).toHaveBeenCalledTimes(1);
+    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
     expect(logger.warn).not.toHaveBeenCalled();
   });
 });
