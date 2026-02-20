@@ -207,13 +207,13 @@ const producerKeychainRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producerKeychains/:producerKeychainId/users", async (req, res) => {
+    .get("/producerKeychains/:keychainId/users", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
         const users = await producerKeychainService.getProducerKeychainUsers(
-          req.params.producerKeychainId,
+          req.params.keychainId,
           ctx,
           req.query
         );
@@ -224,19 +224,19 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving users of producer keychain ${req.params.producerKeychainId}`
+          `Error retrieving users of producer keychain ${req.params.keychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/producerKeychains/:producerKeychainId/users", async (req, res) => {
+    .post("/producerKeychains/:keychainId/users", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         await producerKeychainService.addProducerKeychainUsers(
-          unsafeBrandId(req.params.producerKeychainId),
+          unsafeBrandId(req.params.keychainId),
           req.body.userId,
           ctx
         );
@@ -246,20 +246,20 @@ const producerKeychainRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error adding user to producer keychain with id ${req.params.producerKeychainId}`
+          `Error adding user to producer keychain with id ${req.params.keychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete(
-      "/producerKeychains/:producerKeychainId/users/:userId",
+      "/producerKeychains/:keychainId/users/:userId",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
           await producerKeychainService.removeProducerKeychainUser(
-            unsafeBrandId(req.params.producerKeychainId),
+            unsafeBrandId(req.params.keychainId),
             req.params.userId,
             ctx
           );
@@ -269,7 +269,7 @@ const producerKeychainRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error removing user ${req.params.userId} from producer keychain ${req.params.producerKeychainId}`
+            `Error removing user ${req.params.userId} from producer keychain ${req.params.keychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
