@@ -91,20 +91,10 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/DescriptorId"
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Agreements by E-Service IDs. If not specified, return Agreements for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -193,8 +183,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -266,8 +255,7 @@ paths:
         description: The ID of the Agreement to retrieve purposes for
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -323,8 +311,7 @@ paths:
   /agreements/{agreementId}/approve:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to approve
         in: path
@@ -373,8 +360,7 @@ paths:
   /agreements/{agreementId}/reject:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to reject
         in: path
@@ -422,8 +408,7 @@ paths:
   /agreements/{agreementId}/submit:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to submit
         in: path
@@ -474,8 +459,7 @@ paths:
   /agreements/{agreementId}/suspend:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to suspend
         in: path
@@ -524,8 +508,7 @@ paths:
   /agreements/{agreementId}/unsuspend:
     parameters:
       - schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         name: agreementId
         description: The ID of the Agreement to unsuspend
         in: path
@@ -578,8 +561,7 @@ paths:
         description: The ID of the Agreement to upgrade
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -623,8 +605,7 @@ paths:
         description: The ID of the Agreement to clone
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -670,8 +651,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     post:
       tags:
         - agreements
@@ -773,8 +753,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
       - name: documentId
         in: path
         description: The ID of the Document to retrieve or delete
@@ -853,8 +832,7 @@ paths:
         description: The ID of the Agreement
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
     get:
       tags:
         - agreements
@@ -929,16 +907,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Consumer Delegations by E-Service IDs. If not specified, return Consumer Delegations for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -1027,8 +996,7 @@ paths:
         description: The ID of the Consumer Delegation to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     get:
       tags:
         - delegations
@@ -1068,8 +1036,7 @@ paths:
         description: The ID of the Consumer Delegation to accept
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1146,16 +1113,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Producer Delegations by E-Service IDs. If not specified, return Producer Delegations for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: offset
           description: Pagination starting position
@@ -1244,8 +1202,7 @@ paths:
         description: The ID of the Producer Delegation to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     get:
       tags:
         - delegations
@@ -1285,8 +1242,7 @@ paths:
         description: The ID of the Producer Delegation to accept
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1330,8 +1286,7 @@ paths:
         description: The ID of the Producer Delegation to reject
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -1473,8 +1428,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1514,8 +1468,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1555,8 +1508,7 @@ paths:
         description: The ID of the Attribute to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - attributes
@@ -1844,8 +1796,7 @@ paths:
         description: The ID of the Client to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -1885,8 +1836,7 @@ paths:
         description: The ID of the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -1911,17 +1861,7 @@ paths:
             format: int32
             minimum: 1
             maximum: 50
-        - in: query
-          name: eserviceIds
-          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-          required: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: states
           description: >
@@ -2011,15 +1951,13 @@ paths:
         description: The ID of the Client to unlink the Purpose from
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       - name: purposeId
         in: path
         description: The ID of the Purpose to unlink from the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     delete:
       tags:
         - clients
@@ -2057,8 +1995,7 @@ paths:
         description: The ID of the Client
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -2157,8 +2094,7 @@ paths:
         description: ID of the client to look up
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       - name: keyId
         in: path
         description: the unique identifier of the key (kid) to lookup
@@ -2417,8 +2353,7 @@ paths:
         description: The ID of the E-Service to unlink from the Producer Keychain
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     delete:
       tags:
         - producerKeychains
@@ -2601,8 +2536,7 @@ paths:
         description: The ID of the Consumer Delegation to reject
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     post:
       tags:
         - delegations
@@ -2662,16 +2596,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: templateIds
-          description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/TemplateIdsParam"
         - in: query
           name: name
           description: Filter E-Services by name
@@ -2791,8 +2716,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     get:
       tags:
         - eservices
@@ -2906,8 +2830,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -2957,8 +2880,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -3008,8 +2930,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -3059,8 +2980,7 @@ paths:
         description: The E-Service ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     patch:
       tags:
         - eservices
@@ -3110,8 +3030,7 @@ paths:
         description: The E-Service ID of the Descriptors to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     get:
       tags:
         - eservices
@@ -3216,15 +3135,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3338,15 +3255,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     patch:
       tags:
         - eservices
@@ -3396,15 +3311,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -3504,15 +3417,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: documentId
         in: path
         description: The ID of the Document to retrieve or delete
@@ -3589,8 +3500,7 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor for which to download the interface
@@ -3718,8 +3628,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to suspend
@@ -3768,8 +3677,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to unsuspend
@@ -3818,8 +3726,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to publish
@@ -3868,8 +3775,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to approve
@@ -3925,8 +3831,7 @@ paths:
           description: The E-Service ID of the Descriptor
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EServiceId"
         - name: descriptorId
           in: path
           description: The ID of the Descriptor to reject
@@ -3969,8 +3874,7 @@ paths:
         description: The E-Service ID for which to create a risk analysis
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     post:
       tags:
         - eservices
@@ -4070,8 +3974,7 @@ paths:
         description: The E-Service id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: riskAnalysisId
         in: path
         description: The Risk Analysis id
@@ -4150,15 +4053,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -4216,15 +4117,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -4282,15 +4181,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     get:
       tags:
         - eservices
@@ -4348,15 +4245,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4410,15 +4305,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4472,15 +4365,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group of attributes
@@ -4534,15 +4425,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4556,8 +4445,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -4597,15 +4485,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4619,8 +4505,7 @@ paths:
         description: The ID of the Verified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -4660,15 +4545,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
       - name: groupIndex
         in: path
         description: The index of the group to which the Attribute belongs
@@ -4682,8 +4565,7 @@ paths:
         description: The ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eservices
@@ -4723,15 +4605,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4779,15 +4659,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4835,15 +4713,13 @@ paths:
         description: The E-Service ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       - name: descriptorId
         in: path
         description: The ID of the Descriptor
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
     post:
       tags:
         - eservices
@@ -4903,8 +4779,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              format: uuid
+              $ref: "#/components/schemas/EServiceTemplateId"
             default: []
           explode: false
         - in: query
@@ -6488,8 +6363,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -6551,8 +6425,7 @@ paths:
         description: The ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -6614,8 +6487,7 @@ paths:
         description: The ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - eserviceTemplates
@@ -6829,7 +6701,7 @@ paths:
           description: The unique identifier of the Key (kid)
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/Kid"
       responses:
         "200":
           description: Key retrieved
@@ -6867,7 +6739,7 @@ paths:
           description: The unique identifier of the Producer Key (kid)
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/Kid"
       responses:
         "200":
           description: Producer Key retrieved
@@ -6942,16 +6814,7 @@ paths:
       description: Retrieve a list of Purposes based on filters
       operationId: getPurposes
       parameters:
-        - in: query
-          name: eserviceIds
-          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: title
           description: Filter Purposes by title. If not specified, return Purposes for any title
@@ -7028,8 +6891,7 @@ paths:
         description: The ID of the Purpose to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -7147,7 +7009,7 @@ paths:
         description: The Purpose ID of the Versions to retrieve
         required: true
         schema:
-          type: string
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -7256,8 +7118,7 @@ paths:
         description: The Purpose ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       - name: versionId
         in: path
         description: The ID of the Version to retrieve
@@ -7338,8 +7199,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -7390,8 +7250,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -7438,8 +7297,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -7486,8 +7344,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -7538,8 +7395,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     post:
       tags:
         - purposes
@@ -7631,8 +7487,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     patch:
       tags:
         - purposes
@@ -7684,8 +7539,7 @@ paths:
         description: The ID of the Purpose
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       - name: versionId
         in: path
         description: The ID of the purpose Version to retrieve the document for
@@ -7734,8 +7588,7 @@ paths:
         description: The ID of the Purpose to retrieve the agreement for
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
     get:
       tags:
         - purposes
@@ -7846,8 +7699,7 @@ paths:
         description: The ID of the Tenant to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7887,8 +7739,7 @@ paths:
         description: The Tenant ID of the Declared Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -7992,15 +7843,13 @@ paths:
         description: The Tenant ID of the Declared Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Declared Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -8042,8 +7891,7 @@ paths:
         description: The Tenant ID of the Certified Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -8143,15 +7991,13 @@ paths:
         description: The Tenant ID of the Certified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Certified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -8195,8 +8041,7 @@ paths:
         description: The Tenant ID of the Verified Attributes
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
     get:
       tags:
         - tenants
@@ -8296,15 +8141,13 @@ paths:
         description: The Tenant ID of the Verified Attribute
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     delete:
       tags:
         - tenants
@@ -8358,15 +8201,13 @@ paths:
         description: The Tenant ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - tenants
@@ -8424,15 +8265,13 @@ paths:
         description: The Tenant ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       - name: attributeId
         in: path
         description: The Verified Attribute ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
     get:
       tags:
         - tenants
@@ -8506,16 +8345,7 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: eserviceIds
-          description: Filter Purpose Templates by E-Service IDs. If not specified, return Purpose Templates for any E-Service.
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: states
           description: >
@@ -8642,8 +8472,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8787,8 +8616,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -8885,8 +8713,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -9003,8 +8830,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       - name: documentId
         in: path
         description: The Document ID of the Answer Annotation
@@ -9100,8 +8926,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       tags:
         - purposes
@@ -9166,8 +8991,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     get:
       tags:
         - purposeTemplates
@@ -9276,15 +9100,13 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       - name: eserviceId
         in: path
         description: The Eservice ID to unlink
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
     delete:
       tags:
         - purposeTemplates
@@ -9322,8 +9144,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Publish a Purpose Template in Draft state
       description: Publish a Purpose Template that is in Draft state, transitioning it to Published state
@@ -9382,8 +9203,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Archive a Purpose Template in Published or Suspended state
       description: Archive a Purpose Template that is in Published or Suspended state, transitioning it to Archived state
@@ -9442,8 +9262,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Unsuspend a Purpose Template in Suspended state
       description: Unsuspend a Purpose Template that is in Suspended state, transitioning it to Published state
@@ -9502,8 +9321,7 @@ paths:
         description: The Purpose Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Suspend a Purpose Template in Published state
       description: Suspend a Purpose Template that is in Published state, transitioning it to Suspended state
@@ -10155,8 +9973,7 @@ paths:
         description: ID of Client the users belong to
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
     get:
       tags:
         - clients
@@ -10189,21 +10006,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Users"
           headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10234,21 +10046,16 @@ paths:
         "204":
           description: User linked to the Client
           headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10266,8 +10073,7 @@ paths:
         description: The Client id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       - name: userId
         in: path
         description: The ID of the User to unlink from the Client
@@ -10284,6 +10090,17 @@ paths:
       responses:
         "204":
           description: User unlinked from Client
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10301,8 +10118,7 @@ paths:
         description: ID of Producer Keychain the users belong to
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
     get:
       tags:
         - producerKeychains
@@ -10335,21 +10151,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Users"
           headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10380,21 +10191,16 @@ paths:
         "204":
           description: User linked to the Producer Keychain
           headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10412,8 +10218,7 @@ paths:
         description: The Producer Keychain id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
       - name: userId
         in: path
         description: The ID of the User to unlink from the Producer Keychain
@@ -10430,6 +10235,17 @@ paths:
       responses:
         "204":
           description: User unlinked from Producer Keychain
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10442,6 +10258,30 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
+    TemplateIdsParam:
+      in: query
+      name: templateIds
+      description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
+    EserviceIdsParam:
+      in: query
+      name: eserviceIds
+      description: Filter by E-Service IDs. If not specified, return results for any E-Service
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
     LastEventId:
       in: query
       name: lastEventId
@@ -10513,8 +10353,7 @@ components:
           type: string
           format: date-time
         agreementId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         consumerDelegationId:
           type: string
           format: uuid
@@ -10551,8 +10390,7 @@ components:
           type: string
           format: date-time
         attributeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AttributeId"
       required:
         - id
         - eventType
@@ -10603,8 +10441,7 @@ components:
           type: string
           format: date-time
         purposeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
         purposeVersionId:
           type: string
           format: uuid
@@ -10663,8 +10500,7 @@ components:
           type: string
           format: date-time
         tenantId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TenantId"
       required:
         - id
         - eventType
@@ -10737,11 +10573,9 @@ components:
           type: string
           format: date-time
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         producerDelegationId:
           type: string
           format: uuid
@@ -10798,8 +10632,7 @@ components:
           type: string
           format: date-time
         eserviceTemplateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceTemplateId"
         eserviceTemplateVersionId:
           type: string
           format: uuid
@@ -10834,10 +10667,9 @@ components:
           type: string
           format: date-time
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       required:
         - id
         - eventType
@@ -10872,8 +10704,7 @@ components:
           type: string
           format: date-time
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
       required:
         - id
         - eventType
@@ -10905,10 +10736,9 @@ components:
           type: string
           format: date-time
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
       required:
         - id
         - eventType
@@ -10943,8 +10773,7 @@ components:
           type: string
           format: date-time
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
       required:
         - id
         - eventType
@@ -10979,8 +10808,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - eventType
@@ -11015,8 +10843,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - eventType
@@ -11040,11 +10867,9 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         producerId:
           type: string
           format: uuid
@@ -11052,8 +10877,7 @@ components:
           type: string
           format: uuid
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
         state:
           $ref: "#/components/schemas/AgreementState"
         suspendedByConsumer:
@@ -11115,14 +10939,11 @@ components:
       description: Contains the information for agreement creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         descriptorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DescriptorId"
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - eserviceId
         - descriptorId
@@ -11620,8 +11441,7 @@ components:
       additionalProperties: false
       properties:
         purposeId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeId"
       required:
         - purposeId
     ProducerKeychain:
@@ -11688,8 +11508,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
     ProducerDelegation:
@@ -11706,8 +11525,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         createdAt:
           type: string
           format: date-time
@@ -11765,8 +11583,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         createdAt:
           type: string
           format: date-time
@@ -11830,8 +11647,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegateId:
           type: string
           format: uuid
@@ -12548,7 +12364,7 @@ components:
         alg:
           type: string
         kid:
-          type: string
+          $ref: "#/components/schemas/Kid"
         x5u:
           type: string
           minLength: 1
@@ -12655,8 +12471,7 @@ components:
       additionalProperties: false
       properties:
         clientId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ClientId"
         jwk:
           $ref: "#/components/schemas/JWK"
       required:
@@ -12668,8 +12483,7 @@ components:
       additionalProperties: false
       properties:
         producerKeychainId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ProducerKeychainId"
         jwk:
           $ref: "#/components/schemas/JWK"
       required:
@@ -12715,8 +12529,7 @@ components:
           type: string
           format: uuid
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         consumerId:
           type: string
           format: uuid
@@ -12741,8 +12554,7 @@ components:
         freeOfChargeReason:
           type: string
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
         currentVersion:
           $ref: "#/components/schemas/PurposeVersion"
         waitingForApprovalVersion:
@@ -12750,8 +12562,7 @@ components:
         rejectedVersion:
           $ref: "#/components/schemas/PurposeVersion"
         purposeTemplateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/PurposeTemplateId"
       required:
         - id
         - eserviceId
@@ -12767,8 +12578,7 @@ components:
       description: contains the expected payload for purpose creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -12806,8 +12616,7 @@ components:
       description: contains the expected payload for purpose creation from a purpose template
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -12833,8 +12642,7 @@ components:
       description: contains the expected payload for reverse purpose creation
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
         delegationId:
           description: |
             Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
@@ -13068,8 +12876,7 @@ components:
       additionalProperties: false
       properties:
         eserviceId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
     EServiceRiskAnalysisSeed:
@@ -13262,8 +13069,7 @@ components:
           type: string
           format: uuid
         agreementId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/AgreementId"
         expirationDate:
           type: string
           format: date-time
@@ -13322,8 +13128,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - assignedAt
@@ -13348,8 +13153,7 @@ components:
           type: string
           format: uuid
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
     TenantVerifiedAttributeVerifier:
@@ -13369,8 +13173,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - verifiedAt
@@ -13407,8 +13210,7 @@ components:
           type: string
           format: date-time
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
       required:
         - id
         - verifiedAt
@@ -13530,8 +13332,7 @@ components:
       description: Set the delegation ID in order to operate as a delegate for an active producer or consumer delegation
       properties:
         delegationId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegationId"
     PurposeTemplates:
       type: object
       additionalProperties: false
@@ -13893,6 +13694,53 @@ components:
       required:
         - code
         - detail
+    EServiceId:
+      type: string
+      format: uuid
+      description: The unique identifier of the E-Service
+    AgreementId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Agreement
+    AttributeId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Attribute
+    ClientId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Client
+    DelegationId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Delegation
+    DescriptorId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Descriptor
+    EServiceTemplateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the E-Service Template
+    Kid:
+      type: string
+      description: The unique identifier of the Key
+    ProducerKeychainId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Producer Keychain
+    PurposeId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Purpose
+    PurposeTemplateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Purpose Template
+    TenantId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Tenant
   responses:
     TooManyRequests:
       description: Too Many Requests

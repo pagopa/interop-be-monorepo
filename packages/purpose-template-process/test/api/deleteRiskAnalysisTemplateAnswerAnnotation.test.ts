@@ -22,6 +22,7 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
+  riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -104,6 +105,13 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
         purposeTemplateId,
         answerId: serviceResponse.data.id,
       }),
+      expectedStatus: 404,
+    },
+    {
+      error: riskAnalysisTemplateAnswerAnnotationNotFound(
+        purposeTemplateId,
+        serviceResponse.data.id
+      ),
       expectedStatus: 404,
     },
     {
