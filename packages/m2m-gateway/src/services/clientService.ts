@@ -1,9 +1,4 @@
-import {
-  ApiError,
-  ClientId,
-  UserId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
