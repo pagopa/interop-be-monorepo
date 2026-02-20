@@ -545,6 +545,7 @@ async function innerCreateEService(
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
+    instanceLabel: template?.instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
