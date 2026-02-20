@@ -13,7 +13,8 @@ export function buildIntegrityRest02SignedHeaders({
   res: Response;
   digest: string;
 }): IntegrityRest02SignedHeader {
-  const contentType = res.getHeader("Content-Type")?.toString() ?? "";
+  const contentType =
+    res.getHeader("Content-Type")?.toString() ?? "application/json";
   const contentEncoding = res.getHeader("Content-Encoding")?.toString();
 
   const headers: IntegrityRest02SignedHeader = {
