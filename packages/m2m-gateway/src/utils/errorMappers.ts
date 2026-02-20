@@ -291,6 +291,11 @@ export const assignEServiceTemplateVersionAttributesErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getPurposeTemplateRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

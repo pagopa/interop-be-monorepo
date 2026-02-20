@@ -3,7 +3,7 @@ info:
   title: PDND Interoperability API
   description: PDND Interoperability API for machine-to-machine interaction with interoperability features
   x-summary: PDND Interoperability API
-  version: "2.4.0"
+  version: "2.4.1"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -3422,24 +3422,24 @@ paths:
     get:
       tags:
         - clients
-      summary: List Clients
-      description: Retrieve a list of Clients based on filters
+      summary: List E-Service Clients
+      description: Retrieve a list of E-Service Clients based on filters
       operationId: getClients
       parameters:
         - in: query
           name: name
           description: |
-            Filter Clients by name.
-            If not specified, return Clients with any name.
+            Filter E-Service Clients by name.
+            If not specified, return E-Service Clients with any name.
             If specified, since client name is visible only to the owner (consumer),
-            the response will include only Clients owned by the requester.
+            the response will include only E-Service Clients owned by the requester.
           schema:
             type: string
         - name: consumerId
           in: query
           description: |
-            Filter Clients by Consumer ID (Client owner).
-            If not specified, return Clients for any Consumer.
+            Filter E-Service Clients by Consumer ID (Client owner).
+            If not specified, return E-Service Clients for any Consumer.
           schema:
             type: string
             format: uuid
@@ -3462,7 +3462,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Clients retrieved successfully
+          description: E-Service Clients retrieved successfully
           content:
             application/json:
               schema:
@@ -3517,7 +3517,7 @@ paths:
     parameters:
       - name: clientId
         in: path
-        description: The ID of the Client to retrieve
+        description: The ID of the E-Service Client to retrieve
         required: true
         schema:
           type: string
@@ -3525,12 +3525,12 @@ paths:
     get:
       tags:
         - clients
-      summary: Retrieve a Client
-      description: Retrieve a Client by its ID
+      summary: Retrieve an E-Service Client
+      description: Retrieve an E-Service Client by its ID
       operationId: getClient
       responses:
         "200":
-          description: Client retrieved successfully
+          description: E-Service Client retrieved successfully
           content:
             application/json:
               schema:
@@ -3598,7 +3598,7 @@ paths:
     parameters:
       - name: clientId
         in: path
-        description: The ID of the Client
+        description: The ID of the E-Service Client
         required: true
         schema:
           type: string
@@ -3606,8 +3606,8 @@ paths:
     get:
       tags:
         - clients
-      summary: List Purposes linked to a Client
-      description: Retrieve a list of Purposes linked to a specific Client
+      summary: List Purposes linked to an E-Service Client
+      description: Retrieve a list of Purposes linked to a specific E-Service Client
       operationId: getClientPurposes
       parameters:
         - in: query
@@ -3734,9 +3734,9 @@ paths:
     post:
       tags:
         - clients
-      summary: Link a Client to a Purpose
+      summary: Link an E-Service Client to a Purpose
       description: |
-        Link a Client to a Purpose
+        Link an E-Service Client to a Purpose
         The Purpose must be in Active or Suspended state
       operationId: addClientPurpose
       requestBody:
@@ -3747,7 +3747,7 @@ paths:
         required: true
       responses:
         "204":
-          description: Client linked to the Purpose
+          description: E-Service Client linked to the Purpose
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3837,14 +3837,14 @@ paths:
     parameters:
       - name: clientId
         in: path
-        description: The ID of the Client to unlink the Purpose from
+        description: The ID of the E-Service Client to unlink the Purpose from
         required: true
         schema:
           type: string
           format: uuid
       - name: purposeId
         in: path
-        description: The ID of the Purpose to unlink from the Client
+        description: The ID of the Purpose to unlink from the E-Service Client
         required: true
         schema:
           type: string
@@ -3852,12 +3852,12 @@ paths:
     delete:
       tags:
         - clients
-      summary: Unlink a Client from a Purpose
-      description: Unlink a Client from a Purpose, removing the association between them
+      summary: Unlink an E-Service Client from a Purpose
+      description: Unlink an E-Service Client from a Purpose, removing the association between them
       operationId: removeClientPurpose
       responses:
         "204":
-          description: Client unlinked from the Purpose
+          description: E-Service Client unlinked from the Purpose
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3934,7 +3934,7 @@ paths:
     parameters:
       - name: clientId
         in: path
-        description: The ID of the Client
+        description: The ID of the E-Service Client
         required: true
         schema:
           type: string
@@ -3942,8 +3942,8 @@ paths:
     get:
       tags:
         - clients
-      summary: List Client Keys
-      description: Retrieve a list of keys associated with a Client
+      summary: List E-Service Client Keys
+      description: Retrieve a list of keys associated with an E-Service Client
       operationId: getClientKeys
       parameters:
         - in: query
@@ -3965,7 +3965,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: List of Client Keys
+          description: List of E-Service Client Keys
           content:
             application/json:
               schema:
