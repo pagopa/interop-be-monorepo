@@ -545,6 +545,7 @@ async function innerCreateEService(
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
+    instanceLabel: template?.instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -3366,19 +3367,18 @@ export function catalogServiceBuilder(
             }
           );
 
-        return labelsInUse.length === 0
+        return labelsInUse.length === 0 || !labelsInUse.includes(undefined)
           ? undefined
           : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
       };
 
-      // undefined = not provided → assign default label
-      // null      = explicitly no label → undefined
+      // null      = not provided → assign default label
+      // undefined = explicitly no label → undefined
       // string    = use the provided label
-      const instanceLabel = await match(seed.instanceLabel)
-        .with(undefined, async () => await buildDefaultInstanceLabel())
-        .with(null, () => undefined)
-        .with(P.string, (label) => label)
-        .exhaustive();
+      const instanceLabel =
+        seed.instanceLabel === null
+          ? await buildDefaultInstanceLabel()
+          : seed.instanceLabel;
 
       const instanceName =
         instanceLabel === undefined
