@@ -3351,9 +3351,10 @@ export function catalogServiceBuilder(
       // null      = not provided → assign default label
       // undefined = explicitly no label → undefined
       // string    = use the provided label
-      const instanceLabel = await match(seed.instanceLabel)
-        .with(null, async () => await buildDefaultInstanceLabel())
-        .otherwise((label) => label);
+      const instanceLabel =
+        seed.instanceLabel === null
+          ? await buildDefaultInstanceLabel()
+          : seed.instanceLabel;
 
       const instanceName =
         instanceLabel === undefined
