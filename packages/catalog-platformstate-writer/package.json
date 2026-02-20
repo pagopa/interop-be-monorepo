@@ -19,26 +19,23 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.9",
-    "date-fns": "3.6.0",
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.840.0",
-    "@aws-sdk/util-dynamodb": "3.840.0",
-    "@protobuf-ts/runtime": "2.9.4",
-    "connection-string": "4.4.0",
-    "dotenv-flow": "4.1.0",
+    "@aws-sdk/client-dynamodb": "catalog:",
+    "@aws-sdk/util-dynamodb": "catalog:",
+    "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "2.2.4",
+    "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   }
 }

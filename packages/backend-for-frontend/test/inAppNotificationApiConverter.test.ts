@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect } from "vitest";
 import { inAppNotificationApi, bffApi } from "pagopa-interop-api-clients";
-import { toBffApiNotificationsCountBySection } from "../src/api/inAppNotificationApiConverter.js";
+import {
+  toBffApiNotificationsCountBySection,
+  toBffApiNotification,
+} from "../src/api/inAppNotificationApiConverter.js";
 
 describe("toBffApiNotificationsCountBySection", () => {
   it("should correctly transform notification counts with all sections having data", () => {
@@ -20,7 +23,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         newEserviceTemplateVersionToInstantiator: 6,
         eserviceTemplateNameChangedToInstantiator: 2,
         eserviceTemplateStatusChangedToInstantiator: 1,
-        // Erogazione - portachiavi
+        // Gestione Client - api-e-service
+        clientKeyConsumerAddedDeletedToClientUsers: 2,
+        // Gestione Client - api-interop
         clientKeyAddedDeletedToClientUsers: 3,
         // Fruizione - richieste
         agreementActivatedRejectedToConsumer: 8,
@@ -66,8 +71,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         totalCount: 16, // 10 + 6
       },
       "gestione-client": {
-        "api-e-service": 3,
-        totalCount: 3,
+        "api-e-service": 2,
+        "api-interop": 3,
+        totalCount: 5,
       },
       notifiche: {
         totalCount: 100,
@@ -109,6 +115,7 @@ describe("toBffApiNotificationsCountBySection", () => {
       },
       "gestione-client": {
         "api-e-service": 0,
+        "api-interop": 0,
         totalCount: 0,
       },
       notifiche: {
@@ -151,6 +158,7 @@ describe("toBffApiNotificationsCountBySection", () => {
       },
       "gestione-client": {
         "api-e-service": 0,
+        "api-interop": 0,
         totalCount: 0,
       },
       notifiche: {
@@ -199,6 +207,7 @@ describe("toBffApiNotificationsCountBySection", () => {
       },
       "gestione-client": {
         "api-e-service": 0,
+        "api-interop": 0,
         totalCount: 0,
       },
       notifiche: {
@@ -247,6 +256,7 @@ describe("toBffApiNotificationsCountBySection", () => {
       },
       "gestione-client": {
         "api-e-service": 0,
+        "api-interop": 0,
         totalCount: 0,
       },
       notifiche: {
@@ -255,5 +265,41 @@ describe("toBffApiNotificationsCountBySection", () => {
     };
 
     expect(result).toEqual(expected);
+  });
+});
+
+describe("toBffApiNotification", () => {
+  it("should include entityId in deepLink for standard notification types", () => {
+    const notification: inAppNotificationApi.Notification = {
+      id: "notification-id",
+      tenantId: "tenant-id",
+      userId: "user-id",
+      body: "Test notification body",
+      entityId: "entity-uuid",
+      notificationType: "agreementManagementToProducer",
+      createdAt: "2024-01-01T00:00:00.000Z",
+      readAt: null,
+    };
+
+    const result = toBffApiNotification(notification);
+
+    expect(result.deepLink).toBe("/erogazione/richieste/entity-uuid");
+  });
+
+  it("should NOT include entityId in deepLink for certifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
+    const notification: inAppNotificationApi.Notification = {
+      id: "notification-id",
+      tenantId: "tenant-id",
+      userId: "user-id",
+      body: "Test notification body",
+      entityId: "attribute-uuid",
+      notificationType: "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+      createdAt: "2024-01-01T00:00:00.000Z",
+      readAt: null,
+    };
+
+    const result = toBffApiNotification(notification);
+
+    expect(result.deepLink).toBe("/aderente/anagrafica");
   });
 });

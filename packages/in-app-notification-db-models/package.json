@@ -18,19 +18,16 @@
   },
   "keywords": [],
   "dependencies": {
-    "drizzle-orm": "0.39.3",
+    "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*"
   },
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "20.19.9",
-    "@types/pg": "8.11.11",
-    "drizzle-kit": "0.30.4",
-    "eslint": "8.57.1",
-    "prettier": "2.8.8",
-    "ts-node": "10.9.2",
-    "typescript": "5.4.5"
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "drizzle-kit": "catalog:",
+    "typescript": "catalog:"
   }
 }

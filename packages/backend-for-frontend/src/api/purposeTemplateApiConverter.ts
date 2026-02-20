@@ -5,6 +5,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
+import { toBffCatalogTenant } from "./catalogApiConverter.js";
 
 export function toBffCreatorPurposeTemplate(
   purposeTemplate: purposeTemplateApi.PurposeTemplate
@@ -26,7 +27,7 @@ export function toBffCatalogPurposeTemplate(
     targetTenantKind: purposeTemplate.targetTenantKind,
     purposeTitle: purposeTemplate.purposeTitle,
     purposeDescription: purposeTemplate.purposeDescription,
-    creator: toBffCompactOrganization(creator),
+    creator: toBffCatalogTenant(creator),
   };
 }
 

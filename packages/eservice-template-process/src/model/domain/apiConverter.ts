@@ -10,6 +10,7 @@ import {
   EServiceTemplateVersionState,
   EServiceTemplateVersion,
   EServiceTemplate,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -32,7 +33,7 @@ export function apiTechnologyToTechnology(
     .exhaustive();
 }
 
-export function eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
+function eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
   input: EServiceTemplateVersionState
 ): eserviceTemplateApi.EServiceTemplateVersionState {
   return match<
@@ -60,7 +61,7 @@ export function apiEServiceTemplateVersionStateToEServiceTemplateVersionState(
     .exhaustive();
 }
 
-export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
+function agreementApprovalPolicyToApiAgreementApprovalPolicy(
   input: AgreementApprovalPolicy
 ): eserviceTemplateApi.AgreementApprovalPolicy {
   return match<
@@ -114,7 +115,7 @@ export const documentToApiDocument = (
   uploadDate: document.uploadDate.toJSON(),
 });
 
-export const eserviceTemplateVersionToApiEServiceTemplateVersion = (
+const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   eserviceTemplateVersion: EServiceTemplateVersion
 ): eserviceTemplateApi.EServiceTemplateVersion => ({
   id: eserviceTemplateVersion.id,
@@ -172,4 +173,11 @@ export const eserviceTemplateToApiEServiceTemplate = (
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
   personalData: eserviceTemplate.personalData,
+});
+
+export const compactOrganizationToApi = (
+  organization: CompactOrganization
+): eserviceTemplateApi.CompactOrganization => ({
+  id: organization.id,
+  name: organization.name,
 });

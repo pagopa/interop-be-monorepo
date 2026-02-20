@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
-import { CorrelationId } from "pagopa-interop-models";
 import {
-  AuthorizationProcessClient,
-  PagoPAInteropBeClients,
-  SelfcareV2UserClient,
-} from "../clients/clientsProvider.js";
+  authorizationApi,
+  bffApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
+import { CorrelationId } from "pagopa-interop-models";
+import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
   toAuthorizationKeySeed,
@@ -141,7 +142,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
 
-      return authorizationClient.client.removeUser(undefined, {
+      await authorizationClient.client.removeUser(undefined, {
         params: { clientId, userId },
         headers,
       });
@@ -263,8 +264,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
 
     async getClientUsers(
       clientId: string,
-      selfcareId: string,
-      { logger, headers, correlationId }: WithLogger<BffAppContext>
+      { logger, headers, correlationId, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
 
@@ -278,7 +278,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           getSelfcareCompactUserById(
             selfcareV2UserClient,
             id,
-            selfcareId,
+            authData.selfcareId,
             correlationId
           )
         )
@@ -288,8 +288,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     async getClientKeyById(
       clientId: string,
       keyId: string,
-      selfcareId: string,
-      { logger, headers, correlationId }: WithLogger<BffAppContext>
+      { logger, headers, correlationId, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
@@ -308,7 +307,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
       return decorateKey(
         selfcareV2UserClient,
         key,
-        selfcareId,
+        authData.selfcareId,
         client.users,
         correlationId
       );
@@ -451,7 +450,7 @@ async function enhancePurpose(
 }
 
 export async function decorateKey(
-  selfcareClient: SelfcareV2UserClient,
+  selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
   selfcareId: string,
   members: string[],

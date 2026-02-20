@@ -237,7 +237,3 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
     },
   };
 }
-
-export type PurposeTemplateService = ReturnType<
-  typeof purposeTemplateServiceBuilder
->;

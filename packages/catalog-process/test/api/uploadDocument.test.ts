@@ -123,7 +123,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     {
       error: interfaceAlreadyExists(descriptor.id),

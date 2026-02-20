@@ -78,12 +78,29 @@
     "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +"
   },
   "devDependencies": {
-    "@tsconfig/strictest": "2.0.5",
-    "@tsconfig/node-lts": "20.1.3",
-    "turbo": "2.2.3"
+    "@tsconfig/node-lts": "catalog:",
+    "@tsconfig/strictest": "catalog:",
+    "knip": "catalog:",
+    "prettier": "catalog:",
+    "eslint": "catalog:",
+    "turbo": "catalog:"
   },
   "config": {
     "protocVersion": "26.1"
   },
-  "packageManager": "pnpm@9.15.9"
+  "packageManager": "pnpm@10.29.3",
+  "packageRules": [
+    {
+      "enabled": true,
+      "matchDepTypes": [
+        "devDependencies"
+      ]
+    },
+    {
+      "enabled": true,
+      "matchDepTypes": [
+        "pnpm.catalog"
+      ]
+    }
+  ]
 }

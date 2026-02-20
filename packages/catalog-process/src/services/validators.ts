@@ -76,11 +76,6 @@ export function descriptorStatesNotAllowingInterfaceOperations(
     .otherwise(() => true);
 }
 
-export const notActiveDescriptorState: DescriptorState[] = [
-  descriptorState.draft,
-  descriptorState.waitingForApproval,
-];
-
 export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.published,
   descriptorState.suspended,
@@ -88,7 +83,7 @@ export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.archived,
 ];
 
-export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
+function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
     .with(

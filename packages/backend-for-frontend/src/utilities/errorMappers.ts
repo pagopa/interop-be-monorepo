@@ -12,6 +12,7 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_SERVICE_UNAVAILABLE,
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -66,16 +67,6 @@ export const getSelfcareUserErrorMapper = (
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with(
-      "tenantBySelfcareIdNotFound",
-      "tenantLoginNotAllowed",
-      () => HTTP_STATUS_FORBIDDEN
-    )
-    .with("missingUserRolesInIdentityToken", () => HTTP_STATUS_BAD_REQUEST)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
@@ -98,7 +89,7 @@ export const getAgreementContractErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("contractException", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("contractException", () => HTTP_STATUS_SERVICE_UNAVAILABLE)
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -106,7 +97,7 @@ export const getAgreementSignedContractErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("contractException", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("contractException", () => HTTP_STATUS_SERVICE_UNAVAILABLE)
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -130,19 +121,6 @@ export const getPrivacyNoticeErrorMapper = (
   match(error.code)
     .with("privacyNoticeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("privacyNoticeNotFoundInConfiguration", () => HTTP_STATUS_NOT_FOUND)
-    .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const acceptPrivacyNoticeErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("privacyNoticeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("privacyNoticeNotFoundInConfiguration", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "privacyNoticeVersionIsNotTheLatest",
-      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
-    )
     .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

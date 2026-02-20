@@ -19,28 +19,26 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@faker-js/faker": "8.4.1",
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.9",
+    "@anatine/zod-mock": "catalog:",
+    "@faker-js/faker": "catalog:",
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "1.6.1",
-    "@anatine/zod-mock": "3.14.0"
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "@protobuf-ts/runtime": "2.9.4",
-    "connection-string": "4.4.0",
-    "dotenv-flow": "4.1.0",
-    "drizzle-orm": "0.39.3",
-    "kafkajs": "2.2.4",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "kafka-iam-auth": "workspace:*",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   }
 }

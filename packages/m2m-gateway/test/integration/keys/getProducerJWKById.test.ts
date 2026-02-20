@@ -1,19 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { getMockProducerJWKKey } from "pagopa-interop-commons-test/index.js";
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   keyService,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2MProducerKey,
+} from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getProducerJWKByKid", () => {
   const mockKey = getMockProducerJWKKey();
-  const expectedKey: m2mGatewayApi.ProducerKey = {
+  const mockProducerJWK: authorizationApi.ProducerJWK = {
     producerKeychainId: mockKey.producerKeychainId,
     jwk: {
       kid: mockKey.kid,
@@ -24,8 +27,9 @@ describe("getProducerJWKByKid", () => {
       n: mockKey.n,
     },
   };
+  const expectedKey = testToM2MProducerKey(mockProducerJWK);
   const authProcessResponse: WithMaybeMetadata<authorizationApi.ProducerJWK> = {
-    data: expectedKey,
+    data: mockProducerJWK,
     metadata: undefined,
   };
 
@@ -49,7 +53,7 @@ describe("getProducerJWKByKid", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedKey);
+    expect(result).toStrictEqual(expectedKey);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.key.getProducerJWKByKid,
       params: {

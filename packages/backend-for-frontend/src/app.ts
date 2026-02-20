@@ -11,6 +11,7 @@ import {
   fromFilesToBodyMiddleware,
   multerMiddleware,
   errorsToApiProblemsMiddleware,
+  healthRouter,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -22,7 +23,6 @@ import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
-import healthRouter from "./routers/HealthRouter.js";
 import swaggerRouter from "./routers/swaggerRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
@@ -41,7 +41,7 @@ import delegationRouter from "./routers/delegationRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
-import emailDeeplinkRouter from "./routers/emailDeeplinkRouter.js";
+import emailDeeplinkRouters from "./routers/emailDeeplinkRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
 import {
   AgreementService,
@@ -109,7 +109,7 @@ import {
 } from "./services/inAppNotificationService.js";
 import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 
-export type BFFServices = {
+type BFFServices = {
   agreementService: AgreementService;
   attributeService: AttributeService;
   authorizationService: AuthorizationService;
@@ -129,9 +129,7 @@ export type BFFServices = {
   toolsService: ToolsService;
 };
 
-export type RateLimiterMiddleware = ReturnType<
-  typeof rateLimiterMiddlewareBuilder
->;
+type RateLimiterMiddleware = ReturnType<typeof rateLimiterMiddlewareBuilder>;
 
 export const serviceName = modelsServiceName.BACKEND_FOR_FRONTEND;
 
@@ -248,7 +246,7 @@ export async function createApp(
 
   app.use(
     appBasePath,
-    healthRouter,
+    healthRouter(bffApi.healthApi.api),
     swaggerRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
@@ -258,7 +256,7 @@ export async function createApp(
       config
     ),
     authorizationRouter(zodiosCtx, services.authorizationService),
-    emailDeeplinkRouter(zodiosCtx),
+    ...emailDeeplinkRouters(zodiosCtx),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)

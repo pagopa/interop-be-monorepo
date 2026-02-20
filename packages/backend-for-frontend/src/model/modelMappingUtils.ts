@@ -1,6 +1,9 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
-import { NotificationType } from "pagopa-interop-models";
+import {
+  DigestNotificationType,
+  NotificationType,
+} from "pagopa-interop-models";
 import { z } from "zod";
 import {
   fromApiTenantMail,
@@ -57,6 +60,7 @@ export type UiSection =
   | "/erogazione/richieste"
   | "/erogazione/finalita"
   | "/erogazione/template-eservice"
+  | "/erogazione/catalogo-template"
   | "/erogazione/e-service"
   | "/erogazione/portachiavi"
   | "/fruizione"
@@ -67,7 +71,9 @@ export type UiSection =
   | "/aderente/deleghe"
   | "/aderente/anagrafica"
   | "/gestione-client"
-  | "/gestione-client/api-e-service";
+  | "/gestione-client/api-e-service"
+  | "/gestione-client/api-interop"
+  | "/notifiche/configurazione";
 
 export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
   {
@@ -80,7 +86,9 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     newEserviceTemplateVersionToInstantiator: "/erogazione/e-service",
     eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service",
     eserviceTemplateStatusChangedToInstantiator: "/erogazione/e-service",
-    clientKeyAddedDeletedToClientUsers: "/gestione-client/api-e-service",
+    clientKeyAddedDeletedToClientUsers: "/gestione-client/api-interop",
+    clientKeyConsumerAddedDeletedToClientUsers:
+      "/gestione-client/api-e-service",
     agreementActivatedRejectedToConsumer: "/fruizione/richieste",
     purposeActivatedRejectedToConsumer: "/fruizione/finalita",
     purposeSuspendedUnsuspendedToConsumer: "/fruizione/finalita",
@@ -94,6 +102,9 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
   } as const;
+
+export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
+  new Set(["certifiedVerifiedAttributeAssignedRevokedToAssignee"]);
 
 export const Category = z.enum([
   "Subscribers",
@@ -114,6 +125,7 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   eserviceTemplateNameChangedToInstantiator: "Providers",
   eserviceTemplateStatusChangedToInstantiator: "Providers",
   clientKeyAddedDeletedToClientUsers: "Providers",
+  clientKeyConsumerAddedDeletedToClientUsers: "Providers",
   agreementActivatedRejectedToConsumer: "Subscribers",
   purposeActivatedRejectedToConsumer: "Subscribers",
   purposeSuspendedUnsuspendedToConsumer: "Subscribers",
@@ -136,3 +148,19 @@ export const categoryToNotificationTypes: Record<Category, NotificationType[]> =
     }),
     {} as Record<Category, NotificationType[]>
   );
+
+export const digestNotificationTypeToUiSection: Record<
+  DigestNotificationType,
+  UiSection
+> = {
+  eserviceCatalog: "/catalogo-e-service",
+  eserviceTemplateToCreator: "/erogazione/template-eservice",
+  eserviceTemplateToInstantiator: "/erogazione/catalogo-template",
+  agreementToProducer: "/erogazione/richieste",
+  agreementToConsumer: "/fruizione/richieste",
+  purposeToProducer: "/erogazione/finalita",
+  purposeToConsumer: "/fruizione/finalita",
+  delegation: "/aderente/deleghe",
+  attribute: "/aderente/anagrafica",
+  notificationSettings: "/notifiche/configurazione",
+} as const;
