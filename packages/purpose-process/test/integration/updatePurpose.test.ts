@@ -765,23 +765,26 @@ describe("updatePurpose and updateReversePurpose", () => {
       eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
     );
   });
-  it("Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing", async () => {
-    await addOnePurpose(purposeForDeliver);
-    await addOneEService(eServiceDeliver);
-    await addOneTenant(tenant);
+  it.each([undefined, ""])(
+    "Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing",
+    async (freeOfChargeReason) => {
+      await addOnePurpose(purposeForDeliver);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
 
-    expect(
-      purposeService.updatePurpose(
-        purposeForDeliver.id,
-        {
-          ...purposeUpdateContent,
-          isFreeOfCharge: true,
-          freeOfChargeReason: "",
-        },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(missingFreeOfChargeReason());
-  });
+      expect(
+        purposeService.updatePurpose(
+          purposeForDeliver.id,
+          {
+            ...purposeUpdateContent,
+            isFreeOfCharge: true,
+            freeOfChargeReason,
+          },
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(missingFreeOfChargeReason());
+    }
+  );
 
   const oldFreeOfChargeReason = "Some reason";
   const newFreeOfChargeReason = "New reason";

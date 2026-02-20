@@ -620,6 +620,19 @@ describe("patchUpdatePurpose", () => {
     [
       {
         isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+      {
+        freeOfChargeReason: "",
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
         freeOfChargeReason: oldFreeOfChargeReason,
       },
       { isFreeOfCharge: false },
@@ -668,6 +681,16 @@ describe("patchUpdatePurpose", () => {
       },
       {
         freeOfChargeReason: null,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        freeOfChargeReason: "",
       },
       { isFreeOfCharge: false, freeOfChargeReason: undefined },
     ],
