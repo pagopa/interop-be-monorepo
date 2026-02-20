@@ -2157,8 +2157,10 @@ const performUpdatePurpose = async (
       freeOfChargeReason: string | null | undefined
     ): string | null | undefined {
       if (typeof freeOfChargeReason === "string") {
-        const trimmedReason = freeOfChargeReason.trim();
-        return trimmedReason.length > 0 ? trimmedReason : null;
+        const trimmedFreeOfChargeReason = freeOfChargeReason.trim();
+        return trimmedFreeOfChargeReason.length > 0
+          ? trimmedFreeOfChargeReason
+          : null;
       }
 
       return freeOfChargeReason;
