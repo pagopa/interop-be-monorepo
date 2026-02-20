@@ -640,6 +640,7 @@ function applyVisibilityToPurposeTemplate(
   throw purposeTemplateNotFound(purposeTemplate.data.id);
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function updateDraftPurposeTemplate(
   purposeTemplateId: PurposeTemplateId,
   typeAndSeed:
@@ -753,7 +754,10 @@ async function updateDraftPurposeTemplate(
     );
 
     // Return the seed purposeFreeOfChargeReason if defined and not empty
-    if (normalizedSeedFreeOfChargeReason != undefined) {
+    if (
+      normalizedSeedFreeOfChargeReason !== undefined &&
+      normalizedSeedFreeOfChargeReason !== null
+    ) {
       return normalizedSeedFreeOfChargeReason;
     }
 

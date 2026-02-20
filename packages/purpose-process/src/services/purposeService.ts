@@ -2079,7 +2079,7 @@ const performUpdatePurpose = async (
   readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
   repository: ReturnType<typeof eventRepository<PurposeEvent>>
-  // eslint-disable-next-line max-params
+  // eslint-disable-next-line max-params, sonarjs/cognitive-complexity
 ): Promise<UpdatePurposeReturn> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertRequesterCanActAsConsumer(
@@ -2164,7 +2164,10 @@ const performUpdatePurpose = async (
       normalizeFreeOfChargeReason(freeOfChargeReason);
 
     // Return the seed freeOfChargeReason if defined and not empty
-    if (normalizedSeedFreeOfChargeReason != undefined) {
+    if (
+      normalizedSeedFreeOfChargeReason !== undefined &&
+      normalizedSeedFreeOfChargeReason !== null
+    ) {
       return normalizedSeedFreeOfChargeReason;
     }
 
