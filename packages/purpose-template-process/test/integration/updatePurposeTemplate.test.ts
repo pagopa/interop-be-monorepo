@@ -334,22 +334,25 @@ describe("updatePurposeTemplate", () => {
     ).rejects.toThrowError(tenantNotAllowed(creatorId));
   });
 
-  it("Should throw a missingFreeOfChargeReason error if purposeIsFreeOfCharge is false and purposeFreeOfChargeReason is not provided", async () => {
-    await addOnePurposeTemplate(existingPurposeTemplate);
-    expect(
-      purposeTemplateService.updatePurposeTemplate(
-        existingPurposeTemplate.id,
-        {
-          ...purposeTemplateSeed,
-          purposeIsFreeOfCharge: true,
-          purposeFreeOfChargeReason: undefined,
-        },
-        getMockContext({
-          authData: getMockAuthData(existingPurposeTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(missingFreeOfChargeReason());
-  });
+  it.each([undefined, ""])(
+    "Should throw a missingFreeOfChargeReason error if purposeIsFreeOfCharge is true but purposeFreeOfChargeReason is missing (seed #%#)",
+    async (purposeFreeOfChargeReason) => {
+      await addOnePurposeTemplate(existingPurposeTemplate);
+      expect(
+        purposeTemplateService.updatePurposeTemplate(
+          existingPurposeTemplate.id,
+          {
+            ...purposeTemplateSeed,
+            purposeIsFreeOfCharge: true,
+            purposeFreeOfChargeReason,
+          },
+          getMockContext({
+            authData: getMockAuthData(existingPurposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(missingFreeOfChargeReason());
+    }
+  );
 
   it("Should not trigger duplicate title check when updating with case-insensitive same title", async () => {
     const purposeTemplateWithTitle: PurposeTemplate = {
@@ -635,17 +638,6 @@ describe("updatePurposeTemplate", () => {
       {
         purposeIsFreeOfCharge: true,
         purposeFreeOfChargeReason: newFreeOfChargeReason,
-      },
-    ],
-    [
-      {
-        purposeIsFreeOfCharge: true,
-        purposeFreeOfChargeReason: oldFreeOfChargeReason,
-      },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
-      {
-        purposeIsFreeOfCharge: true,
-        purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
     ],
     [

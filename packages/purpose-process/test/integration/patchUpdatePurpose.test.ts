@@ -52,6 +52,7 @@ import {
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   eserviceNotFound,
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeDelegationNotFound,
   purposeFromTemplateCannotBeModified,
@@ -66,9 +67,25 @@ import {
 import { UpdatePurposeReturn } from "../../src/services/purposeService.js";
 
 describe("patchUpdatePurpose", () => {
+  let draftPurpose: Purpose;
+
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
+
+    draftPurpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
+      riskAnalysisForm: validRiskAnalysis.riskAnalysisForm,
+      versions: [
+        {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.draft,
+          dailyCalls: 10,
+        },
+      ],
+    };
   });
 
   afterAll(() => {
@@ -125,19 +142,6 @@ describe("patchUpdatePurpose", () => {
   };
 
   const validRiskAnalysis = getMockValidRiskAnalysis(testTenantKind);
-  const draftPurpose: Purpose = {
-    ...getMockPurpose(),
-    eserviceId: eservice.id,
-    consumerId: consumer.id,
-    riskAnalysisForm: validRiskAnalysis.riskAnalysisForm,
-    versions: [
-      {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.draft,
-        dailyCalls: 10,
-      },
-    ],
-  };
 
   it("Should write on event store for the patch update of a purpose updating all fields", async () => {
     await addOnePurpose(draftPurpose);
@@ -266,7 +270,7 @@ describe("patchUpdatePurpose", () => {
     },
     { dailyCalls: 99 },
     { riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis) },
-    { isFreeOfCharge: false },
+    { isFreeOfCharge: false, freeOfChargeReason: null },
     { freeOfChargeReason: "updated freeOfChargeReason" },
     { isFreeOfCharge: true, freeOfChargeReason: "updated freeOfChargeReason" },
     {
@@ -304,7 +308,9 @@ describe("patchUpdatePurpose", () => {
         description: seed.description ?? draftPurpose.description,
         isFreeOfCharge: seed.isFreeOfCharge ?? draftPurpose.isFreeOfCharge,
         freeOfChargeReason:
-          seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
+          seed.freeOfChargeReason === null
+            ? undefined
+            : seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
         riskAnalysisForm: seed.riskAnalysisForm
           ? createUpdatedRiskAnalysisForm(
               draftPurpose.riskAnalysisForm!,
@@ -445,6 +451,361 @@ describe("patchUpdatePurpose", () => {
           })
         )
       ).rejects.toThrowError(missingFreeOfChargeReason());
+    }
+  );
+
+  const oldFreeOfChargeReason = "Some reason";
+  const newFreeOfChargeReason = "New reason";
+  const successFreeOfChargeTestCases: Array<
+    [
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+      Pick<
+        purposeApi.PatchPurposeUpdateContent,
+        "isFreeOfCharge" | "freeOfChargeReason"
+      >,
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+    ]
+  > = [
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: true },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: "" },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { freeOfChargeReason: newFreeOfChargeReason },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: undefined,
+        freeOfChargeReason: undefined,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: null,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+      {
+        isFreeOfCharge: undefined,
+        freeOfChargeReason: undefined,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: null,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: "",
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+      {
+        freeOfChargeReason: null,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+      {
+        freeOfChargeReason: "",
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: undefined,
+        freeOfChargeReason: undefined,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: null,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        freeOfChargeReason: null,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        freeOfChargeReason: "",
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+  ];
+  it.each(successFreeOfChargeTestCases)(
+    "should successfully update isFreeOfCharge and freeOfChargeReason (seed #%#)",
+    async (initData, seed, expected) => {
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      const cleanedSeed = Object.fromEntries(
+        Object.entries({
+          ...seed,
+        }).filter(([_, v]) => v !== undefined)
+      ) as purposeApi.PatchPurposeUpdateContent;
+
+      const purpose: Purpose = {
+        ...draftPurpose,
+        isFreeOfCharge: initData.isFreeOfCharge,
+        freeOfChargeReason: initData.freeOfChargeReason,
+      };
+
+      await addOnePurpose(purpose);
+
+      const patchPurposeResult = await purposeService.patchUpdatePurpose(
+        draftPurpose.id,
+        cleanedSeed,
+        getMockContextM2MAdmin({
+          organizationId: draftPurpose.consumerId,
+        })
+      );
+
+      const expectedPurpose: Purpose = {
+        ...purpose,
+        isFreeOfCharge: expected.isFreeOfCharge,
+        freeOfChargeReason: expected.freeOfChargeReason,
+        updatedAt: new Date(),
+      };
+
+      expect(patchPurposeResult.data.purpose).toEqual(expectedPurpose);
+    }
+  );
+
+  const failureFreeOfChargeTestCases: Array<
+    [
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+      Pick<
+        purposeApi.PatchPurposeUpdateContent,
+        "isFreeOfCharge" | "freeOfChargeReason"
+      >,
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+    ]
+  > = [
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { freeOfChargeReason: newFreeOfChargeReason },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+  ];
+  it.each(failureFreeOfChargeTestCases)(
+    "should throw invalidFreeOfChargeReason (seed #%#)",
+    async (initData, seed, wrongUpdatedData) => {
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      const purpose: Purpose = {
+        ...draftPurpose,
+        isFreeOfCharge: initData.isFreeOfCharge,
+        freeOfChargeReason: initData.freeOfChargeReason,
+      };
+
+      await addOnePurpose(purpose);
+
+      expect(
+        purposeService.patchUpdatePurpose(
+          draftPurpose.id,
+          seed,
+          getMockContextM2MAdmin({
+            organizationId: draftPurpose.consumerId,
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(
+          wrongUpdatedData.isFreeOfCharge,
+          wrongUpdatedData.freeOfChargeReason
+        )
+      );
     }
   );
 
