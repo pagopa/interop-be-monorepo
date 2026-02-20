@@ -864,6 +864,25 @@ export function readModelServiceBuilderSQL(
         resultsSet[0]?.totalCount
       );
     },
+    async getEServiceInstanceLabelsByTemplateAndProducer({
+      templateId,
+      producerId,
+    }: {
+      templateId: EServiceTemplateId;
+      producerId: TenantId;
+    }): Promise<Array<string | undefined>> {
+      const result = await readmodelDB
+        .select({ instanceLabel: eserviceInReadmodelCatalog.instanceLabel })
+        .from(eserviceInReadmodelCatalog)
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.templateId, templateId),
+            eq(eserviceInReadmodelCatalog.producerId, producerId)
+          )
+        );
+
+      return result.map((row) => row.instanceLabel ?? undefined);
+    },
   };
 }
 
