@@ -768,7 +768,11 @@ describe("updatePurpose and updateReversePurpose", () => {
   it.each([undefined, ""])(
     "Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing",
     async (freeOfChargeReason) => {
-      await addOnePurpose(purposeForDeliver);
+      await addOnePurpose({
+        ...purposeForDeliver,
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      });
       await addOneEService(eServiceDeliver);
       await addOneTenant(tenant);
 
