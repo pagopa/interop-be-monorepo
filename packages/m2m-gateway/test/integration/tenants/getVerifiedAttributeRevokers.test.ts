@@ -80,7 +80,7 @@ describe("getTenantVerifiedAttributeRevokers", () => {
       queries: { limit, offset },
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       results: expectedTransformedResults,
       pagination: {
         limit,

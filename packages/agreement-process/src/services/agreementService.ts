@@ -39,6 +39,7 @@ import {
   descriptorState,
   generateId,
   CompactTenant,
+  CompactOrganization,
   CorrelationId,
   DelegationId,
   AgreementSignedContract,
@@ -70,7 +71,6 @@ import {
 import {
   ActiveDelegations,
   CompactEService,
-  CompactOrganization,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -151,7 +151,7 @@ import {
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
-  AgreementQueryFilters,
+  AgreementQueryFiltersWithExactConsumerIdMatch,
 } from "./readModelService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -241,7 +241,7 @@ export function agreementServiceBuilder(
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
     async getAgreements(
-      filters: AgreementQueryFilters,
+      filters: AgreementQueryFiltersWithExactConsumerIdMatch,
       limit: number,
       offset: number,
       {

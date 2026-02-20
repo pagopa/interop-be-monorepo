@@ -58,6 +58,7 @@ export async function getAllAgreements(
         headers,
         queries: {
           ...getAgreementsQueryParams,
+          exactConsumerIdMatch: true,
           offset,
           limit,
         },
@@ -113,6 +114,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds: [ctx.authData.organizationId],
+            exactConsumerIdMatch: false,
             producersIds,
             states,
           },
@@ -159,6 +161,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds,
+            exactConsumerIdMatch: false,
             states,
           },
           headers: ctx.headers,
@@ -634,9 +637,55 @@ export function agreementServiceBuilder(
   };
 }
 
+export const getLatestAgreementsOnDescriptor = async (
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  consumerId: string,
+  eservice: catalogApi.EService,
+  descriptorId: string,
+  headers: Headers
+): Promise<agreementApi.Agreement[]> => {
+  const allAgreements = await getAllAgreements(
+    agreementProcessClient,
+    headers,
+    {
+      consumersIds: [consumerId],
+      exactConsumerIdMatch: false,
+      eservicesIds: [eservice.id],
+      descriptorsIds: [descriptorId],
+    }
+  );
+
+  // Even though the previous query is filtered by consumerId, there might be different consumerIds due to delegations
+  const agreementsByConsumer = allAgreements.reduce<
+    Map<string, agreementApi.Agreement[]>
+  >((acc, agreement) => {
+    const agreementsWithSameConsumerId = acc.get(agreement.consumerId) ?? [];
+    agreementsWithSameConsumerId.push(agreement);
+    acc.set(agreement.consumerId, agreementsWithSameConsumerId);
+    return acc;
+  }, new Map());
+
+  // For each consumerId, get the latest agreement by createdAt
+  const latestAgreements: agreementApi.Agreement[] = [];
+  for (const agreements of agreementsByConsumer.values()) {
+    const sorted = agreements.sort(
+      (first, second) =>
+        new Date(second.createdAt).getTime() -
+        new Date(first.createdAt).getTime()
+    );
+    const latest = sorted[0];
+    if (latest) {
+      latestAgreements.push(latest);
+    }
+  }
+
+  return latestAgreements;
+};
+
 export const getLatestAgreement = async (
   agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
+  exactConsumerIdMatch: boolean,
   eservice: catalogApi.EService,
   headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
@@ -646,6 +695,7 @@ export const getLatestAgreement = async (
     {
       consumersIds: [consumerId],
       eservicesIds: [eservice.id],
+      exactConsumerIdMatch,
     }
   );
 

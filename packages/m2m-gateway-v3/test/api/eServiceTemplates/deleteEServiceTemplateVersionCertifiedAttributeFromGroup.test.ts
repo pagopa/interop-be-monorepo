@@ -4,6 +4,7 @@ import {
   getMockedApiEServiceAttribute,
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -25,7 +26,8 @@ describe("DELETE /eserviceTemplates/{templateId}/versions/{versionId}/certifiedA
       .delete(
         `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/certifiedAttributes/groups/${groupIndex}/attributes/${attributeId}`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const mockApiAttribute = getMockedApiEServiceAttribute();

@@ -206,7 +206,75 @@ const producerKeychainRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .get("/producerKeychains/:keychainId/users", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const users = await producerKeychainService.getProducerKeychainUsers(
+          req.params.keychainId,
+          ctx,
+          req.query
+        );
+
+        return res.status(200).send(m2mGatewayApiV3.Users.parse(users));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving users of producer keychain ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/producerKeychains/:keychainId/users", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await producerKeychainService.addProducerKeychainUsers(
+          unsafeBrandId(req.params.keychainId),
+          req.body.userId,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding user to producer keychain with id ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete(
+      "/producerKeychains/:keychainId/users/:userId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await producerKeychainService.removeProducerKeychainUser(
+            unsafeBrandId(req.params.keychainId),
+            req.params.userId,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error removing user ${req.params.userId} from producer keychain ${req.params.keychainId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return producerKeychainRouter;
 };

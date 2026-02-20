@@ -80,7 +80,7 @@ describe("getEServiceDescriptorDocuments", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mDocumentsResponse);
+    expect(result).toStrictEqual(m2mDocumentsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceDocuments,
       params: {

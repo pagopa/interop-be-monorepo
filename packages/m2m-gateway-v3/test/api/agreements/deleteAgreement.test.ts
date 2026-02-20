@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiAgreement,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -16,7 +17,8 @@ describe("DELETE /purpose/:purposeId router test", () => {
   const makeRequest = async (token: string, agreementId: string) =>
     request(api)
       .delete(`${appBasePath}/agreements/${agreementId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const mockApiAgreement = getMockedApiAgreement();

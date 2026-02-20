@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
@@ -27,7 +27,8 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
       .get(
         `${appBasePath}/purposes/${purposeId}/versions/${versionId}/riskAnalysisDocument`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .buffer(true)
       .parse(testMultipartResponseParser);
 
