@@ -18,8 +18,8 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { upsertEService } from "../../src/testUtils.js";
-import { catalogReadModelService } from "./eserviceUtils.js";
 import { readModelDB } from "../utils.js";
+import { catalogReadModelService } from "./eserviceUtils.js";
 
 describe("E-service queries", () => {
   describe("should get an e-service by id", () => {

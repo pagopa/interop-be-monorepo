@@ -17,8 +17,8 @@ import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
 } from "../../src/testUtils.js";
-import { notificationConfigReadModelService } from "./notificationConfigUtils.js";
 import { readModelDB } from "../utils.js";
+import { notificationConfigReadModelService } from "./notificationConfigUtils.js";
 
 describe("Notification config queries", () => {
   describe("getTenantNotificationConfigByTenantId", () => {

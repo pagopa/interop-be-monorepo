@@ -19,8 +19,8 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { upsertTenant } from "../../src/testUtils.js";
-import { tenantReadModelService } from "./tenantUtils.js";
 import { readModelDB } from "../utils.js";
+import { tenantReadModelService } from "./tenantUtils.js";
 
 describe("Tenant Queries", () => {
   describe("Get a Tenant", () => {

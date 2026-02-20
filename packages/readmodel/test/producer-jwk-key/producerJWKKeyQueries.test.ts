@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { generateId, ProducerKeychainId } from "pagopa-interop-models";
 import { getMockProducerJWKKey } from "pagopa-interop-commons-test";
 import { upsertProducerJWKKey } from "../../src/testUtils.js";
-import { producerJWKKeyReadModelService } from "./producerJWKKeyUtils.js";
 import { readModelDB } from "../utils.js";
+import { producerJWKKeyReadModelService } from "./producerJWKKeyUtils.js";
 
 describe("Producer JWK key queries", () => {
   describe("should get a producer JWK key by producer keychain id and kid", () => {

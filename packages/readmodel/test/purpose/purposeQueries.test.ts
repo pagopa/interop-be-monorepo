@@ -5,8 +5,8 @@ import {
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
 import { upsertPurpose } from "../../src/testUtils.js";
-import { purposeReadModelService } from "./purposeUtils.js";
 import { readModelDB } from "../utils.js";
+import { purposeReadModelService } from "./purposeUtils.js";
 
 describe("Purpose queries", () => {
   describe("Get a Purpose", async () => {

@@ -9,8 +9,8 @@ import {
 } from "pagopa-interop-models";
 import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
 import { upsertDelegation } from "../../src/testUtils.js";
-import { delegationReadModelService } from "./delegationUtils.js";
 import { readModelDB } from "../utils.js";
+import { delegationReadModelService } from "./delegationUtils.js";
 
 describe("Delegation queries", () => {
   describe("Get a Delegation", () => {

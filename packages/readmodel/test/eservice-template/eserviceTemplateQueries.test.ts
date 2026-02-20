@@ -15,8 +15,8 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { upsertEServiceTemplate } from "../../src/testUtils.js";
-import { eserviceTemplateReadModelService } from "./eserviceTemplateUtils.js";
 import { readModelDB } from "../utils.js";
+import { eserviceTemplateReadModelService } from "./eserviceTemplateUtils.js";
 
 describe("E-service template queries", () => {
   describe("should get an e-service template by id", () => {

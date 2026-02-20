@@ -7,8 +7,8 @@ import {
 } from "pagopa-interop-models";
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import { upsertClient } from "../../src/testUtils.js";
-import { clientReadModelService } from "./clientUtils.js";
 import { readModelDB } from "../utils.js";
+import { clientReadModelService } from "./clientUtils.js";
 
 describe("Client queries", () => {
   describe("should get a client by id from the db", () => {
