@@ -42,6 +42,7 @@ import {
   addOneTenant,
 } from "../integrationUtils.js";
 import { config } from "../../src/config/config.js";
+import { eServiceNameDuplicateForProducer } from "../../src/model/domain/errors.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();
@@ -799,15 +800,20 @@ describe("create eService from template", () => {
             };
       await addOneEService(existingInstance);
 
+      const expectedName =
+        requestedLabel === undefined
+          ? eServiceTemplate.name
+          : `${eServiceTemplate.name} - ${requestedLabel}`;
+
       await expect(
         catalogService.createEServiceInstanceFromTemplate(
           eServiceTemplate.id,
           { instanceLabel: requestedLabel },
           getMockContext({ authData: getMockAuthData(mockEService.producerId) })
         )
-      ).rejects.toMatchObject({
-        code: "eServiceNameDuplicateForProducer",
-      });
+      ).rejects.toThrowError(
+        eServiceNameDuplicateForProducer(expectedName, mockEService.producerId)
+      );
     }
   );
 });
