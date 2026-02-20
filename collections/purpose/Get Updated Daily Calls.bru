@@ -7,7 +7,7 @@ meta {
 get {
   url: {{host-purpose}}/purposes/updatedDailyCalls?eserviceId=<string>&descriptorId=<string>
   body: none
-  auth: inherit
+  auth: none 
 }
 
 params:query {
@@ -18,9 +18,4 @@ params:query {
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-}
-
-vars:post-response {
-  purposeId: res.body.id
-  purposeVersionId: res.body.versions.at(-1).id
 }
