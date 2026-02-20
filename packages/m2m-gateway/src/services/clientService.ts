@@ -85,14 +85,11 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(`Retrieving client with id ${clientId}`);
 
       const client = await retrieveClientById(clientId, headers);
-      try {
-        return toM2MGatewayApiConsumerClient(client.data);
-      } catch (error: unknown) {
-        if (error instanceof ApiError && error.code === "ZodError") {
-          throw clientNotFound(client.data);
-        }
-        throw error;
+      if (client.data.kind === authorizationApi.ClientKind.Values.API) {
+        throw clientNotFound(client.data);
       }
+
+      return toM2MGatewayApiConsumerClient(client.data);
     },
     async getClients(
       params: m2mGatewayApi.GetClientsQueryParams,
