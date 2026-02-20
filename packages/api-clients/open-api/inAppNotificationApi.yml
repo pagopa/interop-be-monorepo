@@ -511,6 +511,7 @@ components:
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
+        - clientKeyConsumerAddedDeletedToClientUsers
         - producerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
@@ -578,6 +579,9 @@ components:
             clientKeyAddedDeletedToClientUsers:
               type: integer
               format: int32
+            clientKeyConsumerAddedDeletedToClientUsers:
+              type: integer
+              format: int32
             producerKeychainKeyAddedDeletedToClientUsers:
               type: integer
               format: int32
@@ -634,7 +638,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

@@ -39,6 +39,7 @@ import {
   invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
+  purposeFromTemplateCannotBeModified,
   purposeNotInDraftState,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
@@ -185,6 +186,15 @@ export function validateAndTransformRiskAnalysis(
 export function assertPurposeIsDraft(purpose: Purpose): void {
   if (!purposeIsDraft(purpose)) {
     throw purposeNotInDraftState(purpose.id);
+  }
+}
+
+export function assertPurposeIsNotFromTemplate(purpose: Purpose): void {
+  if (purpose.purposeTemplateId !== undefined) {
+    throw purposeFromTemplateCannotBeModified(
+      purpose.id,
+      purpose.purposeTemplateId
+    );
   }
 }
 

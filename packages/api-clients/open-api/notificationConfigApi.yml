@@ -493,6 +493,7 @@ components:
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
+        - clientKeyConsumerAddedDeletedToClientUsers
         - producerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
@@ -534,6 +535,8 @@ components:
         certifiedVerifiedAttributeAssignedRevokedToAssignee:
           type: boolean
         clientKeyAddedDeletedToClientUsers:
+          type: boolean
+        clientKeyConsumerAddedDeletedToClientUsers:
           type: boolean
         producerKeychainKeyAddedDeletedToClientUsers:
           type: boolean
@@ -645,7 +648,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

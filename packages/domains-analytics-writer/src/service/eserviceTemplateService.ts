@@ -173,7 +173,3 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
     },
   };
 }
-
-export type EserviceTemplateService = ReturnType<
-  typeof eserviceTemplateServiceBuilder
->;

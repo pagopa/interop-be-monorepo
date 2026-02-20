@@ -1,8 +1,9 @@
-import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import { delay, logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   genericInternalError,
   generateId,
   CorrelationId,
+  TenantId,
 } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { match } from "ts-pattern";
@@ -34,10 +35,23 @@ export async function processUserEvent(
 ): Promise<void> {
   const userId = payload.user.userId;
   const institutionId = payload.institutionId;
-  const tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(
-    institutionId
-  );
   const productRole = payload.user.productRole;
+
+  // eslint-disable-next-line functional/no-let
+  let tenantId: TenantId | undefined;
+  // eslint-disable-next-line functional/no-let
+  for (let attempt = 0; attempt < config.tenantLookupMaxRetries; attempt++) {
+    tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(institutionId);
+    if (tenantId) {
+      break;
+    }
+    loggerInstance.warn(
+      `Tenant not found for selfcareId ${institutionId}, attempt ${
+        attempt + 1
+      }/${config.tenantLookupMaxRetries}`
+    );
+    await delay(config.tenantLookupRetryDelayMs);
+  }
 
   if (!tenantId) {
     throw genericInternalError(
@@ -168,5 +182,3 @@ export function messageProcessorBuilder(
     },
   };
 }
-
-export type MessageProcessor = ReturnType<typeof messageProcessorBuilder>;

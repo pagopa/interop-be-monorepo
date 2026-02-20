@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import path from "path";
 import { match, P } from "ts-pattern";
 import { Message } from "@aws-sdk/client-sqs";
 
@@ -20,10 +20,13 @@ import {
   DelegationContractDocument,
   DelegationContractId,
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   unsafeBrandId,
   bigIntToDate,
+  RiskAnalysisTemplateDocument,
+  RiskAnalysisTemplateDocumentId,
 } from "pagopa-interop-models";
 
 import { S3ServiceException } from "@aws-sdk/client-s3";
@@ -33,6 +36,7 @@ import { appendSignedSuffixToFileName } from "../utils/appendSignedSuffixToFileN
 import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnalysis.js";
 import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
 import { addDelegationSignedContract } from "../utils/metadata/delegations.js";
+import { addPurposeTemplateSignedDocument } from "../utils/metadata/purposeTemplate.js";
 
 import {
   SqsSafeStorageBody,
@@ -50,7 +54,7 @@ async function processMessage(
 ): Promise<void> {
   try {
     const { id, detail } = message;
-    const { key: fileKey, client_short_code: clientCode } = detail;
+    const { key: fileKey } = detail;
 
     const signature = await signatureService.readSignatureReferenceById(
       fileKey,
@@ -78,15 +82,26 @@ async function processMessage(
     );
 
     const { bucket, process } = FILE_KIND_CONFIG[signatureFileKind];
-    const datePath = format(new Date(message.time), "yyyy/MM/dd");
-    const path = `${clientCode}/${datePath}`;
-    const fileName = appendSignedSuffixToFileName(fileKey, signatureFileKind);
+
+    const filePath = match(fileKind)
+      .with(
+        FileKindSchema.Enum.EVENT_JOURNAL,
+        FileKindSchema.Enum.VOUCHER_AUDIT,
+        () => signature.path
+      )
+      .otherwise(() => path.dirname(signature.path));
+
+    const fileName = appendSignedSuffixToFileName(
+      fileKey,
+      signatureFileKind,
+      signature.fileName
+    );
 
     // immutable s3Key with 409 handling for specific documentTypes
     const s3Key: string = await (async (): Promise<string> => {
       try {
         return await fileManager.resumeOrStoreBytes(
-          { bucket, path, name: fileName, content: fileContent },
+          { bucket, path: filePath, name: fileName, content: fileContent },
           logger
         );
       } catch (error) {
@@ -97,6 +112,7 @@ async function processMessage(
 
         const allowConflictWarning =
           signatureFileKind === "RISK_ANALYSIS_DOCUMENT" ||
+          signatureFileKind === "RISK_ANALYSIS_TEMPLATE_DOCUMENT" ||
           signatureFileKind === "AGREEMENT_CONTRACT";
 
         if (isConflict && allowConflictWarning) {
@@ -116,6 +132,7 @@ async function processMessage(
         readonly riskAnalysis: () => PurposeVersionDocument;
         readonly agreement: () => AgreementDocument;
         readonly delegation: () => DelegationContractDocument;
+        readonly purposeTemplate: () => RiskAnalysisTemplateDocument;
       };
       correlationId: CorrelationId;
       docSignature: DocumentSignatureReference;
@@ -142,6 +159,16 @@ async function processMessage(
         }),
         delegation: (): DelegationContractDocument => ({
           id: unsafeBrandId<DelegationContractId>(docSignature.streamId),
+          name: docSignature.fileName,
+          prettyName: docSignature.prettyname,
+          contentType: docSignature.contentType,
+          path: s3Key,
+          createdAt: bigIntToDate(docSignature.createdAt),
+        }),
+        purposeTemplate: (): RiskAnalysisTemplateDocument => ({
+          id: unsafeBrandId<RiskAnalysisTemplateDocumentId>(
+            docSignature.subObjectId
+          ),
           name: docSignature.fileName,
           prettyName: docSignature.prettyname,
           contentType: docSignature.contentType,
@@ -184,6 +211,15 @@ async function processMessage(
             metadataMap.delegation(),
             refreshableToken,
             docSignature.streamId,
+            correlationId,
+            logger
+          )
+        )
+        .with("purposeTemplate", async () =>
+          addPurposeTemplateSignedDocument(
+            docSignature.streamId as PurposeTemplateId,
+            metadataMap.purposeTemplate(),
+            refreshableToken,
             correlationId,
             logger
           )

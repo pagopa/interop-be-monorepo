@@ -19,7 +19,7 @@ const EServiceTemplateOutboundWriterConfig = KafkaConsumerConfig.and(
     eserviceTemplateOutboundTopic: c.ESERVICE_TEMPLATE_OUTBOUND_TOPIC,
   }));
 
-export type EServiceTemplateOutboundWriterConfig = z.infer<
+type EServiceTemplateOutboundWriterConfig = z.infer<
   typeof EServiceTemplateOutboundWriterConfig
 >;
 

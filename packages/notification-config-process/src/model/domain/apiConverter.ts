@@ -63,6 +63,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
     certifiedVerifiedAttributeAssignedRevokedToAssignee:
       certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
     clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersInApp,
+    clientKeyConsumerAddedDeletedToClientUsers:
+      clientKeyConsumerAddedDeletedToClientUsersInApp,
     producerKeychainKeyAddedDeletedToClientUsers:
       producerKeychainKeyAddedDeletedToClientUsersInApp,
     purposeQuotaAdjustmentRequestToProducer:
@@ -101,6 +103,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
     certifiedVerifiedAttributeAssignedRevokedToAssignee:
       certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
     clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersEmail,
+    clientKeyConsumerAddedDeletedToClientUsers:
+      clientKeyConsumerAddedDeletedToClientUsersEmail,
     producerKeychainKeyAddedDeletedToClientUsers:
       producerKeychainKeyAddedDeletedToClientUsersEmail,
     purposeQuotaAdjustmentRequestToProducer:
@@ -153,6 +157,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
       clientKeyAddedDeletedToClientUsers:
         clientKeyAddedDeletedToClientUsersInApp,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        clientKeyConsumerAddedDeletedToClientUsersInApp,
       producerKeychainKeyAddedDeletedToClientUsers:
         producerKeychainKeyAddedDeletedToClientUsersInApp,
       purposeQuotaAdjustmentRequestToProducer:
@@ -193,6 +199,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
       clientKeyAddedDeletedToClientUsers:
         clientKeyAddedDeletedToClientUsersEmail,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        clientKeyConsumerAddedDeletedToClientUsersEmail,
       producerKeychainKeyAddedDeletedToClientUsers:
         producerKeychainKeyAddedDeletedToClientUsersEmail,
       purposeQuotaAdjustmentRequestToProducer:
@@ -215,9 +223,7 @@ export function apiUserRoleToUserRole(
     .exhaustive();
 }
 
-export function userRoleToApiUserRole(
-  role: UserRole
-): notificationConfigApi.UserRole {
+function userRoleToApiUserRole(role: UserRole): notificationConfigApi.UserRole {
   return match(role)
     .with(userRole.ADMIN_ROLE, () => "ADMIN" as const)
     .with(userRole.API_ROLE, () => "API" as const)

@@ -16,6 +16,23 @@ import { processUserEvent } from "../src/services/messageProcessor.js";
 import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 
+vi.mock("pagopa-interop-commons", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("pagopa-interop-commons")>();
+  return { ...mod, delay: vi.fn() };
+});
+
+vi.mock("../src/config/config.js", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("../src/config/config.js")>();
+  return {
+    ...mod,
+    config: {
+      ...mod.config,
+      tenantLookupMaxRetries: 3,
+      tenantLookupRetryDelayMs: 100,
+    },
+  };
+});
+
 describe("processUserEvent", () => {
   const mockReadModelServiceSQL: ReadModelServiceSQL = {
     getTenantIdBySelfcareId: vi.fn(),
@@ -24,9 +41,7 @@ describe("processUserEvent", () => {
   const mockNotificationConfigProcessClient = {
     ensureUserNotificationConfigExistsWithRoles: vi.fn(),
     removeUserNotificationConfigRole: vi.fn(),
-  } as unknown as ReturnType<
-    typeof notificationConfigApi.createProcessApiClient
-  >;
+  } as unknown as notificationConfigApi.NotificationConfigProcessClient;
 
   const mockInteropTokenGenerator: RefreshableInteropToken = {
     get: vi.fn(),
@@ -91,7 +106,7 @@ describe("processUserEvent", () => {
     },
   };
 
-  it("should throw an error if tenant is not found", async () => {
+  it("should throw an error if tenant is not found after all retries", async () => {
     const addEvent: UsersEventPayload = {
       ...baseEvent,
       eventType: "add",
@@ -100,7 +115,7 @@ describe("processUserEvent", () => {
     vi.spyOn(
       mockReadModelServiceSQL,
       "getTenantIdBySelfcareId"
-    ).mockResolvedValueOnce(undefined);
+    ).mockResolvedValue(undefined);
 
     await expect(
       processUserEvent(
@@ -114,6 +129,37 @@ describe("processUserEvent", () => {
     ).rejects.toThrow(
       genericInternalError(`Tenant not found for selfcareId: ${institutionId}`)
     );
+
+    expect(
+      mockReadModelServiceSQL.getTenantIdBySelfcareId
+    ).toHaveBeenCalledTimes(3);
+  });
+
+  it("should find tenant on retry after initial failures", async () => {
+    const addEvent: UsersEventPayload = {
+      ...baseEvent,
+      eventType: "add",
+    };
+
+    vi.spyOn(mockReadModelServiceSQL, "getTenantIdBySelfcareId")
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(unsafeBrandId<TenantId>(tenantId));
+
+    await processUserEvent(
+      addEvent,
+      mockReadModelServiceSQL,
+      mockNotificationConfigProcessClient,
+      mockInteropTokenGenerator,
+      mockLogger,
+      correlationId
+    );
+
+    expect(
+      mockReadModelServiceSQL.getTenantIdBySelfcareId
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      mockNotificationConfigProcessClient.ensureUserNotificationConfigExistsWithRoles
+    ).toHaveBeenCalled();
   });
 
   it.each(["add" as const, "update" as const])(
