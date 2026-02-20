@@ -324,3 +324,16 @@ export const updatePurposeByTemplateErrorMapper = (
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getUpdatedDailyCallsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceNotFound",
+      "agreementNotFound",
+      "descriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

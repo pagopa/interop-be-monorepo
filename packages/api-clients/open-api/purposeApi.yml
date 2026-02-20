@@ -1198,6 +1198,46 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposes/updatedDailyCalls:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - purpose
+      operationId: getUpdatedDailyCalls
+      description: Retrieve updated daily calls for a descriptor
+      parameters:
+        - in: query
+          name: eserviceId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: descriptorId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Updated daily calls retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdatedDailyCallsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Descriptor Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /templates/{purposeTemplateId}/purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1936,6 +1976,29 @@ components:
       required:
         - version
         - answers
+    UpdatedDailyCallsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+        descriptorId:
+          type: string
+          format: uuid
+        updatedDailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 0
+        updatedDailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - eserviceId
+        - descriptorId
+        - updatedDailyCallsPerConsumer
+        - updatedDailyCallsTotal
     CreatedPurposeVersion:
       type: object
       additionalProperties: false

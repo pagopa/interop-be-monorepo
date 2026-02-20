@@ -31,6 +31,7 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
+  DescriptorId,
   EService,
   EServiceId,
   ListResult,
@@ -66,6 +67,7 @@ import {
   agreementNotFound,
   eserviceNotFound,
   eserviceRiskAnalysisNotFound,
+  descriptorNotFound,
   missingRiskAnalysis,
   notValidVersionState,
   purposeCannotBeCloned,
@@ -148,6 +150,7 @@ import {
   validateRiskAnalysisAgainstTemplateOrThrow,
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
+  getUpdatedQuotas,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -2010,6 +2013,54 @@ export function purposeServiceBuilder(
         version,
         documentId
       );
+    },
+    async getUpdatedDailyCalls({
+      eserviceId,
+      descriptorId,
+      ctx: { authData, logger },
+    }: {
+      eserviceId: EServiceId;
+      descriptorId: DescriptorId;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>;
+    }): Promise<purposeApi.UpdatedDailyCallsResponse> {
+      logger.info(
+        `Retrieving updated daily calls for EService ${eserviceId} and Descriptor ${descriptorId}`
+      );
+      const consumerId = authData.organizationId;
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      if (eservice === undefined) {
+        throw eserviceNotFound(eserviceId);
+      }
+      const agreement = await retrieveActiveAgreement(
+        eservice.id,
+        consumerId,
+        readModelService
+      );
+      if (agreement === undefined) {
+        throw agreementNotFound(eserviceId, consumerId);
+      }
+      if (agreement.descriptorId !== descriptorId) {
+        throw descriptorNotFound(eservice.id, descriptorId);
+      }
+      const quotas = await getUpdatedQuotas(
+        eservice,
+        consumerId,
+        readModelService
+      );
+      const remainingDailyCallsPerConsumer = Math.max(
+        0,
+        quotas.maxDailyCallsPerConsumer - quotas.currentConsumerCalls
+      );
+      const remainingDailyCallsTotal = Math.max(
+        0,
+        quotas.maxDailyCallsTotal - quotas.currentTotalCalls
+      );
+      return {
+        eserviceId,
+        descriptorId,
+        updatedDailyCallsPerConsumer: remainingDailyCallsPerConsumer,
+        updatedDailyCallsTotal: remainingDailyCallsTotal,
+      };
     },
   };
 }
