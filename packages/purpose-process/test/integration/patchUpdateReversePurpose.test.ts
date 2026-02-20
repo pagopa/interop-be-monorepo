@@ -256,7 +256,7 @@ describe("patchUpdateReversePurpose", () => {
       dailyCalls: undefined, // This keeps the existing dailyCalls, same as not setting it
     },
     { dailyCalls: 99 },
-    { isFreeOfCharge: false, freeOfChargeReason: null },
+    { isFreeOfCharge: false },
     { freeOfChargeReason: "updated freeOfChargeReason" },
     { isFreeOfCharge: true, freeOfChargeReason: "updated freeOfChargeReason" },
     {
@@ -295,9 +295,7 @@ describe("patchUpdateReversePurpose", () => {
         description: seed.description ?? draftPurpose.description,
         isFreeOfCharge: seed.isFreeOfCharge ?? draftPurpose.isFreeOfCharge,
         freeOfChargeReason:
-          seed.freeOfChargeReason === null
-            ? undefined
-            : seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
+          seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
         versions: [
           {
             ...draftPurpose.versions[0],

@@ -1137,17 +1137,15 @@ export function purposeServiceBuilder(
           purpose.data.consumerId,
           readModelService
         );
-        // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
-        if (eservice.mode !== eserviceMode.receive) {
-          validateRiskAnalysisOrThrow({
-            riskAnalysisForm:
-              riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-            schemaOnlyValidation: false,
-            tenantKind,
-            dateForExpirationValidation: new Date(),
-            personalDataInEService: eservice.personalData,
-          });
-        }
+
+        validateRiskAnalysisOrThrow({
+          riskAnalysisForm:
+            riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+          schemaOnlyValidation: false,
+          tenantKind,
+          dateForExpirationValidation: new Date(),
+          personalDataInEService: eservice.personalData,
+        });
       }
 
       const purposeOwnership = await getOrganizationRole({
@@ -1383,7 +1381,6 @@ export function purposeServiceBuilder(
       const createdAt = new Date();
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
@@ -1481,18 +1478,16 @@ export function purposeServiceBuilder(
       });
 
       const createdAt = new Date();
-      // the validation for receive mode are redundant because the same ones have been already performed when the risk analysis has been added to the eservice
-      if (eservice.mode !== eserviceMode.receive) {
-        validateRiskAnalysisOrThrow({
-          riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
-            riskAnalysis.riskAnalysisForm
-          ),
-          schemaOnlyValidation: false,
-          tenantKind: producerKind,
-          dateForExpirationValidation: createdAt,
-          personalDataInEService: eservice.personalData,
-        });
-      }
+
+      validateRiskAnalysisOrThrow({
+        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+          riskAnalysis.riskAnalysisForm
+        ),
+        schemaOnlyValidation: false,
+        tenantKind: producerKind,
+        dateForExpirationValidation: createdAt,
+        personalDataInEService: eservice.personalData,
+      });
 
       const newVersion: PurposeVersion = {
         id: generateId(),

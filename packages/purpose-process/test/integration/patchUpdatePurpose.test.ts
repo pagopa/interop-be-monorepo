@@ -261,28 +261,28 @@ describe("patchUpdatePurpose", () => {
 
   it.each([
     {}, // This should not throw an error and leave all fields unchanged
-    // { title: "updated title" },
-    // { description: "updated description" },
-    // {
-    //   title: "updated title",
-    //   description: undefined, // This keeps the existing description, same as not setting it
-    //   dailyCalls: undefined, // This keeps the existing dailyCalls, same as not setting it
-    // },
-    // { dailyCalls: 99 },
-    // { riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis) },
-    // { isFreeOfCharge: false, freeOfChargeReason: null },
-    // { freeOfChargeReason: "updated freeOfChargeReason" },
-    // { isFreeOfCharge: true, freeOfChargeReason: "updated freeOfChargeReason" },
-    // {
-    //   isFreeOfCharge: true,
-    //   freeOfChargeReason: undefined, // This keeps the existing reason, same as not setting it
-    // },
-    // {
-    //   title: "updated title",
-    //   description: "updated description",
-    //   dailyCalls: 99,
-    //   riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
-    // },
+    { title: "updated title" },
+    { description: "updated description" },
+    {
+      title: "updated title",
+      description: undefined, // This keeps the existing description, same as not setting it
+      dailyCalls: undefined, // This keeps the existing dailyCalls, same as not setting it
+    },
+    { dailyCalls: 99 },
+    { riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis) },
+    { isFreeOfCharge: false, freeOfChargeReason: null },
+    { freeOfChargeReason: "updated freeOfChargeReason" },
+    { isFreeOfCharge: true, freeOfChargeReason: "updated freeOfChargeReason" },
+    {
+      isFreeOfCharge: true,
+      freeOfChargeReason: undefined, // This keeps the existing reason, same as not setting it
+    },
+    {
+      title: "updated title",
+      description: "updated description",
+      dailyCalls: 99,
+      riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
+    },
   ] as purposeApi.PatchPurposeUpdateContent[])(
     "should update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
     async (seed) => {
