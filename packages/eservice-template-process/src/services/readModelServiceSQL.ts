@@ -297,7 +297,7 @@ export function readModelServiceBuilderSQL({
         queryResult[0]?.totalCount ?? 0
       );
     },
-    async checkNameConflictInstances(
+    async hasInstanceNameConflicts(
       eserviceTemplate: EServiceTemplate,
       newName: string
     ): Promise<boolean> {
