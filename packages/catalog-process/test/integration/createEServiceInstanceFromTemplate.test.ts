@@ -783,7 +783,7 @@ describe("create eService from template", () => {
 
       await addOneEServiceTemplate(eServiceTemplate);
 
-      const { instanceLabel: _discarded, ...baseMock } = getMockEService(
+      const mock = getMockEService(
         undefined,
         mockEService.producerId,
         [],
@@ -791,9 +791,9 @@ describe("create eService from template", () => {
       );
       const existingInstance: EService =
         existingLabel === undefined
-          ? { ...baseMock, name: eServiceTemplate.name }
+          ? { ...mock, name: eServiceTemplate.name, instanceLabel: undefined }
           : {
-              ...baseMock,
+              ...mock,
               name: `${eServiceTemplate.name} - ${existingLabel}`,
               instanceLabel: existingLabel,
             };
