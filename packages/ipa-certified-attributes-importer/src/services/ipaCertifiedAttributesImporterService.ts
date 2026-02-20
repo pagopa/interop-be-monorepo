@@ -1,6 +1,16 @@
 import { createHash } from "crypto";
-import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
-import { InteropHeaders, Logger, delay } from "pagopa-interop-commons";
+import {
+  attributeRegistryApi,
+  createZodiosClientEnhancedWithMetadata,
+  tenantApi,
+  ZodiosClientWithMetadata,
+} from "pagopa-interop-api-clients";
+import {
+  InteropHeaders,
+  Logger,
+  waitForReadModelMetadataVersion,
+  delay,
+} from "pagopa-interop-commons";
 import {
   attributeKind,
   Tenant,
@@ -27,6 +37,17 @@ export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 // Tipologia Società in Conto Economico Consolidato
 export const ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY =
   "Societa' in Conto Economico Consolidato";
+
+export type TenantProcessClient = ZodiosClientWithMetadata<
+  ReturnType<typeof tenantApi.createInternalApiClient>
+>;
+
+export function createTenantProcessClient(): TenantProcessClient {
+  return createZodiosClientEnhancedWithMetadata(
+    tenantApi.createInternalApiClient,
+    config.tenantProcessUrl
+  );
+}
 
 export type TenantSeed = {
   origin: string;
@@ -308,13 +329,11 @@ export async function getAttributesToAssign(
 
 export async function assignNewAttributes(
   attributesToAssign: tenantApi.InternalTenantSeed[],
+  tenantClient: TenantProcessClient,
+  readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger
 ): Promise<void> {
-  const tenantClient = tenantApi.createInternalApiClient(
-    config.tenantProcessUrl
-  );
-
   for (const attributeToAssign of attributesToAssign) {
     loggerInstance.info(
       `Updating tenant ${
@@ -323,7 +342,26 @@ export async function assignNewAttributes(
         .map((a) => a.code)
         .join(", ")}]`
     );
-    await tenantClient.internalUpsertTenant(attributeToAssign, { headers });
+    const response = await tenantClient.internalUpsertTenant(
+      attributeToAssign,
+      {
+        headers,
+      }
+    );
+
+    await waitForReadModelMetadataVersion(
+      () =>
+        readModelServiceSQL.getTenantByExternalIdWithMetadata(
+          attributeToAssign.externalId
+        ),
+      response.metadata?.version,
+      `tenant ${attributeToAssign.externalId.value}`,
+      loggerInstance,
+      {
+        defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+        defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+      }
+    );
   }
 }
 
@@ -416,25 +454,41 @@ export async function revokeAttributes(
     aOrigin: string;
     aCode: string;
   }>,
+  tenantClient: TenantProcessClient,
+  readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger
 ): Promise<void> {
-  const tenantClient = tenantApi.createInternalApiClient(
-    config.tenantProcessUrl
-  );
-
   for (const a of attributesToRevoke) {
     loggerInstance.info(
       `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
     );
-    await tenantClient.internalRevokeCertifiedAttribute(undefined, {
-      params: {
-        tOrigin: a.tOrigin,
-        tExternalId: a.tExternalId,
-        aOrigin: a.aOrigin,
-        aExternalId: a.aCode,
-      },
-      headers,
-    });
+    const response = await tenantClient.internalRevokeCertifiedAttribute(
+      undefined,
+      {
+        params: {
+          tOrigin: a.tOrigin,
+          tExternalId: a.tExternalId,
+          aOrigin: a.aOrigin,
+          aExternalId: a.aCode,
+        },
+        headers,
+      }
+    );
+
+    await waitForReadModelMetadataVersion(
+      () =>
+        readModelServiceSQL.getTenantByExternalIdWithMetadata({
+          origin: a.tOrigin,
+          value: a.tExternalId,
+        }),
+      response.metadata?.version,
+      `tenant ${a.tExternalId}`,
+      loggerInstance,
+      {
+        defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+        defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+      }
+    );
   }
 }

@@ -14,6 +14,7 @@ import { config } from "./config/config.js";
 import { getRegistryData } from "./services/openDataService.js";
 import {
   assignNewAttributes,
+  createTenantProcessClient,
   createNewAttributes,
   getAttributesToAssign,
   getAttributesToRevoke,
@@ -67,6 +68,8 @@ try {
 
   const token = (await refreshableToken.get()).serialized;
   const headers = getInteropHeaders({ token, correlationId });
+  const tenantProcessClient = createTenantProcessClient();
+
   await createNewAttributes(
     newAttributes,
     readModelServiceSQL,
@@ -83,7 +86,13 @@ try {
     loggerInstance
   );
 
-  await assignNewAttributes(attributesToAssign, headers, loggerInstance);
+  await assignNewAttributes(
+    attributesToAssign,
+    tenantProcessClient,
+    readModelServiceSQL,
+    headers,
+    loggerInstance
+  );
 
   loggerInstance.info("Revoking attributes");
 
@@ -93,7 +102,13 @@ try {
     attributes
   );
 
-  await revokeAttributes(attributesToRevoke, headers, loggerInstance);
+  await revokeAttributes(
+    attributesToRevoke,
+    tenantProcessClient,
+    readModelServiceSQL,
+    headers,
+    loggerInstance
+  );
 
   loggerInstance.info("IPA certified attributes import completed");
 } catch (error) {
