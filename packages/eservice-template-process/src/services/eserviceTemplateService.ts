@@ -656,13 +656,13 @@ export function eserviceTemplateServiceBuilder(
       if (name !== eserviceTemplate.data.name) {
         await assertEServiceTemplateNameAvailable(name, readModelService);
 
-        const hasConflictingInstances =
-          await readModelService.checkNameConflictInstances(
+        const hasInstanceNameConflicts =
+          await readModelService.hasInstanceNameConflicts(
             eserviceTemplate.data,
             name
           );
 
-        if (hasConflictingInstances) {
+        if (hasInstanceNameConflicts) {
           throw instanceNameConflict(eserviceTemplateId);
         }
       }
