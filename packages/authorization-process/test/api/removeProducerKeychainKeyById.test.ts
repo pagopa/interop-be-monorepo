@@ -39,7 +39,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.M2M_ADMIN_ROLE];
 
   authorizationService.removeProducerKeychainKeyById = vi
     .fn()
