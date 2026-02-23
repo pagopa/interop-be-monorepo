@@ -3323,16 +3323,6 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        template.personalData === undefined
-      ) {
-        throw eServiceTemplateWithoutPersonalDataFlag(
-          template.id,
-          publishedVersion.id
-        );
-      }
-
       const instanceName =
         seed.instanceLabel === undefined
           ? template.name
@@ -3343,6 +3333,16 @@ export function catalogServiceBuilder(
         ctx.authData.organizationId,
         readModelService
       );
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
+        template.personalData === undefined
+      ) {
+        throw eServiceTemplateWithoutPersonalDataFlag(
+          template.id,
+          publishedVersion.id
+        );
+      }
 
       const { eService: createdEService, events } = await innerCreateEService(
         {
