@@ -1368,7 +1368,7 @@ export function purposeServiceBuilder(
 
       assertConsistentFreeOfCharge(
         purposeSeed.isFreeOfCharge,
-        purposeSeed.freeOfChargeReason || undefined
+        purposeSeed.freeOfChargeReason
       );
 
       const delegationId = await verifyRequesterIsConsumerOrDelegateConsumer(
@@ -1453,7 +1453,7 @@ export function purposeServiceBuilder(
 
       assertConsistentFreeOfCharge(
         seed.isFreeOfCharge,
-        seed.freeOfChargeReason || undefined
+        seed.freeOfChargeReason
       );
 
       const delegationId = await verifyRequesterIsConsumerOrDelegateConsumer(
