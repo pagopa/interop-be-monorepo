@@ -64,7 +64,7 @@ describe("addClientUsers", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.addClientUsers(
+    const addClientUsersReturn = await authorizationService.addClientUsers(
       {
         clientId: mockClient.id,
         userIds: usersToAdd,
@@ -86,12 +86,20 @@ describe("addClientUsers", () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient: Client = {
+      ...mockClient,
+      users: [...userIds, ...usersToAdd],
+    };
+
     expect(writtenPayload).toEqual({
       userId: usersToAdd.at(-1),
-      client: toClientV2({
-        ...mockClient,
-        users: [...userIds, ...usersToAdd],
-      }),
+      client: toClientV2(expectedClient),
+    });
+    expect(addClientUsersReturn).toEqual({
+      data: expectedClient,
+      metadata: {
+        version: 2,
+      },
     });
   });
   it("should throw clientNotFound if the client doesn't exist", async () => {

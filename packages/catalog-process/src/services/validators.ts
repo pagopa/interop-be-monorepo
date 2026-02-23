@@ -1,5 +1,6 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  InternalAuthData,
   M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisValidatedForm,
@@ -43,8 +44,10 @@ import {
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
   eserviceTemplateNameConflict,
+  eServiceUpdateSameDescriptionConflict,
+  eServiceUpdateSameNameConflict,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -65,10 +68,13 @@ export function descriptorStatesNotAllowingDocumentOperations(
     .exhaustive();
 }
 
-export const notActiveDescriptorState: DescriptorState[] = [
-  descriptorState.draft,
-  descriptorState.waitingForApproval,
-];
+export function descriptorStatesNotAllowingInterfaceOperations(
+  descriptor: Descriptor
+): boolean {
+  return match(descriptor.state)
+    .with(descriptorState.draft, () => false)
+    .otherwise(() => true);
+}
 
 export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.published,
@@ -77,7 +83,7 @@ export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.archived,
 ];
 
-export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
+function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
     .with(
@@ -114,8 +120,8 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData | M2MAuthData,
-  readModelService: ReadModelService
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   // Search for active producer delegation
   const producerDelegation = await readModelService.getLatestDelegation({
@@ -140,7 +146,7 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: UIAuthData | M2MAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void {
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
@@ -149,7 +155,7 @@ export function assertRequesterIsProducer(
 
 export async function assertNoExistingProducerDelegationInActiveOrPendingState(
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
@@ -201,9 +207,17 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
+  const result = validateRiskAnalysis(
+    riskAnalysisForm,
+    true,
+    tenantKind,
+    dateForExpirationValidation,
+    personalDataInEService
+  );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
   } else {
@@ -225,7 +239,9 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
-      tenantKind
+      tenantKind,
+      new Date(),
+      eservice.personalData
     );
 
     if (result.type === "invalid") {
@@ -273,7 +289,7 @@ export function assertDocumentDeletableDescriptorState(
 export async function assertEServiceNameAvailableForProducer(
   name: string,
   producerId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   const isEServiceNameAvailable =
     await readModelService.isEServiceNameAvailableForProducer({
@@ -287,7 +303,7 @@ export async function assertEServiceNameAvailableForProducer(
 
 export async function assertEServiceNameNotConflictingWithTemplate(
   name: string,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   const eserviceTemplateWithSameNameExists =
     await readModelService.isEServiceNameConflictingWithTemplate({
@@ -351,6 +367,23 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
   }
 }
 
+export function assertUpdatedNameDiffersFromCurrent(
+  newName: string,
+  eservice: EService
+): void {
+  if (newName === eservice.name) {
+    throw eServiceUpdateSameNameConflict(eservice.id);
+  }
+}
+export function assertUpdatedDescriptionDiffersFromCurrent(
+  newDescription: string,
+  eservice: EService
+): void {
+  if (newDescription === eservice.description) {
+    throw eServiceUpdateSameDescriptionConflict(eservice.id);
+  }
+}
+
 /**
  * Checks if the user has the roles required to access inactive
  * descriptors (i.e., DRAFT or WAITING_FOR_APPROVAL).
@@ -358,7 +391,7 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
  * from the producer tenant or the delegate producer tenant.
  */
 export function hasRoleToAccessInactiveDescriptors(
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
 ): boolean {
   return (
     hasAtLeastOneUserRole(authData, [

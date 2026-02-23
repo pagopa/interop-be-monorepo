@@ -6,6 +6,8 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
@@ -40,7 +42,9 @@ describe("GET /purposes router test", () => {
   const mockQueryParams: m2mGatewayApi.GetPurposesQueryParams = {
     offset: 0,
     limit: 10,
-    eserviceIds: [],
+    eserviceIds: [generateId()],
+    consumerIds: [generateId()],
+    states: [generateMock(m2mGatewayApi.PurposeVersionState)],
   };
 
   it.each(authorizedRoles)(
@@ -61,9 +65,11 @@ describe("GET /purposes router test", () => {
   it.each([
     { ...mockQueryParams, offset: -2 },
     { ...mockQueryParams, limit: 100 },
+    { ...mockQueryParams, states: ["invalidState"] },
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, eserviceIds: ["invalidUUID"] },
+    { ...mockQueryParams, consumerIds: ["invalidUUID"] },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -78,11 +84,7 @@ describe("GET /purposes router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, {
-      offset: 0,
-      limit: 10,
-      eserviceIds: [],
-    });
+    const res = await makeRequest(token, mockQueryParams);
     expect(res.status).toBe(403);
   });
 

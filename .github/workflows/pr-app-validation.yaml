@@ -1,0 +1,306 @@
+name: PR app validation
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  formatting:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Cache turbo setup
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-check-formatting-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-check-formatting
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          run_install: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - run: pnpm format:check
+
+  lint-openapi:
+    name: Lint Open Api specification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          run_install: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - name: Run OpenAPI lint
+        run: bash -O extglob -c "pnpm --filter pagopa-interop-api-clients lint:openapi"
+
+  packages_sharding:
+    name: Packages sharding
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      test_matrix: ${{ steps.sharded_packages.outputs.test_matrix }}
+      lint_matrix: ${{ steps.sharded_packages.outputs.lint_matrix }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Load dedicated test packages
+        id: get_dedicated_packages
+        run: |
+          # Manually define packages that require dedicated test shards here and use the name from package.json
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='["pagopa-interop-backend-for-frontend", "pagopa-interop-m2m-gateway", "pagopa-interop-m2m-gateway-v3"]'
+          echo "dedicated_packages=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
+
+      - name: Find packages with test directories
+        id: get_test_packages
+        run: |
+          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
+            PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
+            echo "$PACKAGE_NAME"
+          done | sort | jq -R -s -c 'split("\n")[:-1]')
+
+          echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+      - name: Find ALL packages
+        id: get_all_packages
+        run: |
+          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -print | while read -r DIR; do
+            PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json" 2>/dev/null)
+            if [ -n "$PACKAGE_NAME" ]; then
+              echo "$PACKAGE_NAME"
+            fi
+          done | sort | jq -R -s -c 'split("\n")[:-1]')
+
+          echo "All valid packages found: $(echo "$PACKAGES" | jq 'length')"
+          echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+      - name: Identify packages that require dedicated shards for testing
+        id: filter_packages
+        run: |
+          ALL_PACKAGES='${{ steps.get_test_packages.outputs.test_packages }}'
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='${{ steps.get_dedicated_packages.outputs.dedicated_packages }}'
+
+          PACKAGES_TO_TEST=$(echo "$ALL_PACKAGES" | jq -c --argjson dedicated "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" '
+            . - $dedicated
+          ')
+
+          echo "Remaining packages for sharding: $(echo "$PACKAGES_TO_TEST" | jq 'length')"
+
+          echo "packages_to_test=$PACKAGES_TO_TEST" >> $GITHUB_OUTPUT
+          echo "packages_test_dedicated_runner=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
+
+      - name: Create shards matrices
+        id: sharded_packages
+        run: |
+          SHARD_TEST_NUM=10
+          SHARD_LINT_NUM=5
+
+          create_fixed_size_shard_matrix() {
+            local PACKAGES_JSON=$1
+            local PACK_NUM=$2
+            local SHARD_NUM=$3
+
+            matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
+              [range(0; $shardNum) as $i |
+              {
+                "shardIndex": ($i + 1),
+                "packages": ($packs[
+                ($i * $len / $shardNum | floor):
+                (($i + 1) * $len / $shardNum | floor)
+                ])
+              }
+              ] | .[] | select(.packages|length > 0)
+              ')
+
+            echo "$matrix"
+          }
+
+          create_dedicated_shards() {
+            local PACKAGES_JSON=$1
+            local START_INDEX=$2
+
+            matrix=$(jq --argjson packs "$PACKAGES_JSON" --argjson startIndex "$START_INDEX" -n -c '
+              ($packs | to_entries)[] |
+              {
+                "shardIndex": ($startIndex + .key),
+                "packages": [ .value ]
+              }
+            ')
+
+            echo "$matrix"
+          }
+
+
+          PACKAGES_TO_TEST_JSON='${{ steps.filter_packages.outputs.packages_to_test }}'
+          PACK_TO_TEST_NUM=$(echo "$PACKAGES_TO_TEST_JSON" | jq -r length)
+
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
+          DEDICATED_PACK_NUM=$(echo "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" | jq -r length)
+
+          SHARDS_FOR_TESTING=$(create_fixed_size_shard_matrix "$PACKAGES_TO_TEST_JSON" "$PACK_TO_TEST_NUM" "$SHARD_TEST_NUM")
+
+          DEDICATED_SHARD_START_INDEX=$((SHARD_TEST_NUM + 1)) # Start index after fixed shards
+          DEDICATED_SHARDS=$(create_dedicated_shards "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" "$DEDICATED_SHARD_START_INDEX")
+
+          TEST_MATRIX=$(
+            (echo "$SHARDS_FOR_TESTING"; echo "$DEDICATED_SHARDS") |
+            grep -v -e '^$' | # Rimuove linee vuote
+            jq -s -c . # Trasforma la lista di oggetti in un array
+          )
+
+          echo "Test Matrix Length: $(echo "$TEST_MATRIX" | jq 'length')"
+          echo "::group::Shards created for testing"
+          echo "$TEST_MATRIX" | jq .
+          echo "::endgroup::"
+          echo "test_matrix=$TEST_MATRIX" >> $GITHUB_OUTPUT
+
+          ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
+          ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
+
+          LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "$SHARD_LINT_NUM")
+          LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)
+          echo "Lint Matrix Length: $(echo "$LINT_MATRIX" | jq 'length')"
+          echo "::group::Shards created for linting"
+          echo "$LINT_MATRIX" | jq .
+          echo "::endgroup::"
+          echo "lint_matrix=$LINT_MATRIX" >> $GITHUB_OUTPUT
+
+  build:
+    name: Full project build
+    runs-on: ubuntu-latest
+    needs: [formatting]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Cache turbo setup
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-build-
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          run_install: true
+      - name: Build all packages
+        run: pnpm build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: build-output
+          path: |
+            .turbo/
+            packages/*/dist/
+
+  lint:
+    name: Lint sharded [ ${{ matrix.shard.shardIndex }} ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [packages_sharding, formatting, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.packages_sharding.outputs.lint_matrix) }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          run_install: true
+      - name: Download build artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: build-output
+          path: .
+      - name: Run lint for shard
+        run: |
+          PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
+          echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
+            echo "Running lint for package: $PACKAGE"
+            pnpm --filter "$PACKAGE" lint
+          done
+
+  test:
+    name: Tests sharded [ ${{ matrix.shard.shardIndex }} ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [formatting, packages_sharding, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.packages_sharding.outputs.test_matrix) }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          run_install: true
+      - name: Download build artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: build-output
+          path: .
+      - name: Run tests for shard
+        run: |
+          PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
+          echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
+            echo "Running tests for package: $PACKAGE"
+            pnpm --filter "$PACKAGE" test
+          done
+
+  lint_result:
+    name: Lint Result
+    needs: [lint]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check lint result
+        run: |
+          [[ ${{ needs.lint.result }} != 'success' ]] && exit 1
+          exit 0
+
+  test_result:
+    name: Test Result
+    needs: [test]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check tests result
+        run: |
+          [[ ${{ needs.test.result }} != 'success' ]] && exit 1
+          exit 0

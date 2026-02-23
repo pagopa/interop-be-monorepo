@@ -1,5 +1,4 @@
 import {
-  ReadModelRepository,
   initSesMailManager,
   logger,
   withExecutionTime,
@@ -9,7 +8,6 @@ import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { config } from "./configs/config.js";
 import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
 import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const loggerInstance = logger({
@@ -24,22 +22,13 @@ async function main(): Promise<void> {
 
   const readModelDB = makeDrizzleConnection(config);
 
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
   const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-  const readModelService =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelServiceSQL
-      : oldReadModelService;
 
   loggerInstance.info("> Connected to database!\n");
 
   loggerInstance.info("> Getting data...");
 
-  const purposes = await readModelService.getSENDPurposes(
+  const purposes = await readModelServiceSQL.getSENDPurposes(
     config.pnEserviceId,
     config.comuniELoroConsorziEAssociazioniAttributeId
   );
@@ -57,16 +46,19 @@ async function main(): Promise<void> {
 
   const mailer = initSesMailManager(config);
 
-  await mailer.send({
-    from: {
-      name: config.reportSenderLabel,
-      address: config.reportSenderMail,
+  await mailer.send(
+    {
+      from: {
+        name: config.reportSenderLabel,
+        address: config.reportSenderMail,
+      },
+      to: config.mailRecipients,
+      subject: MAIL_SUBJECT,
+      html: MAIL_BODY,
+      attachments: [{ filename: CSV_FILENAME, content: csv }],
     },
-    to: config.mailRecipients,
-    subject: MAIL_SUBJECT,
-    html: MAIL_BODY,
-    attachments: [{ filename: CSV_FILENAME, content: csv }],
-  });
+    loggerInstance
+  );
 
   loggerInstance.info("> Success!\n");
 }

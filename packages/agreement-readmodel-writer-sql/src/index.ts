@@ -8,18 +8,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  agreementReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
-import { readModelServiceBuilder } from "./readModelService.js";
+import { agreementWriterServiceBuilder } from "./agreementWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const agreementReadModelService = agreementReadModelServiceBuilder(db);
-const readModelService = readModelServiceBuilder(db, agreementReadModelService);
+const agreementWriterService = agreementWriterServiceBuilder(db);
 
 async function processMessage({
   message,
@@ -39,8 +35,12 @@ async function processMessage({
   });
 
   await match(msg)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
+    .with({ event_version: 1 }, (msg) =>
+      handleMessageV1(msg, agreementWriterService)
+    )
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, agreementWriterService)
+    )
     .exhaustive();
 
   loggerInstance.info(
@@ -48,4 +48,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.agreementTopic], processMessage);
+await runConsumer(
+  config,
+  [config.agreementTopic],
+  processMessage,
+  "agreement-readmodel-writer-sql"
+);

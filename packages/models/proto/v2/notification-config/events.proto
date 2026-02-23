@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package notification.config.v2;
+
+import "v2/notification-config/notification-config.proto";
+
+message TenantNotificationConfigCreatedV2 {
+  TenantNotificationConfigV2 tenantNotificationConfig = 1;
+}
+
+message TenantNotificationConfigUpdatedV2 {
+  TenantNotificationConfigV2 tenantNotificationConfig = 1;
+}
+
+message TenantNotificationConfigDeletedV2 {
+  TenantNotificationConfigV2 tenantNotificationConfig = 1;
+}
+
+message UserNotificationConfigCreatedV2 {
+  UserNotificationConfigV2 userNotificationConfig = 1;
+}
+
+message UserNotificationConfigUpdatedV2 {
+  UserNotificationConfigV2 userNotificationConfig = 1;
+}
+
+message UserNotificationConfigDeletedV2 {
+  UserNotificationConfigV2 userNotificationConfig = 1;
+}
+
+message UserNotificationConfigRoleAddedV2 {
+  UserNotificationConfigV2 userNotificationConfig = 1;
+  UserRoleV2 userRole = 2;
+}
+
+message UserNotificationConfigRoleRemovedV2 {
+  UserNotificationConfigV2 userNotificationConfig = 1;
+  UserRoleV2 userRole = 2;
+}

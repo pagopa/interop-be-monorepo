@@ -8,14 +8,18 @@ import {
   GetObjectCommand,
   S3Client,
   S3ClientConfig,
+  HeadObjectCommand,
+  S3ServiceException,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { FileManagerConfig } from "../config/fileManagerConfig.js";
-import { Logger, LoggerConfig } from "../index.js";
+import { Logger } from "../logging/index.js";
+import { LoggerConfig } from "../config/loggerConfig.js";
 import {
   fileManagerCopyError,
   fileManagerDeleteError,
   fileManagerGetError,
+  fileManagerResumeFileError,
   fileManagerListFilesError,
   fileManagerStoreBytesError,
 } from "./fileManagerErrors.js";
@@ -60,8 +64,19 @@ export type FileManager = {
     fileName: string,
     durationInMinutes: number
   ) => Promise<string>;
+  resumeOrStoreBytes: (
+    s3File: {
+      bucket: string;
+      path: string;
+      resourceId?: string;
+      name: string;
+      content: Buffer;
+    },
+    logger: Logger
+  ) => Promise<string>;
 };
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function initFileManager(
   config: FileManagerConfig & LoggerConfig
 ): FileManager {
@@ -105,6 +120,21 @@ export function initFileManager(
     }
   };
 
+  const storeBytesFn = async (
+    s3File: {
+      bucket: string;
+      path: string;
+      resourceId?: string;
+      name: string;
+      content: Buffer;
+    },
+    logger: Logger
+  ): Promise<string> => {
+    const key = buildS3Key(s3File.path, s3File.resourceId, s3File.name);
+    logger.info(`Storing file ${key} in bucket ${s3File.bucket}`);
+    return store(s3File.bucket, key, s3File.content);
+  };
+
   return {
     delete: async (
       bucket: string,
@@ -139,7 +169,7 @@ export function initFileManager(
         await client.send(
           new CopyObjectCommand({
             Bucket: bucket,
-            CopySource: `${bucket}/${filePathToCopy}`,
+            CopySource: encodeURI(`${bucket}/${filePathToCopy}`),
             Key: key,
           })
         );
@@ -174,9 +204,7 @@ export function initFileManager(
       logger.info(`Listing files in bucket ${bucket}`);
       try {
         const response = await client.send(
-          new ListObjectsCommand({
-            Bucket: bucket,
-          })
+          new ListObjectsCommand({ Bucket: bucket })
         );
         return (
           response.Contents?.map((object) => object.Key).filter(
@@ -196,7 +224,8 @@ export function initFileManager(
       logger.info(`Storing file ${key} in bucket ${bucket}`);
       return store(bucket, key, fileContent);
     },
-    storeBytes: async (
+    storeBytes: storeBytesFn,
+    resumeOrStoreBytes: async (
       s3File: {
         bucket: string;
         path: string;
@@ -207,9 +236,30 @@ export function initFileManager(
       logger: Logger
     ): Promise<string> => {
       const key = buildS3Key(s3File.path, s3File.resourceId, s3File.name);
-      logger.info(`Storing file ${key} in bucket ${s3File.bucket}`);
-
-      return store(s3File.bucket, key, s3File.content);
+      try {
+        await client.send(
+          new HeadObjectCommand({
+            Bucket: s3File.bucket,
+            Key: key,
+          })
+        );
+        logger.info(
+          `File already exists, resuming s3://${s3File.bucket}/${key}`
+        );
+        return key;
+      } catch (error) {
+        if (error instanceof S3ServiceException && error.name === "NotFound") {
+          logger.info(
+            `File not found, storing new one s3://${s3File.bucket}/${key}`
+          );
+        } else {
+          logger.error(
+            `Error checking file s3://${s3File.bucket}/${key}: ${error}`
+          );
+          throw fileManagerResumeFileError(key, s3File.bucket, error);
+        }
+      }
+      return storeBytesFn(s3File, logger);
     },
     generateGetPresignedUrl: async (
       bucketName: string,

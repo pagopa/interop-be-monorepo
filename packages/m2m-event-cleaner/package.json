@@ -1,0 +1,37 @@
+{
+  "name": "pagopa-interop-m2m-event-cleaner",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "Pagopa Interop M2M Event Cleaner",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config vitest.config.ts",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "tsx -r 'dotenv-flow/config' ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "devDependencies": {
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-m2m-event-db-models": "workspace:*",
+    "pg": "catalog:",
+    "zod": "catalog:"
+  }
+}

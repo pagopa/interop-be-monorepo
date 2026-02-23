@@ -25,7 +25,7 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  "/authorization-server/token.oauth2":
+  "/token.oauth2":
     post:
       tags:
         - auth
@@ -104,7 +104,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /authorization-server/status:
+  /status:
     get:
       security: []
       summary: Returns the application status
@@ -212,7 +212,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

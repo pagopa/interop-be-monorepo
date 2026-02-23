@@ -4,59 +4,93 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockAttribute,
+  getMockTenant,
+  getMockContextM2MAdmin,
 } from "pagopa-interop-commons-test";
 import {
   AttributeAddedV1,
   Attribute,
   attributeKind,
   toAttributeV1,
+  generateId,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
   originNotCompliant,
   attributeDuplicateByName,
+  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   attributeRegistryService,
   readLastAttributeEvent,
   addOneAttribute,
+  addOneTenant,
 } from "../integrationUtils.js";
+
 describe("declared attribute creation", () => {
   const mockAttribute = getMockAttribute();
-  it("should write on event-store for the creation of a declared attribute", async () => {
-    const attribute = await attributeRegistryService.createDeclaredAttribute(
-      {
-        name: mockAttribute.name,
-        description: mockAttribute.description,
-      },
-      getMockContext({})
-    );
-    expect(attribute).toBeDefined();
+  const mockTenant = getMockTenant();
 
-    const writtenEvent = await readLastAttributeEvent(attribute.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: attribute.id,
-      version: "0",
-      type: "AttributeAdded",
-      event_version: 1,
-    });
+  it.each([
+    {
+      label: "UIAuthData",
+      context: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+    },
+    {
+      label: "M2MAdminAuthData",
+      context: getMockContextM2MAdmin({ organizationId: mockTenant.id }),
+    },
+  ])(
+    "should write on event-store for the creation of a declared attribute ($label)",
+    async ({ context }) => {
+      await addOneTenant(mockTenant);
+      const createDeclaredAttributeResponse =
+        await attributeRegistryService.createDeclaredAttribute(
+          {
+            name: mockAttribute.name,
+            description: mockAttribute.description,
+          },
+          context
+        );
 
-    const writtenPayload = decodeProtobufPayload({
-      messageType: AttributeAddedV1,
-      payload: writtenEvent.data,
-    });
+      const writtenEvent = await readLastAttributeEvent(
+        createDeclaredAttributeResponse.data.id
+      );
+      expect(writtenEvent).toMatchObject({
+        stream_id: createDeclaredAttributeResponse.data.id,
+        version: "0",
+        type: "AttributeAdded",
+        event_version: 1,
+      });
 
-    const expectedAttribute: Attribute = {
-      ...mockAttribute,
-      id: attribute.id,
-      kind: attributeKind.declared,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      creationTime: new Date(writtenPayload.attribute!.creationTime),
-    };
+      const writtenPayload = decodeProtobufPayload({
+        messageType: AttributeAddedV1,
+        payload: writtenEvent.data,
+      });
 
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
-  });
+      const expectedAttribute: Attribute = {
+        ...mockAttribute,
+        id: createDeclaredAttributeResponse.data.id,
+        kind: attributeKind.declared,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        creationTime: new Date(writtenPayload.attribute!.creationTime),
+      };
+
+      expect(writtenPayload.attribute).toEqual(
+        toAttributeV1(expectedAttribute)
+      );
+      expect(writtenPayload.attribute).toEqual(
+        toAttributeV1(createDeclaredAttributeResponse.data)
+      );
+      expect(createDeclaredAttributeResponse).toEqual({
+        data: expectedAttribute,
+        metadata: {
+          version: 0,
+        },
+      });
+    }
+  );
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
     expect(
       attributeRegistryService.createDeclaredAttribute(
@@ -94,5 +128,17 @@ describe("declared attribute creation", () => {
     ).rejects.toThrowError(
       attributeDuplicateByName(attribute.name.toLowerCase())
     );
+  });
+  it("should throw tenantNotFound if the m2m tenant is not found", async () => {
+    const notExistingTenantId = generateId<TenantId>();
+    expect(
+      attributeRegistryService.createDeclaredAttribute(
+        {
+          name: mockAttribute.name,
+          description: mockAttribute.description,
+        },
+        getMockContextM2MAdmin({ organizationId: notExistingTenantId })
+      )
+    ).rejects.toThrowError(tenantNotFound(notExistingTenantId));
   });
 });

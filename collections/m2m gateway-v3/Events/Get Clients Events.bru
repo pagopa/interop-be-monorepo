@@ -1,0 +1,19 @@
+meta {
+  name: Get Clients Events
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/clientEvents/?limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

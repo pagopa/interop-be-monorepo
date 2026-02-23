@@ -56,7 +56,15 @@
       "dependsOn": ["^lint:openapi"],
       "cache": false
     },
-    "format:check": {},
-    "format:write": {}
+    "format:check": {
+      "dependsOn": ["^format:check"]
+    },
+    "format:write": {
+      "dependsOn": ["^format:write"]
+    },
+    "generate-db-models": {
+      "dependsOn": ["//#infra:start", "^generate-db-models"],
+      "outputs": ["src/generated/**"]
+    }
   }
 }

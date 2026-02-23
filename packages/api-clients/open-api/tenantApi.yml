@@ -554,6 +554,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -588,6 +591,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -628,6 +634,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -682,6 +691,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -776,6 +788,132 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/attributes/verified/{attributeId}/verifiers:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Tenant id
+      - name: attributeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Attribute id
+    get:
+      tags:
+        - tenant
+      operationId: getTenantVerifiedAttributeVerifiers
+      description: Retrieve Verifiers for a Verified Attribute of a Tenant
+      parameters:
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Verifiers for the verified attribute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantVerifiers"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/attributes/verified/{attributeId}/revokers:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Tenant id
+      - name: attributeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Attribute id
+    get:
+      tags:
+        - tenant
+      operationId: getTenantVerifiedAttributeRevokers
+      description: Retrieve Revokers for a Verified Attribute of a Tenant
+      parameters:
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+      responses:
+        "200":
+          description: Revokers for the verified attribute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantRevokers"
         "400":
           description: Bad Request
           content:
@@ -895,6 +1033,7 @@ paths:
       tags:
         - tenant
       summary: Deletes a tenant
+      description: Deletes the specified tenant
       operationId: maintenanceTenantDelete
       responses:
         "204":
@@ -913,7 +1052,7 @@ paths:
               additionalProperties: false
               properties:
                 currentVersion:
-                  type: number
+                  type: integer
                   format: int32
               required:
                 - currentVersion
@@ -923,6 +1062,7 @@ paths:
         - tenant
       summary: Updates a tenant
       operationId: maintenanceTenantUpdate
+      description: Updates the specified tenant by its ID
       responses:
         "204":
           description: Tenant Updated
@@ -992,6 +1132,7 @@ paths:
       tags:
         - tenant
       summary: Delete a tenant mail
+      description: Deletes a mail from the specified tenant
       operationId: deleteTenantMail
       responses:
         "204":
@@ -1022,6 +1163,7 @@ paths:
       tags:
         - tenant
       summary: Add a tenant mail
+      description: Adds a mail to the specified tenant
       operationId: addTenantMail
       requestBody:
         required: true
@@ -1057,6 +1199,7 @@ paths:
       tags:
         - tenant
       summary: Update delegated producer and consumer feature to tenant caller
+      description: Updates delegated producer and consumer features for the calling tenant
       operationId: updateTenantDelegatedFeatures
       requestBody:
         required: true
@@ -1458,6 +1601,34 @@ components:
         - id
         - verificationDate
         - revocationDate
+    TenantVerifiers:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantVerifier"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    TenantRevokers:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantRevoker"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     InternalTenantSeed:
       description: Tenant Seed model
       type: object
@@ -1602,7 +1773,7 @@ components:
       additionalProperties: false
       properties:
         currentVersion:
-          type: number
+          type: integer
           format: int32
         tenant:
           $ref: "#/components/schemas/MaintenanceTenantUpdate"
@@ -1678,7 +1849,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

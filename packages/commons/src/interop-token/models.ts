@@ -34,7 +34,7 @@ export const InteropJwtHeader = z.object({
 });
 export type InteropJwtHeader = z.infer<typeof InteropJwtHeader>;
 
-const InteropJwtCommonPayload = z.object({
+export const InteropJwtCommonPayload = z.object({
   // All standard claims except "sub", which is not present in UI tokens
   iss: z.string(),
   aud: z.union([z.array(z.string()), CommaSeparatedStringToArray(z.string())]),
@@ -48,7 +48,7 @@ export type InteropJwtCommonPayload = z.infer<typeof InteropJwtCommonPayload>;
 /* ==========================================
     Interop CONSUMER Token
   ========================================== */
-const CNF = z.object({
+export const CNF = z.object({
   // jkt is a hash of the public key, required claim for DPoP tokens.
   jkt: z.string(),
 });
@@ -99,6 +99,13 @@ export const InteropJwtApiM2MPayload = InteropJwtApiCommonPayload.merge(
 );
 export type InteropJwtApiM2MPayload = z.infer<typeof InteropJwtApiM2MPayload>;
 
+export const InteropJwtApiM2MDPoPPayload = InteropJwtApiM2MPayload.merge(
+  z.object({ cnf: CNF })
+);
+export type InteropJwtApiM2MDPoPPayload = z.infer<
+  typeof InteropJwtApiM2MDPoPPayload
+>;
+
 export const InteropJwtApiM2MAdminPayload = InteropJwtApiCommonPayload.merge(
   z.object({
     role: z.literal(systemRole.M2M_ADMIN_ROLE),
@@ -110,13 +117,23 @@ export type InteropJwtApiM2MAdminPayload = z.infer<
   typeof InteropJwtApiM2MAdminPayload
 >;
 
+export const InteropJwtApiM2MAdminDPoPPayload =
+  InteropJwtApiM2MAdminPayload.merge(z.object({ cnf: CNF }));
+export type InteropJwtApiM2MAdminDPoPPayload = z.infer<
+  typeof InteropJwtApiM2MAdminDPoPPayload
+>;
+
 export type InteropJwtApiPayload =
   | InteropJwtApiM2MAdminPayload
   | InteropJwtApiM2MPayload;
 
+export type InteropJwtApiDPoPPayload =
+  | InteropJwtApiM2MAdminDPoPPayload
+  | InteropJwtApiM2MDPoPPayload;
+
 export type InteropApiToken = {
   header: InteropJwtHeader;
-  payload: InteropJwtApiPayload;
+  payload: InteropJwtApiPayload | InteropJwtApiDPoPPayload;
   serialized: string;
 };
 
@@ -222,3 +239,30 @@ export const AuthTokenPayload = z.discriminatedUnion("role", [
   InteropJwtMaintenancePayload,
 ]);
 export type AuthTokenPayload = z.infer<typeof AuthTokenPayload>;
+
+export const AuthTokenDPoPPayload = z.discriminatedUnion("role", [
+  InteropJwtApiM2MDPoPPayload,
+  InteropJwtApiM2MAdminDPoPPayload,
+]);
+export type AuthTokenDPoPPayload = z.infer<typeof AuthTokenDPoPPayload>;
+
+// ==========================================
+//    Agid Integrity Rest 02 Token
+// ==========================================
+export const IntegrityRest02SignedHeader = z.object({
+  digest: z.string(),
+  "content-type": z.string(),
+  "content-encoding": z.string().optional(),
+});
+export type IntegrityRest02SignedHeader = z.infer<
+  typeof IntegrityRest02SignedHeader
+>;
+export const AgidIntegrityRest02TokenPayload = InteropJwtCommonPayload.merge(
+  z.object({
+    signed_headers: IntegrityRest02SignedHeader,
+    sub: z.string().optional(),
+  })
+);
+export type AgidIntegrityRest02TokenPayload = z.infer<
+  typeof AgidIntegrityRest02TokenPayload
+>;

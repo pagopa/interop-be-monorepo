@@ -1,0 +1,20 @@
+meta {
+  name: Delete notification
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{host-in-app-notification}}/notifications/:notificationId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  notificationId: 851f2706-168e-4e31-83c8-c71537c86c3c
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

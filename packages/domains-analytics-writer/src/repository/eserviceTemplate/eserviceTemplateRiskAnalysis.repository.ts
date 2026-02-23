@@ -5,26 +5,17 @@ import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
   generateMergeQuery,
-  generateMergeDeleteQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 
-import {
-  EserviceTemplateDbTable,
-  DeletingDbTable,
-} from "../../model/db/index.js";
-import {
-  EserviceTemplateRiskAnalysisDeletingSchema,
-  EserviceTemplateRiskAnalysisSchema,
-} from "../../model/eserviceTemplate/eserviceTemplateRiskAnalysis.js";
+import { EserviceTemplateDbTable } from "../../model/db/index.js";
+import { EserviceTemplateRiskAnalysisSchema } from "../../model/eserviceTemplate/eserviceTemplateRiskAnalysis.js";
 
 export function eserviceTemplateRiskAnalysisRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = EserviceTemplateDbTable.eservice_template_risk_analysis;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.eservice_template_deleting_table;
-  const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -72,54 +63,5 @@ export function eserviceTemplateRiskAnalysisRepository(conn: DBConnection) {
         );
       }
     },
-
-    async insertDeleting(
-      t: ITask<unknown>,
-      pgp: IMain,
-      records: EserviceTemplateRiskAnalysisDeletingSchema[]
-    ): Promise<void> {
-      try {
-        const cs = buildColumnSet(
-          pgp,
-          deletingTableName,
-          EserviceTemplateRiskAnalysisDeletingSchema
-        );
-        await t.none(pgp.helpers.insert(records, cs));
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into deleting staging table ${stagingDeletingTableName}: ${error}`
-        );
-      }
-    },
-
-    async mergeDeleting(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeDelQuery = generateMergeDeleteQuery(
-          schemaName,
-          tableName,
-          deletingTableName,
-          ["id"]
-        );
-        await t.none(mergeDelQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging deleting staging into ${schemaName}.${tableName}: ${error}`
-        );
-      }
-    },
-
-    async cleanDeleting(): Promise<void> {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
-        );
-      }
-    },
   };
 }
-
-export type EserviceTemplateRiskAnalysisRepository = ReturnType<
-  typeof eserviceTemplateRiskAnalysisRepository
->;

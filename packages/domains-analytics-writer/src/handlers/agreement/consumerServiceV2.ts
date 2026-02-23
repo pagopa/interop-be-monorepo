@@ -15,7 +15,6 @@ import {
   AgreementItemsSchema,
   AgreementDeletingSchema,
 } from "../../model/agreement/agreement.js";
-import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAgreementMessageV2(
@@ -26,7 +25,6 @@ export async function handleAgreementMessageV2(
 
   const upsertAgreementBatch: AgreementItemsSchema[] = [];
   const deleteAgreementBatch: AgreementDeletingSchema[] = [];
-  const deleteDocumentBatch: AgreementConsumerDocumentDeletingSchema[] = [];
 
   for (const message of messages) {
     match(message)
@@ -52,14 +50,6 @@ export async function handleAgreementMessageV2(
           );
         }
       )
-      .with({ type: "AgreementConsumerDocumentRemoved" }, (msg) => {
-        deleteDocumentBatch.push(
-          AgreementConsumerDocumentDeletingSchema.parse({
-            id: msg.data.documentId,
-            deleted: true,
-          } satisfies z.input<typeof AgreementConsumerDocumentDeletingSchema>)
-        );
-      })
       .with(
         {
           type: P.union(
@@ -78,9 +68,12 @@ export async function handleAgreementMessageV2(
             "AgreementSuspendedByPlatform",
             "AgreementRejected",
             "AgreementConsumerDocumentAdded",
+            "AgreementConsumerDocumentRemoved",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
-            "AgreementArchivedByRevokedDelegation"
+            "AgreementArchivedByRevokedDelegation",
+            "AgreementContractGenerated",
+            "AgreementSignedContractGenerated"
           ),
         },
         (msg) => {
@@ -123,17 +116,5 @@ export async function handleAgreementMessageV2(
       ["id"]
     );
     await agreementService.deleteBatchAgreement(dbContext, distinctBatch);
-  }
-
-  if (deleteDocumentBatch.length > 0) {
-    const distinctBatch = distinctByKeys(
-      deleteDocumentBatch,
-      AgreementConsumerDocumentDeletingSchema,
-      ["id"]
-    );
-    await agreementService.deleteBatchAgreementDocument(
-      dbContext,
-      distinctBatch
-    );
   }
 }

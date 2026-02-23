@@ -9,7 +9,11 @@ import {
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
+import {
+  DeletingDbTable,
+  ClientDbTable,
+  ClientDbTablePartialTable,
+} from "../../model/db/index.js";
 import {
   ClientKeySchema,
   ClientKeyDeletingSchema,
@@ -19,6 +23,8 @@ import {
 export function clientKeyRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = ClientDbTable.client_key;
+  const keyRelationshipTableName =
+    ClientDbTablePartialTable.key_relationship_migrated;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTableName = DeletingDbTable.client_key_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
@@ -95,6 +101,7 @@ export function clientKeyRepository(conn: DBConnection) {
           deletingTableName,
           ["clientId", "kid"],
           false,
+          false,
           ["deleted_at"]
         );
         await t.none(mergeQuery);
@@ -121,10 +128,18 @@ export function clientKeyRepository(conn: DBConnection) {
       records: ClientKeyUserMigrationSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(pgp, tableName, ClientKeyUserMigrationSchema);
+        const cs = buildColumnSet(
+          pgp,
+          keyRelationshipTableName,
+          ClientKeyUserMigrationSchema
+        );
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(
-          generateStagingDeleteQuery(tableName, ["clientId", "kid", "userId"])
+          generateStagingDeleteQuery(
+            tableName,
+            ["clientId", "kid", "userId"],
+            keyRelationshipTableName
+          )
         );
       } catch (error: unknown) {
         throw genericInternalError(
@@ -150,5 +165,3 @@ export function clientKeyRepository(conn: DBConnection) {
     },
   };
 }
-
-export type ClientKeyRepository = ReturnType<typeof clientKeyRepository>;

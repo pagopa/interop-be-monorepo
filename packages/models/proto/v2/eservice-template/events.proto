@@ -84,6 +84,7 @@ message EServiceTemplateVersionPublishedV2 {
 
 message EServiceTemplateNameUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
+  optional string oldName = 2;
 }
 
 message EServiceTemplateIntendedTargetUpdatedV2 {
@@ -118,4 +119,8 @@ message EServiceTemplateVersionSuspendedV2 {
 message EServiceTemplateVersionActivatedV2 {
   string eserviceTemplateVersionId = 1;
   EServiceTemplateV2 eserviceTemplate = 2;
+}
+
+message EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2 {
+  EServiceTemplateV2 eserviceTemplate = 1;
 }

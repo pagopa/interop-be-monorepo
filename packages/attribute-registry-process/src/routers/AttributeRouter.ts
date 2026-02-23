@@ -3,7 +3,6 @@ import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
   ZodiosContext,
-  ReadModelRepository,
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
@@ -18,7 +17,6 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,
   toApiAttribute,
@@ -45,20 +43,11 @@ const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-const readModelRepository = ReadModelRepository.init(config);
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   attributeReadModelServiceSQL,
   tenantReadModelServiceSQL,
 });
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const defaultAttributeRegistryService = attributeRegistryServiceBuilder(
   initDB({
@@ -70,7 +59,7 @@ const defaultAttributeRegistryService = attributeRegistryServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelServiceSQL
 );
 
 const attributeRouter = (
@@ -105,6 +94,7 @@ const attributeRouter = (
             SUPPORT_ROLE,
             SECURITY_ROLE,
             M2M_ROLE,
+            M2M_ADMIN_ROLE,
           ]);
 
           const { limit, offset, kinds, name, origin } = req.query;
@@ -293,10 +283,13 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const attribute =
+        const { data: attribute, metadata } =
           await attributeRegistryService.createDeclaredAttribute(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -315,10 +308,13 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const attribute =
+        const { data: attribute, metadata } =
           await attributeRegistryService.createVerifiedAttribute(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(

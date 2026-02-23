@@ -6,9 +6,10 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   makeApiProblemBuilder,
+  TenantId,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   eserviceTemplateNotFound: "0001",
   eserviceTemplateVersionNotFound: "0002",
   notValidEServiceTemplateVersionState: "0003",
@@ -33,6 +34,12 @@ export const errorCodes = {
   draftEServiceTemplateVersionAlreadyExists: "0024",
   eserviceTemplateDocumentNotFound: "0025",
   riskAnalysisNotFound: "0026",
+  attributeDuplicatedInGroup: "0027",
+  tenantNotFound: "0028",
+  missingPersonalDataFlag: "0029",
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
+  eServiceTemplateUpdateSameNameConflict: "0031",
+  eServiceTemplateUpdateSameDescriptionConflict: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -255,12 +262,11 @@ export function documentPrettyNameDuplicate(
 }
 
 export function checksumDuplicate(
-  fileName: string,
   eserviceTemplateId: string,
   eserviceTemplateVersionId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `The document ${fileName} content already exists in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
+    detail: `A document with the same content already exists in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
     code: "checksumDuplicate",
     title: "Duplicated checksum",
   });
@@ -286,5 +292,64 @@ export function riskAnalysisNotFound(
     detail: `Risk analysis ${riskAnalysisId} not found in template ${eserviceTemplateId}`,
     code: "riskAnalysisNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function attributeDuplicatedInGroup(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} is duplicated in attribute group`,
+    code: "attributeDuplicatedInGroup",
+    title: "Duplicated attribute in group",
+  });
+}
+
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function missingPersonalDataFlag(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template version ${eserviceTemplateVersionId} in eserviceTemplate ${eserviceTemplateId} can't be published because personalData flag must be set`,
+    code: "missingPersonalDataFlag",
+    title: "EService Template personalData flag must be set before publication",
+  });
+}
+
+export function eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PersonalData flag has already been set for eService Template ${eserviceTemplateId}`,
+    code: "eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce",
+    title: "EService Template personalData can only be set once",
+  });
+}
+
+export function eServiceTemplateUpdateSameNameConflict(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The name provided is the same as the current one for EService template ${eserviceTemplateId}`,
+    code: "eServiceTemplateUpdateSameNameConflict",
+    title: "Same EService template name update conflict",
+  });
+}
+
+export function eServiceTemplateUpdateSameDescriptionConflict(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The description provided is the same as the current one for EService template ${eserviceTemplateId}`,
+    code: "eServiceTemplateUpdateSameDescriptionConflict",
+    title: "Same eService template description update conflict",
   });
 }

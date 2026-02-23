@@ -3,7 +3,6 @@ import { ZodiosRouter } from "@zodios/express";
 import { apiGatewayApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
-  ReadModelRepository,
   ZodiosContext,
   authRole,
   validateAuthorization,
@@ -42,7 +41,6 @@ import { notifierEventsServiceBuilder } from "../services/notifierEventsService.
 import { attributeServiceBuilder } from "../services/attributeService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
 const apiGatewayRouter = (
@@ -94,10 +92,6 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
   const attributeService = attributeServiceBuilder(attributeProcessClient);
 
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-
   const db = makeDrizzleConnection(config);
   const clientJWKKeyReadModelServiceSQL =
     clientJWKKeyReadModelServiceBuilder(db);
@@ -109,18 +103,9 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
     producerJWKKeyReadModelServiceSQL
   );
 
-  const readModelService =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelServiceSQL
-      : oldReadModelService;
-
   const authorizationService = authorizationServiceBuilder(
     authorizationProcessClient,
-    purposeProcessClient,
-    catalogProcessClient,
-    readModelService
+    readModelServiceSQL
   );
 
   apiGatewayRouter

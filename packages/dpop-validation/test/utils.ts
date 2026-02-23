@@ -2,7 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { genericInternalError } from "pagopa-interop-models";
 import { inject } from "vitest";
 
-const dpopConfig = inject("dpopConfig");
+export const dpopConfig = inject("dpopConfig");
 if (!dpopConfig) {
   throw genericInternalError("Invalid DPoP config");
 }

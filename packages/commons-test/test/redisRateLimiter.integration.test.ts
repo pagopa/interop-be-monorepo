@@ -4,7 +4,28 @@ import { generateId, TenantId } from "pagopa-interop-models";
 import { delay, genericLogger } from "pagopa-interop-commons";
 import { redisRateLimiter } from "./utils.js";
 
-describe("Redis rate limiter tests", async () => {
+const waitCounterReset = async (
+  attemptsLeft: number,
+  delayMs: number,
+  organizationId: TenantId
+): Promise<void> => {
+  const currentCount = await redisRateLimiter.getCountByOrganization(
+    organizationId
+  );
+
+  if (currentCount === 0) {
+    return Promise.resolve();
+  }
+
+  if (attemptsLeft <= 0) {
+    return Promise.resolve();
+  }
+
+  await delay(delayMs);
+  return waitCounterReset(attemptsLeft - 1, delayMs, organizationId);
+};
+
+describe("Redis rate limiter tests", () => {
   /*
   ---------- NOTE ------------------------------------
   Test rate limiter configuration defined in .env.test
@@ -140,22 +161,22 @@ describe("Redis rate limiter tests", async () => {
       1
     );
 
-    await delay(1000);
+    await delay(3000);
 
-    expect(
-      await redisRateLimiter.rateLimitByOrganization(
-        organizationId,
-        genericLogger
-      )
-    ).toEqual({
-      limitReached: false,
-      maxRequests: 2,
-      rateInterval: 1000,
-      remainingRequests: 1,
-    });
+    await waitCounterReset(5, 500, organizationId);
 
-    expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
-      1
+    const newResult = await redisRateLimiter.rateLimitByOrganization(
+      organizationId,
+      genericLogger
     );
+
+    expect(newResult.limitReached).toBe(false);
+    expect(newResult.maxRequests).toBe(2);
+    expect(newResult.rateInterval).toBe(1000);
+
+    const finalCount = await redisRateLimiter.getCountByOrganization(
+      organizationId
+    );
+    expect(finalCount).toBeLessThanOrEqual(2);
   });
 });

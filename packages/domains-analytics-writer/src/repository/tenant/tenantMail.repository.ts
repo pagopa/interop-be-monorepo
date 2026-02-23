@@ -114,5 +114,3 @@ export function tenantMailRepository(conn: DBConnection) {
     },
   };
 }
-
-export type TenantMailRepository = ReturnType<typeof tenantMailRepository>;

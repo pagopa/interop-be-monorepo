@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { agreementApi } from "pagopa-interop-api-clients";
+import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
+  generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -21,7 +22,10 @@ import {
   agreementNotInSuspendedState,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiAgreement,
+} from "../../mockUtils.js";
 
 describe("unsuspendAgreement", () => {
   const mockAgreementProcessResponse = getMockWithMetadata(
@@ -29,6 +33,7 @@ describe("unsuspendAgreement", () => {
       state: agreementApi.AgreementState.Values.SUSPENDED,
     })
   );
+  const mockDelegationRef = { delegationId: generateId() };
 
   const pollingTentatives = 2;
   const mockActivateAgreement = vi
@@ -51,16 +56,22 @@ describe("unsuspendAgreement", () => {
   it("Should succeed and perform API clients calls", async () => {
     mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
 
-    await agreementService.unsuspendAgreement(
+    const m2mAgreementResponse: m2mGatewayApi.Agreement =
+      testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data);
+
+    const result = await agreementService.unsuspendAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
+      mockDelegationRef,
       getMockM2MAdminAppContext()
     );
 
+    expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
+      body: mockDelegationRef,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
@@ -82,6 +93,7 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementNotSuspended.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -99,6 +111,7 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -115,6 +128,7 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -134,6 +148,7 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

@@ -1,0 +1,26 @@
+meta {
+  name: Update published eservice name
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/name
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: application/merge-patch+json
+}
+
+body:json {
+  {
+    "name": "updated name test"
+  }
+}

@@ -24,7 +24,7 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import {
-  CatalogProcessClient,
+  CatalogProcessZodiosClient,
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
 import { archiveDescriptorForArchivedAgreement } from "../src/services/archiveDescriptorProcessor.js";
@@ -39,7 +39,7 @@ describe("EService Descriptors Archiver", async () => {
       Authorization: `Bearer ${testToken}`,
     };
 
-    let catalogProcessClient: CatalogProcessClient;
+    let catalogProcessClient: CatalogProcessZodiosClient;
     let mockRefreshableToken: RefreshableInteropToken;
 
     beforeAll(async () => {

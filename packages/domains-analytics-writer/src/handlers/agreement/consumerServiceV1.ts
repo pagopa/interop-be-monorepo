@@ -73,6 +73,7 @@ export async function handleAgreementMessageV1(
               consumerDocumentsSQL: result.consumerDocumentsSQL,
               contractSQL: result.contractSQL,
               stampsSQL: result.stampsSQL,
+              signedContractSQL: result.signedContractSQL,
             } satisfies z.input<typeof AgreementItemsSchema>)
           );
         }
@@ -84,24 +85,22 @@ export async function handleAgreementMessageV1(
           );
         }
 
-        const doc = agreementDocumentToAgreementDocumentSQL(
+        const document = agreementDocumentToAgreementDocumentSQL(
           fromAgreementDocumentV1(msg.data.document),
           unsafeBrandId<AgreementId>(msg.data.agreementId),
           msg.version
         );
 
         upsertDocumentBatch.push(
-          AgreementConsumerDocumentSchema.parse({
-            ...doc,
-            deleted: false,
-          } satisfies z.input<typeof AgreementConsumerDocumentSchema>)
+          AgreementConsumerDocumentSchema.parse(
+            document satisfies z.input<typeof AgreementConsumerDocumentSchema>
+          )
         );
       })
       .with({ type: "AgreementConsumerDocumentRemoved" }, (msg) => {
         deleteDocumentBatch.push(
-          AgreementConsumerDocumentSchema.parse({
+          AgreementConsumerDocumentDeletingSchema.parse({
             id: msg.data.documentId,
-            deleted: true,
           } satisfies z.input<typeof AgreementConsumerDocumentDeletingSchema>)
         );
       })
@@ -119,10 +118,9 @@ export async function handleAgreementMessageV1(
         );
 
         upsertContractBatch.push(
-          AgreementContractSchema.parse({
-            ...contract,
-            deleted: false,
-          } satisfies z.input<typeof AgreementContractSchema>)
+          AgreementContractSchema.parse(
+            contract satisfies z.input<typeof AgreementContractSchema>
+          )
         );
       })
       .with({ type: "AgreementDeleted" }, (msg) => {

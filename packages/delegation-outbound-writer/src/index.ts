@@ -54,4 +54,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.delegationTopic], processMessage);
+await runConsumer(
+  config,
+  [config.delegationTopic],
+  processMessage,
+  "delegation-outbound-writer"
+);

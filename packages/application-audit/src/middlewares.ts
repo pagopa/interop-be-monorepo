@@ -396,6 +396,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
         amazonTraceId: amznTraceId,
         organizationId: context.organizationId,
         clientId: context.clientId,
+        clientKind: context.clientKind,
         httpResponseStatus: res.statusCode,
         executionTimeMs: endTimestamp - context.requestTimestamp,
       };

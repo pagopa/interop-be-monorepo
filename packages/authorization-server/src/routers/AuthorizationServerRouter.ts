@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   ClientId,
+  ClientKindTokenGenStates,
   Problem,
   TenantId,
   tooManyRequestsError,
@@ -31,101 +32,102 @@ const authorizationServerRouter = (
       validationErrorHandler: zodiosValidationErrorToApiProblem,
     }
   );
-  authorizationServerRouter.post(
-    "/authorization-server/token.oauth2",
-    async (req, res) => {
-      /* generateToken needs to mutate the context to set the clientId and organizationId,
+  authorizationServerRouter.post("/token.oauth2", async (req, res) => {
+    /* generateToken needs to mutate the context to set the clientId and organizationId,
       so that they can be used in further middlewares (e.g., the application audit).
       We create two dedicated mutation functions so that we can pass down a read-only context
       and the mutation function, and avoid mutating it directly.
       */
-      const setCtxClientId = (clientId: ClientId): void => {
-        // eslint-disable-next-line functional/immutable-data
-        req.ctx.clientId = clientId;
-      };
+    const setCtxClientId = (clientId: ClientId): void => {
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.clientId = clientId;
+    };
 
-      const setCtxOrganizationId = (organizationId: TenantId): void => {
-        // eslint-disable-next-line functional/immutable-data
-        req.ctx.organizationId = organizationId;
-      };
+    const setCtxOrganizationId = (organizationId: TenantId): void => {
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.organizationId = organizationId;
+    };
 
-      const ctx: WithLogger<AuthServerAppContext> = {
-        ...req.ctx,
-        logger: logger({ ...req.ctx }),
-      };
+    const setCtxClientKind = (
+      tokenGenClientKind: ClientKindTokenGenStates
+    ): void => {
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.clientKind = tokenGenClientKind;
+    };
 
-      try {
-        const tokenResult = await tokenService.generateToken(
-          req.headers,
-          req.body,
-          ctx,
-          setCtxClientId,
-          setCtxOrganizationId
-        );
+    const ctx: WithLogger<AuthServerAppContext> = {
+      ...req.ctx,
+      logger: logger({ ...req.ctx }),
+    };
 
-        const headers = rateLimiterHeadersFromStatus(
-          tokenResult.rateLimiterStatus
-        );
-        res.set(headers);
+    try {
+      const tokenResult = await tokenService.generateToken(
+        req.headers,
+        req.body,
+        ctx,
+        setCtxClientId,
+        setCtxClientKind,
+        setCtxOrganizationId
+      );
 
-        if (tokenResult.limitReached) {
-          const errorRes = makeApiProblem(
-            tooManyRequestsError(tokenResult.rateLimitedTenantId),
-            authorizationServerErrorMapper,
-            ctx
-          );
+      const headers = rateLimiterHeadersFromStatus(
+        tokenResult.rateLimiterStatus
+      );
+      res.set(headers);
 
-          return res.status(errorRes.status).send(errorRes);
-        }
-
-        return res.status(200).send({
-          access_token: tokenResult.token.serialized,
-          token_type: tokenResult.isDPoP ? "DPoP" : "Bearer",
-          expires_in:
-            tokenResult.token.payload.exp - tokenResult.token.payload.iat,
-        });
-      } catch (err) {
+      if (tokenResult.limitReached) {
         const errorRes = makeApiProblem(
-          err,
+          tooManyRequestsError(tokenResult.rateLimitedTenantId),
           authorizationServerErrorMapper,
           ctx
         );
-        if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
-          const cleanedError: Problem = {
-            title: "The request contains bad syntax or cannot be fulfilled.",
-            type: "about:blank",
-            status: constants.HTTP_STATUS_BAD_REQUEST,
-            detail: "Bad request",
-            errors: [
-              {
-                code: "015-0008",
-                detail: "Unable to generate a token for the given request",
-              },
-            ],
-            correlationId: ctx.correlationId,
-          };
 
-          return res.status(cleanedError.status).send(cleanedError);
-        } else {
-          const cleanedError: Problem = {
-            title: "The request couldn't be fulfilled due to an internal error",
-            type: "internalServerError",
-            status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            detail: "Internal server error",
-            errors: [
-              {
-                code: "015-0000",
-                detail:
-                  "Unable to generate a token for the given request due to an internal error",
-              },
-            ],
-            correlationId: ctx.correlationId,
-          };
-          return res.status(cleanedError.status).send(cleanedError);
-        }
+        return res.status(errorRes.status).send(errorRes);
+      }
+
+      return res.status(200).send({
+        access_token: tokenResult.token.serialized,
+        token_type: tokenResult.isDPoP ? "DPoP" : "Bearer",
+        expires_in:
+          tokenResult.token.payload.exp - tokenResult.token.payload.iat,
+      });
+    } catch (err) {
+      const errorRes = makeApiProblem(err, authorizationServerErrorMapper, ctx);
+      if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
+        const cleanedError: Problem = {
+          title: "The request contains bad syntax or cannot be fulfilled.",
+          type: "about:blank",
+          status: constants.HTTP_STATUS_BAD_REQUEST,
+          detail: "Bad request",
+          errors: [
+            {
+              code: "015-0008",
+              detail: "Unable to generate a token for the given request",
+            },
+          ],
+          correlationId: ctx.correlationId,
+        };
+
+        return res.status(cleanedError.status).send(cleanedError);
+      } else {
+        const cleanedError: Problem = {
+          title: "The request couldn't be fulfilled due to an internal error",
+          type: "internalServerError",
+          status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
+          detail: "Internal server error",
+          errors: [
+            {
+              code: "015-0000",
+              detail:
+                "Unable to generate a token for the given request due to an internal error",
+            },
+          ],
+          correlationId: ctx.correlationId,
+        };
+        return res.status(cleanedError.status).send(cleanedError);
       }
     }
-  );
+  });
   return authorizationServerRouter;
 };
 

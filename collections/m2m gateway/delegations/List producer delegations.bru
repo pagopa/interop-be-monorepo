@@ -1,0 +1,28 @@
+meta {
+  name: List producer delegations
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-m2m-gw}}/producerDelegations?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~states: ACTIVE
+  ~delegatorIds: 
+  ~delegateIds: 
+  ~eserviceIds: 
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+vars:post-response {
+  delegationId: res.body.results.at(-1).id
+}

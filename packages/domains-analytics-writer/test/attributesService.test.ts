@@ -7,7 +7,6 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   Attribute,
   AttributeAddedV1,
-  MaintenanceAttributeDeletedV1,
   AttributeEventEnvelope,
   attributeKind,
   toAttributeV1,
@@ -211,41 +210,6 @@ describe("SQL Attribute Service - Events V1", () => {
     expect(stored1[0]?.id).toBe(attr1.id);
     expect(stored2[0]?.id).toBe(attr2.id);
     expect(stored3[0]?.id).toBe(attr3.id);
-  });
-
-  it("MaintenanceAttributeDeleted - flags attribute as deleted", async () => {
-    const base: Attribute = {
-      ...getMockAttribute(),
-      kind: attributeKind.certified,
-    };
-    const addPayload: AttributeAddedV1 = { attribute: toAttributeV1(base) };
-    const addMsg: AttributeEventEnvelope = {
-      sequence_num: 1,
-      stream_id: base.id,
-      version: 1,
-      type: "AttributeAdded",
-      event_version: 1,
-      data: addPayload,
-      log_date: new Date(),
-    };
-    await handleAttributeMessageV1([addMsg], dbContext);
-
-    const delPayload: MaintenanceAttributeDeletedV1 = { id: base.id };
-    const delMsg: AttributeEventEnvelope = {
-      sequence_num: 2,
-      stream_id: base.id,
-      version: 2,
-      type: "MaintenanceAttributeDeleted",
-      event_version: 1,
-      data: delPayload,
-      log_date: new Date(),
-    };
-    await handleAttributeMessageV1([delMsg], dbContext);
-
-    const stored = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
-      id: base.id,
-    });
-    expect(stored[0]?.deleted).toBe(true);
   });
 
   describe("Merge and check on metadataVersion", () => {

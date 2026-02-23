@@ -45,4 +45,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.purposeTopic], processMessage);
+await runConsumer(
+  config,
+  [config.purposeTopic],
+  processMessage,
+  "purpose-platformstate-writer"
+);

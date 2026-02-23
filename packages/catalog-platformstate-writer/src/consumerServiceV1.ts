@@ -21,7 +21,7 @@ import {
   updateDescriptorInfoInTokenGenerationStatesTable,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
-  writeCatalogEntry,
+  upsertPlatformStatesCatalogEntry,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -48,27 +48,19 @@ export async function handleMessageV1(
               dynamoDBClient
             );
 
-            if (existingCatalogEntry) {
-              if (existingCatalogEntry.version > msg.version) {
-                // Stops processing if the message is older than the catalog entry
-                logger.info(
-                  `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: a more recent entry already exists`
-                );
-                return Promise.resolve();
-              } else {
-                // suspended -> published
-                // suspended -> deprecated
-
-                await updateDescriptorStateInPlatformStatesEntry(
-                  dynamoDBClient,
-                  eserviceDescriptorPK,
-                  descriptorStateToItemState(descriptor.state),
-                  msg.version,
-                  logger
-                );
-              }
+            if (
+              existingCatalogEntry &&
+              existingCatalogEntry.version > msg.version
+            ) {
+              // Stops processing if the message is older than the catalog entry
+              logger.info(
+                `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: a more recent entry already exists`
+              );
+              return Promise.resolve();
             } else {
               // draft -> published
+              // suspended -> published
+              // suspended -> deprecated
 
               const catalogEntry: PlatformStatesCatalogEntry = {
                 PK: eserviceDescriptorPK,
@@ -79,7 +71,11 @@ export async function handleMessageV1(
                 updatedAt: new Date().toISOString(),
               };
 
-              await writeCatalogEntry(catalogEntry, dynamoDBClient, logger);
+              await upsertPlatformStatesCatalogEntry(
+                catalogEntry,
+                dynamoDBClient,
+                logger
+              );
             }
 
             // token-generation-states
@@ -192,7 +188,7 @@ export async function handleMessageV1(
     .exhaustive();
 }
 
-export const parseDescriptor = (
+const parseDescriptor = (
   descriptorV1: EServiceDescriptorV1 | undefined,
   eventType: string
 ): Descriptor => {

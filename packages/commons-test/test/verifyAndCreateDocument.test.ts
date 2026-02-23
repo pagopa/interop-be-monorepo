@@ -1,20 +1,20 @@
 import {
   genericLogger,
-  interpolateApiSpec,
+  interpolateTemplateApiSpec,
   verifyAndCreateDocument,
 } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
 import {
   generateId,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   technology,
 } from "pagopa-interop-models";
 import { getMockEService, readFileContent } from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
 
 describe("verifyAndCreateDocument", async () => {
-  const resourceId = generateId();
   const eservice = getMockEService();
+  const resource = { id: eservice.id, isEserviceTemplate: false };
   const fileContent: string = await readFileContent("test.openapi.3.0.2.json");
 
   const interfaceFileInfo = {
@@ -36,7 +36,7 @@ describe("verifyAndCreateDocument", async () => {
     termsAndConditionsUrl: "http://example.com",
   };
 
-  const file: File = await interpolateApiSpec(
+  const file: File = await interpolateTemplateApiSpec(
     eservice,
     fileContent,
     interfaceFileInfo,
@@ -58,7 +58,7 @@ describe("verifyAndCreateDocument", async () => {
 
     await verifyAndCreateDocument(
       fileManager,
-      resourceId,
+      resource,
       technology.rest,
       kind,
       file,
@@ -81,7 +81,7 @@ describe("verifyAndCreateDocument", async () => {
       expect.any(String)
     );
   });
-  it("should throw invalidInterfaceContentTypeDetected if the content type is not valid", async () => {
+  it("should throw invalidContentTypeDetected if the content type is not valid", async () => {
     const invalidFile = new File([file], file.name, {
       type: "",
       lastModified: file.lastModified,
@@ -89,7 +89,7 @@ describe("verifyAndCreateDocument", async () => {
     await expect(
       verifyAndCreateDocument(
         fileManager,
-        resourceId,
+        resource,
         technology.rest,
         kind,
         invalidFile,
@@ -101,11 +101,7 @@ describe("verifyAndCreateDocument", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      invalidInterfaceContentTypeDetected(
-        resourceId,
-        "invalid",
-        technology.rest
-      )
+      invalidContentTypeDetected(resource, "invalid", technology.rest)
     );
   });
   it("should delete the file and rethrow error if document creation fails", async () => {
@@ -122,7 +118,7 @@ describe("verifyAndCreateDocument", async () => {
     await expect(
       verifyAndCreateDocument(
         fileManager,
-        resourceId,
+        resource,
         technology.rest,
         kind,
         file,

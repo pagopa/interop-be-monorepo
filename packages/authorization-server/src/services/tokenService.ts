@@ -41,7 +41,7 @@ import {
   AuthServerAppContext,
   FileManager,
   formatDateyyyyMMdd,
-  formatTimehhmmss,
+  formatTimeHHmmss,
   InteropApiToken,
   InteropConsumerToken,
   InteropTokenGenerator,
@@ -70,10 +70,11 @@ import {
   platformStateValidationFailed,
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
-  unexpectedDPoPProofForAPIToken,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
+
+const EXPECTED_HTM = "POST";
 
 export type GeneratedTokenData =
   | {
@@ -105,17 +106,19 @@ export function tokenServiceBuilder({
   fileManager: FileManager;
 }) {
   return {
+    // eslint-disable-next-line max-params
     async generateToken(
       headers: IncomingHttpHeaders & HttpDPoPHeader,
       body: authorizationServerApi.AccessTokenRequest,
       { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
+      setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GeneratedTokenData> {
       logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
       // DPoP proof validation
-      const { dpopProofJWS, dpopProofJWT } = await validateDPoPProof(
+      const { dpopProofJWT } = await validateDPoPProof(
         headers.DPoP,
         body.client_id,
         logger
@@ -181,6 +184,7 @@ export function tokenServiceBuilder({
       const key = await retrieveKey(dynamoDBClient, pk);
 
       setCtxOrganizationId(key.consumerId);
+      setCtxClientKind(key.clientKind);
 
       logTokenGenerationInfo({
         validatedJwt: clientAssertionJWT,
@@ -189,10 +193,6 @@ export function tokenServiceBuilder({
         message: "Key retrieved",
         logger,
       });
-
-      if (key.clientKind === clientKindTokenGenStates.api && dpopProofJWS) {
-        throw unexpectedDPoPProofForAPIToken(key.GSIPK_clientId);
-      }
 
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
@@ -237,6 +237,7 @@ export function tokenServiceBuilder({
           dpopProofJti: dpopProofJWT.payload.jti,
           dpopProofIat: dpopProofJWT.payload.iat,
           dpopCacheTable: config.dpopCacheTable,
+          dpopProofDurationSeconds: config.dpopDurationSeconds,
         });
         if (dpopCacheErrors) {
           throw dpopProofJtiAlreadyUsed(dpopProofJWT.payload.jti);
@@ -302,6 +303,9 @@ export function tokenServiceBuilder({
             sub: clientAssertionJWT.payload.sub,
             consumerId: key.consumerId,
             clientAdminId: key.adminId,
+            // Pass JWK directly (can be undefined).
+            // generateInteropApiToken handles conditional 'cnf' inclusion.
+            dpopJWK: dpopProofJWT?.header.jwk,
           });
 
           logTokenGenerationInfo({
@@ -371,7 +375,7 @@ export const retrieveKey = async (
   }
 };
 
-export const publishAudit = async ({
+const publishAudit = async ({
   producer,
   generatedToken,
   key,
@@ -461,7 +465,7 @@ export const fallbackAudit = async (
 ): Promise<void> => {
   const date = new Date();
   const ymdDate = formatDateyyyyMMdd(date);
-  const hmsTime = formatTimehhmmss(date);
+  const hmsTime = formatTimeHHmmss(date);
 
   const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
   const filePath = `token-details/${ymdDate}`;
@@ -511,7 +515,7 @@ const deconstructGSIPK_eserviceId_descriptorId = (
   };
 };
 
-export const logTokenGenerationInfo = ({
+const logTokenGenerationInfo = ({
   validatedJwt,
   clientKind,
   tokenJti,
@@ -543,7 +547,10 @@ const validateDPoPProof = async (
   const { data, errors: dpopProofErrors } = dpopProofHeader
     ? verifyDPoPProof({
         dpopProofJWS: dpopProofHeader,
-        expectedDPoPProofHtu: config.dpopHtu,
+        expectedDPoPProofHtu: config.dpopHtuBase,
+        expectedDPoPProofHtm: EXPECTED_HTM,
+        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: config.dpopDurationSeconds,
       })
     : { data: undefined, errors: undefined };
 

@@ -1,0 +1,9 @@
+{
+  "TableName": "SignatureReferencesTable",
+  "AttributeDefinitions": [{ "AttributeName": "safeStorageId", "AttributeType": "S" }],
+  "KeySchema": [{ "AttributeName": "safeStorageId", "KeyType": "HASH" }],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 1,
+    "WriteCapacityUnits": 1
+  }
+}

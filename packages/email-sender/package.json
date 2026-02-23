@@ -1,0 +1,44 @@
+{
+  "name": "pagopa-interop-email-sender",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "Pagopa Interop Email Sender",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "test": "vitest --config vitest.config.ts",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "tsx -r 'dotenv-flow/config' --watch  ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sesv2": "catalog:",
+    "dotenv-flow": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "catalog:",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}

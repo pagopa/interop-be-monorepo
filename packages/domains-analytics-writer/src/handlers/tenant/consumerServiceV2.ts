@@ -13,8 +13,6 @@ import {
   TenantItemsSchema,
   TenantDeletingSchema,
 } from "../../model/tenant/tenant.js";
-import { TenantMailDeletingSchema } from "../../model/tenant/tenantMail.js";
-import { TenantFeatureDeletingSchema } from "../../model/tenant/tenantFeature.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleTenantMessageV2(
@@ -25,8 +23,6 @@ export async function handleTenantMessageV2(
 
   const upsertTenantBatch: TenantItemsSchema[] = [];
   const deleteTenantBatch: TenantDeletingSchema[] = [];
-  const deleteTenantMailBatch: TenantMailDeletingSchema[] = [];
-  const deleteTenantFeatureBatch: TenantFeatureDeletingSchema[] = [];
 
   for (const message of messages) {
     match(message)
@@ -38,51 +34,6 @@ export async function handleTenantMessageV2(
           } satisfies z.input<typeof TenantDeletingSchema>)
         );
       })
-      .with({ type: "TenantMailDeleted" }, (msg) => {
-        if (!msg.data.tenant) {
-          throw genericInternalError(
-            "Tenant can't be missing in the event message"
-          );
-        }
-
-        deleteTenantMailBatch.push(
-          TenantMailDeletingSchema.parse({
-            id: msg.data.mailId,
-            tenantId: msg.data.tenant.id,
-            deleted: true,
-          } satisfies z.input<typeof TenantMailDeletingSchema>)
-        );
-      })
-      .with(
-        {
-          type: P.union(
-            "TenantDelegatedConsumerFeatureRemoved",
-            "TenantDelegatedProducerFeatureRemoved"
-          ),
-        },
-        (msg) => {
-          if (!msg.data.tenant) {
-            throw genericInternalError(
-              "Tenant can't be missing in the event message"
-            );
-          }
-
-          const splitResult = splitTenantIntoObjectsSQL(
-            fromTenantV2(msg.data.tenant),
-            message.version
-          );
-
-          const features = splitResult.featuresSQL.map((r) =>
-            TenantFeatureDeletingSchema.parse({
-              tenantId: r.tenantId,
-              kind: r.kind,
-              deleted: true,
-            } satisfies z.input<typeof TenantFeatureDeletingSchema>)
-          );
-
-          deleteTenantFeatureBatch.push(...features);
-        }
-      )
       .with(
         {
           type: P.union(
@@ -96,12 +47,15 @@ export async function handleTenantMessageV2(
             "TenantVerifiedAttributeRevoked",
             "TenantVerifiedAttributeExpirationUpdated",
             "TenantVerifiedAttributeExtensionUpdated",
+            "TenantMailAdded",
+            "TenantMailDeleted",
             "MaintenanceTenantPromotedToCertifier",
             "MaintenanceTenantUpdated",
-            "TenantMailAdded",
             "TenantKindUpdated",
             "TenantDelegatedProducerFeatureAdded",
-            "TenantDelegatedConsumerFeatureAdded"
+            "TenantDelegatedProducerFeatureRemoved",
+            "TenantDelegatedConsumerFeatureAdded",
+            "TenantDelegatedConsumerFeatureRemoved"
           ),
         },
         (msg) => {
@@ -146,23 +100,5 @@ export async function handleTenantMessageV2(
       ["id"]
     );
     await tenantService.deleteBatchTenants(distinctBatch, dbContext);
-  }
-
-  if (deleteTenantMailBatch.length > 0) {
-    const distinctBatch = distinctByKeys(
-      deleteTenantMailBatch,
-      TenantMailDeletingSchema,
-      ["id", "tenantId"]
-    );
-    await tenantService.deleteBatchTenantMails(distinctBatch, dbContext);
-  }
-
-  if (deleteTenantFeatureBatch.length > 0) {
-    const distinctBatch = distinctByKeys(
-      deleteTenantFeatureBatch,
-      TenantFeatureDeletingSchema,
-      ["tenantId", "kind"]
-    );
-    await tenantService.deleteBatchTenantFeatures(distinctBatch, dbContext);
   }
 }

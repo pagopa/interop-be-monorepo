@@ -1,8 +1,4 @@
-import {
-  initDB,
-  ReadModelRepository,
-  startServer,
-} from "pagopa-interop-commons";
+import { initDB, startServer } from "pagopa-interop-commons";
 import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
 import {
   agreementReadModelServiceBuilder,
@@ -14,12 +10,12 @@ import {
   producerJWKKeyReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
 import { authorizationServiceBuilder } from "./services/authorizationService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
@@ -35,10 +31,7 @@ const clientJWKKeyReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
 const producerJWKKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
-
-const oldreadModelServiceSQL = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
@@ -50,14 +43,8 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
+  tenantReadModelServiceSQL,
 });
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldreadModelServiceSQL;
 
 const authorizationService = authorizationServiceBuilder(
   initDB({
@@ -69,7 +56,7 @@ const authorizationService = authorizationServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService,
+  readModelServiceSQL,
   selfcareV2InstitutionClientBuilder(config)
 );
 

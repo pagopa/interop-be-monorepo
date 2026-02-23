@@ -10,7 +10,7 @@ import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
-describe("GET /eservice/:eserviceId router test", () => {
+describe("GET /eservices/:eserviceId router test", () => {
   const mockApiEservice = getMockedApiEservice();
   const mockM2MEserviceResponse: m2mGatewayApi.EService =
     toM2MGatewayApiEService(mockApiEservice);

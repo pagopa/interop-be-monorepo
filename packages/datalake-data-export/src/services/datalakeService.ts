@@ -5,11 +5,11 @@ import {
   getDataCountBucketKey,
   getNdjsonBucketKey,
 } from "../utils/helperUtils.js";
-import { ReadModelService } from "./readModelService.js";
 import { buildDataToExport } from "./dataBuilder.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function datalakeServiceBuilder(
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   logger: Logger
 ) {
@@ -20,6 +20,8 @@ export function datalakeServiceBuilder(
       const eservices = await readModelService.getEServices();
       const agreements = await readModelService.getAgreements();
       const purposes = await readModelService.getPurposes();
+      const delegations = await readModelService.getDelegations();
+      const eserviceTemplates = await readModelService.getEServiceTemplates();
 
       const exportTimestamp = new Date();
       logger.info("Preparing data for export...");
@@ -28,6 +30,8 @@ export function datalakeServiceBuilder(
         eservices,
         agreements,
         purposes,
+        delegations,
+        eserviceTemplates,
         exportTimestamp
       );
 
@@ -62,5 +66,3 @@ export function datalakeServiceBuilder(
     },
   };
 }
-
-export type DatalakeService = ReturnType<typeof datalakeServiceBuilder>;

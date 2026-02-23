@@ -1,16 +1,23 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
+  getMockedApiDelegation,
   getMockedApiPurpose,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  delegationEServiceMismatch,
+  missingMetadata,
+  requesterIsNotTheDelegateConsumer,
+} from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /purposes router test", () => {
   const mockPurpose: purposeApi.Purpose = getMockedApiPurpose();
@@ -21,6 +28,8 @@ describe("POST /purposes router test", () => {
     eserviceId: mockPurpose.eserviceId,
     isFreeOfCharge: mockPurpose.isFreeOfCharge,
     title: mockPurpose.title,
+    delegationId: generateId(),
+    riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
   };
 
   const mockM2MPurpose: m2mGatewayApi.Purpose =
@@ -60,23 +69,37 @@ describe("POST /purposes router test", () => {
     { invalidParam: "invalidValue" },
     { ...mockPurposeSeed, extraParam: -1 },
     { ...mockPurposeSeed, description: "short" },
-  ])("Should return 400 if passed invalid delegation seed", async (body) => {
+  ])("Should return 400 if passed invalid purpose seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, body as m2mGatewayApi.PurposeSeed);
 
     expect(res.status).toBe(400);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockPurposeSeed);
+  it.each([
+    delegationEServiceMismatch(generateId(), getMockedApiDelegation()),
+    requesterIsNotTheDelegateConsumer(getMockedApiDelegation()),
+  ])("Should return 403 in case of $code error", async (error) => {
+    mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockPurposeSeed);
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(403);
+  });
+
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockPurposeSeed);
+
+    expect(res.status).toBe(500);
+  });
 
   it.each([
     { ...mockM2MPurpose, createdAt: undefined },

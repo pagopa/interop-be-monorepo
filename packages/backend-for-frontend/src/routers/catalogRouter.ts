@@ -4,7 +4,9 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
+  authRole,
   ExpressContext,
+  validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -64,6 +66,7 @@ const catalogRouter = (
           req.query.q,
           req.query.consumersIds,
           req.query.delegated,
+          req.query.personalData,
           req.query.offset,
           req.query.limit,
           ctx
@@ -422,6 +425,8 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
+          validateAuthorization(ctx, [authRole.ADMIN_ROLE, authRole.API_ROLE]);
+
           const resp = await catalogService.createEServiceDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -647,7 +652,7 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          bffGetCatalogErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error inserting risk analysis ${req.body.name} to eservice ${req.params.eServiceId} from catalog`
         );
@@ -730,6 +735,25 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/eservices/:eServiceId/personalDataFlag", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.updateEServicePersonalDataFlag(
+          ctx,
+          unsafeBrandId(req.params.eServiceId),
+          req.body
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error setting personalData flag for eservice with Id: ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       async (req, res) => {
@@ -792,7 +816,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            bffGetCatalogErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error deleting risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );

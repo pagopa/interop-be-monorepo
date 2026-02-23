@@ -1,0 +1,19 @@
+meta {
+  name: Unsuspend Purpose Template
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/unsuspend
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -2,11 +2,12 @@
   "name": "pagopa-interop-eservice-descriptors-archiver",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability descriptors archiver: a consumer service that archives descriptors on agreement archiviation events",
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"Old readmodel\" && vitest --config vitest.config.ts && echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
+    "test": "vitest --config vitest.config.ts",
     "test:it": "vitest integration",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
@@ -17,31 +18,27 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.14.6",
-    "prettier": "2.8.8",
-    "testcontainers": "10.9.0",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "@zodios/core": "10.9.6",
-    "axios": "1.8.2",
-    "dotenv-flow": "4.1.0",
-    "drizzle-orm": "0.39.3",
+    "@zodios/core": "catalog:",
+    "axios": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "2.2.4",
+    "kafkajs": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   }
 }

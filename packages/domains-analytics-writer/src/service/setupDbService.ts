@@ -11,7 +11,7 @@ import {
 } from "../model/errors.js";
 import { mapZodToSQLType } from "../utils/mapZodToSQLType.js";
 import { getColumnNameMapper } from "../utils/sqlQueryHelper.js";
-export interface SetupDbConfig {
+interface SetupDbConfig {
   mergeTableSuffix: string;
   dbSchemaName: string;
 }
@@ -27,6 +27,7 @@ export function setupDbServiceBuilder(
           tableNames.map((tableName) => {
             const query = `
               CREATE TEMPORARY TABLE IF NOT EXISTS ${tableName}_${config.mergeTableSuffix} (
+                _seq BIGINT GENERATED ALWAYS AS IDENTITY,
                 LIKE ${config.dbSchemaName}.${tableName}
               );
             `;
@@ -46,8 +47,13 @@ export function setupDbServiceBuilder(
           tables.map(({ name, columns }) => {
             const snakeCaseMapper = getColumnNameMapper(name);
             const columnDefs = columns
-              .map((key) => `${snakeCaseMapper(key)} VARCHAR(255)`)
-              .concat("deleted BOOLEAN NOT NULL")
+              .map((key) => {
+                if (key === "deleted_at") {
+                  return `${snakeCaseMapper(key)} TIMESTAMP WITH TIME ZONE`;
+                }
+                return `${snakeCaseMapper(key)} VARCHAR(255)`;
+              })
+              .concat("deleted BOOLEAN")
               .join(",\n  ");
 
             const primaryKey = `PRIMARY KEY (${columns
@@ -85,8 +91,9 @@ export function setupDbServiceBuilder(
               .join(",\n  ");
 
             const query = `
-          CREATE TEMPORARY TABLE IF NOT EXISTS ${name}_${config.mergeTableSuffix} (
-            ${columnDefs}
+              CREATE TEMPORARY TABLE IF NOT EXISTS ${name}_${config.mergeTableSuffix} (
+               _seq BIGINT GENERATED ALWAYS AS IDENTITY,
+              ${columnDefs}
           );
         `;
 

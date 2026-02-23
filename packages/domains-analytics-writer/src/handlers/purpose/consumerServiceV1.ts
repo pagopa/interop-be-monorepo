@@ -69,6 +69,8 @@ export async function handlePurposeMessageV1(
               riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
               versionsSQL: splitResult.versionsSQL,
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
+              versionStampsSQL: splitResult.versionStampsSQL,
+              versionSignedDocumentsSQL: splitResult.versionSignedDocumentsSQL,
             } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }
@@ -106,7 +108,6 @@ export async function handlePurposeMessageV1(
         deleteVersionBatch.push(
           PurposeVersionDeletingSchema.parse({
             id: msg.data.versionId,
-            deleted: true,
           } satisfies z.input<typeof PurposeDeletingSchema>)
         );
       })

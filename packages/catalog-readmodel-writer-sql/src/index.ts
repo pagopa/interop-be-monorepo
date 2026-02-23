@@ -8,21 +8,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  catalogReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
-import { customReadModelServiceBuilder } from "./readModelService.js";
+import { catalogWriterServiceBuilder } from "./catalogWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const catalogReadModelService = catalogReadModelServiceBuilder(db);
-const readModelService = customReadModelServiceBuilder(
-  db,
-  catalogReadModelService
-);
+const catalogWriterService = catalogWriterServiceBuilder(db);
 async function processMessage({
   message,
   partition,
@@ -41,8 +34,12 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
+    .with({ event_version: 1 }, (msg) =>
+      handleMessageV1(msg, catalogWriterService)
+    )
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, catalogWriterService)
+    )
     .exhaustive();
 
   loggerInstance.info(
@@ -50,4 +47,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.catalogTopic], processMessage);
+await runConsumer(
+  config,
+  [config.catalogTopic],
+  processMessage,
+  "catalog-readmodel-writer-sql"
+);

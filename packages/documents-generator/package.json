@@ -1,0 +1,51 @@
+{
+  "name": "pagopa-interop-documents-generator",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PagoPA Interoperability documents generator",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
+    "check": "tsc --project tsconfig.check.json",
+    "test": "vitest",
+    "test:it": "vitest integration"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "cpx2": "catalog:",
+    "date-fns": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "puppeteer": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "handlebars": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "catalog:",
+    "pagopa-interop-agreement-lifecycle": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}

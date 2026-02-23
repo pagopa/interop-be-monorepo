@@ -1,19 +1,15 @@
 import { z } from "zod";
 import {
-  FeatureFlagSQLConfig,
   KafkaConsumerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   SelfcareConsumerConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 
-export const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
+const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig
 )
-  .and(ReadModelDbConfig)
-  .and(ReadModelSQLDbConfig.optional())
-  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig)
   .and(SelfcareConsumerConfig)
   .and(
     z
@@ -25,7 +21,7 @@ export const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
       }))
   );
 
-export type SelfcareClientUsersUpdaterConsumerConfig = z.infer<
+type SelfcareClientUsersUpdaterConsumerConfig = z.infer<
   typeof SelfcareClientUsersUpdaterConsumerConfig
 >;
 

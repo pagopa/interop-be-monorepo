@@ -31,6 +31,7 @@ import {
   eServiceNameDuplicateForProducer,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
+  eServiceUpdateSameNameConflict,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -57,7 +58,7 @@ describe("update eService name on published eservice", () => {
       updatedName,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       name: updatedName,
     };
@@ -72,8 +73,14 @@ describe("update eService name on published eservice", () => {
       messageType: EServiceNameUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+      oldName: eservice.name,
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the update of the eService name (delegate)", async () => {
     const descriptor: Descriptor = {
@@ -97,7 +104,7 @@ describe("update eService name on published eservice", () => {
       updatedName,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       name: updatedName,
     };
@@ -112,8 +119,14 @@ describe("update eService name on published eservice", () => {
       messageType: EServiceNameUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+      oldName: eservice.name,
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
@@ -331,5 +344,23 @@ describe("update eService name on published eservice", () => {
         getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
+  it("should throw eserviceNameConflict if the new name is the same as the current one", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    expect(
+      catalogService.updateEServiceName(
+        eservice.id,
+        eservice.name,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(eServiceUpdateSameNameConflict(eservice.id));
   });
 });

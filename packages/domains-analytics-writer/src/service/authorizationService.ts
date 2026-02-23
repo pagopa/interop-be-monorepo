@@ -5,7 +5,10 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { DBContext } from "../db/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
-import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 import {
   ClientItemsSchema,
@@ -24,18 +27,35 @@ import {
   ClientKeyDeletingSchema,
   ClientKeyUserMigrationSchema,
 } from "../model/authorization/clientKey.js";
-import { ClientDbTable } from "../model/db/authorization.js";
+import {
+  ClientDbTable,
+  ProducerKeychainDbTable,
+} from "../model/db/authorization.js";
 import { DeletingDbTable } from "../model/db/deleting.js";
 import { clientRepository } from "../repository/client/client.repository.js";
 import { clientKeyRepository } from "../repository/client/clientKey.repository.js";
 import { clientPurposeRepository } from "../repository/client/clientPurpose.repository.js";
 import { clientUserRepository } from "../repository/client/clientUser.repository.js";
+import {
+  ProducerKeychainDeletingSchema,
+  ProducerKeychainItemsSchema,
+} from "../model/authorization/producerKeychain.js";
+import { producerKeychainRepository } from "../repository/producerKeychain/producerKeychain.repository.js";
+import { producerKeychainEServiceRepository } from "../repository/producerKeychain/producerKeychainEService.repository.js";
+import { producerKeychainKeyRepository } from "../repository/producerKeychain/producerKeychainKey.js";
+import { producerKeychainUserRepository } from "../repository/producerKeychain/producerKeychainUser.repository.js";
 
 export function authorizationServiceBuilder(db: DBContext) {
   const clientRepo = clientRepository(db.conn);
   const clientUserRepo = clientUserRepository(db.conn);
   const clientPurposeRepo = clientPurposeRepository(db.conn);
   const clientKeyRepo = clientKeyRepository(db.conn);
+  const producerKeychainRepo = producerKeychainRepository(db.conn);
+  const producerKeychainUserRepo = producerKeychainUserRepository(db.conn);
+  const producerKeychainEServiceRepo = producerKeychainEServiceRepository(
+    db.conn
+  );
+  const producerKeychainKeyRepo = producerKeychainKeyRepository(db.conn);
 
   return {
     async upsertClientBatch(dbContext: DBContext, items: ClientItemsSchema[]) {
@@ -79,6 +99,19 @@ export function authorizationServiceBuilder(db: DBContext) {
         await clientUserRepo.merge(t);
         await clientPurposeRepo.merge(t);
         await clientKeyRepo.merge(t);
+      });
+
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "clientId",
+          [
+            ClientDbTable.client_user,
+            ClientDbTable.client_purpose,
+            ClientDbTable.client_key,
+          ],
+          ClientDbTable.client
+        );
       });
 
       genericLogger.info(
@@ -329,9 +362,125 @@ export function authorizationServiceBuilder(db: DBContext) {
 
       genericLogger.info(`Staging table cleaned for ClientKeyUserMigration`);
     },
+
+    async upsertProducerKeychainBatch(
+      dbContext: DBContext,
+      items: ProducerKeychainItemsSchema[]
+    ) {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          const batchItems = {
+            producerKeychainSQL: batch.map((i) => i.producerKeychainSQL),
+            usersSQL: batch.flatMap((i) => i.usersSQL),
+            eservicesSQL: batch.flatMap((i) => i.eservicesSQL),
+            keysSQL: batch.flatMap((i) => i.keysSQL),
+          };
+
+          if (batchItems.producerKeychainSQL.length) {
+            await producerKeychainRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.producerKeychainSQL
+            );
+          }
+          if (batchItems.usersSQL.length) {
+            await producerKeychainUserRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.usersSQL
+            );
+          }
+          if (batchItems.eservicesSQL.length) {
+            await producerKeychainEServiceRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.eservicesSQL
+            );
+          }
+          if (batchItems.keysSQL.length) {
+            await producerKeychainKeyRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.keysSQL
+            );
+          }
+
+          genericLogger.info(
+            `Staging data inserted for ProducerKeychain batch: ${batch
+              .map((i) => i.producerKeychainSQL.id)
+              .join(", ")}`
+          );
+        }
+
+        await producerKeychainRepo.merge(t);
+        await producerKeychainUserRepo.merge(t);
+        await producerKeychainEServiceRepo.merge(t);
+        await producerKeychainKeyRepo.merge(t);
+      });
+
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "producerKeychainId",
+          [
+            ProducerKeychainDbTable.producer_keychain_user,
+            ProducerKeychainDbTable.producer_keychain_eservice,
+            ProducerKeychainDbTable.producer_keychain_key,
+          ],
+          ProducerKeychainDbTable.producer_keychain
+        );
+      });
+
+      genericLogger.info(
+        `Staging data merged into target tables for ProducerKeychain`
+      );
+
+      await producerKeychainRepo.clean();
+      await producerKeychainUserRepo.clean();
+      await producerKeychainEServiceRepo.clean();
+      await producerKeychainKeyRepo.clean();
+
+      genericLogger.info(`Staging data cleaned for ProducerKeychain`);
+    },
+
+    async deleteProducerKeychainBatch(
+      dbContext: DBContext,
+      items: ProducerKeychainDeletingSchema[]
+    ) {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await producerKeychainRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staging deletion inserted for ProducerKeychain ids: ${batch
+              .map((i) => i.id)
+              .join(", ")}`
+          );
+        }
+
+        await producerKeychainRepo.mergeDeleting(t);
+        await mergeDeletingCascadeById(
+          t,
+          "producerKeychainId",
+          [
+            ProducerKeychainDbTable.producer_keychain_user,
+            ProducerKeychainDbTable.producer_keychain_eservice,
+            ProducerKeychainDbTable.producer_keychain_key,
+          ],
+          DeletingDbTable.producer_keychain_deleting_table
+        );
+      });
+
+      genericLogger.info(`Staging deletion merged for ProducerKeychain`);
+
+      await producerKeychainRepo.cleanDeleting();
+
+      genericLogger.info(`ProducerKeychain deleting table cleaned`);
+    },
   };
 }
-
-export type AuthorizationService = ReturnType<
-  typeof authorizationServiceBuilder
->;

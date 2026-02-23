@@ -1,0 +1,26 @@
+meta {
+  name: Get Risk Analysis Template Answer Annotation Document
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  answerId: {{answerId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  documentId: res.body.id
+}

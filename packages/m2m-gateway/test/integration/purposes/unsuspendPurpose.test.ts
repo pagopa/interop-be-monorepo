@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
@@ -23,7 +24,11 @@ import {
   missingPurposeVersionWithState,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("unsuspendPurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
@@ -37,18 +42,19 @@ describe("unsuspendPurposeVersion", () => {
       versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
     })
   );
+  const mockDelegationRef = { delegationId: generateId() };
 
   const activatePurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
     data: mockApiPurposeVersion1,
     metadata: { version: 0 },
   };
 
-  const pollingTentatives = 2;
+  const pollingAttempts = 2;
   const mockActivatePurposeVersion = vi
     .fn()
     .mockResolvedValue(activatePurposeApiResponse);
   const mockGetPurpose = vi.fn(
-    mockPollingResponse(mockApiPurpose, pollingTentatives)
+    mockPollingResponse(mockApiPurpose, pollingAttempts)
   );
 
   mockInteropBeClients.purposeProcessClient = {
@@ -64,27 +70,22 @@ describe("unsuspendPurposeVersion", () => {
   it("Should succeed and perform API clients calls", async () => {
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
-      currentVersion: mockApiPurposeVersion2,
-    };
+    const purposeVersion = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion2
+    );
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
+      currentVersion: purposeVersion,
+      rejectedVersion: undefined,
+      waitingForApprovalVersion: undefined,
+    });
 
     const purpose = await purposeService.unsuspendPurpose(
       unsafeBrandId(mockApiPurpose.data.id),
+      mockDelegationRef,
       getMockM2MAdminAppContext()
     );
 
-    expect(purpose).toEqual(expectedM2MPurpose);
+    expect(purpose).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.activatePurposeVersion,
@@ -92,6 +93,7 @@ describe("unsuspendPurposeVersion", () => {
         purposeId: mockApiPurpose.data.id,
         versionId: mockApiPurposeVersion1.id,
       },
+      body: mockDelegationRef,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
@@ -99,7 +101,7 @@ describe("unsuspendPurposeVersion", () => {
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
-    ).toHaveBeenCalledTimes(pollingTentatives + 1);
+    ).toHaveBeenCalledTimes(pollingAttempts + 1);
   });
 
   it("Should throw missingPurposeVersionWithState in case of missing version to unsuspend", async () => {
@@ -117,6 +119,7 @@ describe("unsuspendPurposeVersion", () => {
     await expect(
       purposeService.unsuspendPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -136,6 +139,7 @@ describe("unsuspendPurposeVersion", () => {
     await expect(
       purposeService.unsuspendPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -151,6 +155,7 @@ describe("unsuspendPurposeVersion", () => {
     await expect(
       purposeService.unsuspendPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -167,6 +172,7 @@ describe("unsuspendPurposeVersion", () => {
     await expect(
       purposeService.unsuspendPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

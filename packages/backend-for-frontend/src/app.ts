@@ -1,3 +1,4 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -7,6 +8,10 @@ import {
   InteropTokenGenerator,
   RateLimiter,
   FileManager,
+  fromFilesToBodyMiddleware,
+  multerMiddleware,
+  errorsToApiProblemsMiddleware,
+  healthRouter,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -15,29 +20,28 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { bffApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
-import healthRouter from "./routers/HealthRouter.js";
+import swaggerRouter from "./routers/swaggerRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
 import catalogRouter from "./routers/catalogRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
+import purposeTemplateRouter from "./routers/purposeTemplateRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
 import supportRouter from "./routers/supportRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import toolRouter from "./routers/toolRouter.js";
-import {
-  fromFilesToBodyMiddleware,
-  multerMiddleware,
-  uiAuthDataValidationMiddleware,
-} from "./utilities/middlewares.js";
+import { uiAuthDataValidationMiddleware } from "./utilities/middlewares.js";
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
+import emailDeeplinkRouters from "./routers/emailDeeplinkRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
 import {
   AgreementService,
@@ -76,6 +80,10 @@ import {
   purposeServiceBuilder,
 } from "./services/purposeService.js";
 import {
+  PurposeTemplateService,
+  purposeTemplateServiceBuilder,
+} from "./services/purposeTemplateService.js";
+import {
   SelfcareService,
   selfcareServiceBuilder,
 } from "./services/selfcareService.js";
@@ -85,8 +93,23 @@ import {
 } from "./services/tenantService.js";
 import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 import { ToolsService, toolsServiceBuilder } from "./services/toolService.js";
+import { privacyNoticeStorageServiceBuilder } from "./services/privacyNoticeStorage.js";
+import {
+  PrivacyNoticeService,
+  privacyNoticeServiceBuilder,
+} from "./services/privacyNoticeService.js";
+import {
+  NotificationConfigService,
+  notificationConfigServiceBuilder,
+} from "./services/notificationConfigService.js";
+import notificationConfigRouter from "./routers/notificationConfigRouter.js";
+import {
+  InAppNotificationService,
+  inAppNotificationServiceBuilder,
+} from "./services/inAppNotificationService.js";
+import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 
-export type BFFServices = {
+type BFFServices = {
   agreementService: AgreementService;
   attributeService: AttributeService;
   authorizationService: AuthorizationService;
@@ -94,17 +117,19 @@ export type BFFServices = {
   catalogService: CatalogService;
   clientService: ClientService;
   delegationService: DelegationService;
+  notificationConfigService: NotificationConfigService;
+  inAppNotificationService: InAppNotificationService;
   eServiceTemplateService: EServiceTemplateService;
+  privacyNoticeService: PrivacyNoticeService;
   producerKeychainService: ProducerKeychainService;
   purposeService: PurposeService;
+  purposeTemplateService: PurposeTemplateService;
   selfcareService: SelfcareService;
   tenantService: TenantService;
   toolsService: ToolsService;
 };
 
-export type RateLimiterMiddleware = ReturnType<
-  typeof rateLimiterMiddlewareBuilder
->;
+type RateLimiterMiddleware = ReturnType<typeof rateLimiterMiddlewareBuilder>;
 
 export const serviceName = modelsServiceName.BACKEND_FOR_FRONTEND;
 
@@ -115,6 +140,16 @@ export async function createServices(
   authorizationServiceAllowList: string[]
 ): Promise<BFFServices> {
   const interopTokenGenerator = new InteropTokenGenerator(config);
+
+  const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
+    [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
+    [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
+  ]);
+  const privacyNoticeStorage = privacyNoticeStorageServiceBuilder(
+    new DynamoDBClient(),
+    config.privacyNoticesDynamoTableName,
+    config.privacyNoticesUsersDynamoTableName
+  );
 
   return {
     agreementService: agreementServiceBuilder(clients, fileManager),
@@ -138,6 +173,7 @@ export async function createServices(
       clients.attributeProcessClient,
       clients.delegationProcessClient,
       clients.eserviceTemplateProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager,
       config
     ),
@@ -146,16 +182,36 @@ export async function createServices(
       clients.delegationProcessClient,
       clients.tenantProcessClient,
       clients.catalogProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager
     ),
     eServiceTemplateService: eserviceTemplateServiceBuilder(
       clients.eserviceTemplateProcessClient,
       clients.tenantProcessClient,
       clients.attributeProcessClient,
+      clients.catalogProcessClient,
+      clients.inAppNotificationManagerClient,
       fileManager
+    ),
+    notificationConfigService: notificationConfigServiceBuilder(
+      clients.notificationConfigProcessClient
+    ),
+    inAppNotificationService: inAppNotificationServiceBuilder(
+      clients.inAppNotificationManagerClient
+    ),
+    privacyNoticeService: privacyNoticeServiceBuilder(
+      privacyNoticeStorage,
+      fileManager,
+      consentTypeMap
     ),
     producerKeychainService: producerKeychainServiceBuilder(clients),
     purposeService: purposeServiceBuilder(clients, fileManager),
+    purposeTemplateService: purposeTemplateServiceBuilder(
+      clients.purposeTemplateProcessClient,
+      clients.tenantProcessClient,
+      clients.catalogProcessClient,
+      fileManager
+    ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(
       clients.tenantProcessClient,
@@ -190,7 +246,8 @@ export async function createApp(
 
   app.use(
     appBasePath,
-    healthRouter,
+    healthRouter(bffApi.healthApi.api),
+    swaggerRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
@@ -199,6 +256,7 @@ export async function createApp(
       config
     ),
     authorizationRouter(zodiosCtx, services.authorizationService),
+    ...emailDeeplinkRouters(zodiosCtx),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
@@ -210,15 +268,20 @@ export async function createApp(
     consumerDelegationRouter(zodiosCtx, services.delegationService),
     delegationRouter(zodiosCtx, services.delegationService),
     eserviceTemplateRouter(zodiosCtx, services.eServiceTemplateService),
-    privacyNoticeRouter(zodiosCtx),
+    notificationConfigRouter(zodiosCtx, services.notificationConfigService),
+    inAppNotificationRouter(zodiosCtx, services.inAppNotificationService),
+    privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),
+    purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     selfcareRouter(zodiosCtx, services.selfcareService),
     supportRouter(zodiosCtx, services.authorizationServiceForSupport),
     tenantRouter(zodiosCtx, services.tenantService),
     toolRouter(zodiosCtx, services.toolsService)
   );
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }

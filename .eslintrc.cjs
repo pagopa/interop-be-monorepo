@@ -1,3 +1,4 @@
+const commonRestrictedImports = ["**/dist/**"];
 module.exports = {
   extends: ["@pagopa/eslint-config/strong"],
   parserOptions: {
@@ -19,6 +20,7 @@ module.exports = {
     "max-lines-per-function": "off",
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-use-before-define": "off",
+    "no-restricted-imports": ["error", { patterns: commonRestrictedImports }],
   },
   ignorePatterns: [
     ".eslintrc.cjs",
@@ -28,5 +30,18 @@ module.exports = {
     "**/dist",
     "**/patchZodios.ts",
     "**/paged.polyfill.js",
+  ],
+  overrides: [
+    {
+      files: ["**/src/**/*.ts"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [...commonRestrictedImports, "**/testUtils"],
+          },
+        ],
+      },
+    },
   ],
 };

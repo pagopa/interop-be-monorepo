@@ -4,12 +4,12 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { EServiceTemplateReadModelService } from "pagopa-interop-readmodel";
 import { match } from "ts-pattern";
+import { EServiceTemplateWriterService } from "./eserviceTemplateWriterService.js";
 
 export async function handleMessageV2(
   message: EServiceTemplateEventEnvelope,
-  eserviceTemplateReadModelService: EServiceTemplateReadModelService
+  eserviceTemplateWriterService: EServiceTemplateWriterService
 ): Promise<void> {
   const eserviceTemplate = message.data.eserviceTemplate;
 
@@ -21,7 +21,7 @@ export async function handleMessageV2(
 
   await match(message)
     .with({ type: "EServiceTemplateDeleted" }, async (message) => {
-      await eserviceTemplateReadModelService.deleteEServiceTemplateById(
+      await eserviceTemplateWriterService.deleteEServiceTemplateById(
         unsafeBrandId(message.stream_id),
         message.version
       );
@@ -49,8 +49,9 @@ export async function handleMessageV2(
       { type: "EServiceTemplateVersionInterfaceUpdated" },
       { type: "EServiceTemplateVersionPublished" },
       { type: "EServiceTemplateVersionQuotasUpdated" },
+      { type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication" },
       async (message) => {
-        await eserviceTemplateReadModelService.upsertEServiceTemplate(
+        await eserviceTemplateWriterService.upsertEServiceTemplate(
           fromEServiceTemplateV2(eserviceTemplate),
           message.version
         );

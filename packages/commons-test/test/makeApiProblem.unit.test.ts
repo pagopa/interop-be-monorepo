@@ -59,6 +59,7 @@ const {
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_TOO_MANY_REQUESTS,
+  HTTP_STATUS_NOT_IMPLEMENTED,
 } = constants;
 
 const defaultTestErrorMapper = (
@@ -127,7 +128,7 @@ describe("makeApiProblem", () => {
     [badRequestError("test"), HTTP_STATUS_BAD_REQUEST],
     [tokenVerificationFailed("test", "test"), HTTP_STATUS_UNAUTHORIZED],
     [unauthorizedError("test"), HTTP_STATUS_FORBIDDEN],
-    [featureFlagNotEnabled("test"), HTTP_STATUS_FORBIDDEN],
+    [featureFlagNotEnabled("test"), HTTP_STATUS_NOT_IMPLEMENTED],
     [tooManyRequestsError("test"), HTTP_STATUS_TOO_MANY_REQUESTS],
   ])(
     "Should create a Problem from the $title common ApiError using the common default error mapper to map the status code",
@@ -293,7 +294,7 @@ describe("makeApiProblem", () => {
       correlationId: expect.any(String),
       detail: testProblemResponse.response!.data.detail,
       errors: [
-        ...testProblemResponse.response!.data.errors.map((error) => ({
+        ...testProblemResponse.response!.data.errors!.map((error) => ({
           code: error.code,
           detail: error.detail,
         })),
@@ -316,10 +317,9 @@ describe("makeApiProblem - problemErrorsPassthrough = false", () => {
       emptyErrorMapper,
       context
     );
-
     expect(context.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(
-        /.*title: Unexpected error.*detail: Unexpected error.*original error: Test Problem, code 000-0001, This is a test problem.*/
+        /.*title: Unexpected error.*detail: Unexpected error.*original error: Test Problem - status 400*/
       )
     );
     expect(problemPassthrough).toEqual({

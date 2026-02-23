@@ -4,6 +4,7 @@ import {
   CreateEvent,
   UIAuthData,
   M2MAdminAuthData,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -29,10 +30,11 @@ import {
   toCreateEventAgreementUpgraded,
 } from "../model/domain/toEvent.js";
 import { ActiveDelegations } from "../model/domain/models.js";
+import { config } from "../config/config.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
-import { ReadModelService } from "./readModelService.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export async function createUpgradeOrNewDraft({
   agreement,
@@ -54,7 +56,7 @@ export async function createUpgradeOrNewDraft({
   newDescriptor: Descriptor;
   consumer: Tenant;
   producer: Tenant;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
   authData: UIAuthData | M2MAdminAuthData;
@@ -114,28 +116,49 @@ export async function createUpgradeOrNewDraft({
       },
     };
 
-    const contract = await contractBuilder.createContract(
-      upgraded,
-      eservice,
-      consumer,
-      producer,
-      activeDelegations
+    if (isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder")) {
+      logger.info(
+        `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
+      );
+      const contract = await contractBuilder.createContract(
+        upgraded,
+        eservice,
+        consumer,
+        producer,
+        activeDelegations
+      );
+
+      const upgradedWithContract: Agreement = {
+        ...upgraded,
+        contract,
+      };
+
+      return [
+        upgradedWithContract,
+        [
+          toCreateEventAgreementArchivedByUpgrade(
+            archived,
+            agreement.metadata.version,
+            correlationId
+          ),
+          toCreateEventAgreementUpgraded(upgradedWithContract, correlationId),
+        ],
+      ];
+    }
+
+    // If the contract-builder feature is disabled, return the upgraded agreement without a contract
+    logger.info(
+      `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: skipping document generation`
     );
-
-    const upgradedWithContract: Agreement = {
-      ...upgraded,
-      contract,
-    };
-
     return [
-      upgradedWithContract,
+      upgraded,
       [
         toCreateEventAgreementArchivedByUpgrade(
           archived,
           agreement.metadata.version,
           correlationId
         ),
-        toCreateEventAgreementUpgraded(upgradedWithContract, correlationId),
+        toCreateEventAgreementUpgraded(upgraded, correlationId),
       ],
     ];
   } else {

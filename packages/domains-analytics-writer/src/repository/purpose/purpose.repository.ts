@@ -92,7 +92,9 @@ export function purposeRepo(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id"],
+          true,
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -113,5 +115,3 @@ export function purposeRepo(conn: DBConnection) {
     },
   };
 }
-
-export type PurposeRepo = ReturnType<typeof purposeRepo>;

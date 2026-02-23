@@ -1,0 +1,47 @@
+{
+  "name": "pagopa-interop-kpi-domains-readmodel-checker",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability kpi-domains-readmodel-checker job",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "tsx -r 'dotenv-flow/config' ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@pagopa/eslint-config": "catalog:",
+    "@types/json-diff": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "lodash.isequal": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@types/lodash.isequal": "catalog:",
+    "camelcase-keys": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "drizzle-zod": "catalog:",
+    "json-diff": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
+    "pg": "catalog:",
+    "pg-promise": "catalog:",
+    "zod": "catalog:"
+  }
+}

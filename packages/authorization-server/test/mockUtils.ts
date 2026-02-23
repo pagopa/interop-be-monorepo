@@ -16,9 +16,15 @@ import {
   PurposeVersionId,
   TenantId,
   algorithm,
+  genericInternalError,
 } from "pagopa-interop-models";
-import { vi } from "vitest";
+import { inject, vi } from "vitest";
 import { HttpDPoPHeader } from "../src/model/domain/models.js";
+
+export const dpopConfig = inject("dpopConfig");
+if (!dpopConfig) {
+  throw genericInternalError("Invalid DPoP config");
+}
 
 export const mockProducer = {
   send: vi.fn(),
@@ -27,7 +33,7 @@ export const mockKMSClient = {
   send: vi.fn(),
 };
 
-export const getMockAccessTokenRequest =
+const getMockAccessTokenRequest =
   async (): Promise<authorizationServerApi.AccessTokenRequest> => {
     const { jws } = await getMockClientAssertion();
     return {

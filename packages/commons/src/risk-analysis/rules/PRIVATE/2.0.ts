@@ -42,7 +42,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -62,7 +62,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -166,6 +166,10 @@ export const private2 = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "NO",
+        },
+        {
           id: "usesThirdPartyPersonalData",
           value: "YES",
         },
@@ -241,7 +245,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -330,7 +334,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -358,7 +362,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -438,7 +442,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -470,7 +474,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -502,7 +506,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -705,7 +709,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -766,7 +770,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -824,7 +828,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -971,7 +975,7 @@ export const private2 = {
         en: "",
       },
       validation: {
-        maxLength: 500,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,

@@ -8,21 +8,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  makeDrizzleConnection,
-  purposeReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV1 } from "./purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "./purposeConsumerServiceV2.js";
 import { config } from "./config/config.js";
-import { customReadModelServiceBuilder } from "./readModelService.js";
+import { purposeWriterServiceBuilder } from "./purposeWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const catalogReadModelService = purposeReadModelServiceBuilder(db);
-const readModelService = customReadModelServiceBuilder(
-  db,
-  catalogReadModelService
-);
+const purposeWriterService = purposeWriterServiceBuilder(db);
+
 async function processMessage({
   message,
   partition,
@@ -40,8 +34,12 @@ async function processMessage({
       : generateId<CorrelationId>(),
   });
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
+    .with({ event_version: 1 }, (msg) =>
+      handleMessageV1(msg, purposeWriterService)
+    )
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, purposeWriterService)
+    )
     .exhaustive();
 
   loggerInstance.info(
@@ -49,4 +47,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.purposeTopic], processMessage);
+await runConsumer(
+  config,
+  [config.purposeTopic],
+  processMessage,
+  "purpose-readmodel-writer-sql"
+);

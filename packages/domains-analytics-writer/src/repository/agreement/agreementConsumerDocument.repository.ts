@@ -115,7 +115,3 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
     },
   };
 }
-
-export type AgreementConsumerDocumentRepo = ReturnType<
-  typeof agreementConsumerDocumentRepo
->;
