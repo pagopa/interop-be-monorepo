@@ -354,7 +354,7 @@ export function authorizationServiceBuilder(
 
       const userIds =
         isUiAuthData(authData) &&
-          hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
+        hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
           ? [authData.userId]
           : filters.userIds;
 
@@ -444,7 +444,11 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         keyIdToRemove: string;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
@@ -844,7 +848,11 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         keySeed: authorizationApi.KeySeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Key> {
       logger.info(`Creating keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
@@ -1029,7 +1037,7 @@ export function authorizationServiceBuilder(
 
       const userIds =
         isUiAuthData(authData) &&
-          hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
+        hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
           ? [authData.userId]
           : filters.userIds;
 
@@ -1254,7 +1262,11 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         keySeed: authorizationApi.KeySeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Key> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
@@ -1325,7 +1337,11 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         keyIdToRemove: string;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(
         `Removing key ${keyIdToRemove} from producer keychain ${producerKeychainId}`
