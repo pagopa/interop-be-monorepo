@@ -205,17 +205,6 @@ describe("patch update purpose template", () => {
         purposeIsFreeOfCharge: true,
         purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
-      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
-      {
-        purposeIsFreeOfCharge: true,
-        purposeFreeOfChargeReason: oldFreeOfChargeReason,
-      },
-    ],
-    [
-      {
-        purposeIsFreeOfCharge: true,
-        purposeFreeOfChargeReason: oldFreeOfChargeReason,
-      },
       { purposeIsFreeOfCharge: true },
       {
         purposeIsFreeOfCharge: true,
@@ -228,6 +217,14 @@ describe("patch update purpose template", () => {
         purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
       { purposeIsFreeOfCharge: false },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: "" },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
     ],
     [
@@ -319,7 +316,34 @@ describe("patch update purpose template", () => {
         purposeFreeOfChargeReason: undefined,
       },
       {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: "",
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
         purposeFreeOfChargeReason: null,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeFreeOfChargeReason: "",
       },
       {
         purposeIsFreeOfCharge: false,
@@ -377,6 +401,16 @@ describe("patch update purpose template", () => {
       },
       {
         purposeFreeOfChargeReason: null,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeFreeOfChargeReason: "",
       },
       { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
     ],
@@ -585,21 +619,29 @@ describe("patch update purpose template", () => {
     }
   );
 
-  it("should throw missingFreeOfChargeReason if purposeFreeOfChargerReason is missing and purposeIsFreeOfCharge is true", async () => {
-    const purposeTemplate: PurposeTemplate = {
-      ...mockPurposeTemplate,
-      purposeIsFreeOfCharge: false,
-    };
-    await addOnePurposeTemplate(purposeTemplate);
+  it.each([
+    { purposeFreeOfChargeReason: null },
+    { purposeFreeOfChargeReason: "" },
+    { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: null },
+    { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
+  ] satisfies purposeTemplateApi.PatchUpdatePurposeTemplateSeed[])(
+    `Should throw missingFreeOfChargeReason if purposeIsFreeOfCharge is set to true
+    and purposeFreeOfChargeReason is set to not be present anymore (seed #%#)`,
+    async (seed) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: "Some reason",
+      };
+      await addOnePurposeTemplate(purposeTemplate);
 
-    expect(
-      purposeTemplateService.patchUpdatePurposeTemplate(
-        mockPurposeTemplate.id,
-        {
-          purposeIsFreeOfCharge: true,
-        },
-        getMockContextM2MAdmin({ organizationId: purposeTemplate.creatorId })
-      )
-    ).rejects.toThrowError(missingFreeOfChargeReason());
-  });
+      expect(
+        purposeTemplateService.patchUpdatePurposeTemplate(
+          mockPurposeTemplate.id,
+          seed,
+          getMockContextM2MAdmin({ organizationId: purposeTemplate.creatorId })
+        )
+      ).rejects.toThrowError(missingFreeOfChargeReason());
+    }
+  );
 });

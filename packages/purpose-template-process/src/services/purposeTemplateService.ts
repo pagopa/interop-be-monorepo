@@ -640,6 +640,7 @@ function applyVisibilityToPurposeTemplate(
   throw purposeTemplateNotFound(purposeTemplate.data.id);
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function updateDraftPurposeTemplate(
   purposeTemplateId: PurposeTemplateId,
   typeAndSeed:
@@ -735,24 +736,41 @@ async function updateDraftPurposeTemplate(
 
   // Context: https://github.com/pagopa/interop-be-monorepo/pull/2954
   function updatePurposeFreeOfChargeReason(): string | undefined {
-    const normalizedSeedFreeOfChargeReason =
-      typeof purposeFreeOfChargeReason === "string" &&
-      purposeFreeOfChargeReason.length > 0
-        ? purposeFreeOfChargeReason
-        : undefined;
+    function normalizePurposeFreeOfChargeReason(
+      purposeFreeOfChargeReason: string | null | undefined
+    ): string | null | undefined {
+      if (typeof purposeFreeOfChargeReason === "string") {
+        const trimmedPurposeFreeOfChargeReason =
+          purposeFreeOfChargeReason.trim();
+        return trimmedPurposeFreeOfChargeReason.length > 0
+          ? trimmedPurposeFreeOfChargeReason
+          : null;
+      }
+
+      return purposeFreeOfChargeReason;
+    }
+    const normalizedSeedFreeOfChargeReason = normalizePurposeFreeOfChargeReason(
+      purposeFreeOfChargeReason
+    );
 
     // Return the seed purposeFreeOfChargeReason if defined and not empty
-    if (normalizedSeedFreeOfChargeReason !== undefined) {
+    if (
+      normalizedSeedFreeOfChargeReason !== undefined &&
+      normalizedSeedFreeOfChargeReason !== null
+    ) {
       return normalizedSeedFreeOfChargeReason;
     }
 
-    // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null.
+    // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null or empty string.
     // A purpose template should only have a purposeFreeOfChargeReason when purposeIsFreeOfCharge is true.
-    if (!updatedPurposeIsFreeOfCharge || purposeFreeOfChargeReason === null) {
+    if (
+      !updatedPurposeIsFreeOfCharge ||
+      normalizedSeedFreeOfChargeReason === null
+    ) {
       return undefined;
     }
 
-    // Fallback to the existing reason in the purpose template
+    // Fallback to the existing purposeFreeOfChargeReason in the purpose template
     return purposeTemplate.data.purposeFreeOfChargeReason;
   }
 

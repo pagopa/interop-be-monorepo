@@ -54,6 +54,7 @@ import {
   duplicatedPurposeTitle,
   tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
+  invalidFreeOfChargeReason,
   purposeFromTemplateCannotBeModified,
 } from "../../src/model/domain/errors.js";
 import {
@@ -764,23 +765,236 @@ describe("updatePurpose and updateReversePurpose", () => {
       eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
     );
   });
-  it("Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing", async () => {
-    await addOnePurpose(purposeForDeliver);
-    await addOneEService(eServiceDeliver);
-    await addOneTenant(tenant);
+  it.each([undefined, ""])(
+    "Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing (seed #%#)",
+    async (freeOfChargeReason) => {
+      await addOnePurpose({
+        ...purposeForDeliver,
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      });
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
 
-    expect(
-      purposeService.updatePurpose(
-        purposeForDeliver.id,
-        {
+      expect(
+        purposeService.updatePurpose(
+          purposeForDeliver.id,
+          {
+            ...purposeUpdateContent,
+            isFreeOfCharge: true,
+            freeOfChargeReason,
+          },
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(missingFreeOfChargeReason());
+    }
+  );
+
+  const oldFreeOfChargeReason = "Some reason";
+  const newFreeOfChargeReason = "New reason";
+  const successFreeOfChargeTestCases: Array<
+    [
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+      Pick<
+        purposeApi.PurposeUpdateContent,
+        "isFreeOfCharge" | "freeOfChargeReason"
+      >,
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+    ]
+  > = [
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: true, freeOfChargeReason: undefined },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: "" },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: "" },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+  ];
+  it.each(successFreeOfChargeTestCases)(
+    "should successfully update isFreeOfCharge and freeOfChargeReason (seed #%#)",
+    async (initData, seed, expected) => {
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const cleanedSeed = Object.fromEntries(
+        Object.entries({
           ...purposeUpdateContent,
-          isFreeOfCharge: true,
-          freeOfChargeReason: "",
-        },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(missingFreeOfChargeReason());
-  });
+          ...seed,
+        }).filter(([_, v]) => v !== undefined)
+      ) as purposeApi.PurposeUpdateContent;
+
+      const purpose: Purpose = {
+        ...purposeForDeliver,
+        isFreeOfCharge: initData.isFreeOfCharge,
+        freeOfChargeReason: initData.freeOfChargeReason,
+      };
+
+      await addOnePurpose(purpose);
+
+      const updatePurposeResult = await purposeService.updatePurpose(
+        purposeForDeliver.id,
+        cleanedSeed,
+        getMockContext({
+          authData: getMockAuthData(purpose.consumerId),
+        })
+      );
+
+      expect(updatePurposeResult.data.purpose).toEqual(
+        expect.objectContaining({
+          isFreeOfCharge: expected.isFreeOfCharge,
+          freeOfChargeReason: expected.freeOfChargeReason,
+        })
+      );
+    }
+  );
+
+  const failureFreeOfChargeTestCases: Array<
+    [
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+      Pick<
+        purposeApi.PurposeUpdateContent,
+        "isFreeOfCharge" | "freeOfChargeReason"
+      >,
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+    ]
+  > = [
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+  ];
+  it.each(failureFreeOfChargeTestCases)(
+    "should throw invalidFreeOfChargeReason (seed #%#)",
+    async (initData, seed, wrongUpdatedData) => {
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const purpose: Purpose = {
+        ...purposeForDeliver,
+        isFreeOfCharge: initData.isFreeOfCharge,
+        freeOfChargeReason: initData.freeOfChargeReason,
+      };
+
+      await addOnePurpose(purpose);
+
+      expect(
+        purposeService.updatePurpose(
+          purpose.id,
+          {
+            ...purposeUpdateContent,
+            ...seed,
+          },
+          getMockContext({
+            authData: getMockAuthData(purpose.consumerId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(
+          wrongUpdatedData.isFreeOfCharge,
+          wrongUpdatedData.freeOfChargeReason
+        )
+      );
+    }
+  );
+
   it("Should throw tenantNotFound if the tenant does not exist", async () => {
     await addOnePurpose(purposeForDeliver);
     await addOneEService(eServiceDeliver);
