@@ -3333,33 +3333,10 @@ export function catalogServiceBuilder(
         );
       }
 
-      const buildDefaultInstanceLabel = async (): Promise<
-        string | undefined
-      > => {
-        const labelsInUse =
-          await readModelService.getEServiceInstanceLabelsByTemplateAndProducer(
-            {
-              templateId: template.id,
-              producerId: ctx.authData.organizationId,
-            }
-          );
-
-        return labelsInUse.length === 0 || !labelsInUse.includes(undefined)
-          ? undefined
-          : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
-      };
-
-      // null               = not provided → assign default label
-      // string | undefined = use the provided label
-      const instanceLabel =
-        seed.instanceLabel === null
-          ? await buildDefaultInstanceLabel()
-          : seed.instanceLabel;
-
       const instanceName =
-        instanceLabel === undefined
+        seed.instanceLabel === undefined
           ? template.name
-          : `${template.name} - ${instanceLabel}`;
+          : `${template.name} - ${seed.instanceLabel}`;
 
       await assertEServiceNameAvailableForProducer(
         instanceName,
@@ -3397,7 +3374,7 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
-            instanceLabel,
+            instanceLabel: seed.instanceLabel,
           },
         },
         readModelService,
