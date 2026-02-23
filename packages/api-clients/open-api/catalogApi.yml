@@ -3237,6 +3237,8 @@ components:
           format: uuid
         name:
           type: string
+        instanceLabel:
+          type: string
         description:
           type: string
         technology:
