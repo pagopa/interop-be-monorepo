@@ -1135,9 +1135,8 @@ export function purposeServiceBuilder(
           throw missingRiskAnalysis(purposeId);
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
-        if (eservice.mode !== eserviceMode.receive) {
-          const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
-            eservice,
+        if (eservice.mode === eserviceMode.deliver) {
+          const tenantKind = await retrieveTenantKind(
             purpose.data.consumerId,
             readModelService
           );
