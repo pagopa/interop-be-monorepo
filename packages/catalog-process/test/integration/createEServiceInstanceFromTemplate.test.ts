@@ -679,57 +679,47 @@ describe("create eService from template", () => {
   it.each([
     {
       existingLabels: [],
-      expectedLabel: undefined,
+      expectedNextLabel: undefined,
       description: "no existing instances",
     },
     {
       existingLabels: ["test"],
-      expectedLabel: undefined,
+      expectedNextLabel: undefined,
       description: "one instance with a label",
     },
     {
       existingLabels: ["abc", "def"],
-      expectedLabel: undefined,
+      expectedNextLabel: undefined,
       description: "two instances both with labels",
     },
     {
       existingLabels: [undefined],
-      expectedLabel: "istanza 0002",
+      expectedNextLabel: "istanza 0002",
       description: "one instance without a label",
     },
     {
       existingLabels: [undefined, "abc"],
-      expectedLabel: "istanza 0003",
+      expectedNextLabel: "istanza 0003",
       description: "two instances, one without a label",
     },
   ])(
-    "should assign default instanceLabel $expectedLabel when there are $description",
-    async ({ existingLabels, expectedLabel }) => {
-      const publishedVersion: EServiceTemplateVersion = {
-        ...getMockEServiceTemplateVersion(),
-        state: eserviceTemplateVersionState.published,
-      };
-      const eServiceTemplate: EServiceTemplate = {
-        ...mockEServiceTemplate,
-        versions: [publishedVersion],
-        personalData: false,
-      };
-
-      await addOneEServiceTemplate(eServiceTemplate);
+    "should assign default instanceLabel $expectedNextLabel when there are $description",
+    async ({ existingLabels, expectedNextLabel }) => {
+      await addOneEServiceTemplate(mockEServiceTemplate);
 
       for (const label of existingLabels) {
         const mock = getMockEService(
           undefined,
           mockEService.producerId,
           [],
-          eServiceTemplate.id
+          mockEServiceTemplate.id
         );
         const instance: EService =
           label === undefined
-            ? { ...mock, name: eServiceTemplate.name, instanceLabel: label }
+            ? { ...mock, name: mockEServiceTemplate.name, instanceLabel: label }
             : {
                 ...mock,
-                name: `${eServiceTemplate.name} - ${label}`,
+                name: `${mockEServiceTemplate.name} - ${label}`,
                 instanceLabel: label,
               };
 
@@ -737,17 +727,17 @@ describe("create eService from template", () => {
       }
 
       const eService = await catalogService.createEServiceInstanceFromTemplate(
-        eServiceTemplate.id,
+        mockEServiceTemplate.id,
         { instanceLabel: null },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
-      expect(eService.instanceLabel).toBe(expectedLabel);
-      if (expectedLabel === undefined) {
-        expect(eService.name).toBe(eServiceTemplate.name);
+      expect(eService.instanceLabel).toBe(expectedNextLabel);
+      if (expectedNextLabel === undefined) {
+        expect(eService.name).toBe(mockEServiceTemplate.name);
       } else {
         expect(eService.name).toBe(
-          `${eServiceTemplate.name} - ${expectedLabel}`
+          `${mockEServiceTemplate.name} - ${expectedNextLabel}`
         );
       }
     }
