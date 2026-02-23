@@ -14,6 +14,7 @@ import {
   producerKeychainInM2MEvent,
   purposeInM2MEvent,
   tenantInM2MEvent,
+  purposeTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 
 export const deleteOldM2MEvents = async (
@@ -41,6 +42,7 @@ export const deleteOldM2MEvents = async (
     ["producerKey", producerKeyInM2MEvent],
     ["producerKeychain", producerKeychainInM2MEvent],
     ["purpose", purposeInM2MEvent],
+    ["purposeTemplate", purposeTemplateInM2MEvent],
     ["tenant", tenantInM2MEvent],
   ] as const;
 
