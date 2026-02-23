@@ -34,8 +34,7 @@ loggerInstance.info("Starting ipa-certified-attributes-importer");
 const { db: readModelDB, cleanup } = makeDrizzleConnectionWithCleanup(config);
 
 try {
-  const tenantReadModelServiceSQL =
-    tenantReadModelServiceBuilder(readModelDB);
+  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
   const attributeReadModelServiceSQL =
     attributeReadModelServiceBuilder(readModelDB);
 
