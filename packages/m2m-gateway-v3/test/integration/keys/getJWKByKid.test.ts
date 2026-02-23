@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { getMockClientJWKKey } from "pagopa-interop-commons-test/index.js";
-import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   keyService,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { getMockM2MAdminAppContext, testToM2MKey } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getJWKByKid", () => {
   const mockKey = getMockClientJWKKey();
-  const expectedKey: m2mGatewayApiV3.Key = {
+  const mockClientJWK: authorizationApi.ClientJWK = {
     clientId: mockKey.clientId,
     jwk: {
       kid: mockKey.kid,
@@ -24,8 +24,9 @@ describe("getJWKByKid", () => {
       n: mockKey.n,
     },
   };
+  const expectedKey = testToM2MKey(mockClientJWK);
   const authProcessResponse: WithMaybeMetadata<authorizationApi.ClientJWK> = {
-    data: expectedKey,
+    data: mockClientJWK,
     metadata: undefined,
   };
 
@@ -47,7 +48,7 @@ describe("getJWKByKid", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedKey);
+    expect(result).toStrictEqual(expectedKey);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.key.getJWKByKid,
       params: {

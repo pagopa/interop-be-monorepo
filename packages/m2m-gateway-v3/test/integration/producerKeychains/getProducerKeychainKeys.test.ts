@@ -140,7 +140,7 @@ describe("getProducerKeychainKeys", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mProducerKeychainJWKsResponse);
+    expect(result).toStrictEqual(m2mProducerKeychainJWKsResponse);
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetProducerKeychainKeys,
