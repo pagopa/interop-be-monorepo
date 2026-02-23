@@ -17,7 +17,6 @@
     "format:write": "prettier --write src",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
-    "check": "tsc --project tsconfig.check.json",
     "generate-model": "tsx ./generate.ts",
     "clean-generated": "pnpm exec rm ./src/generated/*.ts"
   },

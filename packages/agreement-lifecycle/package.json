@@ -14,8 +14,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "build": "tsc",
-    "check": "tsc --project tsconfig.check.json"
+    "build": "tsc"
   },
   "keywords": [],
   "dependencies": {
