@@ -10,6 +10,7 @@ import {
   authRole,
   genericLogger,
   calculateIntegrityRest02DigestFromBody,
+  IntegrityRest02SignedHeaders,
 } from "pagopa-interop-commons";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -73,16 +74,17 @@ describe("integrityRest02Middleware", () => {
     expect(decoded).toHaveProperty("sub");
     expect(decoded.sub).toBe(correlationId);
     expect(decoded).toHaveProperty("signed_headers");
-    expect(decoded.signed_headers).toHaveProperty("digest");
-    expect((decoded.signed_headers as { digest: string }).digest).toBe(
-      `SHA-256=${digest}`
-    );
 
-    // Check order
-    const keys = Object.keys(
-      decoded.signed_headers as { [k: string]: unknown }
+    const signedHeadersParse = IntegrityRest02SignedHeaders.safeParse(
+      decoded.signed_headers
     );
-    expect(keys).toStrictEqual(["digest", "content-type"]);
+    expect(signedHeadersParse.success).toBe(true);
+    const signedHeaders = signedHeadersParse.data;
+    expect(signedHeaders).toHaveLength(2);
+    expect(signedHeaders).toContainEqual({ digest: `SHA-256=${digest}` });
+    expect(signedHeaders).toContainEqual({
+      "content-type": res.headers["content-type"],
+    });
   });
 
   it("Should return same digest with the same body", async () => {
@@ -122,15 +124,29 @@ describe("integrityRest02Middleware", () => {
       sub: undefined,
     });
 
-    // Check order
-    const keys1 = Object.keys(
-      decoded1.signed_headers as { [k: string]: unknown }
+    const signedHeadersParse1 = IntegrityRest02SignedHeaders.safeParse(
+      decoded1.signed_headers
     );
-    expect(keys1).toStrictEqual(["digest", "content-type"]);
-    const keys2 = Object.keys(
-      decoded2.signed_headers as { [k: string]: unknown }
+    const signedHeadersParse2 = IntegrityRest02SignedHeaders.safeParse(
+      decoded2.signed_headers
     );
-    expect(keys2).toStrictEqual(["digest", "content-type"]);
+
+    expect(signedHeadersParse1.success).toBe(true);
+    expect(signedHeadersParse2.success).toBe(true);
+
+    const signedHeaders1 = signedHeadersParse1.data;
+    const signedHeaders2 = signedHeadersParse2.data;
+
+    expect(signedHeaders1).toHaveLength(2);
+    expect(signedHeaders2).toHaveLength(2);
+    expect(signedHeaders1).toContainEqual({ digest: `SHA-256=${digest}` });
+    expect(signedHeaders2).toContainEqual({ digest: `SHA-256=${digest}` });
+    expect(signedHeaders1).toContainEqual({
+      "content-type": res.headers["content-type"],
+    });
+    expect(signedHeaders2).toContainEqual({
+      "content-type": res.headers["content-type"],
+    });
   });
 
   it("Should return different digest with different body", async () => {
@@ -175,6 +191,24 @@ describe("integrityRest02Middleware", () => {
     expect(res.headers.digest).toBe(`SHA-256=${nullBodyDigest}`);
     expect(res.headers.digest).toBe(`SHA-256=${undefinedBodyDigest}`);
     expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+
+    // Response should not have content-type header
+    expect(res.headers).not.toHaveProperty("content-type");
+
+    const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
+    expect(decoded).toHaveProperty("signed_headers");
+    const signedHeadersParse = IntegrityRest02SignedHeaders.safeParse(
+      decoded.signed_headers
+    );
+    expect(signedHeadersParse.success).toBe(true);
+    const signedHeaders = signedHeadersParse.data;
+    expect(signedHeaders).toHaveLength(2);
+    expect(signedHeaders).toContainEqual({
+      digest: `SHA-256=${emptyStringDigest}`,
+    });
+    expect(signedHeaders).toContainEqual({
+      "content-type": "application/json",
+    });
   });
 
   it("should have a digest if there is a 400 error", async () => {
