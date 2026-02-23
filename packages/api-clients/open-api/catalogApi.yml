@@ -3830,7 +3830,6 @@ components:
           type: string
           minLength: 1
           maxLength: 12
-          nullable: true
     EServiceInstanceLabelUpdateSeed:
       type: object
       additionalProperties: false
