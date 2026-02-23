@@ -761,7 +761,7 @@ async function updateDraftPurposeTemplate(
       return normalizedSeedFreeOfChargeReason;
     }
 
-    // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null.
+    // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null or empty string.
     // A purpose template should only have a purposeFreeOfChargeReason when purposeIsFreeOfCharge is true.
     if (
       !updatedPurposeIsFreeOfCharge ||
@@ -770,7 +770,7 @@ async function updateDraftPurposeTemplate(
       return undefined;
     }
 
-    // Fallback to the existing reason in the purpose template
+    // Fallback to the existing purposeFreeOfChargeReason in the purpose template
     return purposeTemplate.data.purposeFreeOfChargeReason;
   }
 

@@ -2171,7 +2171,7 @@ const performUpdatePurpose = async (
       return normalizedSeedFreeOfChargeReason;
     }
 
-    // Return undefined if the updated isFreeOfCharge is false or the seed freeOfChargeReason is explicitly set to null.
+    // Return undefined if the updated isFreeOfCharge is false or the seed freeOfChargeReason is explicitly set to null or empty string.
     // A purpose should only have a freeOfChargeReason when isFreeOfCharge is true.
     if (
       !updatedPurposeIsFreeOfCharge ||
@@ -2180,7 +2180,7 @@ const performUpdatePurpose = async (
       return undefined;
     }
 
-    // Fallback to the existing reason in the purpose
+    // Fallback to the existing freeOfChargeReason in the purpose
     return purpose.data.freeOfChargeReason;
   }
 
