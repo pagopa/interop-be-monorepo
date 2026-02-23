@@ -705,21 +705,31 @@ describe("create eService from template", () => {
   ])(
     "should assign default instanceLabel $expectedNextLabel when there are $description",
     async ({ existingLabels, expectedNextLabel }) => {
-      await addOneEServiceTemplate(mockEServiceTemplate);
+      const publishedVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state: eserviceTemplateVersionState.published,
+      };
+      const eServiceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [publishedVersion],
+        personalData: false,
+      };
+
+      await addOneEServiceTemplate(eServiceTemplate);
 
       for (const label of existingLabels) {
         const mock = getMockEService(
           undefined,
           mockEService.producerId,
           [],
-          mockEServiceTemplate.id
+          eServiceTemplate.id
         );
         const instance: EService =
           label === undefined
-            ? { ...mock, name: mockEServiceTemplate.name, instanceLabel: label }
+            ? { ...mock, name: eServiceTemplate.name, instanceLabel: label }
             : {
                 ...mock,
-                name: `${mockEServiceTemplate.name} - ${label}`,
+                name: `${eServiceTemplate.name} - ${label}`,
                 instanceLabel: label,
               };
 
@@ -727,17 +737,17 @@ describe("create eService from template", () => {
       }
 
       const eService = await catalogService.createEServiceInstanceFromTemplate(
-        mockEServiceTemplate.id,
+        eServiceTemplate.id,
         { instanceLabel: null },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
       expect(eService.instanceLabel).toBe(expectedNextLabel);
       if (expectedNextLabel === undefined) {
-        expect(eService.name).toBe(mockEServiceTemplate.name);
+        expect(eService.name).toBe(eServiceTemplate.name);
       } else {
         expect(eService.name).toBe(
-          `${mockEServiceTemplate.name} - ${expectedNextLabel}`
+          `${eServiceTemplate.name} - ${expectedNextLabel}`
         );
       }
     }
