@@ -915,7 +915,7 @@ describe("activatePurposeVersion", () => {
       metadata: { version: 1 },
     });
   });
-  it("should succeed when risk analysis is expired and the purpose version in draft state is activated correctly", async () => {
+  it("should succeed when risk analysis is expired and the purpose version in draft state is activated correctly for eservice in receive mode", async () => {
     vi.spyOn(pdfGenerator, "generate");
     const eservice = {
       ...mockEService,
