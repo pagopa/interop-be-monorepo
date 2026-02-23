@@ -1,6 +1,7 @@
 import {
   WithLogger,
   systemRole,
+  authRole,
   genericLogger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   M2MAdminAuthData,
@@ -277,4 +278,11 @@ export const testToM2MRiskAnalysisTemplateAnswer = (
   editable: answer.editable,
   annotationText: answer.annotation ? answer.annotation.text : undefined,
   suggestedValues: answer.suggestedValues,
+});
+
+export const getMockm2mGatewayApiV3User = (): m2mGatewayApiV3.User => ({
+  userId: generateId(),
+  name: generateMock(z.string()),
+  familyName: generateMock(z.string()),
+  roles: [authRole.M2M_ADMIN_ROLE],
 });
