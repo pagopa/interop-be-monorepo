@@ -77,6 +77,7 @@ import {
   documentListErrorMapper,
   updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
+  updateEServiceInstanceLabelErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 import { config } from "../config/config.js";
@@ -1535,7 +1536,36 @@ const eservicesRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/templates/eservices/:eServiceId/instanceLabel/update",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+          const updatedEService =
+            await catalogService.updateEServiceInstanceLabelAfterPublication(
+              unsafeBrandId(req.params.eServiceId),
+              req.body.instanceLabel,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceInstanceLabelErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return eservicesRouter;
 };

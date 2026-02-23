@@ -218,3 +218,7 @@ message EServicePersonalDataFlagUpdatedAfterPublicationV2 {
 message EServicePersonalDataFlagUpdatedByTemplateUpdateV2 {
   EServiceV2 eservice = 1;
 }
+
+message EServiceInstanceLabelUpdatedV2 {
+  EServiceV2 eservice = 1;
+}

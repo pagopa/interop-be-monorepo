@@ -1986,6 +1986,26 @@ export function catalogServiceBuilder(
         },
       });
     },
+    updateEServiceInstanceLabel: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      seed: bffApi.EServiceInstanceLabelUpdateSeed
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Update instance label for E-Service with id = ${eServiceId} to ${seed.instanceLabel}`
+      );
+      const eservice =
+        await catalogProcessClient.updateEServiceInstanceLabelAfterPublication(
+          seed,
+          {
+            headers,
+            params: {
+              eServiceId,
+            },
+          }
+        );
+      return { id: eservice.id };
+    },
   };
 }
 
