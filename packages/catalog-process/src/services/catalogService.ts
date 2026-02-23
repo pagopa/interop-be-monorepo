@@ -975,8 +975,27 @@ export function catalogServiceBuilder(
       assertEServiceIsTemplateInstance(eservice.data);
       assertIsDraftEservice(eservice.data);
 
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateId,
+        readModelService
+      );
+
+      const instanceName = eserviceSeed.instanceLabel
+        ? `${template.name} - ${eserviceSeed.instanceLabel}`
+        : template.name;
+
+      if (instanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          instanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
+
       const updatedEService: EService = {
         ...eservice.data,
+        name: instanceName,
+        instanceLabel: eserviceSeed.instanceLabel,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
