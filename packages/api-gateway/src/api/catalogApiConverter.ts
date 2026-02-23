@@ -43,8 +43,7 @@ function toApiGatewayEserviceAttributeValue(
     id: registryAttribute.id,
     code: registryAttribute.code,
     origin: registryAttribute.origin,
-    explicitAttributeVerification:
-      eserviceDescriptorAttribute.explicitAttributeVerification,
+    explicitAttributeVerification: false,
   };
 }
 

@@ -170,8 +170,6 @@ describe("E-service splitter", () => {
       attributeId: certifiedAttribute.id,
       descriptorId: descriptor.id,
       groupId: 0,
-      explicitAttributeVerification:
-        certifiedAttribute.explicitAttributeVerification,
     };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {

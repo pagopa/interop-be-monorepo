@@ -56,15 +56,9 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
     agreementApprovalPolicy: "AUTOMATIC",
     description: "new description",
     attributes: {
-      certified: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-      ],
-      declared: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-      ],
-      verified: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-      ],
+      certified: [[{ id: getMockAttribute().id }]],
+      declared: [[{ id: getMockAttribute().id }]],
+      verified: [[{ id: getMockAttribute().id }]],
     },
   };
 
@@ -132,32 +126,21 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
       dailyCallsTotal: 200,
       agreementApprovalPolicy: "AUTOMATIC",
       attributes: {
-        certified: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-        ],
-        declared: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-        ],
-        verified: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-        ],
+        certified: [[{ id: getMockAttribute().id }]],
+        declared: [[{ id: getMockAttribute().id }]],
+        verified: [[{ id: getMockAttribute().id }]],
       },
     },
     {
       attributes: {
         certified: [],
-        declared: [
-          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: getMockAttribute().id }]],
       },
     },
     {
       attributes: {
         verified: [
-          [
-            { id: getMockAttribute().id, explicitAttributeVerification: false },
-            { id: getMockAttribute().id, explicitAttributeVerification: false },
-          ],
+          [{ id: getMockAttribute().id }, { id: getMockAttribute().id }],
         ],
       },
     },

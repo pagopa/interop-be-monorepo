@@ -88,7 +88,7 @@ export const fromEServiceModeV2 = (input: EServiceModeV2): EServiceMode => {
 export const fromEServiceAttributeV2 = (
   input: EServiceAttributeV2
 ): EServiceAttribute[] =>
-  input.values.map((a) => ({ ...a, id: unsafeBrandId(a.id) }));
+  input.values.map((a) => ({ id: unsafeBrandId(a.id) }));
 
 export function fromDocumentV2(input: EServiceDocumentV2): Document {
   return {

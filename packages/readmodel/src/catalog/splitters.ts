@@ -147,7 +147,6 @@ const attributeToAttributeSQL = ({
   metadataVersion: version,
   attributeId: attribute.id,
   descriptorId,
-  explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind,
   groupId,
 });

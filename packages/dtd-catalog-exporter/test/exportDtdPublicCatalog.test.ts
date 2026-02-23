@@ -58,11 +58,8 @@ describe("exportDtdPublicCatalog", () => {
         certified: [],
         verified: [],
         declared: [
-          [
-            { id: attribute1Mock.id, explicitAttributeVerification: false },
-            { id: attribute2Mock.id, explicitAttributeVerification: false },
-          ],
-          [{ id: attribute3Mock.id, explicitAttributeVerification: false }],
+          [{ id: attribute1Mock.id }, { id: attribute2Mock.id }],
+          [{ id: attribute3Mock.id }],
         ],
       },
     };
@@ -184,9 +181,7 @@ describe("exportDtdPublicCatalog", () => {
       attributes: {
         certified: [],
         verified: [],
-        declared: [
-          [{ id: attributeMock.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attributeMock.id }]],
       },
     };
 
@@ -218,11 +213,8 @@ describe("exportDtdPublicCatalog", () => {
         certified: [],
         verified: [],
         declared: [
-          [
-            { id: attribute1Mock.id, explicitAttributeVerification: false },
-            { id: attribute2Mock.id, explicitAttributeVerification: false },
-          ],
-          [{ id: attribute3Mock.id, explicitAttributeVerification: false }],
+          [{ id: attribute1Mock.id }, { id: attribute2Mock.id }],
+          [{ id: attribute3Mock.id }],
         ],
       },
     };

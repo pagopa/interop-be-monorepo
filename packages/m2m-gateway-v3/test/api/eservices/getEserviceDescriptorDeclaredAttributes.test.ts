@@ -19,17 +19,14 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttributes router test", () => {
   const attribute1: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute2: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute3: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
   const bulkAttribute1: m2mGatewayApiV3.DeclaredAttribute = {
     id: attribute1.id,

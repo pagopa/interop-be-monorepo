@@ -155,7 +155,7 @@ export function toBffCatalogApiDescriptorAttribute(
     id: attribute.id,
     name: foundAttribute.name,
     description: foundAttribute.description,
-    explicitAttributeVerification: attribute.explicitAttributeVerification,
+    explicitAttributeVerification: false,
   };
 }
 
