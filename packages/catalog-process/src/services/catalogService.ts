@@ -545,6 +545,7 @@ async function innerCreateEService(
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
+    instanceLabel: template?.instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -3322,12 +3323,6 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      await assertEServiceNameAvailableForProducer(
-        template.name,
-        ctx.authData.organizationId,
-        readModelService
-      );
-
       if (
         isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         template.personalData === undefined
@@ -3338,10 +3333,44 @@ export function catalogServiceBuilder(
         );
       }
 
+      const buildDefaultInstanceLabel = async (): Promise<
+        string | undefined
+      > => {
+        const labelsInUse =
+          await readModelService.getEServiceInstanceLabelsByTemplateAndProducer(
+            {
+              templateId: template.id,
+              producerId: ctx.authData.organizationId,
+            }
+          );
+
+        return labelsInUse.length === 0 || !labelsInUse.includes(undefined)
+          ? undefined
+          : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
+      };
+
+      // null               = not provided → assign default label
+      // string | undefined = use the provided label
+      const instanceLabel =
+        seed.instanceLabel === null
+          ? await buildDefaultInstanceLabel()
+          : seed.instanceLabel;
+
+      const instanceName =
+        instanceLabel === undefined
+          ? template.name
+          : `${template.name} - ${instanceLabel}`;
+
+      await assertEServiceNameAvailableForProducer(
+        instanceName,
+        ctx.authData.organizationId,
+        readModelService
+      );
+
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: template.name,
+            name: instanceName,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -3368,7 +3397,7 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
-            instanceLabel: undefined, // TODO
+            instanceLabel,
           },
         },
         readModelService,

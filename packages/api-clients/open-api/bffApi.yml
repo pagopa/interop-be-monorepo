@@ -29257,6 +29257,11 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
+          nullable: true
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
