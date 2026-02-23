@@ -593,6 +593,7 @@ components:
             - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED_BY_TEMPLATE_UPDATE
             - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_INSTANCE_LABEL_UPDATED
         eventTimestamp:
           type: string
           format: date-time
