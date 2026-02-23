@@ -475,15 +475,13 @@ export function agreementServiceBuilder(
       {
         offset,
         limit,
-        requesterId,
         eServiceName,
       }: {
         offset: number;
         limit: number;
-        requesterId: string;
         eServiceName?: string;
       },
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServicesLight> {
       logger.info(
         `Retrieving producer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
@@ -498,7 +496,7 @@ export function agreementServiceBuilder(
           offset,
           limit,
           eServiceName,
-          producersIds: [requesterId],
+          producersIds: [authData.organizationId],
         },
         headers,
       });
@@ -517,15 +515,13 @@ export function agreementServiceBuilder(
       {
         offset,
         limit,
-        requesterId,
         eServiceName,
       }: {
         offset: number;
         limit: number;
-        requesterId: string;
         eServiceName?: string;
       },
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ) {
       logger.info(
         `Retrieving consumer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
@@ -540,7 +536,7 @@ export function agreementServiceBuilder(
           offset,
           limit,
           eServiceName,
-          consumersIds: [requesterId],
+          consumersIds: [authData.organizationId],
         },
         headers,
       });
