@@ -33,7 +33,8 @@ COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 COPY ./packages/api-clients /app/packages/api-clients
 
-RUN pnpm build && \
+ARG NODE_HEAP_SIZE=4096
+RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \

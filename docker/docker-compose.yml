@@ -79,6 +79,19 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
 
+  # POSTGRESQL digest tracking (email-notification-digest)
+  digest-tracking-sql:
+    volumes:
+      - ./digest-tracking-db:/docker-entrypoint-initdb.d
+    image: postgres:14
+    ports:
+      - 6007:5433
+    environment:
+      PGPORT: 5433
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+
   # Zookeeper for Kafka
   zookeeper:
     security_opt:

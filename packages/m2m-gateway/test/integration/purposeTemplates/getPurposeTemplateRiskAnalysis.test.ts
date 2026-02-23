@@ -47,7 +47,7 @@ describe("getPurposeTemplateRiskAnalysis", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MRiskAnalysisFormTemplate);
+    expect(result).toStrictEqual(expectedM2MRiskAnalysisFormTemplate);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,

@@ -90,7 +90,7 @@ describe("getEserviceTemplates", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(eserviceTemplatesResponse);
+    expect(result).toStrictEqual(eserviceTemplatesResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient.getEServiceTemplates,
