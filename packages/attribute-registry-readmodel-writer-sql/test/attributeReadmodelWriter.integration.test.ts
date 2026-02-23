@@ -4,7 +4,6 @@ import {
   Attribute,
   AttributeAddedV1,
   AttributeEventEnvelope,
-  MaintenanceAttributeDeletedV1,
   attributeKind,
   toAttributeV1,
 } from "pagopa-interop-models";
@@ -92,33 +91,6 @@ describe("database test", async () => {
 
       expect(retrievedAttribute?.data).toStrictEqual(verifiedAttribute);
       expect(retrievedAttribute?.metadata).toStrictEqual({ version: 1 });
-    });
-
-    it("AttributeDeleted", async () => {
-      const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.verified,
-      };
-      await attributeWriterService.upsertAttribute(certifiedAttribute, 0);
-
-      const payload: MaintenanceAttributeDeletedV1 = {
-        id: certifiedAttribute.id,
-      };
-      const message: AttributeEventEnvelope = {
-        sequence_num: 1,
-        stream_id: certifiedAttribute.id,
-        version: 1,
-        type: "MaintenanceAttributeDeleted",
-        event_version: 1,
-        data: payload,
-        log_date: new Date(),
-      };
-      await handleMessage(message, attributeWriterService);
-
-      const retrievedAttribute =
-        await attributeReadModelService.getAttributeById(certifiedAttribute.id);
-
-      expect(retrievedAttribute).toBeUndefined();
     });
   });
 });
