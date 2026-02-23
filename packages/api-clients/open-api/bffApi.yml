@@ -5289,8 +5289,8 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Update an e-service template instance label
-      description: Update an e-service template instance label after publication
+      summary: Update eservice instanceLabel
+      description: Update instanceLabel of an eservice template instance after publication
       operationId: updateEServiceInstanceLabelAfterPublication
       parameters:
         - name: eServiceId
@@ -25855,8 +25855,6 @@ components:
           type: string
           minLength: 1
           maxLength: 12
-      required:
-        - instanceLabel
     EServiceSignalHubUpdateSeed:
       type: object
       additionalProperties: false
