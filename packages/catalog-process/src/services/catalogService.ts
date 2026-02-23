@@ -3372,9 +3372,8 @@ export function catalogServiceBuilder(
           : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
       };
 
-      // null      = not provided → assign default label
-      // undefined = explicitly no label → undefined
-      // string    = use the provided label
+      // null               = not provided → assign default label
+      // string | undefined = use the provided label
       const instanceLabel =
         seed.instanceLabel === null
           ? await buildDefaultInstanceLabel()
