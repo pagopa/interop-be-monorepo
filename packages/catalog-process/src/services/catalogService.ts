@@ -3327,6 +3327,17 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
+      const instanceName =
+        seed.instanceLabel === undefined
+          ? template.name
+          : `${template.name} - ${seed.instanceLabel}`;
+
+      await assertEServiceNameAvailableForProducer(
+        instanceName,
+        ctx.authData.organizationId,
+        readModelService
+      );
+
       if (
         isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         template.personalData === undefined
@@ -3336,40 +3347,6 @@ export function catalogServiceBuilder(
           publishedVersion.id
         );
       }
-
-      const buildDefaultInstanceLabel = async (): Promise<
-        string | undefined
-      > => {
-        const labelsInUse =
-          await readModelService.getEServiceInstanceLabelsByTemplateAndProducer(
-            {
-              templateId: template.id,
-              producerId: ctx.authData.organizationId,
-            }
-          );
-
-        return labelsInUse.length === 0 || !labelsInUse.includes(undefined)
-          ? undefined
-          : `istanza ${(labelsInUse.length + 1).toString().padStart(4, "0")}`;
-      };
-
-      // null               = not provided → assign default label
-      // string | undefined = use the provided label
-      const instanceLabel =
-        seed.instanceLabel === null
-          ? await buildDefaultInstanceLabel()
-          : seed.instanceLabel;
-
-      const instanceName =
-        instanceLabel === undefined
-          ? template.name
-          : `${template.name} - ${instanceLabel}`;
-
-      await assertEServiceNameAvailableForProducer(
-        instanceName,
-        ctx.authData.organizationId,
-        readModelService
-      );
 
       const { eService: createdEService, events } = await innerCreateEService(
         {
@@ -3401,7 +3378,7 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
-            instanceLabel,
+            instanceLabel: seed.instanceLabel,
           },
         },
         readModelService,
